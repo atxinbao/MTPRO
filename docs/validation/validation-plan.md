@@ -78,6 +78,19 @@
 - Focused test: `testGH811OperationalRunSessionStorePersistsLifecycleAndRejectsInvalidTransitions`
 - Boundary: GH-811 只新增 `.local/mtpro/runs/<runID>/session.json`、`session_events.jsonl` 和 `session_status.json` lifecycle persistence；invalid transition 必须 fail closed，recovery 必须保留 prior event history；不启动 runtime、不读取 secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-812 Release v0.8.0 EventLogWriter Crash Recovery Validation
+
+- `GH-812-VERIFY-V080-EVENT-LOG-WRITER-CRASH-RECOVERY`
+- `TVM-RELEASE-V080-EVENT-LOG-WRITER-CRASH-RECOVERY`
+- `V080-006-EVENT-LOG-WRITER-CRASH-RECOVERY`
+- `V080-006-EVENT-SCHEMA-VERSION`
+- `V080-006-CORRUPTED-LINE-QUARANTINE`
+- `V080-006-NO-COMPACTION-POLICY`
+- `V080-006-DUPLICATE-RUN-EVENT-FAILS-CLOSED`
+- Required command: `bash checks/verify-v0.8.0-event-log-writer-crash-recovery.sh`
+- Focused test: `testGH812RuntimeEventLogWriterHardensCrashRecoverySchemaQuarantineAndCompactionPolicy`
+- Boundary: GH-812 只加固本地 `events.jsonl` crash recovery、schema version、duplicate rejection、complete corrupt line quarantine 和 append-only no-compaction policy；不连接 endpoint / broker、不读取 secret、不提交 testnet 或 production order、不授权 production cutover。
+
 ## Unified Entry
 
 ```bash

@@ -498,11 +498,13 @@ public struct ReleaseV070RuntimeEventLogEvent: Codable, Equatable, Sendable {
 
 /// ReleaseV070RuntimeEventLogRecord 是 GH-784 `events.jsonl` 的单行 runtime append record。
 public struct ReleaseV070RuntimeEventLogRecord: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.8.0.runtime-event-log-record.v1"
     public static let genesisLineChecksum = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
 
     public let issueID: Identifier
     public let upstreamIssueIDs: [Identifier]
     public let releaseVersion: String
+    public let schemaVersion: String
     public let runID: Identifier
     public let sequence: Int
     public let eventID: Identifier
@@ -517,11 +519,32 @@ public struct ReleaseV070RuntimeEventLogRecord: Codable, Equatable, Sendable {
     public let realOrderAuthorizationEnabled: Bool
     public let productionCutoverAuthorized: Bool
 
+    private enum CodingKeys: String, CodingKey {
+        case issueID
+        case upstreamIssueIDs
+        case releaseVersion
+        case schemaVersion
+        case runID
+        case sequence
+        case eventID
+        case payloadJSON
+        case eventChecksum
+        case previousLineChecksum
+        case lineChecksum
+        case createdAt
+        case productionTradingEnabledByDefault
+        case productionSecretResolutionEnabled
+        case productionEndpointConnectionEnabled
+        case realOrderAuthorizationEnabled
+        case productionCutoverAuthorized
+    }
+
     public var recordHeld: Bool {
         let expectedEventChecksum = ReleaseV060LocalRunJournalWriter.sha256Hex(Data(payloadJSON.utf8))
         return issueID.rawValue == "GH-784"
             && upstreamIssueIDs.map(\.rawValue) == ["GH-783", "GH-756"]
             && releaseVersion == "v0.7.0"
+            && schemaVersion == Self.schemaVersion
             && runID.rawValue.isEmpty == false
             && sequence > 0
             && eventID.rawValue.isEmpty == false
@@ -548,6 +571,7 @@ public struct ReleaseV070RuntimeEventLogRecord: Codable, Equatable, Sendable {
         issueID: Identifier = Identifier.constant("GH-784"),
         upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-783"), Identifier.constant("GH-756")],
         releaseVersion: String = "v0.7.0",
+        schemaVersion: String = Self.schemaVersion,
         runID: Identifier,
         sequence: Int,
         eventID: Identifier,
@@ -577,6 +601,7 @@ public struct ReleaseV070RuntimeEventLogRecord: Codable, Equatable, Sendable {
         self.issueID = issueID
         self.upstreamIssueIDs = upstreamIssueIDs
         self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
         self.runID = runID
         self.sequence = sequence
         self.eventID = event.eventID
@@ -598,6 +623,27 @@ public struct ReleaseV070RuntimeEventLogRecord: Codable, Equatable, Sendable {
                 actual: "record held false"
             )
         }
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        issueID = try container.decode(Identifier.self, forKey: .issueID)
+        upstreamIssueIDs = try container.decode([Identifier].self, forKey: .upstreamIssueIDs)
+        releaseVersion = try container.decode(String.self, forKey: .releaseVersion)
+        schemaVersion = try container.decodeIfPresent(String.self, forKey: .schemaVersion) ?? Self.schemaVersion
+        runID = try container.decode(Identifier.self, forKey: .runID)
+        sequence = try container.decode(Int.self, forKey: .sequence)
+        eventID = try container.decode(Identifier.self, forKey: .eventID)
+        payloadJSON = try container.decode(String.self, forKey: .payloadJSON)
+        eventChecksum = try container.decode(String.self, forKey: .eventChecksum)
+        previousLineChecksum = try container.decode(String.self, forKey: .previousLineChecksum)
+        lineChecksum = try container.decode(String.self, forKey: .lineChecksum)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        productionSecretResolutionEnabled = try container.decode(Bool.self, forKey: .productionSecretResolutionEnabled)
+        productionEndpointConnectionEnabled = try container.decode(Bool.self, forKey: .productionEndpointConnectionEnabled)
+        realOrderAuthorizationEnabled = try container.decode(Bool.self, forKey: .realOrderAuthorizationEnabled)
+        productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
     }
 
     public static func computeLineChecksum(
@@ -672,6 +718,197 @@ public struct ReleaseV070RuntimeEventLogValidation: Codable, Equatable, Sendable
             && eventChecksumValidationPassed
             && previousLineChecksumValidationPassed
             && writePolicy.policyHeld
+    }
+}
+
+/// ReleaseV080RuntimeEventLogCrashRecoveryPolicy 固定 GH-812 的本地 crash recovery 加固合同。
+///
+/// Policy 在 GH-784 的 append-only JSONL writer 上补充 schema version、corrupted-line
+/// quarantine 和 no-compaction 边界。它只描述本地 evidence 文件处理，不授权 endpoint、
+/// broker、OMS production runtime 或订单能力。
+public struct ReleaseV080RuntimeEventLogCrashRecoveryPolicy: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.8.0.event-log-writer-crash-recovery-policy.v1"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let eventRecordSchemaVersion: String
+    public let partialLineRecoveryPolicy: String
+    public let corruptedLineQuarantinePolicy: String
+    public let compactionPolicy: String
+    public let duplicateRunIDRejected: Bool
+    public let duplicateEventIDRejected: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretResolutionEnabled: Bool
+    public let productionEndpointConnectionEnabled: Bool
+    public let realOrderAuthorizationEnabled: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var policyHeld: Bool {
+        issueID.rawValue == "GH-812"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-784", "GH-811"]
+            && releaseVersion == "v0.8.0"
+            && schemaVersion == Self.schemaVersion
+            && eventRecordSchemaVersion == ReleaseV070RuntimeEventLogRecord.schemaVersion
+            && partialLineRecoveryPolicy == "truncate-partial-line-before-append"
+            && corruptedLineQuarantinePolicy == "quarantine-complete-corrupted-lines-without-silent-loss"
+            && compactionPolicy == "append-only-no-compaction-v0.8.0"
+            && duplicateRunIDRejected
+            && duplicateEventIDRejected
+            && productionTradingEnabledByDefault == false
+            && productionSecretResolutionEnabled == false
+            && productionEndpointConnectionEnabled == false
+            && realOrderAuthorizationEnabled == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-812"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-784"), Identifier.constant("GH-811")],
+        releaseVersion: String = "v0.8.0",
+        schemaVersion: String = Self.schemaVersion,
+        eventRecordSchemaVersion: String = ReleaseV070RuntimeEventLogRecord.schemaVersion,
+        partialLineRecoveryPolicy: String = "truncate-partial-line-before-append",
+        corruptedLineQuarantinePolicy: String = "quarantine-complete-corrupted-lines-without-silent-loss",
+        compactionPolicy: String = "append-only-no-compaction-v0.8.0",
+        duplicateRunIDRejected: Bool = true,
+        duplicateEventIDRejected: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretResolutionEnabled: Bool = false,
+        productionEndpointConnectionEnabled: Bool = false,
+        realOrderAuthorizationEnabled: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.eventRecordSchemaVersion = eventRecordSchemaVersion
+        self.partialLineRecoveryPolicy = partialLineRecoveryPolicy
+        self.corruptedLineQuarantinePolicy = corruptedLineQuarantinePolicy
+        self.compactionPolicy = compactionPolicy
+        self.duplicateRunIDRejected = duplicateRunIDRejected
+        self.duplicateEventIDRejected = duplicateEventIDRejected
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretResolutionEnabled = productionSecretResolutionEnabled
+        self.productionEndpointConnectionEnabled = productionEndpointConnectionEnabled
+        self.realOrderAuthorizationEnabled = realOrderAuthorizationEnabled
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard policyHeld else {
+            throw ReleaseV070RuntimeEventLogWriterError.lineChecksumMismatch(
+                eventID: issueID.rawValue,
+                expected: "GH-812 crash recovery policy held",
+                actual: "policy drift"
+            )
+        }
+    }
+}
+
+/// ReleaseV080RuntimeEventLogQuarantineLine 是 GH-812 `events.jsonl.quarantine` 的单行证据。
+public struct ReleaseV080RuntimeEventLogQuarantineLine: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.8.0.event-log-writer-quarantine-line.v1"
+
+    public let issueID: Identifier
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let runID: Identifier
+    public let originalLineNumber: Int
+    public let originalLine: String
+    public let quarantineReason: String
+    public let quarantineChecksum: String
+
+    public var lineHeld: Bool {
+        issueID.rawValue == "GH-812"
+            && releaseVersion == "v0.8.0"
+            && schemaVersion == Self.schemaVersion
+            && runID.rawValue.isEmpty == false
+            && originalLineNumber > 0
+            && originalLine.isEmpty == false
+            && quarantineReason.isEmpty == false
+            && quarantineChecksum == Self.stableQuarantineChecksum(
+                runID: runID,
+                originalLineNumber: originalLineNumber,
+                originalLine: originalLine,
+                quarantineReason: quarantineReason
+            )
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-812"),
+        releaseVersion: String = "v0.8.0",
+        schemaVersion: String = Self.schemaVersion,
+        runID: Identifier,
+        originalLineNumber: Int,
+        originalLine: String,
+        quarantineReason: String,
+        quarantineChecksum: String? = nil
+    ) throws {
+        self.issueID = issueID
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.runID = runID
+        self.originalLineNumber = originalLineNumber
+        self.originalLine = originalLine
+        self.quarantineReason = quarantineReason
+        self.quarantineChecksum = quarantineChecksum ?? Self.stableQuarantineChecksum(
+            runID: runID,
+            originalLineNumber: originalLineNumber,
+            originalLine: originalLine,
+            quarantineReason: quarantineReason
+        )
+
+        guard lineHeld else {
+            throw ReleaseV070RuntimeEventLogWriterError.invalidEventLine(
+                path: "events.jsonl.quarantine",
+                lineNumber: originalLineNumber
+            )
+        }
+    }
+
+    public static func stableQuarantineChecksum(
+        runID: Identifier,
+        originalLineNumber: Int,
+        originalLine: String,
+        quarantineReason: String
+    ) -> String {
+        ReleaseV060LocalRunJournalWriter.sha256Hex(
+            Data([
+                "GH-812",
+                "v0.8.0",
+                Self.schemaVersion,
+                runID.rawValue,
+                String(originalLineNumber),
+                originalLine,
+                quarantineReason
+            ].joined(separator: "|").utf8)
+        )
+    }
+}
+
+/// ReleaseV080RuntimeEventLogQuarantineResult 汇总 GH-812 corrupted-line quarantine 结果。
+public struct ReleaseV080RuntimeEventLogQuarantineResult: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let runID: Identifier
+    public let eventsJSONLPath: String
+    public let quarantineJSONLPath: String
+    public let originalLineCount: Int
+    public let retainedLineCount: Int
+    public let quarantinedLineCount: Int
+    public let quarantinedLineChecksums: [String]
+    public let crashRecoveryPolicy: ReleaseV080RuntimeEventLogCrashRecoveryPolicy
+
+    public var resultHeld: Bool {
+        issueID.rawValue == "GH-812"
+            && runID.rawValue.isEmpty == false
+            && eventsJSONLPath.hasSuffix("events.jsonl")
+            && quarantineJSONLPath.hasSuffix("events.jsonl.quarantine")
+            && originalLineCount >= retainedLineCount
+            && originalLineCount == retainedLineCount + quarantinedLineCount
+            && quarantinedLineChecksums.count == quarantinedLineCount
+            && quarantinedLineChecksums.allSatisfy { $0.hasPrefix("sha256:") }
+            && crashRecoveryPolicy.policyHeld
     }
 }
 
@@ -944,6 +1181,80 @@ public struct ReleaseV060LocalRunJournalWriter {
         return validation
     }
 
+    @discardableResult
+    public func quarantineCorruptedRuntimeEventLogLines(
+        runID: Identifier
+    ) throws -> ReleaseV080RuntimeEventLogQuarantineResult {
+        guard runID.rawValue.isEmpty == false else {
+            throw ReleaseV070RuntimeEventLogWriterError.emptyRunID
+        }
+        let urls = artifactURLs(runID: runID)
+        try ensureWritableRunDirectory(urls.runDirectoryURL)
+        return try withRuntimeAppendLock(for: urls.runDirectoryURL) {
+            guard fileManager.fileExists(atPath: urls.eventsURL.path) else {
+                let policy = try ReleaseV080RuntimeEventLogCrashRecoveryPolicy()
+                return ReleaseV080RuntimeEventLogQuarantineResult(
+                    issueID: Identifier.constant("GH-812"),
+                    runID: runID,
+                    eventsJSONLPath: urls.eventsURL.path,
+                    quarantineJSONLPath: quarantineURL(for: urls.eventsURL).path,
+                    originalLineCount: 0,
+                    retainedLineCount: 0,
+                    quarantinedLineCount: 0,
+                    quarantinedLineChecksums: [],
+                    crashRecoveryPolicy: policy
+                )
+            }
+
+            let contents = try String(contentsOf: urls.eventsURL, encoding: .utf8)
+            let lines = contents.split(separator: "\n", omittingEmptySubsequences: true).map(String.init)
+            var retainedRecords: [ReleaseV070RuntimeEventLogRecord] = []
+            var quarantineLines: [ReleaseV080RuntimeEventLogQuarantineLine] = []
+
+            for (index, line) in lines.enumerated() {
+                do {
+                    let record = try Self.decodeRuntimeRecordLine(line)
+                    try validateRuntimeRecords(retainedRecords + [record], runID: runID, path: urls.eventsURL.path)
+                    retainedRecords.append(record)
+                } catch {
+                    let quarantineLine = try ReleaseV080RuntimeEventLogQuarantineLine(
+                        runID: runID,
+                        originalLineNumber: index + 1,
+                        originalLine: line,
+                        quarantineReason: "decode-or-checksum-chain-validation-failed"
+                    )
+                    quarantineLines.append(quarantineLine)
+                }
+            }
+
+            try rewriteRuntimeRecordLines(retainedRecords, to: urls.eventsURL)
+            if quarantineLines.isEmpty == false {
+                try appendQuarantineLines(quarantineLines, to: quarantineURL(for: urls.eventsURL))
+            }
+            try validateRuntimeRecords(retainedRecords, runID: runID, path: urls.eventsURL.path)
+            let policy = try ReleaseV080RuntimeEventLogCrashRecoveryPolicy()
+            let result = ReleaseV080RuntimeEventLogQuarantineResult(
+                issueID: Identifier.constant("GH-812"),
+                runID: runID,
+                eventsJSONLPath: urls.eventsURL.path,
+                quarantineJSONLPath: quarantineURL(for: urls.eventsURL).path,
+                originalLineCount: lines.count,
+                retainedLineCount: retainedRecords.count,
+                quarantinedLineCount: quarantineLines.count,
+                quarantinedLineChecksums: quarantineLines.map(\.quarantineChecksum),
+                crashRecoveryPolicy: policy
+            )
+            guard result.resultHeld else {
+                throw ReleaseV070RuntimeEventLogWriterError.lineChecksumMismatch(
+                    eventID: runID.rawValue,
+                    expected: "GH-812 quarantine result held",
+                    actual: "quarantine result drift"
+                )
+            }
+            return result
+        }
+    }
+
     private func writeTerminalStatus(
         runID: Identifier,
         state: ReleaseV060LocalRunJournalWriterState,
@@ -1023,6 +1334,45 @@ public struct ReleaseV060LocalRunJournalWriter {
         try handle.seekToEnd()
         for record in records {
             try handle.write(contentsOf: Data((Self.encodeRuntimeRecordLine(record) + "\n").utf8))
+        }
+        handle.synchronizeFile()
+    }
+
+    private func rewriteRuntimeRecordLines(
+        _ records: [ReleaseV070RuntimeEventLogRecord],
+        to url: URL
+    ) throws {
+        if fileManager.fileExists(atPath: url.path) == false {
+            fileManager.createFile(atPath: url.path, contents: nil)
+        }
+        let handle = try FileHandle(forWritingTo: url)
+        defer {
+            try? handle.close()
+        }
+        try handle.truncate(atOffset: 0)
+        for record in records {
+            try handle.write(contentsOf: Data((Self.encodeRuntimeRecordLine(record) + "\n").utf8))
+        }
+        handle.synchronizeFile()
+    }
+
+    private func appendQuarantineLines(
+        _ lines: [ReleaseV080RuntimeEventLogQuarantineLine],
+        to url: URL
+    ) throws {
+        if fileManager.fileExists(atPath: url.path) == false {
+            fileManager.createFile(atPath: url.path, contents: nil)
+        }
+        let handle = try FileHandle(forWritingTo: url)
+        defer {
+            try? handle.close()
+        }
+        try handle.seekToEnd()
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        for line in lines {
+            try handle.write(contentsOf: encoder.encode(line))
+            try handle.write(contentsOf: Data("\n".utf8))
         }
         handle.synchronizeFile()
     }
@@ -1130,6 +1480,10 @@ public struct ReleaseV060LocalRunJournalWriter {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode(ReleaseV070RuntimeEventLogRecord.self, from: Data(line.utf8))
+    }
+
+    private func quarantineURL(for eventsURL: URL) -> URL {
+        eventsURL.deletingLastPathComponent().appendingPathComponent("events.jsonl.quarantine")
     }
 
     private func ensureWritableRunDirectory(_ url: URL) throws {

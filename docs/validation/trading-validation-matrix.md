@@ -94,6 +94,24 @@
 - recovery coverage: recovered sessions preserve prior event history and recovery reason.
 - forbidden scope: no runtime start, no endpoint connection, no broker connection, no ExecutionClient order path, no testnet order submission, no production trading, no production secret read, no production cutover.
 
+## TVM-RELEASE-V080-EVENT-LOG-WRITER-CRASH-RECOVERY
+
+- TVM-RELEASE-V080-EVENT-LOG-WRITER-CRASH-RECOVERY
+- GH-812-VERIFY-V080-EVENT-LOG-WRITER-CRASH-RECOVERY
+- V080-006-EVENT-LOG-WRITER-CRASH-RECOVERY
+- V080-006-EVENT-SCHEMA-VERSION
+- V080-006-CORRUPTED-LINE-QUARANTINE
+- V080-006-NO-COMPACTION-POLICY
+- V080-006-DUPLICATE-RUN-EVENT-FAILS-CLOSED
+- GH-812 Release v0.8.0 EventLogWriter Crash Recovery Validation
+- testGH812RuntimeEventLogWriterHardensCrashRecoverySchemaQuarantineAndCompactionPolicy
+- event schema: runtime `events.jsonl` records carry explicit schema version.
+- multi-batch append: checksum chain remains valid across multiple append batches.
+- duplicate protection: duplicate event IDs are rejected from existing log and same batch; duplicate run evidence remains runID-bound.
+- recovery evidence: partial line truncation stays deterministic; complete corrupted lines are written to `events.jsonl.quarantine` without silent loss.
+- compaction policy: append-only no-compaction for v0.8.0.
+- forbidden scope: no distributed log service, no broker event ingestion, no production persistence cutover, no production endpoint / broker connection, no production secret read, no real order, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。
