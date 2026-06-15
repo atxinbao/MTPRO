@@ -51,6 +51,19 @@
 - Focused test: `testGH809RunRegistryStorePersistsRegistryJSONChecksumAndFailClosedStates`
 - Boundary: GH-809 只新增 `.local/mtpro/runs/registry.json` persistent local run registry store、registry lock、checksum、list / inspect / archive / recover 和 fail-closed failure states；不启动 runtime、不读取 secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-810 Release v0.8.0 CLI Local Session Action Validation
+
+- `GH-810-VERIFY-V080-CLI-LOCAL-SESSION`
+- `TVM-RELEASE-V080-CLI-LOCAL-SESSION`
+- `V080-004-CLI-LOCAL-SESSION-ACTIONS`
+- `V080-004-RUN-CREATES-LOCAL-ARTIFACTS`
+- `V080-004-STATUS-READS-REGISTRY`
+- `V080-004-STOP-RECOVER-LOCAL-ONLY`
+- `V080-004-NO-ENDPOINT-BROKER-ORDER-PATH`
+- Required command: `bash checks/verify-v0.8.0-cli-local-session.sh`
+- Focused test: `testGH810TopLevelCLICreatesAndMutatesPersistentLocalSessionArtifacts`
+- Boundary: GH-810 只把 `mtpro run --mode dry-run`、`mtpro status`、`mtpro stop` 和 `mtpro recover` 绑定到本地 persistent no-order session artifact；不读取 secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## Unified Entry
 
 ```bash

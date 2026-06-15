@@ -8490,6 +8490,130 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH810TopLevelCLICreatesAndMutatesPersistentLocalSessionArtifacts() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let cliSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift"),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.8.0-cli-local-session.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let gitignore = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(".gitignore"),
+            encoding: .utf8
+        )
+
+        let requiredAnchors = [
+            "GH-810-VERIFY-V080-CLI-LOCAL-SESSION",
+            "TVM-RELEASE-V080-CLI-LOCAL-SESSION",
+            "V080-004-CLI-LOCAL-SESSION-ACTIONS",
+            "V080-004-RUN-CREATES-LOCAL-ARTIFACTS",
+            "V080-004-STATUS-READS-REGISTRY",
+            "V080-004-STOP-RECOVER-LOCAL-ONLY",
+            "V080-004-NO-ENDPOINT-BROKER-ORDER-PATH"
+        ]
+
+        for anchor in requiredAnchors {
+            XCTAssertTrue(
+                [
+                    cliSource,
+                    verificationScript,
+                    readinessScript,
+                    contractDoc,
+                    validationPlan,
+                    tradingMatrix,
+                    automationReadiness
+                ].contains { $0.contains(anchor) },
+                "\(anchor) must stay wired into GH-810 CLI local session evidence chain"
+            )
+        }
+
+        for requiredCLISource in [
+            "ReleaseV080CLILocalSessionBinder",
+            "MTPRO_LOCAL_RUNS_ROOT",
+            "mtpro stop local-no-order-session",
+            "mtpro recover local-no-order-session",
+            "_RUN_STATUS.json",
+            "events.jsonl",
+            "manifest.json",
+            "registry.json",
+            "ReleaseV080RunRegistryStore",
+            "appendRuntimeEvents",
+            "canonicalNow()",
+            "stopOutput(arguments: arguments)",
+            "recoverOutput(arguments: arguments)",
+            "persistentLocalSessionContract=v0.8.0"
+        ] {
+            XCTAssertTrue(cliSource.contains(requiredCLISource), "CLI source must contain \(requiredCLISource)")
+        }
+
+        for requiredScriptAnchor in [
+            #"swift run mtpro run --mode dry-run --run-id "$RUN_ID""#,
+            #"swift run mtpro status "$RUN_ID""#,
+            #"swift run mtpro stop "$RUN_ID""#,
+            #"swift run mtpro recover "$RUN_ID" --reason operator-reviewed"#,
+            "MTPRO_LOCAL_RUNS_ROOT",
+            #"test -f "$RUNS_ROOT/registry.json""#
+        ] {
+            XCTAssertTrue(verificationScript.contains(requiredScriptAnchor), "verification script must contain \(requiredScriptAnchor)")
+        }
+
+        XCTAssertTrue(gitignore.contains(".local/"))
+        XCTAssertTrue(packageSource.contains(#""DomainModel", "Database", "DataClient", "Portfolio""#))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-cli-local-session.sh"))
+        XCTAssertTrue(readinessScript.contains("GH-810-VERIFY-V080-CLI-LOCAL-SESSION"))
+
+        for forbiddenAuthorization in [
+            "api.binance.com",
+            "fapi.binance.com",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true"
+        ] {
+            XCTAssertFalse(cliSource.contains(forbiddenAuthorization), "CLI local session must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

@@ -8,6 +8,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT"
 
+RUNS_ROOT="$(mktemp -d)"
+trap 'rm -rf "$RUNS_ROOT"' EXIT
+export MTPRO_LOCAL_RUNS_ROOT="$RUNS_ROOT"
+
 require_output_contains() {
   local output="$1"
   local expected="$2"
@@ -56,7 +60,7 @@ swift test --filter TargetGraphTests/testGH727StrictCLICommandParserRejectsUnkno
 
 help_output="$(swift run mtpro help)"
 require_output_contains "$help_output" "mtpro help"
-require_output_contains "$help_output" "commands=help,run,status,verify,rehearsal-status,unified-run-status,run-observer,run-detail-observer,testnet-readonly-probe,verify-fast,verify-release"
+require_output_contains "$help_output" "commands=help,run,status,stop,recover,verify,rehearsal-status,unified-run-status,run-observer,run-detail-observer,testnet-readonly-probe,verify-fast,verify-release"
 require_output_contains "$help_output" "productionTradingEnabledByDefault=false"
 
 run_output="$(swift run mtpro run)"

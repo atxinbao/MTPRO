@@ -492,7 +492,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "MTPROCLI",
-            dependencies: ["Database", "DataClient", "Portfolio"],
+            dependencies: ["DomainModel", "Database", "DataClient", "Portfolio"],
             path: "Sources/MTPROCLI",
             sources: [
                 "main.swift"
