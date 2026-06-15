@@ -11193,6 +11193,212 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("productionCutoverAuthorized = true"))
     }
 
+    func testGH789LocalRiskPolicyConfigPersistsReplayablePolicyAndDecisionEvidence() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let riskEngineTarget = try packageTargetBlock(named: "RiskEngine", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/RiskEngine/LiveGate/ReleaseV070LocalRiskPolicyConfig.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verifierScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.7.0-local-risk-policy-config.sh"),
+            encoding: .utf8
+        )
+
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH789-LocalRiskPolicyConfig-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+
+        let contract = try ReleaseV070LocalRiskPolicyConfigContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-789")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-783", "GH-761"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-788")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-790", "GH-791", "GH-792"])
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmissionEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+
+        let dataEngineResult = try await ReleaseV060DataEngineLocalDryRunRunner.deterministicEvidence(
+            storageRootURL: storageRoot
+        )
+        let strategyResult = try await ReleaseV060StrategyRuntimeRunner.deterministicEvidence(
+            dataEngineEnvelopes: dataEngineResult.journal.records.map(\.envelope)
+        )
+        let riskResult = try await ReleaseV060RiskEngineRuntimeRunner.deterministicEvidence(
+            upstreamJournalEnvelopes: strategyResult.journalCompatibleEnvelopes
+        )
+        let artifact = try ReleaseV070LocalRiskPolicyConfigBuilder.deterministicEvidence(
+            sourceRiskResult: riskResult
+        )
+
+        XCTAssertTrue(artifact.artifactHeld)
+        XCTAssertTrue(artifact.replayHeld)
+        XCTAssertTrue(artifact.killSwitchNoTradeBlockDownstreamHeld)
+        XCTAssertTrue(artifact.forbiddenBoundaryHeld)
+        XCTAssertEqual(artifact.issueID.rawValue, "GH-789")
+        XCTAssertEqual(artifact.runSession.runID, riskResult.runID)
+        XCTAssertTrue(artifact.runSession.evidenceHeld)
+        XCTAssertEqual(artifact.runSession.upstreamIssueID.rawValue, "GH-783")
+        XCTAssertEqual(artifact.runSession.sessionState, "completed")
+        XCTAssertEqual(artifact.sourceRiskResult, riskResult)
+        XCTAssertEqual(artifact.decisionRecords.map(\.scenario), ReleaseV070LocalRiskPolicyDecisionScenario.allCases)
+        XCTAssertEqual(artifact.policyEvaluations.map(\.decision), [.allowed, .rejected, .rejected, .blocked, .blocked])
+        XCTAssertEqual(artifact.policyEvaluations.map(\.reason), [
+            .dryRunAllowed,
+            .notionalLimitExceeded,
+            .aggregateExposureLimitExceeded,
+            .killSwitchActive,
+            .noTradeActive
+        ])
+        XCTAssertEqual(artifact.inspectablePolicyFields, [
+            "maxNotional",
+            "maxExposure",
+            "killSwitch",
+            "noTrade",
+            "allowedSymbols",
+            "allowedProductTypes"
+        ])
+        XCTAssertTrue(artifact.policyConfigs.allSatisfy(\.policyHeld))
+        XCTAssertTrue(artifact.policyConfigs.allSatisfy { $0.allowedSymbols.isEmpty == false })
+        XCTAssertTrue(artifact.policyConfigs.allSatisfy { $0.allowedProductTypes.isEmpty == false })
+        XCTAssertTrue(artifact.policyConfigs.contains { $0.killSwitchActive })
+        XCTAssertTrue(artifact.policyConfigs.contains { $0.noTradeActive })
+        XCTAssertTrue(artifact.decisionRecords.allSatisfy(\.recordHeld))
+        XCTAssertTrue(artifact.decisionRecords.allSatisfy(\.downstreamSuppressionHeld))
+        XCTAssertEqual(artifact.replayedDecisionRecords, artifact.decisionRecords)
+        XCTAssertTrue(artifact.decisionRecords.allSatisfy { $0.policyArtifactPath.contains("risk-policy") })
+        XCTAssertTrue(artifact.decisionRecords.allSatisfy { $0.decisionArtifactPath.contains("risk-policy") })
+        XCTAssertFalse(artifact.productionAccountDataRequired)
+        XCTAssertFalse(artifact.brokerMarginLeverageReadEnabled)
+        XCTAssertFalse(artifact.executionEngineBypassAllowed)
+        XCTAssertFalse(artifact.omsBypassAllowed)
+        XCTAssertFalse(artifact.executionClientAccessEnabled)
+        XCTAssertFalse(artifact.brokerGatewayAccessEnabled)
+        XCTAssertFalse(artifact.productionTradingEnabledByDefault)
+        XCTAssertFalse(artifact.productionSecretAutoReadEnabled)
+        XCTAssertFalse(artifact.productionEndpointConnected)
+        XCTAssertFalse(artifact.productionBrokerConnected)
+        XCTAssertFalse(artifact.productionOrderSubmitted)
+        XCTAssertFalse(artifact.productionCutoverAuthorized)
+
+        let firstInput = try XCTUnwrap(riskResult.intentInputs.first)
+        XCTAssertThrowsError(
+            try ReleaseV070LocalRiskPolicyConfig(
+                policyID: Identifier.constant("gh-789-invalid-limit"),
+                maxNotionalMinorUnits: 0,
+                maxExposureMinorUnits: 1,
+                allowedSymbols: [firstInput.intent.instrument.symbol],
+                allowedProductTypes: [firstInput.intent.instrument.productType]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070LocalRiskPolicyConfigError,
+                .invalidLimit(field: "maxNotionalMinorUnits", value: 0)
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV070LocalRiskPolicyConfig(
+                policyID: Identifier.constant("gh-789-production-account-read"),
+                maxNotionalMinorUnits: 1,
+                maxExposureMinorUnits: 1,
+                allowedSymbols: [firstInput.intent.instrument.symbol],
+                allowedProductTypes: [firstInput.intent.instrument.productType],
+                productionAccountDataRequired: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070LocalRiskPolicyConfigError,
+                .forbiddenProductionCapability("productionAccountDataRequired")
+            )
+        }
+        let disallowedProductType: ProductType = firstInput.intent.instrument.productType == .spot ? .usdsPerpetual : .spot
+        let disallowedConfig = try ReleaseV070LocalRiskPolicyConfig(
+            policyID: Identifier.constant("gh-789-disallowed-product-type"),
+            maxNotionalMinorUnits: Int64.max / 4,
+            maxExposureMinorUnits: Int64.max / 4,
+            allowedSymbols: [firstInput.intent.instrument.symbol],
+            allowedProductTypes: [disallowedProductType]
+        )
+        XCTAssertThrowsError(try disallowedConfig.evaluate(input: firstInput)) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070LocalRiskPolicyConfigError,
+                .disallowedProductType(firstInput.intent.instrument.productType.rawValue)
+            )
+        }
+
+        for anchor in ReleaseV070LocalRiskPolicyConfigContract.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-789 source")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(verifierScript.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        XCTAssertTrue(riskEngineTarget.contains("\"LiveGate\""))
+        XCTAssertFalse(riskEngineTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(riskEngineTarget.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(source.contains("ReleaseV070LocalRiskPolicyConfig"))
+        XCTAssertTrue(source.contains("ReleaseV070LocalRiskPolicyEvidenceArtifact"))
+        XCTAssertTrue(source.contains("maxNotionalMinorUnits"))
+        XCTAssertTrue(source.contains("maxExposureMinorUnits"))
+        XCTAssertTrue(source.contains("allowedSymbols"))
+        XCTAssertTrue(source.contains("allowedProductTypes"))
+        XCTAssertTrue(source.contains("ReleaseV050RiskEngineRuntimePolicy"))
+        XCTAssertTrue(source.contains("ReleaseV070LocalRiskPolicyRunSessionEvidence"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.7.0 local Risk policy config anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-789-VERIFY-V070-LOCAL-RISK-POLICY-CONFIG"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.7.0-local-risk-policy-config.sh"))
+        XCTAssertTrue(verifierScript.contains("testGH789LocalRiskPolicyConfigPersistsReplayablePolicyAndDecisionEvidence"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/account",
+            "/api/v3/order",
+            "/api/v3/userDataStream",
+            "listenKey",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "GH-789 source must not contain \(forbidden)")
+        }
+    }
+
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

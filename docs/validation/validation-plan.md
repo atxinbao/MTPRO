@@ -3382,6 +3382,23 @@ swift test
 - GH-786 signed account read-only probe 和 GH-787 private stream read-only probe status 必须以 redacted artifact status 可见；credential value、raw listenKey 和 raw private payload 不得显示。
 - Dashboard smoke 必须输出 `releaseV070RunOperations=2`、`releaseV070RunOperationControls=start,stop,recover`、`releaseV070RunOperationProbes=2` 和 `releaseV070RunOperationBoundary=confirmed`。
 - 禁止暴露 trading button、order form、live command、production command、submit / cancel / replace、broker endpoint、production endpoint、production secret auto-read、production trading 或 production cutover。
+
+## GH-789 Release v0.7.0 Local Risk Policy Config Validation
+
+- GH-789-VERIFY-V070-LOCAL-RISK-POLICY-CONFIG
+- TVM-RELEASE-V070-LOCAL-RISK-POLICY-CONFIG
+- V070-011-LOCAL-RISK-POLICY-FIELDS
+- V070-011-RISK-POLICY-ARTIFACTS-REPLAY
+- V070-011-KILL-SWITCH-NO-TRADE-BLOCKS-DOWNSTREAM
+- V070-011-ALLOWED-SYMBOLS-PRODUCT-TYPES
+- V070-011-NO-PRODUCTION-ACCOUNT-DATA
+- `bash checks/verify-v0.7.0-local-risk-policy-config.sh`
+- `testGH789LocalRiskPolicyConfigPersistsReplayablePolicyAndDecisionEvidence`
+- Local Risk policy config 必须显式持有 maxNotional、maxExposure、killSwitch、noTrade、allowedSymbols 和 allowedProductTypes。
+- Policy / decision artifact path 必须可 inspect，decision replay 必须等于原始持久化 records。
+- kill switch 和 no-trade scenario 必须产出 blocked risk decision，并证明 OMS、ExecutionClient、broker command 和 production account read 均未创建。
+- allowedSymbols / allowedProductTypes 必须拒绝不在本地 policy allowlist 内的 instrument。
+- 禁止读取 production account、broker margin / leverage、production secret、production endpoint / broker，禁止 submit / cancel / replace，禁止授权 production cutover。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS
