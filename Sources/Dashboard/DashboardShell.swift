@@ -470,6 +470,8 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
     public let subtitle: String
     public let readModelSurface: DashboardShellReadModelSurfaceSnapshot
     public let releaseV070RunOperationsSurface: ReleaseV070DashboardReadOnlyRunOperationsSurfaceViewModel
+    public let releaseV080TestnetMonitorSurface:
+        ReleaseV080DashboardTestnetReadOnlyMonitorSurfaceViewModel
     public let sections: [DashboardShellSectionSnapshot]
 
     public init(
@@ -481,19 +483,26 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         self.subtitle = subtitle
         self.readModelSurface = Self.makeReadModelSurfaceSnapshot(viewModel)
         self.releaseV070RunOperationsSurface = .deterministicFixture
+        self.releaseV080TestnetMonitorSurface = .deterministicFixture
         self.sections = viewModel.sections.map { section in
             Self.makeSectionSnapshot(for: section, viewModel: viewModel)
         }
     }
 
     public var viewModelSources: [ViewModelSourceContract] {
-        sections.map(\.source) + readModelSurface.viewModelSources + [releaseV070RunOperationsSurface.source]
+        sections.map(\.source)
+            + readModelSurface.viewModelSources
+            + [
+                releaseV070RunOperationsSurface.source,
+                releaseV080TestnetMonitorSurface.source
+            ]
     }
 
     public var isReadModelOnly: Bool {
         viewModelSources.allSatisfy(\.isReadModelOnly)
             && readModelSurface.readModelOnlyBoundaryHeld
             && releaseV070RunOperationsSurface.boundaryHeld
+            && releaseV080TestnetMonitorSurface.boundaryHeld
     }
 
     public var smokeSummary: String {
@@ -593,6 +602,18 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             "Boundary",
             in: releaseV070RunOperationsSurface.metrics
         )
+        let releaseV080TestnetMonitorRows = Self.metricValue(
+            "Testnet monitor rows",
+            in: releaseV080TestnetMonitorSurface.metrics
+        )
+        let releaseV080TestnetMonitorStates = Self.metricValue(
+            "Monitor states",
+            in: releaseV080TestnetMonitorSurface.metrics
+        )
+        let releaseV080TestnetMonitorBoundary = Self.metricValue(
+            "Boundary",
+            in: releaseV080TestnetMonitorSurface.metrics
+        )
         let reportMetrics = sections.first { $0.section == .report }?.metrics ?? []
         let paperRuntimeEvidence = Self.metricValue("Runtime", in: reportMetrics)
         let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
@@ -601,7 +622,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let releaseCommandSurface = Self.metricValue("Release commands", in: reportMetrics)
         let releaseV020DashboardSurface = Self.metricValue("Release v0.2 dashboard", in: reportMetrics)
         let releaseKillSwitch = Self.metricValue("Release kill switch", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); releaseLiveMonitoringSurface=\(releaseLiveMonitoringSurface); releaseCommandSurface=\(releaseCommandSurface); releaseV020DashboardSurface=\(releaseV020DashboardSurface); releaseKillSwitch=\(releaseKillSwitch); releaseV070RunOperations=\(releaseV070RunOperations); releaseV070RunOperationControls=\(releaseV070RunOperationControls); releaseV070RunOperationProbes=\(releaseV070RunOperationProbes); releaseV070RunOperationBoundary=\(releaseV070RunOperationBoundary); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); releaseLiveMonitoringSurface=\(releaseLiveMonitoringSurface); releaseCommandSurface=\(releaseCommandSurface); releaseV020DashboardSurface=\(releaseV020DashboardSurface); releaseKillSwitch=\(releaseKillSwitch); releaseV070RunOperations=\(releaseV070RunOperations); releaseV070RunOperationControls=\(releaseV070RunOperationControls); releaseV070RunOperationProbes=\(releaseV070RunOperationProbes); releaseV070RunOperationBoundary=\(releaseV070RunOperationBoundary); releaseV080TestnetMonitorRows=\(releaseV080TestnetMonitorRows); releaseV080TestnetMonitorStates=\(releaseV080TestnetMonitorStates); releaseV080TestnetMonitorBoundary=\(releaseV080TestnetMonitorBoundary); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -2088,6 +2109,7 @@ public struct DashboardShellView: View {
 
                 DashboardReadModelSurfacePanel(readModelSurface: snapshot.readModelSurface)
                 DashboardReleaseV070RunOperationsPanel(surface: snapshot.releaseV070RunOperationsSurface)
+                DashboardReleaseV080TestnetMonitorPanel(surface: snapshot.releaseV080TestnetMonitorSurface)
 
                 LazyVGrid(
                     columns: [
@@ -2141,6 +2163,20 @@ private struct DashboardReleaseV070RunOperationsPanel: View {
             details: surface.details
         )
         .help("Read-only local run operations and testnet probe status; no order or production command")
+    }
+}
+
+private struct DashboardReleaseV080TestnetMonitorPanel: View {
+    let surface: ReleaseV080DashboardTestnetReadOnlyMonitorSurfaceViewModel
+
+    var body: some View {
+        DashboardReadModelDetailGroup(
+            title: "Release v0.8 Testnet Monitor",
+            systemImage: "waveform.path.ecg.rectangle",
+            metrics: surface.metrics,
+            details: surface.details
+        )
+        .help("Read-only Binance testnet account and private-stream monitor status; no order or production command")
     }
 }
 

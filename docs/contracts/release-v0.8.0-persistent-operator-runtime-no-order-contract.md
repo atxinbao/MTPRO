@@ -161,6 +161,27 @@ Required anchors：
 
 CI 只验证 deterministic mock source artifact、redaction、合同字段、executionReport command path rejection 和 no-order boundary；CI 不读取真实 credential value，不要求 network，不把手动 proof 升级为 deterministic CI proof。GH-814 artifact 不保存 raw listenKey、raw private payload、API key、secret、production endpoint、broker state、executionReport command、order request、testnet submit / cancel / replace 或 production cutover authorization。
 
+## V080-009-DASHBOARD-TESTNET-READONLY-MONITOR-SURFACE
+
+`V080-009-DASHBOARD-TESTNET-READONLY-MONITOR-SURFACE`
+
+GH-815 将 GH-813 signed account proof 和 GH-814 private stream monitoring proof 的 Dashboard-safe 摘要展示为只读 monitor surface。Dashboard 可以展示 account snapshot freshness、private stream freshness、listenKey lifecycle、last observed event、stale / disconnected / recovered state、credential redaction status 和 listenKey redaction status，但不得显示 credential value、raw listenKey、raw private payload、runtime object、adapter request、transport request、broker state 或订单命令。
+
+Required anchors：
+
+- `GH-815-VERIFY-V080-DASHBOARD-TESTNET-READONLY-MONITOR`
+- `TVM-RELEASE-V080-DASHBOARD-TESTNET-READONLY-MONITOR`
+- `V080-009-ACCOUNT-SNAPSHOT-FRESHNESS`
+- `V080-009-PRIVATE-STREAM-FRESHNESS`
+- `V080-009-LISTENKEY-LIFECYCLE-VISIBLE`
+- `V080-009-STALE-DISCONNECTED-RECOVERED-STATES`
+- `V080-009-CREDENTIAL-LISTENKEY-REDACTION-STATUS`
+- `V080-009-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND`
+- `V080-009-NO-TESTNET-ORDER-ROUTING`
+- `V080-009-NO-PRODUCTION-CUTOVER`
+
+Dashboard target 必须继续消费 App / Dashboard 层 read model，不得新增 DataClient target dependency，不得直接调用 Binance signed account runtime、private stream runtime、credential provider、listenKey lifecycle transport、WebSocket event source 或 endpoint URL。CI 只验证 deterministic read model / ViewModel contract、smoke summary、文档锚点和 no-order boundary；CI 不读取真实 credential value，不要求 network，不连接 testnet / production endpoint，不提交 testnet 或 production order，不授权 production cutover。
+
 ## V080-001-TESTNET-READONLY-MONITORING
 
 `V080-001-TESTNET-READONLY-MONITORING`
