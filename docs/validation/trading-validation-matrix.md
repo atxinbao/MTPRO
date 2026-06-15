@@ -1368,3 +1368,17 @@
 - credential boundary: key / secret value is resolved only by provider at artifact call time and never persisted or displayed
 - mode separation: deterministic fixture mode and network read-only mode stay distinct in configuration / artifact evidence
 - forbidden scope: no production host, no order endpoint, no submit / cancel / replace, no production secret auto-read, no broker endpoint, no production cutover
+- TVM-RELEASE-V070-TESTNET-PRIVATE-STREAM-READONLY-PROBE
+- GH-787-VERIFY-V070-TESTNET-PRIVATE-STREAM-READONLY-PROBE
+- V070-009-OPERATOR-CONFIRMED-TESTNET-PRIVATE-STREAM-READONLY-PROBE
+- V070-009-LISTENKEY-LIFECYCLE-OPEN-OBSERVE-CLOSE
+- V070-009-LISTENKEY-AND-CREDENTIAL-REDACTION
+- V070-009-ACCOUNT-POSITION-BALANCE-READMODEL-EVIDENCE
+- V070-009-EXECUTIONREPORT-COMMAND-PATH-REJECTION
+- V070-009-NO-ORDER-NO-PRODUCTION-BOUNDARY
+- GH-787 Release v0.7.0 Testnet Private Stream Read-only Probe Validation
+- testGH787TestnetPrivateStreamReadOnlyProbeOpensObservesAndClosesRedactedListenKey
+- operator gate: explicit profile、credential reference、canonical Binance Spot testnet REST / stream endpoint 和 confirmation id are required
+- listenKey lifecycle: open / observe / close evidence is persisted with redacted reference only; raw listenKey is not persisted or displayed
+- read-model evidence: private stream frames map to account / position / balance read model only
+- forbidden scope: no executionReport command path, no production host, no submit / cancel / replace, no production secret auto-read, no broker endpoint, no production cutover

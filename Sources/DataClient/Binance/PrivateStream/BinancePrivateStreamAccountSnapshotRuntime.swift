@@ -116,10 +116,14 @@ public struct BinancePrivateStreamRuntimeConfiguration: Equatable, Sendable {
         let resolvedStreamBaseURL = try streamBaseURL ?? Self.defaultTestnetStreamBaseURL()
         try Self.validate(baseURL: resolvedRestBaseURL)
         try Self.validate(baseURL: resolvedStreamBaseURL)
-        if resolvedRestBaseURL.host?.lowercased() == "api.binance.com"
-            || resolvedStreamBaseURL.host?.lowercased() == "stream.binance.com" {
+        if resolvedRestBaseURL.host?.lowercased() == "api.binance.com" {
             throw BinancePrivateStreamRuntimeError.productionEndpointForbidden(
-                resolvedRestBaseURL.host ?? resolvedStreamBaseURL.host ?? "production"
+                resolvedRestBaseURL.host ?? "api.binance.com"
+            )
+        }
+        if resolvedStreamBaseURL.host?.lowercased() == "stream.binance.com" {
+            throw BinancePrivateStreamRuntimeError.productionEndpointForbidden(
+                resolvedStreamBaseURL.host ?? "stream.binance.com"
             )
         }
         guard staleAfterSeconds > 0 else {

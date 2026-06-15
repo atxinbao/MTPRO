@@ -3346,6 +3346,23 @@ swift test
 - Credential value 只能由 provider 在 artifact 调用时短生命周期解析；artifact / Dashboard / CLI 不保存或显示 key / secret value。
 - deterministic fixture mode 和 network read-only mode 必须在 contract / artifact 中显式分离。
 - Production hosts、order endpoint path、submit / cancel / replace、broker endpoint、production secret auto-read 和 production cutover 必须被拒绝或保持 false。
+
+## GH-787 Release v0.7.0 Testnet Private Stream Read-only Probe Validation
+
+- GH-787-VERIFY-V070-TESTNET-PRIVATE-STREAM-READONLY-PROBE
+- TVM-RELEASE-V070-TESTNET-PRIVATE-STREAM-READONLY-PROBE
+- V070-009-OPERATOR-CONFIRMED-TESTNET-PRIVATE-STREAM-READONLY-PROBE
+- V070-009-LISTENKEY-LIFECYCLE-OPEN-OBSERVE-CLOSE
+- V070-009-LISTENKEY-AND-CREDENTIAL-REDACTION
+- V070-009-ACCOUNT-POSITION-BALANCE-READMODEL-EVIDENCE
+- V070-009-EXECUTIONREPORT-COMMAND-PATH-REJECTION
+- V070-009-NO-ORDER-NO-PRODUCTION-BOUNDARY
+- `bash checks/verify-v0.7.0-testnet-private-stream-readonly-probe.sh`
+- `testGH787TestnetPrivateStreamReadOnlyProbeOpensObservesAndClosesRedactedListenKey`
+- Probe 必须要求 explicit profile、credential reference、canonical Binance Spot testnet REST endpoint、canonical Binance Spot testnet stream endpoint 和 operator confirmation id。
+- listenKey lifecycle 必须以 read-only evidence 形式覆盖 open / observe / close；artifact 只能保存 redacted listenKey reference，不保存 raw listenKey。
+- Private stream event frames 只能映射 account / position / balance read-model evidence；`executionReport` 和 command path 必须被拒绝。
+- Credential value、raw listenKey、raw private payload、production endpoint / broker、submit / cancel / replace、production secret auto-read 和 production cutover 必须被拒绝或保持 false。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS
