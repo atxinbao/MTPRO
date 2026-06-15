@@ -64,6 +64,20 @@
 - Focused test: `testGH810TopLevelCLICreatesAndMutatesPersistentLocalSessionArtifacts`
 - Boundary: GH-810 只把 `mtpro run --mode dry-run`、`mtpro status`、`mtpro stop` 和 `mtpro recover` 绑定到本地 persistent no-order session artifact；不读取 secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-811 Release v0.8.0 OperationalRunSessionStore Validation
+
+- `GH-811-VERIFY-V080-OPERATIONAL-SESSION-STORE`
+- `TVM-RELEASE-V080-OPERATIONAL-SESSION-STORE`
+- `V080-005-OPERATIONAL-RUN-SESSION-STORE`
+- `V080-005-SESSION-JSON`
+- `V080-005-SESSION-EVENTS-JSONL`
+- `V080-005-SESSION-STATUS-JSON`
+- `V080-005-INVALID-TRANSITION-FAILS-CLOSED`
+- `V080-005-RECOVERY-PRESERVES-HISTORY`
+- Required command: `bash checks/verify-v0.8.0-operational-session-store.sh`
+- Focused test: `testGH811OperationalRunSessionStorePersistsLifecycleAndRejectsInvalidTransitions`
+- Boundary: GH-811 只新增 `.local/mtpro/runs/<runID>/session.json`、`session_events.jsonl` 和 `session_status.json` lifecycle persistence；invalid transition 必须 fail closed，recovery 必须保留 prior event history；不启动 runtime、不读取 secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## Unified Entry
 
 ```bash
