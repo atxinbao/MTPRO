@@ -41,6 +41,25 @@
 - v0.8.0 policy: construction closeout and public release publication remain separate gates; source checksum expectation binds exact tag archive, not mutable branch.
 - forbidden scope: GH-808 creates no tag, no GitHub Release, no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order.
 
+## TVM-RELEASE-V080-RUN-REGISTRY-STORE
+
+- TVM-RELEASE-V080-RUN-REGISTRY-STORE
+- GH-809-VERIFY-V080-RUN-REGISTRY-STORE
+- V080-003-RUN-REGISTRY-STORE
+- V080-003-REGISTRY-JSON-PATH
+- V080-003-REGISTRY-LOCK
+- V080-003-REGISTRY-CHECKSUM
+- V080-003-LIST-INSPECT-ARCHIVE-RECOVER
+- V080-003-MISSING-CORRUPTED-FAILS-CLOSED
+- V080-003-NO-PRODUCTION-BROKER-ORDER-FIELDS
+- GH-809 Release v0.8.0 Persistent RunRegistryStore Validation
+- testGH809RunRegistryStorePersistsRegistryJSONChecksumAndFailClosedStates
+- persistent registry path: `.local/mtpro/runs/registry.json`
+- local lock path: `.local/mtpro/runs/registry.lock`
+- failure states: missing registry、corrupted registry、checksum mismatch、lock unavailable、archived mutation 和 incomplete run 必须 fail closed.
+- operations: list / inspect / archive / recover only mutate local registry metadata and checksums.
+- forbidden scope: no runtime start, no production trading, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet order submission, no real order, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。

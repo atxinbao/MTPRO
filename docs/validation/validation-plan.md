@@ -36,6 +36,21 @@
 - Focused test: `testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease`
 - Boundary: v0.7.0 已存在 stable GitHub Release；v0.8.0 construction closeout 与 public release publication 必须分离。GH-808 不创建 tag、不创建 GitHub Release、不移动已有 tag、不推进下一阶段、不授权 production cutover。
 
+## GH-809 Release v0.8.0 Persistent RunRegistryStore Validation
+
+- `GH-809-VERIFY-V080-RUN-REGISTRY-STORE`
+- `TVM-RELEASE-V080-RUN-REGISTRY-STORE`
+- `V080-003-RUN-REGISTRY-STORE`
+- `V080-003-REGISTRY-JSON-PATH`
+- `V080-003-REGISTRY-LOCK`
+- `V080-003-REGISTRY-CHECKSUM`
+- `V080-003-LIST-INSPECT-ARCHIVE-RECOVER`
+- `V080-003-MISSING-CORRUPTED-FAILS-CLOSED`
+- `V080-003-NO-PRODUCTION-BROKER-ORDER-FIELDS`
+- Required command: `bash checks/verify-v0.8.0-run-registry-store.sh`
+- Focused test: `testGH809RunRegistryStorePersistsRegistryJSONChecksumAndFailClosedStates`
+- Boundary: GH-809 只新增 `.local/mtpro/runs/registry.json` persistent local run registry store、registry lock、checksum、list / inspect / archive / recover 和 fail-closed failure states；不启动 runtime、不读取 secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## Unified Entry
 
 ```bash

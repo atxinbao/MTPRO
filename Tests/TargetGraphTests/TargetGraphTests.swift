@@ -8299,6 +8299,197 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH809RunRegistryStorePersistsRegistryJSONChecksumAndFailClosedStates() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Database/ReleaseV080RunRegistryStore.swift"),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.8.0-run-registry-store.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let createdAt = Date(timeIntervalSince1970: 1_781_000_000)
+        let updatedAt = Date(timeIntervalSince1970: 1_781_000_120)
+        let fixture = try ReleaseV080RunRegistryStore.deterministicFixture(
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+        XCTAssertTrue(fixture.documentHeld)
+        XCTAssertEqual(fixture.registryPath, ".local/mtpro/runs/registry.json")
+        XCTAssertEqual(fixture.lockPath, ".local/mtpro/runs/registry.lock")
+        XCTAssertEqual(fixture.entries.map(\.runID.rawValue), ["gh-809-run-alpha", "gh-809-run-beta", "gh-809-run-gamma"])
+        XCTAssertEqual(fixture.entries.map(\.state), [.running, .incomplete, .failed])
+        XCTAssertTrue(fixture.registryChecksum.hasPrefix("sha256:"))
+        XCTAssertTrue(fixture.entries.allSatisfy { $0.entryChecksum.hasPrefix("sha256:") })
+        XCTAssertTrue(fixture.missingOrCorruptedRegistryFailsClosed)
+
+        let storageRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH809-RunRegistryStore-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent(".local", isDirectory: true)
+            .appendingPathComponent("mtpro", isDirectory: true)
+            .appendingPathComponent("runs", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot.deletingLastPathComponent().deletingLastPathComponent())
+        }
+
+        let emptyStore = ReleaseV080RunRegistryStore(storageRootURL: storageRoot)
+        XCTAssertThrowsError(try emptyStore.load()) { error in
+            guard case .missingRegistry = error as? ReleaseV080RunRegistryStoreError else {
+                return XCTFail("missing registry must fail closed, got \(error)")
+            }
+        }
+
+        let saved = try emptyStore.save(
+            entries: fixture.entries,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+        XCTAssertTrue(FileManager.default.fileExists(atPath: storageRoot.appendingPathComponent("registry.json").path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: storageRoot.appendingPathComponent("registry.lock").path))
+        XCTAssertEqual(try emptyStore.listRuns().map(\.runID.rawValue), ["gh-809-run-alpha", "gh-809-run-beta", "gh-809-run-gamma"])
+        XCTAssertEqual(
+            try emptyStore.inspect(runID: Identifier.constant("gh-809-run-beta")).failureReason,
+            "manifest-missing-fails-closed"
+        )
+        XCTAssertEqual(try emptyStore.load(), saved)
+
+        let archived = try emptyStore.archive(
+            runID: Identifier.constant("gh-809-run-alpha"),
+            updatedAt: Date(timeIntervalSince1970: 1_781_000_240)
+        )
+        let archivedEntry = try archived.inspect(runID: Identifier.constant("gh-809-run-alpha"))
+        XCTAssertEqual(archivedEntry.lifecycle, .archived)
+        XCTAssertEqual(archivedEntry.state, .stopped)
+        XCTAssertThrowsError(
+            try emptyStore.recover(
+                runID: Identifier.constant("gh-809-run-alpha"),
+                reason: "archived-run-must-not-recover",
+                updatedAt: Date(timeIntervalSince1970: 1_781_000_300)
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReleaseV080RunRegistryStoreError, .cannotMutateArchivedRun("gh-809-run-alpha"))
+        }
+
+        let recovered = try emptyStore.recover(
+            runID: Identifier.constant("gh-809-run-gamma"),
+            reason: "operator-reviewed-failed-local-run",
+            updatedAt: Date(timeIntervalSince1970: 1_781_000_360)
+        )
+        let recoveredEntry = try recovered.inspect(runID: Identifier.constant("gh-809-run-gamma"))
+        XCTAssertEqual(recoveredEntry.lifecycle, .recoveryEvidence)
+        XCTAssertEqual(recoveredEntry.state, .recovered)
+        XCTAssertEqual(recoveredEntry.recoveryReason, "operator-reviewed-failed-local-run")
+
+        let lockedRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH809-LockedRunRegistryStore-\(UUID().uuidString)", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: lockedRoot)
+        }
+        try FileManager.default.createDirectory(
+            at: lockedRoot.appendingPathComponent("registry.lock", isDirectory: true),
+            withIntermediateDirectories: true
+        )
+        let lockedStore = ReleaseV080RunRegistryStore(storageRootURL: lockedRoot)
+        XCTAssertThrowsError(
+            try lockedStore.save(entries: fixture.entries, createdAt: createdAt, updatedAt: updatedAt)
+        ) { error in
+            guard case .lockUnavailable = error as? ReleaseV080RunRegistryStoreError else {
+                return XCTFail("existing lock must fail closed, got \(error)")
+            }
+        }
+
+        let corruptStoreRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH809-CorruptRunRegistryStore-\(UUID().uuidString)", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: corruptStoreRoot)
+        }
+        let corruptStore = ReleaseV080RunRegistryStore(storageRootURL: corruptStoreRoot)
+        let corruptDocument = try corruptStore.save(entries: fixture.entries, createdAt: createdAt, updatedAt: updatedAt)
+        var registryJSON = try String(contentsOf: corruptStoreRoot.appendingPathComponent("registry.json"), encoding: .utf8)
+        registryJSON = registryJSON.replacingOccurrences(
+            of: corruptDocument.registryChecksum,
+            with: "sha256:000"
+        )
+        try registryJSON.write(to: corruptStoreRoot.appendingPathComponent("registry.json"), atomically: true, encoding: .utf8)
+        XCTAssertThrowsError(try corruptStore.load()) { error in
+            guard case .checksumMismatch = error as? ReleaseV080RunRegistryStoreError else {
+                return XCTFail("registry checksum drift must fail closed, got \(error)")
+            }
+        }
+        try Data("not-json".utf8).write(to: corruptStoreRoot.appendingPathComponent("registry.json"))
+        XCTAssertThrowsError(try corruptStore.load()) { error in
+            guard case .corruptedRegistry = error as? ReleaseV080RunRegistryStoreError else {
+                return XCTFail("corrupted registry JSON must fail closed, got \(error)")
+            }
+        }
+
+        for anchor in ReleaseV080RunRegistryStoreContract.requiredValidationAnchors {
+            XCTAssertTrue(
+                [source, verificationScript, validationPlan, tradingMatrix, automationReadiness, readinessScript, contract].contains {
+                    $0.contains(anchor)
+                },
+                "\(anchor) must stay wired into GH-809 verification chain"
+            )
+        }
+
+        XCTAssertTrue(databaseTarget.contains("\"ReleaseV080RunRegistryStore.swift\""))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-run-registry-store.sh"))
+        XCTAssertTrue(source.contains(".local/mtpro/runs/registry.json"))
+        XCTAssertTrue(source.contains(".local/mtpro/runs/registry.lock"))
+        XCTAssertTrue(source.contains("missingOrCorruptedRegistryFailsClosed"))
+        XCTAssertTrue(source.contains("checksumMismatch"))
+        XCTAssertTrue(source.contains("listRuns"))
+        XCTAssertTrue(source.contains("inspect(runID:"))
+        XCTAssertTrue(source.contains("archive("))
+        XCTAssertTrue(source.contains("recover("))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "registry store must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
