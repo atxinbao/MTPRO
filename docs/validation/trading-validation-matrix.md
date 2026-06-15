@@ -227,6 +227,26 @@
 - command boundary: `orderSubmitVisible=false`、`orderCancelVisible=false`、`orderReplaceVisible=false`、`testnetOrderRoutingAllowed=false`、`productionCommandEnabled=false` and `productionCutoverAuthorized=false`.
 - forbidden scope: no credential value display, no raw listenKey display, no raw private payload display, no DataClient Dashboard dependency, no broker command, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
 
+## TVM-RELEASE-V080-VALIDATION-LANES
+
+- TVM-RELEASE-V080-VALIDATION-LANES
+- GH-819-VERIFY-V080-VALIDATION-LANES
+- V080-013-VALIDATION-LANES
+- V080-013-DETERMINISTIC-CI-PROOF-LANE
+- V080-013-MANUAL-OPERATOR-NETWORK-PROOF-LANE
+- V080-013-WORKFLOW-DISPATCH-OPERATOR-CONFIRMATION
+- V080-013-REDACTED-PROOF-ARTIFACTS
+- V080-013-CI-NO-SECRET-NO-NETWORK
+- V080-013-MANUAL-NO-ORDER-SUBMISSION
+- V080-013-NO-PRODUCTION-CUTOVER
+- GH-819 Release v0.8.0 Validation Lanes Split Validation
+- testGH819ValidationLanesSeparateDeterministicCIAndManualOperatorNetworkProof
+- Deterministic CI lane commands: `bash checks/verify-v0.8.0-manual-testnet-signed-account-proof.sh`、`bash checks/verify-v0.8.0-manual-testnet-private-stream-monitoring.sh`、`bash checks/verify-v0.8.0-dashboard-testnet-readonly-monitor.sh`、`bash checks/verify-v0.8.0-dashboard-safe-local-controls.sh`
+- CI evidence: required checks and workflow_dispatch run the same no-secret / no-network deterministic guards, using mock source artifacts and redaction assertions only.
+- manual evidence: operator network proof requires explicit confirmation, credential reference and manual proof reference, then stores only redacted signed account / private stream summary artifacts.
+- command boundary: `ordersSubmitted=false`、`testnetOrderSubmissionAllowed=false`、`testnetOrderRoutingAllowed=false`、`testnetCancelReplaceAllowed=false` and `productionCutoverAuthorized=false`.
+- forbidden scope: no production trading, no production secret read, no production endpoint / broker connection, no testnet order submission, no real order, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。
