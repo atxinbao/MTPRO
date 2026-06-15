@@ -472,6 +472,41 @@ for anchor in \
   require_contains "docs/validation/trading-validation-matrix.md" "$anchor"
   require_contains "docs/validation/validation-plan.md" "$anchor"
 done
+require_file "docs/audit/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-notes.md"
+require_file "docs/operators/release-v0.8.0-operator-persistent-runtime-testnet-readonly-monitoring-runbook.md"
+require_file "checks/verify-v0.8.0.sh"
+require_contains "checks/verify-v0.8.0.sh" "GH-820-VERIFY-V080-FINAL-AUDIT-DOCS-RUNBOOK"
+require_contains "checks/verify-v0.8.0.sh" "bash checks/verify-v0.8.0-validation-lanes.sh"
+require_contains "checks/run.sh" "bash checks/verify-v0.8.0.sh"
+require_contains "README.md" "MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring"
+require_contains "README.md" "bash checks/verify-v0.8.0.sh"
+require_contains "GOAL.md" "MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring"
+require_contains "BLUEPRINT.md" "v0.8.0 persistent operator runtime + testnet read-only monitoring"
+require_contains "docs/roadmap.md" "GH-820-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK"
+require_contains "docs/roadmap.md" "Project Closure Count: 42 / 42 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.8.0 Closure Snapshot"
+require_contains "docs/validation/latest-verification-summary.md" "docs/audit/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-stage-code-audit.md"
+require_contains "docs/automation/automation-readiness.md" "Release v0.8.0 final audit / docs / runbook anchor"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK"
+require_contains "docs/validation/validation-plan.md" "GH-820 Release v0.8.0 Final Audit / Docs / Runbook Validation"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH820ReleaseV080FinalAuditDocsRunbookCloseCompletedFactsOnly"
+for anchor in \
+  "GH-820-VERIFY-V080-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "GH-820-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "V080-014-VALIDATION-SUMMARY" \
+  "V080-014-STAGE-CODE-AUDIT" \
+  "V080-014-RELEASE-NOTES" \
+  "V080-014-OPERATOR-RUNBOOK" \
+  "V080-014-ROOT-DOCS-REFRESH" \
+  "V080-014-AGGREGATE-VERIFY" \
+  "V080-014-NO-PRODUCTION-CUTOVER"; do
+  require_contains "docs/audit/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-stage-code-audit.md" "$anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$anchor"
+  require_contains "docs/validation/validation-plan.md" "$anchor"
+  require_contains "checks/verify-v0.8.0.sh" "$anchor"
+done
 require_file "checks/verify-v0.7.0-testnet-endpoint-policy.sh"
 require_contains "checks/verify-v0.7.0-testnet-endpoint-policy.sh" "GH-780-VERIFY-V070-TESTNET-ENDPOINT-POLICY"
 require_contains "checks/verify-v0.7.0-testnet-endpoint-policy.sh" "TVM-RELEASE-V070-TESTNET-ENDPOINT-POLICY"

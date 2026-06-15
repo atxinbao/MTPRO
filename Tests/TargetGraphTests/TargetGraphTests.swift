@@ -24578,6 +24578,100 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH820ReleaseV080FinalAuditDocsRunbookCloseCompletedFactsOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let audit = try read(
+            "docs/audit/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-stage-code-audit.md"
+        )
+        let releaseNotes = try read(
+            "docs/release/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-notes.md"
+        )
+        let operatorRunbook = try read(
+            "docs/operators/release-v0.8.0-operator-persistent-runtime-testnet-readonly-monitoring-runbook.md"
+        )
+        let validationLanesRunbook = try read("docs/operators/release-v0.8.0-validation-lanes-runbook.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+        let latestVerification = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let automationReadiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let runScript = try read("checks/run.sh")
+        let verifierScript = try read("checks/verify-v0.8.0.sh")
+
+        let expectedAnchors = [
+            "GH-820-VERIFY-V080-FINAL-AUDIT-DOCS-RUNBOOK",
+            "GH-820-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK",
+            "TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK",
+            "V080-014-VALIDATION-SUMMARY",
+            "V080-014-STAGE-CODE-AUDIT",
+            "V080-014-RELEASE-NOTES",
+            "V080-014-OPERATOR-RUNBOOK",
+            "V080-014-ROOT-DOCS-REFRESH",
+            "V080-014-AGGREGATE-VERIFY",
+            "V080-014-NO-PRODUCTION-CUTOVER"
+        ]
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(audit.contains(anchor), "\(anchor) must stay in GH-820 audit")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(verifierScript.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        XCTAssertTrue(audit.contains("GitHub fallback queue `#807` 至 `#820`"))
+        XCTAssertTrue(audit.contains("PR `#821` 至 `#833`"))
+        XCTAssertTrue(audit.contains("Project Closure Count to `42 / 42 (100%)`"))
+        XCTAssertTrue(audit.contains("current #820 closure PR"))
+        XCTAssertTrue(releaseNotes.contains(
+            "MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring Notes"
+        ))
+        XCTAssertTrue(operatorRunbook.contains("V080-014-VALIDATION-SUMMARY"))
+        XCTAssertTrue(validationLanesRunbook.contains("GH-819-RELEASE-V080-VALIDATION-LANES-RUNBOOK"))
+        XCTAssertTrue(readme.contains(
+            "Latest completed release construction scope: `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring`"
+        ))
+        XCTAssertTrue(readme.contains("bash checks/verify-v0.8.0.sh"))
+        XCTAssertTrue(goal.contains(
+            "MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring"
+        ))
+        XCTAssertTrue(blueprint.contains("v0.8.0 persistent operator runtime + testnet read-only monitoring"))
+        XCTAssertTrue(roadmap.contains("GH-820-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK"))
+        XCTAssertTrue(roadmap.contains("Project Closure Count: 42 / 42 (100%)"))
+        XCTAssertTrue(latestVerification.contains("Release v0.8.0 Closure Snapshot"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.8.0 final audit / docs / runbook anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-820 Release v0.8.0 Final Audit / Docs / Runbook Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0.sh"))
+        XCTAssertTrue(verifierScript.contains("bash checks/verify-v0.8.0-validation-lanes.sh"))
+        XCTAssertTrue(verifierScript.contains(
+            "testGH820ReleaseV080FinalAuditDocsRunbookCloseCompletedFactsOnly"
+        ))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "ordersSubmitted=true",
+            "testnetOrderRoutingAllowed=true",
+            "productionCutoverAuthorized=true"
+        ] {
+            XCTAssertFalse(audit.contains(forbidden), "GH-820 audit must not contain \(forbidden)")
+            XCTAssertFalse(releaseNotes.contains(forbidden), "GH-820 notes must not contain \(forbidden)")
+            XCTAssertFalse(operatorRunbook.contains(forbidden), "GH-820 runbook must not contain \(forbidden)")
+        }
+    }
+
     func testGH785RunRegistrySupervisorProvidesLocalNoOrderRunManagement() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
