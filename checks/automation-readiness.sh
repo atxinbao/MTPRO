@@ -444,6 +444,34 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V08
 require_contains "docs/validation/validation-plan.md" "GH-818 Release v0.8.0 Dashboard Safe Local Controls Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH818DashboardSafeLocalControlsBindSessionStoresWithoutCommands"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH818DashboardSafeLocalControlsSurfaceIsAnchoredInV080Guards"
+require_file "docs/operators/release-v0.8.0-validation-lanes-runbook.md"
+require_file "checks/verify-v0.8.0-validation-lanes.sh"
+require_contains ".github/workflows/checks.yml" "workflow_dispatch:"
+require_contains "checks/verify-v0.8.0-validation-lanes.sh" "GH-819-VERIFY-V080-VALIDATION-LANES"
+require_contains "checks/verify-v0.8.0-validation-lanes.sh" "testGH819ValidationLanesSeparateDeterministicCIAndManualOperatorNetworkProof"
+require_contains "checks/run.sh" "bash checks/verify-v0.8.0-validation-lanes.sh"
+require_contains "docs/operators/release-v0.8.0-validation-lanes-runbook.md" "GH-819-RELEASE-V080-VALIDATION-LANES-RUNBOOK"
+require_contains "docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md" "V080-013-VALIDATION-LANES"
+require_contains "docs/automation/automation-readiness.md" "Release v0.8.0 validation lanes anchor"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V080-VALIDATION-LANES"
+require_contains "docs/validation/validation-plan.md" "GH-819 Release v0.8.0 Validation Lanes Split Validation"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH819ValidationLanesSeparateDeterministicCIAndManualOperatorNetworkProof"
+for anchor in \
+  "GH-819-VERIFY-V080-VALIDATION-LANES" \
+  "TVM-RELEASE-V080-VALIDATION-LANES" \
+  "V080-013-VALIDATION-LANES" \
+  "V080-013-DETERMINISTIC-CI-PROOF-LANE" \
+  "V080-013-MANUAL-OPERATOR-NETWORK-PROOF-LANE" \
+  "V080-013-WORKFLOW-DISPATCH-OPERATOR-CONFIRMATION" \
+  "V080-013-REDACTED-PROOF-ARTIFACTS" \
+  "V080-013-CI-NO-SECRET-NO-NETWORK" \
+  "V080-013-MANUAL-NO-ORDER-SUBMISSION" \
+  "V080-013-NO-PRODUCTION-CUTOVER"; do
+  require_contains "docs/operators/release-v0.8.0-validation-lanes-runbook.md" "$anchor"
+  require_contains "docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md" "$anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$anchor"
+  require_contains "docs/validation/validation-plan.md" "$anchor"
+done
 require_file "checks/verify-v0.7.0-testnet-endpoint-policy.sh"
 require_contains "checks/verify-v0.7.0-testnet-endpoint-policy.sh" "GH-780-VERIFY-V070-TESTNET-ENDPOINT-POLICY"
 require_contains "checks/verify-v0.7.0-testnet-endpoint-policy.sh" "TVM-RELEASE-V070-TESTNET-ENDPOINT-POLICY"

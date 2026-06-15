@@ -243,6 +243,30 @@ Required anchors：
 
 Dashboard safe local controls 不得读取 credential value，不得显示 raw listenKey 或 raw private payload，不得新增 DataClient target dependency，不得连接 endpoint / broker，不得创建 order command、production command、testnet order routing、trading button、order form、live command、broker write、production order submission 或 production cutover。`open-detail` 只能读取 registry / session status 和 dashboard readonly snapshot，不能写 session lifecycle。
 
+## V080-013-VALIDATION-LANES
+
+`V080-013-VALIDATION-LANES`
+
+GH-819 将 v0.8.0 validation proof 明确拆成 deterministic CI proof lane 和 manual operator network proof lane。CI lane 只运行 required checks、本地 focused verifiers 和 `workflow_dispatch` 手动触发的同一组 deterministic guards；manual lane 只记录 operator 明确确认过的 Binance Spot testnet read-only network proof 摘要和 redacted artifact reference。
+
+Required anchors：
+
+- `GH-819-VERIFY-V080-VALIDATION-LANES`
+- `TVM-RELEASE-V080-VALIDATION-LANES`
+- `V080-013-DETERMINISTIC-CI-PROOF-LANE`
+- `V080-013-MANUAL-OPERATOR-NETWORK-PROOF-LANE`
+- `V080-013-WORKFLOW-DISPATCH-OPERATOR-CONFIRMATION`
+- `V080-013-REDACTED-PROOF-ARTIFACTS`
+- `V080-013-CI-NO-SECRET-NO-NETWORK`
+- `V080-013-MANUAL-NO-ORDER-SUBMISSION`
+- `V080-013-NO-PRODUCTION-CUTOVER`
+
+`V080-013-DETERMINISTIC-CI-PROOF-LANE` 必须保持 `ciRequiresNetwork=false`、`ciRequiresSecrets=false`，且只验证 deterministic mock source artifact、redaction、文档锚点、TargetGraphTests 和 no-order boundary。`.github/workflows/checks.yml` 的 `workflow_dispatch:` 只能让 operator 手动触发同一组 no-secret / no-network deterministic guards，不能注入 credential、不能重放 manual network proof、不能打开 production cutover。
+
+`V080-013-MANUAL-OPERATOR-NETWORK-PROOF-LANE` 必须要求 explicit operator confirmation、credential reference 和 manual proof reference。Manual lane artifact 必须只保存 `redactedCredentialReference`、`redactedListenKeyReference` 和 read-only summary，不保存 API key、secret、raw account payload、raw listenKey、raw private stream payload、broker state、order request、production endpoint 或 production cutover authorization。
+
+Validation lanes split 不得读取 production secret，不得连接 production endpoint / broker，不得提交 testnet 或 production order，不得创建 trading button / order form / live command，不得授权 production cutover。
+
 ## V080-001-TESTNET-READONLY-MONITORING
 
 `V080-001-TESTNET-READONLY-MONITORING`

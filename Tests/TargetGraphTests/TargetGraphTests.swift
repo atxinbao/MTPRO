@@ -24483,6 +24483,101 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("brokerEndpointConnected = true"))
     }
 
+    func testGH819ValidationLanesSeparateDeterministicCIAndManualOperatorNetworkProof() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let workflow = try read(".github/workflows/checks.yml")
+        let runbook = try read("docs/operators/release-v0.8.0-validation-lanes-runbook.md")
+        let contractDoc = try read("docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let automationReadiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let runScript = try read("checks/run.sh")
+        let verifierScript = try read("checks/verify-v0.8.0-validation-lanes.sh")
+        let signedProofSource = try read(
+            "Sources/DataClient/Binance/TestnetReadOnlyProbe/ReleaseV080ManualTestnetSignedAccountProof.swift"
+        )
+        let privateStreamSource = try read(
+            "Sources/DataClient/Binance/TestnetReadOnlyProbe/ReleaseV080ManualTestnetPrivateStreamMonitoringProof.swift"
+        )
+
+        let expectedAnchors = [
+            "GH-819-VERIFY-V080-VALIDATION-LANES",
+            "TVM-RELEASE-V080-VALIDATION-LANES",
+            "V080-013-VALIDATION-LANES",
+            "V080-013-DETERMINISTIC-CI-PROOF-LANE",
+            "V080-013-MANUAL-OPERATOR-NETWORK-PROOF-LANE",
+            "V080-013-WORKFLOW-DISPATCH-OPERATOR-CONFIRMATION",
+            "V080-013-REDACTED-PROOF-ARTIFACTS",
+            "V080-013-CI-NO-SECRET-NO-NETWORK",
+            "V080-013-MANUAL-NO-ORDER-SUBMISSION",
+            "V080-013-NO-PRODUCTION-CUTOVER"
+        ]
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(runbook.contains(anchor), "\(anchor) must stay in GH-819 runbook")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in v0.8 contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(verifierScript.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        XCTAssertTrue(workflow.contains("workflow_dispatch:"))
+        XCTAssertTrue(runbook.contains("GH-819-RELEASE-V080-VALIDATION-LANES-RUNBOOK"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.8.0 validation lanes anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-819 Release v0.8.0 Validation Lanes Split Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V080-VALIDATION-LANES"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-validation-lanes.sh"))
+        XCTAssertTrue(verifierScript.contains(
+            "testGH819ValidationLanesSeparateDeterministicCIAndManualOperatorNetworkProof"
+        ))
+
+        for deterministicCommand in [
+            "bash checks/verify-v0.8.0-manual-testnet-signed-account-proof.sh",
+            "bash checks/verify-v0.8.0-manual-testnet-private-stream-monitoring.sh",
+            "bash checks/verify-v0.8.0-dashboard-testnet-readonly-monitor.sh",
+            "bash checks/verify-v0.8.0-dashboard-safe-local-controls.sh"
+        ] {
+            XCTAssertTrue(runbook.contains(deterministicCommand), "\(deterministicCommand) must stay in runbook")
+            XCTAssertTrue(validationPlan.contains(deterministicCommand), "\(deterministicCommand) must stay in plan")
+            XCTAssertTrue(tradingMatrix.contains(deterministicCommand), "\(deterministicCommand) must stay in matrix")
+        }
+
+        for source in [signedProofSource, privateStreamSource] {
+            XCTAssertTrue(source.contains("deterministicCIProof"))
+            XCTAssertTrue(source.contains("ciRequiresNetwork"))
+            XCTAssertTrue(source.contains("ciRequiresSecrets"))
+            XCTAssertTrue(source.contains("operatorConfirmationID"))
+            XCTAssertTrue(source.contains("manualProofReference"))
+            XCTAssertTrue(source.contains("redactedCredentialReference"))
+            XCTAssertTrue(source.contains("ordersSubmitted"))
+            XCTAssertTrue(source.contains("testnetOrderRoutingAllowed"))
+            XCTAssertTrue(source.contains("productionCutoverAuthorized"))
+            XCTAssertTrue(source.contains("deterministicCIProof == false"))
+            XCTAssertTrue(source.contains("ciRequiresNetwork == false"))
+            XCTAssertTrue(source.contains("ciRequiresSecrets == false"))
+        }
+        XCTAssertTrue(privateStreamSource.contains("redactedListenKeyReference"))
+        XCTAssertTrue(privateStreamSource.contains("executionReportCommandPathEnabled"))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "ordersSubmitted=true",
+            "testnetOrderRoutingAllowed=true",
+            "productionCutoverAuthorized=true"
+        ] {
+            XCTAssertFalse(runbook.contains(forbidden), "GH-819 runbook must not contain \(forbidden)")
+        }
+    }
+
     func testGH785RunRegistrySupervisorProvidesLocalNoOrderRunManagement() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
