@@ -8100,6 +8100,103 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V070-NO-ORDER-RUNTIME-SESSION-CONTRACT"))
     }
 
+    func testGH807ReleaseV080PersistentOperatorRuntimeNoOrderContractDefinesAllowedModesAndForbiddenCapabilities() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let verifyScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.8.0-contract.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "V080-001-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT",
+            "V080-001-ALLOWED-MODES",
+            "V080-001-PERSISTENT-LOCAL-ARTIFACTS",
+            "V080-001-TESTNET-READONLY-MONITORING",
+            "V080-001-SAFE-OPERATOR-CONTROLS",
+            "V080-001-DOWNSTREAM-QUEUE-ORDER",
+            "V080-001-FORBIDDEN-CAPABILITIES",
+            "V080-001-EVIDENCE-ENVELOPE",
+            "TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT",
+            "GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT"
+        ] {
+            XCTAssertTrue(
+                contract.contains(anchor)
+                    || verifyScript.contains(anchor)
+                    || validationPlan.contains(anchor)
+                    || tradingMatrix.contains(anchor)
+                    || automationReadiness.contains(anchor),
+                "\(anchor) must stay wired into v0.8.0 contract evidence"
+            )
+        }
+
+        for allowedMode in [
+            "local-persistent-operator-runtime",
+            "testnet-read-only-monitoring",
+            "manual-network-proof",
+            "recovery-review",
+            "production-blocked"
+        ] {
+            XCTAssertTrue(contract.contains(allowedMode), "\(allowedMode) must stay allowed by the contract")
+        }
+
+        for releaseBoundary in [
+            "venue=Binance",
+            "productTypes=spot,usdsPerpetual",
+            "strategies=EMA,RSI",
+            "noOrder=true",
+            "persistentLocalRuntime=true",
+            "testnetReadOnlyMonitoringAllowed=true",
+            "testnetOrderRoutingAllowed=false",
+            "GH-807..GH-820",
+            "GH-808",
+            "GH-820"
+        ] {
+            XCTAssertTrue(contract.contains(releaseBoundary), "\(releaseBoundary) must stay fixed in contract")
+        }
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization), "v0.8.0 contract must not authorize \(forbiddenAuthorization)")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-contract.sh"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.8.0 persistent operator runtime no-order contract anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT"))
+    }
+
     func testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
