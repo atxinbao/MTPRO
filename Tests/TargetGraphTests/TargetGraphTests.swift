@@ -11611,6 +11611,111 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH791ReleaseV070AggregateValidationGateCoversFocusedGuardsAndProductionDisabledDefaults() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let aggregateScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.7.0.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let workflow = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(".github/workflows/checks.yml"),
+            encoding: .utf8
+        )
+        let tests = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tests/TargetGraphTests/TargetGraphTests.swift"),
+            encoding: .utf8
+        )
+
+        let focusedVerifierCalls = [
+            "bash checks/verify-v0.7.0-contract.sh",
+            "bash checks/verify-v0.7.0-testnet-endpoint-policy.sh",
+            "bash checks/verify-v0.7.0-cli.sh",
+            "bash checks/verify-v0.7.0-dashboard-macos-guards.sh",
+            "bash checks/verify-v0.7.0-operational-run-session.sh",
+            "bash checks/verify-v0.7.0-event-log-writer-recovery.sh",
+            "bash checks/verify-v0.7.0-run-registry-supervisor.sh",
+            "bash checks/verify-v0.7.0-testnet-signed-account-readonly-probe.sh",
+            "bash checks/verify-v0.7.0-testnet-private-stream-readonly-probe.sh",
+            "bash checks/verify-v0.7.0-dashboard-readonly-run-operations.sh",
+            "bash checks/verify-v0.7.0-local-risk-policy-config.sh",
+            "bash checks/verify-v0.7.0-portfolio-readonly-reconciliation.sh"
+        ]
+        let runScriptDirectVerifierCalls = focusedVerifierCalls.filter {
+            $0 != "bash checks/verify-v0.7.0-dashboard-macos-guards.sh"
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.7.0.sh"))
+        for verifierCall in focusedVerifierCalls {
+            XCTAssertTrue(aggregateScript.contains(verifierCall), "aggregate gate must execute \(verifierCall)")
+            XCTAssertTrue(readinessScript.contains(verifierCall), "automation readiness must pin \(verifierCall)")
+        }
+        for verifierCall in runScriptDirectVerifierCalls {
+            XCTAssertTrue(runScript.contains(verifierCall), "run.sh must retain focused coverage for \(verifierCall)")
+        }
+        XCTAssertTrue(
+            workflow.contains("bash checks/verify-v0.7.0-dashboard-macos-guards.sh"),
+            "dashboard-macos focused guard must remain pinned in GitHub Actions"
+        )
+
+        for anchor in [
+            "GH-791-VERIFY-V070-CI-RELEASE-VALIDATION-GATE",
+            "TVM-RELEASE-V070-CI-RELEASE-VALIDATION-GATE",
+            "V070-013-AGGREGATE-FOCUSED-GUARDS",
+            "V070-013-CHECKS-RUN-V070-GATE",
+            "V070-013-PRODUCTION-DISABLED-DEFAULTS"
+        ] {
+            XCTAssertTrue(aggregateScript.contains(anchor), "\(anchor) must stay in aggregate verifier")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+
+        XCTAssertTrue(
+            validationPlan.contains("GH-791 Release v0.7.0 CI / Release Validation Gate")
+        )
+        XCTAssertTrue(
+            automationReadiness.contains("Release v0.7.0 CI / release validation gate anchor")
+        )
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.7.0.sh"))
+        XCTAssertTrue(readinessScript.contains("GH-791-VERIFY-V070-CI-RELEASE-VALIDATION-GATE"))
+        XCTAssertTrue(tests.contains(
+            "testGH791ReleaseV070AggregateValidationGateCoversFocusedGuardsAndProductionDisabledDefaults"
+        ))
+
+        for forbiddenTrue in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true"
+        ] {
+            XCTAssertTrue(
+                aggregateScript.contains("reject_file_contains") && aggregateScript.contains(forbiddenTrue),
+                "aggregate gate must reject \(forbiddenTrue)"
+            )
+        }
+    }
+
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

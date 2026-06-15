@@ -3415,6 +3415,19 @@ swift test
 - GH-786 signed account read-only snapshot 和 GH-787 private stream read model 可映射为 observed state，但 Portfolio target 不读取 endpoint、不保存 credential value、不依赖 DataClient。
 - Diff artifact 必须解释 matched / delta / missing observed state，并可 replay 为相同 records。
 - 禁止 broker correction、account mutation、production account sync、real PnL ownership、trading adjustment command、production account read、production cutover。
+
+## GH-791 Release v0.7.0 CI / Release Validation Gate
+
+- GH-791-VERIFY-V070-CI-RELEASE-VALIDATION-GATE
+- TVM-RELEASE-V070-CI-RELEASE-VALIDATION-GATE
+- V070-013-AGGREGATE-FOCUSED-GUARDS
+- V070-013-CHECKS-RUN-V070-GATE
+- V070-013-PRODUCTION-DISABLED-DEFAULTS
+- `bash checks/verify-v0.7.0.sh`
+- `testGH791ReleaseV070AggregateValidationGateCoversFocusedGuardsAndProductionDisabledDefaults`
+- Aggregate gate 必须按 GH-779 到 GH-790 的既有 verifier 顺序执行 v0.7.0 contract、endpoint policy、CLI、Dashboard macOS guard、OperationalRunSession、EventLogWriter、RunRegistry、signed account read-only probe、private stream read-only probe、Dashboard read-only operations、local Risk policy config 和 Portfolio read-only reconciliation。
+- `checks/run.sh` 必须包含 `bash checks/verify-v0.7.0.sh`，并继续保留各 focused verifier 的直接 coverage，避免 aggregate gate 被绕过。
+- CI / release gate 只能证明 no-order v0.7.0 behavior、testnet read-only evidence 和 production-disabled defaults；不得打开 production cutover、读取 production secret、连接 production endpoint / broker、提交 / cancel / replace 真实订单。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS
