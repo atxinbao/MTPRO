@@ -7988,7 +7988,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runbook.contains("V070-014-TESTNET-READONLY-CONNECTIVITY"))
         XCTAssertTrue(runbook.contains("V070-014-NO-PRODUCTION-CUTOVER"))
         XCTAssertTrue(releaseNotes.contains("v0.7.0 是 `Operator Runtime Session + Real Testnet Read-only Connectivity` closure docs"))
-        XCTAssertTrue(releaseNotes.contains("不创建 tag"))
+        XCTAssertTrue(releaseNotes.contains("v0.7.0 后续已通过独立 release publication gate 发布 stable GitHub Release"))
+        XCTAssertTrue(releaseNotes.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.7.0"))
         XCTAssertTrue(goal.contains("`MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity` Done"))
         XCTAssertTrue(blueprint.contains("Release line 已推进到 v0.7.0 operator runtime session + real testnet read-only connectivity"))
         XCTAssertTrue(validationPlan.contains("GH-792 Release v0.7.0 Final Audit / Docs / Runbook Validation"))
@@ -8195,6 +8196,107 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationReadiness.contains("Release v0.8.0 persistent operator runtime no-order contract anchor"))
         XCTAssertTrue(validationPlan.contains("GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation"))
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT"))
+    }
+
+    func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let policy = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/release/release-publication-policy.md"),
+            encoding: .utf8
+        )
+        let readme = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("README.md"),
+            encoding: .utf8
+        )
+        let releaseNotes = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/release/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-notes.md"
+            ),
+            encoding: .utf8
+        )
+        let auditReport = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/audit/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-stage-code-audit.md"
+            ),
+            encoding: .utf8
+        )
+        let verifyScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.8.0-release-publication-policy.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-808-RELEASE-PUBLICATION-POLICY",
+            "V080-002-V070-ACTUAL-GITHUB-RELEASE",
+            "V080-002-V080-CONSTRUCTION-VS-PUBLICATION",
+            "V080-002-TAG-NAMING-RULES",
+            "V080-002-GITHUB-RELEASE-CHECKLIST",
+            "V080-002-SOURCE-CHECKSUM-EXPECTATIONS",
+            "V080-002-RELEASE-NOTES-PUBLISHING-GATE",
+            "TVM-RELEASE-V080-RELEASE-PUBLICATION-POLICY"
+        ] {
+            XCTAssertTrue(
+                policy.contains(anchor)
+                    || verifyScript.contains(anchor)
+                    || validationPlan.contains(anchor)
+                    || tradingMatrix.contains(anchor)
+                    || automationReadiness.contains(anchor),
+                "\(anchor) must stay wired into release publication policy evidence"
+            )
+        }
+
+        for releaseFact in [
+            "https://github.com/atxinbao/MTPRO/releases/tag/v0.7.0",
+            "release type：stable release；非 draft；非 prerelease",
+            "tag peeled commit：`79bd7309b5d644599b6879e615489562455cd3fe`",
+            "publication timestamp：`2026-06-15T13:36:43Z`"
+        ] {
+            XCTAssertTrue(policy.contains(releaseFact), "\(releaseFact) must stay recorded for v0.7.0 publication")
+        }
+
+        XCTAssertTrue(readme.contains("v0.7.0 后续已通过独立 release publication gate 发布 stable GitHub Release"))
+        XCTAssertTrue(releaseNotes.contains("v0.7.0 后续已通过独立 release publication gate 发布 stable GitHub Release"))
+        XCTAssertTrue(auditReport.contains("v0.7.0 was later published through a separate stable GitHub Release gate"))
+        XCTAssertTrue(policy.contains("construction closeout 不等于 public release publication"))
+        XCTAssertTrue(policy.contains("public release publication 也不等于 production cutover"))
+        XCTAssertTrue(policy.contains("git archive --format=tar --prefix=MTPRO-v0.8.0/ v0.8.0 | shasum -a 256"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-release-publication-policy.sh"))
+        XCTAssertTrue(validationPlan.contains("GH-808 Release v0.7.0 / v0.8.0 Publication Policy Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V080-RELEASE-PUBLICATION-POLICY"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.8.0 publication policy anchor"))
+
+        XCTAssertFalse(readme.contains("不是 GitHub Release 发布动作"))
+        XCTAssertFalse(releaseNotes.contains("不是 GitHub Release 发布动作"))
+        XCTAssertFalse(releaseNotes.contains("不创建 tag，不移动 tag"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true"
+        ] {
+            XCTAssertFalse(policy.contains(forbiddenAuthorization), "publication policy must not authorize \(forbiddenAuthorization)")
+        }
     }
 
     func testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation() throws {

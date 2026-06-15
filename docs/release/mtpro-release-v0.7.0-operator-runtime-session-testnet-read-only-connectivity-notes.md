@@ -8,7 +8,7 @@
 
 v0.7.0 是 `Operator Runtime Session + Real Testnet Read-only Connectivity` closure docs。它收口 GitHub fallback queue `GH-779..GH-792` 的 no-order runtime session、real Binance testnet read-only probe、operator observe / recovery、read-only Dashboard / CLI evidence surface、validation command、operator runbook、Stage Code Audit 和 root docs refresh。
 
-本文档不是 GitHub Release 发布动作，不创建 tag，不移动 tag，不发布 production cutover，不创建下一 Project / Issue。
+本文档是 v0.7.0 construction closeout 的 release notes evidence。v0.7.0 后续已通过独立 release publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.7.0`。该发布事实不移动历史 Stage Code Audit 边界，不发布 production cutover，不创建下一 Project / Issue。
 
 ## Scope
 

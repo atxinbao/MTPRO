@@ -22,6 +22,20 @@
 - Focused test: `testGH807ReleaseV080PersistentOperatorRuntimeNoOrderContractDefinesAllowedModesAndForbiddenCapabilities`
 - Boundary: v0.8.0 可定义 persistent local operator runtime、testnet read-only monitoring、manual proof summary、safe local controls 和 WIP=1 queue order；不授权 production trading、production secret read、production endpoint / broker connection、testnet order routing、testnet order submission、real order、production OMS、Live PRO Console production command、trading button、order form 或 production cutover。
 
+## GH-808 Release v0.7.0 / v0.8.0 Publication Policy Validation
+
+- `GH-808-RELEASE-PUBLICATION-POLICY`
+- `V080-002-V070-ACTUAL-GITHUB-RELEASE`
+- `V080-002-V080-CONSTRUCTION-VS-PUBLICATION`
+- `V080-002-TAG-NAMING-RULES`
+- `V080-002-GITHUB-RELEASE-CHECKLIST`
+- `V080-002-SOURCE-CHECKSUM-EXPECTATIONS`
+- `V080-002-RELEASE-NOTES-PUBLISHING-GATE`
+- `TVM-RELEASE-V080-RELEASE-PUBLICATION-POLICY`
+- Required command: `bash checks/verify-v0.8.0-release-publication-policy.sh`
+- Focused test: `testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease`
+- Boundary: v0.7.0 已存在 stable GitHub Release；v0.8.0 construction closeout 与 public release publication 必须分离。GH-808 不创建 tag、不创建 GitHub Release、不移动已有 tag、不推进下一阶段、不授权 production cutover。
+
 ## Unified Entry
 
 ```bash
@@ -3458,7 +3472,7 @@ swift test
 - `testGH792ReleaseV070FinalAuditDocsAndRunbookCloseCompletedFactsOnly`
 - Final audit / docs / runbook gate 必须核对 GH-779 至 GH-791 的 issue / PR / checks / merge evidence，并明确 #792 closure PR 通过 required check 后才关闭最终 issue。
 - Root docs refresh 只同步已发生的 v0.7.0 closure facts：latest completed release construction scope、Project Closure Count `41 / 41 (100%)`、stage audit path、release notes、operator runbook、validation command 和 no-default-production-trading boundary。
-- forbidden scope: no tag / release publication unless separately requested, no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no real submit / cancel / replace order.
+- forbidden scope: GH-792 construction closeout itself did not create a tag or GitHub Release. v0.7.0 was later published through a separate release publication gate; no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no real submit / cancel / replace order.
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS
