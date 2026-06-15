@@ -1288,3 +1288,711 @@ public struct ReleaseV070TestnetSignedAccountReadOnlyProbeContract: Codable, Equ
         "bash checks/run.sh"
     ]
 }
+
+/// ReleaseV070TestnetPrivateStreamReadOnlyProbeError 描述 GH-787 testnet private stream read-only probe 的失败边界。
+///
+/// 该错误集合只服务 operator-confirmed Binance Spot testnet private stream evidence；任何 production
+/// endpoint、order command、executionReport command path、credential / listenKey 泄漏都会被拒绝。
+public enum ReleaseV070TestnetPrivateStreamReadOnlyProbeError: Error, Equatable, Sendable, CustomStringConvertible {
+    case operatorConfirmationRequired
+    case invalidTestnetProfile(String)
+    case emptyCredentialReference
+    case invalidEndpoint(String)
+    case productionEndpointForbidden(String)
+    case credentialReferenceMismatch(expected: String, actual: String)
+    case forbiddenCapability(String)
+    case artifactRedactionViolation(String)
+    case contractDrift(String)
+
+    public var description: String {
+        switch self {
+        case .operatorConfirmationRequired:
+            "Release v0.7.0 testnet private stream read-only probe requires explicit operator confirmation"
+        case let .invalidTestnetProfile(value):
+            "Release v0.7.0 testnet private stream read-only probe requires binance-testnet-private-stream-readonly profile: \(value)"
+        case .emptyCredentialReference:
+            "Release v0.7.0 testnet private stream read-only probe credential reference must not be empty"
+        case let .invalidEndpoint(value):
+            "Release v0.7.0 testnet private stream read-only probe endpoint is invalid: \(value)"
+        case let .productionEndpointForbidden(host):
+            "Release v0.7.0 testnet private stream read-only probe rejects production endpoint host: \(host)"
+        case let .credentialReferenceMismatch(expected, actual):
+            "Release v0.7.0 testnet private stream read-only probe credential reference mismatch: expected \(expected), actual \(actual)"
+        case let .forbiddenCapability(value):
+            "Release v0.7.0 testnet private stream read-only probe rejected forbidden capability: \(value)"
+        case let .artifactRedactionViolation(value):
+            "Release v0.7.0 testnet private stream read-only probe artifact leaked sensitive value: \(value)"
+        case let .contractDrift(value):
+            "Release v0.7.0 testnet private stream read-only probe contract drift: \(value)"
+        }
+    }
+}
+
+/// ReleaseV070TestnetPrivateStreamReadOnlyProbeMode 区分 deterministic fixture 和 operator-confirmed network read-only 生命周期。
+///
+/// `.networkReadOnly` 只允许 testnet listenKey lifecycle 和 read-model event ingest，不授权 production
+/// WebSocket、executionReport command handling、broker connection 或真实订单。
+public enum ReleaseV070TestnetPrivateStreamReadOnlyProbeMode: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case deterministicFixture = "deterministic fixture"
+    case networkReadOnly = "network read-only"
+}
+
+/// ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration 是 GH-787 的显式 operator 输入合同。
+///
+/// 配置只保存 credential reference 和 testnet endpoint reference；API key、secret 和 raw listenKey
+/// 只能在 probe 调用期间短生命周期流动，不能进入 artifact、Dashboard、CLI 或持久化 evidence。
+public struct ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration: Equatable, Sendable {
+    public let mode: ReleaseV070TestnetPrivateStreamReadOnlyProbeMode
+    public let profileName: String
+    public let restEndpointReference: URL
+    public let streamEndpointReference: URL
+    public let approvedCredentialReference: String
+    public let operatorConfirmationID: String
+    public let operatorConfirmedPrivateStreamProbe: Bool
+    public let deterministicFixtureMode: Bool
+    public let networkReadOnlyMode: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionEndpointConnectionEnabled: Bool
+    public let productionSecretAutoReadEnabled: Bool
+    public let executionReportCommandPathEnabled: Bool
+    public let submitCommandEnabled: Bool
+    public let cancelCommandEnabled: Bool
+    public let replaceCommandEnabled: Bool
+
+    public var configurationHeld: Bool {
+        profileName == Self.requiredProfileName
+            && operatorConfirmedPrivateStreamProbe
+            && operatorConfirmationID.isEmpty == false
+            && approvedCredentialReference.isEmpty == false
+            && restEndpointReference.absoluteString == Self.canonicalSpotTestnetRESTBaseURL
+            && streamEndpointReference.absoluteString == Self.canonicalSpotTestnetStreamBaseURL
+            && deterministicFixtureMode == (mode == .deterministicFixture)
+            && networkReadOnlyMode == (mode == .networkReadOnly)
+            && productionTradingEnabledByDefault == false
+            && productionEndpointConnectionEnabled == false
+            && productionSecretAutoReadEnabled == false
+            && executionReportCommandPathEnabled == false
+            && submitCommandEnabled == false
+            && cancelCommandEnabled == false
+            && replaceCommandEnabled == false
+    }
+
+    public init(
+        mode: ReleaseV070TestnetPrivateStreamReadOnlyProbeMode,
+        profileName: String = Self.requiredProfileName,
+        restEndpointReference: URL,
+        streamEndpointReference: URL,
+        approvedCredentialReference: String,
+        operatorConfirmationID: String,
+        operatorConfirmedPrivateStreamProbe: Bool,
+        productionTradingEnabledByDefault: Bool = false,
+        productionEndpointConnectionEnabled: Bool = false,
+        productionSecretAutoReadEnabled: Bool = false,
+        executionReportCommandPathEnabled: Bool = false,
+        submitCommandEnabled: Bool = false,
+        cancelCommandEnabled: Bool = false,
+        replaceCommandEnabled: Bool = false
+    ) throws {
+        guard operatorConfirmedPrivateStreamProbe else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.operatorConfirmationRequired
+        }
+        guard profileName == Self.requiredProfileName else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.invalidTestnetProfile(profileName)
+        }
+        guard approvedCredentialReference.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.emptyCredentialReference
+        }
+        guard operatorConfirmationID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.operatorConfirmationRequired
+        }
+        try Self.validateEndpoints(restEndpointReference: restEndpointReference, streamEndpointReference: streamEndpointReference)
+        for forbiddenFlag in [
+            ("productionTradingEnabledByDefault", productionTradingEnabledByDefault),
+            ("productionEndpointConnectionEnabled", productionEndpointConnectionEnabled),
+            ("productionSecretAutoReadEnabled", productionSecretAutoReadEnabled),
+            ("executionReportCommandPathEnabled", executionReportCommandPathEnabled),
+            ("submitCommandEnabled", submitCommandEnabled),
+            ("cancelCommandEnabled", cancelCommandEnabled),
+            ("replaceCommandEnabled", replaceCommandEnabled)
+        ] where forbiddenFlag.1 {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.forbiddenCapability(forbiddenFlag.0)
+        }
+
+        self.mode = mode
+        self.profileName = profileName
+        self.restEndpointReference = restEndpointReference
+        self.streamEndpointReference = streamEndpointReference
+        self.approvedCredentialReference = approvedCredentialReference
+        self.operatorConfirmationID = operatorConfirmationID
+        self.operatorConfirmedPrivateStreamProbe = operatorConfirmedPrivateStreamProbe
+        self.deterministicFixtureMode = mode == .deterministicFixture
+        self.networkReadOnlyMode = mode == .networkReadOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionEndpointConnectionEnabled = productionEndpointConnectionEnabled
+        self.productionSecretAutoReadEnabled = productionSecretAutoReadEnabled
+        self.executionReportCommandPathEnabled = executionReportCommandPathEnabled
+        self.submitCommandEnabled = submitCommandEnabled
+        self.cancelCommandEnabled = cancelCommandEnabled
+        self.replaceCommandEnabled = replaceCommandEnabled
+
+        guard configurationHeld else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.contractDrift("configurationHeld")
+        }
+    }
+
+    public static func deterministicFixture(
+        credentialReference: String = "gh-787-approved-testnet-private-stream-reference"
+    ) throws -> ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration {
+        try ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration(
+            mode: .deterministicFixture,
+            restEndpointReference: canonicalSpotTestnetRESTURL,
+            streamEndpointReference: canonicalSpotTestnetStreamURL,
+            approvedCredentialReference: credentialReference,
+            operatorConfirmationID: "operator-confirmed-gh-787-private-stream-read-only-probe",
+            operatorConfirmedPrivateStreamProbe: true
+        )
+    }
+
+    public static func networkReadOnly(
+        restEndpointReference: URL = canonicalSpotTestnetRESTURL,
+        streamEndpointReference: URL = canonicalSpotTestnetStreamURL,
+        credentialReference: String,
+        operatorConfirmationID: String
+    ) throws -> ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration {
+        try ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration(
+            mode: .networkReadOnly,
+            restEndpointReference: restEndpointReference,
+            streamEndpointReference: streamEndpointReference,
+            approvedCredentialReference: credentialReference,
+            operatorConfirmationID: operatorConfirmationID,
+            operatorConfirmedPrivateStreamProbe: true
+        )
+    }
+
+    public static func validateEndpoints(restEndpointReference: URL, streamEndpointReference: URL) throws {
+        do {
+            _ = try BinancePrivateStreamRuntimeConfiguration(
+                environment: .testnet,
+                restBaseURL: restEndpointReference,
+                streamBaseURL: streamEndpointReference,
+                staleAfterSeconds: 90
+            )
+        } catch let error as BinancePrivateStreamRuntimeError {
+            switch error {
+            case let .productionEndpointForbidden(host):
+                throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.productionEndpointForbidden(host)
+            default:
+                throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.invalidEndpoint(
+                    "\(restEndpointReference.absoluteString)|\(streamEndpointReference.absoluteString)"
+                )
+            }
+        }
+    }
+
+    public static let requiredProfileName = "binance-testnet-private-stream-readonly"
+    public static let canonicalSpotTestnetRESTBaseURL = "https://testnet.binance.vision"
+    public static let canonicalSpotTestnetStreamBaseURL = "wss://stream.testnet.binance.vision"
+
+    public static var canonicalSpotTestnetRESTURL: URL {
+        guard let url = URL(string: canonicalSpotTestnetRESTBaseURL) else {
+            preconditionFailure("GH-787 canonical spot testnet REST URL must be valid deterministic evidence")
+        }
+        return url
+    }
+
+    public static var canonicalSpotTestnetStreamURL: URL {
+        guard let url = URL(string: canonicalSpotTestnetStreamBaseURL) else {
+            preconditionFailure("GH-787 canonical spot testnet stream URL must be valid deterministic evidence")
+        }
+        return url
+    }
+}
+
+/// ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifact 是 GH-787 的 read-model-only evidence。
+///
+/// Artifact 只保存 redacted listenKey reference、read model 和 lifecycle proof；不保存 raw listenKey、
+/// credential value、raw private payload、executionReport command、broker state 或真实订单状态。
+public struct ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifact: Codable, Equatable, Sendable {
+    public let artifactID: Identifier
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let previousIssueID: Identifier
+    public let downstreamIssueID: Identifier
+    public let releaseVersion: String
+    public let mode: ReleaseV070TestnetPrivateStreamReadOnlyProbeMode
+    public let profileName: String
+    public let restEndpointHost: String
+    public let streamEndpointHost: String
+    public let streamEndpointScheme: String
+    public let operatorConfirmationID: String
+    public let operatorConfirmedPrivateStreamProbe: Bool
+    public let credentialReference: String
+    public let redactedCredentialReference: String
+    public let credentialResolvedAtCallTime: Bool
+    public let listenKeyReference: String
+    public let redactedListenKeyReference: String
+    public let redactedStreamURL: String
+    public let listenKeyOpened: Bool
+    public let privateStreamObserved: Bool
+    public let listenKeyClosed: Bool
+    public let lifecycleSteps: [String]
+    public let deterministicFixtureMode: Bool
+    public let networkReadOnlyMode: Bool
+    public let privateStreamReadModel: BinancePrivateStreamAccountSnapshotReadModel
+    public let observedReadModelRecordCount: Int
+    public let noOrderProof: ReleaseV060TestnetReadOnlyProbeNoOrderProof
+    public let validationAnchors: [String]
+    public let requiredValidationCommands: [String]
+    public let credentialValuesPersisted: Bool
+    public let credentialValuesDisplayedOnDashboard: Bool
+    public let credentialValuesDisplayedOnCLI: Bool
+    public let rawListenKeyPersisted: Bool
+    public let rawListenKeyDisplayedOnDashboard: Bool
+    public let rawListenKeyDisplayedOnCLI: Bool
+    public let rawPrivatePayloadPersisted: Bool
+    public let commandEventsProduced: Bool
+    public let executionReportCommandPathEnabled: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretAutoReadEnabled: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var artifactHeld: Bool {
+        issueID.rawValue == "GH-787"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-786"]
+            && previousIssueID.rawValue == "GH-786"
+            && downstreamIssueID.rawValue == "GH-788"
+            && releaseVersion == "v0.7.0"
+            && profileName == ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration.requiredProfileName
+            && restEndpointHost == "testnet.binance.vision"
+            && streamEndpointHost == "stream.testnet.binance.vision"
+            && streamEndpointScheme == "wss"
+            && operatorConfirmedPrivateStreamProbe
+            && credentialReference.isEmpty == false
+            && redactedCredentialReference == Self.redactedCredentialReference(credentialReference)
+            && credentialResolvedAtCallTime
+            && listenKeyReference.hasPrefix("listen-key:")
+            && redactedListenKeyReference == Self.redactedListenKeyReference(listenKeyReference)
+            && redactedStreamURL.contains(redactedListenKeyReference) == false
+            && redactedStreamURL.contains(listenKeyReference)
+            && listenKeyOpened
+            && privateStreamObserved
+            && listenKeyClosed
+            && lifecycleSteps == Self.requiredLifecycleSteps
+            && deterministicFixtureMode == (mode == .deterministicFixture)
+            && networkReadOnlyMode == (mode == .networkReadOnly)
+            && privateStreamReadModel.boundaryHeld
+            && privateStreamReadModel.listenKeyReference == listenKeyReference
+            && privateStreamReadModel.credentialReference == credentialReference
+            && observedReadModelRecordCount == privateStreamReadModel.records.count
+            && noOrderProof.proofHeld
+            && validationAnchors == ReleaseV070TestnetPrivateStreamReadOnlyProbeContract.requiredValidationAnchors
+            && requiredValidationCommands == ReleaseV070TestnetPrivateStreamReadOnlyProbeContract.requiredValidationCommands
+            && forbiddenBoundaryHeld
+    }
+
+    public var forbiddenBoundaryHeld: Bool {
+        credentialValuesPersisted == false
+            && credentialValuesDisplayedOnDashboard == false
+            && credentialValuesDisplayedOnCLI == false
+            && rawListenKeyPersisted == false
+            && rawListenKeyDisplayedOnDashboard == false
+            && rawListenKeyDisplayedOnCLI == false
+            && rawPrivatePayloadPersisted == false
+            && commandEventsProduced == false
+            && executionReportCommandPathEnabled == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretAutoReadEnabled == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        artifactID: Identifier = Identifier.constant("gh-787-testnet-private-stream-readonly-probe-artifact"),
+        issueID: Identifier = Identifier.constant("GH-787"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-786")],
+        previousIssueID: Identifier = Identifier.constant("GH-786"),
+        downstreamIssueID: Identifier = Identifier.constant("GH-788"),
+        releaseVersion: String = "v0.7.0",
+        mode: ReleaseV070TestnetPrivateStreamReadOnlyProbeMode,
+        profileName: String,
+        restEndpointHost: String,
+        streamEndpointHost: String,
+        streamEndpointScheme: String,
+        operatorConfirmationID: String,
+        operatorConfirmedPrivateStreamProbe: Bool,
+        credentialReference: String,
+        credentialResolvedAtCallTime: Bool,
+        listenKeyReference: String,
+        redactedStreamURL: String,
+        listenKeyOpened: Bool,
+        privateStreamObserved: Bool,
+        listenKeyClosed: Bool,
+        lifecycleSteps: [String] = Self.requiredLifecycleSteps,
+        privateStreamReadModel: BinancePrivateStreamAccountSnapshotReadModel,
+        noOrderProof: ReleaseV060TestnetReadOnlyProbeNoOrderProof,
+        validationAnchors: [String] = ReleaseV070TestnetPrivateStreamReadOnlyProbeContract.requiredValidationAnchors,
+        requiredValidationCommands: [String] = ReleaseV070TestnetPrivateStreamReadOnlyProbeContract.requiredValidationCommands,
+        credentialValuesPersisted: Bool = false,
+        credentialValuesDisplayedOnDashboard: Bool = false,
+        credentialValuesDisplayedOnCLI: Bool = false,
+        rawListenKeyPersisted: Bool = false,
+        rawListenKeyDisplayedOnDashboard: Bool = false,
+        rawListenKeyDisplayedOnCLI: Bool = false,
+        rawPrivatePayloadPersisted: Bool = false,
+        commandEventsProduced: Bool = false,
+        executionReportCommandPathEnabled: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretAutoReadEnabled: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.artifactID = artifactID
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.previousIssueID = previousIssueID
+        self.downstreamIssueID = downstreamIssueID
+        self.releaseVersion = releaseVersion
+        self.mode = mode
+        self.profileName = profileName
+        self.restEndpointHost = restEndpointHost
+        self.streamEndpointHost = streamEndpointHost
+        self.streamEndpointScheme = streamEndpointScheme
+        self.operatorConfirmationID = operatorConfirmationID
+        self.operatorConfirmedPrivateStreamProbe = operatorConfirmedPrivateStreamProbe
+        self.credentialReference = credentialReference
+        self.redactedCredentialReference = Self.redactedCredentialReference(credentialReference)
+        self.credentialResolvedAtCallTime = credentialResolvedAtCallTime
+        self.listenKeyReference = listenKeyReference
+        self.redactedListenKeyReference = Self.redactedListenKeyReference(listenKeyReference)
+        self.redactedStreamURL = redactedStreamURL
+        self.listenKeyOpened = listenKeyOpened
+        self.privateStreamObserved = privateStreamObserved
+        self.listenKeyClosed = listenKeyClosed
+        self.lifecycleSteps = lifecycleSteps
+        self.deterministicFixtureMode = mode == .deterministicFixture
+        self.networkReadOnlyMode = mode == .networkReadOnly
+        self.privateStreamReadModel = privateStreamReadModel
+        self.observedReadModelRecordCount = privateStreamReadModel.records.count
+        self.noOrderProof = noOrderProof
+        self.validationAnchors = validationAnchors
+        self.requiredValidationCommands = requiredValidationCommands
+        self.credentialValuesPersisted = credentialValuesPersisted
+        self.credentialValuesDisplayedOnDashboard = credentialValuesDisplayedOnDashboard
+        self.credentialValuesDisplayedOnCLI = credentialValuesDisplayedOnCLI
+        self.rawListenKeyPersisted = rawListenKeyPersisted
+        self.rawListenKeyDisplayedOnDashboard = rawListenKeyDisplayedOnDashboard
+        self.rawListenKeyDisplayedOnCLI = rawListenKeyDisplayedOnCLI
+        self.rawPrivatePayloadPersisted = rawPrivatePayloadPersisted
+        self.commandEventsProduced = commandEventsProduced
+        self.executionReportCommandPathEnabled = executionReportCommandPathEnabled
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretAutoReadEnabled = productionSecretAutoReadEnabled
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard artifactHeld else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.contractDrift("artifactHeld")
+        }
+    }
+
+    public func redactionHeld(forbiddenValues: [String]) throws -> Bool {
+        let encoded = try ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifactEncoder.encodedString(self)
+        for value in forbiddenValues where value.isEmpty == false && encoded.contains(value) {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.artifactRedactionViolation(value)
+        }
+        return true
+    }
+
+    public static func redactedCredentialReference(_ reference: String) -> String {
+        "\(reference):<redacted>"
+    }
+
+    public static func redactedListenKeyReference(_ reference: String) -> String {
+        "\(reference):<redacted>"
+    }
+
+    public static let requiredLifecycleSteps = ["open", "observe", "close"]
+}
+
+/// ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifactEncoder 提供稳定 JSON evidence 输出。
+public enum ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifactEncoder {
+    public static func encodedString(_ artifact: ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifact) throws -> String {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return String(decoding: try encoder.encode(artifact), as: UTF8.self)
+    }
+}
+
+/// ReleaseV070TestnetPrivateStreamReadOnlyProbe 执行 GH-787 operator-confirmed testnet private stream read-only lifecycle。
+///
+/// Probe 会在 testnet open listenKey、observe injected read-only event source、close listenKey，并只输出
+/// account / position / balance read-model evidence；它不处理 executionReport，不提交订单，不连接 production。
+public struct ReleaseV070TestnetPrivateStreamReadOnlyProbe: Sendable {
+    public let configuration: ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration
+
+    private let credentialProvider: any BinanceSignedAccountCredentialProvider
+    private let signedAccountTransport: any BinanceSignedAccountReadTransport
+    private let listenKeyTransport: any BinancePrivateStreamListenKeyTransport
+
+    public init(
+        configuration: ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration,
+        credentialProvider: any BinanceSignedAccountCredentialProvider,
+        signedAccountTransport: any BinanceSignedAccountReadTransport = URLSessionBinanceSignedAccountReadTransport(),
+        listenKeyTransport: any BinancePrivateStreamListenKeyTransport = URLSessionBinancePrivateStreamListenKeyTransport()
+    ) {
+        self.configuration = configuration
+        self.credentialProvider = credentialProvider
+        self.signedAccountTransport = signedAccountTransport
+        self.listenKeyTransport = listenKeyTransport
+    }
+
+    public func artifact(
+        timestamp: Date,
+        privateStreamEventSource: (any BinancePrivateStreamEventSource)? = nil
+    ) async throws -> ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifact {
+        let signedConfiguration = try BinanceSignedAccountReadClientConfiguration(
+            environment: .testnet,
+            baseURL: configuration.restEndpointReference
+        )
+        let signedClient = BinanceSignedAccountReadClient(
+            configuration: signedConfiguration,
+            credentialProvider: credentialProvider,
+            transport: signedAccountTransport
+        )
+        let snapshot = try await signedClient.accountSnapshot(timestamp: timestamp)
+        guard snapshot.credentialReference == configuration.approvedCredentialReference else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.credentialReferenceMismatch(
+                expected: configuration.approvedCredentialReference,
+                actual: snapshot.credentialReference
+            )
+        }
+
+        let runtimeConfiguration = try BinancePrivateStreamRuntimeConfiguration(
+            environment: .testnet,
+            restBaseURL: configuration.restEndpointReference,
+            streamBaseURL: configuration.streamEndpointReference,
+            staleAfterSeconds: 90
+        )
+        let listenKeyClient = BinancePrivateStreamListenKeyClient(
+            configuration: runtimeConfiguration,
+            credentialProvider: credentialProvider,
+            transport: listenKeyTransport
+        )
+        let lease = try await listenKeyClient.openListenKey(createdAt: timestamp)
+        guard lease.credentialReference == configuration.approvedCredentialReference else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.credentialReferenceMismatch(
+                expected: configuration.approvedCredentialReference,
+                actual: lease.credentialReference
+            )
+        }
+
+        let runtime = BinancePrivateStreamAccountSnapshotRuntime(configuration: runtimeConfiguration)
+        let subscription = try runtime.subscription(for: lease)
+        guard subscription.boundaryHeld else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.contractDrift("subscription.boundaryHeld")
+        }
+
+        let resolvedEventSource: any BinancePrivateStreamEventSource =
+            privateStreamEventSource ?? ReleaseV070TestnetPrivateStreamReadOnlyProbeFixtureEventSource()
+        let readModel = try await runtime.readModel(
+            signedSnapshot: snapshot,
+            lease: lease,
+            eventSource: resolvedEventSource,
+            sourceIdentity: "gh-787-testnet-private-stream-read-only-probe"
+        )
+
+        let closeCredential = try await credentialProvider.loadCredentialMaterial()
+        guard closeCredential.referenceID == configuration.approvedCredentialReference else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.credentialReferenceMismatch(
+                expected: configuration.approvedCredentialReference,
+                actual: closeCredential.referenceID
+            )
+        }
+        let closeRequest = try listenKeyClient.lifecycleRequest(
+            action: .close,
+            credential: closeCredential,
+            lease: lease
+        )
+        _ = try await listenKeyTransport.perform(closeRequest)
+
+        return try ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifact(
+            mode: configuration.mode,
+            profileName: configuration.profileName,
+            restEndpointHost: configuration.restEndpointReference.host?.lowercased() ?? "",
+            streamEndpointHost: configuration.streamEndpointReference.host?.lowercased() ?? "",
+            streamEndpointScheme: configuration.streamEndpointReference.scheme ?? "",
+            operatorConfirmationID: configuration.operatorConfirmationID,
+            operatorConfirmedPrivateStreamProbe: configuration.operatorConfirmedPrivateStreamProbe,
+            credentialReference: snapshot.credentialReference,
+            credentialResolvedAtCallTime: true,
+            listenKeyReference: lease.listenKeyReference,
+            redactedStreamURL: subscription.redactedStreamURL.absoluteString,
+            listenKeyOpened: true,
+            privateStreamObserved: true,
+            listenKeyClosed: true,
+            privateStreamReadModel: readModel,
+            noOrderProof: try ReleaseV060TestnetReadOnlyProbeNoOrderProof()
+        )
+    }
+
+    public static func deterministicArtifact() async throws -> ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifact {
+        let reference = "gh-787-approved-testnet-private-stream-reference"
+        let material = try BinanceSignedAccountCredentialMaterial(
+            referenceID: reference,
+            keyHeaderValue: "gh-787-fixture-key-value",
+            signingSecretValue: "gh-787-fixture-secret-value"
+        )
+        let probe = ReleaseV070TestnetPrivateStreamReadOnlyProbe(
+            configuration: try .deterministicFixture(credentialReference: reference),
+            credentialProvider: BinanceStaticSignedAccountCredentialProvider(material: material),
+            signedAccountTransport: ReleaseV060TestnetReadOnlyProbeFixtureTransport(),
+            listenKeyTransport: ReleaseV070TestnetPrivateStreamReadOnlyProbeFixtureListenKeyTransport()
+        )
+        return try await probe.artifact(timestamp: Date(timeIntervalSince1970: 1_704_067_200))
+    }
+}
+
+/// ReleaseV070TestnetPrivateStreamReadOnlyProbeFixtureListenKeyTransport 只服务 deterministic local lifecycle evidence。
+///
+/// Fixture transport 不访问 Binance，不读取本地 secret，不创建真实 WebSocket，只返回 testnet listenKey fixture。
+public actor ReleaseV070TestnetPrivateStreamReadOnlyProbeFixtureListenKeyTransport: BinancePrivateStreamListenKeyTransport {
+    public init() {}
+
+    public func perform(_ request: BinancePrivateStreamListenKeyLifecycleRequest) async throws -> Data {
+        guard request.environment == .testnet else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.forbiddenCapability("nonTestnetListenKeyRequest")
+        }
+        guard request.path == BinancePrivateStreamListenKeyLifecycleRequest.userDataStreamPath else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.forbiddenCapability(request.path)
+        }
+        switch request.action {
+        case .create:
+            return Data(#"{ "listenKey": "gh-787-fixture-listen-key-value" }"#.utf8)
+        case .keepAlive, .close:
+            return Data(#"{ "result": "ok" }"#.utf8)
+        }
+    }
+}
+
+/// ReleaseV070TestnetPrivateStreamReadOnlyProbeFixtureEventSource 提供 deterministic private stream frames。
+public actor ReleaseV070TestnetPrivateStreamReadOnlyProbeFixtureEventSource: BinancePrivateStreamEventSource {
+    public init() {}
+
+    public func receiveEvents(for lease: BinancePrivateStreamListenKeyLease) async throws -> [Data] {
+        guard lease.listenKeyReference.hasPrefix("listen-key:") else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.forbiddenCapability("unredactedListenKeyReference")
+        }
+        return ReleaseV060TestnetReadOnlyProbe.deterministicPrivateStreamEventPayloads()
+    }
+}
+
+/// ReleaseV070TestnetPrivateStreamReadOnlyProbeContract 固定 GH-787 issue-level 验收合同。
+public struct ReleaseV070TestnetPrivateStreamReadOnlyProbeContract: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let previousIssueID: Identifier
+    public let downstreamIssueID: Identifier
+    public let releaseVersion: String
+    public let validationAnchors: [String]
+    public let requiredValidationCommands: [String]
+    public let requiresOperatorConfirmation: Bool
+    public let requiresTestnetOnlyRESTAndStreamEndpoint: Bool
+    public let requiresListenKeyOpenObserveClose: Bool
+    public let requiresListenKeyAndCredentialRedaction: Bool
+    public let requiresAccountPositionBalanceReadModelEvidence: Bool
+    public let rejectsExecutionReportCommandPath: Bool
+    public let noOrderBoundaryRequired: Bool
+    public let productionDefaultsClosed: Bool
+
+    public var contractHeld: Bool {
+        issueID.rawValue == "GH-787"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-786"]
+            && previousIssueID.rawValue == "GH-786"
+            && downstreamIssueID.rawValue == "GH-788"
+            && releaseVersion == "v0.7.0"
+            && validationAnchors == Self.requiredValidationAnchors
+            && requiredValidationCommands == Self.requiredValidationCommands
+            && requiresOperatorConfirmation
+            && requiresTestnetOnlyRESTAndStreamEndpoint
+            && requiresListenKeyOpenObserveClose
+            && requiresListenKeyAndCredentialRedaction
+            && requiresAccountPositionBalanceReadModelEvidence
+            && rejectsExecutionReportCommandPath
+            && noOrderBoundaryRequired
+            && productionDefaultsClosed
+    }
+
+    public init(
+        contractID: Identifier = Identifier.constant("gh-787-release-v0.7.0-testnet-private-stream-readonly-probe"),
+        issueID: Identifier = Identifier.constant("GH-787"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-786")],
+        previousIssueID: Identifier = Identifier.constant("GH-786"),
+        downstreamIssueID: Identifier = Identifier.constant("GH-788"),
+        releaseVersion: String = "v0.7.0",
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        requiredValidationCommands: [String] = Self.requiredValidationCommands,
+        requiresOperatorConfirmation: Bool = true,
+        requiresTestnetOnlyRESTAndStreamEndpoint: Bool = true,
+        requiresListenKeyOpenObserveClose: Bool = true,
+        requiresListenKeyAndCredentialRedaction: Bool = true,
+        requiresAccountPositionBalanceReadModelEvidence: Bool = true,
+        rejectsExecutionReportCommandPath: Bool = true,
+        noOrderBoundaryRequired: Bool = true,
+        productionDefaultsClosed: Bool = true
+    ) throws {
+        self.contractID = contractID
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.previousIssueID = previousIssueID
+        self.downstreamIssueID = downstreamIssueID
+        self.releaseVersion = releaseVersion
+        self.validationAnchors = validationAnchors
+        self.requiredValidationCommands = requiredValidationCommands
+        self.requiresOperatorConfirmation = requiresOperatorConfirmation
+        self.requiresTestnetOnlyRESTAndStreamEndpoint = requiresTestnetOnlyRESTAndStreamEndpoint
+        self.requiresListenKeyOpenObserveClose = requiresListenKeyOpenObserveClose
+        self.requiresListenKeyAndCredentialRedaction = requiresListenKeyAndCredentialRedaction
+        self.requiresAccountPositionBalanceReadModelEvidence = requiresAccountPositionBalanceReadModelEvidence
+        self.rejectsExecutionReportCommandPath = rejectsExecutionReportCommandPath
+        self.noOrderBoundaryRequired = noOrderBoundaryRequired
+        self.productionDefaultsClosed = productionDefaultsClosed
+
+        guard contractHeld else {
+            throw ReleaseV070TestnetPrivateStreamReadOnlyProbeError.contractDrift("contractHeld")
+        }
+    }
+
+    public static func deterministicFixture() throws -> ReleaseV070TestnetPrivateStreamReadOnlyProbeContract {
+        try ReleaseV070TestnetPrivateStreamReadOnlyProbeContract()
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-787-VERIFY-V070-TESTNET-PRIVATE-STREAM-READONLY-PROBE",
+        "TVM-RELEASE-V070-TESTNET-PRIVATE-STREAM-READONLY-PROBE",
+        "V070-009-OPERATOR-CONFIRMED-TESTNET-PRIVATE-STREAM-READONLY-PROBE",
+        "V070-009-LISTENKEY-LIFECYCLE-OPEN-OBSERVE-CLOSE",
+        "V070-009-LISTENKEY-AND-CREDENTIAL-REDACTION",
+        "V070-009-ACCOUNT-POSITION-BALANCE-READMODEL-EVIDENCE",
+        "V070-009-EXECUTIONREPORT-COMMAND-PATH-REJECTION",
+        "V070-009-NO-ORDER-NO-PRODUCTION-BOUNDARY"
+    ]
+
+    public static let requiredValidationCommands = [
+        "swift test --filter TargetGraphTests/testGH787TestnetPrivateStreamReadOnlyProbeOpensObservesAndClosesRedactedListenKey",
+        "bash checks/verify-v0.7.0-testnet-private-stream-readonly-probe.sh",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+}

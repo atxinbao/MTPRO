@@ -10810,6 +10810,293 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH787TestnetPrivateStreamReadOnlyProbeOpensObservesAndClosesRedactedListenKey() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dataClientTarget = try packageTargetBlock(named: "DataClient", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/DataClient/Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verifierScript = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("checks/verify-v0.7.0-testnet-private-stream-readonly-probe.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV070TestnetPrivateStreamReadOnlyProbeContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-787")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-786"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-786")
+        XCTAssertTrue(contract.requiresOperatorConfirmation)
+        XCTAssertTrue(contract.requiresTestnetOnlyRESTAndStreamEndpoint)
+        XCTAssertTrue(contract.requiresListenKeyOpenObserveClose)
+        XCTAssertTrue(contract.requiresListenKeyAndCredentialRedaction)
+        XCTAssertTrue(contract.requiresAccountPositionBalanceReadModelEvidence)
+        XCTAssertTrue(contract.rejectsExecutionReportCommandPath)
+        XCTAssertTrue(contract.noOrderBoundaryRequired)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+
+        XCTAssertThrowsError(
+            try ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration(
+                mode: .networkReadOnly,
+                restEndpointReference: try XCTUnwrap(URL(string: "https://testnet.binance.vision")),
+                streamEndpointReference: try XCTUnwrap(URL(string: "wss://stream.testnet.binance.vision")),
+                approvedCredentialReference: "gh-787-approved-testnet-private-stream-reference",
+                operatorConfirmationID: "missing-confirmation",
+                operatorConfirmedPrivateStreamProbe: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070TestnetPrivateStreamReadOnlyProbeError,
+                .operatorConfirmationRequired
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration.networkReadOnly(
+                restEndpointReference: try XCTUnwrap(URL(string: "https://api.binance.com")),
+                credentialReference: "gh-787-approved-testnet-private-stream-reference",
+                operatorConfirmationID: "operator-confirmed-gh-787-private-stream-read-only-probe"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070TestnetPrivateStreamReadOnlyProbeError,
+                .productionEndpointForbidden("api.binance.com")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration.networkReadOnly(
+                streamEndpointReference: try XCTUnwrap(URL(string: "wss://stream.binance.com")),
+                credentialReference: "gh-787-approved-testnet-private-stream-reference",
+                operatorConfirmationID: "operator-confirmed-gh-787-private-stream-read-only-probe"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070TestnetPrivateStreamReadOnlyProbeError,
+                .productionEndpointForbidden("stream.binance.com")
+            )
+        }
+        let reference = "gh-787-approved-testnet-private-stream-reference"
+        let keyValue = "gh-787-key-value"
+        let secretValue = "gh-787-secret-value"
+        let rawListenKeyValue = "gh-787-raw-listen-key-value"
+        let material = try BinanceSignedAccountCredentialMaterial(
+            referenceID: reference,
+            keyHeaderValue: keyValue,
+            signingSecretValue: secretValue
+        )
+        let credentialProvider = TargetGraphCallCountingSignedAccountCredentialProvider(material: material)
+        let signedTransport = TargetGraphMockBinanceSignedAccountReadTransport { request in
+            XCTAssertEqual(request.environment, .testnet)
+            XCTAssertEqual(request.method, "GET")
+            XCTAssertEqual(request.path, BinanceSignedAccountReadTransportRequest.accountReadOnlyPath)
+            XCTAssertEqual(request.url.host, "testnet.binance.vision")
+            XCTAssertEqual(request.headers[BinanceSignedAccountReadTransportRequest.binanceKeyHeaderName], keyValue)
+            XCTAssertEqual(request.credentialReference, reference)
+            XCTAssertTrue(request.url.absoluteString.contains("signature="))
+            XCTAssertFalse(request.url.absoluteString.contains(secretValue))
+            XCTAssertFalse(request.url.absoluteString.contains("/api/v3/order"))
+            return Data(
+                #"""
+                {
+                  "makerCommission": 15,
+                  "takerCommission": 15,
+                  "buyerCommission": 0,
+                  "sellerCommission": 0,
+                  "canTrade": false,
+                  "canWithdraw": false,
+                  "canDeposit": true,
+                  "updateTime": 1704067205000,
+                  "accountType": "SPOT",
+                  "balances": [
+                    { "asset": "BTC", "free": "0.10000000", "locked": "0.00000000" },
+                    { "asset": "USDT", "free": "1000.50000000", "locked": "10.00000000" }
+                  ],
+                  "permissions": ["SPOT"]
+                }
+                """#.utf8
+            )
+        }
+        let listenKeyTransport = TargetGraphMockBinancePrivateStreamListenKeyTransport { request in
+            XCTAssertEqual(request.environment, .testnet)
+            XCTAssertEqual(request.path, BinancePrivateStreamListenKeyLifecycleRequest.userDataStreamPath)
+            XCTAssertEqual(request.credentialReference, reference)
+            XCTAssertEqual(
+                request.headers[BinanceSignedAccountReadTransportRequest.binanceKeyHeaderName],
+                keyValue
+            )
+            XCTAssertFalse(request.url.absoluteString.contains("/api/v3/order"))
+            switch request.action {
+            case .create:
+                XCTAssertEqual(request.method, "POST")
+                XCTAssertNil(request.url.query)
+                return Data("{ \"listenKey\": \"\(rawListenKeyValue)\" }".utf8)
+            case .close:
+                XCTAssertEqual(request.method, "DELETE")
+                XCTAssertTrue(request.url.absoluteString.contains("listenKey=\(rawListenKeyValue)"))
+                return Data(#"{ "result": "closed" }"#.utf8)
+            case .keepAlive:
+                XCTFail("GH-787 lifecycle probe must not perform keepAlive in focused open/observe/close evidence")
+                return Data()
+            }
+        }
+        let eventSource = TargetGraphMockBinancePrivateStreamEventSource(
+            payloads: ReleaseV060TestnetReadOnlyProbe.deterministicPrivateStreamEventPayloads()
+        )
+        let configuration = try ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration.networkReadOnly(
+            credentialReference: reference,
+            operatorConfirmationID: "operator-confirmed-gh-787-private-stream-read-only-probe"
+        )
+        XCTAssertTrue(configuration.networkReadOnlyMode)
+        XCTAssertFalse(configuration.deterministicFixtureMode)
+        let loadCountBeforeArtifact = await credentialProvider.loadCount()
+        XCTAssertEqual(loadCountBeforeArtifact, 0)
+        let probe = ReleaseV070TestnetPrivateStreamReadOnlyProbe(
+            configuration: configuration,
+            credentialProvider: credentialProvider,
+            signedAccountTransport: signedTransport,
+            listenKeyTransport: listenKeyTransport
+        )
+        let artifact = try await probe.artifact(
+            timestamp: Date(timeIntervalSince1970: 1_704_067_200),
+            privateStreamEventSource: eventSource
+        )
+
+        XCTAssertTrue(artifact.artifactHeld)
+        let loadCountAfterArtifact = await credentialProvider.loadCount()
+        XCTAssertEqual(loadCountAfterArtifact, 3)
+        XCTAssertTrue(try artifact.redactionHeld(forbiddenValues: [keyValue, secretValue, rawListenKeyValue]))
+        XCTAssertEqual(artifact.issueID.rawValue, "GH-787")
+        XCTAssertEqual(artifact.mode, .networkReadOnly)
+        XCTAssertTrue(artifact.networkReadOnlyMode)
+        XCTAssertFalse(artifact.deterministicFixtureMode)
+        XCTAssertEqual(artifact.restEndpointHost, "testnet.binance.vision")
+        XCTAssertEqual(artifact.streamEndpointHost, "stream.testnet.binance.vision")
+        XCTAssertEqual(artifact.streamEndpointScheme, "wss")
+        XCTAssertEqual(artifact.credentialReference, reference)
+        XCTAssertEqual(artifact.redactedCredentialReference, "\(reference):<redacted>")
+        XCTAssertTrue(artifact.credentialResolvedAtCallTime)
+        XCTAssertTrue(artifact.listenKeyReference.hasPrefix("listen-key:"))
+        XCTAssertFalse(artifact.listenKeyReference.contains(rawListenKeyValue))
+        XCTAssertEqual(artifact.redactedListenKeyReference, "\(artifact.listenKeyReference):<redacted>")
+        XCTAssertTrue(artifact.redactedStreamURL.contains(artifact.listenKeyReference))
+        XCTAssertFalse(artifact.redactedStreamURL.contains(rawListenKeyValue))
+        XCTAssertTrue(artifact.listenKeyOpened)
+        XCTAssertTrue(artifact.privateStreamObserved)
+        XCTAssertTrue(artifact.listenKeyClosed)
+        XCTAssertEqual(artifact.lifecycleSteps, ["open", "observe", "close"])
+        XCTAssertTrue(artifact.privateStreamReadModel.boundaryHeld)
+        XCTAssertEqual(artifact.privateStreamReadModel.listenKeyReference, artifact.listenKeyReference)
+        XCTAssertEqual(artifact.privateStreamReadModel.credentialReference, reference)
+        XCTAssertEqual(artifact.observedReadModelRecordCount, artifact.privateStreamReadModel.records.count)
+        XCTAssertTrue(artifact.privateStreamReadModel.records.contains { $0.eventKind == .accountSnapshot })
+        XCTAssertTrue(artifact.privateStreamReadModel.records.contains { $0.eventKind == .balanceUpdate })
+        XCTAssertTrue(artifact.privateStreamReadModel.records.contains { $0.eventKind == .positionUpdate })
+        XCTAssertFalse(artifact.credentialValuesPersisted)
+        XCTAssertFalse(artifact.rawListenKeyPersisted)
+        XCTAssertFalse(artifact.rawPrivatePayloadPersisted)
+        XCTAssertFalse(artifact.commandEventsProduced)
+        XCTAssertFalse(artifact.executionReportCommandPathEnabled)
+        XCTAssertFalse(artifact.productionTradingEnabledByDefault)
+        XCTAssertFalse(artifact.productionSecretAutoReadEnabled)
+        XCTAssertFalse(artifact.productionEndpointConnected)
+        XCTAssertFalse(artifact.brokerEndpointConnected)
+        XCTAssertFalse(artifact.productionOrderSubmitted)
+        XCTAssertFalse(artifact.productionCutoverAuthorized)
+        XCTAssertFalse(artifact.noOrderProof.submitCommandEnabled)
+        XCTAssertFalse(artifact.noOrderProof.cancelCommandEnabled)
+        XCTAssertFalse(artifact.noOrderProof.replaceCommandEnabled)
+
+        let encodedArtifact = try ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifactEncoder.encodedString(artifact)
+        XCTAssertFalse(encodedArtifact.contains(keyValue))
+        XCTAssertFalse(encodedArtifact.contains(secretValue))
+        XCTAssertFalse(encodedArtifact.contains(rawListenKeyValue))
+
+        let deterministicArtifact = try await ReleaseV070TestnetPrivateStreamReadOnlyProbe.deterministicArtifact()
+        XCTAssertEqual(deterministicArtifact.mode, .deterministicFixture)
+        XCTAssertTrue(deterministicArtifact.deterministicFixtureMode)
+        XCTAssertFalse(deterministicArtifact.networkReadOnlyMode)
+        XCTAssertTrue(deterministicArtifact.artifactHeld)
+        XCTAssertTrue(
+            try deterministicArtifact.redactionHeld(
+                forbiddenValues: [
+                    "gh-787-fixture-key-value",
+                    "gh-787-fixture-secret-value",
+                    "gh-787-fixture-listen-key-value"
+                ]
+            )
+        )
+
+        let listenKeyRequests = await listenKeyTransport.requests()
+        XCTAssertEqual(listenKeyRequests.map(\.action), [.create, .close])
+        let eventSourceLeaseReferences = await eventSource.leaseReferences()
+        XCTAssertEqual(eventSourceLeaseReferences, [artifact.listenKeyReference])
+
+        XCTAssertThrowsError(
+            try BinancePrivateStreamPayloadDecoder.decodeEventRecords(
+                from: [Data(#"{ "e": "executionReport", "E": 1704067230000 }"#.utf8)],
+                sourceIdentity: "gh-787-execution-report-command-path-rejection"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? BinancePrivateStreamRuntimeError,
+                .forbiddenEventKind("executionReport")
+            )
+        }
+
+        for anchor in ReleaseV070TestnetPrivateStreamReadOnlyProbeContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(verifierScript.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        XCTAssertTrue(dataClientTarget.contains("\"Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift\""))
+        XCTAssertTrue(source.contains("ReleaseV070TestnetPrivateStreamReadOnlyProbe"))
+        XCTAssertTrue(source.contains("ReleaseV070TestnetPrivateStreamReadOnlyProbeConfiguration"))
+        XCTAssertTrue(source.contains("ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifact"))
+        XCTAssertTrue(source.contains("listenKeyOpened"))
+        XCTAssertTrue(source.contains("privateStreamObserved"))
+        XCTAssertTrue(source.contains("listenKeyClosed"))
+        XCTAssertTrue(source.contains("redactedListenKeyReference"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.7.0 testnet private stream read-only probe anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-787-VERIFY-V070-TESTNET-PRIVATE-STREAM-READONLY-PROBE"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.7.0-testnet-private-stream-readonly-probe.sh"))
+        XCTAssertTrue(
+            verifierScript.contains(
+                "testGH787TestnetPrivateStreamReadOnlyProbeOpensObservesAndClosesRedactedListenKey"
+            )
+        )
+        for forbidden in ["submitOrder", "cancelOrder", "replaceOrder", "productionCutoverAuthorized = true"] {
+            XCTAssertFalse(source.contains(forbidden), "GH-787 source must not contain \(forbidden)")
+        }
+    }
+
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
