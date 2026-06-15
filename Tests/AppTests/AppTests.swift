@@ -3272,6 +3272,78 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH815DashboardTestnetReadOnlyMonitorSurfaceShowsFreshnessLifecycleAndRedactionWithoutCommands() throws {
+        // 测试场景：GH-815 Dashboard 只展示 GH-813 / GH-814 已落仓 proof artifact 的
+        // read-model 摘要，包括 freshness、listenKey lifecycle、last event 和 redaction status；
+        // 任何 credential value、raw payload、trading button、order form 或 live command 都必须缺席。
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV080TestnetMonitorSurface
+
+        XCTAssertEqual(surface.issueID, "GH-815")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-813", "GH-814"])
+        XCTAssertEqual(surface.previousIssueID, "GH-814")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-816")
+        XCTAssertEqual(surface.releaseVersion, "v0.8.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.visibleStatusCount, 3)
+        XCTAssertEqual(Set(surface.statusRows.map(\.issueID)), Set(["GH-813", "GH-814"]))
+        XCTAssertTrue(surface.statusRows.allSatisfy(\.statusHeld))
+        XCTAssertTrue(surface.statusRows.allSatisfy(\.redactedCredentialReferenceVisible))
+        XCTAssertTrue(surface.statusRows.contains { $0.redactedListenKeyReferenceVisible })
+        XCTAssertTrue(surface.statusRows.allSatisfy(\.accountSnapshotReadModelVisible))
+        XCTAssertTrue(surface.statusRows.allSatisfy(\.balanceReadModelVisible))
+        XCTAssertTrue(surface.statusRows.allSatisfy(\.positionReadModelVisible))
+        XCTAssertTrue(surface.monitorStates.contains(.stale))
+        XCTAssertTrue(surface.monitorStates.contains(.disconnected))
+        XCTAssertTrue(surface.monitorStates.contains(.recovered))
+        XCTAssertTrue(surface.staleStatesVisible)
+        XCTAssertTrue(surface.disconnectedStatesVisible)
+        XCTAssertTrue(surface.recoveredStatesVisible)
+        XCTAssertTrue(surface.credentialRedactionStatusVisible)
+        XCTAssertTrue(surface.listenKeyLifecycleVisible)
+        XCTAssertTrue(surface.lastObservedEventVisible)
+        XCTAssertTrue(surface.accountBalancePositionReadModelVisible)
+        XCTAssertTrue(surface.readModelOnly)
+        XCTAssertFalse(surface.dashboardDependsOnDataClientTarget)
+        XCTAssertFalse(surface.credentialValueVisible)
+        XCTAssertFalse(surface.rawListenKeyVisible)
+        XCTAssertFalse(surface.rawPrivatePayloadVisible)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandEnabled)
+        XCTAssertFalse(surface.productionCommandEnabled)
+        XCTAssertFalse(surface.orderSubmitVisible)
+        XCTAssertFalse(surface.orderCancelVisible)
+        XCTAssertFalse(surface.orderReplaceVisible)
+        XCTAssertFalse(surface.testnetOrderRoutingAllowed)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretAutoReadEnabled)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertEqual(metricValue("Testnet monitor rows", in: surface.metrics), "3")
+        XCTAssertEqual(metricValue("Monitor states", in: surface.metrics), "stale,disconnected,recovered")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Credential values: none"))
+        XCTAssertTrue(surface.details.contains("Raw listenKey: none"))
+        XCTAssertTrue(surface.details.contains("Raw private payload: none"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV080TestnetMonitorRows=3"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV080TestnetMonitorStates=stale,disconnected,recovered"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV080TestnetMonitorBoundary=confirmed"))
+
+        for anchor in ReleaseV080DashboardTestnetReadOnlyMonitorSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-815 surface")
+        }
+    }
+
     func testReportDashboardAndTimelineRemainMTP78ReadModelOnly() throws {
         // 测试场景：MTP-78 要求 Report、Dashboard 和 Event Timeline 只能展示 paper-only /
         // read-model evidence。它们可以显示 paper order、simulated fill 和 portfolio projection，

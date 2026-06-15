@@ -23721,6 +23721,142 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("productionCutoverAuthorized = true"))
     }
 
+    func testGH815DashboardTestnetReadOnlyMonitorSurfaceIsAnchoredInV080Guards() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dashboardTarget = try packageTargetBlock(named: "Dashboard", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Dashboard/Report/ReleaseV080DashboardTestnetReadOnlyMonitorSurface.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let dashboardShell = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Dashboard/DashboardShell.swift"),
+            encoding: .utf8
+        )
+        let appTests = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tests/AppTests/AppTests.swift"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verifierScript = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("checks/verify-v0.8.0-dashboard-testnet-readonly-monitor.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md"),
+            encoding: .utf8
+        )
+
+        let surface = ReleaseV080DashboardTestnetReadOnlyMonitorSurfaceViewModel.deterministicFixture
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-813", "GH-814"])
+        XCTAssertEqual(surface.previousIssueID, "GH-814")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-816")
+        XCTAssertEqual(surface.statusRows.count, 3)
+        XCTAssertTrue(surface.statusRows.allSatisfy(\.statusHeld))
+        XCTAssertTrue(surface.monitorStates.contains(.stale))
+        XCTAssertTrue(surface.monitorStates.contains(.disconnected))
+        XCTAssertTrue(surface.monitorStates.contains(.recovered))
+        XCTAssertTrue(surface.listenKeyLifecycleVisible)
+        XCTAssertTrue(surface.lastObservedEventVisible)
+        XCTAssertTrue(surface.credentialRedactionStatusVisible)
+        XCTAssertFalse(surface.dashboardDependsOnDataClientTarget)
+        XCTAssertFalse(surface.credentialValueVisible)
+        XCTAssertFalse(surface.rawListenKeyVisible)
+        XCTAssertFalse(surface.rawPrivatePayloadVisible)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandEnabled)
+        XCTAssertFalse(surface.orderSubmitVisible)
+        XCTAssertFalse(surface.orderCancelVisible)
+        XCTAssertFalse(surface.orderReplaceVisible)
+        XCTAssertFalse(surface.testnetOrderRoutingAllowed)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretAutoReadEnabled)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        let expectedAnchors = [
+            "GH-815-VERIFY-V080-DASHBOARD-TESTNET-READONLY-MONITOR",
+            "TVM-RELEASE-V080-DASHBOARD-TESTNET-READONLY-MONITOR",
+            "V080-009-DASHBOARD-TESTNET-READONLY-MONITOR-SURFACE",
+            "V080-009-ACCOUNT-SNAPSHOT-FRESHNESS",
+            "V080-009-PRIVATE-STREAM-FRESHNESS",
+            "V080-009-LISTENKEY-LIFECYCLE-VISIBLE",
+            "V080-009-STALE-DISCONNECTED-RECOVERED-STATES",
+            "V080-009-CREDENTIAL-LISTENKEY-REDACTION-STATUS",
+            "V080-009-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND",
+            "V080-009-NO-TESTNET-ORDER-ROUTING",
+            "V080-009-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(
+            ReleaseV080DashboardTestnetReadOnlyMonitorSurfaceViewModel.requiredValidationAnchors,
+            expectedAnchors
+        )
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-815 source")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(verifierScript.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in v0.8 contract")
+        }
+
+        XCTAssertTrue(dashboardTarget.contains("\"Report\""))
+        XCTAssertFalse(dashboardTarget.contains("\"DataClient\""))
+        XCTAssertTrue(source.contains("ReleaseV080DashboardTestnetReadOnlyMonitorSurfaceViewModel"))
+        XCTAssertTrue(source.contains("ReleaseV080DashboardTestnetReadOnlyMonitorStatusRow"))
+        XCTAssertTrue(source.contains("ReleaseV080ManualBinanceTestnetSignedAccountNetworkProofArtifact"))
+        XCTAssertTrue(source.contains("ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifact"))
+        XCTAssertTrue(dashboardShell.contains("releaseV080TestnetMonitorSurface"))
+        XCTAssertTrue(dashboardShell.contains("releaseV080TestnetMonitorRows"))
+        XCTAssertTrue(appTests.contains(
+            "testGH815DashboardTestnetReadOnlyMonitorSurfaceShowsFreshnessLifecycleAndRedactionWithoutCommands"
+        ))
+        XCTAssertTrue(automationReadiness.contains("Release v0.8.0 Dashboard testnet read-only monitor anchor"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-dashboard-testnet-readonly-monitor.sh"))
+        XCTAssertTrue(verifierScript.contains(
+            "testGH815DashboardTestnetReadOnlyMonitorSurfaceShowsFreshnessLifecycleAndRedactionWithoutCommands"
+        ))
+        XCTAssertTrue(verifierScript.contains(
+            "testGH815DashboardTestnetReadOnlyMonitorSurfaceIsAnchoredInV080Guards"
+        ))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("api.binance.com"))
+        XCTAssertFalse(source.contains("fapi.binance.com"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("productionCutoverAuthorized = true"))
+    }
+
     func testGH785RunRegistrySupervisorProvidesLocalNoOrderRunManagement() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

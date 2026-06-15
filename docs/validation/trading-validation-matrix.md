@@ -149,6 +149,27 @@
 - command boundary: `executionReportCommandPathEnabled=false`、`ordersSubmitted=false`、`testnetOrderSubmissionAllowed=false`、`testnetOrderRoutingAllowed=false` and `testnetCancelReplaceAllowed=false`.
 - forbidden scope: no production trading, no production secret read, no production endpoint / broker connection, no testnet order submission, no executionReport command handling, no real order, no production cutover.
 
+## TVM-RELEASE-V080-DASHBOARD-TESTNET-READONLY-MONITOR
+
+- TVM-RELEASE-V080-DASHBOARD-TESTNET-READONLY-MONITOR
+- GH-815-VERIFY-V080-DASHBOARD-TESTNET-READONLY-MONITOR
+- V080-009-DASHBOARD-TESTNET-READONLY-MONITOR-SURFACE
+- V080-009-ACCOUNT-SNAPSHOT-FRESHNESS
+- V080-009-PRIVATE-STREAM-FRESHNESS
+- V080-009-LISTENKEY-LIFECYCLE-VISIBLE
+- V080-009-STALE-DISCONNECTED-RECOVERED-STATES
+- V080-009-CREDENTIAL-LISTENKEY-REDACTION-STATUS
+- V080-009-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+- V080-009-NO-TESTNET-ORDER-ROUTING
+- V080-009-NO-PRODUCTION-CUTOVER
+- GH-815 Release v0.8.0 Dashboard Testnet Read-only Monitor Validation
+- testGH815DashboardTestnetReadOnlyMonitorSurfaceShowsFreshnessLifecycleAndRedactionWithoutCommands
+- testGH815DashboardTestnetReadOnlyMonitorSurfaceIsAnchoredInV080Guards
+- Dashboard evidence: shows account snapshot freshness, private stream freshness, listenKey open / observe / close lifecycle, last observed event, stale / disconnected / recovered state, and credential / listenKey redaction status.
+- dependency boundary: Dashboard target consumes Dashboard-safe read model fields and does not depend on DataClient, DataClient runtime object, endpoint transport, credential provider, or raw proof payload.
+- command boundary: `tradingButtonVisible=false`、`orderFormVisible=false`、`liveCommandEnabled=false`、`orderSubmitVisible=false`、`orderCancelVisible=false`、`orderReplaceVisible=false` and `testnetOrderRoutingAllowed=false`.
+- forbidden scope: no credential value display, no raw listenKey display, no raw private payload display, no production trading, no production secret read, no production endpoint / broker connection, no testnet order submission, no real order, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。

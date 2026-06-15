@@ -120,6 +120,23 @@
 - Focused test: `testGH814ManualBinanceTestnetPrivateStreamMonitoringProofIsRedactedAndNoOrder`
 - Boundary: GH-814 只将 operator-confirmed Binance Spot testnet private stream open / observe / close read-only monitoring proof 压成 redacted proof artifact；CI 只验证 deterministic mock / contract，不读取 credential value、不要求 network、不保存 raw listenKey 或 raw private payload、不处理 executionReport command path、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-815 Release v0.8.0 Dashboard Testnet Read-only Monitor Validation
+
+- `GH-815-VERIFY-V080-DASHBOARD-TESTNET-READONLY-MONITOR`
+- `TVM-RELEASE-V080-DASHBOARD-TESTNET-READONLY-MONITOR`
+- `V080-009-DASHBOARD-TESTNET-READONLY-MONITOR-SURFACE`
+- `V080-009-ACCOUNT-SNAPSHOT-FRESHNESS`
+- `V080-009-PRIVATE-STREAM-FRESHNESS`
+- `V080-009-LISTENKEY-LIFECYCLE-VISIBLE`
+- `V080-009-STALE-DISCONNECTED-RECOVERED-STATES`
+- `V080-009-CREDENTIAL-LISTENKEY-REDACTION-STATUS`
+- `V080-009-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND`
+- `V080-009-NO-TESTNET-ORDER-ROUTING`
+- `V080-009-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.8.0-dashboard-testnet-readonly-monitor.sh`
+- Focused tests: `testGH815DashboardTestnetReadOnlyMonitorSurfaceShowsFreshnessLifecycleAndRedactionWithoutCommands`、`testGH815DashboardTestnetReadOnlyMonitorSurfaceIsAnchoredInV080Guards`
+- Boundary: GH-815 只把 GH-813 / GH-814 已落仓 proof artifact 的 Dashboard-safe 摘要展示为 account snapshot freshness、private stream freshness、listenKey lifecycle、last observed event、stale / disconnected / recovered state 和 redaction status；Dashboard target 不依赖 DataClient，不读取 credential value、不显示 raw listenKey 或 raw private payload、不提供 trading button、order form、live command、testnet order routing 或 production cutover。
+
 ## Unified Entry
 
 ```bash
