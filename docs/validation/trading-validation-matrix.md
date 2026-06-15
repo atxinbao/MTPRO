@@ -188,6 +188,23 @@
 - CLI evidence: `risk-policy show`、`risk-policy validate` and `risk-policy diff` expose local read-only profile state without reading secret values or connecting endpoint transports.
 - forbidden scope: no broker enablement, no production endpoint, no OMS bypass, no order command path, no testnet order routing, no production trading, no production secret read, no real order, no production cutover.
 
+## TVM-RELEASE-V080-PORTFOLIO-RECONCILIATION-REVIEW-WORKFLOW
+
+- TVM-RELEASE-V080-PORTFOLIO-RECONCILIATION-REVIEW-WORKFLOW
+- GH-817-VERIFY-V080-PORTFOLIO-RECONCILIATION-REVIEW-WORKFLOW
+- V080-011-RECONCILIATION-STATUS-MATCHED-DELTA-MISSING-STALE
+- V080-011-REVIEW-REQUIRED-OPERATOR-NOTE-ACK
+- V080-011-STALE-OBSERVED-STATE
+- V080-011-AUDIT-TRAIL-ARTIFACTS
+- V080-011-NO-CORRECTION-COMMAND-BROKER-WRITE
+- V080-011-PORTFOLIO-REVIEW-WORKFLOW
+- GH-817 Release v0.8.0 Portfolio Reconciliation Review Workflow Validation
+- testGH817PortfolioReconciliationReviewWorkflowRequiresAuditOnlyAcknowledgement
+- review evidence: maps GH-790 read-only reconciliation diffs into matched / delta / missing / stale statuses and review_required rows.
+- acknowledgement evidence: records operator_note, acknowledged_at and acknowledged_by as audit-only metadata.
+- audit trail evidence: creates local reconciliation-review artifact paths for every reviewed diff without command side effects.
+- forbidden scope: no correction command, no broker write, no account mutation, no trading adjustment, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。
