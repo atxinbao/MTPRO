@@ -124,6 +124,24 @@ Required anchors：
 
 `events.jsonl.quarantine` 只保存完整损坏 line 的本地 quarantine evidence，必须记录 runID、原始行号、原始 line、quarantine reason 和 checksum。v0.8.0 不执行 log compaction；compaction policy 固定为 append-only no-compaction。该能力不得连接 endpoint / broker，不得读取 secret，不得提交 testnet 或 production order，不得授权 production cutover。
 
+## V080-007-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF
+
+`V080-007-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF`
+
+GH-813 将 operator 已执行的 Binance Spot testnet signed account read-only network proof 压成 redacted proof artifact。该 artifact 只能消费 GH-786 `networkReadOnly` signed account read-only source artifact，并记录 `networkAttempted=true`、`signedAccountSnapshotRead=true`、endpoint host `testnet.binance.vision`、endpoint path `/api/v3/account`、manual proof reference、operator confirmation id 和 redacted credential reference。
+
+Required anchors：
+
+- `GH-813-VERIFY-V080-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF`
+- `TVM-RELEASE-V080-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF`
+- `V080-007-NETWORK-ATTEMPTED-AND-SNAPSHOT-READ`
+- `V080-007-REDACTED-CREDENTIAL-REFERENCE`
+- `V080-007-CI-DETERMINISTIC-NO-NETWORK-SECRET`
+- `V080-007-NO-TESTNET-ORDER-ROUTING`
+- `V080-007-NO-PRODUCTION-CUTOVER`
+
+CI 只验证 deterministic mock source artifact、redaction、合同字段和 no-order boundary；CI 不读取真实 credential value，不要求 network，不把手动 proof 升级为 deterministic CI proof。GH-813 artifact 不保存 raw account payload、API key、secret、production endpoint、broker state、order request、testnet submit / cancel / replace 或 production cutover authorization。
+
 ## V080-001-TESTNET-READONLY-MONITORING
 
 `V080-001-TESTNET-READONLY-MONITORING`

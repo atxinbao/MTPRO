@@ -135,6 +135,7 @@ let package = Package(
                 "Binance/PrivateStream/BinancePrivateStreamAccountSnapshotRuntime.swift",
                 "Binance/SignedAccount/BinanceSignedAccountReadRuntime.swift",
                 "Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift",
+                "Binance/TestnetReadOnlyProbe/ReleaseV080ManualTestnetSignedAccountProof.swift",
                 "DataClientReadOnlyMarketDataSource.swift",
                 "TargetGraph/DataClientTargetBoundary.swift"
             ]

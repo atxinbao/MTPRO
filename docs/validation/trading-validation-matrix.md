@@ -112,6 +112,24 @@
 - compaction policy: append-only no-compaction for v0.8.0.
 - forbidden scope: no distributed log service, no broker event ingestion, no production persistence cutover, no production endpoint / broker connection, no production secret read, no real order, no production cutover.
 
+## TVM-RELEASE-V080-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF
+
+- TVM-RELEASE-V080-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF
+- GH-813-VERIFY-V080-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF
+- V080-007-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF
+- V080-007-NETWORK-ATTEMPTED-AND-SNAPSHOT-READ
+- V080-007-REDACTED-CREDENTIAL-REFERENCE
+- V080-007-CI-DETERMINISTIC-NO-NETWORK-SECRET
+- V080-007-NO-TESTNET-ORDER-ROUTING
+- V080-007-NO-PRODUCTION-CUTOVER
+- GH-813 Release v0.8.0 Manual Testnet Signed Account Network Proof Validation
+- testGH813ManualBinanceTestnetSignedAccountNetworkProofIsRedactedAndNoOrder
+- manual proof artifact: records `networkAttempted=true` and `signedAccountSnapshotRead=true` from a GH-786 network read-only source artifact.
+- redaction evidence: artifact stores redacted credential reference and does not store API key、secret or raw account payload.
+- CI split: focused verifier uses deterministic mock transport only; CI does not require network or secret.
+- order boundary: `ordersSubmitted=false`、`testnetOrderSubmissionAllowed=false`、`testnetOrderRoutingAllowed=false` and `testnetCancelReplaceAllowed=false`.
+- forbidden scope: no production trading, no production secret read, no production endpoint / broker connection, no testnet order submission, no real order, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。

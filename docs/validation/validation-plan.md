@@ -91,6 +91,20 @@
 - Focused test: `testGH812RuntimeEventLogWriterHardensCrashRecoverySchemaQuarantineAndCompactionPolicy`
 - Boundary: GH-812 只加固本地 `events.jsonl` crash recovery、schema version、duplicate rejection、complete corrupt line quarantine 和 append-only no-compaction policy；不连接 endpoint / broker、不读取 secret、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-813 Release v0.8.0 Manual Testnet Signed Account Network Proof Validation
+
+- `GH-813-VERIFY-V080-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF`
+- `TVM-RELEASE-V080-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF`
+- `V080-007-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF`
+- `V080-007-NETWORK-ATTEMPTED-AND-SNAPSHOT-READ`
+- `V080-007-REDACTED-CREDENTIAL-REFERENCE`
+- `V080-007-CI-DETERMINISTIC-NO-NETWORK-SECRET`
+- `V080-007-NO-TESTNET-ORDER-ROUTING`
+- `V080-007-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.8.0-manual-testnet-signed-account-proof.sh`
+- Focused test: `testGH813ManualBinanceTestnetSignedAccountNetworkProofIsRedactedAndNoOrder`
+- Boundary: GH-813 只将 operator-confirmed Binance Spot testnet signed account read-only network proof 压成 redacted proof artifact；CI 只验证 deterministic mock / contract，不读取 credential value、不要求 network、不提交 testnet 或 production order、不授权 production cutover。
+
 ## Unified Entry
 
 ```bash
