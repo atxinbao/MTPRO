@@ -163,7 +163,7 @@ Release v0.7.0 remains closed for these capabilities by default:
 - `docs/roadmap.md` adds `MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity` to completed Project map, updates Project Closure Count to `41 / 41 (100%)`, and sets latest completed Project / maturity statement to the v0.7.0 closure.
 - `docs/validation/latest-verification-summary.md` records the final audit report, issue / PR / checks evidence, validation result and no-default-production-trading boundary.
 - `docs/operators/release-v0.7.0-operator-runtime-session-testnet-readonly-connectivity-runbook.md` records local operator validation and testnet read-only connectivity proof.
-- `docs/release/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-notes.md` records release notes for the completed docs closeout and explicitly does not publish a GitHub Release tag.
+- `docs/release/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-notes.md` records release notes for the completed docs closeout. v0.7.0 was later published through a separate stable GitHub Release gate at `https://github.com/atxinbao/MTPRO/releases/tag/v0.7.0`; construction closeout and release publication remain separate gates.
 - `docs/validation/validation-plan.md` and `docs/validation/trading-validation-matrix.md` record `TVM-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK`.
 - `docs/automation/automation-readiness.md` and `checks/automation-readiness.sh` mechanically guard this final audit report and v0.7.0 verification command.
 

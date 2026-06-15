@@ -25,6 +25,22 @@
 - safe local controls: start / stop / recover / archive local session、refresh read-only monitor、record manual proof summary 和 open reconciliation review 不得触发 ExecutionClient、broker、OMS production handoff、submit / cancel / replace、trading button、order form 或 live command。
 - forbidden scope: no production trading, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet order submission, no real order, no production cutover.
 
+## TVM-RELEASE-V080-RELEASE-PUBLICATION-POLICY
+
+- TVM-RELEASE-V080-RELEASE-PUBLICATION-POLICY
+- GH-808-RELEASE-PUBLICATION-POLICY
+- V080-002-V070-ACTUAL-GITHUB-RELEASE
+- V080-002-V080-CONSTRUCTION-VS-PUBLICATION
+- V080-002-TAG-NAMING-RULES
+- V080-002-GITHUB-RELEASE-CHECKLIST
+- V080-002-SOURCE-CHECKSUM-EXPECTATIONS
+- V080-002-RELEASE-NOTES-PUBLISHING-GATE
+- GH-808 Release v0.7.0 / v0.8.0 Publication Policy Validation
+- testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease
+- v0.7.0 GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.7.0`; stable release；tag peeled commit `79bd7309b5d644599b6879e615489562455cd3fe`。
+- v0.8.0 policy: construction closeout and public release publication remain separate gates; source checksum expectation binds exact tag archive, not mutable branch.
+- forbidden scope: GH-808 creates no tag, no GitHub Release, no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。
@@ -1462,4 +1478,4 @@
 - operator runbook: `docs/operators/release-v0.7.0-operator-runtime-session-testnet-readonly-connectivity-runbook.md`
 - focused test: `testGH792ReleaseV070FinalAuditDocsAndRunbookCloseCompletedFactsOnly`
 - root docs refresh: latest completed release construction scope must be v0.7.0 and Project Closure Count must be `41 / 41 (100%)`
-- forbidden scope: no tag publication, no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no real submit / cancel / replace order
+- forbidden scope: GH-792 construction closeout did not publish a tag; later v0.7.0 release publication is a separate gate. no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no real submit / cancel / replace order
