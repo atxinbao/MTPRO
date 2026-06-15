@@ -105,6 +105,21 @@
 - Focused test: `testGH813ManualBinanceTestnetSignedAccountNetworkProofIsRedactedAndNoOrder`
 - Boundary: GH-813 只将 operator-confirmed Binance Spot testnet signed account read-only network proof 压成 redacted proof artifact；CI 只验证 deterministic mock / contract，不读取 credential value、不要求 network、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-814 Release v0.8.0 Manual Testnet Private Stream Monitoring Validation
+
+- `GH-814-VERIFY-V080-MANUAL-TESTNET-PRIVATE-STREAM-MONITORING`
+- `TVM-RELEASE-V080-MANUAL-TESTNET-PRIVATE-STREAM-MONITORING`
+- `V080-008-MANUAL-TESTNET-PRIVATE-STREAM-MONITORING`
+- `V080-008-LISTENKEY-LIFECYCLE-OPEN-OBSERVE-CLOSE`
+- `V080-008-ACCOUNT-BALANCE-POSITION-READMODEL`
+- `V080-008-REDACTED-LISTENKEY-CREDENTIAL-REFERENCE`
+- `V080-008-EXECUTIONREPORT-COMMAND-PATH-REJECTION`
+- `V080-008-NO-TESTNET-ORDER-ROUTING`
+- `V080-008-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.8.0-manual-testnet-private-stream-monitoring.sh`
+- Focused test: `testGH814ManualBinanceTestnetPrivateStreamMonitoringProofIsRedactedAndNoOrder`
+- Boundary: GH-814 只将 operator-confirmed Binance Spot testnet private stream open / observe / close read-only monitoring proof 压成 redacted proof artifact；CI 只验证 deterministic mock / contract，不读取 credential value、不要求 network、不保存 raw listenKey 或 raw private payload、不处理 executionReport command path、不提交 testnet 或 production order、不授权 production cutover。
+
 ## Unified Entry
 
 ```bash

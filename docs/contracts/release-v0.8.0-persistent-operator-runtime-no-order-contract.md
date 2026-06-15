@@ -142,6 +142,25 @@ Required anchors：
 
 CI 只验证 deterministic mock source artifact、redaction、合同字段和 no-order boundary；CI 不读取真实 credential value，不要求 network，不把手动 proof 升级为 deterministic CI proof。GH-813 artifact 不保存 raw account payload、API key、secret、production endpoint、broker state、order request、testnet submit / cancel / replace 或 production cutover authorization。
 
+## V080-008-MANUAL-TESTNET-PRIVATE-STREAM-MONITORING
+
+`V080-008-MANUAL-TESTNET-PRIVATE-STREAM-MONITORING`
+
+GH-814 将 operator 已执行的 Binance Spot testnet private stream open / observe / close read-only monitoring proof 压成 redacted proof artifact。该 artifact 只能消费 GH-787 `networkReadOnly` private stream read-only source artifact，并记录 listenKey lifecycle、account / balance / position read-model 摘要、freshness statuses、manual proof reference、operator confirmation id、redacted credential reference 和 redacted listenKey reference。
+
+Required anchors：
+
+- `GH-814-VERIFY-V080-MANUAL-TESTNET-PRIVATE-STREAM-MONITORING`
+- `TVM-RELEASE-V080-MANUAL-TESTNET-PRIVATE-STREAM-MONITORING`
+- `V080-008-LISTENKEY-LIFECYCLE-OPEN-OBSERVE-CLOSE`
+- `V080-008-ACCOUNT-BALANCE-POSITION-READMODEL`
+- `V080-008-REDACTED-LISTENKEY-CREDENTIAL-REFERENCE`
+- `V080-008-EXECUTIONREPORT-COMMAND-PATH-REJECTION`
+- `V080-008-NO-TESTNET-ORDER-ROUTING`
+- `V080-008-NO-PRODUCTION-CUTOVER`
+
+CI 只验证 deterministic mock source artifact、redaction、合同字段、executionReport command path rejection 和 no-order boundary；CI 不读取真实 credential value，不要求 network，不把手动 proof 升级为 deterministic CI proof。GH-814 artifact 不保存 raw listenKey、raw private payload、API key、secret、production endpoint、broker state、executionReport command、order request、testnet submit / cancel / replace 或 production cutover authorization。
+
 ## V080-001-TESTNET-READONLY-MONITORING
 
 `V080-001-TESTNET-READONLY-MONITORING`

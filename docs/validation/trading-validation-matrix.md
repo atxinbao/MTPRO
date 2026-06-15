@@ -130,6 +130,25 @@
 - order boundary: `ordersSubmitted=false`、`testnetOrderSubmissionAllowed=false`、`testnetOrderRoutingAllowed=false` and `testnetCancelReplaceAllowed=false`.
 - forbidden scope: no production trading, no production secret read, no production endpoint / broker connection, no testnet order submission, no real order, no production cutover.
 
+## TVM-RELEASE-V080-MANUAL-TESTNET-PRIVATE-STREAM-MONITORING
+
+- TVM-RELEASE-V080-MANUAL-TESTNET-PRIVATE-STREAM-MONITORING
+- GH-814-VERIFY-V080-MANUAL-TESTNET-PRIVATE-STREAM-MONITORING
+- V080-008-MANUAL-TESTNET-PRIVATE-STREAM-MONITORING
+- V080-008-LISTENKEY-LIFECYCLE-OPEN-OBSERVE-CLOSE
+- V080-008-ACCOUNT-BALANCE-POSITION-READMODEL
+- V080-008-REDACTED-LISTENKEY-CREDENTIAL-REFERENCE
+- V080-008-EXECUTIONREPORT-COMMAND-PATH-REJECTION
+- V080-008-NO-TESTNET-ORDER-ROUTING
+- V080-008-NO-PRODUCTION-CUTOVER
+- GH-814 Release v0.8.0 Manual Testnet Private Stream Monitoring Validation
+- testGH814ManualBinanceTestnetPrivateStreamMonitoringProofIsRedactedAndNoOrder
+- manual proof artifact: records open / observe / close lifecycle from a GH-787 network read-only source artifact.
+- read-model evidence: records account snapshot、balance update、position update and private stream freshness statuses without raw private payload.
+- redaction evidence: artifact stores redacted credential and listenKey references and does not store API key、secret、raw listenKey or raw private payload.
+- command boundary: `executionReportCommandPathEnabled=false`、`ordersSubmitted=false`、`testnetOrderSubmissionAllowed=false`、`testnetOrderRoutingAllowed=false` and `testnetCancelReplaceAllowed=false`.
+- forbidden scope: no production trading, no production secret read, no production endpoint / broker connection, no testnet order submission, no executionReport command handling, no real order, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。
