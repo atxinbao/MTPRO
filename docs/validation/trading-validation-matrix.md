@@ -1424,3 +1424,13 @@
 - observed state: GH-786 signed account read-only snapshot and GH-787 private stream read model may be mapped into redacted observed state values
 - diff artifact: expected vs observed records must explain matched / delta / missing observed state without creating correction commands
 - forbidden scope: no broker correction, no account mutation, no production account sync, no real PnL ownership, no trading adjustment command, no production account read, no production cutover
+- TVM-RELEASE-V070-CI-RELEASE-VALIDATION-GATE
+- GH-791-VERIFY-V070-CI-RELEASE-VALIDATION-GATE
+- V070-013-AGGREGATE-FOCUSED-GUARDS
+- V070-013-CHECKS-RUN-V070-GATE
+- V070-013-PRODUCTION-DISABLED-DEFAULTS
+- GH-791 Release v0.7.0 CI / Release Validation Gate
+- testGH791ReleaseV070AggregateValidationGateCoversFocusedGuardsAndProductionDisabledDefaults
+- aggregate scripts: `checks/verify-v0.7.0.sh` must execute GH-779 through GH-790 focused verifiers
+- checks gate: `checks/run.sh` must call `bash checks/verify-v0.7.0.sh` while retaining direct focused verifier coverage
+- forbidden scope: no production cutover, no production secret read, no production endpoint / broker connection, no real submit / cancel / replace order
