@@ -3399,6 +3399,22 @@ swift test
 - kill switch 和 no-trade scenario 必须产出 blocked risk decision，并证明 OMS、ExecutionClient、broker command 和 production account read 均未创建。
 - allowedSymbols / allowedProductTypes 必须拒绝不在本地 policy allowlist 内的 instrument。
 - 禁止读取 production account、broker margin / leverage、production secret、production endpoint / broker，禁止 submit / cancel / replace，禁止授权 production cutover。
+
+## GH-790 Release v0.7.0 Portfolio Read-only Reconciliation Validation
+
+- GH-790-VERIFY-V070-PORTFOLIO-READONLY-RECONCILIATION
+- TVM-RELEASE-V070-PORTFOLIO-READONLY-RECONCILIATION
+- V070-012-JOURNAL-EXPECTED-VS-TESTNET-OBSERVED
+- V070-012-DIFF-ARTIFACTS-EXPLAIN-ONLY
+- V070-012-NO-CORRECTION-COMMAND
+- V070-012-NO-PRODUCTION-ACCOUNT-READ
+- V070-012-READONLY-RECONCILIATION-PROJECTION
+- `bash checks/verify-v0.7.0-portfolio-readonly-reconciliation.sh`
+- `testGH790PortfolioReadOnlyReconciliationExplainsExpectedVsObservedWithoutCommands`
+- Portfolio expected state 必须来自 local run journal projection，observed state 只能来自 redacted read-only values。
+- GH-786 signed account read-only snapshot 和 GH-787 private stream read model 可映射为 observed state，但 Portfolio target 不读取 endpoint、不保存 credential value、不依赖 DataClient。
+- Diff artifact 必须解释 matched / delta / missing observed state，并可 replay 为相同 records。
+- 禁止 broker correction、account mutation、production account sync、real PnL ownership、trading adjustment command、production account read、production cutover。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS

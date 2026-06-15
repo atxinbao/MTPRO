@@ -11399,6 +11399,218 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH790PortfolioReadOnlyReconciliationExplainsExpectedVsObservedWithoutCommands() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Portfolio/ReleaseV070PortfolioReadOnlyReconciliationProjection.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verifierScript = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("checks/verify-v0.7.0-portfolio-readonly-reconciliation.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV070PortfolioReadOnlyReconciliationContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-790")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-786", "GH-787", "GH-789"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-789")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-791", "GH-792"])
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmissionEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+
+        let lifecycleEvidence = try await ReleaseV050ExecutionOMSDryRunLifecycleRunner.deterministicEvidence()
+        var journal = try ReleaseV050DurableLocalRunJournal(runID: lifecycleEvidence.runID)
+        for envelope in lifecycleEvidence.journalCompatibleEnvelopes {
+            try journal.append(envelope: envelope)
+        }
+        let expectedProjection = try ReleaseV050PortfolioRunJournalProjection.project(journal: journal)
+        XCTAssertTrue(expectedProjection.evidenceHeld)
+        XCTAssertFalse(expectedProjection.productionAccountSynced)
+        XCTAssertFalse(expectedProjection.accountEndpointRead)
+        XCTAssertFalse(expectedProjection.reconciliationRuntimeExecuted)
+
+        let signedArtifact = try await ReleaseV070TestnetSignedAccountReadOnlyProbe.deterministicArtifact()
+        let privateArtifact = try await ReleaseV070TestnetPrivateStreamReadOnlyProbe.deterministicArtifact()
+        XCTAssertTrue(signedArtifact.artifactHeld)
+        XCTAssertTrue(privateArtifact.artifactHeld)
+        XCTAssertEqual(signedArtifact.issueID.rawValue, "GH-786")
+        XCTAssertEqual(privateArtifact.issueID.rawValue, "GH-787")
+
+        let signedAssets = try signedArtifact.signedAccountSnapshot.balances.map { balance in
+            try ReleaseV070PortfolioReadOnlyObservedAssetState(
+                asset: balance.asset,
+                free: balance.free,
+                locked: balance.locked,
+                sourceLabel: "GH-786 signed-account-readonly"
+            )
+        }
+        var privateAssets: [ReleaseV070PortfolioReadOnlyObservedAssetState] = []
+        for record in privateArtifact.privateStreamReadModel.records {
+            guard let asset = record.asset,
+                  let free = record.free,
+                  let locked = record.locked else {
+                continue
+            }
+            privateAssets.append(
+                try ReleaseV070PortfolioReadOnlyObservedAssetState(
+                    asset: asset,
+                    free: free,
+                    locked: locked,
+                    sourceLabel: "GH-787 private-stream-readonly-\(record.eventKind.rawValue)"
+                )
+            )
+        }
+
+        let observedState = try ReleaseV070PortfolioReadOnlyObservedState(
+            signedAccountCredentialReference: signedArtifact.credentialReference,
+            privateStreamCredentialReference: privateArtifact.credentialReference,
+            signedAccountAssets: signedAssets,
+            privateStreamAssets: privateAssets,
+            privateStreamReadModelRecordCount: privateArtifact.observedReadModelRecordCount
+        )
+        XCTAssertTrue(observedState.stateHeld)
+        XCTAssertTrue(observedState.observedSources(for: "BTC").contains("GH-786 signed-account-readonly"))
+        XCTAssertNotNil(observedState.observedTotal(for: "BTC"))
+        XCTAssertFalse(observedState.productionAccountRead)
+        XCTAssertFalse(observedState.productionAccountSync)
+        XCTAssertFalse(observedState.brokerCorrectionEnabled)
+        XCTAssertFalse(observedState.tradingAdjustmentCommandEnabled)
+
+        let evidence = try ReleaseV070PortfolioReadOnlyReconciliationProjection.reconcile(
+            expectedProjection: expectedProjection,
+            observedState: observedState
+        )
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.sourceBoundaryHeld)
+        XCTAssertTrue(evidence.forbiddenBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-790")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-786", "GH-787", "GH-789"])
+        XCTAssertEqual(evidence.previousIssueID.rawValue, "GH-789")
+        XCTAssertEqual(evidence.expectedProjection, expectedProjection)
+        XCTAssertEqual(evidence.observedState, observedState)
+        XCTAssertEqual(evidence.replayedDiffRecords, evidence.diffRecords)
+        XCTAssertEqual(evidence.diffArtifactPaths, evidence.diffRecords.map(\.artifactPath))
+        XCTAssertTrue(evidence.diffRecords.allSatisfy(\.recordHeld))
+        XCTAssertTrue(evidence.diffRecords.allSatisfy(\.forbiddenBoundaryHeld))
+        XCTAssertTrue(evidence.diffRecords.allSatisfy { $0.explanation.contains("read-only") })
+        XCTAssertTrue(evidence.diffRecords.allSatisfy { $0.artifactPath.contains("portfolio-reconciliation") })
+        XCTAssertTrue(evidence.diffRecords.contains { $0.status == .explanatoryDelta || $0.status == .matchedReadOnlyObservation })
+        XCTAssertFalse(evidence.correctionCommandCreated)
+        XCTAssertFalse(evidence.brokerWritePathCreated)
+        XCTAssertFalse(evidence.accountMutationCreated)
+        XCTAssertFalse(evidence.productionAccountReadRequired)
+        XCTAssertFalse(evidence.productionAccountSyncEnabled)
+        XCTAssertFalse(evidence.realPnLOwnershipClaimed)
+        XCTAssertFalse(evidence.tradingAdjustmentCommandCreated)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionBrokerConnected)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        XCTAssertThrowsError(
+            try ReleaseV070PortfolioReadOnlyObservedState(
+                signedAccountCredentialReference: signedArtifact.credentialReference,
+                privateStreamCredentialReference: privateArtifact.credentialReference,
+                signedAccountAssets: signedAssets,
+                privateStreamAssets: privateAssets,
+                privateStreamReadModelRecordCount: privateArtifact.observedReadModelRecordCount,
+                productionAccountRead: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070PortfolioReadOnlyReconciliationProjectionError,
+                .forbiddenCapability("productionAccountRead")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV070PortfolioReadOnlyReconciliationEvidence(
+                expectedProjection: expectedProjection,
+                observedState: observedState,
+                diffRecords: evidence.diffRecords,
+                replayedDiffRecords: evidence.diffRecords,
+                brokerWritePathCreated: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070PortfolioReadOnlyReconciliationProjectionError,
+                .forbiddenCapability("brokerWritePathCreated")
+            )
+        }
+
+        for anchor in ReleaseV070PortfolioReadOnlyReconciliationContract.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-790 source")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(verifierScript.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        XCTAssertTrue(portfolioTarget.contains("\"ReleaseV070PortfolioReadOnlyReconciliationProjection.swift\""))
+        XCTAssertFalse(portfolioTarget.contains("\"DataClient\""))
+        XCTAssertFalse(portfolioTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(source.contains("ReleaseV070PortfolioReadOnlyReconciliationProjection"))
+        XCTAssertTrue(source.contains("ReleaseV070PortfolioReadOnlyObservedState"))
+        XCTAssertTrue(source.contains("ReleaseV070PortfolioReadOnlyReconciliationDiffRecord"))
+        XCTAssertTrue(source.contains("ReleaseV070PortfolioReadOnlyReconciliationEvidence"))
+        XCTAssertTrue(source.contains("diffArtifactsExplainOnly"))
+        XCTAssertTrue(source.contains("correctionCommandCreated"))
+        XCTAssertTrue(source.contains("brokerWritePathCreated"))
+        XCTAssertTrue(source.contains("productionAccountReadRequired"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.7.0 Portfolio read-only reconciliation anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-790-VERIFY-V070-PORTFOLIO-READONLY-RECONCILIATION"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.7.0-portfolio-readonly-reconciliation.sh"))
+        XCTAssertTrue(verifierScript.contains("testGH790PortfolioReadOnlyReconciliationExplainsExpectedVsObservedWithoutCommands"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/account",
+            "/api/v3/order",
+            "/api/v3/userDataStream",
+            "listenKey",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "GH-790 source must not contain \(forbidden)")
+        }
+    }
+
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
