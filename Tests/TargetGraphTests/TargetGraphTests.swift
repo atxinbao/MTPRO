@@ -23222,6 +23222,223 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("HMAC<"))
     }
 
+    func testGH813ManualBinanceTestnetSignedAccountNetworkProofIsRedactedAndNoOrder() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dataClientTarget = try packageTargetBlock(named: "DataClient", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/DataClient/Binance/TestnetReadOnlyProbe/ReleaseV080ManualTestnetSignedAccountProof.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "checks/verify-v0.8.0-manual-testnet-signed-account-proof.sh"
+            ),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let reference = "gh-813-approved-testnet-reference"
+        let keyValue = "gh-813-key-value"
+        let secretValue = "gh-813-secret-value"
+        let material = try BinanceSignedAccountCredentialMaterial(
+            referenceID: reference,
+            keyHeaderValue: keyValue,
+            signingSecretValue: secretValue
+        )
+        let credentialProvider = TargetGraphCallCountingSignedAccountCredentialProvider(material: material)
+        let transport = TargetGraphMockBinanceSignedAccountReadTransport { request in
+            XCTAssertEqual(request.environment, .testnet)
+            XCTAssertEqual(request.method, "GET")
+            XCTAssertEqual(request.path, BinanceSignedAccountReadTransportRequest.accountReadOnlyPath)
+            XCTAssertEqual(request.url.host, "testnet.binance.vision")
+            XCTAssertEqual(request.headers[BinanceSignedAccountReadTransportRequest.binanceKeyHeaderName], keyValue)
+            XCTAssertEqual(request.credentialReference, reference)
+            XCTAssertTrue(request.url.absoluteString.contains("signature="))
+            XCTAssertFalse(request.url.absoluteString.contains(secretValue))
+            XCTAssertFalse(request.url.absoluteString.contains("/api/v3/order"))
+            return Data(
+                #"""
+                {
+                  "makerCommission": 15,
+                  "takerCommission": 15,
+                  "buyerCommission": 0,
+                  "sellerCommission": 0,
+                  "canTrade": false,
+                  "canWithdraw": false,
+                  "canDeposit": true,
+                  "updateTime": 1704067205000,
+                  "accountType": "SPOT",
+                  "balances": [
+                    { "asset": "BTC", "free": "0.10000000", "locked": "0.00000000" },
+                    { "asset": "USDT", "free": "1000.50000000", "locked": "10.00000000" }
+                  ],
+                  "permissions": ["SPOT"]
+                }
+                """#.utf8
+            )
+        }
+        let configuration = try ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration.networkReadOnly(
+            credentialReference: reference,
+            operatorConfirmationID: "operator-confirmed-gh-813-source-read-only-probe"
+        )
+        let sourceProbe = ReleaseV070TestnetSignedAccountReadOnlyProbe(
+            configuration: configuration,
+            credentialProvider: credentialProvider,
+            signedAccountTransport: transport
+        )
+        let sourceArtifact = try await sourceProbe.artifact(timestamp: Date(timeIntervalSince1970: 1_704_067_200))
+        XCTAssertEqual(sourceArtifact.mode, .networkReadOnly)
+        XCTAssertTrue(sourceArtifact.networkReadOnlyMode)
+        XCTAssertTrue(sourceArtifact.signedAccountSnapshot.snapshotBoundaryHeld)
+        XCTAssertTrue(try sourceArtifact.redactionHeld(forbiddenValues: [keyValue, secretValue]))
+
+        let proof = try ReleaseV080ManualBinanceTestnetSignedAccountNetworkProofWorkflow().proofArtifact(
+            from: sourceArtifact,
+            manualProofReference: "operator-manual-proof-gh-813-signed-account-readonly-001",
+            operatorConfirmationID: "operator-confirmed-gh-813-manual-network-proof"
+        )
+        XCTAssertTrue(proof.artifactHeld)
+        XCTAssertEqual(proof.issueID.rawValue, "GH-813")
+        XCTAssertEqual(proof.upstreamIssueIDs.map(\.rawValue), ["GH-809", "GH-810", "GH-811", "GH-812"])
+        XCTAssertEqual(proof.previousIssueID.rawValue, "GH-812")
+        XCTAssertEqual(proof.downstreamIssueID.rawValue, "GH-814")
+        XCTAssertEqual(proof.sourceIssueID.rawValue, "GH-786")
+        XCTAssertEqual(proof.sourceArtifactID, sourceArtifact.artifactID)
+        XCTAssertEqual(proof.endpointHost, "testnet.binance.vision")
+        XCTAssertEqual(proof.endpointPath, BinanceSignedAccountReadTransportRequest.accountReadOnlyPath)
+        XCTAssertTrue(proof.networkAttempted)
+        XCTAssertTrue(proof.signedAccountSnapshotRead)
+        XCTAssertTrue(proof.manualOperatorNetworkProof)
+        XCTAssertFalse(proof.deterministicCIProof)
+        XCTAssertFalse(proof.ciRequiresNetwork)
+        XCTAssertFalse(proof.ciRequiresSecrets)
+        XCTAssertEqual(proof.redactedCredentialReference, "\(reference):<redacted>")
+        XCTAssertEqual(proof.accountType, "SPOT")
+        XCTAssertEqual(proof.balanceAssetCount, 2)
+        XCTAssertTrue(proof.forbiddenBoundaryHeld)
+        XCTAssertFalse(proof.credentialValuesPersisted)
+        XCTAssertFalse(proof.credentialValuesPrinted)
+        XCTAssertFalse(proof.rawAccountPayloadPersisted)
+        XCTAssertFalse(proof.ordersSubmitted)
+        XCTAssertFalse(proof.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(proof.testnetOrderRoutingAllowed)
+        XCTAssertFalse(proof.testnetCancelReplaceAllowed)
+        XCTAssertFalse(proof.productionTradingEnabledByDefault)
+        XCTAssertFalse(proof.productionSecretRead)
+        XCTAssertFalse(proof.productionEndpointConnected)
+        XCTAssertFalse(proof.brokerEndpointConnected)
+        XCTAssertFalse(proof.productionOrderSubmitted)
+        XCTAssertFalse(proof.productionCutoverAuthorized)
+        XCTAssertTrue(try proof.redactionHeld(forbiddenValues: [keyValue, secretValue]))
+
+        let encodedProof =
+            try ReleaseV080ManualBinanceTestnetSignedAccountNetworkProofArtifactEncoder.encodedString(proof)
+        XCTAssertTrue(encodedProof.contains("\"networkAttempted\" : true"))
+        XCTAssertTrue(encodedProof.contains("\"signedAccountSnapshotRead\" : true"))
+        XCTAssertTrue(encodedProof.contains("\"ordersSubmitted\" : false"))
+        XCTAssertFalse(encodedProof.contains(keyValue))
+        XCTAssertFalse(encodedProof.contains(secretValue))
+        XCTAssertFalse(encodedProof.contains("0.10000000"))
+
+        let deterministicArtifact = try await ReleaseV070TestnetSignedAccountReadOnlyProbe.deterministicArtifact()
+        XCTAssertThrowsError(
+            try ReleaseV080ManualBinanceTestnetSignedAccountNetworkProofWorkflow().proofArtifact(
+                from: deterministicArtifact,
+                manualProofReference: "operator-manual-proof-gh-813-deterministic-rejected",
+                operatorConfirmationID: "operator-confirmed-gh-813-manual-network-proof"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV080ManualBinanceTestnetSignedAccountNetworkProofError,
+                .invalidSourceArtifact(deterministicArtifact.artifactID.rawValue)
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV080ManualBinanceTestnetSignedAccountNetworkProofWorkflow().proofArtifact(
+                from: sourceArtifact,
+                manualProofReference: "",
+                operatorConfirmationID: "operator-confirmed-gh-813-manual-network-proof"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV080ManualBinanceTestnetSignedAccountNetworkProofError,
+                .emptyManualProofReference
+            )
+        }
+
+        let expectedAnchors = [
+            "GH-813-VERIFY-V080-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF",
+            "TVM-RELEASE-V080-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF",
+            "V080-007-MANUAL-TESTNET-SIGNED-ACCOUNT-NETWORK-PROOF",
+            "V080-007-NETWORK-ATTEMPTED-AND-SNAPSHOT-READ",
+            "V080-007-REDACTED-CREDENTIAL-REFERENCE",
+            "V080-007-CI-DETERMINISTIC-NO-NETWORK-SECRET",
+            "V080-007-NO-TESTNET-ORDER-ROUTING",
+            "V080-007-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(
+            ReleaseV080ManualBinanceTestnetSignedAccountNetworkProofArtifact.requiredValidationAnchors,
+            expectedAnchors
+        )
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-813 source")
+            XCTAssertTrue(verificationScript.contains(anchor), "\(anchor) must stay in GH-813 verifier")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in v0.8 contract")
+        }
+
+        XCTAssertTrue(
+            dataClientTarget.contains("\"Binance/TestnetReadOnlyProbe/ReleaseV080ManualTestnetSignedAccountProof.swift\"")
+        )
+        XCTAssertTrue(source.contains("ReleaseV080ManualBinanceTestnetSignedAccountNetworkProofArtifact"))
+        XCTAssertTrue(source.contains("ReleaseV080ManualBinanceTestnetSignedAccountNetworkProofWorkflow"))
+        XCTAssertTrue(source.contains("manualOperatorNetworkProof"))
+        XCTAssertTrue(source.contains("ciRequiresNetwork"))
+        XCTAssertTrue(source.contains("ciRequiresSecrets"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.8.0 manual testnet signed account proof anchor"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-manual-testnet-signed-account-proof.sh"))
+        XCTAssertTrue(
+            verificationScript.contains(
+                "testGH813ManualBinanceTestnetSignedAccountNetworkProofIsRedactedAndNoOrder"
+            )
+        )
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("productionCutoverAuthorized = true"))
+    }
+
     func testGH785RunRegistrySupervisorProvidesLocalNoOrderRunManagement() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
