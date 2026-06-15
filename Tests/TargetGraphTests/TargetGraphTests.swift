@@ -8614,6 +8614,167 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH816RiskPolicyProfilesVersionHashDiffAndRunApplicationEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let riskEngineTarget = try packageTargetBlock(named: "RiskEngine", packageSource: packageSource)
+        let cliTarget = try packageTargetBlock(named: "MTPROCLI", packageSource: packageSource)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/RiskEngine/LiveGate/ReleaseV080RiskPolicyProfileManagement.swift"
+            ),
+            encoding: .utf8
+        )
+        let cliSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift"),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.8.0-risk-policy-profiles.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV080RiskPolicyProfileManagementContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-816")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-810", "GH-811"])
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.brokerConnectionEnabled)
+        XCTAssertFalse(contract.omsBypassEnabled)
+        XCTAssertFalse(contract.orderCommandPathEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+
+        let evidence = try ReleaseV080RiskPolicyProfileManagementBuilder.deterministicEvidence()
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.forbiddenBoundaryHeld)
+        XCTAssertTrue(evidence.previousProfile.profileHeld)
+        XCTAssertTrue(evidence.nextProfile.profileHeld)
+        XCTAssertNotEqual(evidence.previousProfile.policyHash, evidence.nextProfile.policyHash)
+        XCTAssertTrue(evidence.nextProfile.policyHash.hasPrefix("risk-policy-fnv64-"))
+        XCTAssertEqual(evidence.nextProfile.profilePath, ".local/mtpro/risk_policy.json")
+        XCTAssertEqual(evidence.nextProfile.profileVersion, "v0.8.0-risk-policy-profile.2")
+        XCTAssertEqual(evidence.nextProfile.appliedRunIDs.map(\.rawValue), ["gh-810-local-alpha", "gh-811-run-alpha"])
+        XCTAssertTrue(evidence.nextProfile.operatorChangeMetadata.metadataHeld)
+        XCTAssertTrue(evidence.nextProfile.rules.rulesHeld)
+        XCTAssertTrue(evidence.nextProfile.rules.killSwitchRequired)
+        XCTAssertTrue(evidence.nextProfile.rules.noTradeRequired)
+        XCTAssertEqual(evidence.nextProfile.rules.allowedSymbols.map(\.rawValue), ["BTCUSDT", "ETHUSDT"])
+        XCTAssertEqual(evidence.nextProfile.rules.allowedProductTypes.map(\.rawValue), ["spot", "usdsPerpetual"])
+        XCTAssertEqual(evidence.deterministicDiff.changedFields, [
+            "profileVersion",
+            "maxNotionalMinorUnits",
+            "maxExposureMinorUnits",
+            "appliedRunIDs"
+        ])
+        XCTAssertEqual(evidence.runApplicationEvidence.runID.rawValue, "gh-811-run-alpha")
+        XCTAssertEqual(evidence.runApplicationEvidence.appliedProfileVersion, evidence.nextProfile.profileVersion)
+        XCTAssertEqual(evidence.runApplicationEvidence.appliedPolicyHash, evidence.nextProfile.policyHash)
+        XCTAssertEqual(
+            evidence.runApplicationEvidence.manifestPolicyReferencePath,
+            ".local/mtpro/runs/gh-811-run-alpha/manifest.json"
+        )
+        XCTAssertTrue(evidence.cliSurfaceCommands.contains("risk-policy show"))
+        XCTAssertTrue(evidence.cliSurfaceCommands.contains("risk-policy validate"))
+        XCTAssertTrue(evidence.cliSurfaceCommands.contains("risk-policy diff"))
+
+        XCTAssertThrowsError(
+            try ReleaseV080RiskPolicyProfileRules(
+                maxNotionalMinorUnits: 1,
+                maxExposureMinorUnits: 1,
+                killSwitchRequired: true,
+                noTradeRequired: true,
+                allowedSymbols: [Symbol.constant("BTCUSDT")],
+                allowedProductTypes: [.spot],
+                brokerEnabled: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReleaseV080RiskPolicyProfileManagementError, .forbiddenCapability("brokerEnabled"))
+        }
+
+        for anchor in ReleaseV080RiskPolicyProfileManagementContract.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-816 source")
+            XCTAssertTrue(cliSource.contains(anchor), "\(anchor) must stay in GH-816 CLI surface")
+            XCTAssertTrue(verificationScript.contains(anchor), "\(anchor) must stay in GH-816 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in v0.8 contract doc")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+
+        for requiredCLISurface in [
+            "risk-policy show",
+            "risk-policy validate",
+            "risk-policy diff",
+            "profilePath=.local/mtpro/risk_policy.json",
+            "policyHash=risk-policy-fnv64",
+            "changedFields=profileVersion,maxNotionalMinorUnits,maxExposureMinorUnits,appliedRunIDs",
+            "operatorMetadata=local-operator-change-reference",
+            "orderCommandPathEnabled=false"
+        ] {
+            XCTAssertTrue(cliSource.contains(requiredCLISurface), "CLI source must contain \(requiredCLISurface)")
+        }
+
+        XCTAssertTrue(riskEngineTarget.contains("\"LiveGate\""))
+        XCTAssertFalse(riskEngineTarget.contains("\"ExecutionClient\""))
+        XCTAssertFalse(riskEngineTarget.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(cliTarget.contains(#""DomainModel", "Database", "DataClient", "Portfolio""#))
+        XCTAssertFalse(cliTarget.contains("\"RiskEngine\""))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-risk-policy-profiles.sh"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.8.0 Risk policy profile management anchor"))
+        XCTAssertTrue(verificationScript.contains("swift run mtpro risk-policy show"))
+        XCTAssertTrue(verificationScript.contains("swift run mtpro risk-policy validate"))
+        XCTAssertTrue(verificationScript.contains("swift run mtpro risk-policy diff"))
+
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/account",
+            "/api/v3/order",
+            "/api/v3/userDataStream",
+            "listenKey",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<",
+            "productionCutoverAuthorized = true"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "GH-816 source must not contain \(forbidden)")
+        }
+    }
+
     func testGH811OperationalRunSessionStorePersistsLifecycleAndRejectsInvalidTransitions() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let source = try String(
@@ -9016,6 +9177,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliSource.contains("help"))
         XCTAssertTrue(cliSource.contains("run"))
         XCTAssertTrue(cliSource.contains("status"))
+        XCTAssertTrue(cliSource.contains("risk-policy"))
         XCTAssertTrue(cliSource.contains("verify"))
         XCTAssertTrue(cliSource.contains("ReleaseV030CLIRehearsalSurface.commandLineOutput"))
         XCTAssertTrue(cliSource.contains("ReleaseV040UnifiedRunSurface.commandLineOutput"))
@@ -9039,6 +9201,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro help"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro run"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro status"))
+        XCTAssertTrue(cliVerificationScript.contains("risk-policy,verify"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro verify"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro unified-run-status"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro rehearsal-status"))

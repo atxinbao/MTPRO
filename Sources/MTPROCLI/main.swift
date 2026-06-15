@@ -31,7 +31,7 @@ private enum MTPROCLIParserError: Error, CustomStringConvertible, Equatable {
 /// MTPROStrictCLI 固定 GH-727 的严格命令路由。
 ///
 /// 新 v0.8.0 shape 暴露 `help`、`run`、`status`、`stop`、`recover`、`verify`
-/// 等安全本地入口；历史
+/// 和 `risk-policy` 等安全本地入口；历史
 /// `rehearsal-status`、`unified-run-status`、`run-observer`、`run-detail-observer`、
 /// `testnet-readonly-probe`、`verify-fast`、`verify-release` 仍可被显式调用。
 /// 任何其他命令必须在这里失败，不得 fallback 到旧 release surface。
@@ -40,12 +40,29 @@ private enum MTPROStrictCLI {
     static let strictParserAnchor = "TVM-RELEASE-V050-STRICT-CLI-COMMAND-PARSER"
     static let persistentLocalSessionVerificationAnchor = "GH-810-VERIFY-V080-CLI-LOCAL-SESSION"
     static let persistentLocalSessionAnchor = "TVM-RELEASE-V080-CLI-LOCAL-SESSION"
+    static let riskPolicyProfileVerificationAnchor = "GH-816-VERIFY-V080-RISK-POLICY-PROFILE-MANAGEMENT"
+    static let riskPolicyProfileAnchor = "TVM-RELEASE-V080-RISK-POLICY-PROFILE-MANAGEMENT"
+    static let riskPolicyProfileRequiredAnchors = [
+        "V080-010-RISK-POLICY-PROFILE-MANAGEMENT",
+        "V080-010-RISK-POLICY-JSON-VERSION-HASH",
+        "V080-010-DETERMINISTIC-POLICY-DIFF",
+        "V080-010-OPERATOR-CHANGE-METADATA",
+        "V080-010-RUN-APPLICATION-POLICY-REFERENCE",
+        "V080-010-CLI-SHOW-VALIDATE-DIFF",
+        "V080-010-NO-BROKER-ENDPOINT-OMS-ORDER-PATH"
+    ]
+    static let riskPolicySupportedActionCommands = [
+        "risk-policy show",
+        "risk-policy validate",
+        "risk-policy diff"
+    ]
     static let supportedCommands = [
         "help",
         "run",
         "status",
         "stop",
         "recover",
+        "risk-policy",
         "verify",
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
@@ -73,6 +90,8 @@ private enum MTPROStrictCLI {
             return try stopOutput(arguments: arguments)
         case "recover":
             return try recoverOutput(arguments: arguments)
+        case "risk-policy":
+            return try riskPolicyOutput(arguments: arguments)
         case "verify":
             try requireExactCount(arguments, expected: 1, command: command)
             return verifyOutput()
@@ -110,12 +129,16 @@ private enum MTPROStrictCLI {
             "strictParserAnchor=\(strictParserAnchor)",
             "persistentValidationAnchor=\(persistentLocalSessionAnchor)",
             "persistentVerificationAnchor=\(persistentLocalSessionVerificationAnchor)",
+            "riskPolicyValidationAnchor=\(riskPolicyProfileAnchor)",
+            "riskPolicyVerificationAnchor=\(riskPolicyProfileVerificationAnchor)",
             "commands=\(commandList)",
             "defaultMode=local-dry-run",
             "runtimeSessionContract=v0.7.0",
             "persistentLocalSessionContract=v0.8.0",
+            "riskPolicyProfileContract=v0.8.0",
             "runtimeModes=local-dry-run,testnet-read-only-probe,production-blocked",
             "localSessionActions=run,status,stop,recover",
+            "riskPolicyActions=\(riskPolicySupportedActionCommands.joined(separator: ","))",
             "testnetRequiresOperatorConfirmation=true",
             "productionTradingEnabledByDefault=false",
             "productionSecretRead=false",
@@ -124,6 +147,116 @@ private enum MTPROStrictCLI {
             "productionCutoverAuthorized=false",
             "boundaryHeld=true"
         ].joined(separator: "\n")
+    }
+
+    private static func riskPolicyOutput(arguments: [String]) throws -> String {
+        guard arguments.count == 2 else {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.riskPolicy.arguments",
+                expected: "risk-policy show|validate|diff",
+                actual: arguments.joined(separator: " ")
+            )
+        }
+        switch arguments[1] {
+        case "show":
+            return riskPolicyShowOutput()
+        case "validate":
+            return riskPolicyValidateOutput()
+        case "diff":
+            return riskPolicyDiffOutput()
+        default:
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.riskPolicy.arguments",
+                expected: "risk-policy show|validate|diff",
+                actual: arguments.joined(separator: " ")
+            )
+        }
+    }
+
+    private static func riskPolicyBaseOutput(action: String) -> [String] {
+        [
+            "mtpro risk-policy \(action)",
+            "issue=GH-816",
+            "validationAnchor=\(riskPolicyProfileAnchor)",
+            "verificationAnchor=\(riskPolicyProfileVerificationAnchor)",
+            "requiredAnchors=\(riskPolicyProfileRequiredAnchors.joined(separator: ","))",
+            "riskPolicyProfileContract=v0.8.0",
+            "profilePath=.local/mtpro/risk_policy.json",
+            "profileVersion=v0.8.0-risk-policy-profile.2",
+            "policyHash=risk-policy-fnv64-deterministic-local-profile",
+            "operatorMetadata=local-operator-change-reference",
+            "appliedRunIDs=gh-810-local-alpha,gh-811-run-alpha",
+            "showValidateDiffSurface=true"
+        ]
+    }
+
+    private static func riskPolicyShowOutput() -> String {
+        (riskPolicyBaseOutput(action: "show") + [
+            "maxNotionalMinorUnits=40000000",
+            "maxExposureMinorUnits=100000000",
+            "allowedSymbols=BTCUSDT,ETHUSDT",
+            "allowedProductTypes=spot,usdsPerpetual",
+            "killSwitchRequired=true",
+            "noTradeRequired=true",
+            "credentialValueStored=false",
+            "brokerEnabled=false",
+            "productionEndpointEnabled=false",
+            "omsBypassEnabled=false",
+            "orderCommandPathEnabled=false",
+            "testnetOrderRoutingAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private static func riskPolicyValidateOutput() -> String {
+        (riskPolicyBaseOutput(action: "validate") + [
+            "profileValid=true",
+            "versionHashValid=true",
+            "operatorMetadataValid=true",
+            "appliedRunReferenceValid=true",
+            "forbiddenCapabilityGate=held",
+            "brokerEnabled=false",
+            "productionEndpointEnabled=false",
+            "omsBypassEnabled=false",
+            "orderCommandPathEnabled=false",
+            "testnetOrderRoutingAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private static func riskPolicyDiffOutput() -> String {
+        (riskPolicyBaseOutput(action: "diff") + [
+            "previousProfileVersion=v0.8.0-risk-policy-profile.1",
+            "nextProfileVersion=v0.8.0-risk-policy-profile.2",
+            "previousPolicyHash=risk-policy-fnv64-previous-local-profile",
+            "nextPolicyHash=risk-policy-fnv64-deterministic-local-profile",
+            "changedFields=profileVersion,maxNotionalMinorUnits,maxExposureMinorUnits,appliedRunIDs",
+            "diffLine.profileVersion=v0.8.0-risk-policy-profile.1 -> v0.8.0-risk-policy-profile.2",
+            "diffLine.maxNotionalMinorUnits=50000000 -> 40000000",
+            "diffLine.maxExposureMinorUnits=125000000 -> 100000000",
+            "diffLine.appliedRunIDs=gh-810-local-alpha -> gh-810-local-alpha,gh-811-run-alpha",
+            "brokerEnabled=false",
+            "productionEndpointEnabled=false",
+            "omsBypassEnabled=false",
+            "orderCommandPathEnabled=false",
+            "testnetOrderRoutingAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
     }
 
     private static func runOutput(arguments: [String]) throws -> String {

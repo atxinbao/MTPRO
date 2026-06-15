@@ -182,6 +182,25 @@ Required anchors：
 
 Dashboard target 必须继续消费 App / Dashboard 层 read model，不得新增 DataClient target dependency，不得直接调用 Binance signed account runtime、private stream runtime、credential provider、listenKey lifecycle transport、WebSocket event source 或 endpoint URL。CI 只验证 deterministic read model / ViewModel contract、smoke summary、文档锚点和 no-order boundary；CI 不读取真实 credential value，不要求 network，不连接 testnet / production endpoint，不提交 testnet 或 production order，不授权 production cutover。
 
+## V080-010-RISK-POLICY-PROFILE-MANAGEMENT
+
+`V080-010-RISK-POLICY-PROFILE-MANAGEMENT`
+
+GH-816 将 v0.7 local Risk policy config 提升为 operator-managed `risk_policy.json` profile evidence。Profile 必须携带 version、deterministic policy hash、operator change metadata、allowed symbols / product types、applied run IDs 和 run manifest policy reference，并通过 CLI `risk-policy show`、`risk-policy validate`、`risk-policy diff` 暴露只读管理面。
+
+Required anchors：
+
+- `GH-816-VERIFY-V080-RISK-POLICY-PROFILE-MANAGEMENT`
+- `TVM-RELEASE-V080-RISK-POLICY-PROFILE-MANAGEMENT`
+- `V080-010-RISK-POLICY-JSON-VERSION-HASH`
+- `V080-010-DETERMINISTIC-POLICY-DIFF`
+- `V080-010-OPERATOR-CHANGE-METADATA`
+- `V080-010-RUN-APPLICATION-POLICY-REFERENCE`
+- `V080-010-CLI-SHOW-VALIDATE-DIFF`
+- `V080-010-NO-BROKER-ENDPOINT-OMS-ORDER-PATH`
+
+Risk policy profile management 不得打开 broker、production endpoint、OMS bypass、order command path、testnet order routing、production trading、production secret auto-read 或 production cutover。CLI 只能输出 deterministic local evidence，不读取 credential value、不连接 testnet / production endpoint、不提交 testnet 或 production order、不授权 production cutover。
+
 ## V080-001-TESTNET-READONLY-MONITORING
 
 `V080-001-TESTNET-READONLY-MONITORING`
