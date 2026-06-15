@@ -166,6 +166,23 @@
 - Focused test: `testGH817PortfolioReconciliationReviewWorkflowRequiresAuditOnlyAcknowledgement`
 - Boundary: GH-817 只把 GH-790 explain-only reconciliation diff 提升为 operator review workflow，覆盖 matched / delta / missing / stale status、review_required、operator_note、acknowledged_at、acknowledged_by、stale observed state 和 audit trail artifact；acknowledgement 只作为 audit-only metadata，不创建 correction command、broker write、account mutation、trading adjustment、testnet order routing 或 production cutover。
 
+## GH-818 Release v0.8.0 Dashboard Safe Local Controls Validation
+
+- `GH-818-VERIFY-V080-DASHBOARD-SAFE-LOCAL-CONTROLS`
+- `TVM-RELEASE-V080-DASHBOARD-SAFE-LOCAL-CONTROLS`
+- `V080-012-DASHBOARD-SAFE-LOCAL-CONTROLS`
+- `V080-012-START-STOP-RECOVER-ARCHIVE-OPEN-DETAIL`
+- `V080-012-RUN-REGISTRY-SESSION-STORE-BINDING`
+- `V080-012-LOCAL-ARTIFACT-MUTATION-ONLY`
+- `V080-012-DETAIL-READONLY-SNAPSHOT`
+- `V080-012-NO-ORDER-PRODUCTION-COMMAND`
+- `V080-012-NO-TRADING-BUTTON-ORDER-FORM`
+- `V080-012-NO-TESTNET-ORDER-ROUTING`
+- `V080-012-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.8.0-dashboard-safe-local-controls.sh`
+- Focused tests: `testGH818DashboardSafeLocalControlsBindSessionStoresWithoutCommands`、`testGH818DashboardSafeLocalControlsSurfaceIsAnchoredInV080Guards`
+- Boundary: GH-818 只把 Dashboard start / stop / recover / archive / open-detail safe local controls 绑定到 v0.8 local RunRegistryStore 和 OperationalRunSessionStore artifact paths；控制结果只修改或读取 `.local/mtpro/runs/...` 本地 evidence，open-detail 只读，不读取 credential value、不显示 raw listenKey 或 raw private payload、不新增 DataClient target dependency、不提供 trading button、order form、live command、testnet order routing、broker command、production command 或 production cutover。
+
 ## Unified Entry
 
 ```bash

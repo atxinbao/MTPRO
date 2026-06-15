@@ -205,6 +205,28 @@
 - audit trail evidence: creates local reconciliation-review artifact paths for every reviewed diff without command side effects.
 - forbidden scope: no correction command, no broker write, no account mutation, no trading adjustment, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
 
+## TVM-RELEASE-V080-DASHBOARD-SAFE-LOCAL-CONTROLS
+
+- TVM-RELEASE-V080-DASHBOARD-SAFE-LOCAL-CONTROLS
+- GH-818-VERIFY-V080-DASHBOARD-SAFE-LOCAL-CONTROLS
+- V080-012-DASHBOARD-SAFE-LOCAL-CONTROLS
+- V080-012-START-STOP-RECOVER-ARCHIVE-OPEN-DETAIL
+- V080-012-RUN-REGISTRY-SESSION-STORE-BINDING
+- V080-012-LOCAL-ARTIFACT-MUTATION-ONLY
+- V080-012-DETAIL-READONLY-SNAPSHOT
+- V080-012-NO-ORDER-PRODUCTION-COMMAND
+- V080-012-NO-TRADING-BUTTON-ORDER-FORM
+- V080-012-NO-TESTNET-ORDER-ROUTING
+- V080-012-NO-PRODUCTION-CUTOVER
+- GH-818 Release v0.8.0 Dashboard Safe Local Controls Validation
+- testGH818DashboardSafeLocalControlsBindSessionStoresWithoutCommands
+- testGH818DashboardSafeLocalControlsSurfaceIsAnchoredInV080Guards
+- control evidence: records start, stop, recover, archive and open-detail controls as Dashboard-safe local store bindings.
+- store evidence: binds controls to local RunRegistryStore and OperationalRunSessionStore paths including `registry.json`, `session.json`, `session_events.jsonl`, `session_status.json`, `operator-session-store.json` and `dashboard-readonly-snapshot.json`.
+- mutation evidence: start / stop / recover / archive only affect local run artifacts; open-detail reads registry / session status and readonly snapshot without session lifecycle write.
+- command boundary: `orderSubmitVisible=false`、`orderCancelVisible=false`、`orderReplaceVisible=false`、`testnetOrderRoutingAllowed=false`、`productionCommandEnabled=false` and `productionCutoverAuthorized=false`.
+- forbidden scope: no credential value display, no raw listenKey display, no raw private payload display, no DataClient Dashboard dependency, no broker command, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。
