@@ -152,6 +152,20 @@
 - Focused test: `testGH816RiskPolicyProfilesVersionHashDiffAndRunApplicationEvidence`
 - Boundary: GH-816 只把本地 Risk policy config 提升为 operator-managed `risk_policy.json` profile evidence，覆盖 version、hash、deterministic diff、operator change metadata、applied run ID 和 CLI `risk-policy show/validate/diff`；该 profile 不启动 RiskEngine runtime、不连接 broker / endpoint、不绕过 OMS、不创建 order command path、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-817 Release v0.8.0 Portfolio Reconciliation Review Workflow Validation
+
+- `GH-817-VERIFY-V080-PORTFOLIO-RECONCILIATION-REVIEW-WORKFLOW`
+- `TVM-RELEASE-V080-PORTFOLIO-RECONCILIATION-REVIEW-WORKFLOW`
+- `V080-011-RECONCILIATION-STATUS-MATCHED-DELTA-MISSING-STALE`
+- `V080-011-REVIEW-REQUIRED-OPERATOR-NOTE-ACK`
+- `V080-011-STALE-OBSERVED-STATE`
+- `V080-011-AUDIT-TRAIL-ARTIFACTS`
+- `V080-011-NO-CORRECTION-COMMAND-BROKER-WRITE`
+- `V080-011-PORTFOLIO-REVIEW-WORKFLOW`
+- Required command: `bash checks/verify-v0.8.0-portfolio-reconciliation-review.sh`
+- Focused test: `testGH817PortfolioReconciliationReviewWorkflowRequiresAuditOnlyAcknowledgement`
+- Boundary: GH-817 只把 GH-790 explain-only reconciliation diff 提升为 operator review workflow，覆盖 matched / delta / missing / stale status、review_required、operator_note、acknowledged_at、acknowledged_by、stale observed state 和 audit trail artifact；acknowledgement 只作为 audit-only metadata，不创建 correction command、broker write、account mutation、trading adjustment、testnet order routing 或 production cutover。
+
 ## Unified Entry
 
 ```bash

@@ -201,6 +201,27 @@ Required anchors：
 
 Risk policy profile management 不得打开 broker、production endpoint、OMS bypass、order command path、testnet order routing、production trading、production secret auto-read 或 production cutover。CLI 只能输出 deterministic local evidence，不读取 credential value、不连接 testnet / production endpoint、不提交 testnet 或 production order、不授权 production cutover。
 
+## V080-011-PORTFOLIO-REVIEW-WORKFLOW
+
+`V080-011-PORTFOLIO-REVIEW-WORKFLOW`
+
+GH-817 将 GH-790 read-only reconciliation diff 提升为本地 operator review workflow。该 workflow 只消费 explain-only reconciliation evidence，生成 matched / delta / missing / stale status、`review_required`、`operator_note`、`acknowledged_at`、`acknowledged_by`、stale observed state 和 audit trail artifact。
+
+Required anchors：
+
+- `GH-817-VERIFY-V080-PORTFOLIO-RECONCILIATION-REVIEW-WORKFLOW`
+- `TVM-RELEASE-V080-PORTFOLIO-RECONCILIATION-REVIEW-WORKFLOW`
+- `V080-011-RECONCILIATION-STATUS-MATCHED-DELTA-MISSING-STALE`
+- `V080-011-REVIEW-REQUIRED-OPERATOR-NOTE-ACK`
+- `V080-011-STALE-OBSERVED-STATE`
+- `V080-011-AUDIT-TRAIL-ARTIFACTS`
+- `V080-011-NO-CORRECTION-COMMAND-BROKER-WRITE`
+- `V080-011-PORTFOLIO-REVIEW-WORKFLOW`
+
+Operator acknowledgement 只能作为 audit-only metadata。`matched` 不要求 review；`delta`、`missing` 和 `stale` 必须要求 review，并记录 operator note / acknowledgement metadata。Audit trail artifact 只落在本地 `.local/mtpro/runs/<runID>/reconciliation-review/` 语义下，不保存 raw broker payload、account endpoint payload、credential value、order request 或 production endpoint。
+
+Portfolio reconciliation review workflow 不得创建 correction command、broker write path、account mutation、trading adjustment command、testnet order routing、production trading、production secret auto-read、production endpoint / broker connection、production order submission 或 production cutover。
+
 ## V080-001-TESTNET-READONLY-MONITORING
 
 `V080-001-TESTNET-READONLY-MONITORING`

@@ -12594,6 +12594,305 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH817PortfolioReconciliationReviewWorkflowRequiresAuditOnlyAcknowledgement() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let portfolioTarget = try packageTargetBlock(named: "Portfolio", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Portfolio/ReleaseV080PortfolioReconciliationReviewWorkflow.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verifierScript = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("checks/verify-v0.8.0-portfolio-reconciliation-review.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV080PortfolioReconciliationReviewWorkflowContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-817")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-813", "GH-816", "GH-790"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-816")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), ["GH-818", "GH-819", "GH-820"])
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretAutoReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmissionEnabled)
+        XCTAssertFalse(contract.testnetOrderRoutingAllowed)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+
+        let lifecycleEvidence = try await ReleaseV050ExecutionOMSDryRunLifecycleRunner.deterministicEvidence()
+        var journal = try ReleaseV050DurableLocalRunJournal(runID: lifecycleEvidence.runID)
+        for envelope in lifecycleEvidence.journalCompatibleEnvelopes {
+            try journal.append(envelope: envelope)
+        }
+        let expectedProjection = try ReleaseV050PortfolioRunJournalProjection.project(journal: journal)
+        XCTAssertTrue(expectedProjection.evidenceHeld)
+        XCTAssertFalse(expectedProjection.reconciliationRuntimeExecuted)
+
+        let signedAssets = try [
+            ReleaseV070PortfolioReadOnlyObservedAssetState(
+                asset: "BTC",
+                free: Decimal(1),
+                locked: Decimal(0),
+                sourceLabel: "GH-813 signed-account-readonly"
+            ),
+            ReleaseV070PortfolioReadOnlyObservedAssetState(
+                asset: "ETH",
+                free: Decimal(2),
+                locked: Decimal(0),
+                sourceLabel: "GH-813 signed-account-readonly"
+            ),
+            ReleaseV070PortfolioReadOnlyObservedAssetState(
+                asset: "XRP",
+                free: Decimal(2),
+                locked: Decimal(0),
+                sourceLabel: "GH-813 signed-account-readonly"
+            )
+        ]
+        let privateAssets = try [
+            ReleaseV070PortfolioReadOnlyObservedAssetState(
+                asset: "BTC",
+                free: Decimal(1),
+                locked: Decimal(0),
+                sourceLabel: "GH-814 private-stream-readonly-account-update"
+            ),
+            ReleaseV070PortfolioReadOnlyObservedAssetState(
+                asset: "ETH",
+                free: Decimal(2),
+                locked: Decimal(0),
+                sourceLabel: "GH-814 private-stream-readonly-account-update"
+            ),
+            ReleaseV070PortfolioReadOnlyObservedAssetState(
+                asset: "XRP",
+                free: Decimal(2),
+                locked: Decimal(0),
+                sourceLabel: "GH-814 private-stream-readonly-stale"
+            )
+        ]
+        let observedState = try ReleaseV070PortfolioReadOnlyObservedState(
+            signedAccountCredentialReference: "redacted-gh-813-credential-reference",
+            privateStreamCredentialReference: "redacted-gh-814-credential-reference",
+            signedAccountAssets: signedAssets,
+            privateStreamAssets: privateAssets,
+            privateStreamReadModelRecordCount: privateAssets.count
+        )
+        XCTAssertTrue(observedState.stateHeld)
+
+        let runID = expectedProjection.runID
+        let diffRecords = try [
+            ReleaseV070PortfolioReadOnlyReconciliationDiffRecord(
+                recordID: Identifier.constant("gh-817-v080-review-diff-matched"),
+                runID: runID,
+                productType: .spot,
+                instrument: .binance(productType: .spot, symbol: .constant("BTCUSDT")),
+                asset: "BTC",
+                expectedQuantity: Decimal(1),
+                observedTotal: Decimal(1),
+                observedSources: observedState.observedSources(for: "BTC")
+            ),
+            ReleaseV070PortfolioReadOnlyReconciliationDiffRecord(
+                recordID: Identifier.constant("gh-817-v080-review-diff-delta"),
+                runID: runID,
+                productType: .spot,
+                instrument: .binance(productType: .spot, symbol: .constant("ETHUSDT")),
+                asset: "ETH",
+                expectedQuantity: Decimal(1),
+                observedTotal: Decimal(2),
+                observedSources: observedState.observedSources(for: "ETH")
+            ),
+            ReleaseV070PortfolioReadOnlyReconciliationDiffRecord(
+                recordID: Identifier.constant("gh-817-v080-review-diff-missing"),
+                runID: runID,
+                productType: .spot,
+                instrument: .binance(productType: .spot, symbol: .constant("BNBUSDT")),
+                asset: "BNB",
+                expectedQuantity: Decimal(1),
+                observedTotal: nil,
+                observedSources: observedState.observedSources(for: "BNB")
+            ),
+            ReleaseV070PortfolioReadOnlyReconciliationDiffRecord(
+                recordID: Identifier.constant("gh-817-v080-review-diff-stale"),
+                runID: runID,
+                productType: .spot,
+                instrument: .binance(productType: .spot, symbol: .constant("XRPUSDT")),
+                asset: "XRP",
+                expectedQuantity: Decimal(2),
+                observedTotal: Decimal(2),
+                observedSources: observedState.observedSources(for: "XRP")
+            )
+        ]
+        let sourceReconciliation = try ReleaseV070PortfolioReadOnlyReconciliationEvidence(
+            expectedProjection: expectedProjection,
+            observedState: observedState,
+            diffRecords: diffRecords,
+            replayedDiffRecords: diffRecords
+        )
+        XCTAssertTrue(sourceReconciliation.evidenceHeld)
+
+        let deltaAck = try ReleaseV080PortfolioReconciliationOperatorAcknowledgement(
+            acknowledgedAt: "2026-06-15T00:00:00Z",
+            acknowledgedBy: "operator.v080",
+            operatorNote: "Delta reviewed as audit-only observation; no correction command created."
+        )
+        let missingAck = try ReleaseV080PortfolioReconciliationOperatorAcknowledgement(
+            acknowledgedAt: "2026-06-15T00:01:00Z",
+            acknowledgedBy: "operator.v080",
+            operatorNote: "Missing observed state acknowledged for manual review only."
+        )
+        let staleAck = try ReleaseV080PortfolioReconciliationOperatorAcknowledgement(
+            acknowledgedAt: "2026-06-15T00:02:00Z",
+            acknowledgedBy: "operator.v080",
+            operatorNote: "Stale observed state acknowledged without broker write or account mutation."
+        )
+
+        let evidence = try ReleaseV080PortfolioReconciliationReviewWorkflow.review(
+            sourceReconciliation: sourceReconciliation,
+            staleObservedAssets: ["XRP"],
+            acknowledgements: [
+                diffRecords[1].recordID: deltaAck,
+                diffRecords[2].recordID: missingAck,
+                diffRecords[3].recordID: staleAck
+            ]
+        )
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.forbiddenBoundaryHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-817")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-813", "GH-816", "GH-790"])
+        XCTAssertEqual(evidence.previousIssueID.rawValue, "GH-816")
+        XCTAssertEqual(evidence.sourceReconciliation, sourceReconciliation)
+        XCTAssertEqual(evidence.reviewRecords.map(\.sourceDiffRecordID), diffRecords.map(\.recordID))
+        XCTAssertEqual(evidence.auditTrailArtifacts, evidence.reviewRecords.map(\.auditTrailArtifact))
+        XCTAssertEqual(evidence.statusCoverage, ReleaseV080PortfolioReconciliationReviewStatus.allCases)
+        XCTAssertTrue(evidence.operatorAcknowledgementAuditOnly)
+        XCTAssertTrue(evidence.reviewRecords.contains { $0.status == .matched && $0.reviewRequired == false })
+        XCTAssertTrue(evidence.reviewRecords.contains { $0.status == .delta && $0.reviewRequired })
+        XCTAssertTrue(evidence.reviewRecords.contains { $0.status == .missing && $0.reviewRequired })
+        XCTAssertTrue(evidence.reviewRecords.contains { $0.status == .stale && $0.reviewRequired && $0.staleObservedState })
+        XCTAssertTrue(evidence.reviewRecords.filter(\.reviewRequired).allSatisfy { $0.operatorNote?.isEmpty == false })
+        XCTAssertTrue(evidence.reviewRecords.filter(\.reviewRequired).allSatisfy { $0.acknowledgedAt?.isEmpty == false })
+        XCTAssertTrue(evidence.reviewRecords.filter(\.reviewRequired).allSatisfy { $0.acknowledgedBy?.isEmpty == false })
+        XCTAssertTrue(evidence.auditTrailArtifacts.allSatisfy(\.artifactHeld))
+        XCTAssertTrue(evidence.auditTrailArtifacts.allSatisfy { $0.artifactPath.contains("reconciliation-review") })
+        XCTAssertFalse(evidence.correctionCommandCreated)
+        XCTAssertFalse(evidence.brokerWritePathCreated)
+        XCTAssertFalse(evidence.accountMutationCreated)
+        XCTAssertFalse(evidence.tradingAdjustmentCommandCreated)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionBrokerConnected)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.testnetOrderRoutingAllowed)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        XCTAssertThrowsError(
+            try ReleaseV080PortfolioReconciliationReviewWorkflow.review(
+                sourceReconciliation: sourceReconciliation,
+                staleObservedAssets: ["XRP"],
+                acknowledgements: [
+                    diffRecords[1].recordID: deltaAck,
+                    diffRecords[3].recordID: staleAck
+                ]
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV080PortfolioReconciliationReviewWorkflowError,
+                .missingOperatorAcknowledgement(diffRecords[2].recordID.rawValue)
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV080PortfolioReconciliationOperatorAcknowledgement(
+                acknowledgedAt: "2026-06-15T00:03:00Z",
+                acknowledgedBy: "operator.v080",
+                operatorNote: "invalid command escalation",
+                correctionCommandCreated: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV080PortfolioReconciliationReviewWorkflowError,
+                .forbiddenCapability("acknowledgement.correctionCommandCreated")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV080PortfolioReconciliationReviewEvidence(
+                sourceReconciliation: sourceReconciliation,
+                reviewRecords: evidence.reviewRecords,
+                brokerWritePathCreated: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV080PortfolioReconciliationReviewWorkflowError,
+                .forbiddenCapability("brokerWritePathCreated")
+            )
+        }
+
+        for anchor in ReleaseV080PortfolioReconciliationReviewWorkflowContract.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-817 source")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(verifierScript.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        XCTAssertTrue(portfolioTarget.contains("\"ReleaseV080PortfolioReconciliationReviewWorkflow.swift\""))
+        XCTAssertFalse(portfolioTarget.contains("\"DataClient\""))
+        XCTAssertFalse(portfolioTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(source.contains("ReleaseV080PortfolioReconciliationReviewWorkflow"))
+        XCTAssertTrue(source.contains("ReleaseV080PortfolioReconciliationReviewStatus"))
+        XCTAssertTrue(source.contains("ReleaseV080PortfolioReconciliationOperatorAcknowledgement"))
+        XCTAssertTrue(source.contains("ReleaseV080PortfolioReconciliationReviewAuditArtifact"))
+        XCTAssertTrue(source.contains("ReleaseV080PortfolioReconciliationReviewEvidence"))
+        XCTAssertTrue(source.contains("reviewRequired"))
+        XCTAssertTrue(source.contains("operatorNote"))
+        XCTAssertTrue(source.contains("acknowledgedAt"))
+        XCTAssertTrue(source.contains("acknowledgedBy"))
+        XCTAssertTrue(source.contains("staleObservedState"))
+        XCTAssertTrue(source.contains("auditTrailArtifacts"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.8.0 Portfolio reconciliation review workflow anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-817-VERIFY-V080-PORTFOLIO-RECONCILIATION-REVIEW-WORKFLOW"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-portfolio-reconciliation-review.sh"))
+        XCTAssertTrue(verifierScript.contains("testGH817PortfolioReconciliationReviewWorkflowRequiresAuditOnlyAcknowledgement"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/order",
+            "/api/v3/userDataStream",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "GH-817 source must not contain \(forbidden)")
+        }
+    }
+
     func testGH791ReleaseV070AggregateValidationGateCoversFocusedGuardsAndProductionDisabledDefaults() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let aggregateScript = try String(
