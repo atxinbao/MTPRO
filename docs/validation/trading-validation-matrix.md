@@ -1397,3 +1397,17 @@
 - safe local controls: start / stop / recover are local dry-run session visibility only and must not expose order command, live command, production command or production cutover
 - testnet probe visibility: GH-786 / GH-787 status is visible only as redacted read-only artifact status; credential value、raw listenKey 和 raw private payload remain hidden
 - forbidden scope: no trading button, no order form, no submit / cancel / replace, no broker endpoint, no production endpoint, no production secret auto-read, no production trading, no production cutover
+- TVM-RELEASE-V070-LOCAL-RISK-POLICY-CONFIG
+- GH-789-VERIFY-V070-LOCAL-RISK-POLICY-CONFIG
+- V070-011-LOCAL-RISK-POLICY-FIELDS
+- V070-011-RISK-POLICY-ARTIFACTS-REPLAY
+- V070-011-KILL-SWITCH-NO-TRADE-BLOCKS-DOWNSTREAM
+- V070-011-ALLOWED-SYMBOLS-PRODUCT-TYPES
+- V070-011-NO-PRODUCTION-ACCOUNT-DATA
+- GH-789 Release v0.7.0 Local Risk Policy Config Validation
+- testGH789LocalRiskPolicyConfigPersistsReplayablePolicyAndDecisionEvidence
+- local policy fields: maxNotional、maxExposure、killSwitch、noTrade、allowedSymbols 和 allowedProductTypes must be inspectable in persisted policy evidence
+- replay evidence: persisted policy / decision artifact paths must replay to the same decision records
+- kill switch / no-trade: blocked decisions must suppress OMS lifecycle、ExecutionClient request、broker command 和 production account read
+- allowlist: symbols and product types outside local policy must fail closed before decision evidence is accepted
+- forbidden scope: no production account data, no broker margin / leverage read, no production secret, no production endpoint / broker, no submit / cancel / replace, no production cutover
