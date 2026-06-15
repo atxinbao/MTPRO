@@ -24319,6 +24319,170 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("productionCutoverAuthorized = true"))
     }
 
+    func testGH818DashboardSafeLocalControlsSurfaceIsAnchoredInV080Guards() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dashboardTarget = try packageTargetBlock(named: "Dashboard", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Dashboard/Report/ReleaseV080DashboardSafeLocalControlsSurface.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let runRegistryStore = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Database/ReleaseV080RunRegistryStore.swift"),
+            encoding: .utf8
+        )
+        let sessionStore = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("Sources/Database/ReleaseV080OperationalRunSessionStore.swift"),
+            encoding: .utf8
+        )
+        let dashboardShell = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Dashboard/DashboardShell.swift"),
+            encoding: .utf8
+        )
+        let appTests = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tests/AppTests/AppTests.swift"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verifierScript = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("checks/verify-v0.8.0-dashboard-safe-local-controls.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md"),
+            encoding: .utf8
+        )
+
+        let surface = ReleaseV080DashboardSafeLocalControlsSurfaceViewModel.deterministicFixture
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-810", "GH-811", "GH-815"])
+        XCTAssertEqual(surface.previousIssueID, "GH-817")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-819")
+        XCTAssertEqual(surface.visibleControlCount, 5)
+        XCTAssertEqual(surface.controls, [.start, .stop, .recover, .archive, .openDetail])
+        XCTAssertTrue(surface.controlResults.allSatisfy(\.resultHeld))
+        XCTAssertTrue(surface.controlResults.allSatisfy(\.localArtifactMutationOnly))
+        XCTAssertTrue(surface.registryAndSessionStoresBound)
+        XCTAssertTrue(surface.localRunArtifactsOnly)
+        XCTAssertTrue(surface.detailSurfaceReadOnly)
+        XCTAssertTrue(surface.persistentRegistryPathVisible)
+        XCTAssertTrue(surface.persistentSessionStorePathsVisible)
+        XCTAssertFalse(surface.dashboardDependsOnDataClientTarget)
+        XCTAssertFalse(surface.credentialValueVisible)
+        XCTAssertFalse(surface.rawListenKeyVisible)
+        XCTAssertFalse(surface.rawPrivatePayloadVisible)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandEnabled)
+        XCTAssertFalse(surface.productionCommandEnabled)
+        XCTAssertFalse(surface.orderSubmitVisible)
+        XCTAssertFalse(surface.orderCancelVisible)
+        XCTAssertFalse(surface.orderReplaceVisible)
+        XCTAssertFalse(surface.testnetOrderRoutingAllowed)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretAutoReadEnabled)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        let expectedAnchors = [
+            "GH-818-VERIFY-V080-DASHBOARD-SAFE-LOCAL-CONTROLS",
+            "TVM-RELEASE-V080-DASHBOARD-SAFE-LOCAL-CONTROLS",
+            "V080-012-DASHBOARD-SAFE-LOCAL-CONTROLS",
+            "V080-012-START-STOP-RECOVER-ARCHIVE-OPEN-DETAIL",
+            "V080-012-RUN-REGISTRY-SESSION-STORE-BINDING",
+            "V080-012-LOCAL-ARTIFACT-MUTATION-ONLY",
+            "V080-012-DETAIL-READONLY-SNAPSHOT",
+            "V080-012-NO-ORDER-PRODUCTION-COMMAND",
+            "V080-012-NO-TRADING-BUTTON-ORDER-FORM",
+            "V080-012-NO-TESTNET-ORDER-ROUTING",
+            "V080-012-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(
+            ReleaseV080DashboardSafeLocalControlsSurfaceViewModel.requiredValidationAnchors,
+            expectedAnchors
+        )
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-818 source")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(verifierScript.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in v0.8 contract")
+        }
+
+        XCTAssertTrue(dashboardTarget.contains("\"Report\""))
+        XCTAssertFalse(dashboardTarget.contains("\"DataClient\""))
+        XCTAssertTrue(source.contains("ReleaseV080DashboardSafeLocalControlsSurfaceViewModel"))
+        XCTAssertTrue(source.contains("ReleaseV080DashboardSafeLocalControlResult"))
+        XCTAssertTrue(source.contains("ReleaseV080RunRegistryStore.registry-json"))
+        XCTAssertTrue(source.contains("ReleaseV080OperationalRunSessionStore.session-json-events-status"))
+        XCTAssertTrue(source.contains("ReleaseV080RunRegistryStore.save"))
+        XCTAssertTrue(source.contains("ReleaseV080RunRegistryStore.archive"))
+        XCTAssertTrue(source.contains("ReleaseV080RunRegistryStore.recover"))
+        XCTAssertTrue(source.contains("ReleaseV080OperationalRunSessionStore.create+apply(start,start)"))
+        XCTAssertTrue(source.contains("ReleaseV080OperationalRunSessionStore.apply(stop,stop)"))
+        XCTAssertTrue(source.contains("ReleaseV080OperationalRunSessionStore.apply(recover)"))
+        XCTAssertTrue(source.contains("ReleaseV080OperationalRunSessionStore.load+status"))
+        XCTAssertTrue(runRegistryStore.contains("public func archive"))
+        XCTAssertTrue(runRegistryStore.contains("public func recover"))
+        XCTAssertTrue(sessionStore.contains("public func create"))
+        XCTAssertTrue(sessionStore.contains("public func apply"))
+        XCTAssertTrue(sessionStore.contains("public func load"))
+        XCTAssertTrue(sessionStore.contains("public func status"))
+        XCTAssertTrue(dashboardShell.contains("releaseV080SafeLocalControlsSurface"))
+        XCTAssertTrue(dashboardShell.contains("releaseV080SafeLocalControls="))
+        XCTAssertTrue(dashboardShell.contains("DashboardReleaseV080SafeLocalControlsPanel"))
+        XCTAssertTrue(appTests.contains(
+            "testGH818DashboardSafeLocalControlsBindSessionStoresWithoutCommands"
+        ))
+        XCTAssertTrue(automationReadiness.contains("Release v0.8.0 Dashboard safe local controls anchor"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-dashboard-safe-local-controls.sh"))
+        XCTAssertTrue(verifierScript.contains(
+            "testGH818DashboardSafeLocalControlsBindSessionStoresWithoutCommands"
+        ))
+        XCTAssertTrue(verifierScript.contains(
+            "testGH818DashboardSafeLocalControlsSurfaceIsAnchoredInV080Guards"
+        ))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("api.binance.com"))
+        XCTAssertFalse(source.contains("fapi.binance.com"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("productionCutoverAuthorized = true"))
+        XCTAssertFalse(source.contains("productionSecretAutoReadEnabled = true"))
+        XCTAssertFalse(source.contains("productionEndpointConnected = true"))
+        XCTAssertFalse(source.contains("brokerEndpointConnected = true"))
+    }
+
     func testGH785RunRegistrySupervisorProvidesLocalNoOrderRunManagement() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

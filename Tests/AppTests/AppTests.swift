@@ -3344,6 +3344,126 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH818DashboardSafeLocalControlsBindSessionStoresWithoutCommands() throws {
+        // 测试场景：GH-818 Dashboard 可展示 start / stop / recover / archive / open-detail
+        // safe local controls，并将它们绑定到 v0.8 local registry 和 session store artifact；
+        // 控制结果只能写本地 `.local/mtpro/runs/...` 证据，不能创建订单或生产命令。
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV080SafeLocalControlsSurface
+
+        XCTAssertEqual(surface.issueID, "GH-818")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-810", "GH-811", "GH-815"])
+        XCTAssertEqual(surface.previousIssueID, "GH-817")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-819")
+        XCTAssertEqual(surface.releaseVersion, "v0.8.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.visibleControlCount, 5)
+        XCTAssertEqual(surface.controls, [.start, .stop, .recover, .archive, .openDetail])
+        XCTAssertTrue(surface.registryAndSessionStoresBound)
+        XCTAssertTrue(surface.localRunArtifactsOnly)
+        XCTAssertTrue(surface.startLocalDryRunVisible)
+        XCTAssertTrue(surface.stopLocalDryRunVisible)
+        XCTAssertTrue(surface.recoverFailedLocalRunVisible)
+        XCTAssertTrue(surface.archiveRunVisible)
+        XCTAssertTrue(surface.openDetailVisible)
+        XCTAssertTrue(surface.persistentRegistryPathVisible)
+        XCTAssertTrue(surface.persistentSessionStorePathsVisible)
+        XCTAssertTrue(surface.detailSurfaceReadOnly)
+        XCTAssertTrue(surface.readModelOnly)
+        XCTAssertFalse(surface.dashboardDependsOnDataClientTarget)
+
+        XCTAssertTrue(surface.controlResults.allSatisfy(\.resultHeld))
+        XCTAssertTrue(surface.controlResults.allSatisfy(\.localArtifactMutationOnly))
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.registryJSONPath == ".local/mtpro/runs/registry.json" })
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.registryLockPath == ".local/mtpro/runs/registry.lock" })
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.runDirectoryPath.hasPrefix(".local/mtpro/runs/") })
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.sessionJSONPath.hasSuffix("/session.json") })
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.sessionEventsJSONLPath.hasSuffix("/session_events.jsonl") })
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.sessionStatusJSONPath.hasSuffix("/session_status.json") })
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.operatorSessionStoreJSONPath.hasSuffix("/operator-session-store.json") })
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.dashboardDetailSnapshotJSONPath.hasSuffix("/dashboard-readonly-snapshot.json") })
+
+        let start = try XCTUnwrap(surface.controlResults.first { $0.control == .start })
+        XCTAssertEqual(start.registryOperation, "ReleaseV080RunRegistryStore.save")
+        XCTAssertEqual(start.sessionOperation, "ReleaseV080OperationalRunSessionStore.create+apply(start,start)")
+        XCTAssertEqual(start.registryStateAfter, "running")
+        XCTAssertEqual(start.sessionStateAfter, "running")
+        XCTAssertTrue(start.registryWriteRequired)
+        XCTAssertTrue(start.sessionWriteRequired)
+
+        let stop = try XCTUnwrap(surface.controlResults.first { $0.control == .stop })
+        XCTAssertEqual(stop.registryOperation, "ReleaseV080RunRegistryStore.replacing(stopped)")
+        XCTAssertEqual(stop.sessionOperation, "ReleaseV080OperationalRunSessionStore.apply(stop,stop)")
+        XCTAssertEqual(stop.registryStateAfter, "stopped")
+        XCTAssertEqual(stop.sessionStateAfter, "stopped")
+
+        let recover = try XCTUnwrap(surface.controlResults.first { $0.control == .recover })
+        XCTAssertEqual(recover.registryOperation, "ReleaseV080RunRegistryStore.recover")
+        XCTAssertEqual(recover.sessionOperation, "ReleaseV080OperationalRunSessionStore.apply(recover)")
+        XCTAssertEqual(recover.registryStateAfter, "recovered")
+        XCTAssertEqual(recover.sessionStateAfter, "recovered")
+
+        let archive = try XCTUnwrap(surface.controlResults.first { $0.control == .archive })
+        XCTAssertEqual(archive.registryOperation, "ReleaseV080RunRegistryStore.archive")
+        XCTAssertEqual(archive.sessionOperation, "ReleaseV080OperationalRunSessionStore.load+status")
+        XCTAssertEqual(archive.registryStateAfter, "archived")
+        XCTAssertFalse(archive.sessionWriteRequired)
+        XCTAssertTrue(archive.sessionReadRequired)
+
+        let openDetail = try XCTUnwrap(surface.controlResults.first { $0.control == .openDetail })
+        XCTAssertEqual(openDetail.registryOperation, "ReleaseV080RunRegistryStore.inspect")
+        XCTAssertEqual(openDetail.sessionOperation, "ReleaseV080OperationalRunSessionStore.load+status")
+        XCTAssertTrue(openDetail.detailOpenReadOnly)
+        XCTAssertFalse(openDetail.registryWriteRequired)
+        XCTAssertFalse(openDetail.sessionWriteRequired)
+        XCTAssertTrue(openDetail.sessionReadRequired)
+
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.orderCommandCreated == false })
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.productionCommandCreated == false })
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.testnetOrderCommandCreated == false })
+        XCTAssertTrue(surface.controlResults.allSatisfy { $0.brokerCommandCreated == false })
+        XCTAssertFalse(surface.credentialValueVisible)
+        XCTAssertFalse(surface.rawListenKeyVisible)
+        XCTAssertFalse(surface.rawPrivatePayloadVisible)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandEnabled)
+        XCTAssertFalse(surface.productionCommandEnabled)
+        XCTAssertFalse(surface.orderSubmitVisible)
+        XCTAssertFalse(surface.orderCancelVisible)
+        XCTAssertFalse(surface.orderReplaceVisible)
+        XCTAssertFalse(surface.testnetOrderRoutingAllowed)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretAutoReadEnabled)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertEqual(metricValue("Safe local control rows", in: surface.metrics), "5")
+        XCTAssertEqual(metricValue("Safe local controls", in: surface.metrics), "start,stop,recover,archive,open-detail")
+        XCTAssertEqual(metricValue("Store bindings", in: surface.metrics), "registry+session")
+        XCTAssertEqual(metricValue("Artifact scope", in: surface.metrics), "local-only")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Local artifact mutation: only"))
+        XCTAssertTrue(surface.details.contains("Open detail: read-only"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Production command: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV080SafeLocalControls=5"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV080SafeLocalControlNames=start,stop,recover,archive,open-detail"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV080SafeLocalControlBindings=registry+session"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV080SafeLocalControlBoundary=confirmed"))
+
+        for anchor in ReleaseV080DashboardSafeLocalControlsSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-818 surface")
+        }
+    }
+
     func testReportDashboardAndTimelineRemainMTP78ReadModelOnly() throws {
         // 测试场景：MTP-78 要求 Report、Dashboard 和 Event Timeline 只能展示 paper-only /
         // read-model evidence。它们可以显示 paper order、simulated fill 和 portfolio projection，

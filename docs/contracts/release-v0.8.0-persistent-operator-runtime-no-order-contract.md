@@ -222,6 +222,27 @@ Operator acknowledgement 只能作为 audit-only metadata。`matched` 不要求 
 
 Portfolio reconciliation review workflow 不得创建 correction command、broker write path、account mutation、trading adjustment command、testnet order routing、production trading、production secret auto-read、production endpoint / broker connection、production order submission 或 production cutover。
 
+## V080-012-DASHBOARD-SAFE-LOCAL-CONTROLS
+
+`V080-012-DASHBOARD-SAFE-LOCAL-CONTROLS`
+
+GH-818 将 Dashboard start / stop / recover / archive / open-detail safe local controls 绑定到 v0.8 local RunRegistryStore 和 OperationalRunSessionStore 的本地 artifact read/write path。Dashboard 可以展示这些控制和对应的 registry / session store mutation evidence，但控制结果只能修改或读取 `.local/mtpro/runs/...` 下的 `registry.json`、`registry.lock`、`session.json`、`session_events.jsonl`、`session_status.json`、`operator-session-store.json` 和 `dashboard-readonly-snapshot.json`。
+
+Required anchors：
+
+- `GH-818-VERIFY-V080-DASHBOARD-SAFE-LOCAL-CONTROLS`
+- `TVM-RELEASE-V080-DASHBOARD-SAFE-LOCAL-CONTROLS`
+- `V080-012-START-STOP-RECOVER-ARCHIVE-OPEN-DETAIL`
+- `V080-012-RUN-REGISTRY-SESSION-STORE-BINDING`
+- `V080-012-LOCAL-ARTIFACT-MUTATION-ONLY`
+- `V080-012-DETAIL-READONLY-SNAPSHOT`
+- `V080-012-NO-ORDER-PRODUCTION-COMMAND`
+- `V080-012-NO-TRADING-BUTTON-ORDER-FORM`
+- `V080-012-NO-TESTNET-ORDER-ROUTING`
+- `V080-012-NO-PRODUCTION-CUTOVER`
+
+Dashboard safe local controls 不得读取 credential value，不得显示 raw listenKey 或 raw private payload，不得新增 DataClient target dependency，不得连接 endpoint / broker，不得创建 order command、production command、testnet order routing、trading button、order form、live command、broker write、production order submission 或 production cutover。`open-detail` 只能读取 registry / session status 和 dashboard readonly snapshot，不能写 session lifecycle。
+
 ## V080-001-TESTNET-READONLY-MONITORING
 
 `V080-001-TESTNET-READONLY-MONITORING`
