@@ -1354,3 +1354,17 @@
 - artifact locations: registry entries expose `.local/mtpro/runs/<runID>/events.jsonl`、projection、summary、status、manifest paths
 - CLI observer preparation: `mtpro run/status` use local registry-ready / local-run-registry-state wording
 - forbidden scope: no remote run service, no production scheduler, no concurrent production runtime, no production trading authorization, no production endpoint / broker connection, no production secret read, no real order, no production cutover
+- TVM-RELEASE-V070-TESTNET-SIGNED-ACCOUNT-READONLY-PROBE
+- GH-786-VERIFY-V070-TESTNET-SIGNED-ACCOUNT-READONLY-PROBE
+- V070-008-OPERATOR-CONFIRMED-TESTNET-SIGNED-ACCOUNT-READONLY-PROBE
+- V070-008-CALL-TIME-CREDENTIAL-RESOLUTION
+- V070-008-DETERMINISTIC-FIXTURE-NETWORK-READONLY-SEPARATION
+- V070-008-CREDENTIAL-VALUE-REDACTION
+- V070-008-PRODUCTION-AND-ORDER-ENDPOINT-REJECTION
+- V070-008-NO-ORDER-NO-PRODUCTION-BOUNDARY
+- GH-786 Release v0.7.0 Testnet Signed Account Read-only Probe Validation
+- testGH786RealBinanceTestnetSignedAccountReadOnlyProbeRequiresOperatorConfirmation
+- operator gate: explicit profile、credential reference、canonical Binance Spot testnet endpoint 和 confirmation id are required
+- credential boundary: key / secret value is resolved only by provider at artifact call time and never persisted or displayed
+- mode separation: deterministic fixture mode and network read-only mode stay distinct in configuration / artifact evidence
+- forbidden scope: no production host, no order endpoint, no submit / cancel / replace, no production secret auto-read, no broker endpoint, no production cutover

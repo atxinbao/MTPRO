@@ -760,3 +760,531 @@ public struct ReleaseV060TestnetReadOnlyProbeContract: Codable, Equatable, Senda
         "bash checks/run.sh"
     ]
 }
+
+/// ReleaseV070TestnetSignedAccountReadOnlyProbeError 描述 GH-786 operator-confirmed testnet probe 的失败原因。
+///
+/// v0.7 探针只允许 Binance Spot testnet signed account read-only request；错误边界明确拒绝
+/// production endpoint、order endpoint、缺失 operator confirmation 和 credential value 泄漏。
+public enum ReleaseV070TestnetSignedAccountReadOnlyProbeError: Error, Equatable, Sendable, CustomStringConvertible {
+    case operatorConfirmationRequired
+    case invalidTestnetProfile(String)
+    case emptyCredentialReference
+    case invalidEndpoint(String)
+    case productionEndpointForbidden(String)
+    case credentialReferenceMismatch(expected: String, actual: String)
+    case forbiddenCapability(String)
+    case artifactRedactionViolation(String)
+    case contractDrift(String)
+
+    public var description: String {
+        switch self {
+        case .operatorConfirmationRequired:
+            "Release v0.7.0 testnet signed account read-only probe requires explicit operator confirmation"
+        case let .invalidTestnetProfile(value):
+            "Release v0.7.0 testnet signed account read-only probe requires binance-testnet-readonly profile: \(value)"
+        case .emptyCredentialReference:
+            "Release v0.7.0 testnet signed account read-only probe credential reference must not be empty"
+        case let .invalidEndpoint(value):
+            "Release v0.7.0 testnet signed account read-only probe endpoint is invalid: \(value)"
+        case let .productionEndpointForbidden(host):
+            "Release v0.7.0 testnet signed account read-only probe rejects production endpoint host: \(host)"
+        case let .credentialReferenceMismatch(expected, actual):
+            "Release v0.7.0 testnet signed account read-only probe credential reference mismatch: expected \(expected), actual \(actual)"
+        case let .forbiddenCapability(value):
+            "Release v0.7.0 testnet signed account read-only probe rejected forbidden capability: \(value)"
+        case let .artifactRedactionViolation(value):
+            "Release v0.7.0 testnet signed account read-only probe artifact leaked credential value: \(value)"
+        case let .contractDrift(value):
+            "Release v0.7.0 testnet signed account read-only probe contract drift: \(value)"
+        }
+    }
+}
+
+/// ReleaseV070TestnetSignedAccountReadOnlyProbeMode 区分 deterministic fixture 和真实 testnet read-only network probe。
+///
+/// `.networkReadOnly` 仍只访问 Binance Spot testnet `/api/v3/account`，并且不代表 production
+/// endpoint、broker connection、listenKey、private stream 或 order command 授权。
+public enum ReleaseV070TestnetSignedAccountReadOnlyProbeMode: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case deterministicFixture = "deterministic fixture"
+    case networkReadOnly = "network read-only"
+}
+
+/// ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration 是 GH-786 的显式 operator 输入合同。
+///
+/// 配置只保存 credential reference，不保存 credential value。真实 key / secret 只能由调用方注入的
+/// provider 在 `artifact(timestamp:)` 调用期间短生命周期解析，并且 artifact / Dashboard / CLI 不显示。
+public struct ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration: Equatable, Sendable {
+    public let mode: ReleaseV070TestnetSignedAccountReadOnlyProbeMode
+    public let profileName: String
+    public let endpointReference: URL
+    public let approvedCredentialReference: String
+    public let operatorConfirmationID: String
+    public let operatorConfirmedReadOnlyProbe: Bool
+    public let deterministicFixtureMode: Bool
+    public let networkReadOnlyMode: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionEndpointConnectionEnabled: Bool
+    public let productionSecretAutoReadEnabled: Bool
+    public let submitCommandEnabled: Bool
+    public let cancelCommandEnabled: Bool
+    public let replaceCommandEnabled: Bool
+
+    public var configurationHeld: Bool {
+        profileName == Self.requiredProfileName
+            && operatorConfirmedReadOnlyProbe
+            && operatorConfirmationID.isEmpty == false
+            && approvedCredentialReference.isEmpty == false
+            && endpointReference.absoluteString == Self.canonicalSpotTestnetBaseURL
+            && deterministicFixtureMode == (mode == .deterministicFixture)
+            && networkReadOnlyMode == (mode == .networkReadOnly)
+            && productionTradingEnabledByDefault == false
+            && productionEndpointConnectionEnabled == false
+            && productionSecretAutoReadEnabled == false
+            && submitCommandEnabled == false
+            && cancelCommandEnabled == false
+            && replaceCommandEnabled == false
+    }
+
+    public init(
+        mode: ReleaseV070TestnetSignedAccountReadOnlyProbeMode,
+        profileName: String = Self.requiredProfileName,
+        endpointReference: URL,
+        approvedCredentialReference: String,
+        operatorConfirmationID: String,
+        operatorConfirmedReadOnlyProbe: Bool,
+        productionTradingEnabledByDefault: Bool = false,
+        productionEndpointConnectionEnabled: Bool = false,
+        productionSecretAutoReadEnabled: Bool = false,
+        submitCommandEnabled: Bool = false,
+        cancelCommandEnabled: Bool = false,
+        replaceCommandEnabled: Bool = false
+    ) throws {
+        guard operatorConfirmedReadOnlyProbe else {
+            throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.operatorConfirmationRequired
+        }
+        guard profileName == Self.requiredProfileName else {
+            throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.invalidTestnetProfile(profileName)
+        }
+        guard approvedCredentialReference.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.emptyCredentialReference
+        }
+        guard operatorConfirmationID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.operatorConfirmationRequired
+        }
+        try Self.validateEndpoint(endpointReference)
+        for forbiddenFlag in [
+            ("productionTradingEnabledByDefault", productionTradingEnabledByDefault),
+            ("productionEndpointConnectionEnabled", productionEndpointConnectionEnabled),
+            ("productionSecretAutoReadEnabled", productionSecretAutoReadEnabled),
+            ("submitCommandEnabled", submitCommandEnabled),
+            ("cancelCommandEnabled", cancelCommandEnabled),
+            ("replaceCommandEnabled", replaceCommandEnabled)
+        ] where forbiddenFlag.1 {
+            throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.forbiddenCapability(forbiddenFlag.0)
+        }
+
+        self.mode = mode
+        self.profileName = profileName
+        self.endpointReference = endpointReference
+        self.approvedCredentialReference = approvedCredentialReference
+        self.operatorConfirmationID = operatorConfirmationID
+        self.operatorConfirmedReadOnlyProbe = operatorConfirmedReadOnlyProbe
+        self.deterministicFixtureMode = mode == .deterministicFixture
+        self.networkReadOnlyMode = mode == .networkReadOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionEndpointConnectionEnabled = productionEndpointConnectionEnabled
+        self.productionSecretAutoReadEnabled = productionSecretAutoReadEnabled
+        self.submitCommandEnabled = submitCommandEnabled
+        self.cancelCommandEnabled = cancelCommandEnabled
+        self.replaceCommandEnabled = replaceCommandEnabled
+
+        guard configurationHeld else {
+            throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.contractDrift("configurationHeld")
+        }
+    }
+
+    public static func deterministicFixture(
+        credentialReference: String = "gh-786-approved-testnet-reference"
+    ) throws -> ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration {
+        try ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration(
+            mode: .deterministicFixture,
+            endpointReference: canonicalSpotTestnetURL,
+            approvedCredentialReference: credentialReference,
+            operatorConfirmationID: "operator-confirmed-gh-786-read-only-probe",
+            operatorConfirmedReadOnlyProbe: true
+        )
+    }
+
+    public static func networkReadOnly(
+        endpointReference: URL = canonicalSpotTestnetURL,
+        credentialReference: String,
+        operatorConfirmationID: String
+    ) throws -> ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration {
+        try ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration(
+            mode: .networkReadOnly,
+            endpointReference: endpointReference,
+            approvedCredentialReference: credentialReference,
+            operatorConfirmationID: operatorConfirmationID,
+            operatorConfirmedReadOnlyProbe: true
+        )
+    }
+
+    public static func validateEndpoint(_ endpointReference: URL) throws {
+        do {
+            _ = try BinanceSignedAccountReadClientConfiguration(
+                environment: .testnet,
+                baseURL: endpointReference
+            )
+        } catch let error as BinanceSignedAccountReadRuntimeError {
+            switch error {
+            case let .productionEndpointForbidden(host):
+                throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.productionEndpointForbidden(host)
+            default:
+                throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.invalidEndpoint(endpointReference.absoluteString)
+            }
+        }
+    }
+
+    public static let requiredProfileName = "binance-testnet-readonly"
+    public static let canonicalSpotTestnetBaseURL = "https://testnet.binance.vision"
+    public static var canonicalSpotTestnetURL: URL {
+        guard let url = URL(string: canonicalSpotTestnetBaseURL) else {
+            preconditionFailure("GH-786 canonical spot testnet URL must be valid")
+        }
+        return url
+    }
+}
+
+/// ReleaseV070TestnetSignedAccountReadOnlyProbeArtifact 是 GH-786 的本地 operator evidence。
+///
+/// Artifact 保存 read-only snapshot、mode、endpoint 和 redacted credential reference；它不保存 API key、
+/// signing secret、raw payload、production endpoint、broker state、order command 或 production cutover 授权。
+public struct ReleaseV070TestnetSignedAccountReadOnlyProbeArtifact: Codable, Equatable, Sendable {
+    public let artifactID: Identifier
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let previousIssueID: Identifier
+    public let downstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let mode: ReleaseV070TestnetSignedAccountReadOnlyProbeMode
+    public let profileName: String
+    public let endpointHost: String
+    public let endpointPath: String
+    public let operatorConfirmationID: String
+    public let operatorConfirmedReadOnlyProbe: Bool
+    public let credentialReference: String
+    public let redactedCredentialReference: String
+    public let credentialResolvedAtCallTime: Bool
+    public let deterministicFixtureMode: Bool
+    public let networkReadOnlyMode: Bool
+    public let signedAccountSnapshot: BinanceSignedAccountReadSnapshot
+    public let noOrderProof: ReleaseV060TestnetReadOnlyProbeNoOrderProof
+    public let validationAnchors: [String]
+    public let requiredValidationCommands: [String]
+    public let credentialValuesPersisted: Bool
+    public let credentialValuesDisplayedOnDashboard: Bool
+    public let credentialValuesDisplayedOnCLI: Bool
+    public let rawPayloadPersisted: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretAutoReadEnabled: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var artifactHeld: Bool {
+        issueID.rawValue == "GH-786"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-779", "GH-780"]
+            && previousIssueID.rawValue == "GH-785"
+            && downstreamIssueIDs.map(\.rawValue) == ["GH-787"]
+            && releaseVersion == "v0.7.0"
+            && profileName == ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration.requiredProfileName
+            && endpointHost == "testnet.binance.vision"
+            && endpointPath == BinanceSignedAccountReadTransportRequest.accountReadOnlyPath
+            && operatorConfirmedReadOnlyProbe
+            && credentialReference.isEmpty == false
+            && redactedCredentialReference == Self.redactedCredentialReference(credentialReference)
+            && credentialResolvedAtCallTime
+            && deterministicFixtureMode == (mode == .deterministicFixture)
+            && networkReadOnlyMode == (mode == .networkReadOnly)
+            && signedAccountSnapshot.snapshotBoundaryHeld
+            && signedAccountSnapshot.credentialReference == credentialReference
+            && noOrderProof.proofHeld
+            && validationAnchors == ReleaseV070TestnetSignedAccountReadOnlyProbeContract.requiredValidationAnchors
+            && requiredValidationCommands == ReleaseV070TestnetSignedAccountReadOnlyProbeContract.requiredValidationCommands
+            && forbiddenBoundaryHeld
+    }
+
+    public var forbiddenBoundaryHeld: Bool {
+        credentialValuesPersisted == false
+            && credentialValuesDisplayedOnDashboard == false
+            && credentialValuesDisplayedOnCLI == false
+            && rawPayloadPersisted == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretAutoReadEnabled == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        artifactID: Identifier = Identifier.constant("gh-786-testnet-signed-account-readonly-probe-artifact"),
+        issueID: Identifier = Identifier.constant("GH-786"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-779"),
+            Identifier.constant("GH-780")
+        ],
+        previousIssueID: Identifier = Identifier.constant("GH-785"),
+        downstreamIssueIDs: [Identifier] = [Identifier.constant("GH-787")],
+        releaseVersion: String = "v0.7.0",
+        mode: ReleaseV070TestnetSignedAccountReadOnlyProbeMode,
+        profileName: String,
+        endpointHost: String,
+        endpointPath: String = BinanceSignedAccountReadTransportRequest.accountReadOnlyPath,
+        operatorConfirmationID: String,
+        operatorConfirmedReadOnlyProbe: Bool,
+        credentialReference: String,
+        credentialResolvedAtCallTime: Bool,
+        signedAccountSnapshot: BinanceSignedAccountReadSnapshot,
+        noOrderProof: ReleaseV060TestnetReadOnlyProbeNoOrderProof,
+        validationAnchors: [String] = ReleaseV070TestnetSignedAccountReadOnlyProbeContract.requiredValidationAnchors,
+        requiredValidationCommands: [String] = ReleaseV070TestnetSignedAccountReadOnlyProbeContract.requiredValidationCommands,
+        credentialValuesPersisted: Bool = false,
+        credentialValuesDisplayedOnDashboard: Bool = false,
+        credentialValuesDisplayedOnCLI: Bool = false,
+        rawPayloadPersisted: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretAutoReadEnabled: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.artifactID = artifactID
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.previousIssueID = previousIssueID
+        self.downstreamIssueIDs = downstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.mode = mode
+        self.profileName = profileName
+        self.endpointHost = endpointHost
+        self.endpointPath = endpointPath
+        self.operatorConfirmationID = operatorConfirmationID
+        self.operatorConfirmedReadOnlyProbe = operatorConfirmedReadOnlyProbe
+        self.credentialReference = credentialReference
+        self.redactedCredentialReference = Self.redactedCredentialReference(credentialReference)
+        self.credentialResolvedAtCallTime = credentialResolvedAtCallTime
+        self.deterministicFixtureMode = mode == .deterministicFixture
+        self.networkReadOnlyMode = mode == .networkReadOnly
+        self.signedAccountSnapshot = signedAccountSnapshot
+        self.noOrderProof = noOrderProof
+        self.validationAnchors = validationAnchors
+        self.requiredValidationCommands = requiredValidationCommands
+        self.credentialValuesPersisted = credentialValuesPersisted
+        self.credentialValuesDisplayedOnDashboard = credentialValuesDisplayedOnDashboard
+        self.credentialValuesDisplayedOnCLI = credentialValuesDisplayedOnCLI
+        self.rawPayloadPersisted = rawPayloadPersisted
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretAutoReadEnabled = productionSecretAutoReadEnabled
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard artifactHeld else {
+            throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.contractDrift("artifactHeld")
+        }
+    }
+
+    public func redactionHeld(forbiddenValues: [String]) throws -> Bool {
+        let encoded = try ReleaseV070TestnetSignedAccountReadOnlyProbeArtifactEncoder.encodedString(self)
+        for value in forbiddenValues where value.isEmpty == false && encoded.contains(value) {
+            throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.artifactRedactionViolation(value)
+        }
+        return true
+    }
+
+    public static func redactedCredentialReference(_ reference: String) -> String {
+        "\(reference):<redacted>"
+    }
+}
+
+/// ReleaseV070TestnetSignedAccountReadOnlyProbeArtifactEncoder 提供稳定 JSON evidence 输出。
+public enum ReleaseV070TestnetSignedAccountReadOnlyProbeArtifactEncoder {
+    public static func encodedString(_ artifact: ReleaseV070TestnetSignedAccountReadOnlyProbeArtifact) throws -> String {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return String(decoding: try encoder.encode(artifact), as: UTF8.self)
+    }
+}
+
+/// ReleaseV070TestnetSignedAccountReadOnlyProbe 执行 GH-786 的 operator-confirmed testnet signed read。
+///
+/// 默认 transport 是 URLSession testnet read-only transport，但 tests 和 deterministic fixture 注入 mock
+/// transport。该 probe 只调用 `/api/v3/account`，不创建 listenKey、不打开 private stream、不连接
+/// production endpoint / broker，也不提供 submit / cancel / replace。
+public struct ReleaseV070TestnetSignedAccountReadOnlyProbe: Sendable {
+    public let configuration: ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration
+
+    private let credentialProvider: any BinanceSignedAccountCredentialProvider
+    private let signedAccountTransport: any BinanceSignedAccountReadTransport
+
+    public init(
+        configuration: ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration,
+        credentialProvider: any BinanceSignedAccountCredentialProvider,
+        signedAccountTransport: any BinanceSignedAccountReadTransport = URLSessionBinanceSignedAccountReadTransport()
+    ) {
+        self.configuration = configuration
+        self.credentialProvider = credentialProvider
+        self.signedAccountTransport = signedAccountTransport
+    }
+
+    public func artifact(timestamp: Date) async throws -> ReleaseV070TestnetSignedAccountReadOnlyProbeArtifact {
+        let signedConfiguration = try BinanceSignedAccountReadClientConfiguration(
+            environment: .testnet,
+            baseURL: configuration.endpointReference
+        )
+        let signedClient = BinanceSignedAccountReadClient(
+            configuration: signedConfiguration,
+            credentialProvider: credentialProvider,
+            transport: signedAccountTransport
+        )
+        let snapshot = try await signedClient.accountSnapshot(timestamp: timestamp)
+        guard snapshot.credentialReference == configuration.approvedCredentialReference else {
+            throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.credentialReferenceMismatch(
+                expected: configuration.approvedCredentialReference,
+                actual: snapshot.credentialReference
+            )
+        }
+
+        return try ReleaseV070TestnetSignedAccountReadOnlyProbeArtifact(
+            mode: configuration.mode,
+            profileName: configuration.profileName,
+            endpointHost: configuration.endpointReference.host?.lowercased() ?? "",
+            operatorConfirmationID: configuration.operatorConfirmationID,
+            operatorConfirmedReadOnlyProbe: configuration.operatorConfirmedReadOnlyProbe,
+            credentialReference: snapshot.credentialReference,
+            credentialResolvedAtCallTime: true,
+            signedAccountSnapshot: snapshot,
+            noOrderProof: try ReleaseV060TestnetReadOnlyProbeNoOrderProof()
+        )
+    }
+
+    public static func deterministicArtifact() async throws -> ReleaseV070TestnetSignedAccountReadOnlyProbeArtifact {
+        let reference = "gh-786-approved-testnet-reference"
+        let material = try BinanceSignedAccountCredentialMaterial(
+            referenceID: reference,
+            keyHeaderValue: "gh-786-fixture-key-value",
+            signingSecretValue: "gh-786-fixture-secret-value"
+        )
+        let probe = ReleaseV070TestnetSignedAccountReadOnlyProbe(
+            configuration: try .deterministicFixture(credentialReference: reference),
+            credentialProvider: BinanceStaticSignedAccountCredentialProvider(material: material),
+            signedAccountTransport: ReleaseV060TestnetReadOnlyProbeFixtureTransport()
+        )
+        return try await probe.artifact(timestamp: Date(timeIntervalSince1970: 1_704_067_200))
+    }
+}
+
+/// ReleaseV070TestnetSignedAccountReadOnlyProbeContract 固定 GH-786 issue-level 验收合同。
+public struct ReleaseV070TestnetSignedAccountReadOnlyProbeContract: Codable, Equatable, Sendable {
+    public let contractID: Identifier
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let previousIssueID: Identifier
+    public let downstreamIssueID: Identifier
+    public let releaseVersion: String
+    public let validationAnchors: [String]
+    public let requiredValidationCommands: [String]
+    public let requiresOperatorConfirmation: Bool
+    public let requiresCallTimeCredentialResolution: Bool
+    public let separatesDeterministicFixtureFromNetworkReadOnly: Bool
+    public let requiresCredentialValueRedaction: Bool
+    public let rejectsProductionAndOrderEndpoints: Bool
+    public let noOrderBoundaryRequired: Bool
+    public let productionDefaultsClosed: Bool
+
+    public var contractHeld: Bool {
+        issueID.rawValue == "GH-786"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-779", "GH-780"]
+            && previousIssueID.rawValue == "GH-785"
+            && downstreamIssueID.rawValue == "GH-787"
+            && releaseVersion == "v0.7.0"
+            && validationAnchors == Self.requiredValidationAnchors
+            && requiredValidationCommands == Self.requiredValidationCommands
+            && requiresOperatorConfirmation
+            && requiresCallTimeCredentialResolution
+            && separatesDeterministicFixtureFromNetworkReadOnly
+            && requiresCredentialValueRedaction
+            && rejectsProductionAndOrderEndpoints
+            && noOrderBoundaryRequired
+            && productionDefaultsClosed
+    }
+
+    public init(
+        contractID: Identifier = Identifier.constant("gh-786-release-v0.7.0-testnet-signed-account-readonly-probe"),
+        issueID: Identifier = Identifier.constant("GH-786"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-779"),
+            Identifier.constant("GH-780")
+        ],
+        previousIssueID: Identifier = Identifier.constant("GH-785"),
+        downstreamIssueID: Identifier = Identifier.constant("GH-787"),
+        releaseVersion: String = "v0.7.0",
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        requiredValidationCommands: [String] = Self.requiredValidationCommands,
+        requiresOperatorConfirmation: Bool = true,
+        requiresCallTimeCredentialResolution: Bool = true,
+        separatesDeterministicFixtureFromNetworkReadOnly: Bool = true,
+        requiresCredentialValueRedaction: Bool = true,
+        rejectsProductionAndOrderEndpoints: Bool = true,
+        noOrderBoundaryRequired: Bool = true,
+        productionDefaultsClosed: Bool = true
+    ) throws {
+        self.contractID = contractID
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.previousIssueID = previousIssueID
+        self.downstreamIssueID = downstreamIssueID
+        self.releaseVersion = releaseVersion
+        self.validationAnchors = validationAnchors
+        self.requiredValidationCommands = requiredValidationCommands
+        self.requiresOperatorConfirmation = requiresOperatorConfirmation
+        self.requiresCallTimeCredentialResolution = requiresCallTimeCredentialResolution
+        self.separatesDeterministicFixtureFromNetworkReadOnly = separatesDeterministicFixtureFromNetworkReadOnly
+        self.requiresCredentialValueRedaction = requiresCredentialValueRedaction
+        self.rejectsProductionAndOrderEndpoints = rejectsProductionAndOrderEndpoints
+        self.noOrderBoundaryRequired = noOrderBoundaryRequired
+        self.productionDefaultsClosed = productionDefaultsClosed
+
+        guard contractHeld else {
+            throw ReleaseV070TestnetSignedAccountReadOnlyProbeError.contractDrift("contractHeld")
+        }
+    }
+
+    public static func deterministicFixture() throws -> ReleaseV070TestnetSignedAccountReadOnlyProbeContract {
+        try ReleaseV070TestnetSignedAccountReadOnlyProbeContract()
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-786-VERIFY-V070-TESTNET-SIGNED-ACCOUNT-READONLY-PROBE",
+        "TVM-RELEASE-V070-TESTNET-SIGNED-ACCOUNT-READONLY-PROBE",
+        "V070-008-OPERATOR-CONFIRMED-TESTNET-SIGNED-ACCOUNT-READONLY-PROBE",
+        "V070-008-CALL-TIME-CREDENTIAL-RESOLUTION",
+        "V070-008-DETERMINISTIC-FIXTURE-NETWORK-READONLY-SEPARATION",
+        "V070-008-CREDENTIAL-VALUE-REDACTION",
+        "V070-008-PRODUCTION-AND-ORDER-ENDPOINT-REJECTION",
+        "V070-008-NO-ORDER-NO-PRODUCTION-BOUNDARY"
+    ]
+
+    public static let requiredValidationCommands = [
+        "swift test --filter TargetGraphTests/testGH786RealBinanceTestnetSignedAccountReadOnlyProbeRequiresOperatorConfirmation",
+        "bash checks/verify-v0.7.0-testnet-signed-account-readonly-probe.sh",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+}

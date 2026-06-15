@@ -3329,6 +3329,23 @@ swift test
 - RunSupervisor 必须只暴露 local registry state 给 observer / CLI，不启动 remote scheduler 或 concurrent production runtime。
 - archive / recover 必须是本地 metadata / recovery evidence 语义；archived run 不允许继续 mutate。
 - registry / supervisor 不能把 production trading 标记为 authorized，不能读取 production secret，不能连接 production endpoint / broker，不能发送真实 order，不能授权 production cutover。
+
+## GH-786 Release v0.7.0 Testnet Signed Account Read-only Probe Validation
+
+- GH-786-VERIFY-V070-TESTNET-SIGNED-ACCOUNT-READONLY-PROBE
+- TVM-RELEASE-V070-TESTNET-SIGNED-ACCOUNT-READONLY-PROBE
+- V070-008-OPERATOR-CONFIRMED-TESTNET-SIGNED-ACCOUNT-READONLY-PROBE
+- V070-008-CALL-TIME-CREDENTIAL-RESOLUTION
+- V070-008-DETERMINISTIC-FIXTURE-NETWORK-READONLY-SEPARATION
+- V070-008-CREDENTIAL-VALUE-REDACTION
+- V070-008-PRODUCTION-AND-ORDER-ENDPOINT-REJECTION
+- V070-008-NO-ORDER-NO-PRODUCTION-BOUNDARY
+- `bash checks/verify-v0.7.0-testnet-signed-account-readonly-probe.sh`
+- `testGH786RealBinanceTestnetSignedAccountReadOnlyProbeRequiresOperatorConfirmation`
+- Probe 必须要求 explicit profile、credential reference、canonical Binance Spot testnet endpoint 和 operator confirmation id。
+- Credential value 只能由 provider 在 artifact 调用时短生命周期解析；artifact / Dashboard / CLI 不保存或显示 key / secret value。
+- deterministic fixture mode 和 network read-only mode 必须在 contract / artifact 中显式分离。
+- Production hosts、order endpoint path、submit / cancel / replace、broker endpoint、production secret auto-read 和 production cutover 必须被拒绝或保持 false。
 - GH-766 Release v0.6.0 Final Audit Root Docs Validation
 - GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS
 - GH-766-VERIFY-V060-FINAL-AUDIT-ROOT-DOCS

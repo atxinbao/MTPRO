@@ -10590,6 +10590,226 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH786RealBinanceTestnetSignedAccountReadOnlyProbeRequiresOperatorConfirmation() async throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dataClientTarget = try packageTargetBlock(named: "DataClient", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/DataClient/Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verifierScript = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("checks/verify-v0.7.0-testnet-signed-account-readonly-probe.sh"),
+            encoding: .utf8
+        )
+
+        let contract = try ReleaseV070TestnetSignedAccountReadOnlyProbeContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-786")
+        XCTAssertEqual(contract.upstreamIssueIDs.map(\.rawValue), ["GH-779", "GH-780"])
+        XCTAssertEqual(contract.previousIssueID.rawValue, "GH-785")
+        XCTAssertTrue(contract.requiresOperatorConfirmation)
+        XCTAssertTrue(contract.requiresCallTimeCredentialResolution)
+        XCTAssertTrue(contract.separatesDeterministicFixtureFromNetworkReadOnly)
+        XCTAssertTrue(contract.requiresCredentialValueRedaction)
+        XCTAssertTrue(contract.rejectsProductionAndOrderEndpoints)
+        XCTAssertTrue(contract.noOrderBoundaryRequired)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+
+        XCTAssertThrowsError(
+            try ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration(
+                mode: .networkReadOnly,
+                endpointReference: try XCTUnwrap(URL(string: "https://testnet.binance.vision")),
+                approvedCredentialReference: "gh-786-approved-testnet-reference",
+                operatorConfirmationID: "missing-confirmation",
+                operatorConfirmedReadOnlyProbe: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070TestnetSignedAccountReadOnlyProbeError,
+                .operatorConfirmationRequired
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration.networkReadOnly(
+                endpointReference: try XCTUnwrap(URL(string: "https://api.binance.com")),
+                credentialReference: "gh-786-approved-testnet-reference",
+                operatorConfirmationID: "operator-confirmed-gh-786-read-only-probe"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070TestnetSignedAccountReadOnlyProbeError,
+                .productionEndpointForbidden("api.binance.com")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration.networkReadOnly(
+                endpointReference: try XCTUnwrap(URL(string: "https://testnet.binance.vision/api/v3/order")),
+                credentialReference: "gh-786-approved-testnet-reference",
+                operatorConfirmationID: "operator-confirmed-gh-786-read-only-probe"
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV070TestnetSignedAccountReadOnlyProbeError,
+                .invalidEndpoint("https://testnet.binance.vision/api/v3/order")
+            )
+        }
+
+        let reference = "gh-786-approved-testnet-reference"
+        let keyValue = "gh-786-key-value"
+        let secretValue = "gh-786-secret-value"
+        let material = try BinanceSignedAccountCredentialMaterial(
+            referenceID: reference,
+            keyHeaderValue: keyValue,
+            signingSecretValue: secretValue
+        )
+        let credentialProvider = TargetGraphCallCountingSignedAccountCredentialProvider(material: material)
+        let transport = TargetGraphMockBinanceSignedAccountReadTransport { request in
+            XCTAssertEqual(request.environment, .testnet)
+            XCTAssertEqual(request.method, "GET")
+            XCTAssertEqual(request.path, BinanceSignedAccountReadTransportRequest.accountReadOnlyPath)
+            XCTAssertEqual(request.url.host, "testnet.binance.vision")
+            XCTAssertEqual(request.headers[BinanceSignedAccountReadTransportRequest.binanceKeyHeaderName], keyValue)
+            XCTAssertEqual(request.credentialReference, reference)
+            XCTAssertTrue(request.url.absoluteString.contains("signature="))
+            XCTAssertFalse(request.url.absoluteString.contains(secretValue))
+            XCTAssertFalse(request.url.absoluteString.contains("/api/v3/order"))
+            return Data(
+                #"""
+                {
+                  "makerCommission": 15,
+                  "takerCommission": 15,
+                  "buyerCommission": 0,
+                  "sellerCommission": 0,
+                  "canTrade": false,
+                  "canWithdraw": false,
+                  "canDeposit": true,
+                  "updateTime": 1704067205000,
+                  "accountType": "SPOT",
+                  "balances": [
+                    { "asset": "BTC", "free": "0.10000000", "locked": "0.00000000" },
+                    { "asset": "USDT", "free": "1000.50000000", "locked": "10.00000000" }
+                  ],
+                  "permissions": ["SPOT"]
+                }
+                """#.utf8
+            )
+        }
+        let configuration = try ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration.networkReadOnly(
+            credentialReference: reference,
+            operatorConfirmationID: "operator-confirmed-gh-786-read-only-probe"
+        )
+        XCTAssertTrue(configuration.networkReadOnlyMode)
+        XCTAssertFalse(configuration.deterministicFixtureMode)
+        let loadCountBeforeArtifact = await credentialProvider.loadCount()
+        XCTAssertEqual(loadCountBeforeArtifact, 0)
+        let probe = ReleaseV070TestnetSignedAccountReadOnlyProbe(
+            configuration: configuration,
+            credentialProvider: credentialProvider,
+            signedAccountTransport: transport
+        )
+        let artifact = try await probe.artifact(timestamp: Date(timeIntervalSince1970: 1_704_067_200))
+
+        XCTAssertTrue(artifact.artifactHeld)
+        let loadCountAfterArtifact = await credentialProvider.loadCount()
+        XCTAssertEqual(loadCountAfterArtifact, 1)
+        XCTAssertTrue(try artifact.redactionHeld(forbiddenValues: [keyValue, secretValue]))
+        XCTAssertEqual(artifact.issueID.rawValue, "GH-786")
+        XCTAssertEqual(artifact.mode, .networkReadOnly)
+        XCTAssertTrue(artifact.networkReadOnlyMode)
+        XCTAssertFalse(artifact.deterministicFixtureMode)
+        XCTAssertEqual(artifact.endpointHost, "testnet.binance.vision")
+        XCTAssertEqual(artifact.endpointPath, BinanceSignedAccountReadTransportRequest.accountReadOnlyPath)
+        XCTAssertEqual(artifact.credentialReference, reference)
+        XCTAssertEqual(artifact.redactedCredentialReference, "\(reference):<redacted>")
+        XCTAssertTrue(artifact.credentialResolvedAtCallTime)
+        XCTAssertTrue(artifact.signedAccountSnapshot.snapshotBoundaryHeld)
+        XCTAssertEqual(artifact.signedAccountSnapshot.credentialReference, reference)
+        XCTAssertFalse(artifact.credentialValuesPersisted)
+        XCTAssertFalse(artifact.credentialValuesDisplayedOnDashboard)
+        XCTAssertFalse(artifact.credentialValuesDisplayedOnCLI)
+        XCTAssertFalse(artifact.rawPayloadPersisted)
+        XCTAssertFalse(artifact.productionTradingEnabledByDefault)
+        XCTAssertFalse(artifact.productionSecretAutoReadEnabled)
+        XCTAssertFalse(artifact.productionEndpointConnected)
+        XCTAssertFalse(artifact.brokerEndpointConnected)
+        XCTAssertFalse(artifact.productionOrderSubmitted)
+        XCTAssertFalse(artifact.productionCutoverAuthorized)
+        XCTAssertFalse(artifact.noOrderProof.submitCommandEnabled)
+        XCTAssertFalse(artifact.noOrderProof.cancelCommandEnabled)
+        XCTAssertFalse(artifact.noOrderProof.replaceCommandEnabled)
+
+        let encodedArtifact = try ReleaseV070TestnetSignedAccountReadOnlyProbeArtifactEncoder.encodedString(artifact)
+        XCTAssertFalse(encodedArtifact.contains(keyValue))
+        XCTAssertFalse(encodedArtifact.contains(secretValue))
+
+        let deterministicArtifact = try await ReleaseV070TestnetSignedAccountReadOnlyProbe.deterministicArtifact()
+        XCTAssertEqual(deterministicArtifact.mode, .deterministicFixture)
+        XCTAssertTrue(deterministicArtifact.deterministicFixtureMode)
+        XCTAssertFalse(deterministicArtifact.networkReadOnlyMode)
+        XCTAssertTrue(deterministicArtifact.artifactHeld)
+        XCTAssertTrue(
+            try deterministicArtifact.redactionHeld(
+                forbiddenValues: ["gh-786-fixture-key-value", "gh-786-fixture-secret-value"]
+            )
+        )
+
+        let requests = await transport.requests()
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertEqual(requests.first?.path, BinanceSignedAccountReadTransportRequest.accountReadOnlyPath)
+
+        for anchor in ReleaseV070TestnetSignedAccountReadOnlyProbeContract.requiredValidationAnchors {
+            XCTAssertTrue(contract.validationAnchors.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(verifierScript.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        XCTAssertTrue(dataClientTarget.contains("\"Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift\""))
+        XCTAssertTrue(source.contains("ReleaseV070TestnetSignedAccountReadOnlyProbe"))
+        XCTAssertTrue(source.contains("ReleaseV070TestnetSignedAccountReadOnlyProbeConfiguration"))
+        XCTAssertTrue(source.contains("networkReadOnly"))
+        XCTAssertTrue(source.contains("deterministicFixture"))
+        XCTAssertTrue(source.contains("credentialResolvedAtCallTime"))
+        XCTAssertTrue(source.contains("redactedCredentialReference"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.7.0 testnet signed account read-only probe anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-786-VERIFY-V070-TESTNET-SIGNED-ACCOUNT-READONLY-PROBE"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.7.0-testnet-signed-account-readonly-probe.sh"))
+        XCTAssertTrue(
+            verifierScript.contains(
+                "testGH786RealBinanceTestnetSignedAccountReadOnlyProbeRequiresOperatorConfirmation"
+            )
+        )
+        for forbidden in ["submitOrder", "cancelOrder", "replaceOrder", "productionCutoverAuthorized = true"] {
+            XCTAssertFalse(source.contains(forbidden), "GH-786 source must not contain \(forbidden)")
+        }
+    }
+
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
@@ -24945,6 +25165,25 @@ private actor TargetGraphMockBinanceSignedAccountReadTransport: BinanceSignedAcc
 
     func requests() -> [BinanceSignedAccountReadTransportRequest] {
         loadedRequests
+    }
+}
+
+/// TargetGraphTests 专用 credential provider 记录 load 次数，验证 credential value 只在调用时解析。
+private actor TargetGraphCallCountingSignedAccountCredentialProvider: BinanceSignedAccountCredentialProvider {
+    private let material: BinanceSignedAccountCredentialMaterial
+    private var loads = 0
+
+    init(material: BinanceSignedAccountCredentialMaterial) {
+        self.material = material
+    }
+
+    func loadCredentialMaterial() async throws -> BinanceSignedAccountCredentialMaterial {
+        loads += 1
+        return material
+    }
+
+    func loadCount() -> Int {
+        loads
     }
 }
 
