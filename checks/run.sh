@@ -103,6 +103,7 @@ bash checks/verify-v0.7.0-testnet-signed-account-readonly-probe.sh
 bash checks/verify-v0.7.0-testnet-private-stream-readonly-probe.sh
 bash checks/verify-v0.7.0-dashboard-readonly-run-operations.sh
 bash checks/verify-v0.7.0-local-risk-policy-config.sh
+bash checks/verify-v0.7.0-portfolio-readonly-reconciliation.sh
 if [[ "$(uname -s)" == "Darwin" ]]; then
   swift build --product Dashboard
   DASHBOARD_SMOKE=1 swift run Dashboard

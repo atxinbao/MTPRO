@@ -1411,3 +1411,16 @@
 - kill switch / no-trade: blocked decisions must suppress OMS lifecycle、ExecutionClient request、broker command 和 production account read
 - allowlist: symbols and product types outside local policy must fail closed before decision evidence is accepted
 - forbidden scope: no production account data, no broker margin / leverage read, no production secret, no production endpoint / broker, no submit / cancel / replace, no production cutover
+- TVM-RELEASE-V070-PORTFOLIO-READONLY-RECONCILIATION
+- GH-790-VERIFY-V070-PORTFOLIO-READONLY-RECONCILIATION
+- V070-012-JOURNAL-EXPECTED-VS-TESTNET-OBSERVED
+- V070-012-DIFF-ARTIFACTS-EXPLAIN-ONLY
+- V070-012-NO-CORRECTION-COMMAND
+- V070-012-NO-PRODUCTION-ACCOUNT-READ
+- V070-012-READONLY-RECONCILIATION-PROJECTION
+- GH-790 Release v0.7.0 Portfolio Read-only Reconciliation Validation
+- testGH790PortfolioReadOnlyReconciliationExplainsExpectedVsObservedWithoutCommands
+- expected state: local run journal Portfolio projection remains the only source of expected position / exposure evidence
+- observed state: GH-786 signed account read-only snapshot and GH-787 private stream read model may be mapped into redacted observed state values
+- diff artifact: expected vs observed records must explain matched / delta / missing observed state without creating correction commands
+- forbidden scope: no broker correction, no account mutation, no production account sync, no real PnL ownership, no trading adjustment command, no production account read, no production cutover
