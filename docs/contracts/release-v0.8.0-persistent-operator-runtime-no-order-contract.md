@@ -78,6 +78,21 @@ Required anchors：
 
 Registry entry 必须记录 runID、state、artifact paths、lifecycle、timestamps 和 checksum。`list`、`inspect`、`archive` 和 `recover` 只修改本地 registry metadata。missing / corrupted registry、checksum mismatch、lock unavailable 或 archived mutation 必须 fail closed。Registry state 不得打开 production trading、production secret read、production endpoint / broker connection、testnet order routing、testnet order submission、real order、production OMS、Dashboard production command、trading button、order form 或 production cutover。
 
+## V080-004-CLI-LOCAL-SESSION-ACTIONS
+
+`V080-004-CLI-LOCAL-SESSION-ACTIONS`
+
+GH-810 把 top-level `mtpro run` / `mtpro status` / `mtpro stop` / `mtpro recover` 绑定到本地 persistent no-order session artifact。该绑定只使用 `.local/mtpro/runs` 或 `MTPRO_LOCAL_RUNS_ROOT` 指向的本地目录，并复用 GH-809 的 persistent `RunRegistryStore`。
+
+Required anchors：
+
+- `V080-004-RUN-CREATES-LOCAL-ARTIFACTS`
+- `V080-004-STATUS-READS-REGISTRY`
+- `V080-004-STOP-RECOVER-LOCAL-ONLY`
+- `V080-004-NO-ENDPOINT-BROKER-ORDER-PATH`
+
+`mtpro run --mode dry-run` 必须创建 local runID、`registry.json` entry、per-run `_RUN_STATUS.json`、`status.json`、`events.jsonl` 和 `manifest.json`。`mtpro status` 只能读取 registry / status artifact。`mtpro stop` 和 `mtpro recover` 只能把本地 session evidence 更新为 stopped / recovered，不得触发 endpoint、broker、ExecutionClient、OMS、submit / cancel / replace、testnet order 或 production order path。
+
 ## V080-001-TESTNET-READONLY-MONITORING
 
 `V080-001-TESTNET-READONLY-MONITORING`

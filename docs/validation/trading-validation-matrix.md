@@ -60,6 +60,22 @@
 - operations: list / inspect / archive / recover only mutate local registry metadata and checksums.
 - forbidden scope: no runtime start, no production trading, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet order submission, no real order, no production cutover.
 
+## TVM-RELEASE-V080-CLI-LOCAL-SESSION
+
+- TVM-RELEASE-V080-CLI-LOCAL-SESSION
+- GH-810-VERIFY-V080-CLI-LOCAL-SESSION
+- V080-004-CLI-LOCAL-SESSION-ACTIONS
+- V080-004-RUN-CREATES-LOCAL-ARTIFACTS
+- V080-004-STATUS-READS-REGISTRY
+- V080-004-STOP-RECOVER-LOCAL-ONLY
+- V080-004-NO-ENDPOINT-BROKER-ORDER-PATH
+- GH-810 Release v0.8.0 CLI Local Session Action Validation
+- testGH810TopLevelCLICreatesAndMutatesPersistentLocalSessionArtifacts
+- CLI run action: `mtpro run --mode dry-run` creates local runID, registry entry, `_RUN_STATUS.json`, `status.json`, `events.jsonl` and `manifest.json`.
+- CLI status action: `mtpro status <runID>` reads registry / status artifact only.
+- CLI stop / recover action: `mtpro stop <runID>` and `mtpro recover <runID>` mutate only local session state evidence.
+- forbidden scope: no endpoint connection, no broker connection, no ExecutionClient order path, no testnet order submission, no production trading, no production secret read, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。

@@ -108,6 +108,7 @@ bash checks/verify-v0.7.0.sh
 bash checks/verify-v0.8.0-contract.sh
 bash checks/verify-v0.8.0-release-publication-policy.sh
 bash checks/verify-v0.8.0-run-registry-store.sh
+bash checks/verify-v0.8.0-cli-local-session.sh
 if [[ "$(uname -s)" == "Darwin" ]]; then
   swift build --product Dashboard
   DASHBOARD_SMOKE=1 swift run Dashboard

@@ -8,6 +8,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT"
 
+RUNS_ROOT="$(mktemp -d)"
+trap 'rm -rf "$RUNS_ROOT"' EXIT
+export MTPRO_LOCAL_RUNS_ROOT="$RUNS_ROOT"
+
 require_output_contains() {
   local output="$1"
   local expected="$2"
