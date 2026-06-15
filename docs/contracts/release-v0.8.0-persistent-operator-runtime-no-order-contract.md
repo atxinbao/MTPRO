@@ -93,6 +93,22 @@ Required anchors：
 
 `mtpro run --mode dry-run` 必须创建 local runID、`registry.json` entry、per-run `_RUN_STATUS.json`、`status.json`、`events.jsonl` 和 `manifest.json`。`mtpro status` 只能读取 registry / status artifact。`mtpro stop` 和 `mtpro recover` 只能把本地 session evidence 更新为 stopped / recovered，不得触发 endpoint、broker、ExecutionClient、OMS、submit / cancel / replace、testnet order 或 production order path。
 
+## V080-005-OPERATIONAL-RUN-SESSION-STORE
+
+`V080-005-OPERATIONAL-RUN-SESSION-STORE`
+
+GH-811 新增 `OperationalRunSessionStore`，把 operator run lifecycle state 和 event history 固定到 `.local/mtpro/runs/<runID>/` 本地证据文件。该 store 只写本地 session 文件，不启动 runtime、不读取 secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
+Required anchors：
+
+- `V080-005-SESSION-JSON`
+- `V080-005-SESSION-EVENTS-JSONL`
+- `V080-005-SESSION-STATUS-JSON`
+- `V080-005-INVALID-TRANSITION-FAILS-CLOSED`
+- `V080-005-RECOVERY-PRESERVES-HISTORY`
+
+`session.json` 必须保存 runID、state、timestamps、event checksum chain、failure / recovery reason 和 no-order boundary evidence。`session_events.jsonl` 必须保存 created / start / running / stop / stopped / failed / recovered / completed lifecycle event history。`session_status.json` 必须保存轻量状态快照。无效状态迁移必须 fail closed，且不能写入新事件或新状态。recovered run 必须保留恢复前 event history 并记录 recovery reason。
+
 ## V080-001-TESTNET-READONLY-MONITORING
 
 `V080-001-TESTNET-READONLY-MONITORING`

@@ -76,6 +76,24 @@
 - CLI stop / recover action: `mtpro stop <runID>` and `mtpro recover <runID>` mutate only local session state evidence.
 - forbidden scope: no endpoint connection, no broker connection, no ExecutionClient order path, no testnet order submission, no production trading, no production secret read, no production cutover.
 
+## TVM-RELEASE-V080-OPERATIONAL-SESSION-STORE
+
+- TVM-RELEASE-V080-OPERATIONAL-SESSION-STORE
+- GH-811-VERIFY-V080-OPERATIONAL-SESSION-STORE
+- V080-005-OPERATIONAL-RUN-SESSION-STORE
+- V080-005-SESSION-JSON
+- V080-005-SESSION-EVENTS-JSONL
+- V080-005-SESSION-STATUS-JSON
+- V080-005-INVALID-TRANSITION-FAILS-CLOSED
+- V080-005-RECOVERY-PRESERVES-HISTORY
+- GH-811 Release v0.8.0 OperationalRunSessionStore Validation
+- testGH811OperationalRunSessionStorePersistsLifecycleAndRejectsInvalidTransitions
+- local artifacts: `.local/mtpro/runs/<runID>/session.json`、`session_events.jsonl` 和 `session_status.json`.
+- lifecycle coverage: created / starting / running / stopping / stopped / failed / recovered / completed states persist locally.
+- fail-closed coverage: invalid transitions throw before new state / event writes.
+- recovery coverage: recovered sessions preserve prior event history and recovery reason.
+- forbidden scope: no runtime start, no endpoint connection, no broker connection, no ExecutionClient order path, no testnet order submission, no production trading, no production secret read, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。

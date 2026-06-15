@@ -8614,6 +8614,185 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH811OperationalRunSessionStorePersistsLifecycleAndRejectsInvalidTransitions() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Database/ReleaseV080OperationalRunSessionStore.swift"),
+            encoding: .utf8
+        )
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.8.0-operational-session-store.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let requiredAnchors = [
+            "GH-811-VERIFY-V080-OPERATIONAL-SESSION-STORE",
+            "TVM-RELEASE-V080-OPERATIONAL-SESSION-STORE",
+            "V080-005-OPERATIONAL-RUN-SESSION-STORE",
+            "V080-005-SESSION-JSON",
+            "V080-005-SESSION-EVENTS-JSONL",
+            "V080-005-SESSION-STATUS-JSON",
+            "V080-005-INVALID-TRANSITION-FAILS-CLOSED",
+            "V080-005-RECOVERY-PRESERVES-HISTORY"
+        ]
+
+        for anchor in requiredAnchors {
+            XCTAssertTrue(
+                [
+                    source,
+                    verificationScript,
+                    readinessScript,
+                    contractDoc,
+                    validationPlan,
+                    tradingMatrix,
+                    automationReadiness
+                ].contains { $0.contains(anchor) },
+                "\(anchor) must stay wired into GH-811 operational session store evidence chain"
+            )
+        }
+
+        let storageRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH811-OperationalRunSessionStore-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent(".local", isDirectory: true)
+            .appendingPathComponent("mtpro", isDirectory: true)
+            .appendingPathComponent("runs", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot.deletingLastPathComponent().deletingLastPathComponent())
+        }
+
+        let store = ReleaseV080OperationalRunSessionStore(storageRootURL: storageRoot)
+        let runID = Identifier.constant("gh-811-run-alpha")
+        let createdAt = Date(timeIntervalSince1970: 1_782_000_000)
+        let created = try store.create(runID: runID, createdAt: createdAt)
+        XCTAssertEqual(created.state, .created)
+        XCTAssertEqual(created.events.count, 1)
+        XCTAssertTrue(created.documentHeld)
+
+        let sessionDirectory = storageRoot.appendingPathComponent(runID.rawValue, isDirectory: true)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sessionDirectory.appendingPathComponent("session.json").path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sessionDirectory.appendingPathComponent("session_events.jsonl").path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sessionDirectory.appendingPathComponent("session_status.json").path))
+
+        XCTAssertThrowsError(
+            try store.apply(
+                runID: runID,
+                command: .complete,
+                reason: "created-run-cannot-complete",
+                at: Date(timeIntervalSince1970: 1_782_000_001)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV080OperationalRunSessionStoreError,
+                .invalidTransition(command: "complete", fromState: "created")
+            )
+        }
+        XCTAssertEqual(try store.load(runID: runID).events.count, 1)
+        XCTAssertEqual(try store.status(runID: runID).state, .created)
+
+        _ = try store.apply(runID: runID, command: .start, reason: "operator-start", at: Date(timeIntervalSince1970: 1_782_000_010))
+        _ = try store.apply(runID: runID, command: .start, reason: "runtime-running", at: Date(timeIntervalSince1970: 1_782_000_020))
+        _ = try store.apply(runID: runID, command: .stop, reason: "operator-stop", at: Date(timeIntervalSince1970: 1_782_000_030))
+        _ = try store.apply(runID: runID, command: .stop, reason: "local-stop-complete", at: Date(timeIntervalSince1970: 1_782_000_040))
+        let completed = try store.apply(runID: runID, command: .complete, reason: "local-session-complete", at: Date(timeIntervalSince1970: 1_782_000_050))
+        XCTAssertEqual(completed.state, .completed)
+        XCTAssertEqual(completed.events.map(\.toState), [.created, .starting, .running, .stopping, .stopped, .completed])
+        XCTAssertEqual(try store.status(runID: runID).eventCount, 6)
+
+        let recoveryRunID = Identifier.constant("gh-811-run-recovery")
+        _ = try store.create(runID: recoveryRunID, createdAt: Date(timeIntervalSince1970: 1_782_001_000))
+        _ = try store.apply(runID: recoveryRunID, command: .start, reason: "operator-start", at: Date(timeIntervalSince1970: 1_782_001_010))
+        let failed = try store.apply(runID: recoveryRunID, command: .fail, reason: "local-artifact-corruption-reviewed", at: Date(timeIntervalSince1970: 1_782_001_020))
+        XCTAssertEqual(failed.state, .failed)
+        let recovered = try store.apply(runID: recoveryRunID, command: .recover, reason: "operator-reviewed-existing-events", at: Date(timeIntervalSince1970: 1_782_001_030))
+        XCTAssertEqual(recovered.state, .recovered)
+        XCTAssertEqual(recovered.recoveryReason, "operator-reviewed-existing-events")
+        XCTAssertTrue(recovered.recoveryPreservesHistory)
+        XCTAssertEqual(recovered.events.map(\.command), [.create, .start, .fail, .recover])
+
+        let persistedEvents = try String(
+            contentsOf: storageRoot
+                .appendingPathComponent(recoveryRunID.rawValue, isDirectory: true)
+                .appendingPathComponent("session_events.jsonl"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(persistedEvents.contains(#""command":"fail""#))
+        XCTAssertTrue(persistedEvents.contains(#""command":"recover""#))
+
+        let fixture = try ReleaseV080OperationalRunSessionStore.deterministicFixture()
+        XCTAssertTrue(fixture.documentHeld)
+        XCTAssertEqual(fixture.artifactPaths.sessionJSONPath, ".local/mtpro/runs/gh-811-run-alpha/session.json")
+        XCTAssertEqual(fixture.artifactPaths.sessionEventsJSONLPath, ".local/mtpro/runs/gh-811-run-alpha/session_events.jsonl")
+        XCTAssertEqual(fixture.artifactPaths.sessionStatusJSONPath, ".local/mtpro/runs/gh-811-run-alpha/session_status.json")
+
+        XCTAssertTrue(databaseTarget.contains("\"ReleaseV080OperationalRunSessionStore.swift\""))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-operational-session-store.sh"))
+        XCTAssertTrue(readinessScript.contains("GH-811-VERIFY-V080-OPERATIONAL-SESSION-STORE"))
+
+        for requiredSource in [
+            "session.json",
+            "session_events.jsonl",
+            "session_status.json",
+            "invalidTransition",
+            "recoveryPreservesHistory",
+            "ReleaseV080OperationalRunSessionStore",
+            "V080-005-SESSION-JSON",
+            "V080-005-SESSION-EVENTS-JSONL",
+            "V080-005-SESSION-STATUS-JSON"
+        ] {
+            XCTAssertTrue(source.contains(requiredSource), "operational session store source must contain \(requiredSource)")
+        }
+
+        for forbiddenAuthorization in [
+            "api.binance.com",
+            "fapi.binance.com",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "session store must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH726ReleaseV050BoundaryPreflightContractDefinesGuardedRuntimeFoundation() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
