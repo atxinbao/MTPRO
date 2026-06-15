@@ -6,6 +6,22 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
+
+- `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`
+- `TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`
+- `V080-001-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`
+- `V080-001-ALLOWED-MODES`
+- `V080-001-PERSISTENT-LOCAL-ARTIFACTS`
+- `V080-001-TESTNET-READONLY-MONITORING`
+- `V080-001-SAFE-OPERATOR-CONTROLS`
+- `V080-001-DOWNSTREAM-QUEUE-ORDER`
+- `V080-001-FORBIDDEN-CAPABILITIES`
+- `V080-001-EVIDENCE-ENVELOPE`
+- Required command: `bash checks/verify-v0.8.0-contract.sh`
+- Focused test: `testGH807ReleaseV080PersistentOperatorRuntimeNoOrderContractDefinesAllowedModesAndForbiddenCapabilities`
+- Boundary: v0.8.0 可定义 persistent local operator runtime、testnet read-only monitoring、manual proof summary、safe local controls 和 WIP=1 queue order；不授权 production trading、production secret read、production endpoint / broker connection、testnet order routing、testnet order submission、real order、production OMS、Live PRO Console production command、trading button、order form 或 production cutover。
+
 ## Unified Entry
 
 ```bash

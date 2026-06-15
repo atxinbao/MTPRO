@@ -1,0 +1,191 @@
+# Release v0.8.0 Persistent Operator Runtime No-order Contract
+
+日期：2026-06-15
+
+执行者：Codex
+
+本文档服务 GitHub fallback issue `GH-807 V080-001 Define v0.8.0 persistent operator runtime no-order contract`。
+
+本文档定义 `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring` 的第一层 release contract。它只授权后续 V080 issues 在 GitHub fallback queue 中按依赖顺序推进 persistent local operator runtime、run registry store、session store、safe local controls、manual Binance testnet read-only monitoring、Portfolio reconciliation review 和 deterministic / manual evidence split；不实现 production runtime、不读取 production secret、不连接 production endpoint / broker、不提交 / 取消 / 替换 testnet 或 production 订单、不授权 production cutover。
+
+## V080-001-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
+
+`V080-001-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`
+
+GH-807 是 V080 queue `GH-807..GH-820` 的第一个 gate。当前权威 source anchor：
+
+- `docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md`
+- `docs/validation/trading-validation-matrix.md` 的 `TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`
+- `checks/verify-v0.8.0-contract.sh`
+
+合同固定：
+
+- release version 固定为 `v0.8.0`
+- project name 固定为 `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring`
+- active venue 只能是 `Binance`
+- active product types 只能是 `spot` 和 `usdsPerpetual`
+- active strategies 只能是 `EMA` 和 `RSI`
+- queue range 固定为 `GH-807..GH-820`
+- downstream issue 固定为 `GH-808` 至 `GH-820`
+- 后续 issue 执行前必须通过 GitHub fallback queue preflight
+- 所有 persistent operator runtime evidence 必须保持 no-order posture。
+
+## V080-001-ALLOWED-MODES
+
+`V080-001-ALLOWED-MODES`
+
+v0.8.0 允许的 mode 固定为：
+
+- `local-persistent-operator-runtime`
+- `testnet-read-only-monitoring`
+- `manual-network-proof`
+- `recovery-review`
+- `production-blocked`
+
+`local-persistent-operator-runtime` 是默认 operational mode，只允许本地 run registry、session store、event log、manifest、read-only observer 和 safe local controls evidence。`testnet-read-only-monitoring` 只允许显式 operator confirmation 下的 Binance testnet signed account / private stream read-only monitoring evidence，不允许 testnet submit / cancel / replace。`manual-network-proof` 只能记录 operator 提供的手动网络证明摘要与红acted artifact reference，不得把 manual proof 升级为 deterministic CI proof。`recovery-review` 只允许 operator 观察、恢复分类、incomplete run 识别和 read-only replay evidence。`production-blocked` 只表示生产路径阻断证据，不是 production runtime、production endpoint connector、production broker adapter 或 production order authorization。
+
+## V080-001-PERSISTENT-LOCAL-ARTIFACTS
+
+`V080-001-PERSISTENT-LOCAL-ARTIFACTS`
+
+V080 persistent local artifact boundary 固定为：
+
+- `run-registry.json`
+- `operator-session-store.json`
+- `events.jsonl`
+- `manifest.json`
+- `status.json`
+- `reconciliation-review.json`
+- `risk-policy-profile.json`
+- `dashboard-readonly-snapshot.json`
+
+这些 artifact 只允许存储 local runtime state、redacted testnet read-only status、manual proof reference、read-only reconciliation review 和 no-order boundary evidence。它们不得存储 production credential value、raw listenKey、raw private stream payload、broker command payload、order request payload 或 production endpoint secret。
+
+## V080-001-TESTNET-READONLY-MONITORING
+
+`V080-001-TESTNET-READONLY-MONITORING`
+
+v0.8.0 可以把 `testnetReadOnlyMonitoringAllowed=true` 写入合同和 evidence，但必须同时固定：
+
+- `testnetOrderSubmissionAllowed=false`
+- `testnetOrderRoutingAllowed=false`
+- `testnetCancelReplaceAllowed=false`
+- `testnetBrokerCommandAllowed=false`
+- `testnetListenKeyRawPersistenceAllowed=false`
+- `testnetCredentialValuePersistenceAllowed=false`
+
+testnet read-only monitoring 只允许被 GH-813、GH-814 和 GH-815 后续 issue 在当前合同边界内扩展。它不得连接 production endpoint，不得使用 production secret，不得提交、取消或替换 testnet / production order。
+
+## V080-001-SAFE-OPERATOR-CONTROLS
+
+`V080-001-SAFE-OPERATOR-CONTROLS`
+
+v0.8.0 safe local controls 固定为：
+
+- `start-local-session`
+- `stop-local-session`
+- `recover-local-session`
+- `archive-local-session`
+- `refresh-readonly-monitor`
+- `record-manual-proof-summary`
+- `open-reconciliation-review`
+
+这些 controls 只作用于本地 persistent operator runtime state 和 read-only evidence surface。它们不得触发 ExecutionClient、broker adapter、OMS production handoff、signed production endpoint、submit / cancel / replace、trading button、order form、live command 或 Live PRO Console production command。
+
+## V080-001-DOWNSTREAM-QUEUE-ORDER
+
+`V080-001-DOWNSTREAM-QUEUE-ORDER`
+
+V080 GitHub fallback queue 必须保持 WIP=1，且每个 issue 独立分支、独立 PR、独立验证、独立 merge：
+
+1. `GH-807` / `V080-001`：Define v0.8.0 persistent operator runtime no-order contract
+2. `GH-808` / `V080-002`：Align v0.7.0/v0.8.0 release publication docs and policy
+3. `GH-809` / `V080-003`：Add persistent RunRegistryStore
+4. `GH-810` / `V080-004`：Bind top-level CLI actions to local run session creation
+5. `GH-811` / `V080-005`：Add OperationalRunSessionStore
+6. `GH-812` / `V080-006`：Harden EventLogWriter local crash recovery
+7. `GH-813` / `V080-007`：Add manual Binance testnet signed-account read-only network proof
+8. `GH-814` / `V080-008`：Add manual Binance testnet private-stream read-only monitoring
+9. `GH-815` / `V080-009`：Add Dashboard testnet read-only monitor surface
+10. `GH-816` / `V080-010`：Add local Risk policy profile management
+11. `GH-817` / `V080-011`：Add Portfolio reconciliation review workflow
+12. `GH-818` / `V080-012`：Wire Dashboard safe local controls to session store
+13. `GH-819` / `V080-013`：Split deterministic CI proof from manual operator network proof
+14. `GH-820` / `V080-014`：Close v0.8.0 final audit / docs / runbook
+
+后续 issue 执行前必须确认 dependencies closed / done、current issue body 已读取、`main == origin/main`、worktree clean、open PR=0，且没有其他 open issue 带 `todo` / `in-progress` / `in-review` label。
+
+## V080-001-FORBIDDEN-CAPABILITIES
+
+`V080-001-FORBIDDEN-CAPABILITIES`
+
+GH-807 和整个 V080 release line 都不授权：
+
+- Linear 使用或 Linear 状态修改。
+- Symphony / `symphony-issue`。
+- Graphify / code-index。
+- Figma。
+- production trading。
+- production secret read or resolution。
+- production endpoint connection。
+- production broker connection。
+- production order submission。
+- testnet order submission。
+- testnet order routing。
+- production cutover authorization。
+- signed production account endpoint。
+- production listenKey runtime。
+- private WebSocket production runtime。
+- broker adapter。
+- production OMS。
+- real submit / cancel / replace path。
+- Dashboard production command。
+- Live PRO Console runtime authorization。
+- trading button / live command / order form。
+- non-Binance venue。
+- non-Spot / non-USDSM active product。
+- non-EMA / non-RSI active strategy。
+
+## V080-001-EVIDENCE-ENVELOPE
+
+`V080-001-EVIDENCE-ENVELOPE`
+
+每个 V080 persistent operator runtime evidence envelope 必须保留：
+
+- `releaseVersion=v0.8.0`
+- `runID`
+- `sessionMode`
+- `operatorConfirmation`
+- `venue=Binance`
+- `productTypes=spot,usdsPerpetual`
+- `strategies=EMA,RSI`
+- `noOrder=true`
+- `persistentLocalRuntime=true`
+- `testnetReadOnlyMonitoringAllowed=true`
+- `productionTradingEnabledByDefault=false`
+- `productionSecretRead=false`
+- `productionEndpointConnected=false`
+- `productionBrokerConnected=false`
+- `productionOrderSubmitted=false`
+- `productionCutoverAuthorized=false`
+- `testnetOrderSubmissionAllowed=false`
+- `testnetOrderRoutingAllowed=false`
+
+以上字段是 v0.8.0 hard contract。后续 issue 可以定义 persistent store、manual testnet read-only proof、Dashboard monitor、Risk policy profile、Portfolio reconciliation review 和 safe local controls，但不得把任一 forbidden capability 字段切换为 `true`。
+
+## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
+
+`TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`
+
+Required validation：
+
+- `bash checks/verify-v0.8.0-contract.sh`
+- `swift test --filter TargetGraphTests/testGH807ReleaseV080PersistentOperatorRuntimeNoOrderContractDefinesAllowedModesAndForbiddenCapabilities`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+- GitHub required check `checks` SUCCESS
+
+## V080-001 Non-authorization
+
+GH-807 不创建下一 Project / Issue，不推进 release v0.8.0 之后的阶段，不发布 tag，不修改 root latest completed release statement，不把 v0.8.0 标记为 completed，不实现 runtime，不授权 production cutover。

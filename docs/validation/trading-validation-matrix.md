@@ -6,6 +6,25 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
+
+- TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
+- GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
+- V080-001-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
+- V080-001-ALLOWED-MODES
+- V080-001-PERSISTENT-LOCAL-ARTIFACTS
+- V080-001-TESTNET-READONLY-MONITORING
+- V080-001-SAFE-OPERATOR-CONTROLS
+- V080-001-DOWNSTREAM-QUEUE-ORDER
+- V080-001-FORBIDDEN-CAPABILITIES
+- V080-001-EVIDENCE-ENVELOPE
+- GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
+- testGH807ReleaseV080PersistentOperatorRuntimeNoOrderContractDefinesAllowedModesAndForbiddenCapabilities
+- persistent local runtime: run registry、operator session store、event log、manifest、status、Risk policy profile、reconciliation review 和 Dashboard read-only snapshot 可以作为 local artifacts。
+- testnet read-only monitoring: `testnetReadOnlyMonitoringAllowed=true` 只授权 read-only monitor / manual proof evidence；`testnetOrderSubmissionAllowed=false` 和 `testnetOrderRoutingAllowed=false` 必须同时成立。
+- safe local controls: start / stop / recover / archive local session、refresh read-only monitor、record manual proof summary 和 open reconciliation review 不得触发 ExecutionClient、broker、OMS production handoff、submit / cancel / replace、trading button、order form 或 live command。
+- forbidden scope: no production trading, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet order submission, no real order, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。
