@@ -11097,6 +11097,102 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH788DashboardReadOnlyRunOperationsSurfaceIsAnchoredInV070Guards() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dashboardTarget = try packageTargetBlock(named: "Dashboard", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Dashboard/Report/ReleaseV070DashboardReadOnlyRunOperationsSurface.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let appTests = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tests/AppTests/AppTests.swift"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let dashboardGuardScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.7.0-dashboard-macos-guards.sh"),
+            encoding: .utf8
+        )
+        let verifierScript = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("checks/verify-v0.7.0-dashboard-readonly-run-operations.sh"),
+            encoding: .utf8
+        )
+
+        let surface = ReleaseV070DashboardReadOnlyRunOperationsSurfaceViewModel.deterministicFixture
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.records.map(\.runID), ["gh-785-run-alpha", "gh-785-run-beta"])
+        XCTAssertEqual(surface.safeLocalRunControls, [.start, .stop, .recover])
+        XCTAssertEqual(surface.probeStatuses.map(\.issueID), ["GH-786", "GH-787"])
+        XCTAssertTrue(surface.registryJournalOnly)
+        XCTAssertTrue(surface.readModelOnly)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandEnabled)
+        XCTAssertFalse(surface.productionCommandEnabled)
+        XCTAssertFalse(surface.orderSubmitVisible)
+        XCTAssertFalse(surface.orderCancelVisible)
+        XCTAssertFalse(surface.orderReplaceVisible)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        for anchor in ReleaseV070DashboardReadOnlyRunOperationsSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-788 source")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(verifierScript.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        XCTAssertTrue(dashboardTarget.contains("\"Report\""))
+        XCTAssertTrue(source.contains("ReleaseV070DashboardReadOnlyRunOperationsSurfaceViewModel"))
+        XCTAssertTrue(source.contains("ReleaseV070DashboardRunOperationRecord"))
+        XCTAssertTrue(source.contains("ReleaseV070DashboardReadOnlyProbeStatus"))
+        XCTAssertTrue(source.contains("ReleaseV070RunRegistry.local-run-registry-metadata"))
+        XCTAssertTrue(source.contains("ReleaseV070RuntimeEventLogWriter.events.jsonl"))
+        XCTAssertTrue(source.contains("ReleaseV070OperationalRunSessionCommand.safe-local"))
+        XCTAssertTrue(source.contains("ReleaseV070TestnetSignedAccountReadOnlyProbeArtifact"))
+        XCTAssertTrue(source.contains("ReleaseV070TestnetPrivateStreamReadOnlyProbeArtifact"))
+        XCTAssertTrue(appTests.contains("testGH788DashboardReadOnlyRunOperationsSurfaceShowsRegistryJournalAndProbeStatusWithoutCommands"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.7.0-dashboard-readonly-run-operations.sh"))
+        XCTAssertTrue(dashboardGuardScript.contains("bash checks/verify-v0.7.0-dashboard-readonly-run-operations.sh"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.7.0 Dashboard read-only run operations anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-788-VERIFY-V070-DASHBOARD-READONLY-RUN-OPERATIONS"))
+        XCTAssertTrue(verifierScript.contains("testGH788DashboardReadOnlyRunOperationsSurfaceShowsRegistryJournalAndProbeStatusWithoutCommands"))
+        XCTAssertTrue(verifierScript.contains("testGH788DashboardReadOnlyRunOperationsSurfaceIsAnchoredInV070Guards"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("api.binance.com"))
+        XCTAssertFalse(source.contains("fapi.binance.com"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("productionCutoverAuthorized = true"))
+    }
+
     func testGH756LocalRunJournalWriterPersistsArtifactsAndClassifiesIncompleteRuns() async throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
