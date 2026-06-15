@@ -247,6 +247,27 @@
 - command boundary: `ordersSubmitted=false`、`testnetOrderSubmissionAllowed=false`、`testnetOrderRoutingAllowed=false`、`testnetCancelReplaceAllowed=false` and `productionCutoverAuthorized=false`.
 - forbidden scope: no production trading, no production secret read, no production endpoint / broker connection, no testnet order submission, no real order, no production cutover.
 
+## TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK
+
+- TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK
+- GH-820-VERIFY-V080-FINAL-AUDIT-DOCS-RUNBOOK
+- GH-820-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK
+- V080-014-VALIDATION-SUMMARY
+- V080-014-STAGE-CODE-AUDIT
+- V080-014-RELEASE-NOTES
+- V080-014-OPERATOR-RUNBOOK
+- V080-014-ROOT-DOCS-REFRESH
+- V080-014-AGGREGATE-VERIFY
+- V080-014-NO-PRODUCTION-CUTOVER
+- GH-820 Release v0.8.0 Final Audit / Docs / Runbook Validation
+- `bash checks/verify-v0.8.0.sh`
+- focused test: `testGH820ReleaseV080FinalAuditDocsRunbookCloseCompletedFactsOnly`
+- audit docs: `docs/audit/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-stage-code-audit.md`
+- release notes: `docs/release/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-notes.md`
+- operator runbook: `docs/operators/release-v0.8.0-operator-persistent-runtime-testnet-readonly-monitoring-runbook.md`
+- root docs refresh: latest completed release construction scope must be v0.8.0 and Project Closure Count must be `42 / 42 (100%)`
+- forbidden scope: GH-820 construction closeout does not publish a tag; v0.8.0 public release publication remains separate. no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。
