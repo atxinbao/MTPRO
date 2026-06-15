@@ -23018,6 +23018,210 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("HMAC<"))
     }
 
+    func testGH812RuntimeEventLogWriterHardensCrashRecoverySchemaQuarantineAndCompactionPolicy() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let sourcePath = repositoryRoot.appendingPathComponent("Sources/Database/ReleaseV060LocalRunJournalWriter.swift")
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.8.0-event-log-writer-crash-recovery.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md"
+            ),
+            encoding: .utf8
+        )
+
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH812-RuntimeEventLogWriter-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+
+        let writer = ReleaseV060LocalRunJournalWriter(storageRootURL: storageRoot)
+        let runID = Identifier.constant("gh-812-runtime-append-run")
+        let firstAppend = try writer.appendRuntimeEvents(
+            runID: runID,
+            events: [
+                try ReleaseV070RuntimeEventLogEvent(
+                    eventID: Identifier.constant("gh-812-event-1"),
+                    payloadJSON: #"{"module":"DataEngine","kind":"market-event"}"#
+                ),
+                try ReleaseV070RuntimeEventLogEvent(
+                    eventID: Identifier.constant("gh-812-event-2"),
+                    payloadJSON: #"{"module":"Trader","kind":"strategy-intent"}"#
+                )
+            ]
+        )
+        XCTAssertEqual(firstAppend.appendedEventCount, 2)
+
+        let secondAppend = try writer.appendRuntimeEvents(
+            runID: runID,
+            events: [
+                try ReleaseV070RuntimeEventLogEvent(
+                    eventID: Identifier.constant("gh-812-event-3"),
+                    payloadJSON: #"{"module":"RiskEngine","kind":"risk-decision"}"#
+                ),
+                try ReleaseV070RuntimeEventLogEvent(
+                    eventID: Identifier.constant("gh-812-event-4"),
+                    payloadJSON: #"{"module":"ExecutionEngine","kind":"dry-run"}"#
+                )
+            ]
+        )
+        XCTAssertEqual(secondAppend.appendedEventCount, 2)
+        XCTAssertEqual(secondAppend.totalEventCount, 4)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let eventLines = try String(contentsOfFile: secondAppend.eventsJSONLPath, encoding: .utf8)
+            .split(separator: "\n")
+        let records = try eventLines.map {
+            try decoder.decode(ReleaseV070RuntimeEventLogRecord.self, from: Data($0.utf8))
+        }
+        XCTAssertEqual(records.map(\.sequence), [1, 2, 3, 4])
+        XCTAssertEqual(Set(records.map(\.schemaVersion)), [ReleaseV070RuntimeEventLogRecord.schemaVersion])
+        XCTAssertEqual(records[3].previousLineChecksum, records[2].lineChecksum)
+
+        XCTAssertThrowsError(
+            try writer.appendRuntimeEvents(
+                runID: runID,
+                events: [
+                    try ReleaseV070RuntimeEventLogEvent(
+                        eventID: Identifier.constant("gh-812-event-2"),
+                        payloadJSON: #"{"module":"DuplicateExisting"}"#
+                    )
+                ]
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReleaseV070RuntimeEventLogWriterError, .duplicateEventID("gh-812-event-2"))
+        }
+        XCTAssertThrowsError(
+            try writer.appendRuntimeEvents(
+                runID: runID,
+                events: [
+                    try ReleaseV070RuntimeEventLogEvent(
+                        eventID: Identifier.constant("gh-812-duplicate-batch"),
+                        payloadJSON: #"{"module":"A"}"#
+                    ),
+                    try ReleaseV070RuntimeEventLogEvent(
+                        eventID: Identifier.constant("gh-812-duplicate-batch"),
+                        payloadJSON: #"{"module":"B"}"#
+                    )
+                ]
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReleaseV070RuntimeEventLogWriterError, .duplicateEventID("gh-812-duplicate-batch"))
+        }
+
+        let eventLogURL = URL(fileURLWithPath: secondAppend.eventsJSONLPath)
+        let partialHandle = try FileHandle(forWritingTo: eventLogURL)
+        try partialHandle.seekToEnd()
+        try partialHandle.write(contentsOf: Data(#"{"partial":"crash-without-newline"}"#.utf8))
+        try partialHandle.close()
+        let recoveredAppend = try writer.appendRuntimeEvents(
+            runID: runID,
+            events: [
+                try ReleaseV070RuntimeEventLogEvent(
+                    eventID: Identifier.constant("gh-812-event-5"),
+                    payloadJSON: #"{"module":"Portfolio","kind":"projection"}"#
+                )
+            ]
+        )
+        XCTAssertEqual(recoveredAppend.recoveryAction, .truncatedPartialLine)
+        XCTAssertEqual(recoveredAppend.totalEventCount, 5)
+
+        let corruptRunID = Identifier.constant("gh-812-corrupt-complete-line")
+        _ = try writer.appendRuntimeEvents(
+            runID: corruptRunID,
+            events: [
+                try ReleaseV070RuntimeEventLogEvent(
+                    eventID: Identifier.constant("gh-812-corrupt-event-1"),
+                    payloadJSON: #"{"module":"DataEngine","kind":"valid-before-corrupt"}"#
+                ),
+                try ReleaseV070RuntimeEventLogEvent(
+                    eventID: Identifier.constant("gh-812-corrupt-event-2"),
+                    payloadJSON: #"{"module":"Trader","kind":"valid-before-corrupt"}"#
+                )
+            ]
+        )
+        let corruptURL = storageRoot.appendingPathComponent(corruptRunID.rawValue)
+            .appendingPathComponent("events.jsonl")
+        let corruptHandle = try FileHandle(forWritingTo: corruptURL)
+        try corruptHandle.seekToEnd()
+        try corruptHandle.write(contentsOf: Data("not-json-but-complete-line\n".utf8))
+        try corruptHandle.close()
+        XCTAssertThrowsError(try writer.validateRuntimeEventLog(runID: corruptRunID))
+
+        let quarantine = try writer.quarantineCorruptedRuntimeEventLogLines(runID: corruptRunID)
+        XCTAssertTrue(quarantine.resultHeld)
+        XCTAssertEqual(quarantine.originalLineCount, 3)
+        XCTAssertEqual(quarantine.retainedLineCount, 2)
+        XCTAssertEqual(quarantine.quarantinedLineCount, 1)
+        XCTAssertEqual(quarantine.crashRecoveryPolicy.eventRecordSchemaVersion, ReleaseV070RuntimeEventLogRecord.schemaVersion)
+        XCTAssertEqual(quarantine.crashRecoveryPolicy.compactionPolicy, "append-only-no-compaction-v0.8.0")
+        XCTAssertTrue(quarantine.crashRecoveryPolicy.duplicateRunIDRejected)
+        XCTAssertEqual(try writer.validateRuntimeEventLog(runID: corruptRunID).eventCount, 2)
+
+        let quarantinePayload = try String(contentsOfFile: quarantine.quarantineJSONLPath, encoding: .utf8)
+        XCTAssertTrue(quarantinePayload.contains("GH-812"))
+        XCTAssertTrue(quarantinePayload.contains("not-json-but-complete-line"))
+        XCTAssertTrue(quarantinePayload.contains(ReleaseV080RuntimeEventLogQuarantineLine.schemaVersion))
+
+        for anchor in [
+            "GH-812-VERIFY-V080-EVENT-LOG-WRITER-CRASH-RECOVERY",
+            "TVM-RELEASE-V080-EVENT-LOG-WRITER-CRASH-RECOVERY",
+            "V080-006-EVENT-LOG-WRITER-CRASH-RECOVERY",
+            "V080-006-EVENT-SCHEMA-VERSION",
+            "V080-006-CORRUPTED-LINE-QUARANTINE",
+            "V080-006-NO-COMPACTION-POLICY",
+            "V080-006-DUPLICATE-RUN-EVENT-FAILS-CLOSED"
+        ] {
+            XCTAssertTrue(
+                [source, verificationScript, validationPlan, tradingMatrix, automationReadiness, readinessScript, contractDoc].contains {
+                    $0.contains(anchor)
+                },
+                "\(anchor) must be anchored by the GH-812 verification chain"
+            )
+        }
+
+        XCTAssertTrue(source.contains("ReleaseV080RuntimeEventLogCrashRecoveryPolicy"))
+        XCTAssertTrue(source.contains("ReleaseV080RuntimeEventLogQuarantineLine"))
+        XCTAssertTrue(source.contains("ReleaseV080RuntimeEventLogQuarantineResult"))
+        XCTAssertTrue(source.contains("quarantineCorruptedRuntimeEventLogLines"))
+        XCTAssertTrue(source.contains("events.jsonl.quarantine"))
+        XCTAssertTrue(source.contains("append-only-no-compaction-v0.8.0"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-event-log-writer-crash-recovery.sh"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("HMAC<"))
+    }
+
     func testGH785RunRegistrySupervisorProvidesLocalNoOrderRunManagement() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

@@ -109,6 +109,21 @@ Required anchors：
 
 `session.json` 必须保存 runID、state、timestamps、event checksum chain、failure / recovery reason 和 no-order boundary evidence。`session_events.jsonl` 必须保存 created / start / running / stop / stopped / failed / recovered / completed lifecycle event history。`session_status.json` 必须保存轻量状态快照。无效状态迁移必须 fail closed，且不能写入新事件或新状态。recovered run 必须保留恢复前 event history 并记录 recovery reason。
 
+## V080-006-EVENT-LOG-WRITER-CRASH-RECOVERY
+
+`V080-006-EVENT-LOG-WRITER-CRASH-RECOVERY`
+
+GH-812 加固 `EventLogWriter` 的本地 crash recovery：继续复用 `events.jsonl` append-only runtime event log，但要求 event schema version 显式、multi-batch append 后 checksum chain 可验证、duplicate run / event evidence fail closed、partial line 在下一次 append 前 deterministic truncate，完整但损坏的 line 必须 quarantine 或 fail closed，不能 silent loss。
+
+Required anchors：
+
+- `V080-006-EVENT-SCHEMA-VERSION`
+- `V080-006-CORRUPTED-LINE-QUARANTINE`
+- `V080-006-NO-COMPACTION-POLICY`
+- `V080-006-DUPLICATE-RUN-EVENT-FAILS-CLOSED`
+
+`events.jsonl.quarantine` 只保存完整损坏 line 的本地 quarantine evidence，必须记录 runID、原始行号、原始 line、quarantine reason 和 checksum。v0.8.0 不执行 log compaction；compaction policy 固定为 append-only no-compaction。该能力不得连接 endpoint / broker，不得读取 secret，不得提交 testnet 或 production order，不得授权 production cutover。
+
 ## V080-001-TESTNET-READONLY-MONITORING
 
 `V080-001-TESTNET-READONLY-MONITORING`
