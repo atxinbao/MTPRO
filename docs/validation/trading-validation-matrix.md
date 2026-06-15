@@ -170,6 +170,24 @@
 - command boundary: `tradingButtonVisible=false`、`orderFormVisible=false`、`liveCommandEnabled=false`、`orderSubmitVisible=false`、`orderCancelVisible=false`、`orderReplaceVisible=false` and `testnetOrderRoutingAllowed=false`.
 - forbidden scope: no credential value display, no raw listenKey display, no raw private payload display, no production trading, no production secret read, no production endpoint / broker connection, no testnet order submission, no real order, no production cutover.
 
+## TVM-RELEASE-V080-RISK-POLICY-PROFILE-MANAGEMENT
+
+- TVM-RELEASE-V080-RISK-POLICY-PROFILE-MANAGEMENT
+- GH-816-VERIFY-V080-RISK-POLICY-PROFILE-MANAGEMENT
+- V080-010-RISK-POLICY-PROFILE-MANAGEMENT
+- V080-010-RISK-POLICY-JSON-VERSION-HASH
+- V080-010-DETERMINISTIC-POLICY-DIFF
+- V080-010-OPERATOR-CHANGE-METADATA
+- V080-010-RUN-APPLICATION-POLICY-REFERENCE
+- V080-010-CLI-SHOW-VALIDATE-DIFF
+- V080-010-NO-BROKER-ENDPOINT-OMS-ORDER-PATH
+- GH-816 Release v0.8.0 Risk Policy Profile Management Validation
+- testGH816RiskPolicyProfilesVersionHashDiffAndRunApplicationEvidence
+- profile evidence: records local `risk_policy.json` version, deterministic policy hash, operator change metadata, allowed symbols / product types, and applied run IDs.
+- diff evidence: shows deterministic changed fields for profile version, max notional, max exposure, and applied run IDs.
+- CLI evidence: `risk-policy show`、`risk-policy validate` and `risk-policy diff` expose local read-only profile state without reading secret values or connecting endpoint transports.
+- forbidden scope: no broker enablement, no production endpoint, no OMS bypass, no order command path, no testnet order routing, no production trading, no production secret read, no real order, no production cutover.
+
 ## 使用规则
 
 - Matrix ID 是稳定锚点；`checks/automation-readiness.sh` 和 TargetGraphTests 会检查这些字符串。

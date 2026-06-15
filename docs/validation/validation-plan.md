@@ -137,6 +137,21 @@
 - Focused tests: `testGH815DashboardTestnetReadOnlyMonitorSurfaceShowsFreshnessLifecycleAndRedactionWithoutCommands`、`testGH815DashboardTestnetReadOnlyMonitorSurfaceIsAnchoredInV080Guards`
 - Boundary: GH-815 只把 GH-813 / GH-814 已落仓 proof artifact 的 Dashboard-safe 摘要展示为 account snapshot freshness、private stream freshness、listenKey lifecycle、last observed event、stale / disconnected / recovered state 和 redaction status；Dashboard target 不依赖 DataClient，不读取 credential value、不显示 raw listenKey 或 raw private payload、不提供 trading button、order form、live command、testnet order routing 或 production cutover。
 
+## GH-816 Release v0.8.0 Risk Policy Profile Management Validation
+
+- `GH-816-VERIFY-V080-RISK-POLICY-PROFILE-MANAGEMENT`
+- `TVM-RELEASE-V080-RISK-POLICY-PROFILE-MANAGEMENT`
+- `V080-010-RISK-POLICY-PROFILE-MANAGEMENT`
+- `V080-010-RISK-POLICY-JSON-VERSION-HASH`
+- `V080-010-DETERMINISTIC-POLICY-DIFF`
+- `V080-010-OPERATOR-CHANGE-METADATA`
+- `V080-010-RUN-APPLICATION-POLICY-REFERENCE`
+- `V080-010-CLI-SHOW-VALIDATE-DIFF`
+- `V080-010-NO-BROKER-ENDPOINT-OMS-ORDER-PATH`
+- Required command: `bash checks/verify-v0.8.0-risk-policy-profiles.sh`
+- Focused test: `testGH816RiskPolicyProfilesVersionHashDiffAndRunApplicationEvidence`
+- Boundary: GH-816 只把本地 Risk policy config 提升为 operator-managed `risk_policy.json` profile evidence，覆盖 version、hash、deterministic diff、operator change metadata、applied run ID 和 CLI `risk-policy show/validate/diff`；该 profile 不启动 RiskEngine runtime、不连接 broker / endpoint、不绕过 OMS、不创建 order command path、不提交 testnet 或 production order、不授权 production cutover。
+
 ## Unified Entry
 
 ```bash
