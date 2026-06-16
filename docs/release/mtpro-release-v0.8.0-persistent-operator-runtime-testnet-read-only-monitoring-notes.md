@@ -8,7 +8,7 @@
 
 v0.8.0 是 `Persistent Operator Runtime + Testnet Read-only Monitoring` construction closure docs。它收口 GitHub fallback queue `GH-807..GH-820` 的 persistent no-order operator runtime、testnet read-only monitoring proof、Dashboard / CLI local observer、risk policy profile、Portfolio reconciliation review workflow、validation lanes split、Stage Code Audit 和 root docs refresh。
 
-本文档是 v0.8.0 construction closeout 的 release notes evidence。它不创建 Git tag，不创建 GitHub Release，不移动已有 release，不授权 production cutover，不创建下一 Project / Issue。v0.8.0 public release publication 仍然必须走独立 release publication gate。
+本文档是 v0.8.0 construction closeout 的 release notes evidence。它不创建 Git tag，不创建 GitHub Release，不移动已有 release，不授权 production cutover，不创建下一 Project / Issue。v0.8.0 后续已通过独立 release publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0`。该发布事实不移动历史 Stage Code Audit 边界，不授权 production cutover。
 
 ## Scope
 
@@ -49,7 +49,8 @@ v0.8.0 closes the persistent operator runtime and testnet read-only monitoring s
 - Active strategies remain EMA + RSI。
 - Runtime modes are local-dry-run / testnet-read-only-monitor / recovery-observe / production-blocked。
 - Persistent operator runtime contract fixes `noOrder=true` and production-disabled defaults。
-- v0.8.0 construction closeout remains separate from public GitHub Release publication。
+- v0.8.0 construction closeout remains separate from the later stable GitHub Release publication。
+- v0.8.0 stable GitHub Release exists at `https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0` and does not authorize production cutover。
 - RunRegistryStore persists local run registry entries with deterministic checksums。
 - CLI local session actions create and observe local artifacts only。
 - OperationalRunSessionStore persists session, session events and session status evidence。

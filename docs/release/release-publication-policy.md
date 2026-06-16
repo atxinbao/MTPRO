@@ -1,6 +1,6 @@
 # Release Publication Policy
 
-日期：2026-06-15
+日期：2026-06-16
 
 执行者：Codex
 
@@ -32,11 +32,26 @@ v0.7.0 当前存在 stable GitHub Release：
 
 v0.7.0 的 Stage Code Audit、release notes 和 root docs refresh 是 construction closeout evidence；后续 GitHub Release publication 是独立发布动作。文档不得再把 v0.7.0 描述成没有 GitHub Release。
 
+## GH-835-V081-V080-ACTUAL-GITHUB-RELEASE
+
+`GH-835-V081-V080-ACTUAL-GITHUB-RELEASE`
+
+v0.8.0 当前存在 stable GitHub Release：
+
+- release tag：`v0.8.0`
+- release title：`MTPRO v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring`
+- release URL：`https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0`
+- release type：stable release；非 draft；非 prerelease
+- tag peeled commit：`d83b3b564096a5427db15a437921fc797b22564d`
+- publication timestamp：`2026-06-16T11:56:09Z`
+
+v0.8.0 的 Stage Code Audit、release notes 和 root docs refresh 是 construction closeout evidence；后续 GitHub Release publication 已通过独立 stable GitHub Release gate 完成。文档不得再把 v0.8.0 描述成 publication pending，也不得把 GitHub Release publication 当作 production cutover authorization。
+
 ## V080-002-V080-CONSTRUCTION-VS-PUBLICATION
 
 `V080-002-V080-CONSTRUCTION-VS-PUBLICATION`
 
-v0.8.0 当前处于 GitHub fallback queue construction phase。`GH-807..GH-820` 可以逐步完成 persistent local operator runtime、testnet read-only monitoring、manual proof summary、Dashboard read-only monitor、safe local controls、validation split 和 final audit / docs / runbook。
+v0.8.0 GitHub fallback queue construction phase 已完成。`GH-807..GH-820` 已收口 persistent local operator runtime、testnet read-only monitoring、manual proof summary、Dashboard read-only monitor、safe local controls、validation split 和 final audit / docs / runbook。
 
 v0.8.0 的 construction closeout 必须先满足：
 
@@ -49,7 +64,7 @@ v0.8.0 的 construction closeout 必须先满足：
 - `bash checks/automation-readiness.sh` 通过。
 - `bash checks/run.sh` 通过。
 
-v0.8.0 public release publication 只能在单独 release publication task 明确授权后执行。`GH-808` 不创建 tag，不创建 GitHub Release，不移动任何已有 tag，不把 v0.8.0 标记为 completed，不推进 v0.8.0 之后的阶段。
+v0.8.0 public release publication 已在 construction closeout 之后通过独立 release publication task 明确授权并完成。`GH-808` 本身不创建 tag，不创建 GitHub Release，不移动任何已有 tag，不推进 v0.8.0 之后的阶段；后续 `GH-835` 只把已发生的 v0.8.0 stable GitHub Release 事实同步回文档和验证 guard。
 
 ## V080-002-TAG-NAMING-RULES
 

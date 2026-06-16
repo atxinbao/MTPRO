@@ -38,8 +38,20 @@
 - GH-808 Release v0.7.0 / v0.8.0 Publication Policy Validation
 - testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease
 - v0.7.0 GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.7.0`; stable release；tag peeled commit `79bd7309b5d644599b6879e615489562455cd3fe`。
-- v0.8.0 policy: construction closeout and public release publication remain separate gates; source checksum expectation binds exact tag archive, not mutable branch.
+- v0.8.0 GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0`; stable release；tag peeled commit `d83b3b564096a5427db15a437921fc797b22564d`。
+- v0.8.0 policy: construction closeout、public release publication 和 production cutover remain separate gates; source checksum expectation binds exact tag archive, not mutable branch.
 - forbidden scope: GH-808 creates no tag, no GitHub Release, no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order.
+
+## TVM-RELEASE-V081-V080-PUBLICATION-DOCS-ALIGNMENT
+
+- TVM-RELEASE-V081-V080-PUBLICATION-DOCS-ALIGNMENT
+- GH-835-V081-V080-ACTUAL-GITHUB-RELEASE
+- V081-001-V080-PUBLICATION-DOCS-ALIGNMENT
+- V081-001-NO-PRODUCTION-CUTOVER
+- GH-835 Release v0.8.0 Public GitHub Release Docs Alignment Validation
+- `bash checks/verify-v0.8.1-v080-release-publication-docs.sh`
+- v0.8.0 stable GitHub Release exists at `https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0` and points to peeled commit `d83b3b564096a5427db15a437921fc797b22564d`。
+- forbidden scope: docs-only release fact alignment; no tag move, no release rewrite, no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order.
 
 ## TVM-RELEASE-V080-RUN-REGISTRY-STORE
 
@@ -266,7 +278,7 @@
 - release notes: `docs/release/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-notes.md`
 - operator runbook: `docs/operators/release-v0.8.0-operator-persistent-runtime-testnet-readonly-monitoring-runbook.md`
 - root docs refresh: latest completed release construction scope must be v0.8.0 and Project Closure Count must be `42 / 42 (100%)`
-- forbidden scope: GH-820 construction closeout does not publish a tag; v0.8.0 public release publication remains separate. no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order
+- forbidden scope: GH-820 construction closeout did not publish a tag; v0.8.0 was later published through a separate stable GitHub Release gate. no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order
 
 ## 使用规则
 

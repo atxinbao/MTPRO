@@ -177,7 +177,7 @@ Release v0.8.0 remains closed for these capabilities by default:
 - `docs/roadmap.md` adds `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring` to completed Project map, updates Project Closure Count to `42 / 42 (100%)`, and sets latest completed Project / maturity statement to the v0.8.0 closure.
 - `docs/validation/latest-verification-summary.md` records the final audit report, issue / PR / checks evidence, validation result and no-default-production-trading boundary.
 - `docs/operators/release-v0.8.0-operator-persistent-runtime-testnet-readonly-monitoring-runbook.md` records local operator validation and testnet read-only monitoring proof.
-- `docs/release/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-notes.md` records release notes for the completed docs closeout. v0.8.0 public GitHub Release publication remains a separate gate.
+- `docs/release/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-notes.md` records release notes for the completed docs closeout. v0.8.0 was later published through a separate stable GitHub Release gate at `https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0`; publication does not authorize production cutover.
 - `docs/validation/validation-plan.md` and `docs/validation/trading-validation-matrix.md` record `TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK`.
 - `docs/automation/automation-readiness.md` and `checks/automation-readiness.sh` mechanically guard this final audit report and v0.8.0 verification command.
 
