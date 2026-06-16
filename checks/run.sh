@@ -108,6 +108,7 @@ bash checks/verify-v0.7.0.sh
 bash checks/verify-v0.8.0-contract.sh
 bash checks/verify-v0.8.0-release-publication-policy.sh
 bash checks/verify-v0.8.1-v080-release-publication-docs.sh
+bash checks/verify-v0.8.1-cli-verify-v080-wording.sh
 bash checks/verify-v0.8.0-run-registry-store.sh
 bash checks/verify-v0.8.0-cli-local-session.sh
 bash checks/verify-v0.8.0-operational-session-store.sh

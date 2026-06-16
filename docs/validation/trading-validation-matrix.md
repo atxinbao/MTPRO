@@ -252,6 +252,19 @@
 - coverage evidence: focused guard runs `checks/verify-v0.8.0-dashboard-testnet-readonly-monitor.sh` and `checks/verify-v0.8.0-dashboard-safe-local-controls.sh`.
 - forbidden scope: no UI trading command, no order form, no live command, no broker command, no production command, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
 
+## TVM-RELEASE-V081-CLI-VERIFY-V080-WORDING
+
+- TVM-RELEASE-V081-CLI-VERIFY-V080-WORDING
+- GH-837-VERIFY-V081-CLI-VERIFY-V080-WORDING
+- V081-003-CLI-VERIFY-V080-WORDING
+- V081-003-HISTORICAL-V070-GUARDS
+- V081-003-NO-PRODUCTION-CUTOVER
+- GH-837 Release v0.8.1 CLI Verify v0.8.0 Wording Validation
+- testGH837TopLevelCLIVerifyUsesV080ReleaseVerificationWording
+- CLI evidence: `mtpro verify` prints `mtpro verify v0.8.0`, `issue=GH-820`, `validationAnchor=TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK` and `verificationAnchor=GH-820-VERIFY-V080-FINAL-AUDIT-DOCS-RUNBOOK`.
+- historical evidence: v0.7 focused CLI checks remain visible only through `historicalV070Checks=verify-v0.7.0-contract,verify-v0.7.0-testnet-endpoint-policy,verify-v0.7.0-cli`.
+- forbidden scope: no runtime behavior change, no network call, no production trading, no production secret read, no production endpoint / broker connection, no testnet or production order, no production cutover.
+
 ## TVM-RELEASE-V080-VALIDATION-LANES
 
 - TVM-RELEASE-V080-VALIDATION-LANES

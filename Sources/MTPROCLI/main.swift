@@ -42,6 +42,15 @@ private enum MTPROStrictCLI {
     static let persistentLocalSessionAnchor = "TVM-RELEASE-V080-CLI-LOCAL-SESSION"
     static let riskPolicyProfileVerificationAnchor = "GH-816-VERIFY-V080-RISK-POLICY-PROFILE-MANAGEMENT"
     static let riskPolicyProfileAnchor = "TVM-RELEASE-V080-RISK-POLICY-PROFILE-MANAGEMENT"
+    static let releaseV080VerificationAnchor = "GH-820-VERIFY-V080-FINAL-AUDIT-DOCS-RUNBOOK"
+    static let releaseV080ValidationAnchor = "TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK"
+    static let cliVerifyV080WordingAnchor = "GH-837-VERIFY-V081-CLI-VERIFY-V080-WORDING"
+    static let cliVerifyV080WordingValidationAnchor = "TVM-RELEASE-V081-CLI-VERIFY-V080-WORDING"
+    static let cliVerifyV080WordingRequiredAnchors = [
+        "V081-003-CLI-VERIFY-V080-WORDING",
+        "V081-003-HISTORICAL-V070-GUARDS",
+        "V081-003-NO-PRODUCTION-CUTOVER"
+    ]
     static let riskPolicyProfileRequiredAnchors = [
         "V080-010-RISK-POLICY-PROFILE-MANAGEMENT",
         "V080-010-RISK-POLICY-JSON-VERSION-HASH",
@@ -452,12 +461,17 @@ private enum MTPROStrictCLI {
 
     private static func verifyOutput() -> String {
         [
-            "mtpro verify v0.7.0",
-            "issue=GH-781",
-            "validationAnchor=\(validationAnchor)",
+            "mtpro verify v0.8.0",
+            "issue=GH-820",
+            "validationAnchor=\(releaseV080ValidationAnchor)",
+            "verificationAnchor=\(releaseV080VerificationAnchor)",
+            "wordingGuard=\(cliVerifyV080WordingAnchor)",
+            "wordingValidationAnchor=\(cliVerifyV080WordingValidationAnchor)",
             "persistentValidationAnchor=\(persistentLocalSessionAnchor)",
             "persistentVerificationAnchor=\(persistentLocalSessionVerificationAnchor)",
-            "checks=verify-v0.7.0-contract,verify-v0.7.0-testnet-endpoint-policy,verify-v0.7.0-cli,verify-v0.8.0-cli-local-session,automation-readiness,checks-run",
+            "checks=verify-v0.8.0-contract,verify-v0.8.0-release-publication-policy,verify-v0.8.0-cli-local-session,verify-v0.8.0-validation-lanes,verify-v0.8.0,automation-readiness,checks-run",
+            "historicalV070Checks=verify-v0.7.0-contract,verify-v0.7.0-testnet-endpoint-policy,verify-v0.7.0-cli",
+            "requiredAnchors=\(cliVerifyV080WordingRequiredAnchors.joined(separator: ","))",
             "unknownCommandFailure=mtpro.strict.arguments",
             "legacyFallbackDisabled=true",
             "legacyV040ActiveTopLevelSurface=false",
