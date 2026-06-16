@@ -77,6 +77,24 @@
 - fail-closed scope: corrupted account-snapshot-freshness.json、checksum mismatch、monitorSessionChecksum mismatch 和 unsafe credential reference 均必须 fail closed。
 - forbidden scope: no CI network access, no production account read, no raw account payload persistence, no credential value persistence, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no trading button, no order form, no production cutover.
 
+## TVM-RELEASE-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS
+
+- TVM-RELEASE-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS
+- GH-847-VERIFY-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS
+- V090-005-PRIVATE-STREAM-HEARTBEAT-STALENESS
+- V090-005-PRIVATE-STREAM-HEARTBEAT-JSON
+- V090-005-REDACTED-LISTENKEY-REFERENCE
+- V090-005-NO-RAW-PRIVATE-PAYLOAD-PERSISTENCE
+- GH-847 Release v0.9.0 Private Stream Heartbeat Staleness Monitor Validation
+- testGH847PrivateStreamHeartbeatMonitorPersistsStalenessAndRedactedEvidence
+- `bash checks/verify-v0.9.0-private-stream-heartbeat-monitor.sh`
+- artifact path: `.local/mtpro/runs/<runID>/testnet-readonly-monitor/private-stream-heartbeat.json`。
+- heartbeat evidence: lastEventObservedAt、heartbeatRecordedAt、heartbeatIntervalSeconds、lastEventAgeSeconds、staleThresholdSeconds、heartbeatStatus、streamStale、streamRecovered 和 monitorSessionChecksum 必须可 inspect。
+- listenKey lifecycle evidence: listenKeyCreatedAt、listenKeyExpiresAt、listenKeyAgeSeconds、listenKeySecondsUntilExpiry、listenKeyAgeBucket、redactedListenKeyReference 和 listenKeyReferenceHash 必须可 inspect。
+- redaction: redactedListenKeyReference 必须以 `:<redacted>` 结尾，raw listenKey、raw private payload、credential value、secret、API key、token 和 signature 均不得进入 artifact。
+- fail-closed scope: corrupted private-stream-heartbeat.json、checksum mismatch、monitorSessionChecksum mismatch 和 unsafe listenKey reference 均必须 fail closed。
+- forbidden scope: no private WebSocket CI runtime, no executionReport command path, no order command, no raw listenKey persistence, no raw private payload persistence, no credential value persistence, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no trading button, no order form, no production cutover.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT

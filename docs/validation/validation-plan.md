@@ -61,6 +61,18 @@
 - Focused test: `testGH846SignedAccountSnapshotFreshnessMonitorPersistsRedactedEvidence`
 - Boundary: GH-846 只新增本地 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/account-snapshot-freshness.json` artifact，记录 signed account snapshot timestamp、latency、stale threshold、fresh / stale status、age bucket、stale reason、monitorSessionChecksum 和 redacted credential reference；不保存 raw account payload、不保存 credential value、不启动 CI network、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-847 Release v0.9.0 Private Stream Heartbeat Staleness Monitor Validation
+
+- `GH-847-VERIFY-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS`
+- `TVM-RELEASE-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS`
+- `V090-005-PRIVATE-STREAM-HEARTBEAT-STALENESS`
+- `V090-005-PRIVATE-STREAM-HEARTBEAT-JSON`
+- `V090-005-REDACTED-LISTENKEY-REFERENCE`
+- `V090-005-NO-RAW-PRIVATE-PAYLOAD-PERSISTENCE`
+- Required command: `bash checks/verify-v0.9.0-private-stream-heartbeat-monitor.sh`
+- Focused test: `testGH847PrivateStreamHeartbeatMonitorPersistsStalenessAndRedactedEvidence`
+- Boundary: GH-847 只新增本地 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/private-stream-heartbeat.json` artifact，记录 private stream last event time、heartbeat status、listenKey age / expiry、stream stale / disconnected / recovered state、monitorSessionChecksum、redacted listenKey reference 和 listenKey reference hash；不保存 raw listenKey、不保存 raw private payload、不保存 credential value、不启动 CI network、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`

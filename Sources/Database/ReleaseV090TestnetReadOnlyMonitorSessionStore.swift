@@ -15,9 +15,11 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreError: Error, Equatable
     case corruptedMonitorEvents(String)
     case corruptedMonitorStatus(String)
     case corruptedAccountSnapshotFreshness(String)
+    case corruptedPrivateStreamHeartbeat(String)
     case checksumMismatch(expected: String, actual: String)
     case invalidTransition(command: String, fromState: String)
     case unsafeCredentialReference(String)
+    case unsafeListenKeyReference(String)
     case lockUnavailable(String)
     case boundaryDrift(String)
 
@@ -37,12 +39,16 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreError: Error, Equatable
             "Release v0.9.0 testnet read-only monitor session fails closed because monitor_status.json is corrupted at \(path)"
         case let .corruptedAccountSnapshotFreshness(path):
             "Release v0.9.0 signed account snapshot freshness fails closed because account-snapshot-freshness.json is corrupted at \(path)"
+        case let .corruptedPrivateStreamHeartbeat(path):
+            "Release v0.9.0 private stream heartbeat fails closed because private-stream-heartbeat.json is corrupted at \(path)"
         case let .checksumMismatch(expected, actual):
             "Release v0.9.0 testnet read-only monitor session checksum mismatch: expected \(expected), actual \(actual)"
         case let .invalidTransition(command, fromState):
             "Release v0.9.0 testnet read-only monitor session rejects \(command) from \(fromState)"
         case let .unsafeCredentialReference(reference):
             "Release v0.9.0 signed account snapshot freshness rejects unsafe credential reference \(reference)"
+        case let .unsafeListenKeyReference(reference):
+            "Release v0.9.0 private stream heartbeat rejects unsafe listenKey reference \(reference)"
         case let .lockUnavailable(path):
             "Release v0.9.0 testnet read-only monitor session lock is unavailable at \(path)"
         case let .boundaryDrift(field):
@@ -69,12 +75,19 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "V090-004-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS",
         "V090-004-ACCOUNT-SNAPSHOT-FRESHNESS-JSON",
         "V090-004-REDACTED-CREDENTIAL-REFERENCE",
-        "V090-004-NO-RAW-PAYLOAD-PERSISTENCE"
+        "V090-004-NO-RAW-PAYLOAD-PERSISTENCE",
+        "GH-847-VERIFY-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS",
+        "TVM-RELEASE-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS",
+        "V090-005-PRIVATE-STREAM-HEARTBEAT-STALENESS",
+        "V090-005-PRIVATE-STREAM-HEARTBEAT-JSON",
+        "V090-005-REDACTED-LISTENKEY-REFERENCE",
+        "V090-005-NO-RAW-PRIVATE-PAYLOAD-PERSISTENCE"
     ]
 
     public static let requiredValidationCommands: [String] = [
         "bash checks/verify-v0.9.0-monitor-session-store.sh",
         "bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh",
+        "bash checks/verify-v0.9.0-private-stream-heartbeat-monitor.sh",
         "swift test --filter TargetGraphTests/testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed"
     ]
 }
@@ -117,6 +130,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
     public let monitorEventsJSONLPath: String
     public let monitorStatusJSONPath: String
     public let accountSnapshotFreshnessJSONPath: String
+    public let privateStreamHeartbeatJSONPath: String
 
     public var pathsHeld: Bool {
         runDirectoryPath.hasPrefix(".local/mtpro/runs/")
@@ -125,6 +139,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
             && monitorEventsJSONLPath == "\(monitorDirectoryPath)/monitor_events.jsonl"
             && monitorStatusJSONPath == "\(monitorDirectoryPath)/monitor_status.json"
             && accountSnapshotFreshnessJSONPath == "\(monitorDirectoryPath)/account-snapshot-freshness.json"
+            && privateStreamHeartbeatJSONPath == "\(monitorDirectoryPath)/private-stream-heartbeat.json"
     }
 
     public init(runID: Identifier) throws {
@@ -139,6 +154,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
         self.monitorEventsJSONLPath = "\(monitorDirectoryPath)/monitor_events.jsonl"
         self.monitorStatusJSONPath = "\(monitorDirectoryPath)/monitor_status.json"
         self.accountSnapshotFreshnessJSONPath = "\(monitorDirectoryPath)/account-snapshot-freshness.json"
+        self.privateStreamHeartbeatJSONPath = "\(monitorDirectoryPath)/private-stream-heartbeat.json"
 
         guard pathsHeld else {
             throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("monitorArtifactPaths")
@@ -563,6 +579,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionDocument: Codable, Equatab
             artifactPaths.monitorEventsJSONLPath,
             artifactPaths.monitorStatusJSONPath,
             artifactPaths.accountSnapshotFreshnessJSONPath,
+            artifactPaths.privateStreamHeartbeatJSONPath,
             state.rawValue,
             String(createdAt.timeIntervalSince1970),
             String(updatedAt.timeIntervalSince1970),
@@ -1077,6 +1094,410 @@ public struct ReleaseV090AccountSnapshotFreshnessDocument: Codable, Equatable, S
     }
 }
 
+/// ReleaseV090PrivateStreamHeartbeatStatus 固定 private stream read-only monitor 的心跳状态分类。
+///
+/// 状态只描述本地 evidence 的 freshness / staleness，不触发 reconnect、
+/// endpoint mutation、broker action、testnet order 或 production order。
+public enum ReleaseV090PrivateStreamHeartbeatStatus: String, Codable, CaseIterable, Equatable, Sendable {
+    case healthy
+    case stale
+    case disconnected
+    case recovering
+    case recovered
+    case expired
+    case unavailable
+}
+
+/// ReleaseV090PrivateStreamListenKeyAgeBucket 固定 listenKey 生命周期的本地证据分桶。
+public enum ReleaseV090PrivateStreamListenKeyAgeBucket: String, Codable, Equatable, Sendable {
+    case valid
+    case nearExpiry
+    case expired
+    case unavailable
+}
+
+/// ReleaseV090PrivateStreamHeartbeatDocument 是 `private-stream-heartbeat.json` 的本地 payload。
+///
+/// 文档只保存 private stream heartbeat / staleness evidence 和 redacted listenKey reference；
+/// 它不保存 raw listenKey、raw private stream payload、credential value、endpoint secret、
+/// broker state 或 order request。
+public struct ReleaseV090PrivateStreamHeartbeatDocument: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.9.0.private-stream-heartbeat.v1"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let runID: Identifier
+    public let monitorSessionChecksum: String
+    public let privateStreamHeartbeatJSONPath: String
+    public let source: String
+    public let lastEventObservedAt: Date
+    public let heartbeatRecordedAt: Date
+    public let heartbeatIntervalSeconds: Int
+    public let lastEventAgeSeconds: Int
+    public let staleThresholdSeconds: Int
+    public let listenKeyCreatedAt: Date
+    public let listenKeyExpiresAt: Date
+    public let listenKeyAgeSeconds: Int
+    public let listenKeySecondsUntilExpiry: Int
+    public let listenKeyAgeBucket: ReleaseV090PrivateStreamListenKeyAgeBucket
+    public let heartbeatStatus: ReleaseV090PrivateStreamHeartbeatStatus
+    public let streamStale: Bool
+    public let streamRecovered: Bool
+    public let disconnectedReason: String?
+    public let recoveryReason: String?
+    public let redactedListenKeyReference: String
+    public let listenKeyReferenceHash: String
+    public let redactionHeld: Bool
+    public let rawListenKeyPersisted: Bool
+    public let rawPrivatePayloadPersisted: Bool
+    public let credentialValuePersisted: Bool
+    public let noOrderHeld: Bool
+    public let testnetReadOnlyObservabilityAllowed: Bool
+    public let ciNetworkRequired: Bool
+    public let ciSecretRead: Bool
+    public let ciOrderSubmissionAllowed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let productionBrokerConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let testnetOrderRoutingAllowed: Bool
+    public let testnetCancelReplaceAllowed: Bool
+    public let heartbeatChecksum: String
+
+    public var documentHeld: Bool {
+        issueID.rawValue == "GH-847"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-843", "GH-844", "GH-845", "GH-846"]
+            && releaseVersion == "v0.9.0"
+            && schemaVersion == Self.schemaVersion
+            && runID.rawValue.isEmpty == false
+            && monitorSessionChecksum.hasPrefix("sha256:")
+            && privateStreamHeartbeatJSONPath == ".local/mtpro/runs/\(runID.rawValue)/testnet-readonly-monitor/private-stream-heartbeat.json"
+            && source == "private-stream-readonly"
+            && lastEventObservedAt <= heartbeatRecordedAt
+            && listenKeyCreatedAt <= heartbeatRecordedAt
+            && listenKeyCreatedAt < listenKeyExpiresAt
+            && heartbeatIntervalSeconds > 0
+            && lastEventAgeSeconds >= 0
+            && staleThresholdSeconds > 0
+            && listenKeyAgeSeconds >= 0
+            && listenKeySecondsUntilExpiry >= 0
+            && listenKeyAgeBucket == Self.listenKeyAgeBucket(
+                heartbeatRecordedAt: heartbeatRecordedAt,
+                listenKeyExpiresAt: listenKeyExpiresAt,
+                nearExpiryThresholdSeconds: heartbeatIntervalSeconds
+            )
+            && heartbeatStatus == Self.status(
+                lastEventAgeSeconds: lastEventAgeSeconds,
+                staleThresholdSeconds: staleThresholdSeconds,
+                heartbeatRecordedAt: heartbeatRecordedAt,
+                listenKeyExpiresAt: listenKeyExpiresAt,
+                streamRecovered: streamRecovered,
+                disconnectedReason: disconnectedReason
+            )
+            && streamStale == (lastEventAgeSeconds > staleThresholdSeconds)
+            && (streamRecovered ? recoveryReason != nil && streamStale == false : true)
+            && redactedListenKeyReference.hasSuffix(":<redacted>")
+            && redactedListenKeyReference.containsForbiddenCredentialMaterial == false
+            && listenKeyReferenceHash.hasPrefix("sha256:")
+            && redactionHeld
+            && rawListenKeyPersisted == false
+            && rawPrivatePayloadPersisted == false
+            && credentialValuePersisted == false
+            && noOrderHeld
+            && testnetReadOnlyObservabilityAllowed
+            && ciNetworkRequired == false
+            && ciSecretRead == false
+            && ciOrderSubmissionAllowed == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && productionBrokerConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && testnetOrderSubmissionAllowed == false
+            && testnetOrderRoutingAllowed == false
+            && testnetCancelReplaceAllowed == false
+            && heartbeatChecksum == Self.stableHeartbeatChecksum(
+                runID: runID,
+                monitorSessionChecksum: monitorSessionChecksum,
+                privateStreamHeartbeatJSONPath: privateStreamHeartbeatJSONPath,
+                source: source,
+                lastEventObservedAt: lastEventObservedAt,
+                heartbeatRecordedAt: heartbeatRecordedAt,
+                heartbeatIntervalSeconds: heartbeatIntervalSeconds,
+                lastEventAgeSeconds: lastEventAgeSeconds,
+                staleThresholdSeconds: staleThresholdSeconds,
+                listenKeyCreatedAt: listenKeyCreatedAt,
+                listenKeyExpiresAt: listenKeyExpiresAt,
+                listenKeyAgeSeconds: listenKeyAgeSeconds,
+                listenKeySecondsUntilExpiry: listenKeySecondsUntilExpiry,
+                listenKeyAgeBucket: listenKeyAgeBucket,
+                heartbeatStatus: heartbeatStatus,
+                streamStale: streamStale,
+                streamRecovered: streamRecovered,
+                disconnectedReason: disconnectedReason,
+                recoveryReason: recoveryReason,
+                redactedListenKeyReference: redactedListenKeyReference,
+                listenKeyReferenceHash: listenKeyReferenceHash
+            )
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-847"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-843"),
+            Identifier.constant("GH-844"),
+            Identifier.constant("GH-845"),
+            Identifier.constant("GH-846")
+        ],
+        releaseVersion: String = "v0.9.0",
+        schemaVersion: String = Self.schemaVersion,
+        runID: Identifier,
+        monitorSessionChecksum: String,
+        privateStreamHeartbeatJSONPath: String,
+        source: String = "private-stream-readonly",
+        lastEventObservedAt: Date,
+        heartbeatRecordedAt: Date,
+        heartbeatIntervalSeconds: Int,
+        staleThresholdSeconds: Int,
+        listenKeyCreatedAt: Date,
+        listenKeyExpiresAt: Date,
+        redactedListenKeyReference: String,
+        listenKeyReferenceHash: String,
+        disconnectedReason: String? = nil,
+        recoveryReason: String? = nil,
+        streamRecovered: Bool = false,
+        heartbeatChecksum: String? = nil,
+        redactionHeld: Bool = true,
+        rawListenKeyPersisted: Bool = false,
+        rawPrivatePayloadPersisted: Bool = false,
+        credentialValuePersisted: Bool = false,
+        noOrderHeld: Bool = true,
+        testnetReadOnlyObservabilityAllowed: Bool = true,
+        ciNetworkRequired: Bool = false,
+        ciSecretRead: Bool = false,
+        ciOrderSubmissionAllowed: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        productionBrokerConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false,
+        testnetCancelReplaceAllowed: Bool = false
+    ) throws {
+        let lastEventAgeSeconds = max(0, Int(heartbeatRecordedAt.timeIntervalSince(lastEventObservedAt)))
+        let listenKeyAgeSeconds = max(0, Int(heartbeatRecordedAt.timeIntervalSince(listenKeyCreatedAt)))
+        let listenKeySecondsUntilExpiry = max(0, Int(listenKeyExpiresAt.timeIntervalSince(heartbeatRecordedAt)))
+        let listenKeyAgeBucket = Self.listenKeyAgeBucket(
+            heartbeatRecordedAt: heartbeatRecordedAt,
+            listenKeyExpiresAt: listenKeyExpiresAt,
+            nearExpiryThresholdSeconds: heartbeatIntervalSeconds
+        )
+        let heartbeatStatus = Self.status(
+            lastEventAgeSeconds: lastEventAgeSeconds,
+            staleThresholdSeconds: staleThresholdSeconds,
+            heartbeatRecordedAt: heartbeatRecordedAt,
+            listenKeyExpiresAt: listenKeyExpiresAt,
+            streamRecovered: streamRecovered,
+            disconnectedReason: disconnectedReason
+        )
+        let streamStale = lastEventAgeSeconds > staleThresholdSeconds
+
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.runID = runID
+        self.monitorSessionChecksum = monitorSessionChecksum
+        self.privateStreamHeartbeatJSONPath = privateStreamHeartbeatJSONPath
+        self.source = source
+        self.lastEventObservedAt = lastEventObservedAt
+        self.heartbeatRecordedAt = heartbeatRecordedAt
+        self.heartbeatIntervalSeconds = heartbeatIntervalSeconds
+        self.lastEventAgeSeconds = lastEventAgeSeconds
+        self.staleThresholdSeconds = staleThresholdSeconds
+        self.listenKeyCreatedAt = listenKeyCreatedAt
+        self.listenKeyExpiresAt = listenKeyExpiresAt
+        self.listenKeyAgeSeconds = listenKeyAgeSeconds
+        self.listenKeySecondsUntilExpiry = listenKeySecondsUntilExpiry
+        self.listenKeyAgeBucket = listenKeyAgeBucket
+        self.heartbeatStatus = heartbeatStatus
+        self.streamStale = streamStale
+        self.streamRecovered = streamRecovered
+        self.disconnectedReason = disconnectedReason
+        self.recoveryReason = recoveryReason
+        self.redactedListenKeyReference = redactedListenKeyReference
+        self.listenKeyReferenceHash = listenKeyReferenceHash
+        self.redactionHeld = redactionHeld
+        self.rawListenKeyPersisted = rawListenKeyPersisted
+        self.rawPrivatePayloadPersisted = rawPrivatePayloadPersisted
+        self.credentialValuePersisted = credentialValuePersisted
+        self.noOrderHeld = noOrderHeld
+        self.testnetReadOnlyObservabilityAllowed = testnetReadOnlyObservabilityAllowed
+        self.ciNetworkRequired = ciNetworkRequired
+        self.ciSecretRead = ciSecretRead
+        self.ciOrderSubmissionAllowed = ciOrderSubmissionAllowed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.productionBrokerConnected = productionBrokerConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+        self.testnetCancelReplaceAllowed = testnetCancelReplaceAllowed
+        self.heartbeatChecksum = heartbeatChecksum ?? Self.stableHeartbeatChecksum(
+            runID: runID,
+            monitorSessionChecksum: monitorSessionChecksum,
+            privateStreamHeartbeatJSONPath: privateStreamHeartbeatJSONPath,
+            source: source,
+            lastEventObservedAt: lastEventObservedAt,
+            heartbeatRecordedAt: heartbeatRecordedAt,
+            heartbeatIntervalSeconds: heartbeatIntervalSeconds,
+            lastEventAgeSeconds: lastEventAgeSeconds,
+            staleThresholdSeconds: staleThresholdSeconds,
+            listenKeyCreatedAt: listenKeyCreatedAt,
+            listenKeyExpiresAt: listenKeyExpiresAt,
+            listenKeyAgeSeconds: listenKeyAgeSeconds,
+            listenKeySecondsUntilExpiry: listenKeySecondsUntilExpiry,
+            listenKeyAgeBucket: listenKeyAgeBucket,
+            heartbeatStatus: heartbeatStatus,
+            streamStale: streamStale,
+            streamRecovered: streamRecovered,
+            disconnectedReason: disconnectedReason,
+            recoveryReason: recoveryReason,
+            redactedListenKeyReference: redactedListenKeyReference,
+            listenKeyReferenceHash: listenKeyReferenceHash
+        )
+
+        guard documentHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("privateStreamHeartbeatDocument")
+        }
+    }
+
+    public static func status(
+        lastEventAgeSeconds: Int,
+        staleThresholdSeconds: Int,
+        heartbeatRecordedAt: Date,
+        listenKeyExpiresAt: Date,
+        streamRecovered: Bool,
+        disconnectedReason: String?
+    ) -> ReleaseV090PrivateStreamHeartbeatStatus {
+        if heartbeatRecordedAt >= listenKeyExpiresAt {
+            return .expired
+        }
+        if disconnectedReason != nil {
+            return .disconnected
+        }
+        if streamRecovered {
+            return .recovered
+        }
+        return lastEventAgeSeconds > staleThresholdSeconds ? .stale : .healthy
+    }
+
+    public static func listenKeyAgeBucket(
+        heartbeatRecordedAt: Date,
+        listenKeyExpiresAt: Date,
+        nearExpiryThresholdSeconds: Int
+    ) -> ReleaseV090PrivateStreamListenKeyAgeBucket {
+        let secondsUntilExpiry = Int(listenKeyExpiresAt.timeIntervalSince(heartbeatRecordedAt))
+        if secondsUntilExpiry <= 0 {
+            return .expired
+        }
+        if secondsUntilExpiry <= nearExpiryThresholdSeconds {
+            return .nearExpiry
+        }
+        return .valid
+    }
+
+    public static func stableHeartbeatChecksum(
+        runID: Identifier,
+        monitorSessionChecksum: String,
+        privateStreamHeartbeatJSONPath: String,
+        source: String,
+        lastEventObservedAt: Date,
+        heartbeatRecordedAt: Date,
+        heartbeatIntervalSeconds: Int,
+        lastEventAgeSeconds: Int,
+        staleThresholdSeconds: Int,
+        listenKeyCreatedAt: Date,
+        listenKeyExpiresAt: Date,
+        listenKeyAgeSeconds: Int,
+        listenKeySecondsUntilExpiry: Int,
+        listenKeyAgeBucket: ReleaseV090PrivateStreamListenKeyAgeBucket,
+        heartbeatStatus: ReleaseV090PrivateStreamHeartbeatStatus,
+        streamStale: Bool,
+        streamRecovered: Bool,
+        disconnectedReason: String?,
+        recoveryReason: String?,
+        redactedListenKeyReference: String,
+        listenKeyReferenceHash: String
+    ) -> String {
+        stableSHA256([
+            "GH-847",
+            "v0.9.0",
+            Self.schemaVersion,
+            runID.rawValue,
+            monitorSessionChecksum,
+            privateStreamHeartbeatJSONPath,
+            source,
+            String(lastEventObservedAt.timeIntervalSince1970),
+            String(heartbeatRecordedAt.timeIntervalSince1970),
+            String(heartbeatIntervalSeconds),
+            String(lastEventAgeSeconds),
+            String(staleThresholdSeconds),
+            String(listenKeyCreatedAt.timeIntervalSince1970),
+            String(listenKeyExpiresAt.timeIntervalSince1970),
+            String(listenKeyAgeSeconds),
+            String(listenKeySecondsUntilExpiry),
+            listenKeyAgeBucket.rawValue,
+            heartbeatStatus.rawValue,
+            String(streamStale),
+            String(streamRecovered),
+            disconnectedReason ?? "",
+            recoveryReason ?? "",
+            redactedListenKeyReference,
+            listenKeyReferenceHash,
+            "redactionHeld=true",
+            "rawListenKeyPersisted=false",
+            "rawPrivatePayloadPersisted=false",
+            "credentialValuePersisted=false",
+            "noOrderHeld=true",
+            "testnetReadOnlyObservabilityAllowed=true",
+            "ciNetworkRequired=false",
+            "ciSecretRead=false",
+            "ciOrderSubmissionAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "productionBrokerConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false",
+            "testnetCancelReplaceAllowed=false"
+        ])
+    }
+
+    public static func listenKeyReferenceHash(_ reference: String) -> String {
+        stableSHA256(["GH-847", "listenKeyReference", reference])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
 /// ReleaseV090TestnetReadOnlyMonitorSessionStore 提供 GH-845 monitor session 本地持久化入口。
 ///
 /// Store 只操作本地 `monitor_session.json`、`monitor_events.jsonl` 和
@@ -1278,6 +1699,94 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
     }
 
     @discardableResult
+    public func recordPrivateStreamHeartbeat(
+        runID: Identifier,
+        lastEventObservedAt: Date,
+        heartbeatRecordedAt: Date,
+        heartbeatIntervalSeconds: Int,
+        staleThresholdSeconds: Int,
+        listenKeyCreatedAt: Date,
+        listenKeyExpiresAt: Date,
+        listenKeyReference: String,
+        disconnectedReason: String? = nil,
+        recoveryReason: String? = nil,
+        streamRecovered: Bool = false
+    ) throws -> ReleaseV090PrivateStreamHeartbeatDocument {
+        try withMonitorLock(runID: runID) {
+            let session = try load(runID: runID)
+            let redactedListenKeyReference = try Self.redactedListenKeyReference(from: listenKeyReference)
+            let listenKeyReferenceHash = ReleaseV090PrivateStreamHeartbeatDocument.listenKeyReferenceHash(listenKeyReference)
+            let document = try ReleaseV090PrivateStreamHeartbeatDocument(
+                runID: runID,
+                monitorSessionChecksum: session.sessionChecksum,
+                privateStreamHeartbeatJSONPath: session.artifactPaths.privateStreamHeartbeatJSONPath,
+                lastEventObservedAt: lastEventObservedAt,
+                heartbeatRecordedAt: heartbeatRecordedAt,
+                heartbeatIntervalSeconds: heartbeatIntervalSeconds,
+                staleThresholdSeconds: staleThresholdSeconds,
+                listenKeyCreatedAt: listenKeyCreatedAt,
+                listenKeyExpiresAt: listenKeyExpiresAt,
+                redactedListenKeyReference: redactedListenKeyReference,
+                listenKeyReferenceHash: listenKeyReferenceHash,
+                disconnectedReason: disconnectedReason,
+                recoveryReason: recoveryReason,
+                streamRecovered: streamRecovered
+            )
+            try writeJSON(document, to: privateStreamHeartbeatURL(runID: runID))
+            return document
+        }
+    }
+
+    public func privateStreamHeartbeat(runID: Identifier) throws -> ReleaseV090PrivateStreamHeartbeatDocument {
+        let heartbeatURL = try privateStreamHeartbeatURL(runID: runID)
+        guard fileManager.fileExists(atPath: heartbeatURL.path) else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedPrivateStreamHeartbeat(heartbeatURL.path)
+        }
+        do {
+            let session = try load(runID: runID)
+            let data = try Data(contentsOf: heartbeatURL)
+            let document = try Self.decoder.decode(ReleaseV090PrivateStreamHeartbeatDocument.self, from: data)
+            let expectedChecksum = ReleaseV090PrivateStreamHeartbeatDocument.stableHeartbeatChecksum(
+                runID: document.runID,
+                monitorSessionChecksum: document.monitorSessionChecksum,
+                privateStreamHeartbeatJSONPath: document.privateStreamHeartbeatJSONPath,
+                source: document.source,
+                lastEventObservedAt: document.lastEventObservedAt,
+                heartbeatRecordedAt: document.heartbeatRecordedAt,
+                heartbeatIntervalSeconds: document.heartbeatIntervalSeconds,
+                lastEventAgeSeconds: document.lastEventAgeSeconds,
+                staleThresholdSeconds: document.staleThresholdSeconds,
+                listenKeyCreatedAt: document.listenKeyCreatedAt,
+                listenKeyExpiresAt: document.listenKeyExpiresAt,
+                listenKeyAgeSeconds: document.listenKeyAgeSeconds,
+                listenKeySecondsUntilExpiry: document.listenKeySecondsUntilExpiry,
+                listenKeyAgeBucket: document.listenKeyAgeBucket,
+                heartbeatStatus: document.heartbeatStatus,
+                streamStale: document.streamStale,
+                streamRecovered: document.streamRecovered,
+                disconnectedReason: document.disconnectedReason,
+                recoveryReason: document.recoveryReason,
+                redactedListenKeyReference: document.redactedListenKeyReference,
+                listenKeyReferenceHash: document.listenKeyReferenceHash
+            )
+            guard document.heartbeatChecksum == expectedChecksum else {
+                throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.checksumMismatch(
+                    expected: expectedChecksum,
+                    actual: document.heartbeatChecksum
+                )
+            }
+            guard document.monitorSessionChecksum == session.sessionChecksum, document.documentHeld else {
+                throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("decodedPrivateStreamHeartbeat")
+            }
+            return document
+        } catch let error as ReleaseV090TestnetReadOnlyMonitorSessionStoreError {
+            throw error
+        } catch {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedPrivateStreamHeartbeat(heartbeatURL.path)
+        }
+    }
+
+    @discardableResult
     public func apply(
         runID: Identifier,
         command: ReleaseV090TestnetReadOnlyMonitorCommand,
@@ -1424,10 +1933,25 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
         return monitorDirectoryURL(runID: runID).appendingPathComponent("account-snapshot-freshness.json", isDirectory: false)
     }
 
+    private func privateStreamHeartbeatURL(runID: Identifier) throws -> URL {
+        guard runID.rawValue.isEmpty == false else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.emptyRunID
+        }
+        return monitorDirectoryURL(runID: runID).appendingPathComponent("private-stream-heartbeat.json", isDirectory: false)
+    }
+
     private static func redactedCredentialReference(from credentialReference: String) throws -> String {
         let trimmed = credentialReference.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.isEmpty == false, trimmed.containsForbiddenCredentialMaterial == false else {
             throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.unsafeCredentialReference(credentialReference)
+        }
+        return "\(trimmed):<redacted>"
+    }
+
+    private static func redactedListenKeyReference(from listenKeyReference: String) throws -> String {
+        let trimmed = listenKeyReference.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false, trimmed.containsForbiddenCredentialMaterial == false else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.unsafeListenKeyReference(listenKeyReference)
         }
         return "\(trimmed):<redacted>"
     }

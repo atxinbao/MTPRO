@@ -8885,6 +8885,290 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH847PrivateStreamHeartbeatMonitorPersistsStalenessAndRedactedEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift"
+            ),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.9.0-private-stream-heartbeat-monitor.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let requiredAnchors = [
+            "GH-847-VERIFY-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS",
+            "TVM-RELEASE-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS",
+            "V090-005-PRIVATE-STREAM-HEARTBEAT-STALENESS",
+            "V090-005-PRIVATE-STREAM-HEARTBEAT-JSON",
+            "V090-005-REDACTED-LISTENKEY-REFERENCE",
+            "V090-005-NO-RAW-PRIVATE-PAYLOAD-PERSISTENCE"
+        ]
+
+        for anchor in requiredAnchors {
+            XCTAssertTrue(
+                [
+                    source,
+                    verificationScript,
+                    readinessScript,
+                    contractDoc,
+                    validationPlan,
+                    tradingMatrix,
+                    automationReadiness
+                ].contains { $0.contains(anchor) },
+                "\(anchor) must stay wired into GH-847 private stream heartbeat evidence chain"
+            )
+        }
+
+        let temporaryRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH847-PrivateStreamHeartbeat-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = temporaryRoot
+            .appendingPathComponent(".local", isDirectory: true)
+            .appendingPathComponent("mtpro", isDirectory: true)
+            .appendingPathComponent("runs", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: temporaryRoot)
+        }
+
+        let store = ReleaseV090TestnetReadOnlyMonitorSessionStore(storageRootURL: storageRoot)
+        let runID = Identifier.constant("gh-847-private-stream-heartbeat")
+        let createdAt = Date(timeIntervalSince1970: 1_782_300_000)
+        _ = try store.create(runID: runID, createdAt: createdAt)
+        _ = try store.apply(runID: runID, command: .connect, reason: "private-stream-readonly-monitor-started", at: Date(timeIntervalSince1970: 1_782_300_010))
+        let observing = try store.apply(runID: runID, command: .observe, reason: "private-stream-event-observed", at: Date(timeIntervalSince1970: 1_782_300_020))
+
+        let listenKeyReference = "gh-847-stream-lease-profile"
+        let healthy = try store.recordPrivateStreamHeartbeat(
+            runID: runID,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_300_030),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_300_040),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 45,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_300_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_303_600),
+            listenKeyReference: listenKeyReference
+        )
+        XCTAssertEqual(healthy.issueID.rawValue, "GH-847")
+        XCTAssertEqual(healthy.upstreamIssueIDs.map(\.rawValue), ["GH-843", "GH-844", "GH-845", "GH-846"])
+        XCTAssertEqual(healthy.monitorSessionChecksum, observing.sessionChecksum)
+        XCTAssertEqual(healthy.heartbeatStatus, .healthy)
+        XCTAssertFalse(healthy.streamStale)
+        XCTAssertFalse(healthy.streamRecovered)
+        XCTAssertEqual(healthy.lastEventAgeSeconds, 10)
+        XCTAssertEqual(healthy.heartbeatIntervalSeconds, 60)
+        XCTAssertEqual(healthy.staleThresholdSeconds, 45)
+        XCTAssertEqual(healthy.listenKeyAgeSeconds, 40)
+        XCTAssertEqual(healthy.listenKeyAgeBucket, .valid)
+        XCTAssertEqual(healthy.redactedListenKeyReference, "\(listenKeyReference):<redacted>")
+        XCTAssertEqual(
+            healthy.listenKeyReferenceHash,
+            ReleaseV090PrivateStreamHeartbeatDocument.listenKeyReferenceHash(listenKeyReference)
+        )
+        XCTAssertFalse(healthy.rawListenKeyPersisted)
+        XCTAssertFalse(healthy.rawPrivatePayloadPersisted)
+        XCTAssertFalse(healthy.credentialValuePersisted)
+        XCTAssertTrue(healthy.noOrderHeld)
+        XCTAssertTrue(healthy.documentHeld)
+
+        let monitorDirectory = storageRoot
+            .appendingPathComponent(runID.rawValue, isDirectory: true)
+            .appendingPathComponent("testnet-readonly-monitor", isDirectory: true)
+        let heartbeatURL = monitorDirectory.appendingPathComponent("private-stream-heartbeat.json")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: heartbeatURL.path))
+
+        let persistedHealthy = try store.privateStreamHeartbeat(runID: runID)
+        XCTAssertEqual(persistedHealthy, healthy)
+        let heartbeatPayload = try String(contentsOf: heartbeatURL, encoding: .utf8)
+        XCTAssertTrue(heartbeatPayload.contains("private-stream-heartbeat.json"))
+        XCTAssertTrue(heartbeatPayload.contains("\"heartbeatStatus\""))
+        XCTAssertTrue(heartbeatPayload.contains("\"redactedListenKeyReference\""))
+        XCTAssertTrue(heartbeatPayload.contains("\"rawListenKeyPersisted\" : false"))
+        XCTAssertTrue(heartbeatPayload.contains("\"rawPrivatePayloadPersisted\" : false"))
+        XCTAssertFalse(heartbeatPayload.contains(listenKeyReference.replacingOccurrences(of: "-", with: "")))
+        XCTAssertFalse(heartbeatPayload.contains("fixture-raw-listen-key-value"))
+
+        let stale = try store.recordPrivateStreamHeartbeat(
+            runID: runID,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_300_000),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_300_120),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 45,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_300_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_303_600),
+            listenKeyReference: listenKeyReference
+        )
+        XCTAssertEqual(stale.heartbeatStatus, .stale)
+        XCTAssertTrue(stale.streamStale)
+        XCTAssertEqual(stale.lastEventAgeSeconds, 120)
+
+        let disconnected = try store.recordPrivateStreamHeartbeat(
+            runID: runID,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_300_130),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_300_135),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 45,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_300_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_303_600),
+            listenKeyReference: listenKeyReference,
+            disconnectedReason: "heartbeat-missed"
+        )
+        XCTAssertEqual(disconnected.heartbeatStatus, .disconnected)
+        XCTAssertEqual(disconnected.disconnectedReason, "heartbeat-missed")
+
+        let recovered = try store.recordPrivateStreamHeartbeat(
+            runID: runID,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_300_170),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_300_175),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 45,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_300_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_303_600),
+            listenKeyReference: listenKeyReference,
+            recoveryReason: "event-flow-restored",
+            streamRecovered: true
+        )
+        XCTAssertEqual(recovered.heartbeatStatus, .recovered)
+        XCTAssertFalse(recovered.streamStale)
+        XCTAssertTrue(recovered.streamRecovered)
+        XCTAssertEqual(recovered.recoveryReason, "event-flow-restored")
+
+        let nearExpiry = try store.recordPrivateStreamHeartbeat(
+            runID: runID,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_303_520),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_303_540),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 45,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_300_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_303_590),
+            listenKeyReference: listenKeyReference
+        )
+        XCTAssertEqual(nearExpiry.listenKeyAgeBucket, .nearExpiry)
+        XCTAssertEqual(nearExpiry.listenKeySecondsUntilExpiry, 50)
+
+        let expired = try store.recordPrivateStreamHeartbeat(
+            runID: runID,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_303_580),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_303_601),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 45,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_300_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_303_600),
+            listenKeyReference: listenKeyReference
+        )
+        XCTAssertEqual(expired.heartbeatStatus, .expired)
+        XCTAssertEqual(expired.listenKeyAgeBucket, .expired)
+        XCTAssertEqual(try store.privateStreamHeartbeat(runID: runID), expired)
+
+        XCTAssertThrowsError(
+            try store.recordPrivateStreamHeartbeat(
+                runID: runID,
+                lastEventObservedAt: Date(timeIntervalSince1970: 1_782_303_610),
+                heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_303_611),
+                heartbeatIntervalSeconds: 60,
+                staleThresholdSeconds: 45,
+                listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_300_000),
+                listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_303_600),
+                listenKeyReference: "fixture-raw-listenKey-secret-value"
+            )
+        ) { error in
+            guard case .unsafeListenKeyReference = error as? ReleaseV090TestnetReadOnlyMonitorSessionStoreError else {
+                return XCTFail("raw listenKey-like references must fail closed, got \(error)")
+            }
+        }
+
+        try Data("not-json".utf8).write(to: heartbeatURL, options: .atomic)
+        XCTAssertThrowsError(try store.privateStreamHeartbeat(runID: runID)) { error in
+            guard case .corruptedPrivateStreamHeartbeat = error as? ReleaseV090TestnetReadOnlyMonitorSessionStoreError else {
+                return XCTFail("corrupted private-stream-heartbeat.json must fail closed, got \(error)")
+            }
+        }
+
+        XCTAssertEqual(
+            ReleaseV090PrivateStreamHeartbeatStatus.allCases.map(\.rawValue),
+            ["healthy", "stale", "disconnected", "recovering", "recovered", "expired", "unavailable"]
+        )
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-private-stream-heartbeat-monitor.sh"))
+        XCTAssertTrue(readinessScript.contains("GH-847-VERIFY-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS"))
+        XCTAssertTrue(validationPlan.contains("GH-847 Release v0.9.0 Private Stream Heartbeat Staleness Monitor Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 private stream heartbeat staleness monitor anchor"))
+
+        for requiredSource in [
+            "ReleaseV090PrivateStreamHeartbeatDocument",
+            "ReleaseV090PrivateStreamHeartbeatStatus",
+            "ReleaseV090PrivateStreamListenKeyAgeBucket",
+            "private-stream-heartbeat.json",
+            "recordPrivateStreamHeartbeat",
+            "privateStreamHeartbeat",
+            "lastEventObservedAt",
+            "heartbeatRecordedAt",
+            "listenKeyExpiresAt",
+            "redactedListenKeyReference",
+            "listenKeyReferenceHash",
+            "rawListenKeyPersisted",
+            "rawPrivatePayloadPersisted",
+            "corruptedPrivateStreamHeartbeat",
+            "unsafeListenKeyReference"
+        ] {
+            XCTAssertTrue(source.contains(requiredSource), "private stream heartbeat source must contain \(requiredSource)")
+        }
+
+        for forbiddenAuthorization in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/order",
+            "/fapi/v1/order",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "testnetCancelReplaceAllowed=true"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-847 source must not contain \(forbiddenAuthorization)")
+            XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-847 contract must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-847 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-847 matrix must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(

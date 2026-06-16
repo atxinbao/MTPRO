@@ -113,6 +113,31 @@ Carry-forward evidence 固定为：
 
 GH-846 保持 no-order / no-production boundary：不读取 production secret，不连接 production endpoint / broker，不保存 raw account payload，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
 
+## V090-005-PRIVATE-STREAM-HEARTBEAT-STALENESS
+
+`V090-005-PRIVATE-STREAM-HEARTBEAT-STALENESS`
+
+GH-847 在 GH-845 的 TestnetReadOnlyMonitorSession 本地 artifact store 之上新增 private stream heartbeat / staleness evidence。该 evidence 只写入 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/private-stream-heartbeat.json`，并绑定同一 `runID` 与 `monitor_session.json` checksum；它不保存 raw listenKey、不保存 raw private stream payload、不保存 credential value、不连接 endpoint、不提交订单。
+
+Required artifact 固定为：
+
+- `V090-005-PRIVATE-STREAM-HEARTBEAT-JSON`：`private-stream-heartbeat.json`
+
+`private-stream-heartbeat.json` 必须保存 lastEventObservedAt、heartbeatRecordedAt、heartbeatIntervalSeconds、lastEventAgeSeconds、staleThresholdSeconds、listenKeyCreatedAt、listenKeyExpiresAt、listenKeyAgeSeconds、listenKeySecondsUntilExpiry、listenKeyAgeBucket、heartbeatStatus、streamStale、streamRecovered、disconnectedReason、recoveryReason、redactedListenKeyReference、listenKeyReferenceHash、monitorSessionChecksum 和 fail-closed checksum。Heartbeat status 必须覆盖 `healthy`、`stale`、`disconnected`、`recovering`、`recovered`、`expired` 和 `unavailable`，但这些状态只允许作为 read-only evidence，不授权 automatic reconnect 或 command。
+
+`V090-005-REDACTED-LISTENKEY-REFERENCE` 要求 artifact 只保存逻辑 stream lease reference 的 redacted 形式和 stable hash，例如 `<stream-lease-reference>:<redacted>` 与 `sha256:<hash>`。明显 raw listenKey、secret、API key、token、signature 或长随机 credential material 必须 fail closed，不得写入 artifact。
+
+`V090-005-NO-RAW-PRIVATE-PAYLOAD-PERSISTENCE` 要求 artifact 明确保持 `rawListenKeyPersisted=false`、`rawPrivatePayloadPersisted=false` 和 `credentialValuePersisted=false`。读取损坏、checksum mismatch、monitorSessionChecksum 不匹配或 redaction guard 失败时只返回本地错误证据，不触发 network refresh、automatic reconnect、broker write、testnet order routing、testnet order submission、production order 或 production cutover。
+
+Carry-forward evidence 固定为：
+
+- `GH-847-VERIFY-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS`
+- `TVM-RELEASE-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS`
+- `checks/verify-v0.9.0-private-stream-heartbeat-monitor.sh`
+- `ReleaseV090PrivateStreamHeartbeatDocument`
+
+GH-847 保持 no-order / no-production boundary：不读取 production secret，不连接 production endpoint / broker，不保存 raw listenKey 或 raw private stream payload，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
+
 ## V090-001-ALLOWED-MONITOR-MODES
 
 `V090-001-ALLOWED-MONITOR-MODES`
