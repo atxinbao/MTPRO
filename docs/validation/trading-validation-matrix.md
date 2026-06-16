@@ -60,6 +60,23 @@
 - fail-closed scope: corrupted monitor_session.json、monitor_events.jsonl、monitor_status.json、checksum mismatch、event history mismatch 和 invalid transition 均必须 fail closed，不写入新事件。
 - forbidden scope: no runtime startup, no automatic reconnect command, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no trading button, no order form, no production cutover.
 
+## TVM-RELEASE-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS
+
+- TVM-RELEASE-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS
+- GH-846-VERIFY-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS
+- V090-004-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS
+- V090-004-ACCOUNT-SNAPSHOT-FRESHNESS-JSON
+- V090-004-REDACTED-CREDENTIAL-REFERENCE
+- V090-004-NO-RAW-PAYLOAD-PERSISTENCE
+- GH-846 Release v0.9.0 Signed Account Snapshot Freshness Monitor Validation
+- testGH846SignedAccountSnapshotFreshnessMonitorPersistsRedactedEvidence
+- `bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh`
+- artifact path: `.local/mtpro/runs/<runID>/testnet-readonly-monitor/account-snapshot-freshness.json`。
+- freshness evidence: snapshotObservedAt、recordedAt、latencyMilliseconds、ageSeconds、staleThresholdSeconds、freshnessStatus、ageBucket、staleReason 和 monitorSessionChecksum 必须可 inspect。
+- redaction: redactedCredentialReference 必须以 `:<redacted>` 结尾，raw credential value、raw payload、raw account payload、secret、API key、token、listenKey 和 signature 均不得进入 artifact。
+- fail-closed scope: corrupted account-snapshot-freshness.json、checksum mismatch、monitorSessionChecksum mismatch 和 unsafe credential reference 均必须 fail closed。
+- forbidden scope: no CI network access, no production account read, no raw account payload persistence, no credential value persistence, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no trading button, no order form, no production cutover.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT

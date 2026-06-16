@@ -88,6 +88,31 @@ Carry-forward evidence 固定为：
 
 GH-845 保持 `V090-003-NO-ORDER-PRODUCTION-CUTOVER`：不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
 
+## V090-004-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS
+
+`V090-004-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS`
+
+GH-846 在 GH-845 的 TestnetReadOnlyMonitorSession 本地 artifact store 之上新增 signed account snapshot freshness evidence。该 evidence 只写入 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/account-snapshot-freshness.json`，并绑定同一 `runID` 与 `monitor_session.json` checksum；它不保存 raw account payload、不保存 credential value、不连接 endpoint、不提交订单。
+
+Required artifact 固定为：
+
+- `V090-004-ACCOUNT-SNAPSHOT-FRESHNESS-JSON`：`account-snapshot-freshness.json`
+
+`account-snapshot-freshness.json` 必须保存 snapshotObservedAt、recordedAt、latencyMilliseconds、ageSeconds、staleThresholdSeconds、freshnessStatus、ageBucket、staleReason、redactedCredentialReference、monitorSessionChecksum 和 fail-closed checksum。Freshness status 必须复用 `V090-001-FRESHNESS-STALENESS-SEMANTICS` 中的 taxonomy；当前 deterministic store 只从 signed account snapshot timestamp 计算 `fresh` / `stale`，其余状态保留给后续 read-only monitor evidence，不授权 reconnect 或 command。
+
+`V090-004-REDACTED-CREDENTIAL-REFERENCE` 要求 artifact 只保存逻辑 credential profile reference 的 redacted 形式，例如 `<profile-reference>:<redacted>`。明显 raw secret、API key、token、listenKey、signature 或长随机 credential material 必须 fail closed，不得写入 artifact。
+
+`V090-004-NO-RAW-PAYLOAD-PERSISTENCE` 要求 artifact 明确保持 `rawPayloadPersisted=false`、`rawAccountPayloadPersisted=false` 和 `credentialValuePersisted=false`。读取损坏、checksum mismatch、monitorSessionChecksum 不匹配或 redaction guard 失败时只返回本地错误证据，不触发 network refresh、broker write、testnet order routing、testnet order submission、production order 或 production cutover。
+
+Carry-forward evidence 固定为：
+
+- `GH-846-VERIFY-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS`
+- `TVM-RELEASE-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS`
+- `checks/verify-v0.9.0-snapshot-freshness-monitor.sh`
+- `ReleaseV090AccountSnapshotFreshnessDocument`
+
+GH-846 保持 no-order / no-production boundary：不读取 production secret，不连接 production endpoint / broker，不保存 raw account payload，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
+
 ## V090-001-ALLOWED-MONITOR-MODES
 
 `V090-001-ALLOWED-MONITOR-MODES`

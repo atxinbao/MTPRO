@@ -8674,6 +8674,217 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH846SignedAccountSnapshotFreshnessMonitorPersistsRedactedEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift"
+            ),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.9.0-snapshot-freshness-monitor.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let requiredAnchors = [
+            "GH-846-VERIFY-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS",
+            "TVM-RELEASE-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS",
+            "V090-004-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS",
+            "V090-004-ACCOUNT-SNAPSHOT-FRESHNESS-JSON",
+            "V090-004-REDACTED-CREDENTIAL-REFERENCE",
+            "V090-004-NO-RAW-PAYLOAD-PERSISTENCE"
+        ]
+
+        for anchor in requiredAnchors {
+            XCTAssertTrue(
+                [
+                    source,
+                    verificationScript,
+                    readinessScript,
+                    contractDoc,
+                    validationPlan,
+                    tradingMatrix,
+                    automationReadiness
+                ].contains { $0.contains(anchor) },
+                "\(anchor) must stay wired into GH-846 snapshot freshness evidence chain"
+            )
+        }
+
+        let temporaryRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH846-SnapshotFreshness-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = temporaryRoot
+            .appendingPathComponent(".local", isDirectory: true)
+            .appendingPathComponent("mtpro", isDirectory: true)
+            .appendingPathComponent("runs", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: temporaryRoot)
+        }
+
+        let store = ReleaseV090TestnetReadOnlyMonitorSessionStore(storageRootURL: storageRoot)
+        let runID = Identifier.constant("gh-846-snapshot-freshness")
+        let createdAt = Date(timeIntervalSince1970: 1_782_200_000)
+        _ = try store.create(runID: runID, createdAt: createdAt)
+        _ = try store.apply(runID: runID, command: .connect, reason: "operator-started-readonly-monitor", at: Date(timeIntervalSince1970: 1_782_200_010))
+        let observing = try store.apply(runID: runID, command: .observe, reason: "signed-account-snapshot-observed", at: Date(timeIntervalSince1970: 1_782_200_020))
+
+        let fresh = try store.recordAccountSnapshotFreshness(
+            runID: runID,
+            snapshotObservedAt: Date(timeIntervalSince1970: 1_782_200_025),
+            recordedAt: Date(timeIntervalSince1970: 1_782_200_035),
+            latencyMilliseconds: 125,
+            staleThresholdSeconds: 30,
+            credentialReference: "gh-846-testnet-readonly-profile"
+        )
+        XCTAssertEqual(fresh.issueID.rawValue, "GH-846")
+        XCTAssertEqual(fresh.upstreamIssueIDs.map(\.rawValue), ["GH-843", "GH-844", "GH-845"])
+        XCTAssertEqual(fresh.monitorSessionChecksum, observing.sessionChecksum)
+        XCTAssertEqual(fresh.freshnessStatus, .fresh)
+        XCTAssertEqual(fresh.ageBucket, .withinThreshold)
+        XCTAssertEqual(fresh.ageSeconds, 10)
+        XCTAssertEqual(fresh.latencyMilliseconds, 125)
+        XCTAssertEqual(fresh.staleThresholdSeconds, 30)
+        XCTAssertEqual(fresh.redactedCredentialReference, "gh-846-testnet-readonly-profile:<redacted>")
+        XCTAssertTrue(fresh.redactionHeld)
+        XCTAssertFalse(fresh.rawPayloadPersisted)
+        XCTAssertFalse(fresh.rawAccountPayloadPersisted)
+        XCTAssertFalse(fresh.credentialValuePersisted)
+        XCTAssertTrue(fresh.noOrderHeld)
+        XCTAssertTrue(fresh.documentHeld)
+
+        let monitorDirectory = storageRoot
+            .appendingPathComponent(runID.rawValue, isDirectory: true)
+            .appendingPathComponent("testnet-readonly-monitor", isDirectory: true)
+        let freshnessURL = monitorDirectory.appendingPathComponent("account-snapshot-freshness.json")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: freshnessURL.path))
+
+        let persistedFreshness = try store.accountSnapshotFreshness(runID: runID)
+        XCTAssertEqual(persistedFreshness, fresh)
+        let freshnessPayload = try String(contentsOf: freshnessURL, encoding: .utf8)
+        XCTAssertTrue(freshnessPayload.contains("account-snapshot-freshness.json"))
+        XCTAssertTrue(freshnessPayload.contains("\"freshnessStatus\""))
+        XCTAssertTrue(freshnessPayload.contains("\"redactedCredentialReference\""))
+        XCTAssertTrue(freshnessPayload.contains("\"rawAccountPayloadPersisted\" : false"))
+        XCTAssertTrue(freshnessPayload.contains("\"credentialValuePersisted\" : false"))
+        XCTAssertFalse(freshnessPayload.contains("fixture-secret"))
+        XCTAssertFalse(freshnessPayload.contains("api-key-value"))
+
+        let stale = try store.recordAccountSnapshotFreshness(
+            runID: runID,
+            snapshotObservedAt: Date(timeIntervalSince1970: 1_782_200_000),
+            recordedAt: Date(timeIntervalSince1970: 1_782_200_120),
+            latencyMilliseconds: 480,
+            staleThresholdSeconds: 30,
+            credentialReference: "gh-846-testnet-readonly-profile",
+            staleReason: "snapshot-age-over-threshold"
+        )
+        XCTAssertEqual(stale.freshnessStatus, .stale)
+        XCTAssertEqual(stale.ageBucket, .overThreshold)
+        XCTAssertEqual(stale.ageSeconds, 120)
+        XCTAssertEqual(stale.staleReason, "snapshot-age-over-threshold")
+        XCTAssertEqual(try store.accountSnapshotFreshness(runID: runID), stale)
+
+        XCTAssertThrowsError(
+            try store.recordAccountSnapshotFreshness(
+                runID: runID,
+                snapshotObservedAt: Date(timeIntervalSince1970: 1_782_200_130),
+                recordedAt: Date(timeIntervalSince1970: 1_782_200_131),
+                latencyMilliseconds: 1,
+                staleThresholdSeconds: 30,
+                credentialReference: "fixture-secret-api-key-value"
+            )
+        ) { error in
+            guard case .unsafeCredentialReference = error as? ReleaseV090TestnetReadOnlyMonitorSessionStoreError else {
+                return XCTFail("raw credential-like references must fail closed, got \(error)")
+            }
+        }
+
+        try Data("not-json".utf8).write(to: freshnessURL, options: .atomic)
+        XCTAssertThrowsError(try store.accountSnapshotFreshness(runID: runID)) { error in
+            guard case .corruptedAccountSnapshotFreshness = error as? ReleaseV090TestnetReadOnlyMonitorSessionStoreError else {
+                return XCTFail("corrupted account-snapshot-freshness.json must fail closed, got \(error)")
+            }
+        }
+
+        XCTAssertEqual(
+            ReleaseV090AccountSnapshotFreshnessStatus.allCases.map(\.rawValue),
+            ["fresh", "stale", "disconnected", "recovering", "recovered", "blocked", "unavailable"]
+        )
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh"))
+        XCTAssertTrue(readinessScript.contains("GH-846-VERIFY-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS"))
+        XCTAssertTrue(validationPlan.contains("GH-846 Release v0.9.0 Signed Account Snapshot Freshness Monitor Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 signed account snapshot freshness monitor anchor"))
+
+        for requiredSource in [
+            "ReleaseV090AccountSnapshotFreshnessDocument",
+            "ReleaseV090AccountSnapshotFreshnessStatus",
+            "account-snapshot-freshness.json",
+            "snapshotObservedAt",
+            "latencyMilliseconds",
+            "staleThresholdSeconds",
+            "redactedCredentialReference",
+            "rawPayloadPersisted",
+            "credentialValuePersisted",
+            "corruptedAccountSnapshotFreshness"
+        ] {
+            XCTAssertTrue(source.contains(requiredSource), "snapshot freshness source must contain \(requiredSource)")
+        }
+
+        for forbiddenAuthorization in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/order",
+            "/fapi/v1/order",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "testnetCancelReplaceAllowed=true"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-846 source must not contain \(forbiddenAuthorization)")
+            XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-846 contract must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-846 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-846 matrix must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(
