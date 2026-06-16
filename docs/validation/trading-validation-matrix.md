@@ -239,6 +239,19 @@
 - command boundary: `orderSubmitVisible=false`、`orderCancelVisible=false`、`orderReplaceVisible=false`、`testnetOrderRoutingAllowed=false`、`productionCommandEnabled=false` and `productionCutoverAuthorized=false`.
 - forbidden scope: no credential value display, no raw listenKey display, no raw private payload display, no DataClient Dashboard dependency, no broker command, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
 
+## TVM-RELEASE-V081-DASHBOARD-MACOS-V080-GUARDS
+
+- TVM-RELEASE-V081-DASHBOARD-MACOS-V080-GUARDS
+- GH-836-VERIFY-V081-DASHBOARD-MACOS-V080-GUARDS
+- V081-002-DASHBOARD-MACOS-V080-GUARDS
+- V081-002-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+- V081-002-NO-PRODUCTION-CUTOVER
+- GH-836 Release v0.8.1 Dashboard macOS v0.8 Focused Guard Validation
+- testGH836DashboardMacOSChecksRunV080FocusedGuards
+- workflow evidence: required `dashboard-macos` job runs `checks/verify-v0.8.1-dashboard-macos-v080-guards.sh` before Dashboard build / smoke.
+- coverage evidence: focused guard runs `checks/verify-v0.8.0-dashboard-testnet-readonly-monitor.sh` and `checks/verify-v0.8.0-dashboard-safe-local-controls.sh`.
+- forbidden scope: no UI trading command, no order form, no live command, no broker command, no production command, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
+
 ## TVM-RELEASE-V080-VALIDATION-LANES
 
 - TVM-RELEASE-V080-VALIDATION-LANES
