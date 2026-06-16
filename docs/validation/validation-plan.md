@@ -34,6 +34,21 @@
 - Focused test: `testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover`
 - Boundary: v0.8.1 已修复 v0.8.0 publication wording；GH-844 只把该已完成 evidence carry forward 到 v0.9.0 contract，不移动 tag、不重写 release、不创建新 release、不修改 runtime、不授权 production cutover、不读取 secret、不连接 endpoint / broker、不提交 testnet 或 production order。
 
+## GH-845 Release v0.9.0 TestnetReadOnlyMonitorSession Store Validation
+
+- `GH-845-VERIFY-V090-TESTNET-MONITOR-SESSION-STORE`
+- `TVM-RELEASE-V090-TESTNET-MONITOR-SESSION-STORE`
+- `V090-003-TESTNET-READONLY-MONITOR-SESSION`
+- `V090-003-MONITOR-SESSION-JSON`
+- `V090-003-MONITOR-EVENTS-JSONL`
+- `V090-003-MONITOR-STATUS-JSON`
+- `V090-003-MONITOR-STATE-TAXONOMY`
+- `V090-003-APPEND-ONLY-MONITOR-EVENTS`
+- `V090-003-CORRUPTED-ARTIFACTS-FAIL-CLOSED`
+- Required command: `bash checks/verify-v0.9.0-monitor-session-store.sh`
+- Focused test: `testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed`
+- Boundary: GH-845 只新增本地 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor_session.json`、`monitor_events.jsonl` 和 `monitor_status.json` artifact store，覆盖 created / connecting / observing / stale / disconnected / recovering / stopped / failed 状态、append-only event checksum chain 和 corrupted artifact fail-closed；不启动 runtime、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`

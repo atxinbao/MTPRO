@@ -52,6 +52,42 @@ v0.9.0 后续文档可以引用 v0.8.0 status，但必须保留以下边界：
 - 不得把 v0.8.1 patch evidence 当作 v0.9.0 runtime capability。
 - 不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production submit / cancel / replace order，不创建交易按钮、order form、Live PRO Console production command 或 production OMS。
 
+## V090-003-TESTNET-READONLY-MONITOR-SESSION
+
+`V090-003-TESTNET-READONLY-MONITOR-SESSION`
+
+GH-845 新增 TestnetReadOnlyMonitorSession 本地 artifact store。该 store 只把 testnet read-only monitor lifecycle 写入 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/` 下的三个本地文件，不启动 runtime、不连接 endpoint、不读取 secret、不提交订单。
+
+Required artifact 固定为：
+
+- `V090-003-MONITOR-SESSION-JSON`：`monitor_session.json`
+- `V090-003-MONITOR-EVENTS-JSONL`：`monitor_events.jsonl`
+- `V090-003-MONITOR-STATUS-JSON`：`monitor_status.json`
+
+`monitor_events.jsonl` 必须是 append-only monitor evidence chain。每一行必须保存 sequence、command、fromState、toState、observedAt、previousEventChecksum 和 eventChecksum；`monitor_session.json` 必须保存完整 event history、当前 state、artifact paths、checksum 和 no-order boundary evidence；`monitor_status.json` 只保存轻量状态快照、eventCount、lastEventChecksum 和 fail-closed status checksum。
+
+`V090-003-MONITOR-STATE-TAXONOMY` 固定以下状态：
+
+- `created`
+- `connecting`
+- `observing`
+- `stale`
+- `disconnected`
+- `recovering`
+- `stopped`
+- `failed`
+
+`V090-003-CORRUPTED-ARTIFACTS-FAIL-CLOSED` 要求读取 `monitor_session.json`、`monitor_events.jsonl` 或 `monitor_status.json` 任一损坏、checksum mismatch、event history 不一致或非法状态迁移时 fail closed。Fail closed 只返回本地错误证据，不触发 automatic reconnect、network refresh、broker write、testnet order routing、testnet order submission、production order 或 production cutover。
+
+Carry-forward evidence 固定为：
+
+- `GH-845-VERIFY-V090-TESTNET-MONITOR-SESSION-STORE`
+- `TVM-RELEASE-V090-TESTNET-MONITOR-SESSION-STORE`
+- `checks/verify-v0.9.0-monitor-session-store.sh`
+- `ReleaseV090TestnetReadOnlyMonitorSessionStore`
+
+GH-845 保持 `V090-003-NO-ORDER-PRODUCTION-CUTOVER`：不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
+
 ## V090-001-ALLOWED-MONITOR-MODES
 
 `V090-001-ALLOWED-MONITOR-MODES`
