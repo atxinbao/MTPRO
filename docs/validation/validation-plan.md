@@ -219,7 +219,15 @@
 - Focused test: `testGH820ReleaseV080FinalAuditDocsRunbookCloseCompletedFactsOnly`
 - Final audit / docs / runbook gate 必须核对 GH-807 至 GH-819 的 issue / PR / checks / merge evidence，并明确 #820 closure PR 通过 required check 后才关闭最终 issue。
 - Root docs refresh 只同步已发生的 v0.8.0 closure facts：latest completed release construction scope、Project Closure Count `42 / 42 (100%)`、stage audit path、release notes、operator runbook、validation command 和 no-default-production-trading boundary。
-- forbidden scope: GH-820 construction closeout itself does not create a tag or GitHub Release. v0.8.0 public release publication remains a separate gate; no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order.
+- forbidden scope: GH-820 construction closeout itself did not create a tag or GitHub Release. v0.8.0 was later published through a separate stable GitHub Release gate at `https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0`; that publication does not create a next Project / Issue, does not authorize production cutover, does not permit production secret read, does not connect production endpoint / broker, and does not allow testnet or production submit / cancel / replace order.
+
+## GH-835 Release v0.8.0 Public GitHub Release Docs Alignment Validation
+
+- `GH-835-V081-V080-ACTUAL-GITHUB-RELEASE`
+- `V081-001-V080-PUBLICATION-DOCS-ALIGNMENT`
+- `V081-001-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.8.1-v080-release-publication-docs.sh`
+- Boundary: v0.8.0 已存在 stable GitHub Release；文档必须区分 construction closeout、public GitHub Release publication 和 production cutover。该 issue 只同步已发生 release publication 事实，不创建 tag、不移动 release、不授权 production cutover、不读取 secret、不连接 endpoint / broker、不提交 testnet 或 production 订单。
 
 ## Unified Entry
 

@@ -39,18 +39,22 @@ V070_AUDIT="docs/audit/mtpro-release-v0.7.0-operator-runtime-session-testnet-rea
 require_file_contains "$POLICY" "GH-808-RELEASE-PUBLICATION-POLICY"
 require_file_contains "$POLICY" "V080-002-V070-ACTUAL-GITHUB-RELEASE"
 require_file_contains "$POLICY" "V080-002-V080-CONSTRUCTION-VS-PUBLICATION"
+require_file_contains "$POLICY" "GH-835-V081-V080-ACTUAL-GITHUB-RELEASE"
 require_file_contains "$POLICY" "V080-002-TAG-NAMING-RULES"
 require_file_contains "$POLICY" "V080-002-GITHUB-RELEASE-CHECKLIST"
 require_file_contains "$POLICY" "V080-002-SOURCE-CHECKSUM-EXPECTATIONS"
 require_file_contains "$POLICY" "V080-002-RELEASE-NOTES-PUBLISHING-GATE"
 require_file_contains "$POLICY" "TVM-RELEASE-V080-RELEASE-PUBLICATION-POLICY"
 require_file_contains "$POLICY" "https://github.com/atxinbao/MTPRO/releases/tag/v0.7.0"
+require_file_contains "$POLICY" "https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0"
 require_file_contains "$POLICY" 'tag peeled commit：`79bd7309b5d644599b6879e615489562455cd3fe`'
+require_file_contains "$POLICY" 'tag peeled commit：`d83b3b564096a5427db15a437921fc797b22564d`'
 require_file_contains "$POLICY" "git archive --format=tar --prefix=MTPRO-v0.8.0/ v0.8.0 | shasum -a 256"
 require_file_contains "$POLICY" "construction closeout 不等于 public release publication"
 require_file_contains "$POLICY" "public release publication 也不等于 production cutover"
 
-require_file_contains "README.md" "v0.7.0 后续已通过独立 release publication gate 发布 stable GitHub Release"
+require_file_contains "README.md" "v0.7.0 和 v0.8.0 均已通过各自独立 release publication gate 发布 stable GitHub Release"
+require_file_contains "README.md" "https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0"
 require_file_contains "README.md" "docs/release/release-publication-policy.md"
 require_file_contains "$V070_NOTES" "v0.7.0 后续已通过独立 release publication gate 发布 stable GitHub Release"
 require_file_contains "$V070_NOTES" "https://github.com/atxinbao/MTPRO/releases/tag/v0.7.0"

@@ -8270,8 +8270,12 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertTrue(policy.contains(releaseFact), "\(releaseFact) must stay recorded for v0.7.0 publication")
         }
 
-        XCTAssertTrue(readme.contains("v0.7.0 后续已通过独立 release publication gate 发布 stable GitHub Release"))
+        XCTAssertTrue(readme.contains("v0.7.0 和 v0.8.0 均已通过各自独立 release publication gate 发布 stable GitHub Release"))
+        XCTAssertTrue(readme.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0"))
         XCTAssertTrue(releaseNotes.contains("v0.7.0 后续已通过独立 release publication gate 发布 stable GitHub Release"))
+        XCTAssertTrue(policy.contains("GH-835-V081-V080-ACTUAL-GITHUB-RELEASE"))
+        XCTAssertTrue(policy.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0"))
+        XCTAssertTrue(policy.contains("tag peeled commit：`d83b3b564096a5427db15a437921fc797b22564d`"))
         XCTAssertTrue(auditReport.contains("v0.7.0 was later published through a separate stable GitHub Release gate"))
         XCTAssertTrue(policy.contains("construction closeout 不等于 public release publication"))
         XCTAssertTrue(policy.contains("public release publication 也不等于 production cutover"))
