@@ -8328,6 +8328,92 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT"))
     }
 
+    func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let verifyScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "checks/verify-v0.9.0-v080-publication-alignment.sh"
+            ),
+            encoding: .utf8
+        )
+        let v081Verifier = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "checks/verify-v0.8.1-v080-release-publication-docs.sh"
+            ),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-844-VERIFY-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD",
+            "TVM-RELEASE-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD",
+            "V090-002-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD",
+            "GH-835-V081-V080-ACTUAL-GITHUB-RELEASE",
+            "V081-001-V080-PUBLICATION-DOCS-ALIGNMENT"
+        ] {
+            XCTAssertTrue(
+                contract.contains(anchor)
+                    || verifyScript.contains(anchor)
+                    || validationPlan.contains(anchor)
+                    || tradingMatrix.contains(anchor)
+                    || automationReadiness.contains(anchor),
+                "\(anchor) must stay wired into v0.9.0 publication alignment evidence"
+            )
+        }
+
+        for releaseFact in [
+            "https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0",
+            "d83b3b564096a5427db15a437921fc797b22564d",
+            "construction closeout、public GitHub Release publication 和 production cutover 仍是三个独立 gate",
+            "不得把 v0.8.0 stable GitHub Release publication 当作 production cutover authorization"
+        ] {
+            XCTAssertTrue(contract.contains(releaseFact) || tradingMatrix.contains(releaseFact))
+        }
+
+        XCTAssertTrue(verifyScript.contains("bash \"$V081_VERIFIER\""))
+        XCTAssertTrue(v081Verifier.contains("GH-835-V081-V080-ACTUAL-GITHUB-RELEASE"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-v080-publication-alignment.sh"))
+        XCTAssertTrue(validationPlan.contains("GH-844 Release v0.9.0 v0.8.0 Publication Alignment Carry-forward Validation"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 v0.8.0 publication alignment carry-forward anchor"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "testnetCancelReplaceAllowed=true"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization), "GH-844 must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-844 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-844 matrix must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(

@@ -27,6 +27,20 @@
 - reconciliation hardening: matched / delta / missing / stale / blocked 只作为 explain-only review evidence，不创建 correction command 或 broker write。
 - forbidden scope: no production trading, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet order submission, no real order, no production cutover, no notification side effect, no automatic recovery command.
 
+## TVM-RELEASE-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD
+
+- TVM-RELEASE-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD
+- GH-844-VERIFY-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD
+- V090-002-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD
+- GH-835-V081-V080-ACTUAL-GITHUB-RELEASE
+- V081-001-V080-PUBLICATION-DOCS-ALIGNMENT
+- GH-844 Release v0.9.0 v0.8.0 Publication Alignment Carry-forward Validation
+- testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover
+- `bash checks/verify-v0.9.0-v080-publication-alignment.sh`
+- v0.8.0 stable GitHub Release exists at `https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0` and points to peeled commit `d83b3b564096a5427db15a437921fc797b22564d`。
+- v0.9.0 dependency posture: construction closeout、public GitHub Release publication 和 production cutover remain separate gates; v0.9.0 can cite v0.8.0 stable publication evidence but cannot treat it as runtime capability or cutover authorization.
+- forbidden scope: no tag move, no release rewrite, no new release creation, no runtime change, no production cutover, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
