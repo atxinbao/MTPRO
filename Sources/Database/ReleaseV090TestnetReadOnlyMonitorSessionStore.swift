@@ -14,8 +14,10 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreError: Error, Equatable
     case corruptedMonitorSession(String)
     case corruptedMonitorEvents(String)
     case corruptedMonitorStatus(String)
+    case corruptedAccountSnapshotFreshness(String)
     case checksumMismatch(expected: String, actual: String)
     case invalidTransition(command: String, fromState: String)
+    case unsafeCredentialReference(String)
     case lockUnavailable(String)
     case boundaryDrift(String)
 
@@ -33,10 +35,14 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreError: Error, Equatable
             "Release v0.9.0 testnet read-only monitor session fails closed because monitor_events.jsonl is corrupted at \(path)"
         case let .corruptedMonitorStatus(path):
             "Release v0.9.0 testnet read-only monitor session fails closed because monitor_status.json is corrupted at \(path)"
+        case let .corruptedAccountSnapshotFreshness(path):
+            "Release v0.9.0 signed account snapshot freshness fails closed because account-snapshot-freshness.json is corrupted at \(path)"
         case let .checksumMismatch(expected, actual):
             "Release v0.9.0 testnet read-only monitor session checksum mismatch: expected \(expected), actual \(actual)"
         case let .invalidTransition(command, fromState):
             "Release v0.9.0 testnet read-only monitor session rejects \(command) from \(fromState)"
+        case let .unsafeCredentialReference(reference):
+            "Release v0.9.0 signed account snapshot freshness rejects unsafe credential reference \(reference)"
         case let .lockUnavailable(path):
             "Release v0.9.0 testnet read-only monitor session lock is unavailable at \(path)"
         case let .boundaryDrift(field):
@@ -57,11 +63,18 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "V090-003-MONITOR-STATE-TAXONOMY",
         "V090-003-APPEND-ONLY-MONITOR-EVENTS",
         "V090-003-CORRUPTED-ARTIFACTS-FAIL-CLOSED",
-        "V090-003-NO-ORDER-PRODUCTION-CUTOVER"
+        "V090-003-NO-ORDER-PRODUCTION-CUTOVER",
+        "GH-846-VERIFY-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS",
+        "TVM-RELEASE-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS",
+        "V090-004-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS",
+        "V090-004-ACCOUNT-SNAPSHOT-FRESHNESS-JSON",
+        "V090-004-REDACTED-CREDENTIAL-REFERENCE",
+        "V090-004-NO-RAW-PAYLOAD-PERSISTENCE"
     ]
 
     public static let requiredValidationCommands: [String] = [
         "bash checks/verify-v0.9.0-monitor-session-store.sh",
+        "bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh",
         "swift test --filter TargetGraphTests/testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed"
     ]
 }
@@ -103,6 +116,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
     public let monitorSessionJSONPath: String
     public let monitorEventsJSONLPath: String
     public let monitorStatusJSONPath: String
+    public let accountSnapshotFreshnessJSONPath: String
 
     public var pathsHeld: Bool {
         runDirectoryPath.hasPrefix(".local/mtpro/runs/")
@@ -110,6 +124,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
             && monitorSessionJSONPath == "\(monitorDirectoryPath)/monitor_session.json"
             && monitorEventsJSONLPath == "\(monitorDirectoryPath)/monitor_events.jsonl"
             && monitorStatusJSONPath == "\(monitorDirectoryPath)/monitor_status.json"
+            && accountSnapshotFreshnessJSONPath == "\(monitorDirectoryPath)/account-snapshot-freshness.json"
     }
 
     public init(runID: Identifier) throws {
@@ -123,6 +138,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
         self.monitorSessionJSONPath = "\(monitorDirectoryPath)/monitor_session.json"
         self.monitorEventsJSONLPath = "\(monitorDirectoryPath)/monitor_events.jsonl"
         self.monitorStatusJSONPath = "\(monitorDirectoryPath)/monitor_status.json"
+        self.accountSnapshotFreshnessJSONPath = "\(monitorDirectoryPath)/account-snapshot-freshness.json"
 
         guard pathsHeld else {
             throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("monitorArtifactPaths")
@@ -546,6 +562,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionDocument: Codable, Equatab
             artifactPaths.monitorSessionJSONPath,
             artifactPaths.monitorEventsJSONLPath,
             artifactPaths.monitorStatusJSONPath,
+            artifactPaths.accountSnapshotFreshnessJSONPath,
             state.rawValue,
             String(createdAt.timeIntervalSince1970),
             String(updatedAt.timeIntervalSince1970),
@@ -772,6 +789,294 @@ public struct ReleaseV090TestnetReadOnlyMonitorStatusDocument: Codable, Equatabl
     }
 }
 
+/// ReleaseV090AccountSnapshotFreshnessStatus 固定 v0.9.0 freshness / staleness taxonomy。
+///
+/// 这些状态只描述本地 read-only monitor artifact freshness，不授权 reconnect、
+/// endpoint mutation、broker action、testnet order 或 production order。
+public enum ReleaseV090AccountSnapshotFreshnessStatus: String, Codable, CaseIterable, Equatable, Sendable {
+    case fresh
+    case stale
+    case disconnected
+    case recovering
+    case recovered
+    case blocked
+    case unavailable
+}
+
+/// ReleaseV090AccountSnapshotAgeBucket 固定 account snapshot freshness 的可审计年龄分桶。
+public enum ReleaseV090AccountSnapshotAgeBucket: String, Codable, Equatable, Sendable {
+    case withinThreshold
+    case overThreshold
+    case unavailable
+}
+
+/// ReleaseV090AccountSnapshotFreshnessDocument 是 `account-snapshot-freshness.json` 的本地 payload。
+///
+/// 文档只保存 snapshot freshness evidence 和 redacted credential reference；它不保存
+/// raw account payload、credential value、endpoint secret、broker state 或 order request。
+public struct ReleaseV090AccountSnapshotFreshnessDocument: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.9.0.account-snapshot-freshness.v1"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let runID: Identifier
+    public let monitorSessionChecksum: String
+    public let accountSnapshotFreshnessJSONPath: String
+    public let source: String
+    public let snapshotObservedAt: Date
+    public let recordedAt: Date
+    public let latencyMilliseconds: Int
+    public let ageSeconds: Int
+    public let staleThresholdSeconds: Int
+    public let freshnessStatus: ReleaseV090AccountSnapshotFreshnessStatus
+    public let ageBucket: ReleaseV090AccountSnapshotAgeBucket
+    public let staleReason: String?
+    public let redactedCredentialReference: String
+    public let redactionHeld: Bool
+    public let rawPayloadPersisted: Bool
+    public let rawAccountPayloadPersisted: Bool
+    public let credentialValuePersisted: Bool
+    public let noOrderHeld: Bool
+    public let testnetReadOnlyObservabilityAllowed: Bool
+    public let ciNetworkRequired: Bool
+    public let ciSecretRead: Bool
+    public let ciOrderSubmissionAllowed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let productionBrokerConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let testnetOrderRoutingAllowed: Bool
+    public let testnetCancelReplaceAllowed: Bool
+    public let freshnessChecksum: String
+
+    public var documentHeld: Bool {
+        issueID.rawValue == "GH-846"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-843", "GH-844", "GH-845"]
+            && releaseVersion == "v0.9.0"
+            && schemaVersion == Self.schemaVersion
+            && runID.rawValue.isEmpty == false
+            && monitorSessionChecksum.hasPrefix("sha256:")
+            && accountSnapshotFreshnessJSONPath == ".local/mtpro/runs/\(runID.rawValue)/testnet-readonly-monitor/account-snapshot-freshness.json"
+            && source == "signed-account-snapshot"
+            && snapshotObservedAt <= recordedAt
+            && latencyMilliseconds >= 0
+            && ageSeconds >= 0
+            && staleThresholdSeconds > 0
+            && freshnessStatus == Self.status(ageSeconds: ageSeconds, staleThresholdSeconds: staleThresholdSeconds)
+            && ageBucket == Self.ageBucket(ageSeconds: ageSeconds, staleThresholdSeconds: staleThresholdSeconds)
+            && (freshnessStatus == .stale ? staleReason != nil : true)
+            && redactedCredentialReference.hasSuffix(":<redacted>")
+            && redactedCredentialReference.containsForbiddenCredentialMaterial == false
+            && redactionHeld
+            && rawPayloadPersisted == false
+            && rawAccountPayloadPersisted == false
+            && credentialValuePersisted == false
+            && noOrderHeld
+            && testnetReadOnlyObservabilityAllowed
+            && ciNetworkRequired == false
+            && ciSecretRead == false
+            && ciOrderSubmissionAllowed == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && productionBrokerConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && testnetOrderSubmissionAllowed == false
+            && testnetOrderRoutingAllowed == false
+            && testnetCancelReplaceAllowed == false
+            && freshnessChecksum == Self.stableFreshnessChecksum(
+                runID: runID,
+                monitorSessionChecksum: monitorSessionChecksum,
+                accountSnapshotFreshnessJSONPath: accountSnapshotFreshnessJSONPath,
+                source: source,
+                snapshotObservedAt: snapshotObservedAt,
+                recordedAt: recordedAt,
+                latencyMilliseconds: latencyMilliseconds,
+                ageSeconds: ageSeconds,
+                staleThresholdSeconds: staleThresholdSeconds,
+                freshnessStatus: freshnessStatus,
+                ageBucket: ageBucket,
+                staleReason: staleReason,
+                redactedCredentialReference: redactedCredentialReference
+            )
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-846"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-843"), Identifier.constant("GH-844"), Identifier.constant("GH-845")],
+        releaseVersion: String = "v0.9.0",
+        schemaVersion: String = Self.schemaVersion,
+        runID: Identifier,
+        monitorSessionChecksum: String,
+        accountSnapshotFreshnessJSONPath: String,
+        source: String = "signed-account-snapshot",
+        snapshotObservedAt: Date,
+        recordedAt: Date,
+        latencyMilliseconds: Int,
+        staleThresholdSeconds: Int,
+        redactedCredentialReference: String,
+        staleReason: String? = nil,
+        freshnessChecksum: String? = nil,
+        redactionHeld: Bool = true,
+        rawPayloadPersisted: Bool = false,
+        rawAccountPayloadPersisted: Bool = false,
+        credentialValuePersisted: Bool = false,
+        noOrderHeld: Bool = true,
+        testnetReadOnlyObservabilityAllowed: Bool = true,
+        ciNetworkRequired: Bool = false,
+        ciSecretRead: Bool = false,
+        ciOrderSubmissionAllowed: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        productionBrokerConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false,
+        testnetCancelReplaceAllowed: Bool = false
+    ) throws {
+        let ageSeconds = max(0, Int(recordedAt.timeIntervalSince(snapshotObservedAt)))
+        let freshnessStatus = Self.status(ageSeconds: ageSeconds, staleThresholdSeconds: staleThresholdSeconds)
+        let ageBucket = Self.ageBucket(ageSeconds: ageSeconds, staleThresholdSeconds: staleThresholdSeconds)
+
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.runID = runID
+        self.monitorSessionChecksum = monitorSessionChecksum
+        self.accountSnapshotFreshnessJSONPath = accountSnapshotFreshnessJSONPath
+        self.source = source
+        self.snapshotObservedAt = snapshotObservedAt
+        self.recordedAt = recordedAt
+        self.latencyMilliseconds = latencyMilliseconds
+        self.ageSeconds = ageSeconds
+        self.staleThresholdSeconds = staleThresholdSeconds
+        self.freshnessStatus = freshnessStatus
+        self.ageBucket = ageBucket
+        self.staleReason = staleReason
+        self.redactedCredentialReference = redactedCredentialReference
+        self.redactionHeld = redactionHeld
+        self.rawPayloadPersisted = rawPayloadPersisted
+        self.rawAccountPayloadPersisted = rawAccountPayloadPersisted
+        self.credentialValuePersisted = credentialValuePersisted
+        self.noOrderHeld = noOrderHeld
+        self.testnetReadOnlyObservabilityAllowed = testnetReadOnlyObservabilityAllowed
+        self.ciNetworkRequired = ciNetworkRequired
+        self.ciSecretRead = ciSecretRead
+        self.ciOrderSubmissionAllowed = ciOrderSubmissionAllowed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.productionBrokerConnected = productionBrokerConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+        self.testnetCancelReplaceAllowed = testnetCancelReplaceAllowed
+        self.freshnessChecksum = freshnessChecksum ?? Self.stableFreshnessChecksum(
+            runID: runID,
+            monitorSessionChecksum: monitorSessionChecksum,
+            accountSnapshotFreshnessJSONPath: accountSnapshotFreshnessJSONPath,
+            source: source,
+            snapshotObservedAt: snapshotObservedAt,
+            recordedAt: recordedAt,
+            latencyMilliseconds: latencyMilliseconds,
+            ageSeconds: ageSeconds,
+            staleThresholdSeconds: staleThresholdSeconds,
+            freshnessStatus: freshnessStatus,
+            ageBucket: ageBucket,
+            staleReason: staleReason,
+            redactedCredentialReference: redactedCredentialReference
+        )
+
+        guard documentHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("accountSnapshotFreshnessDocument")
+        }
+    }
+
+    public static func status(
+        ageSeconds: Int,
+        staleThresholdSeconds: Int
+    ) -> ReleaseV090AccountSnapshotFreshnessStatus {
+        ageSeconds <= staleThresholdSeconds ? .fresh : .stale
+    }
+
+    public static func ageBucket(
+        ageSeconds: Int,
+        staleThresholdSeconds: Int
+    ) -> ReleaseV090AccountSnapshotAgeBucket {
+        ageSeconds <= staleThresholdSeconds ? .withinThreshold : .overThreshold
+    }
+
+    public static func stableFreshnessChecksum(
+        runID: Identifier,
+        monitorSessionChecksum: String,
+        accountSnapshotFreshnessJSONPath: String,
+        source: String,
+        snapshotObservedAt: Date,
+        recordedAt: Date,
+        latencyMilliseconds: Int,
+        ageSeconds: Int,
+        staleThresholdSeconds: Int,
+        freshnessStatus: ReleaseV090AccountSnapshotFreshnessStatus,
+        ageBucket: ReleaseV090AccountSnapshotAgeBucket,
+        staleReason: String?,
+        redactedCredentialReference: String
+    ) -> String {
+        stableSHA256([
+            "GH-846",
+            "v0.9.0",
+            Self.schemaVersion,
+            runID.rawValue,
+            monitorSessionChecksum,
+            accountSnapshotFreshnessJSONPath,
+            source,
+            String(snapshotObservedAt.timeIntervalSince1970),
+            String(recordedAt.timeIntervalSince1970),
+            String(latencyMilliseconds),
+            String(ageSeconds),
+            String(staleThresholdSeconds),
+            freshnessStatus.rawValue,
+            ageBucket.rawValue,
+            staleReason ?? "",
+            redactedCredentialReference,
+            "redactionHeld=true",
+            "rawPayloadPersisted=false",
+            "rawAccountPayloadPersisted=false",
+            "credentialValuePersisted=false",
+            "noOrderHeld=true",
+            "testnetReadOnlyObservabilityAllowed=true",
+            "ciNetworkRequired=false",
+            "ciSecretRead=false",
+            "ciOrderSubmissionAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "productionBrokerConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false",
+            "testnetCancelReplaceAllowed=false"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
 /// ReleaseV090TestnetReadOnlyMonitorSessionStore 提供 GH-845 monitor session 本地持久化入口。
 ///
 /// Store 只操作本地 `monitor_session.json`、`monitor_events.jsonl` 和
@@ -899,6 +1204,76 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
             throw error
         } catch {
             throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedMonitorStatus(statusURL.path)
+        }
+    }
+
+    @discardableResult
+    public func recordAccountSnapshotFreshness(
+        runID: Identifier,
+        snapshotObservedAt: Date,
+        recordedAt: Date,
+        latencyMilliseconds: Int,
+        staleThresholdSeconds: Int,
+        credentialReference: String,
+        staleReason: String? = nil
+    ) throws -> ReleaseV090AccountSnapshotFreshnessDocument {
+        try withMonitorLock(runID: runID) {
+            let session = try load(runID: runID)
+            let redactedCredentialReference = try Self.redactedCredentialReference(from: credentialReference)
+            let document = try ReleaseV090AccountSnapshotFreshnessDocument(
+                runID: runID,
+                monitorSessionChecksum: session.sessionChecksum,
+                accountSnapshotFreshnessJSONPath: session.artifactPaths.accountSnapshotFreshnessJSONPath,
+                snapshotObservedAt: snapshotObservedAt,
+                recordedAt: recordedAt,
+                latencyMilliseconds: latencyMilliseconds,
+                staleThresholdSeconds: staleThresholdSeconds,
+                redactedCredentialReference: redactedCredentialReference,
+                staleReason: staleReason
+            )
+            try writeJSON(document, to: accountSnapshotFreshnessURL(runID: runID))
+            return document
+        }
+    }
+
+    public func accountSnapshotFreshness(runID: Identifier) throws -> ReleaseV090AccountSnapshotFreshnessDocument {
+        let freshnessURL = try accountSnapshotFreshnessURL(runID: runID)
+        guard fileManager.fileExists(atPath: freshnessURL.path) else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedAccountSnapshotFreshness(freshnessURL.path)
+        }
+        do {
+            let session = try load(runID: runID)
+            let data = try Data(contentsOf: freshnessURL)
+            let document = try Self.decoder.decode(ReleaseV090AccountSnapshotFreshnessDocument.self, from: data)
+            let expectedChecksum = ReleaseV090AccountSnapshotFreshnessDocument.stableFreshnessChecksum(
+                runID: document.runID,
+                monitorSessionChecksum: document.monitorSessionChecksum,
+                accountSnapshotFreshnessJSONPath: document.accountSnapshotFreshnessJSONPath,
+                source: document.source,
+                snapshotObservedAt: document.snapshotObservedAt,
+                recordedAt: document.recordedAt,
+                latencyMilliseconds: document.latencyMilliseconds,
+                ageSeconds: document.ageSeconds,
+                staleThresholdSeconds: document.staleThresholdSeconds,
+                freshnessStatus: document.freshnessStatus,
+                ageBucket: document.ageBucket,
+                staleReason: document.staleReason,
+                redactedCredentialReference: document.redactedCredentialReference
+            )
+            guard document.freshnessChecksum == expectedChecksum else {
+                throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.checksumMismatch(
+                    expected: expectedChecksum,
+                    actual: document.freshnessChecksum
+                )
+            }
+            guard document.monitorSessionChecksum == session.sessionChecksum, document.documentHeld else {
+                throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("decodedAccountSnapshotFreshness")
+            }
+            return document
+        } catch let error as ReleaseV090TestnetReadOnlyMonitorSessionStoreError {
+            throw error
+        } catch {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedAccountSnapshotFreshness(freshnessURL.path)
         }
     }
 
@@ -1042,6 +1417,21 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
         return monitorDirectoryURL(runID: runID).appendingPathComponent("monitor_status.json", isDirectory: false)
     }
 
+    private func accountSnapshotFreshnessURL(runID: Identifier) throws -> URL {
+        guard runID.rawValue.isEmpty == false else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.emptyRunID
+        }
+        return monitorDirectoryURL(runID: runID).appendingPathComponent("account-snapshot-freshness.json", isDirectory: false)
+    }
+
+    private static func redactedCredentialReference(from credentialReference: String) throws -> String {
+        let trimmed = credentialReference.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false, trimmed.containsForbiddenCredentialMaterial == false else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.unsafeCredentialReference(credentialReference)
+        }
+        return "\(trimmed):<redacted>"
+    }
+
     private static var encoder: JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -1060,5 +1450,35 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return decoder
+    }
+}
+
+private extension String {
+    /// 只允许保存逻辑 credential profile reference；明显的 secret、token 或 raw key 片段必须 fail closed。
+    var containsForbiddenCredentialMaterial: Bool {
+        let lowered = lowercased()
+        let forbiddenFragments = [
+            "secret",
+            "api_key",
+            "apikey",
+            "api-key",
+            "token",
+            "password",
+            "private",
+            "raw",
+            "listenkey",
+            "listen-key",
+            "signature=",
+            "x-mbx-apikey",
+            "begin ",
+            "-----"
+        ]
+        if forbiddenFragments.contains(where: lowered.contains) {
+            return true
+        }
+        let compact = replacingOccurrences(of: "-", with: "")
+            .replacingOccurrences(of: "_", with: "")
+            .replacingOccurrences(of: ":", with: "")
+        return compact.count >= 32 && compact.allSatisfy { $0.isLetter || $0.isNumber }
     }
 }

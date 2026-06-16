@@ -116,6 +116,7 @@ bash checks/verify-v0.8.1.sh
 bash checks/verify-v0.9.0-contract.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
+bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
 bash checks/verify-v0.8.0-run-registry-store.sh
 bash checks/verify-v0.8.0-cli-local-session.sh
 bash checks/verify-v0.8.0-operational-session-store.sh

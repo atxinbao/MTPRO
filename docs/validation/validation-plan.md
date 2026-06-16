@@ -49,6 +49,18 @@
 - Focused test: `testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed`
 - Boundary: GH-845 只新增本地 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor_session.json`、`monitor_events.jsonl` 和 `monitor_status.json` artifact store，覆盖 created / connecting / observing / stale / disconnected / recovering / stopped / failed 状态、append-only event checksum chain 和 corrupted artifact fail-closed；不启动 runtime、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-846 Release v0.9.0 Signed Account Snapshot Freshness Monitor Validation
+
+- `GH-846-VERIFY-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS`
+- `TVM-RELEASE-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS`
+- `V090-004-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS`
+- `V090-004-ACCOUNT-SNAPSHOT-FRESHNESS-JSON`
+- `V090-004-REDACTED-CREDENTIAL-REFERENCE`
+- `V090-004-NO-RAW-PAYLOAD-PERSISTENCE`
+- Required command: `bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh`
+- Focused test: `testGH846SignedAccountSnapshotFreshnessMonitorPersistsRedactedEvidence`
+- Boundary: GH-846 只新增本地 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/account-snapshot-freshness.json` artifact，记录 signed account snapshot timestamp、latency、stale threshold、fresh / stale status、age bucket、stale reason、monitorSessionChecksum 和 redacted credential reference；不保存 raw account payload、不保存 credential value、不启动 CI network、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`
