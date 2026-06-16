@@ -16,6 +16,7 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreError: Error, Equatable
     case corruptedMonitorStatus(String)
     case corruptedAccountSnapshotFreshness(String)
     case corruptedPrivateStreamHeartbeat(String)
+    case corruptedMonitorRecovery(String)
     case checksumMismatch(expected: String, actual: String)
     case invalidTransition(command: String, fromState: String)
     case unsafeCredentialReference(String)
@@ -41,6 +42,8 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreError: Error, Equatable
             "Release v0.9.0 signed account snapshot freshness fails closed because account-snapshot-freshness.json is corrupted at \(path)"
         case let .corruptedPrivateStreamHeartbeat(path):
             "Release v0.9.0 private stream heartbeat fails closed because private-stream-heartbeat.json is corrupted at \(path)"
+        case let .corruptedMonitorRecovery(path):
+            "Release v0.9.0 monitor recovery fails closed because monitor-recovery.json is corrupted at \(path)"
         case let .checksumMismatch(expected, actual):
             "Release v0.9.0 testnet read-only monitor session checksum mismatch: expected \(expected), actual \(actual)"
         case let .invalidTransition(command, fromState):
@@ -81,13 +84,20 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "V090-005-PRIVATE-STREAM-HEARTBEAT-STALENESS",
         "V090-005-PRIVATE-STREAM-HEARTBEAT-JSON",
         "V090-005-REDACTED-LISTENKEY-REFERENCE",
-        "V090-005-NO-RAW-PRIVATE-PAYLOAD-PERSISTENCE"
+        "V090-005-NO-RAW-PRIVATE-PAYLOAD-PERSISTENCE",
+        "GH-848-VERIFY-V090-MONITOR-RECOVERY-WORKFLOW",
+        "TVM-RELEASE-V090-MONITOR-RECOVERY-WORKFLOW",
+        "V090-006-MONITOR-RECOVERY-WORKFLOW",
+        "V090-006-MONITOR-RECOVERY-JSON",
+        "V090-006-PRESERVE-MONITOR-EVENT-HISTORY",
+        "V090-006-LOCAL-MANUAL-RECOVERY-ONLY"
     ]
 
     public static let requiredValidationCommands: [String] = [
         "bash checks/verify-v0.9.0-monitor-session-store.sh",
         "bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh",
         "bash checks/verify-v0.9.0-private-stream-heartbeat-monitor.sh",
+        "bash checks/verify-v0.9.0-monitor-recovery-workflow.sh",
         "swift test --filter TargetGraphTests/testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed"
     ]
 }
@@ -131,6 +141,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
     public let monitorStatusJSONPath: String
     public let accountSnapshotFreshnessJSONPath: String
     public let privateStreamHeartbeatJSONPath: String
+    public let monitorRecoveryJSONPath: String
 
     public var pathsHeld: Bool {
         runDirectoryPath.hasPrefix(".local/mtpro/runs/")
@@ -140,6 +151,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
             && monitorStatusJSONPath == "\(monitorDirectoryPath)/monitor_status.json"
             && accountSnapshotFreshnessJSONPath == "\(monitorDirectoryPath)/account-snapshot-freshness.json"
             && privateStreamHeartbeatJSONPath == "\(monitorDirectoryPath)/private-stream-heartbeat.json"
+            && monitorRecoveryJSONPath == "\(monitorDirectoryPath)/monitor-recovery.json"
     }
 
     public init(runID: Identifier) throws {
@@ -155,6 +167,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
         self.monitorStatusJSONPath = "\(monitorDirectoryPath)/monitor_status.json"
         self.accountSnapshotFreshnessJSONPath = "\(monitorDirectoryPath)/account-snapshot-freshness.json"
         self.privateStreamHeartbeatJSONPath = "\(monitorDirectoryPath)/private-stream-heartbeat.json"
+        self.monitorRecoveryJSONPath = "\(monitorDirectoryPath)/monitor-recovery.json"
 
         guard pathsHeld else {
             throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("monitorArtifactPaths")
@@ -580,6 +593,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionDocument: Codable, Equatab
             artifactPaths.monitorStatusJSONPath,
             artifactPaths.accountSnapshotFreshnessJSONPath,
             artifactPaths.privateStreamHeartbeatJSONPath,
+            artifactPaths.monitorRecoveryJSONPath,
             state.rawValue,
             String(createdAt.timeIntervalSince1970),
             String(updatedAt.timeIntervalSince1970),
@@ -1498,6 +1512,326 @@ public struct ReleaseV090PrivateStreamHeartbeatDocument: Codable, Equatable, Sen
     }
 }
 
+/// ReleaseV090MonitorRecoveryAction 固定 no-order monitor recovery 的本地动作分类。
+public enum ReleaseV090MonitorRecoveryAction: String, Codable, CaseIterable, Equatable, Sendable {
+    case recoverStaleMonitor
+    case recoverDisconnectedMonitor
+    case reopenListenKeyEvidence
+    case rebuildReadModelEvidence
+}
+
+/// ReleaseV090MonitorRecoveryDocument 是 `monitor-recovery.json` 的本地 payload。
+///
+/// 文档只保存手动 recovery evidence、事件历史 checksum 前缀和 redacted listenKey reference；
+/// 它不启动 reconnect runtime，不保存 raw listenKey / private payload，不写 broker 或 order。
+public struct ReleaseV090MonitorRecoveryDocument: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.9.0.monitor-recovery.v1"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let runID: Identifier
+    public let monitorRecoveryJSONPath: String
+    public let preRecoveryMonitorSessionChecksum: String
+    public let recoveredMonitorSessionChecksum: String
+    public let recoveryAction: ReleaseV090MonitorRecoveryAction
+    public let fromState: ReleaseV090TestnetReadOnlyMonitorState
+    public let intermediateState: ReleaseV090TestnetReadOnlyMonitorState
+    public let toState: ReleaseV090TestnetReadOnlyMonitorState
+    public let recoveryReason: String
+    public let recoveredAt: Date
+    public let observedAfterRecoveryAt: Date
+    public let previousEventCount: Int
+    public let recoveredEventCount: Int
+    public let previousEventChecksums: [String]
+    public let recoveredEventChecksums: [String]
+    public let eventHistoryPreserved: Bool
+    public let redactedListenKeyReference: String
+    public let listenKeyReferenceHash: String
+    public let reopenedListenKeyEvidence: Bool
+    public let rebuiltReadModelEvidence: Bool
+    public let rebuiltReadModelEvidenceChecksum: String
+    public let manualLocalRecovery: Bool
+    public let automaticReconnectCommand: Bool
+    public let rawListenKeyPersisted: Bool
+    public let rawPrivatePayloadPersisted: Bool
+    public let credentialValuePersisted: Bool
+    public let noOrderHeld: Bool
+    public let testnetReadOnlyObservabilityAllowed: Bool
+    public let ciNetworkRequired: Bool
+    public let ciSecretRead: Bool
+    public let ciOrderSubmissionAllowed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let productionBrokerConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let testnetOrderRoutingAllowed: Bool
+    public let testnetCancelReplaceAllowed: Bool
+    public let recoveryChecksum: String
+
+    public var documentHeld: Bool {
+        issueID.rawValue == "GH-848"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-843", "GH-844", "GH-845", "GH-846", "GH-847"]
+            && releaseVersion == "v0.9.0"
+            && schemaVersion == Self.schemaVersion
+            && runID.rawValue.isEmpty == false
+            && monitorRecoveryJSONPath == ".local/mtpro/runs/\(runID.rawValue)/testnet-readonly-monitor/monitor-recovery.json"
+            && preRecoveryMonitorSessionChecksum.hasPrefix("sha256:")
+            && recoveredMonitorSessionChecksum.hasPrefix("sha256:")
+            && (recoveryAction == .recoverStaleMonitor || recoveryAction == .recoverDisconnectedMonitor)
+            && (fromState == .stale || fromState == .disconnected)
+            && intermediateState == .recovering
+            && toState == .observing
+            && recoveryReason.isEmpty == false
+            && recoveredAt <= observedAfterRecoveryAt
+            && previousEventCount == previousEventChecksums.count
+            && recoveredEventCount == recoveredEventChecksums.count
+            && recoveredEventCount == previousEventCount + 2
+            && Array(recoveredEventChecksums.prefix(previousEventChecksums.count)) == previousEventChecksums
+            && eventHistoryPreserved
+            && redactedListenKeyReference.hasSuffix(":<redacted>")
+            && redactedListenKeyReference.containsForbiddenCredentialMaterial == false
+            && listenKeyReferenceHash.hasPrefix("sha256:")
+            && reopenedListenKeyEvidence
+            && rebuiltReadModelEvidence
+            && rebuiltReadModelEvidenceChecksum.hasPrefix("sha256:")
+            && manualLocalRecovery
+            && automaticReconnectCommand == false
+            && rawListenKeyPersisted == false
+            && rawPrivatePayloadPersisted == false
+            && credentialValuePersisted == false
+            && noOrderHeld
+            && testnetReadOnlyObservabilityAllowed
+            && ciNetworkRequired == false
+            && ciSecretRead == false
+            && ciOrderSubmissionAllowed == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && productionBrokerConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && testnetOrderSubmissionAllowed == false
+            && testnetOrderRoutingAllowed == false
+            && testnetCancelReplaceAllowed == false
+            && recoveryChecksum == Self.stableRecoveryChecksum(
+                runID: runID,
+                monitorRecoveryJSONPath: monitorRecoveryJSONPath,
+                preRecoveryMonitorSessionChecksum: preRecoveryMonitorSessionChecksum,
+                recoveredMonitorSessionChecksum: recoveredMonitorSessionChecksum,
+                recoveryAction: recoveryAction,
+                fromState: fromState,
+                intermediateState: intermediateState,
+                toState: toState,
+                recoveryReason: recoveryReason,
+                recoveredAt: recoveredAt,
+                observedAfterRecoveryAt: observedAfterRecoveryAt,
+                previousEventChecksums: previousEventChecksums,
+                recoveredEventChecksums: recoveredEventChecksums,
+                redactedListenKeyReference: redactedListenKeyReference,
+                listenKeyReferenceHash: listenKeyReferenceHash,
+                rebuiltReadModelEvidenceChecksum: rebuiltReadModelEvidenceChecksum
+            )
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-848"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-843"),
+            Identifier.constant("GH-844"),
+            Identifier.constant("GH-845"),
+            Identifier.constant("GH-846"),
+            Identifier.constant("GH-847")
+        ],
+        releaseVersion: String = "v0.9.0",
+        schemaVersion: String = Self.schemaVersion,
+        runID: Identifier,
+        monitorRecoveryJSONPath: String,
+        preRecoveryMonitorSessionChecksum: String,
+        recoveredMonitorSessionChecksum: String,
+        recoveryAction: ReleaseV090MonitorRecoveryAction,
+        fromState: ReleaseV090TestnetReadOnlyMonitorState,
+        intermediateState: ReleaseV090TestnetReadOnlyMonitorState,
+        toState: ReleaseV090TestnetReadOnlyMonitorState,
+        recoveryReason: String,
+        recoveredAt: Date,
+        observedAfterRecoveryAt: Date,
+        previousEventChecksums: [String],
+        recoveredEventChecksums: [String],
+        redactedListenKeyReference: String,
+        listenKeyReferenceHash: String,
+        rebuiltReadModelEvidenceChecksum: String,
+        recoveryChecksum: String? = nil,
+        reopenedListenKeyEvidence: Bool = true,
+        rebuiltReadModelEvidence: Bool = true,
+        manualLocalRecovery: Bool = true,
+        automaticReconnectCommand: Bool = false,
+        rawListenKeyPersisted: Bool = false,
+        rawPrivatePayloadPersisted: Bool = false,
+        credentialValuePersisted: Bool = false,
+        noOrderHeld: Bool = true,
+        testnetReadOnlyObservabilityAllowed: Bool = true,
+        ciNetworkRequired: Bool = false,
+        ciSecretRead: Bool = false,
+        ciOrderSubmissionAllowed: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        productionBrokerConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false,
+        testnetCancelReplaceAllowed: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.runID = runID
+        self.monitorRecoveryJSONPath = monitorRecoveryJSONPath
+        self.preRecoveryMonitorSessionChecksum = preRecoveryMonitorSessionChecksum
+        self.recoveredMonitorSessionChecksum = recoveredMonitorSessionChecksum
+        self.recoveryAction = recoveryAction
+        self.fromState = fromState
+        self.intermediateState = intermediateState
+        self.toState = toState
+        self.recoveryReason = recoveryReason
+        self.recoveredAt = recoveredAt
+        self.observedAfterRecoveryAt = observedAfterRecoveryAt
+        self.previousEventCount = previousEventChecksums.count
+        self.recoveredEventCount = recoveredEventChecksums.count
+        self.previousEventChecksums = previousEventChecksums
+        self.recoveredEventChecksums = recoveredEventChecksums
+        self.eventHistoryPreserved = Array(recoveredEventChecksums.prefix(previousEventChecksums.count)) == previousEventChecksums
+        self.redactedListenKeyReference = redactedListenKeyReference
+        self.listenKeyReferenceHash = listenKeyReferenceHash
+        self.reopenedListenKeyEvidence = reopenedListenKeyEvidence
+        self.rebuiltReadModelEvidence = rebuiltReadModelEvidence
+        self.rebuiltReadModelEvidenceChecksum = rebuiltReadModelEvidenceChecksum
+        self.manualLocalRecovery = manualLocalRecovery
+        self.automaticReconnectCommand = automaticReconnectCommand
+        self.rawListenKeyPersisted = rawListenKeyPersisted
+        self.rawPrivatePayloadPersisted = rawPrivatePayloadPersisted
+        self.credentialValuePersisted = credentialValuePersisted
+        self.noOrderHeld = noOrderHeld
+        self.testnetReadOnlyObservabilityAllowed = testnetReadOnlyObservabilityAllowed
+        self.ciNetworkRequired = ciNetworkRequired
+        self.ciSecretRead = ciSecretRead
+        self.ciOrderSubmissionAllowed = ciOrderSubmissionAllowed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.productionBrokerConnected = productionBrokerConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+        self.testnetCancelReplaceAllowed = testnetCancelReplaceAllowed
+        self.recoveryChecksum = recoveryChecksum ?? Self.stableRecoveryChecksum(
+            runID: runID,
+            monitorRecoveryJSONPath: monitorRecoveryJSONPath,
+            preRecoveryMonitorSessionChecksum: preRecoveryMonitorSessionChecksum,
+            recoveredMonitorSessionChecksum: recoveredMonitorSessionChecksum,
+            recoveryAction: recoveryAction,
+            fromState: fromState,
+            intermediateState: intermediateState,
+            toState: toState,
+            recoveryReason: recoveryReason,
+            recoveredAt: recoveredAt,
+            observedAfterRecoveryAt: observedAfterRecoveryAt,
+            previousEventChecksums: previousEventChecksums,
+            recoveredEventChecksums: recoveredEventChecksums,
+            redactedListenKeyReference: redactedListenKeyReference,
+            listenKeyReferenceHash: listenKeyReferenceHash,
+            rebuiltReadModelEvidenceChecksum: rebuiltReadModelEvidenceChecksum
+        )
+
+        guard documentHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("monitorRecoveryDocument")
+        }
+    }
+
+    public static func readModelEvidenceChecksum(_ reference: String) -> String {
+        stableSHA256(["GH-848", "rebuiltReadModelEvidence", reference])
+    }
+
+    public static func stableRecoveryChecksum(
+        runID: Identifier,
+        monitorRecoveryJSONPath: String,
+        preRecoveryMonitorSessionChecksum: String,
+        recoveredMonitorSessionChecksum: String,
+        recoveryAction: ReleaseV090MonitorRecoveryAction,
+        fromState: ReleaseV090TestnetReadOnlyMonitorState,
+        intermediateState: ReleaseV090TestnetReadOnlyMonitorState,
+        toState: ReleaseV090TestnetReadOnlyMonitorState,
+        recoveryReason: String,
+        recoveredAt: Date,
+        observedAfterRecoveryAt: Date,
+        previousEventChecksums: [String],
+        recoveredEventChecksums: [String],
+        redactedListenKeyReference: String,
+        listenKeyReferenceHash: String,
+        rebuiltReadModelEvidenceChecksum: String
+    ) -> String {
+        stableSHA256([
+            "GH-848",
+            "v0.9.0",
+            Self.schemaVersion,
+            runID.rawValue,
+            monitorRecoveryJSONPath,
+            preRecoveryMonitorSessionChecksum,
+            recoveredMonitorSessionChecksum,
+            recoveryAction.rawValue,
+            fromState.rawValue,
+            intermediateState.rawValue,
+            toState.rawValue,
+            recoveryReason,
+            String(recoveredAt.timeIntervalSince1970),
+            String(observedAfterRecoveryAt.timeIntervalSince1970),
+            String(previousEventChecksums.count),
+            String(recoveredEventChecksums.count),
+            previousEventChecksums.joined(separator: ","),
+            recoveredEventChecksums.joined(separator: ","),
+            redactedListenKeyReference,
+            listenKeyReferenceHash,
+            "reopenedListenKeyEvidence=true",
+            "rebuiltReadModelEvidence=true",
+            rebuiltReadModelEvidenceChecksum,
+            "manualLocalRecovery=true",
+            "automaticReconnectCommand=false",
+            "rawListenKeyPersisted=false",
+            "rawPrivatePayloadPersisted=false",
+            "credentialValuePersisted=false",
+            "noOrderHeld=true",
+            "testnetReadOnlyObservabilityAllowed=true",
+            "ciNetworkRequired=false",
+            "ciSecretRead=false",
+            "ciOrderSubmissionAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "productionBrokerConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false",
+            "testnetCancelReplaceAllowed=false"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
 /// ReleaseV090TestnetReadOnlyMonitorSessionStore 提供 GH-845 monitor session 本地持久化入口。
 ///
 /// Store 只操作本地 `monitor_session.json`、`monitor_events.jsonl` 和
@@ -1787,6 +2121,104 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
     }
 
     @discardableResult
+    public func recordMonitorRecovery(
+        runID: Identifier,
+        recoveredAt: Date,
+        listenKeyReference: String,
+        recoveryReason: String,
+        rebuiltReadModelEvidenceReference: String,
+        observedAfterRecoveryAt: Date? = nil
+    ) throws -> ReleaseV090MonitorRecoveryDocument {
+        try withMonitorLock(runID: runID) {
+            let current = try load(runID: runID)
+            guard current.state == .stale || current.state == .disconnected else {
+                throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.invalidTransition(
+                    command: ReleaseV090TestnetReadOnlyMonitorCommand.recover.rawValue,
+                    fromState: current.state.rawValue
+                )
+            }
+            let observedAt = observedAfterRecoveryAt ?? recoveredAt.addingTimeInterval(1)
+            let recovering = try current.applying(command: .recover, reason: recoveryReason, at: recoveredAt)
+            let recovered = try recovering.applying(command: .observe, reason: "monitor-recovery-observed", at: observedAt)
+            try writeUnlocked(recovered)
+
+            let redactedListenKeyReference = try Self.redactedListenKeyReference(from: listenKeyReference)
+            let listenKeyReferenceHash = ReleaseV090PrivateStreamHeartbeatDocument.listenKeyReferenceHash(listenKeyReference)
+            let previousEventChecksums = current.events.map(\.eventChecksum)
+            let recoveredEventChecksums = recovered.events.map(\.eventChecksum)
+            let action: ReleaseV090MonitorRecoveryAction = current.state == .stale
+                ? .recoverStaleMonitor
+                : .recoverDisconnectedMonitor
+            let document = try ReleaseV090MonitorRecoveryDocument(
+                runID: runID,
+                monitorRecoveryJSONPath: recovered.artifactPaths.monitorRecoveryJSONPath,
+                preRecoveryMonitorSessionChecksum: current.sessionChecksum,
+                recoveredMonitorSessionChecksum: recovered.sessionChecksum,
+                recoveryAction: action,
+                fromState: current.state,
+                intermediateState: recovering.state,
+                toState: recovered.state,
+                recoveryReason: recoveryReason,
+                recoveredAt: recoveredAt,
+                observedAfterRecoveryAt: observedAt,
+                previousEventChecksums: previousEventChecksums,
+                recoveredEventChecksums: recoveredEventChecksums,
+                redactedListenKeyReference: redactedListenKeyReference,
+                listenKeyReferenceHash: listenKeyReferenceHash,
+                rebuiltReadModelEvidenceChecksum: ReleaseV090MonitorRecoveryDocument.readModelEvidenceChecksum(
+                    rebuiltReadModelEvidenceReference
+                )
+            )
+            try writeJSON(document, to: monitorRecoveryURL(runID: runID))
+            return document
+        }
+    }
+
+    public func monitorRecovery(runID: Identifier) throws -> ReleaseV090MonitorRecoveryDocument {
+        let recoveryURL = try monitorRecoveryURL(runID: runID)
+        guard fileManager.fileExists(atPath: recoveryURL.path) else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedMonitorRecovery(recoveryURL.path)
+        }
+        do {
+            let session = try load(runID: runID)
+            let data = try Data(contentsOf: recoveryURL)
+            let document = try Self.decoder.decode(ReleaseV090MonitorRecoveryDocument.self, from: data)
+            let expectedChecksum = ReleaseV090MonitorRecoveryDocument.stableRecoveryChecksum(
+                runID: document.runID,
+                monitorRecoveryJSONPath: document.monitorRecoveryJSONPath,
+                preRecoveryMonitorSessionChecksum: document.preRecoveryMonitorSessionChecksum,
+                recoveredMonitorSessionChecksum: document.recoveredMonitorSessionChecksum,
+                recoveryAction: document.recoveryAction,
+                fromState: document.fromState,
+                intermediateState: document.intermediateState,
+                toState: document.toState,
+                recoveryReason: document.recoveryReason,
+                recoveredAt: document.recoveredAt,
+                observedAfterRecoveryAt: document.observedAfterRecoveryAt,
+                previousEventChecksums: document.previousEventChecksums,
+                recoveredEventChecksums: document.recoveredEventChecksums,
+                redactedListenKeyReference: document.redactedListenKeyReference,
+                listenKeyReferenceHash: document.listenKeyReferenceHash,
+                rebuiltReadModelEvidenceChecksum: document.rebuiltReadModelEvidenceChecksum
+            )
+            guard document.recoveryChecksum == expectedChecksum else {
+                throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.checksumMismatch(
+                    expected: expectedChecksum,
+                    actual: document.recoveryChecksum
+                )
+            }
+            guard document.recoveredMonitorSessionChecksum == session.sessionChecksum, document.documentHeld else {
+                throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("decodedMonitorRecovery")
+            }
+            return document
+        } catch let error as ReleaseV090TestnetReadOnlyMonitorSessionStoreError {
+            throw error
+        } catch {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedMonitorRecovery(recoveryURL.path)
+        }
+    }
+
+    @discardableResult
     public func apply(
         runID: Identifier,
         command: ReleaseV090TestnetReadOnlyMonitorCommand,
@@ -1938,6 +2370,13 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
             throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.emptyRunID
         }
         return monitorDirectoryURL(runID: runID).appendingPathComponent("private-stream-heartbeat.json", isDirectory: false)
+    }
+
+    private func monitorRecoveryURL(runID: Identifier) throws -> URL {
+        guard runID.rawValue.isEmpty == false else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.emptyRunID
+        }
+        return monitorDirectoryURL(runID: runID).appendingPathComponent("monitor-recovery.json", isDirectory: false)
     }
 
     private static func redactedCredentialReference(from credentialReference: String) throws -> String {

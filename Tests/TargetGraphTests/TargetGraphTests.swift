@@ -9169,6 +9169,239 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH848MonitorRecoveryWorkflowPreservesHistoryAndRedactedEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift"
+            ),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.9.0-monitor-recovery-workflow.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let requiredAnchors = [
+            "GH-848-VERIFY-V090-MONITOR-RECOVERY-WORKFLOW",
+            "TVM-RELEASE-V090-MONITOR-RECOVERY-WORKFLOW",
+            "V090-006-MONITOR-RECOVERY-WORKFLOW",
+            "V090-006-MONITOR-RECOVERY-JSON",
+            "V090-006-PRESERVE-MONITOR-EVENT-HISTORY",
+            "V090-006-LOCAL-MANUAL-RECOVERY-ONLY"
+        ]
+
+        for anchor in requiredAnchors {
+            XCTAssertTrue(
+                [
+                    source,
+                    verificationScript,
+                    readinessScript,
+                    contractDoc,
+                    validationPlan,
+                    tradingMatrix,
+                    automationReadiness
+                ].contains { $0.contains(anchor) },
+                "\(anchor) must stay wired into GH-848 monitor recovery evidence chain"
+            )
+        }
+
+        let temporaryRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH848-MonitorRecovery-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = temporaryRoot
+            .appendingPathComponent(".local", isDirectory: true)
+            .appendingPathComponent("mtpro", isDirectory: true)
+            .appendingPathComponent("runs", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: temporaryRoot)
+        }
+
+        let store = ReleaseV090TestnetReadOnlyMonitorSessionStore(storageRootURL: storageRoot)
+        let runID = Identifier.constant("gh-848-monitor-recovery")
+        let listenKeyReference = "gh-848-stream-lease-profile"
+        _ = try store.create(runID: runID, createdAt: Date(timeIntervalSince1970: 1_782_400_000))
+        _ = try store.apply(runID: runID, command: .connect, reason: "monitor-started", at: Date(timeIntervalSince1970: 1_782_400_010))
+        _ = try store.apply(runID: runID, command: .observe, reason: "read-only-event-observed", at: Date(timeIntervalSince1970: 1_782_400_020))
+        let staleSession = try store.apply(runID: runID, command: .markStale, reason: "private-stream-stale", at: Date(timeIntervalSince1970: 1_782_400_030))
+        let previousChecksums = staleSession.events.map(\.eventChecksum)
+
+        let recovery = try store.recordMonitorRecovery(
+            runID: runID,
+            recoveredAt: Date(timeIntervalSince1970: 1_782_400_040),
+            listenKeyReference: listenKeyReference,
+            recoveryReason: "manual-operator-recovery",
+            rebuiltReadModelEvidenceReference: "gh-848-rebuilt-read-model",
+            observedAfterRecoveryAt: Date(timeIntervalSince1970: 1_782_400_041)
+        )
+        let recoveredSession = try store.load(runID: runID)
+        XCTAssertEqual(recovery.issueID.rawValue, "GH-848")
+        XCTAssertEqual(recovery.upstreamIssueIDs.map(\.rawValue), ["GH-843", "GH-844", "GH-845", "GH-846", "GH-847"])
+        XCTAssertEqual(recovery.releaseVersion, "v0.9.0")
+        XCTAssertEqual(recovery.recoveryAction, .recoverStaleMonitor)
+        XCTAssertEqual(recovery.fromState, .stale)
+        XCTAssertEqual(recovery.intermediateState, .recovering)
+        XCTAssertEqual(recovery.toState, .observing)
+        XCTAssertEqual(recovery.recoveryReason, "manual-operator-recovery")
+        XCTAssertEqual(recovery.previousEventCount, previousChecksums.count)
+        XCTAssertEqual(recovery.recoveredEventCount, previousChecksums.count + 2)
+        XCTAssertEqual(Array(recovery.recoveredEventChecksums.prefix(previousChecksums.count)), previousChecksums)
+        XCTAssertTrue(recovery.eventHistoryPreserved)
+        XCTAssertEqual(recovery.preRecoveryMonitorSessionChecksum, staleSession.sessionChecksum)
+        XCTAssertEqual(recovery.recoveredMonitorSessionChecksum, recoveredSession.sessionChecksum)
+        XCTAssertEqual(recoveredSession.state, .observing)
+        XCTAssertEqual(recoveredSession.events.suffix(2).map(\.command), [.recover, .observe])
+        XCTAssertEqual(recovery.redactedListenKeyReference, "\(listenKeyReference):<redacted>")
+        XCTAssertEqual(
+            recovery.listenKeyReferenceHash,
+            ReleaseV090PrivateStreamHeartbeatDocument.listenKeyReferenceHash(listenKeyReference)
+        )
+        XCTAssertEqual(
+            recovery.rebuiltReadModelEvidenceChecksum,
+            ReleaseV090MonitorRecoveryDocument.readModelEvidenceChecksum("gh-848-rebuilt-read-model")
+        )
+        XCTAssertTrue(recovery.reopenedListenKeyEvidence)
+        XCTAssertTrue(recovery.rebuiltReadModelEvidence)
+        XCTAssertTrue(recovery.manualLocalRecovery)
+        XCTAssertFalse(recovery.automaticReconnectCommand)
+        XCTAssertFalse(recovery.rawListenKeyPersisted)
+        XCTAssertFalse(recovery.rawPrivatePayloadPersisted)
+        XCTAssertFalse(recovery.credentialValuePersisted)
+        XCTAssertTrue(recovery.noOrderHeld)
+        XCTAssertTrue(recovery.documentHeld)
+
+        let monitorDirectory = storageRoot
+            .appendingPathComponent(runID.rawValue, isDirectory: true)
+            .appendingPathComponent("testnet-readonly-monitor", isDirectory: true)
+        let recoveryURL = monitorDirectory.appendingPathComponent("monitor-recovery.json")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: recoveryURL.path))
+        XCTAssertEqual(try store.monitorRecovery(runID: runID), recovery)
+        let recoveryPayload = try String(contentsOf: recoveryURL, encoding: .utf8)
+        XCTAssertTrue(recoveryPayload.contains("monitor-recovery.json"))
+        XCTAssertTrue(recoveryPayload.contains("\"eventHistoryPreserved\" : true"))
+        XCTAssertTrue(recoveryPayload.contains("\"automaticReconnectCommand\" : false"))
+        XCTAssertTrue(recoveryPayload.contains("\"rawListenKeyPersisted\" : false"))
+        XCTAssertTrue(recoveryPayload.contains("\"rawPrivatePayloadPersisted\" : false"))
+        XCTAssertTrue(recoveryPayload.contains("\"credentialValuePersisted\" : false"))
+        XCTAssertFalse(recoveryPayload.contains("fixture-raw-listen-key-value"))
+
+        let invalidRunID = Identifier.constant("gh-848-invalid-created-state")
+        _ = try store.create(runID: invalidRunID, createdAt: Date(timeIntervalSince1970: 1_782_400_100))
+        XCTAssertThrowsError(
+            try store.recordMonitorRecovery(
+                runID: invalidRunID,
+                recoveredAt: Date(timeIntervalSince1970: 1_782_400_110),
+                listenKeyReference: listenKeyReference,
+                recoveryReason: "invalid-created-state",
+                rebuiltReadModelEvidenceReference: "gh-848-rebuilt-read-model"
+            )
+        ) { error in
+            guard case .invalidTransition(command: "recover", fromState: "created") = error as? ReleaseV090TestnetReadOnlyMonitorSessionStoreError else {
+                return XCTFail("monitor recovery must fail closed outside stale/disconnected state, got \(error)")
+            }
+        }
+
+        let disconnectedRunID = Identifier.constant("gh-848-disconnected-recovery")
+        _ = try store.create(runID: disconnectedRunID, createdAt: Date(timeIntervalSince1970: 1_782_400_200))
+        _ = try store.apply(runID: disconnectedRunID, command: .connect, reason: "monitor-started", at: Date(timeIntervalSince1970: 1_782_400_210))
+        _ = try store.apply(runID: disconnectedRunID, command: .observe, reason: "read-only-event-observed", at: Date(timeIntervalSince1970: 1_782_400_220))
+        _ = try store.apply(runID: disconnectedRunID, command: .disconnect, reason: "heartbeat-disconnected", at: Date(timeIntervalSince1970: 1_782_400_230))
+        let disconnectedRecovery = try store.recordMonitorRecovery(
+            runID: disconnectedRunID,
+            recoveredAt: Date(timeIntervalSince1970: 1_782_400_240),
+            listenKeyReference: listenKeyReference,
+            recoveryReason: "manual-disconnected-recovery",
+            rebuiltReadModelEvidenceReference: "gh-848-disconnected-read-model"
+        )
+        XCTAssertEqual(disconnectedRecovery.recoveryAction, .recoverDisconnectedMonitor)
+        XCTAssertEqual(disconnectedRecovery.fromState, .disconnected)
+        XCTAssertEqual(disconnectedRecovery.toState, .observing)
+        XCTAssertTrue(disconnectedRecovery.eventHistoryPreserved)
+
+        try Data("not-json".utf8).write(to: recoveryURL, options: .atomic)
+        XCTAssertThrowsError(try store.monitorRecovery(runID: runID)) { error in
+            guard case .corruptedMonitorRecovery = error as? ReleaseV090TestnetReadOnlyMonitorSessionStoreError else {
+                return XCTFail("corrupted monitor-recovery.json must fail closed, got \(error)")
+            }
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-monitor-recovery-workflow.sh"))
+        XCTAssertTrue(readinessScript.contains("GH-848-VERIFY-V090-MONITOR-RECOVERY-WORKFLOW"))
+        XCTAssertTrue(validationPlan.contains("GH-848 Release v0.9.0 Monitor Recovery Workflow Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-MONITOR-RECOVERY-WORKFLOW"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 monitor recovery workflow anchor"))
+
+        for requiredSource in [
+            "ReleaseV090MonitorRecoveryDocument",
+            "ReleaseV090MonitorRecoveryAction",
+            "monitor-recovery.json",
+            "recordMonitorRecovery",
+            "monitorRecovery",
+            "eventHistoryPreserved",
+            "previousEventChecksums",
+            "recoveredEventChecksums",
+            "reopenedListenKeyEvidence",
+            "rebuiltReadModelEvidenceChecksum",
+            "manualLocalRecovery",
+            "automaticReconnectCommand",
+            "corruptedMonitorRecovery"
+        ] {
+            XCTAssertTrue(source.contains(requiredSource), "monitor recovery source must contain \(requiredSource)")
+        }
+
+        for forbiddenAuthorization in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/order",
+            "/fapi/v1/order",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "testnetCancelReplaceAllowed=true"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-848 source must not contain \(forbiddenAuthorization)")
+            XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-848 contract must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-848 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-848 matrix must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(

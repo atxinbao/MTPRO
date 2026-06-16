@@ -95,6 +95,24 @@
 - fail-closed scope: corrupted private-stream-heartbeat.json、checksum mismatch、monitorSessionChecksum mismatch 和 unsafe listenKey reference 均必须 fail closed。
 - forbidden scope: no private WebSocket CI runtime, no executionReport command path, no order command, no raw listenKey persistence, no raw private payload persistence, no credential value persistence, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no trading button, no order form, no production cutover.
 
+## TVM-RELEASE-V090-MONITOR-RECOVERY-WORKFLOW
+
+- TVM-RELEASE-V090-MONITOR-RECOVERY-WORKFLOW
+- GH-848-VERIFY-V090-MONITOR-RECOVERY-WORKFLOW
+- V090-006-MONITOR-RECOVERY-WORKFLOW
+- V090-006-MONITOR-RECOVERY-JSON
+- V090-006-PRESERVE-MONITOR-EVENT-HISTORY
+- V090-006-LOCAL-MANUAL-RECOVERY-ONLY
+- GH-848 Release v0.9.0 Monitor Recovery Workflow Validation
+- testGH848MonitorRecoveryWorkflowPreservesHistoryAndRedactedEvidence
+- `bash checks/verify-v0.9.0-monitor-recovery-workflow.sh`
+- artifact path: `.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor-recovery.json`。
+- transition evidence: recoveryAction、fromState、intermediateState、toState、recoveryReason、preRecoveryMonitorSessionChecksum 和 recoveredMonitorSessionChecksum 必须可 inspect，并且只允许 stale / disconnected -> recovering -> observing。
+- event history evidence: previousEventChecksums 必须完整保留为 recoveredEventChecksums 前缀，recovery 只能追加 recover 与 observe 两个本地事件，eventHistoryPreserved 必须为 true。
+- redaction: redactedListenKeyReference 必须以 `:<redacted>` 结尾，listenKeyReferenceHash 必须为 stable sha256；raw listenKey、raw private payload、credential value、secret、API key、token 和 signature 均不得进入 artifact。
+- fail-closed scope: invalid transition、corrupted monitor-recovery.json、checksum mismatch、recoveredMonitorSessionChecksum mismatch、event history mismatch 和 unsafe listenKey reference 均必须 fail closed。
+- forbidden scope: no automatic reconnect command, no private WebSocket CI runtime, no broker recovery operation, no order command, no raw listenKey persistence, no raw private payload persistence, no credential value persistence, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no trading button, no order form, no production cutover.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
