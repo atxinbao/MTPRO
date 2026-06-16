@@ -23047,7 +23047,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliSource.contains("strictParserAnchor"))
         XCTAssertTrue(cliSource.contains("mtpro run no-order-runtime-session"))
         XCTAssertTrue(cliSource.contains("mtpro status no-order-runtime-session"))
-        XCTAssertTrue(cliSource.contains("mtpro verify v0.7.0"))
+        XCTAssertTrue(cliSource.contains("mtpro verify v0.8.0"))
+        XCTAssertTrue(cliSource.contains(
+            "historicalV070Checks=verify-v0.7.0-contract,verify-v0.7.0-testnet-endpoint-policy,verify-v0.7.0-cli"
+        ))
         XCTAssertTrue(cliSource.contains("runMode(arguments: arguments)"))
         XCTAssertTrue(cliSource.contains("activeTopLevelStatusSurface=v0.7.0"))
         XCTAssertTrue(cliSource.contains("legacyV040StatusSurface=false"))
@@ -23207,6 +23210,63 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(macOSGuardScript.contains("swift run mtpro submit"))
         XCTAssertFalse(macOSGuardScript.contains("swift run mtpro cancel"))
         XCTAssertFalse(macOSGuardScript.contains("swift run mtpro replace"))
+    }
+
+    func testGH837TopLevelCLIVerifyUsesV080ReleaseVerificationWording() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let verifierScript = try read("checks/verify-v0.8.1-cli-verify-v080-wording.sh")
+        let runScript = try read("checks/run.sh")
+        let v070CLIScript = try read("checks/verify-v0.7.0-cli.sh")
+        let v050CLIScript = try read("checks/verify-v0.5.0-cli.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let automationReadiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+
+        for anchor in [
+            "GH-837-VERIFY-V081-CLI-VERIFY-V080-WORDING",
+            "TVM-RELEASE-V081-CLI-VERIFY-V080-WORDING",
+            "V081-003-CLI-VERIFY-V080-WORDING",
+            "V081-003-HISTORICAL-V070-GUARDS",
+            "V081-003-NO-PRODUCTION-CUTOVER",
+            "GH-837 Release v0.8.1 CLI Verify v0.8.0 Wording Validation",
+            "Release v0.8.1 CLI verify v0.8.0 wording anchor"
+        ] {
+            XCTAssertTrue(
+                [cliSource, verifierScript, validationPlan, tradingMatrix, automationReadiness, readinessScript]
+                    .contains { $0.contains(anchor) },
+                "\(anchor) must stay anchored by the GH-837 CLI verify wording chain"
+            )
+        }
+
+        XCTAssertTrue(cliSource.contains("mtpro verify v0.8.0"))
+        XCTAssertTrue(cliSource.contains("issue=GH-820"))
+        XCTAssertTrue(cliSource.contains("TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK"))
+        XCTAssertTrue(cliSource.contains("GH-820-VERIFY-V080-FINAL-AUDIT-DOCS-RUNBOOK"))
+        XCTAssertTrue(cliSource.contains(
+            "checks=verify-v0.8.0-contract,verify-v0.8.0-release-publication-policy,verify-v0.8.0-cli-local-session,verify-v0.8.0-validation-lanes,verify-v0.8.0,automation-readiness,checks-run"
+        ))
+        XCTAssertTrue(cliSource.contains(
+            "historicalV070Checks=verify-v0.7.0-contract,verify-v0.7.0-testnet-endpoint-policy,verify-v0.7.0-cli"
+        ))
+        XCTAssertFalse(cliSource.contains("\"mtpro verify v0.7.0\""))
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.1-cli-verify-v080-wording.sh"))
+        XCTAssertTrue(verifierScript.contains("swift run mtpro verify"))
+        XCTAssertTrue(verifierScript.contains("reject_output_contains \"$verify_output\" \"mtpro verify v0.7.0\""))
+        XCTAssertTrue(v070CLIScript.contains("mtpro verify v0.8.0"))
+        XCTAssertTrue(v050CLIScript.contains("mtpro verify v0.8.0"))
+        XCTAssertTrue(v070CLIScript.contains("historicalV070Checks=verify-v0.7.0-contract"))
+        XCTAssertTrue(v050CLIScript.contains("historicalV070Checks=verify-v0.7.0-contract"))
+        XCTAssertFalse(cliSource.contains("productionCutoverAuthorized=true"))
+        XCTAssertFalse(cliSource.contains("productionSecretRead=true"))
+        XCTAssertFalse(cliSource.contains("productionEndpointConnected=true"))
+        XCTAssertFalse(cliSource.contains("productionOrderSubmitted=true"))
     }
 
     func testGH783OperationalRunSessionLifecycleIsDeterministicNoOrderAndRejectsInvalidTransitions() throws {

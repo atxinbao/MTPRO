@@ -195,6 +195,17 @@
 - Focused test: `testGH836DashboardMacOSChecksRunV080FocusedGuards`
 - Boundary: GH-836 只让 required `dashboard-macos` job 在 Dashboard build / smoke 前执行 v0.8 testnet read-only monitor 与 safe local controls guard；不新增 UI trading command、order form、live command、broker command、production command、testnet order routing 或 production cutover。
 
+## GH-837 Release v0.8.1 CLI Verify v0.8.0 Wording Validation
+
+- `GH-837-VERIFY-V081-CLI-VERIFY-V080-WORDING`
+- `TVM-RELEASE-V081-CLI-VERIFY-V080-WORDING`
+- `V081-003-CLI-VERIFY-V080-WORDING`
+- `V081-003-HISTORICAL-V070-GUARDS`
+- `V081-003-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.8.1-cli-verify-v080-wording.sh`
+- Focused test: `testGH837TopLevelCLIVerifyUsesV080ReleaseVerificationWording`
+- Boundary: GH-837 只修正 `mtpro verify` active operator wording 为 v0.8.0 / GH-820 final audit guard，并保留 v0.7 CLI checks 作为 historical guard evidence；不改变 runtime behavior、不新增 network call、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## GH-819 Release v0.8.0 Validation Lanes Split Validation
 
 - `GH-819-VERIFY-V080-VALIDATION-LANES`
@@ -3517,7 +3528,7 @@ swift test
 - `testGH781TopLevelCLIRunStatusVerifyUseV070RuntimeSessionSemantics`
 - `mtpro run --mode dry-run` 必须输出 v0.7.0 no-order runtime session surface，声明 `orderSubmissionAllowed=false` 和 `submitCancelReplaceAllowed=false`。
 - `mtpro status [runID]` 必须读取 v0.7.0 session / registry state wording，不再把 v0.4 `unified-run-status` 或 v0.5 observer 作为 active top-level surface。
-- `mtpro verify` 必须宣告 `verify-v0.7.0-contract`、`verify-v0.7.0-testnet-endpoint-policy`、`verify-v0.7.0-cli` 和 automation readiness gates。
+- `mtpro verify` active wording 必须宣告 v0.8.0 / GH-820 final audit guard；`verify-v0.7.0-contract`、`verify-v0.7.0-testnet-endpoint-policy` 和 `verify-v0.7.0-cli` 只保留为 historical v0.7 guard evidence。
 - `mtpro run --mode production`、`mtpro submit`、`mtpro cancel`、`mtpro replace` 必须 fail-closed。
 - 验证不启动 production trading，不读取 production secret，不连接 production endpoint，不发送真实 order，不授权 production cutover。
 
