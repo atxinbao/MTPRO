@@ -73,6 +73,18 @@
 - Focused test: `testGH847PrivateStreamHeartbeatMonitorPersistsStalenessAndRedactedEvidence`
 - Boundary: GH-847 只新增本地 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/private-stream-heartbeat.json` artifact，记录 private stream last event time、heartbeat status、listenKey age / expiry、stream stale / disconnected / recovered state、monitorSessionChecksum、redacted listenKey reference 和 listenKey reference hash；不保存 raw listenKey、不保存 raw private payload、不保存 credential value、不启动 CI network、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-848 Release v0.9.0 Monitor Recovery Workflow Validation
+
+- `GH-848-VERIFY-V090-MONITOR-RECOVERY-WORKFLOW`
+- `TVM-RELEASE-V090-MONITOR-RECOVERY-WORKFLOW`
+- `V090-006-MONITOR-RECOVERY-WORKFLOW`
+- `V090-006-MONITOR-RECOVERY-JSON`
+- `V090-006-PRESERVE-MONITOR-EVENT-HISTORY`
+- `V090-006-LOCAL-MANUAL-RECOVERY-ONLY`
+- Required command: `bash checks/verify-v0.9.0-monitor-recovery-workflow.sh`
+- Focused test: `testGH848MonitorRecoveryWorkflowPreservesHistoryAndRedactedEvidence`
+- Boundary: GH-848 只新增本地 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor-recovery.json` artifact，记录 stale / disconnected monitor 的本地手动 recovery、事件历史 checksum 前缀、redacted listenKey reference、listenKey reference hash、reopened listenKey evidence 和 rebuilt read-model evidence checksum；不启动 automatic reconnect、不启动 CI network、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`

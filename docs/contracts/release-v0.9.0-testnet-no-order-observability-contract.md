@@ -138,6 +138,31 @@ Carry-forward evidence 固定为：
 
 GH-847 保持 no-order / no-production boundary：不读取 production secret，不连接 production endpoint / broker，不保存 raw listenKey 或 raw private stream payload，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
 
+## V090-006-MONITOR-RECOVERY-WORKFLOW
+
+`V090-006-MONITOR-RECOVERY-WORKFLOW`
+
+GH-848 在 GH-845 / GH-846 / GH-847 的本地 monitor evidence 之上新增 no-order recovery workflow artifact。该 workflow 只允许从 `stale` 或 `disconnected` 状态进入 `recovering`，再回到 `observing`；它只是记录 operator 手动恢复、listenKey evidence reopen 和 read-model rebuild evidence，不启动 automatic reconnect，不调用 network，不写 broker，不提交订单。
+
+Required artifact 固定为：
+
+- `V090-006-MONITOR-RECOVERY-JSON`：`monitor-recovery.json`
+
+`monitor-recovery.json` 必须保存 recoveryAction、fromState、intermediateState、toState、recoveryReason、preRecoveryMonitorSessionChecksum、recoveredMonitorSessionChecksum、previousEventChecksums、recoveredEventChecksums、eventHistoryPreserved、redactedListenKeyReference、listenKeyReferenceHash、reopenedListenKeyEvidence、rebuiltReadModelEvidence、rebuiltReadModelEvidenceChecksum 和 fail-closed checksum。
+
+`V090-006-PRESERVE-MONITOR-EVENT-HISTORY` 要求 recovery artifact 的 `recoveredEventChecksums` 必须以前序事件 checksum 作为完整前缀，并且只追加 `recover` 与 `observe` 两个本地事件。任何事件历史丢失、checksum mismatch、非法状态迁移、损坏 `monitor-recovery.json` 或 recovered monitor session checksum 不匹配都必须 fail closed。
+
+`V090-006-LOCAL-MANUAL-RECOVERY-ONLY` 要求 recovery 只表达本地手动 operator recovery evidence。Artifact 必须保持 `manualLocalRecovery=true`、`automaticReconnectCommand=false`、`rawListenKeyPersisted=false`、`rawPrivatePayloadPersisted=false`、`credentialValuePersisted=false`、`ciNetworkRequired=false`、`ciSecretRead=false` 和 `ciOrderSubmissionAllowed=false`。
+
+Carry-forward evidence 固定为：
+
+- `GH-848-VERIFY-V090-MONITOR-RECOVERY-WORKFLOW`
+- `TVM-RELEASE-V090-MONITOR-RECOVERY-WORKFLOW`
+- `checks/verify-v0.9.0-monitor-recovery-workflow.sh`
+- `ReleaseV090MonitorRecoveryDocument`
+
+GH-848 保持 no-order / no-production boundary：不读取 production secret，不连接 production endpoint / broker，不保存 raw listenKey 或 raw private stream payload，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
+
 ## V090-001-ALLOWED-MONITOR-MODES
 
 `V090-001-ALLOWED-MONITOR-MODES`
