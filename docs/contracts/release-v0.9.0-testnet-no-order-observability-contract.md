@@ -30,6 +30,28 @@ GH-843 是 V090 queue `GH-843..GH-856` 的第一个 gate。当前权威 source a
 - 后续 issue 执行前必须通过 GitHub fallback queue preflight
 - 所有 testnet observability evidence 必须保持 no-order posture。
 
+## V090-002-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD
+
+`V090-002-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD`
+
+GH-844 只把 v0.8.0 stable GitHub Release publication 的已完成事实作为 v0.9.0 carry-forward dependency 固定下来。v0.8.1 已通过 `GH-835-V081-V080-ACTUAL-GITHUB-RELEASE` 和 `V081-001-V080-PUBLICATION-DOCS-ALIGNMENT` 修复 v0.8.0 publication wording，v0.9.0 只继承已完成 publication evidence，不移动 tag、不重写 release、不创建新 release、不授权 production cutover。
+
+Carry-forward evidence 固定为：
+
+- `GH-844-VERIFY-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD`
+- `TVM-RELEASE-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD`
+- `checks/verify-v0.9.0-v080-publication-alignment.sh`
+- `checks/verify-v0.8.1-v080-release-publication-docs.sh`
+- v0.8.0 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0`
+- v0.8.0 tag peeled commit：`d83b3b564096a5427db15a437921fc797b22564d`
+
+v0.9.0 后续文档可以引用 v0.8.0 status，但必须保留以下边界：
+
+- construction closeout、public GitHub Release publication 和 production cutover 仍是三个独立 gate。
+- 不得把 v0.8.0 stable GitHub Release publication 当作 production cutover authorization。
+- 不得把 v0.8.1 patch evidence 当作 v0.9.0 runtime capability。
+- 不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production submit / cancel / replace order，不创建交易按钮、order form、Live PRO Console production command 或 production OMS。
+
 ## V090-001-ALLOWED-MONITOR-MODES
 
 `V090-001-ALLOWED-MONITOR-MODES`

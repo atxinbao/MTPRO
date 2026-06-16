@@ -23,6 +23,17 @@
 - Focused test: `testGH843ReleaseV090TestnetNoOrderObservabilityContractDefinesMonitorModesAndForbiddenCapabilities`
 - Boundary: v0.9.0 只定义 testnet read-only observability、snapshot freshness、private stream heartbeat、recovery observe、alert read-model-only、explain-only reconciliation hardening、Risk policy audit、export bundle 和 validation lane split；不授权 production trading、production secret read、production endpoint / broker connection、testnet order routing、testnet order submission、real order、production OMS、Live PRO Console production command、trading button、order form、notification side effect、automatic recovery command 或 production cutover。
 
+## GH-844 Release v0.9.0 v0.8.0 Publication Alignment Carry-forward Validation
+
+- `GH-844-VERIFY-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD`
+- `TVM-RELEASE-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD`
+- `V090-002-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD`
+- `GH-835-V081-V080-ACTUAL-GITHUB-RELEASE`
+- `V081-001-V080-PUBLICATION-DOCS-ALIGNMENT`
+- Required command: `bash checks/verify-v0.9.0-v080-publication-alignment.sh`
+- Focused test: `testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover`
+- Boundary: v0.8.1 已修复 v0.8.0 publication wording；GH-844 只把该已完成 evidence carry forward 到 v0.9.0 contract，不移动 tag、不重写 release、不创建新 release、不修改 runtime、不授权 production cutover、不读取 secret、不连接 endpoint / broker、不提交 testnet 或 production order。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`
