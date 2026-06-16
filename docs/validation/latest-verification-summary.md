@@ -1,6 +1,6 @@
 # 最近验证摘要
 
-日期：2026-06-15
+日期：2026-06-16
 
 执行者：Codex
 
@@ -18,13 +18,32 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | --- | --- |
 | Latest completed release construction scope | `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring` |
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
-| Active queue | 无 active GitHub fallback Project / Linear Project；下一阶段必须由 Human + `@001 / PLN` 重新规划 |
+| Active queue | v0.8.1 patch closeout 由 GitHub issue `#841` closure PR 收口；PR merge 后不得自动推进下一 Project / Issue |
 | Stage Code Audit Report | `docs/audit/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-stage-code-audit.md` |
 | Progress | Project Closure Count: 42 / 42 (100%)；Current Foundation Progress: 4 / 4 (100%)；Final Product Goal Progress: 9 / 9 (100%)；Engine Maturity Roadmap Progress: 4 / 4（100%） |
 
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。
+
+## Release v0.8.1 Patch Closeout Snapshot
+
+`GH-841-RELEASE-V081-PATCH-AUDIT-DOCS-RELEASE-NOTES`
+
+`MTPRO Release v0.8.1 Release Publication + Dashboard Guard Patch` 是 v0.8.0 stable GitHub Release 发布后的 patch evidence closeout。`#835` 至 `#840` 均已 `CLOSED / done`；PR `#842`、`#857`、`#858`、`#859`、`#860` 和 `#861` 均已 merged，required check `checks` 均为 `SUCCESS`；#841 closure PR 输出 patch Stage Code Audit Report、patch release notes 和 aggregate verifier final guard。
+
+Stage Code Audit Report：`docs/audit/mtpro-release-v0.8.1-release-publication-dashboard-guard-patch-stage-code-audit.md`。
+
+本 patch 只收口 v0.8.0 release publication docs alignment、Dashboard macOS focused guard、CLI verify wording、local session vs broker session wording、status artifact role、private stream redaction 和 patch closeout docs。Production trading 仍默认关闭；不创建 release tag，不创建 GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Project / Issue。
+
+本地验证入口：
+
+```bash
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/verify-v0.8.1.sh
+bash checks/run.sh
+```
 
 ## Release v0.8.0 Closure Snapshot
 

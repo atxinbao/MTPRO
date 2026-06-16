@@ -240,6 +240,21 @@
 - Focused test: `testGH814ManualBinanceTestnetPrivateStreamMonitoringProofIsRedactedAndNoOrder`
 - Boundary: GH-840 只强化 GH-814 manual private stream monitoring proof 的 redaction 语义：`redactedStreamURL` 必须由 `<redacted-listen-key>` placeholder 和 `listenKeyReferenceHash` 组成，不再复制上游 `listenKeyReference`，也不得包含 raw listenKey、`redactedListenKeyReference` 或 `listen-key:` marker。该 gate 不打开 network、不读取 secret、不启用 private WebSocket runtime、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-841 Release v0.8.1 Patch Audit / Docs / Release Notes Validation
+
+- `GH-841-VERIFY-V081-PATCH-AUDIT-DOCS-RELEASE-NOTES`
+- `GH-841-RELEASE-V081-PATCH-AUDIT-DOCS-RELEASE-NOTES`
+- `TVM-RELEASE-V081-PATCH-CLOSEOUT`
+- `V081-007-PATCH-EVIDENCE-CHAIN`
+- `V081-007-PATCH-AUDIT`
+- `V081-007-PATCH-RELEASE-NOTES`
+- `V081-007-QUEUE-CLOSURE-STATE`
+- `V081-007-NO-RELEASE-TAG-CREATION`
+- `V081-007-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.8.1.sh`
+- Covered commands: `bash checks/verify-v0.8.1-v080-release-publication-docs.sh`、`bash checks/verify-v0.8.1-dashboard-macos-v080-guards.sh`、`bash checks/verify-v0.8.1-cli-verify-v080-wording.sh`、`bash checks/verify-v0.8.1-local-vs-broker-session.sh`、`bash checks/verify-v0.8.1-status-artifact-role.sh`、`bash checks/verify-v0.8.1-private-stream-redaction.sh`
+- Boundary: GH-841 只收口 v0.8.1 patch audit、release notes 和 aggregate verifier，记录 GH-835..GH-840 的 issue / PR / checks / merge evidence 和 queue closure state；不创建 tag、不创建 GitHub Release、不启动 v0.9.0、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## GH-819 Release v0.8.0 Validation Lanes Split Validation
 
 - `GH-819-VERIFY-V080-VALIDATION-LANES`
