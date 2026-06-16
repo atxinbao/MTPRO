@@ -206,6 +206,19 @@
 - Focused test: `testGH837TopLevelCLIVerifyUsesV080ReleaseVerificationWording`
 - Boundary: GH-837 只修正 `mtpro verify` active operator wording 为 v0.8.0 / GH-820 final audit guard，并保留 v0.7 CLI checks 作为 historical guard evidence；不改变 runtime behavior、不新增 network call、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-838 Release v0.8.1 Local vs Broker Session Wording Validation
+
+- `GH-838-VERIFY-V081-LOCAL-VS-BROKER-SESSION`
+- `TVM-RELEASE-V081-LOCAL-VS-BROKER-SESSION`
+- `V081-004-LOCAL-SESSION-CREATED`
+- `V081-004-BROKER-SESSION-NOT-STARTED`
+- `V081-004-NO-AMBIGUOUS-SESSION-STARTED-FIELD`
+- `V081-004-NO-ENDPOINT-BROKER-ORDER-PATH`
+- Required command: `bash checks/verify-v0.8.1-local-vs-broker-session.sh`
+- Covered command: `bash checks/verify-v0.8.0-cli-local-session.sh`
+- Focused test: `testGH838TopLevelCLIRunSeparatesLocalSessionCreatedFromBrokerSessionStarted`
+- Boundary: GH-838 只修正 CLI operator-facing wording，把本地 operator session 创建和 broker session 未启动拆成 `localSessionCreated=true` / `brokerSessionStarted=false`；旧的 ambiguous `sessionStarted=false` 字段不得再出现在 CLI source 或 run output。该 gate 不启动 broker session、不连接 endpoint、不触发 ExecutionClient / OMS、不读取 production secret、不提交 testnet 或 production order、不授权 production cutover。
+
 ## GH-819 Release v0.8.0 Validation Lanes Split Validation
 
 - `GH-819-VERIFY-V080-VALIDATION-LANES`

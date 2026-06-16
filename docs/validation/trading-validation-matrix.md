@@ -265,6 +265,20 @@
 - historical evidence: v0.7 focused CLI checks remain visible only through `historicalV070Checks=verify-v0.7.0-contract,verify-v0.7.0-testnet-endpoint-policy,verify-v0.7.0-cli`.
 - forbidden scope: no runtime behavior change, no network call, no production trading, no production secret read, no production endpoint / broker connection, no testnet or production order, no production cutover.
 
+## TVM-RELEASE-V081-LOCAL-VS-BROKER-SESSION
+
+- TVM-RELEASE-V081-LOCAL-VS-BROKER-SESSION
+- GH-838-VERIFY-V081-LOCAL-VS-BROKER-SESSION
+- V081-004-LOCAL-SESSION-CREATED
+- V081-004-BROKER-SESSION-NOT-STARTED
+- V081-004-NO-AMBIGUOUS-SESSION-STARTED-FIELD
+- V081-004-NO-ENDPOINT-BROKER-ORDER-PATH
+- GH-838 Release v0.8.1 Local vs Broker Session Wording Validation
+- testGH838TopLevelCLIRunSeparatesLocalSessionCreatedFromBrokerSessionStarted
+- CLI evidence: `mtpro run --mode dry-run` prints `localSessionCreated=true` for local operator artifacts and `brokerSessionStarted=false` for broker connectivity.
+- wording guard: `sessionStarted=false` is forbidden in CLI source and run output because it does not distinguish local operator session state from broker session state.
+- forbidden scope: no broker session start, no endpoint connection, no ExecutionClient / OMS handoff, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
+
 ## TVM-RELEASE-V080-VALIDATION-LANES
 
 - TVM-RELEASE-V080-VALIDATION-LANES

@@ -303,7 +303,7 @@ private enum MTPROStrictCLI {
             "runtimeSessionContract=v0.7.0",
             "noOrderRuntimeSession=true",
             "localNoOrderSessionFlow=gh-783-operational-run-session",
-            "sessionStarted=false",
+            "brokerSessionStarted=false",
             "runRegistryState=local-run-registry-ready",
             "runsListSource=local-run-registry-metadata",
             "runsInspectSource=local-run-registry-metadata",
