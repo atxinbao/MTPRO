@@ -41,6 +41,25 @@
 - v0.9.0 dependency posture: construction closeout、public GitHub Release publication 和 production cutover remain separate gates; v0.9.0 can cite v0.8.0 stable publication evidence but cannot treat it as runtime capability or cutover authorization.
 - forbidden scope: no tag move, no release rewrite, no new release creation, no runtime change, no production cutover, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order.
 
+## TVM-RELEASE-V090-TESTNET-MONITOR-SESSION-STORE
+
+- TVM-RELEASE-V090-TESTNET-MONITOR-SESSION-STORE
+- GH-845-VERIFY-V090-TESTNET-MONITOR-SESSION-STORE
+- V090-003-TESTNET-READONLY-MONITOR-SESSION
+- V090-003-MONITOR-SESSION-JSON
+- V090-003-MONITOR-EVENTS-JSONL
+- V090-003-MONITOR-STATUS-JSON
+- V090-003-MONITOR-STATE-TAXONOMY
+- V090-003-APPEND-ONLY-MONITOR-EVENTS
+- V090-003-CORRUPTED-ARTIFACTS-FAIL-CLOSED
+- GH-845 Release v0.9.0 TestnetReadOnlyMonitorSession Store Validation
+- testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed
+- `bash checks/verify-v0.9.0-monitor-session-store.sh`
+- artifact path: `.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor_session.json`、`monitor_events.jsonl`、`monitor_status.json`。
+- state taxonomy: created / connecting / observing / stale / disconnected / recovering / stopped / failed。
+- fail-closed scope: corrupted monitor_session.json、monitor_events.jsonl、monitor_status.json、checksum mismatch、event history mismatch 和 invalid transition 均必须 fail closed，不写入新事件。
+- forbidden scope: no runtime startup, no automatic reconnect command, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no trading button, no order form, no production cutover.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT

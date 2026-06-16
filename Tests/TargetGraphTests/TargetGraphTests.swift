@@ -8414,6 +8414,266 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift"
+            ),
+            encoding: .utf8
+        )
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let databaseTarget = try packageTargetBlock(named: "Database", packageSource: packageSource)
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.9.0-monitor-session-store.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let requiredAnchors = [
+            "GH-845-VERIFY-V090-TESTNET-MONITOR-SESSION-STORE",
+            "TVM-RELEASE-V090-TESTNET-MONITOR-SESSION-STORE",
+            "V090-003-TESTNET-READONLY-MONITOR-SESSION",
+            "V090-003-MONITOR-SESSION-JSON",
+            "V090-003-MONITOR-EVENTS-JSONL",
+            "V090-003-MONITOR-STATUS-JSON",
+            "V090-003-MONITOR-STATE-TAXONOMY",
+            "V090-003-APPEND-ONLY-MONITOR-EVENTS",
+            "V090-003-CORRUPTED-ARTIFACTS-FAIL-CLOSED"
+        ]
+
+        for anchor in requiredAnchors {
+            XCTAssertTrue(
+                [
+                    source,
+                    verificationScript,
+                    readinessScript,
+                    contractDoc,
+                    validationPlan,
+                    tradingMatrix,
+                    automationReadiness
+                ].contains { $0.contains(anchor) },
+                "\(anchor) must stay wired into GH-845 monitor session evidence chain"
+            )
+        }
+
+        let temporaryRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH845-TestnetReadOnlyMonitorSession-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = temporaryRoot
+            .appendingPathComponent(".local", isDirectory: true)
+            .appendingPathComponent("mtpro", isDirectory: true)
+            .appendingPathComponent("runs", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: temporaryRoot)
+        }
+
+        let store = ReleaseV090TestnetReadOnlyMonitorSessionStore(storageRootURL: storageRoot)
+        let runID = Identifier.constant("gh-845-monitor-alpha")
+        let createdAt = Date(timeIntervalSince1970: 1_782_100_000)
+        let created = try store.create(runID: runID, createdAt: createdAt)
+        XCTAssertEqual(created.state, .created)
+        XCTAssertEqual(created.events.count, 1)
+        XCTAssertTrue(created.documentHeld)
+
+        let monitorDirectory = storageRoot
+            .appendingPathComponent(runID.rawValue, isDirectory: true)
+            .appendingPathComponent("testnet-readonly-monitor", isDirectory: true)
+        let monitorSessionURL = monitorDirectory.appendingPathComponent("monitor_session.json")
+        let monitorEventsURL = monitorDirectory.appendingPathComponent("monitor_events.jsonl")
+        let monitorStatusURL = monitorDirectory.appendingPathComponent("monitor_status.json")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: monitorSessionURL.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: monitorEventsURL.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: monitorStatusURL.path))
+
+        XCTAssertThrowsError(
+            try store.apply(
+                runID: runID,
+                command: .observe,
+                reason: "created-monitor-cannot-observe",
+                at: Date(timeIntervalSince1970: 1_782_100_001)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV090TestnetReadOnlyMonitorSessionStoreError,
+                .invalidTransition(command: "observe", fromState: "created")
+            )
+        }
+        XCTAssertEqual(try store.load(runID: runID).events.count, 1)
+        XCTAssertEqual(try store.status(runID: runID).state, .created)
+
+        _ = try store.apply(runID: runID, command: .connect, reason: "operator-started-readonly-monitor", at: Date(timeIntervalSince1970: 1_782_100_010))
+        _ = try store.apply(runID: runID, command: .observe, reason: "snapshot-and-heartbeat-observing", at: Date(timeIntervalSince1970: 1_782_100_020))
+        _ = try store.apply(runID: runID, command: .markStale, reason: "snapshot-age-over-threshold", at: Date(timeIntervalSince1970: 1_782_100_030))
+        _ = try store.apply(runID: runID, command: .recover, reason: "operator-reviewed-stale-artifact", at: Date(timeIntervalSince1970: 1_782_100_040))
+        _ = try store.apply(runID: runID, command: .observe, reason: "readonly-monitor-observing-again", at: Date(timeIntervalSince1970: 1_782_100_050))
+        _ = try store.apply(runID: runID, command: .disconnect, reason: "readonly-stream-disconnected", at: Date(timeIntervalSince1970: 1_782_100_060))
+        _ = try store.apply(runID: runID, command: .recover, reason: "operator-classified-disconnect", at: Date(timeIntervalSince1970: 1_782_100_070))
+        let stopped = try store.apply(runID: runID, command: .stop, reason: "operator-stopped-monitor", at: Date(timeIntervalSince1970: 1_782_100_080))
+        XCTAssertEqual(stopped.state, .stopped)
+        XCTAssertEqual(
+            stopped.events.map(\.toState),
+            [.created, .connecting, .observing, .stale, .recovering, .observing, .disconnected, .recovering, .stopped]
+        )
+        XCTAssertEqual(try store.status(runID: runID).eventCount, 9)
+
+        let failedRunID = Identifier.constant("gh-845-monitor-failed")
+        _ = try store.create(runID: failedRunID, createdAt: Date(timeIntervalSince1970: 1_782_101_000))
+        _ = try store.apply(runID: failedRunID, command: .connect, reason: "operator-started-readonly-monitor", at: Date(timeIntervalSince1970: 1_782_101_010))
+        let failed = try store.apply(runID: failedRunID, command: .fail, reason: "corrupted-artifact-reviewed", at: Date(timeIntervalSince1970: 1_782_101_020))
+        XCTAssertEqual(failed.state, .failed)
+        XCTAssertEqual(failed.failureReason, "corrupted-artifact-reviewed")
+
+        let observedStates = Set(stopped.events.map(\.toState) + failed.events.map(\.toState))
+        XCTAssertEqual(observedStates, Set(ReleaseV090TestnetReadOnlyMonitorState.allCases))
+
+        let eventsPayload = try String(contentsOf: monitorEventsURL, encoding: .utf8)
+        let eventLines = eventsPayload.split(separator: "\n", omittingEmptySubsequences: true)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decodedEvents = try eventLines.map {
+            try decoder.decode(ReleaseV090TestnetReadOnlyMonitorEvent.self, from: Data($0.utf8))
+        }
+        XCTAssertEqual(decodedEvents.map(\.sequence), Array(1...decodedEvents.count))
+        for index in decodedEvents.indices.dropFirst() {
+            XCTAssertEqual(decodedEvents[index].previousEventChecksum, decodedEvents[index - 1].eventChecksum)
+        }
+        XCTAssertTrue(decodedEvents.allSatisfy(\.appendOnlyMonitorEvents))
+        XCTAssertTrue(decodedEvents.allSatisfy(\.noOrder))
+
+        let corruptedEventsRunID = Identifier.constant("gh-845-monitor-corrupt-events")
+        _ = try store.create(runID: corruptedEventsRunID, createdAt: Date(timeIntervalSince1970: 1_782_102_000))
+        let corruptedEventsURL = storageRoot
+            .appendingPathComponent(corruptedEventsRunID.rawValue, isDirectory: true)
+            .appendingPathComponent("testnet-readonly-monitor", isDirectory: true)
+            .appendingPathComponent("monitor_events.jsonl")
+        try Data("not-json\n".utf8).write(to: corruptedEventsURL, options: .atomic)
+        XCTAssertThrowsError(try store.load(runID: corruptedEventsRunID)) { error in
+            guard case .corruptedMonitorEvents = error as? ReleaseV090TestnetReadOnlyMonitorSessionStoreError else {
+                return XCTFail("corrupted monitor_events.jsonl must fail closed, got \(error)")
+            }
+        }
+
+        let corruptedStatusRunID = Identifier.constant("gh-845-monitor-corrupt-status")
+        _ = try store.create(runID: corruptedStatusRunID, createdAt: Date(timeIntervalSince1970: 1_782_103_000))
+        let corruptedStatusURL = storageRoot
+            .appendingPathComponent(corruptedStatusRunID.rawValue, isDirectory: true)
+            .appendingPathComponent("testnet-readonly-monitor", isDirectory: true)
+            .appendingPathComponent("monitor_status.json")
+        try Data("not-json".utf8).write(to: corruptedStatusURL, options: .atomic)
+        XCTAssertThrowsError(try store.load(runID: corruptedStatusRunID)) { error in
+            guard case .corruptedMonitorStatus = error as? ReleaseV090TestnetReadOnlyMonitorSessionStoreError else {
+                return XCTFail("corrupted monitor_status.json must fail closed, got \(error)")
+            }
+        }
+
+        let corruptedSessionRunID = Identifier.constant("gh-845-monitor-corrupt-session")
+        _ = try store.create(runID: corruptedSessionRunID, createdAt: Date(timeIntervalSince1970: 1_782_104_000))
+        let corruptedSessionURL = storageRoot
+            .appendingPathComponent(corruptedSessionRunID.rawValue, isDirectory: true)
+            .appendingPathComponent("testnet-readonly-monitor", isDirectory: true)
+            .appendingPathComponent("monitor_session.json")
+        try Data("not-json".utf8).write(to: corruptedSessionURL, options: .atomic)
+        XCTAssertThrowsError(try store.load(runID: corruptedSessionRunID)) { error in
+            guard case .corruptedMonitorSession = error as? ReleaseV090TestnetReadOnlyMonitorSessionStoreError else {
+                return XCTFail("corrupted monitor_session.json must fail closed, got \(error)")
+            }
+        }
+
+        let fixture = try ReleaseV090TestnetReadOnlyMonitorSessionStore.deterministicFixture()
+        XCTAssertTrue(fixture.documentHeld)
+        XCTAssertEqual(
+            fixture.artifactPaths.monitorSessionJSONPath,
+            ".local/mtpro/runs/gh-845-monitor-alpha/testnet-readonly-monitor/monitor_session.json"
+        )
+        XCTAssertEqual(
+            fixture.artifactPaths.monitorEventsJSONLPath,
+            ".local/mtpro/runs/gh-845-monitor-alpha/testnet-readonly-monitor/monitor_events.jsonl"
+        )
+        XCTAssertEqual(
+            fixture.artifactPaths.monitorStatusJSONPath,
+            ".local/mtpro/runs/gh-845-monitor-alpha/testnet-readonly-monitor/monitor_status.json"
+        )
+
+        XCTAssertTrue(databaseTarget.contains("\"ReleaseV090TestnetReadOnlyMonitorSessionStore.swift\""))
+        XCTAssertTrue(packageSource.contains("\"Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift\""))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-monitor-session-store.sh"))
+        XCTAssertTrue(readinessScript.contains("GH-845-VERIFY-V090-TESTNET-MONITOR-SESSION-STORE"))
+        XCTAssertTrue(validationPlan.contains("GH-845 Release v0.9.0 TestnetReadOnlyMonitorSession Store Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-TESTNET-MONITOR-SESSION-STORE"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 TestnetReadOnlyMonitorSession store anchor"))
+
+        for requiredSource in [
+            "monitor_session.json",
+            "monitor_events.jsonl",
+            "monitor_status.json",
+            "appendOnlyMonitorEvents",
+            "corruptedMonitorEvents",
+            "corruptedMonitorStatus",
+            "corruptedMonitorSession",
+            "ReleaseV090TestnetReadOnlyMonitorSessionStore",
+            "V090-003-MONITOR-SESSION-JSON",
+            "V090-003-MONITOR-EVENTS-JSONL",
+            "V090-003-MONITOR-STATUS-JSON"
+        ] {
+            XCTAssertTrue(source.contains(requiredSource), "monitor session store source must contain \(requiredSource)")
+        }
+
+        for forbiddenAuthorization in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/order",
+            "/fapi/v1/order",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "testnetCancelReplaceAllowed=true"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-845 source must not contain \(forbiddenAuthorization)")
+            XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-845 contract must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-845 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-845 matrix must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(
