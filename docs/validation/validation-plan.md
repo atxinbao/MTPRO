@@ -219,6 +219,15 @@
 - Focused test: `testGH838TopLevelCLIRunSeparatesLocalSessionCreatedFromBrokerSessionStarted`
 - Boundary: GH-838 只修正 CLI operator-facing wording，把本地 operator session 创建和 broker session 未启动拆成 `localSessionCreated=true` / `brokerSessionStarted=false`；旧的 ambiguous `sessionStarted=false` 字段不得再出现在 CLI source 或 run output。该 gate 不启动 broker session、不连接 endpoint、不触发 ExecutionClient / OMS、不读取 production secret、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-839 Release v0.8.1 Status Artifact Role Validation
+
+- `GH-839-VERIFY-V081-STATUS-ARTIFACT-ROLE`
+- `TVM-RELEASE-V081-STATUS-ARTIFACT-ROLE`
+- Required command: `bash checks/verify-v0.8.1-status-artifact-role.sh`
+- Covered commands: `bash checks/verify-v0.8.0-cli-local-session.sh`、`bash checks/verify-v0.8.0-operational-session-store.sh`
+- Focused test: `testGH839TopLevelCLIStatusArtifactRolesAreExplicit`
+- Boundary: GH-839 只澄清本地 v0.8+ status artifact 角色：`status.json` 是 canonical operator status artifact，`_RUN_STATUS.json` 是为 v0.6/v0.7 reader 保留的 compatibility run-status mirror。该 gate 不删除兼容 artifact、不改变 broker/order behavior、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## GH-819 Release v0.8.0 Validation Lanes Split Validation
 
 - `GH-819-VERIFY-V080-VALIDATION-LANES`

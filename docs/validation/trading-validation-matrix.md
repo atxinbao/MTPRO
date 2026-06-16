@@ -279,6 +279,17 @@
 - wording guard: `sessionStarted=false` is forbidden in CLI source and run output because it does not distinguish local operator session state from broker session state.
 - forbidden scope: no broker session start, no endpoint connection, no ExecutionClient / OMS handoff, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
 
+## TVM-RELEASE-V081-STATUS-ARTIFACT-ROLE
+
+- TVM-RELEASE-V081-STATUS-ARTIFACT-ROLE
+- GH-839-VERIFY-V081-STATUS-ARTIFACT-ROLE
+- GH-839 Release v0.8.1 Status Artifact Role Validation
+- testGH839TopLevelCLIStatusArtifactRolesAreExplicit
+- canonical status artifact: `status.json` is the v0.8+ operator status artifact and is the path exposed as `statusJSONPath` in `manifest.json`.
+- compatibility artifact: `_RUN_STATUS.json` remains a compatibility run-status mirror for v0.6/v0.7 artifact readers and is exposed as `runStatusJSONPath` in `manifest.json`.
+- CLI evidence: `mtpro run --mode dry-run` and `mtpro status <runID>` both print `statusArtifactRole=status.json=canonical-v0.8;_RUN_STATUS.json=compatibility-run-status-mirror`.
+- forbidden scope: no artifact deletion migration, no broker/order behavior change, no endpoint connection, no ExecutionClient / OMS handoff, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
+
 ## TVM-RELEASE-V080-VALIDATION-LANES
 
 - TVM-RELEASE-V080-VALIDATION-LANES

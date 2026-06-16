@@ -23325,6 +23325,63 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH839TopLevelCLIStatusArtifactRolesAreExplicit() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let verifierScript = try read("checks/verify-v0.8.1-status-artifact-role.sh")
+        let v080CLIScript = try read("checks/verify-v0.8.0-cli-local-session.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.8.0-persistent-operator-runtime-no-order-contract.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let automationReadiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+
+        for anchor in [
+            "GH-839-VERIFY-V081-STATUS-ARTIFACT-ROLE",
+            "TVM-RELEASE-V081-STATUS-ARTIFACT-ROLE",
+            "GH-839 Release v0.8.1 Status Artifact Role Validation",
+            "Release v0.8.1 status artifact role anchor"
+        ] {
+            XCTAssertTrue(
+                [verifierScript, validationPlan, tradingMatrix, automationReadiness, readinessScript]
+                    .contains { $0.contains(anchor) },
+                "\(anchor) must stay anchored by the GH-839 status artifact role chain"
+            )
+        }
+
+        XCTAssertTrue(cliSource.contains("GH-839"))
+        XCTAssertTrue(cliSource.contains("statusArtifactRole=status.json=canonical-v0.8;_RUN_STATUS.json=compatibility-run-status-mirror"))
+        XCTAssertTrue(cliSource.contains("canonicalStatusArtifact=status.json"))
+        XCTAssertTrue(cliSource.contains("compatibilityRunStatusArtifact=_RUN_STATUS.json"))
+        XCTAssertTrue(cliSource.contains("statusJSONPath: paths.statusMirrorURL.path"))
+        XCTAssertTrue(cliSource.contains("runStatusJSONPath: paths.statusURL.path"))
+        XCTAssertTrue(cliSource.contains("readStatus(from: paths.statusMirrorURL)"))
+        XCTAssertTrue(contract.contains("status.json` 是 v0.8+ canonical operator status artifact"))
+        XCTAssertTrue(contract.contains("_RUN_STATUS.json` 只作为 v0.6/v0.7 artifact reader 的 compatibility run-status mirror"))
+        XCTAssertTrue(verifierScript.contains("swift run mtpro run --mode dry-run --run-id \"$RUN_ID\""))
+        XCTAssertTrue(verifierScript.contains("status.json=$RUNS_ROOT/$RUN_ID/status.json"))
+        XCTAssertTrue(verifierScript.contains("_RUN_STATUS.json=$RUNS_ROOT/$RUN_ID/_RUN_STATUS.json"))
+        XCTAssertTrue(v080CLIScript.contains("statusArtifactRole=status.json=canonical-v0.8;_RUN_STATUS.json=compatibility-run-status-mirror"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.1-status-artifact-role.sh"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true"
+        ] {
+            XCTAssertFalse(cliSource.contains(forbiddenAuthorization), "CLI status artifact role wording must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH783OperationalRunSessionLifecycleIsDeterministicNoOrderAndRejectsInvalidTransitions() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

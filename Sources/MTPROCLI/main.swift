@@ -282,6 +282,10 @@ private enum MTPROStrictCLI {
                 "runID=\(result.runID.rawValue)",
                 "registryPath=\(result.registryURL.path)",
                 "runDirectoryPath=\(result.runDirectoryURL.path)",
+                "statusArtifactRole=status.json=canonical-v0.8;_RUN_STATUS.json=compatibility-run-status-mirror",
+                "canonicalStatusArtifact=status.json",
+                "status.json=\(result.statusMirrorURL.path)",
+                "compatibilityRunStatusArtifact=_RUN_STATUS.json",
                 "_RUN_STATUS.json=\(result.statusURL.path)",
                 "events.jsonl=\(result.eventsURL.path)",
                 "manifest.json=\(result.manifestURL.path)",
@@ -356,7 +360,11 @@ private enum MTPROStrictCLI {
             "localSessionFound=\(status.localSessionFound)",
             "artifactLocationSource=.local/mtpro/runs/<runID>",
             "runDirectoryPath=\(status.runDirectoryPath)",
-            "_RUN_STATUS.json=\(status.statusPath)",
+            "statusArtifactRole=status.json=canonical-v0.8;_RUN_STATUS.json=compatibility-run-status-mirror",
+            "canonicalStatusArtifact=status.json",
+            "status.json=\(status.canonicalStatusPath)",
+            "compatibilityRunStatusArtifact=_RUN_STATUS.json",
+            "_RUN_STATUS.json=\(status.compatibilityRunStatusPath)",
             "events.jsonl=\(status.eventsPath)",
             "manifest.json=\(status.manifestPath)",
             "recoverySemantics=local-evidence-only",
@@ -576,9 +584,11 @@ private enum MTPROStrictCLI {
 
 /// ReleaseV080CLILocalSessionBinder 是 GH-810 的 top-level CLI -> local artifact 绑定层。
 ///
-/// Binder 只写 `.local/mtpro/runs` 下的 registry、`_RUN_STATUS.json`、`events.jsonl`
-/// 和 `manifest.json`。它不读取 secret、不连接 endpoint / broker、不提交或取消订单；
-/// `stop` / `recover` 也只变更本地 session evidence。
+/// Binder 只写 `.local/mtpro/runs` 下的 registry、`status.json`、`_RUN_STATUS.json`、
+/// `events.jsonl` 和 `manifest.json`。GH-839 起，`status.json` 是 v0.8+ canonical
+/// operator status artifact，`_RUN_STATUS.json` 只是为 v0.6/v0.7 reader 保留的兼容镜像。
+/// 它不读取 secret、不连接 endpoint / broker、不提交或取消订单；`stop` / `recover`
+/// 也只变更本地 session evidence。
 private struct ReleaseV080CLILocalSessionBinder {
     private static let rootEnvironmentKey = "MTPRO_LOCAL_RUNS_ROOT"
 
@@ -665,14 +675,15 @@ private struct ReleaseV080CLILocalSessionBinder {
                 entry = try document.inspect(runID: Identifier.constant(requestedRunID))
             }
             let paths = artifactURLs(runID: entry.runID)
-            let statusState = (try? readStatus(from: paths.statusURL))?.state ?? entry.state.rawValue
+            let statusState = (try? readStatus(from: paths.statusMirrorURL))?.state ?? entry.state.rawValue
             return ReleaseV080CLILocalSessionStatusLines(
                 runID: entry.runID.rawValue,
                 sessionState: statusState,
                 registryState: entry.state.rawValue,
                 localSessionFound: true,
                 runDirectoryPath: paths.runDirectoryURL.path,
-                statusPath: paths.statusURL.path,
+                canonicalStatusPath: paths.statusMirrorURL.path,
+                compatibilityRunStatusPath: paths.statusURL.path,
                 eventsPath: paths.eventsURL.path,
                 manifestPath: paths.manifestURL.path
             )
@@ -769,8 +780,9 @@ private struct ReleaseV080CLILocalSessionBinder {
         _ status: ReleaseV080CLILocalSessionStatus,
         to paths: ReleaseV080CLILocalSessionArtifactURLs
     ) throws {
-        try writeJSON(status, to: paths.statusURL)
+        // `status.json` 是 v0.8+ canonical operator 状态，`_RUN_STATUS.json` 仅为兼容镜像。
         try writeJSON(status, to: paths.statusMirrorURL)
+        try writeJSON(status, to: paths.statusURL)
     }
 
     private func readStatus(from url: URL) throws -> ReleaseV080CLILocalSessionStatus {
@@ -852,6 +864,10 @@ private struct ReleaseV080CLILocalSessionMutationResult {
         runDirectoryURL.appendingPathComponent("_RUN_STATUS.json", isDirectory: false)
     }
 
+    var statusMirrorURL: URL {
+        runDirectoryURL.appendingPathComponent("status.json", isDirectory: false)
+    }
+
     var manifestURL: URL {
         runDirectoryURL.appendingPathComponent("manifest.json", isDirectory: false)
     }
@@ -863,7 +879,8 @@ private struct ReleaseV080CLILocalSessionStatusLines {
     let registryState: String
     let localSessionFound: Bool
     let runDirectoryPath: String
-    let statusPath: String
+    let canonicalStatusPath: String
+    let compatibilityRunStatusPath: String
     let eventsPath: String
     let manifestPath: String
 
@@ -877,7 +894,8 @@ private struct ReleaseV080CLILocalSessionStatusLines {
             registryState: "missing",
             localSessionFound: false,
             runDirectoryPath: storageRootURL.appendingPathComponent(requestedRunID, isDirectory: true).path,
-            statusPath: storageRootURL.appendingPathComponent(requestedRunID).appendingPathComponent("_RUN_STATUS.json").path,
+            canonicalStatusPath: storageRootURL.appendingPathComponent(requestedRunID).appendingPathComponent("status.json").path,
+            compatibilityRunStatusPath: storageRootURL.appendingPathComponent(requestedRunID).appendingPathComponent("_RUN_STATUS.json").path,
             eventsPath: storageRootURL.appendingPathComponent(requestedRunID).appendingPathComponent("events.jsonl").path,
             manifestPath: storageRootURL.appendingPathComponent(requestedRunID).appendingPathComponent("manifest.json").path
         )
