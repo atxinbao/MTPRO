@@ -23269,6 +23269,62 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(cliSource.contains("productionOrderSubmitted=true"))
     }
 
+    func testGH838TopLevelCLIRunSeparatesLocalSessionCreatedFromBrokerSessionStarted() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let verifierScript = try read("checks/verify-v0.8.1-local-vs-broker-session.sh")
+        let v080CLIScript = try read("checks/verify-v0.8.0-cli-local-session.sh")
+        let runScript = try read("checks/run.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let automationReadiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+
+        for anchor in [
+            "GH-838-VERIFY-V081-LOCAL-VS-BROKER-SESSION",
+            "TVM-RELEASE-V081-LOCAL-VS-BROKER-SESSION",
+            "V081-004-LOCAL-SESSION-CREATED",
+            "V081-004-BROKER-SESSION-NOT-STARTED",
+            "V081-004-NO-AMBIGUOUS-SESSION-STARTED-FIELD",
+            "V081-004-NO-ENDPOINT-BROKER-ORDER-PATH",
+            "GH-838 Release v0.8.1 Local vs Broker Session Wording Validation",
+            "Release v0.8.1 local vs broker session wording anchor"
+        ] {
+            XCTAssertTrue(
+                [verifierScript, validationPlan, tradingMatrix, automationReadiness, readinessScript]
+                    .contains { $0.contains(anchor) },
+                "\(anchor) must stay anchored by the GH-838 local vs broker session wording chain"
+            )
+        }
+
+        XCTAssertTrue(cliSource.contains("localSessionCreated=true"))
+        XCTAssertTrue(cliSource.contains("brokerSessionStarted=false"))
+        XCTAssertFalse(cliSource.contains("sessionStarted=false"))
+        XCTAssertTrue(verifierScript.contains("swift run mtpro run --mode dry-run --run-id \"$RUN_ID\""))
+        XCTAssertTrue(verifierScript.contains("require_output_contains \"$run_output\" \"localSessionCreated=true\""))
+        XCTAssertTrue(verifierScript.contains("require_output_contains \"$run_output\" \"brokerSessionStarted=false\""))
+        XCTAssertTrue(verifierScript.contains("reject_output_contains \"$run_output\" \"sessionStarted=false\""))
+        XCTAssertTrue(v080CLIScript.contains("require_output_contains \"$run_output\" \"brokerSessionStarted=false\""))
+        XCTAssertTrue(v080CLIScript.contains("reject_output_contains \"$run_output\" \"sessionStarted=false\""))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.1-local-vs-broker-session.sh"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true"
+        ] {
+            XCTAssertFalse(cliSource.contains(forbiddenAuthorization), "CLI session wording must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH783OperationalRunSessionLifecycleIsDeterministicNoOrderAndRejectsInvalidTransitions() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
