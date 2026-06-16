@@ -6,6 +6,27 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT
+
+- TVM-RELEASE-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT
+- GH-843-VERIFY-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT
+- V090-001-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT
+- V090-001-ALLOWED-MONITOR-MODES
+- V090-001-ARTIFACT-BOUNDARY
+- V090-001-FRESHNESS-STALENESS-SEMANTICS
+- V090-001-CI-MANUAL-LANE-SPLIT
+- V090-001-RECONCILIATION-HARDENING-SCOPE
+- V090-001-DOWNSTREAM-QUEUE-ORDER
+- V090-001-FORBIDDEN-CAPABILITIES
+- V090-001-RELEASE-VALIDATION-MATRIX
+- GH-843 Release v0.9.0 Testnet No-order Observability Contract Validation
+- testGH843ReleaseV090TestnetNoOrderObservabilityContractDefinesMonitorModesAndForbiddenCapabilities
+- monitor modes: `testnet-read-only-observe`、`snapshot-freshness-monitor`、`private-stream-heartbeat-monitor`、`reconciliation-review`、`alert-read-model-only`、`recovery-observe` 和 `production-blocked`。
+- freshness semantics: `fresh`、`stale`、`disconnected`、`recovering`、`recovered`、`blocked` 和 `unavailable` 必须只描述 read-only monitor / local recovery state。
+- CI lane: `ciNetworkRequired=false`、`ciSecretRead=false`、`ciOrderSubmissionAllowed=false`；manual lane: `manualOperatorConfirmationRequired=true`、`manualProofRedacted=true`、`manualOrderSubmissionAllowed=false`。
+- reconciliation hardening: matched / delta / missing / stale / blocked 只作为 explain-only review evidence，不创建 correction command 或 broker write。
+- forbidden scope: no production trading, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet order submission, no real order, no production cutover, no notification side effect, no automatic recovery command.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT

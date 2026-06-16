@@ -8198,6 +8198,136 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT"))
     }
 
+    func testGH843ReleaseV090TestnetNoOrderObservabilityContractDefinesMonitorModesAndForbiddenCapabilities() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let verifyScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.9.0-contract.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "V090-001-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT",
+            "V090-001-ALLOWED-MONITOR-MODES",
+            "V090-001-ARTIFACT-BOUNDARY",
+            "V090-001-FRESHNESS-STALENESS-SEMANTICS",
+            "V090-001-CI-MANUAL-LANE-SPLIT",
+            "V090-001-RECONCILIATION-HARDENING-SCOPE",
+            "V090-001-DOWNSTREAM-QUEUE-ORDER",
+            "V090-001-FORBIDDEN-CAPABILITIES",
+            "V090-001-RELEASE-VALIDATION-MATRIX",
+            "TVM-RELEASE-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT",
+            "GH-843-VERIFY-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT"
+        ] {
+            XCTAssertTrue(
+                contract.contains(anchor)
+                    || verifyScript.contains(anchor)
+                    || validationPlan.contains(anchor)
+                    || tradingMatrix.contains(anchor)
+                    || automationReadiness.contains(anchor),
+                "\(anchor) must stay wired into v0.9.0 contract evidence"
+            )
+        }
+
+        for allowedMode in [
+            "testnet-read-only-observe",
+            "snapshot-freshness-monitor",
+            "private-stream-heartbeat-monitor",
+            "reconciliation-review",
+            "alert-read-model-only",
+            "recovery-observe",
+            "production-blocked"
+        ] {
+            XCTAssertTrue(contract.contains(allowedMode), "\(allowedMode) must stay allowed by the contract")
+        }
+
+        for artifact in [
+            "testnet-monitor-session.json",
+            "account-snapshot-freshness.json",
+            "private-stream-heartbeat.json",
+            "monitor-recovery.json",
+            "dashboard-observability-timeline.json",
+            "alert-read-model.json",
+            "reconciliation-timeline.json",
+            "risk-policy-application-audit.json",
+            "run-monitor-export-bundle.json",
+            "validation-lanes.json"
+        ] {
+            XCTAssertTrue(contract.contains(artifact), "\(artifact) must stay inside the v0.9.0 artifact boundary")
+        }
+
+        for releaseBoundary in [
+            "venue=Binance",
+            "productTypes=spot,usdsPerpetual",
+            "strategies=EMA,RSI",
+            "noOrder=true",
+            "testnetReadOnlyObservabilityAllowed=true",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false",
+            "testnetCancelReplaceAllowed=false",
+            "GH-843..GH-856",
+            "GH-844",
+            "GH-856"
+        ] {
+            XCTAssertTrue(contract.contains(releaseBoundary), "\(releaseBoundary) must stay fixed in contract")
+        }
+
+        for laneBoundary in [
+            "ciNetworkRequired=false",
+            "ciSecretRead=false",
+            "ciOrderSubmissionAllowed=false",
+            "manualOperatorConfirmationRequired=true",
+            "manualProofRedacted=true",
+            "manualOrderSubmissionAllowed=false"
+        ] {
+            XCTAssertTrue(contract.contains(laneBoundary), "\(laneBoundary) must stay fixed for v0.9.0 validation lanes")
+        }
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "testnetCancelReplaceAllowed=true",
+            "api.binance.com",
+            "fapi.binance.com",
+            "orderFormEnabled=true",
+            "tradingButtonEnabled=true"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization), "v0.9.0 contract must not authorize \(forbiddenAuthorization)")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-contract.sh"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 testnet no-order observability contract anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-843 Release v0.9.0 Testnet No-order Observability Contract Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT"))
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(

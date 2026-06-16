@@ -6,6 +6,23 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-843 Release v0.9.0 Testnet No-order Observability Contract Validation
+
+- `GH-843-VERIFY-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT`
+- `TVM-RELEASE-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT`
+- `V090-001-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT`
+- `V090-001-ALLOWED-MONITOR-MODES`
+- `V090-001-ARTIFACT-BOUNDARY`
+- `V090-001-FRESHNESS-STALENESS-SEMANTICS`
+- `V090-001-CI-MANUAL-LANE-SPLIT`
+- `V090-001-RECONCILIATION-HARDENING-SCOPE`
+- `V090-001-DOWNSTREAM-QUEUE-ORDER`
+- `V090-001-FORBIDDEN-CAPABILITIES`
+- `V090-001-RELEASE-VALIDATION-MATRIX`
+- Required command: `bash checks/verify-v0.9.0-contract.sh`
+- Focused test: `testGH843ReleaseV090TestnetNoOrderObservabilityContractDefinesMonitorModesAndForbiddenCapabilities`
+- Boundary: v0.9.0 只定义 testnet read-only observability、snapshot freshness、private stream heartbeat、recovery observe、alert read-model-only、explain-only reconciliation hardening、Risk policy audit、export bundle 和 validation lane split；不授权 production trading、production secret read、production endpoint / broker connection、testnet order routing、testnet order submission、real order、production OMS、Live PRO Console production command、trading button、order form、notification side effect、automatic recovery command 或 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`
