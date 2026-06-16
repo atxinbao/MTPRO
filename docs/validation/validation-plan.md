@@ -228,6 +228,18 @@
 - Focused test: `testGH839TopLevelCLIStatusArtifactRolesAreExplicit`
 - Boundary: GH-839 只澄清本地 v0.8+ status artifact 角色：`status.json` 是 canonical operator status artifact，`_RUN_STATUS.json` 是为 v0.6/v0.7 reader 保留的 compatibility run-status mirror。该 gate 不删除兼容 artifact、不改变 broker/order behavior、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-840 Release v0.8.1 Private Stream Redaction Validation
+
+- `GH-840-VERIFY-V081-PRIVATE-STREAM-REDACTION`
+- `TVM-RELEASE-V081-PRIVATE-STREAM-REDACTION`
+- `V081-006-PRIVATE-STREAM-REDACTED-URL-HASH`
+- `V081-006-NO-LISTENKEY-REFERENCE-IN-STREAM-URL`
+- `V081-006-NO-NETWORK-SECRET-ORDER-PATH`
+- Required command: `bash checks/verify-v0.8.1-private-stream-redaction.sh`
+- Covered command: `bash checks/verify-v0.8.0-manual-testnet-private-stream-monitoring.sh`
+- Focused test: `testGH814ManualBinanceTestnetPrivateStreamMonitoringProofIsRedactedAndNoOrder`
+- Boundary: GH-840 只强化 GH-814 manual private stream monitoring proof 的 redaction 语义：`redactedStreamURL` 必须由 `<redacted-listen-key>` placeholder 和 `listenKeyReferenceHash` 组成，不再复制上游 `listenKeyReference`，也不得包含 raw listenKey、`redactedListenKeyReference` 或 `listen-key:` marker。该 gate 不打开 network、不读取 secret、不启用 private WebSocket runtime、不提交 testnet 或 production order、不授权 production cutover。
+
 ## GH-819 Release v0.8.0 Validation Lanes Split Validation
 
 - `GH-819-VERIFY-V080-VALIDATION-LANES`

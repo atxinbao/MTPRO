@@ -1,3 +1,4 @@
+import Crypto
 import DomainModel
 import Foundation
 
@@ -60,6 +61,7 @@ public struct ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifac
     public let redactedCredentialReference: String
     public let listenKeyReference: String
     public let redactedListenKeyReference: String
+    public let listenKeyReferenceHash: String
     public let redactedStreamURL: String
     public let listenKeyOpened: Bool
     public let privateStreamObserved: Bool
@@ -117,7 +119,16 @@ public struct ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifac
             && redactedCredentialReference == Self.redactedCredentialReference(credentialReference)
             && listenKeyReference.hasPrefix("listen-key:")
             && redactedListenKeyReference == Self.redactedListenKeyReference(listenKeyReference)
-            && redactedStreamURL.contains(listenKeyReference)
+            && listenKeyReferenceHash == Self.listenKeyReferenceHash(listenKeyReference)
+            && redactedStreamURL == Self.redactedListenKeyStreamURL(
+                scheme: streamEndpointScheme,
+                host: streamEndpointHost,
+                listenKeyReferenceHash: listenKeyReferenceHash
+            )
+            && redactedStreamURL.contains(Self.redactedListenKeyPlaceholder)
+            && redactedStreamURL.contains(listenKeyReference) == false
+            && redactedStreamURL.contains(redactedListenKeyReference) == false
+            && redactedStreamURL.contains("listen-key:") == false
             && listenKeyOpened
             && privateStreamObserved
             && listenKeyClosed
@@ -184,7 +195,8 @@ public struct ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifac
         manualProofReference: String,
         credentialReference: String,
         listenKeyReference: String,
-        redactedStreamURL: String,
+        listenKeyReferenceHash: String? = nil,
+        redactedStreamURL: String? = nil,
         listenKeyOpened: Bool,
         privateStreamObserved: Bool,
         listenKeyClosed: Bool,
@@ -275,7 +287,13 @@ public struct ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifac
         self.redactedCredentialReference = Self.redactedCredentialReference(credentialReference)
         self.listenKeyReference = listenKeyReference
         self.redactedListenKeyReference = Self.redactedListenKeyReference(listenKeyReference)
-        self.redactedStreamURL = redactedStreamURL
+        let resolvedListenKeyReferenceHash = listenKeyReferenceHash ?? Self.listenKeyReferenceHash(listenKeyReference)
+        self.listenKeyReferenceHash = resolvedListenKeyReferenceHash
+        self.redactedStreamURL = redactedStreamURL ?? Self.redactedListenKeyStreamURL(
+            scheme: streamEndpointScheme,
+            host: streamEndpointHost,
+            listenKeyReferenceHash: resolvedListenKeyReferenceHash
+        )
         self.listenKeyOpened = listenKeyOpened
         self.privateStreamObserved = privateStreamObserved
         self.listenKeyClosed = listenKeyClosed
@@ -334,6 +352,22 @@ public struct ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifac
         "\(reference):<redacted>"
     }
 
+    /// GH-840 要求 redacted stream URL 不能携带 listenKeyReference；只保留稳定 hash 供 operator 对账。
+    public static func listenKeyReferenceHash(_ reference: String) -> String {
+        let digest = SHA256.hash(data: Data(reference.utf8))
+        return "sha256:" + digest.map { String(format: "%02x", $0) }.joined()
+    }
+
+    public static func redactedListenKeyStreamURL(
+        scheme: String,
+        host: String,
+        listenKeyReferenceHash: String
+    ) -> String {
+        "\(scheme)://\(host)/ws/\(redactedListenKeyPlaceholder)?listenKeyReferenceHash=\(listenKeyReferenceHash)"
+    }
+
+    public static let redactedListenKeyPlaceholder = "<redacted-listen-key>"
+
     public static let requiredFreshnessStatuses = BinancePrivateStreamFreshnessStatus.allCases.map(\.rawValue)
 
     public static let requiredValidationAnchors = [
@@ -345,11 +379,17 @@ public struct ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifac
         "V080-008-REDACTED-LISTENKEY-CREDENTIAL-REFERENCE",
         "V080-008-EXECUTIONREPORT-COMMAND-PATH-REJECTION",
         "V080-008-NO-TESTNET-ORDER-ROUTING",
-        "V080-008-NO-PRODUCTION-CUTOVER"
+        "V080-008-NO-PRODUCTION-CUTOVER",
+        "GH-840-VERIFY-V081-PRIVATE-STREAM-REDACTION",
+        "TVM-RELEASE-V081-PRIVATE-STREAM-REDACTION",
+        "V081-006-PRIVATE-STREAM-REDACTED-URL-HASH",
+        "V081-006-NO-LISTENKEY-REFERENCE-IN-STREAM-URL",
+        "V081-006-NO-NETWORK-SECRET-ORDER-PATH"
     ]
 
     public static let requiredValidationCommands = [
         "swift test --filter TargetGraphTests/testGH814ManualBinanceTestnetPrivateStreamMonitoringProofIsRedactedAndNoOrder",
+        "bash checks/verify-v0.8.1-private-stream-redaction.sh",
         "bash checks/verify-v0.8.0-manual-testnet-private-stream-monitoring.sh",
         "git diff --check",
         "bash checks/automation-readiness.sh",
@@ -419,7 +459,6 @@ public struct ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofWorkflo
             manualProofReference: manualProofReference,
             credentialReference: sourceArtifact.credentialReference,
             listenKeyReference: sourceArtifact.listenKeyReference,
-            redactedStreamURL: sourceArtifact.redactedStreamURL,
             listenKeyOpened: sourceArtifact.listenKeyOpened,
             privateStreamObserved: sourceArtifact.privateStreamObserved,
             listenKeyClosed: sourceArtifact.listenKeyClosed,
