@@ -303,6 +303,22 @@
 - leakage guard: `redactedStreamURL` must not contain raw listenKey, `listenKeyReference`, `redactedListenKeyReference` or `listen-key:` marker.
 - forbidden scope: no network connection in CI, no secret read, no private WebSocket runtime enablement, no endpoint connection, no ExecutionClient / OMS handoff, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
 
+## TVM-RELEASE-V081-PATCH-CLOSEOUT
+
+- TVM-RELEASE-V081-PATCH-CLOSEOUT
+- GH-841-VERIFY-V081-PATCH-AUDIT-DOCS-RELEASE-NOTES
+- GH-841-RELEASE-V081-PATCH-AUDIT-DOCS-RELEASE-NOTES
+- V081-007-PATCH-EVIDENCE-CHAIN
+- V081-007-PATCH-AUDIT
+- V081-007-PATCH-RELEASE-NOTES
+- V081-007-QUEUE-CLOSURE-STATE
+- V081-007-NO-RELEASE-TAG-CREATION
+- V081-007-NO-PRODUCTION-CUTOVER
+- GH-841 Release v0.8.1 Patch Audit / Docs / Release Notes Validation
+- aggregate evidence: `checks/verify-v0.8.1.sh` runs all v0.8.1 focused guards and checks patch audit / release notes / latest verification summary anchors.
+- queue evidence: GH-835..GH-840 are documented as completed before #841 closure PR; #841 PR must pass required `checks` before issue closure.
+- forbidden scope: no release tag creation, no GitHub Release creation, no v0.9.0 execution, no production trading, no production secret read, no production endpoint / broker connection, no testnet or production order, no production cutover.
+
 ## TVM-RELEASE-V080-VALIDATION-LANES
 
 - TVM-RELEASE-V080-VALIDATION-LANES
