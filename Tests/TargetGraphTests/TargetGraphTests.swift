@@ -23131,6 +23131,84 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(macOSGuardScript.contains("swift run mtpro replace"))
     }
 
+    func testGH836DashboardMacOSChecksRunV080FocusedGuards() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let workflowSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(".github/workflows/checks.yml"),
+            encoding: .utf8
+        )
+        let macOSGuardScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "checks/verify-v0.8.1-dashboard-macos-v080-guards.sh"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "GH-836-VERIFY-V081-DASHBOARD-MACOS-V080-GUARDS",
+            "TVM-RELEASE-V081-DASHBOARD-MACOS-V080-GUARDS",
+            "V081-002-DASHBOARD-MACOS-V080-GUARDS",
+            "V081-002-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND",
+            "V081-002-NO-PRODUCTION-CUTOVER",
+            "GH-836 Release v0.8.1 Dashboard macOS v0.8 Focused Guard Validation",
+            "Release v0.8.1 Dashboard macOS v0.8 focused guard anchor"
+        ] {
+            XCTAssertTrue(
+                [macOSGuardScript, validationPlan, tradingMatrix, automationReadiness, readinessScript].contains {
+                    $0.contains(anchor)
+                },
+                "\(anchor) must be anchored by the GH-836 Dashboard macOS v0.8 guard chain"
+            )
+        }
+
+        XCTAssertTrue(workflowSource.contains("dashboard_macos:"))
+        XCTAssertTrue(workflowSource.contains("Verify v0.7.0 Dashboard macOS focused guards"))
+        XCTAssertTrue(workflowSource.contains("bash checks/verify-v0.7.0-dashboard-macos-guards.sh"))
+        XCTAssertTrue(workflowSource.contains("Verify v0.8.0 Dashboard macOS focused guards"))
+        XCTAssertTrue(workflowSource.contains("bash checks/verify-v0.8.1-dashboard-macos-v080-guards.sh"))
+        XCTAssertTrue(workflowSource.contains("swift build --product Dashboard"))
+        XCTAssertTrue(workflowSource.contains("DASHBOARD_SMOKE=1 swift run Dashboard"))
+
+        let v080GuardIndex = try XCTUnwrap(workflowSource.range(
+            of: "Verify v0.8.0 Dashboard macOS focused guards"
+        )?.lowerBound)
+        let dashboardBuildIndex = try XCTUnwrap(workflowSource.range(of: "Build Dashboard")?.lowerBound)
+        let dashboardSmokeIndex = try XCTUnwrap(workflowSource.range(of: "Run Dashboard smoke")?.lowerBound)
+        XCTAssertLessThan(v080GuardIndex, dashboardBuildIndex)
+        XCTAssertLessThan(v080GuardIndex, dashboardSmokeIndex)
+
+        for guardCommand in [
+            "bash checks/verify-v0.8.0-dashboard-testnet-readonly-monitor.sh",
+            "bash checks/verify-v0.8.0-dashboard-safe-local-controls.sh"
+        ] {
+            XCTAssertTrue(
+                macOSGuardScript.contains(guardCommand),
+                "\(guardCommand) must run inside the GH-836 macOS v0.8 guard"
+            )
+        }
+
+        XCTAssertFalse(workflowSource.contains("productionCutoverAuthorized=true"))
+        XCTAssertFalse(macOSGuardScript.contains("swift run mtpro submit"))
+        XCTAssertFalse(macOSGuardScript.contains("swift run mtpro cancel"))
+        XCTAssertFalse(macOSGuardScript.contains("swift run mtpro replace"))
+    }
+
     func testGH783OperationalRunSessionLifecycleIsDeterministicNoOrderAndRejectsInvalidTransitions() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

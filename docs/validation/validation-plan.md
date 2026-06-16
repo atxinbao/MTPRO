@@ -183,6 +183,18 @@
 - Focused tests: `testGH818DashboardSafeLocalControlsBindSessionStoresWithoutCommands`、`testGH818DashboardSafeLocalControlsSurfaceIsAnchoredInV080Guards`
 - Boundary: GH-818 只把 Dashboard start / stop / recover / archive / open-detail safe local controls 绑定到 v0.8 local RunRegistryStore 和 OperationalRunSessionStore artifact paths；控制结果只修改或读取 `.local/mtpro/runs/...` 本地 evidence，open-detail 只读，不读取 credential value、不显示 raw listenKey 或 raw private payload、不新增 DataClient target dependency、不提供 trading button、order form、live command、testnet order routing、broker command、production command 或 production cutover。
 
+## GH-836 Release v0.8.1 Dashboard macOS v0.8 Focused Guard Validation
+
+- `GH-836-VERIFY-V081-DASHBOARD-MACOS-V080-GUARDS`
+- `TVM-RELEASE-V081-DASHBOARD-MACOS-V080-GUARDS`
+- `V081-002-DASHBOARD-MACOS-V080-GUARDS`
+- `V081-002-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND`
+- `V081-002-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.8.1-dashboard-macos-v080-guards.sh`
+- Covered commands: `bash checks/verify-v0.8.0-dashboard-testnet-readonly-monitor.sh`、`bash checks/verify-v0.8.0-dashboard-safe-local-controls.sh`
+- Focused test: `testGH836DashboardMacOSChecksRunV080FocusedGuards`
+- Boundary: GH-836 只让 required `dashboard-macos` job 在 Dashboard build / smoke 前执行 v0.8 testnet read-only monitor 与 safe local controls guard；不新增 UI trading command、order form、live command、broker command、production command、testnet order routing 或 production cutover。
+
 ## GH-819 Release v0.8.0 Validation Lanes Split Validation
 
 - `GH-819-VERIFY-V080-VALIDATION-LANES`
