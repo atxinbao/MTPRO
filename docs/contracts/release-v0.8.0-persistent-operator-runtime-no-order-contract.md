@@ -91,7 +91,7 @@ Required anchors：
 - `V080-004-STOP-RECOVER-LOCAL-ONLY`
 - `V080-004-NO-ENDPOINT-BROKER-ORDER-PATH`
 
-`mtpro run --mode dry-run` 必须创建 local runID、`registry.json` entry、per-run `_RUN_STATUS.json`、`status.json`、`events.jsonl` 和 `manifest.json`。`mtpro status` 只能读取 registry / status artifact。`mtpro stop` 和 `mtpro recover` 只能把本地 session evidence 更新为 stopped / recovered，不得触发 endpoint、broker、ExecutionClient、OMS、submit / cancel / replace、testnet order 或 production order path。
+`mtpro run --mode dry-run` 必须创建 local runID、`registry.json` entry、per-run `status.json`、`_RUN_STATUS.json`、`events.jsonl` 和 `manifest.json`。GH-839 后，`status.json` 是 v0.8+ canonical operator status artifact，并在 manifest 中作为 `statusJSONPath` 暴露；`_RUN_STATUS.json` 只作为 v0.6/v0.7 artifact reader 的 compatibility run-status mirror，并在 manifest 中作为 `runStatusJSONPath` 暴露。`mtpro status` 只能读取 registry / canonical status artifact。`mtpro stop` 和 `mtpro recover` 只能把本地 session evidence 更新为 stopped / recovered，不得触发 endpoint、broker、ExecutionClient、OMS、submit / cancel / replace、testnet order 或 production order path。
 
 ## V080-005-OPERATIONAL-RUN-SESSION-STORE
 
