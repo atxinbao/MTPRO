@@ -24308,7 +24308,28 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(proof.redactedCredentialReference, "\(reference):<redacted>")
         XCTAssertEqual(proof.listenKeyReference, sourceArtifact.listenKeyReference)
         XCTAssertEqual(proof.redactedListenKeyReference, "\(sourceArtifact.listenKeyReference):<redacted>")
-        XCTAssertTrue(proof.redactedStreamURL.contains(sourceArtifact.listenKeyReference))
+        let expectedListenKeyReferenceHash =
+            ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifact.listenKeyReferenceHash(
+                sourceArtifact.listenKeyReference
+            )
+        XCTAssertEqual(proof.listenKeyReferenceHash, expectedListenKeyReferenceHash)
+        XCTAssertEqual(
+            proof.redactedStreamURL,
+            ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifact.redactedListenKeyStreamURL(
+                scheme: sourceArtifact.streamEndpointScheme,
+                host: sourceArtifact.streamEndpointHost,
+                listenKeyReferenceHash: expectedListenKeyReferenceHash
+            )
+        )
+        XCTAssertTrue(
+            proof.redactedStreamURL.contains(
+                ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifact.redactedListenKeyPlaceholder
+            )
+        )
+        XCTAssertTrue(proof.redactedStreamURL.contains(expectedListenKeyReferenceHash))
+        XCTAssertFalse(proof.redactedStreamURL.contains(sourceArtifact.listenKeyReference))
+        XCTAssertFalse(proof.redactedStreamURL.contains(proof.redactedListenKeyReference))
+        XCTAssertFalse(proof.redactedStreamURL.contains("listen-key:"))
         XCTAssertFalse(proof.redactedStreamURL.contains(rawListenKeyValue))
         XCTAssertTrue(proof.listenKeyOpened)
         XCTAssertTrue(proof.privateStreamObserved)
@@ -24399,7 +24420,12 @@ final class TargetGraphTests: XCTestCase {
             "V080-008-REDACTED-LISTENKEY-CREDENTIAL-REFERENCE",
             "V080-008-EXECUTIONREPORT-COMMAND-PATH-REJECTION",
             "V080-008-NO-TESTNET-ORDER-ROUTING",
-            "V080-008-NO-PRODUCTION-CUTOVER"
+            "V080-008-NO-PRODUCTION-CUTOVER",
+            "GH-840-VERIFY-V081-PRIVATE-STREAM-REDACTION",
+            "TVM-RELEASE-V081-PRIVATE-STREAM-REDACTION",
+            "V081-006-PRIVATE-STREAM-REDACTED-URL-HASH",
+            "V081-006-NO-LISTENKEY-REFERENCE-IN-STREAM-URL",
+            "V081-006-NO-NETWORK-SECRET-ORDER-PATH"
         ]
         XCTAssertEqual(
             ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifact.requiredValidationAnchors,
@@ -24421,6 +24447,9 @@ final class TargetGraphTests: XCTestCase {
         )
         XCTAssertTrue(source.contains("ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofArtifact"))
         XCTAssertTrue(source.contains("ReleaseV080ManualBinanceTestnetPrivateStreamMonitoringProofWorkflow"))
+        XCTAssertTrue(source.contains("listenKeyReferenceHash"))
+        XCTAssertTrue(source.contains("redactedListenKeyStreamURL"))
+        XCTAssertTrue(source.contains("redactedStreamURL.contains(listenKeyReference) == false"))
         XCTAssertTrue(source.contains("listenKeyOpened"))
         XCTAssertTrue(source.contains("privateStreamObserved"))
         XCTAssertTrue(source.contains("listenKeyClosed"))

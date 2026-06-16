@@ -290,6 +290,19 @@
 - CLI evidence: `mtpro run --mode dry-run` and `mtpro status <runID>` both print `statusArtifactRole=status.json=canonical-v0.8;_RUN_STATUS.json=compatibility-run-status-mirror`.
 - forbidden scope: no artifact deletion migration, no broker/order behavior change, no endpoint connection, no ExecutionClient / OMS handoff, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
 
+## TVM-RELEASE-V081-PRIVATE-STREAM-REDACTION
+
+- TVM-RELEASE-V081-PRIVATE-STREAM-REDACTION
+- GH-840-VERIFY-V081-PRIVATE-STREAM-REDACTION
+- V081-006-PRIVATE-STREAM-REDACTED-URL-HASH
+- V081-006-NO-LISTENKEY-REFERENCE-IN-STREAM-URL
+- V081-006-NO-NETWORK-SECRET-ORDER-PATH
+- GH-840 Release v0.8.1 Private Stream Redaction Validation
+- testGH814ManualBinanceTestnetPrivateStreamMonitoringProofIsRedactedAndNoOrder
+- redaction evidence: GH-814 proof artifact stores `listenKeyReferenceHash` and emits `redactedStreamURL` as `<redacted-listen-key>` placeholder plus stable hash only.
+- leakage guard: `redactedStreamURL` must not contain raw listenKey, `listenKeyReference`, `redactedListenKeyReference` or `listen-key:` marker.
+- forbidden scope: no network connection in CI, no secret read, no private WebSocket runtime enablement, no endpoint connection, no ExecutionClient / OMS handoff, no testnet order routing, no production trading, no production secret read, no production endpoint / broker connection, no real order, no production cutover.
+
 ## TVM-RELEASE-V080-VALIDATION-LANES
 
 - TVM-RELEASE-V080-VALIDATION-LANES
