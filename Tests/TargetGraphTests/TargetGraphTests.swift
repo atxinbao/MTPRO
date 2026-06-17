@@ -10331,6 +10331,153 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH854ValidationLanesKeepManualProofOutOfCIReplay() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift"
+            ),
+            encoding: .utf8
+        )
+        let verifier = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.9.0-validation-lanes.sh"),
+            encoding: .utf8
+        )
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let runbook = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/operators/release-v0.9.0-validation-lanes-runbook.md"
+            ),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let workflow = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(".github/workflows/checks.yml"),
+            encoding: .utf8
+        )
+
+        let laneSplit = try ReleaseV090ValidationLaneSplitReadModel.deterministicFixture()
+        XCTAssertTrue(laneSplit.readModelHeld)
+        XCTAssertEqual(laneSplit.issueID.rawValue, "GH-854")
+        XCTAssertEqual(laneSplit.upstreamIssueIDs.map(\.rawValue), ["GH-853"])
+        XCTAssertEqual(laneSplit.previousIssueID.rawValue, "GH-853")
+        XCTAssertEqual(laneSplit.downstreamIssueID.rawValue, "GH-855")
+        XCTAssertTrue(laneSplit.laneSplitChecksum.hasPrefix("sha256:"))
+
+        XCTAssertEqual(laneSplit.deterministicCILane.laneKind, .deterministicCI)
+        XCTAssertTrue(laneSplit.deterministicCILane.policyHeld)
+        XCTAssertTrue(laneSplit.deterministicCILane.deterministicFixtureOnly)
+        XCTAssertFalse(laneSplit.deterministicCILane.networkRequired)
+        XCTAssertFalse(laneSplit.deterministicCILane.secretRead)
+        XCTAssertFalse(laneSplit.deterministicCILane.orderSubmissionAllowed)
+        XCTAssertFalse(laneSplit.deterministicCILane.manualProofReplayableByCI)
+        XCTAssertFalse(laneSplit.deterministicCILane.workflowDispatchCanInjectSecret)
+
+        XCTAssertEqual(laneSplit.manualOperatorLane.laneKind, .manualOperatorTestnetReadOnly)
+        XCTAssertTrue(laneSplit.manualOperatorLane.policyHeld)
+        XCTAssertFalse(laneSplit.manualOperatorLane.deterministicFixtureOnly)
+        XCTAssertTrue(laneSplit.manualOperatorLane.networkRequired)
+        XCTAssertFalse(laneSplit.manualOperatorLane.secretRead)
+        XCTAssertFalse(laneSplit.manualOperatorLane.orderSubmissionAllowed)
+        XCTAssertTrue(laneSplit.manualOperatorLane.operatorConfirmationRequired)
+        XCTAssertTrue(laneSplit.manualOperatorLane.manualProofReferenceRequired)
+        XCTAssertTrue(laneSplit.manualOperatorLane.manualProofRedacted)
+        XCTAssertFalse(laneSplit.manualOperatorLane.manualProofReplayableByCI)
+        XCTAssertFalse(laneSplit.manualOperatorLane.workflowDispatchCanInjectSecret)
+
+        XCTAssertTrue(laneSplit.manualProofCannotEnterCIReplay)
+        XCTAssertTrue(laneSplit.manualProofCannotSatisfyRequiredChecks)
+        XCTAssertTrue(laneSplit.workflowDispatchUsesDeterministicGuardsOnly)
+        XCTAssertFalse(laneSplit.ciNetworkRequired)
+        XCTAssertFalse(laneSplit.ciSecretRead)
+        XCTAssertFalse(laneSplit.ciOrderSubmissionAllowed)
+        XCTAssertFalse(laneSplit.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(laneSplit.productionTradingEnabledByDefault)
+        XCTAssertFalse(laneSplit.productionSecretRead)
+        XCTAssertFalse(laneSplit.productionEndpointConnected)
+        XCTAssertFalse(laneSplit.brokerEndpointConnected)
+        XCTAssertFalse(laneSplit.productionCutoverAuthorized)
+
+        let anchors = [
+            "GH-854-VERIFY-V090-VALIDATION-LANES",
+            "TVM-RELEASE-V090-VALIDATION-LANES",
+            "V090-012-VALIDATION-LANES",
+            "V090-012-DETERMINISTIC-CI-LANE",
+            "V090-012-MANUAL-OPERATOR-TESTNET-LANE",
+            "V090-012-MANUAL-PROOF-NOT-CI-REPLAYABLE",
+            "V090-012-CI-NO-NETWORK-SECRET-ORDER",
+            "V090-012-MANUAL-NO-ORDER-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(anchors, ReleaseV090ValidationLaneSplitReadModel.requiredValidationAnchors)
+
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-854 source")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in GH-854 verifier")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.9 contract")
+            XCTAssertTrue(runbook.contains(anchor), "\(anchor) must stay in v0.9 lane runbook")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+
+        XCTAssertTrue(verifier.contains("testGH854ValidationLanesKeepManualProofOutOfCIReplay"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-validation-lanes.sh"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 validation lanes hardening anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-854 Release v0.9.0 Validation Lanes Hardening Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-VALIDATION-LANES"))
+        XCTAssertTrue(workflow.contains("bash checks/run.sh"))
+        XCTAssertFalse(workflow.contains("MTPRO_TESTNET_SIGNED_ACCOUNT_SECRET"))
+        XCTAssertFalse(workflow.contains("MTPRO_TESTNET_LISTEN_KEY"))
+        XCTAssertFalse(workflow.contains("manual-proof-reference"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "testnetOrderSubmissionAllowed=true",
+            "productionCutoverAuthorized=true",
+            "manualProofReplayableByCI=true",
+            "workflowDispatchCanInjectSecret=true",
+            "ciNetworkRequired=true",
+            "ciSecretRead=true",
+            "ciOrderSubmissionAllowed=true",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/order",
+            "/fapi/v1/order"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization), "GH-854 contract must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(runbook.contains(forbiddenAuthorization), "GH-854 runbook must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-854 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-854 matrix must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(
