@@ -6,6 +6,26 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-883 Release v0.10.0 Capital / Exposure Limit Readiness Gate Validation
+
+- `GH-883-VERIFY-V0100-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE`
+- `TVM-RELEASE-V0100-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE`
+- `V0100-006-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE`
+- `V0100-006-MAX-CAPITAL-LIMIT`
+- `V0100-006-MAX-NOTIONAL-LIMIT`
+- `V0100-006-MAX-SINGLE-ORDER-NOTIONAL-LIMIT`
+- `V0100-006-MAX-SYMBOL-EXPOSURE-LIMIT`
+- `V0100-006-MAX-PRODUCT-EXPOSURE-LIMIT`
+- `V0100-006-MAX-DAILY-LOSS-LIMIT`
+- `V0100-006-MAX-OPEN-ORDERS-LEVERAGE-LIMIT`
+- `V0100-006-ALLOWED-SYMBOLS-PRODUCT-TYPES`
+- `V0100-006-RISK-POLICY-HASH-BINDING`
+- `V0100-006-CAPITAL-EXPOSURE-LIMITS-JSON`
+- `V0100-006-PRODUCTION-CAPABILITIES-DISABLED`
+- Required command: `bash checks/verify-v0.10.0-capital-exposure-limit-readiness-gate.sh`
+- Focused test: `testGH883CapitalExposureLimitReadinessGateBindsRiskPolicyAndDisablesOrders`
+- Boundary: CapitalExposureLimitReadinessGate 只持久化 capital / notional / single-order notional / symbol exposure / product exposure / daily loss / open orders / leverage / allowed symbols / allowed product types 和 risk policy hash binding，固定 `capital_exposure_limits.json`、`risk_policy_hash_bound=true`、`operator_review_required=true` 和 `order_submission_enabled=false`；不连接 production endpoint / broker，不读取 production secret，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## GH-882 Release v0.10.0 Endpoint Policy Readiness Gate Validation
 
 - `GH-882-VERIFY-V0100-ENDPOINT-POLICY-READINESS-GATE`
