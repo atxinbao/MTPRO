@@ -118,6 +118,7 @@ bash checks/verify-v0.10.0-contract.sh
 bash checks/verify-v0.10.0-release-policy.sh
 bash checks/verify-v0.10.0-production-environment-profile.sh
 bash checks/verify-v0.10.0-secret-provider-readiness-gate.sh
+bash checks/verify-v0.10.0-endpoint-policy-readiness-gate.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

@@ -6,6 +6,23 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-882 Release v0.10.0 Endpoint Policy Readiness Gate Validation
+
+- `GH-882-VERIFY-V0100-ENDPOINT-POLICY-READINESS-GATE`
+- `TVM-RELEASE-V0100-ENDPOINT-POLICY-READINESS-GATE`
+- `V0100-005-ENDPOINT-POLICY-READINESS-GATE`
+- `V0100-005-TESTNET-ENDPOINT-ALLOWLIST`
+- `V0100-005-PRODUCTION-ENDPOINT-ALLOWLIST`
+- `V0100-005-ENVIRONMENT-BINDING`
+- `V0100-005-HOST-VALIDATION`
+- `V0100-005-SCHEME-VALIDATION`
+- `V0100-005-NO-SILENT-FALLBACK`
+- `V0100-005-ENDPOINT-POLICY-READINESS-JSON`
+- `V0100-005-PRODUCTION-CAPABILITIES-DISABLED`
+- Required command: `bash checks/verify-v0.10.0-endpoint-policy-readiness-gate.sh`
+- Focused test: `testGH882EndpointPolicyReadinessGateRejectsProductionConnectionAndSilentFallback`
+- Boundary: EndpointPolicyReadinessGate 只持久化 testnet / production endpoint allowlist、environment binding、host validation、scheme validation、no-silent-fallback policy 和 evidence 文件名，固定 `endpoint_policy_readiness.json`、`production_endpoint_connected=false`、`fallback_to_production=false` 和 `testnet_to_production_fallback_forbidden=true`；不连接 production endpoint / broker，不读取 production secret，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## GH-881 Release v0.10.0 Secret Provider Readiness Gate Validation
 
 - `GH-881-VERIFY-V0100-SECRET-PROVIDER-READINESS-GATE`

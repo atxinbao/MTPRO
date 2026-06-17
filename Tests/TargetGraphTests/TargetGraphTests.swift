@@ -8809,6 +8809,176 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH882EndpointPolicyReadinessGateRejectsProductionConnectionAndSilentFallback() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let gate = try ReleaseV0100EndpointPolicyReadinessGate.deterministicFixture()
+
+        XCTAssertTrue(gate.gateHeld)
+        XCTAssertTrue(gate.endpointPolicyCoverageHeld)
+        XCTAssertTrue(gate.evidenceArtifact.evidenceBoundaryHeld)
+        XCTAssertTrue(gate.productionCapabilitiesDisabled)
+        XCTAssertEqual(gate.issueID.rawValue, "GH-882")
+        XCTAssertEqual(gate.upstreamIssueIDs.map(\.rawValue), ["GH-880", "GH-881"])
+        XCTAssertEqual(gate.downstreamIssueID.rawValue, "GH-883")
+        XCTAssertEqual(gate.canonicalQueueRange, "GH-878..GH-891")
+        XCTAssertEqual(
+            Set(gate.endpointPolicies.map(\.environment)),
+            Set(ReleaseV0100EndpointPolicyEnvironment.allCases)
+        )
+        XCTAssertEqual(
+            gate.endpointPolicies.map(\.host),
+            ["testnet.binance.vision", "testnet.binancefuture.com", "api.binance.com", "fapi.binance.com"]
+        )
+        XCTAssertTrue(gate.endpointPolicies.allSatisfy(\.policyBoundaryHeld))
+        XCTAssertEqual(gate.evidenceArtifact.fileName, "endpoint_policy_readiness.json")
+        XCTAssertFalse(gate.evidenceArtifact.containsEndpointResponse)
+        XCTAssertFalse(gate.evidenceArtifact.producedByConnection)
+        XCTAssertFalse(gate.productionEndpointConnected)
+        XCTAssertFalse(gate.fallbackToProduction)
+        XCTAssertTrue(gate.testnetToProductionFallbackForbidden)
+        XCTAssertTrue(gate.noSilentFallbackRequired)
+        XCTAssertFalse(gate.cutoverAuthorized)
+        XCTAssertFalse(gate.orderSubmissionEnabled)
+        XCTAssertFalse(gate.productionBrokerConnectionEnabled)
+        XCTAssertFalse(gate.productionSecretValueRead)
+        XCTAssertFalse(gate.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(gate.productionOMSRuntimeEnabled)
+        XCTAssertFalse(gate.tradingButtonEnabled)
+        XCTAssertFalse(gate.orderFormEnabled)
+        XCTAssertFalse(gate.liveCommandEnabled)
+
+        XCTAssertThrowsError(try ReleaseV0100EndpointPolicyReadinessGate(productionEndpointConnected: true))
+        XCTAssertThrowsError(try ReleaseV0100EndpointPolicyReadinessGate(fallbackToProduction: true))
+        XCTAssertThrowsError(try ReleaseV0100EndpointPolicyReadinessGate(testnetToProductionFallbackForbidden: false))
+        XCTAssertThrowsError(try ReleaseV0100EndpointPolicyReadinessGate(noSilentFallbackRequired: false))
+        XCTAssertThrowsError(try ReleaseV0100EndpointPolicyReadinessGate(cutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100EndpointPolicyReadinessGate(orderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100EndpointPolicyReadinessGate(productionBrokerConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100EndpointPolicyReadinessGate(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0100EndpointPolicyReadinessGate(testnetOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(
+            try ReleaseV0100EndpointPolicyReadinessRow(
+                environment: .testnet,
+                host: "api.binance.com"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0100EndpointPolicyReadinessRow(
+                environment: .production,
+                host: "api.binance.com",
+                scheme: "http"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0100EndpointPolicyReadinessRow(
+                environment: .testnet,
+                host: "testnet.binance.vision",
+                endpointConnectionAllowed: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0100EndpointPolicyReadinessEvidenceArtifact(containsEndpointResponse: true)
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100EndpointPolicyReadinessGate.swift")
+        let contract = try read("docs/contracts/release-v0.10.0-endpoint-policy-readiness-gate-contract.md")
+        let verifier = try read("checks/verify-v0.10.0-endpoint-policy-readiness-gate.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "V0100-005-ENDPOINT-POLICY-READINESS-GATE",
+            "V0100-005-TESTNET-ENDPOINT-ALLOWLIST",
+            "V0100-005-PRODUCTION-ENDPOINT-ALLOWLIST",
+            "V0100-005-ENVIRONMENT-BINDING",
+            "V0100-005-HOST-VALIDATION",
+            "V0100-005-SCHEME-VALIDATION",
+            "V0100-005-NO-SILENT-FALLBACK",
+            "V0100-005-ENDPOINT-POLICY-READINESS-JSON",
+            "V0100-005-PRODUCTION-CAPABILITIES-DISABLED",
+            "GH-882-VERIFY-V0100-ENDPOINT-POLICY-READINESS-GATE",
+            "TVM-RELEASE-V0100-ENDPOINT-POLICY-READINESS-GATE"
+        ]
+        XCTAssertEqual(ReleaseV0100EndpointPolicyReadinessGate.requiredValidationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        for exactString in [
+            "endpoint_policy_readiness.json",
+            "endpoint_policy_readiness_evidence_exists=true",
+            "endpoint_policy_readiness_contains_endpoint_response=false",
+            "endpoint_policy_readiness_produced_by_connection=false",
+            "environment=testnet",
+            "environment=production",
+            "testnetEndpointHost=testnet.binance.vision",
+            "testnetEndpointHost=testnet.binancefuture.com",
+            "productionEndpointHost=api.binance.com",
+            "productionEndpointHost=fapi.binance.com",
+            "scheme=https",
+            "productTypes=spot,usdsPerpetual",
+            "environmentBound=true",
+            "hostValidationRequired=true",
+            "schemeValidationRequired=true",
+            "endpointConnectionAllowed=false",
+            "production_endpoint_connected=false",
+            "fallback_to_production=false",
+            "testnet_to_production_fallback_forbidden=true",
+            "no_silent_fallback_required=true",
+            "invalidEndpointHostAccepted=false",
+            "invalidEndpointSchemeAccepted=false",
+            "cutoverAuthorized=false",
+            "orderSubmissionEnabled=false",
+            "productionBrokerConnectionEnabled=false",
+            "productionSecretValueRead=false",
+            "testnetOrderSubmissionEnabled=false",
+            "productionOMSRuntimeEnabled=false",
+            "tradingButtonEnabled=false",
+            "orderFormEnabled=false",
+            "liveCommandEnabled=false"
+        ] {
+            XCTAssertTrue(contract.contains(exactString), "\(exactString) must stay fixed in #882 docs")
+        }
+
+        XCTAssertTrue(verifier.contains("MTPRO release v0.10.0 endpoint policy readiness gate verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-endpoint-policy-readiness-gate.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-endpoint-policy-readiness-gate.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.10.0 endpoint policy readiness gate anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-882 Release v0.10.0 Endpoint Policy Readiness Gate Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-ENDPOINT-POLICY-READINESS-GATE"))
+        XCTAssertTrue(latest.contains("`#882` 定义 EndpointPolicyReadinessGate reference-only contract"))
+
+        for forbiddenAuthorization in [
+            "productionEndpointConnected=true",
+            "fallbackToProduction=true",
+            "cutoverAuthorized=true",
+            "orderSubmissionEnabled=true",
+            "productionBrokerConnectionEnabled=true",
+            "productionSecretValueRead=true",
+            "testnetOrderSubmissionEnabled=true",
+            "productionOMSRuntimeEnabled=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true",
+            "endpointConnectionAllowed=true",
+            "containsEndpointResponse=true",
+            "producedByConnection=true"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(
