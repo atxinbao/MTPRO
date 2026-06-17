@@ -47,6 +47,21 @@ v0.8.0 当前存在 stable GitHub Release：
 
 v0.8.0 的 Stage Code Audit、release notes 和 root docs refresh 是 construction closeout evidence；后续 GitHub Release publication 已通过独立 stable GitHub Release gate 完成。文档不得再把 v0.8.0 描述成 publication pending，也不得把 GitHub Release publication 当作 production cutover authorization。
 
+## V090-ACTUAL-GITHUB-RELEASE
+
+`V090-ACTUAL-GITHUB-RELEASE`
+
+v0.9.0 当前存在 stable GitHub Release：
+
+- release tag：`v0.9.0`
+- release title：`MTPRO v0.9.0 Testnet No-order Observability`
+- release URL：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`
+- release type：stable release；非 draft；非 prerelease
+- tag peeled commit：`4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`
+- publication timestamp：`2026-06-17T17:09:19Z`
+
+v0.9.0 的 Stage Code Audit、release notes、operator runbook 和 root docs refresh 是 construction closeout evidence；后续 GitHub Release publication 已通过独立 stable GitHub Release gate 完成。文档不得再把 v0.9.0 描述成 publication pending，也不得把 GitHub Release publication 当作 production cutover authorization。
+
 ## V080-002-V080-CONSTRUCTION-VS-PUBLICATION
 
 `V080-002-V080-CONSTRUCTION-VS-PUBLICATION`

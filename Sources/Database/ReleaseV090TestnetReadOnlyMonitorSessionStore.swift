@@ -5728,6 +5728,25 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
         }
     }
 
+    @discardableResult
+    public func recordCLIMonitorRecovery(
+        runID: Identifier,
+        recoveredAt: Date,
+        streamEvidenceReference: String,
+        recoveryReason: String,
+        rebuiltReadModelEvidenceReference: String,
+        observedAfterRecoveryAt: Date? = nil
+    ) throws -> ReleaseV090MonitorRecoveryDocument {
+        try recordMonitorRecovery(
+            runID: runID,
+            recoveredAt: recoveredAt,
+            listenKeyReference: streamEvidenceReference,
+            recoveryReason: recoveryReason,
+            rebuiltReadModelEvidenceReference: rebuiltReadModelEvidenceReference,
+            observedAfterRecoveryAt: observedAfterRecoveryAt
+        )
+    }
+
     public func monitorAlertReadModel(
         runID: Identifier,
         generatedAt: Date

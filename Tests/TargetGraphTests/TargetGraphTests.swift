@@ -10694,6 +10694,10 @@ final class TargetGraphTests: XCTestCase {
             contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
             encoding: .utf8
         )
+        let releasePublicationPolicy = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/release/release-publication-policy.md"),
+            encoding: .utf8
+        )
 
         let anchors = [
             "GH-856-VERIFY-V090-FINAL-AUDIT-DOCS-RUNBOOK",
@@ -10732,6 +10736,13 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(roadmap.contains("Latest Completed Project：`MTPRO Release v0.9.0 Testnet No-order Observability`"))
         XCTAssertTrue(latestSummary.contains("Release v0.9.0 Closure Snapshot"))
         XCTAssertTrue(latestSummary.contains("docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md"))
+        XCTAssertTrue(readme.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0"))
+        XCTAssertTrue(notes.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0"))
+        XCTAssertTrue(audit.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0"))
+        XCTAssertTrue(roadmap.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0"))
+        XCTAssertTrue(latestSummary.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0"))
+        XCTAssertTrue(releasePublicationPolicy.contains("V090-ACTUAL-GITHUB-RELEASE"))
+        XCTAssertTrue(releasePublicationPolicy.contains("tag peeled commit：`4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`"))
         XCTAssertTrue(automationReadiness.contains("Release v0.9.0 final audit / docs / runbook anchor"))
         XCTAssertTrue(validationPlan.contains("GH-856 Release v0.9.0 Final Audit / Docs / Runbook Validation"))
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"))
@@ -25602,7 +25613,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliSource.contains("strictParserAnchor"))
         XCTAssertTrue(cliSource.contains("mtpro run no-order-runtime-session"))
         XCTAssertTrue(cliSource.contains("mtpro status no-order-runtime-session"))
-        XCTAssertTrue(cliSource.contains("mtpro verify v0.8.0"))
+        XCTAssertTrue(cliSource.contains("mtpro verify v0.9.0"))
+        XCTAssertTrue(cliSource.contains(
+            "historicalV080Checks=verify-v0.8.0-contract,verify-v0.8.0-release-publication-policy,verify-v0.8.0-cli-local-session,verify-v0.8.0-validation-lanes,verify-v0.8.0"
+        ))
         XCTAssertTrue(cliSource.contains(
             "historicalV070Checks=verify-v0.7.0-contract,verify-v0.7.0-testnet-endpoint-policy,verify-v0.7.0-cli"
         ))
@@ -25799,12 +25813,15 @@ final class TargetGraphTests: XCTestCase {
             )
         }
 
-        XCTAssertTrue(cliSource.contains("mtpro verify v0.8.0"))
-        XCTAssertTrue(cliSource.contains("issue=GH-820"))
-        XCTAssertTrue(cliSource.contains("TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK"))
-        XCTAssertTrue(cliSource.contains("GH-820-VERIFY-V080-FINAL-AUDIT-DOCS-RUNBOOK"))
+        XCTAssertTrue(cliSource.contains("mtpro verify v0.9.0"))
+        XCTAssertTrue(cliSource.contains("issue=GH-856"))
+        XCTAssertTrue(cliSource.contains("TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"))
+        XCTAssertTrue(cliSource.contains("GH-856-VERIFY-V090-FINAL-AUDIT-DOCS-RUNBOOK"))
         XCTAssertTrue(cliSource.contains(
-            "checks=verify-v0.8.0-contract,verify-v0.8.0-release-publication-policy,verify-v0.8.0-cli-local-session,verify-v0.8.0-validation-lanes,verify-v0.8.0,automation-readiness,checks-run"
+            "checks=verify-v0.9.0-contract,verify-v0.9.0-dashboard-cli-operator-ux,verify-v0.9.0,automation-readiness,checks-run"
+        ))
+        XCTAssertTrue(cliSource.contains(
+            "historicalV080Checks=verify-v0.8.0-contract,verify-v0.8.0-release-publication-policy,verify-v0.8.0-cli-local-session,verify-v0.8.0-validation-lanes,verify-v0.8.0"
         ))
         XCTAssertTrue(cliSource.contains(
             "historicalV070Checks=verify-v0.7.0-contract,verify-v0.7.0-testnet-endpoint-policy,verify-v0.7.0-cli"
@@ -25814,13 +25831,79 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.1-cli-verify-v080-wording.sh"))
         XCTAssertTrue(verifierScript.contains("swift run mtpro verify"))
         XCTAssertTrue(verifierScript.contains("reject_output_contains \"$verify_output\" \"mtpro verify v0.7.0\""))
-        XCTAssertTrue(v070CLIScript.contains("mtpro verify v0.8.0"))
-        XCTAssertTrue(v050CLIScript.contains("mtpro verify v0.8.0"))
+        XCTAssertTrue(v070CLIScript.contains("mtpro verify v0.9.0"))
+        XCTAssertTrue(v050CLIScript.contains("mtpro verify v0.9.0"))
+        XCTAssertTrue(v070CLIScript.contains("historicalV080Checks=verify-v0.8.0-contract"))
+        XCTAssertTrue(v050CLIScript.contains("historicalV080Checks=verify-v0.8.0-contract"))
         XCTAssertTrue(v070CLIScript.contains("historicalV070Checks=verify-v0.7.0-contract"))
         XCTAssertTrue(v050CLIScript.contains("historicalV070Checks=verify-v0.7.0-contract"))
         XCTAssertFalse(cliSource.contains("productionCutoverAuthorized=true"))
         XCTAssertFalse(cliSource.contains("productionSecretRead=true"))
         XCTAssertFalse(cliSource.contains("productionEndpointConnected=true"))
+        XCTAssertFalse(cliSource.contains("productionOrderSubmitted=true"))
+    }
+
+    func testV091DashboardGuardAndCLIMonitorStoreBindingPatch() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let workflowSource = try read(".github/workflows/checks.yml")
+        let dashboardGuardScript = try read("checks/verify-v0.9.1-dashboard-macos-v090-guards.sh")
+        let cliVerifyScript = try read("checks/verify-v0.9.1-cli-verify-v090-wording.sh")
+        let aggregateScript = try read("checks/verify-v0.9.1.sh")
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+
+        for anchor in [
+            "V091-002-VERIFY-DASHBOARD-MACOS-V090-GUARDS",
+            "TVM-RELEASE-V091-DASHBOARD-MACOS-V090-GUARDS",
+            "V091-003-VERIFY-CLI-VERIFY-V090-WORDING",
+            "TVM-RELEASE-V091-CLI-VERIFY-V090-WORDING",
+            "V091-006-VERIFY-PATCH-AUDIT-DOCS-RUNBOOK",
+            "TVM-RELEASE-V091-PATCH-AUDIT-DOCS-RUNBOOK"
+        ] {
+            XCTAssertTrue(
+                [dashboardGuardScript, cliVerifyScript, aggregateScript, readinessScript].contains { $0.contains(anchor) },
+                "\(anchor) must stay anchored by the v0.9.1 patch guard chain"
+            )
+        }
+
+        XCTAssertTrue(workflowSource.contains("Verify v0.9.0 Dashboard macOS focused guards"))
+        XCTAssertTrue(workflowSource.contains("bash checks/verify-v0.9.1-dashboard-macos-v090-guards.sh"))
+        let v090GuardIndex = try XCTUnwrap(
+            workflowSource.range(of: "Verify v0.9.0 Dashboard macOS focused guards")?.lowerBound
+        )
+        let dashboardBuildIndex = try XCTUnwrap(workflowSource.range(of: "Build Dashboard")?.lowerBound)
+        let dashboardSmokeIndex = try XCTUnwrap(workflowSource.range(of: "Run Dashboard smoke")?.lowerBound)
+        XCTAssertLessThan(v090GuardIndex, dashboardBuildIndex)
+        XCTAssertLessThan(v090GuardIndex, dashboardSmokeIndex)
+
+        for command in [
+            "bash checks/verify-v0.9.0-dashboard-observability-timeline.sh",
+            "bash checks/verify-v0.9.0-alert-read-model.sh",
+            "bash checks/verify-v0.9.0-dashboard-cli-operator-ux.sh"
+        ] {
+            XCTAssertTrue(dashboardGuardScript.contains(command), "\(command) must run in v0.9 macOS guard")
+        }
+
+        XCTAssertTrue(cliSource.contains("ReleaseV090CLIMonitorSessionBinder"))
+        XCTAssertTrue(cliSource.contains("ReleaseV090TestnetReadOnlyMonitorSessionStore"))
+        XCTAssertTrue(cliSource.contains("monitorStoreBinding=ReleaseV090TestnetReadOnlyMonitorSessionStore"))
+        XCTAssertTrue(cliSource.contains("runtimeModes=local-dry-run,testnet-read-only-monitor,recovery-observe,production-blocked"))
+        XCTAssertTrue(cliSource.contains("legacyRuntimeModes=testnet-read-only-probe"))
+        XCTAssertTrue(cliSource.contains("mtpro verify v0.9.0"))
+        XCTAssertTrue(cliVerifyScript.contains("reject_output_contains \"$verify_output\" \"mtpro verify v0.8.0\""))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.1.sh"))
+        XCTAssertTrue(aggregateScript.contains("bash checks/verify-v0.9.1-dashboard-macos-v090-guards.sh"))
+        XCTAssertTrue(aggregateScript.contains("bash checks/verify-v0.9.1-cli-verify-v090-wording.sh"))
+
+        XCTAssertFalse(workflowSource.contains("productionCutoverAuthorized=true"))
+        XCTAssertTrue(dashboardGuardScript.contains("reject_file_contains \"$WORKFLOW\" \"swift run mtpro submit\""))
+        XCTAssertTrue(dashboardGuardScript.contains("reject_file_contains \"$WORKFLOW\" \"swift run mtpro cancel\""))
+        XCTAssertTrue(dashboardGuardScript.contains("reject_file_contains \"$WORKFLOW\" \"swift run mtpro replace\""))
         XCTAssertFalse(cliSource.contains("productionOrderSubmitted=true"))
     }
 

@@ -8,6 +8,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT"
 
+RUNS_ROOT="$(mktemp -d)"
+trap 'rm -rf "$RUNS_ROOT"' EXIT
+export MTPRO_LOCAL_RUNS_ROOT="$RUNS_ROOT"
+
 require_file_contains() {
   local file="$1"
   local expected="$2"
@@ -72,10 +76,10 @@ swift test --filter TargetGraphTests/testGH855DashboardCLIOperatorUXIsAnchoredIn
 # CLI smoke command anchors:
 # swift run mtpro monitor start
 # swift run mtpro monitor status
-# swift run mtpro monitor stop
 # swift run mtpro monitor recover
+# swift run mtpro monitor stop
 # swift run mtpro monitor export
-for action in start status stop recover export; do
+for action in start status recover stop export; do
   output="$(swift run mtpro monitor "$action" gh-855-monitor-ux)"
   require_output_contains "$output" "mtpro monitor $action v0.9.0"
   require_output_contains "$output" "issue=GH-855"
@@ -84,9 +88,11 @@ for action in start status stop recover export; do
   require_output_contains "$output" "operatorUXContract=v0.9.0"
   require_output_contains "$output" "monitorAction=$action"
   require_output_contains "$output" "runID=gh-855-monitor-ux"
+  require_output_contains "$output" "monitorStoreBinding=ReleaseV090TestnetReadOnlyMonitorSessionStore"
+  require_output_contains "$output" "monitorStoreStatusChecksum=sha256:"
   require_output_contains "$output" "dashboardMonitorSurfaces=monitor-state,timelines,alerts,export-status,safe-local-controls"
-  require_output_contains "$output" "monitorSessionPath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor_session.json"
-  require_output_contains "$output" "exportBundlePath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/run-monitor-export-bundle.json"
+  require_output_contains "$output" "monitorSessionPath=.local/mtpro/runs/gh-855-monitor-ux/testnet-readonly-monitor/monitor_session.json"
+  require_output_contains "$output" "exportBundlePath=.local/mtpro/runs/gh-855-monitor-ux/testnet-readonly-monitor/run-monitor-export-bundle.json"
   require_output_contains "$output" "credentialValueVisible=false"
   require_output_contains "$output" "rawListenKeyVisible=false"
   require_output_contains "$output" "rawPrivatePayloadVisible=false"

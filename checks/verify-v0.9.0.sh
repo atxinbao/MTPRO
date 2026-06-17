@@ -58,6 +58,7 @@ swift test --filter TargetGraphTests/testGH856ReleaseV090FinalAuditDocsRunbookCl
 AUDIT="docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md"
 NOTES="docs/release/mtpro-release-v0.9.0-testnet-no-order-observability-notes.md"
 RUNBOOK="docs/operators/release-v0.9.0-testnet-no-order-observability-runbook.md"
+PUBLICATION_POLICY="docs/release/release-publication-policy.md"
 VALIDATION_PLAN="docs/validation/validation-plan.md"
 TRADING_MATRIX="docs/validation/trading-validation-matrix.md"
 AUTOMATION_DOC="docs/automation/automation-readiness.md"
@@ -72,6 +73,18 @@ require_file_contains "$AUDIT" "V090-014-STAGE-CODE-AUDIT"
 require_file_contains "$AUDIT" "MTPRO Release v0.9.0 Testnet No-order Observability"
 require_file_contains "$AUDIT" 'Project Closure Count to `43 / 43 (100%)`'
 require_file_contains "$NOTES" "MTPRO Release v0.9.0 Testnet No-order Observability Notes"
+for publication_fact in \
+  "https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0" \
+  "4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c"; do
+  require_file_contains "README.md" "$publication_fact"
+  require_file_contains "$NOTES" "$publication_fact"
+  require_file_contains "$AUDIT" "$publication_fact"
+  require_file_contains "$PUBLICATION_POLICY" "$publication_fact"
+  require_file_contains "docs/validation/latest-verification-summary.md" "$publication_fact"
+done
+require_file_contains "$NOTES" "stable release；非 draft；非 prerelease"
+require_file_contains "$PUBLICATION_POLICY" "stable release；非 draft；非 prerelease"
+require_file_contains "$PUBLICATION_POLICY" "V090-ACTUAL-GITHUB-RELEASE"
 require_file_contains "$RUNBOOK" "V090-014-VALIDATION-SUMMARY"
 require_file_contains "$RUNBOOK" "TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
 require_file_contains "README.md" "MTPRO Release v0.9.0 Testnet No-order Observability"
