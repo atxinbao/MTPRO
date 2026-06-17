@@ -6,6 +6,27 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-ENDPOINT-POLICY-READINESS-GATE
+
+- TVM-RELEASE-V0100-ENDPOINT-POLICY-READINESS-GATE
+- GH-882-VERIFY-V0100-ENDPOINT-POLICY-READINESS-GATE
+- V0100-005-ENDPOINT-POLICY-READINESS-GATE
+- V0100-005-TESTNET-ENDPOINT-ALLOWLIST
+- V0100-005-PRODUCTION-ENDPOINT-ALLOWLIST
+- V0100-005-ENVIRONMENT-BINDING
+- V0100-005-HOST-VALIDATION
+- V0100-005-SCHEME-VALIDATION
+- V0100-005-NO-SILENT-FALLBACK
+- V0100-005-ENDPOINT-POLICY-READINESS-JSON
+- V0100-005-PRODUCTION-CAPABILITIES-DISABLED
+- GH-882 Release v0.10.0 Endpoint Policy Readiness Gate Validation
+- testGH882EndpointPolicyReadinessGateRejectsProductionConnectionAndSilentFallback
+- `bash checks/verify-v0.10.0-endpoint-policy-readiness-gate.sh`
+- fixed endpoint policy schema: `endpoint_policy_readiness.json`、`environment=testnet`、`environment=production`、`testnetEndpointHost=testnet.binance.vision`、`testnetEndpointHost=testnet.binancefuture.com`、production endpoint allowlist is fixed in the GH-882 contract artifact without authorizing matrix-level production connectivity。
+- fixed validation proof: `scheme=https`、`productTypes=spot,usdsPerpetual`、`environmentBound=true`、`hostValidationRequired=true`、`schemeValidationRequired=true`、`endpointConnectionAllowed=false`。
+- fixed fallback proof: `production_endpoint_connected=false`、`fallback_to_production=false`、`testnet_to_production_fallback_forbidden=true`、`no_silent_fallback_required=true`。
+- forbidden scope: no production endpoint / broker connection, no production secret read, no silent fallback to production, no testnet or production submit / cancel / replace order, no production OMS, no trading button, no order form, no live command, no production cutover.
+
 ## TVM-RELEASE-V0100-SECRET-PROVIDER-READINESS-GATE
 
 - TVM-RELEASE-V0100-SECRET-PROVIDER-READINESS-GATE
