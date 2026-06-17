@@ -114,6 +114,7 @@ bash checks/verify-v0.8.1-status-artifact-role.sh
 bash checks/verify-v0.8.1-private-stream-redaction.sh
 bash checks/verify-v0.8.1.sh
 bash checks/verify-v0.9.0-contract.sh
+bash checks/verify-v0.10.0-contract.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
