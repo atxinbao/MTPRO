@@ -255,6 +255,27 @@
 - artifact boundary: all UX rows must stay under `.local/mtpro/runs/<runID>/testnet-readonly-monitor/...` and must not persist raw credential, raw listenKey, raw private payload, broker state or order request.
 - forbidden scope: no trading button, no order form, no live command, no broker command, no notification side effect, no automatic recovery command, no testnet order routing, no testnet submit / cancel / replace, no production secret read, no production endpoint / broker connection, no production order, no production OMS, no production cutover.
 
+## TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK
+
+- TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK
+- GH-856-VERIFY-V090-FINAL-AUDIT-DOCS-RUNBOOK
+- GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK
+- V090-014-VALIDATION-SUMMARY
+- V090-014-STAGE-CODE-AUDIT
+- V090-014-RELEASE-NOTES
+- V090-014-OPERATOR-RUNBOOK
+- V090-014-ROOT-DOCS-REFRESH
+- V090-014-AGGREGATE-VERIFY
+- V090-014-NO-PRODUCTION-CUTOVER
+- GH-856 Release v0.9.0 Final Audit / Docs / Runbook Validation
+- testGH856ReleaseV090FinalAuditDocsRunbookCloseCompletedFactsOnly
+- `bash checks/verify-v0.9.0.sh`
+- audit docs: `docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md`
+- release notes: `docs/release/mtpro-release-v0.9.0-testnet-no-order-observability-notes.md`
+- operator runbook: `docs/operators/release-v0.9.0-testnet-no-order-observability-runbook.md`
+- root docs refresh: latest completed release construction scope must be v0.9.0 and Project Closure Count must be `43 / 43 (100%)`
+- forbidden scope: GH-856 construction closeout does not publish a tag. no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace order, no real submit / cancel / replace order.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT

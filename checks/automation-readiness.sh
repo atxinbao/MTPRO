@@ -195,10 +195,19 @@ require_file "checks/verify-v0.9.0-contract.sh"
 require_file "checks/verify-v0.9.0-v080-publication-alignment.sh"
 require_file "checks/verify-v0.9.0-monitor-session-store.sh"
 require_file "checks/verify-v0.9.0-snapshot-freshness-monitor.sh"
+require_file "checks/verify-v0.9.0-private-stream-heartbeat-monitor.sh"
+require_file "checks/verify-v0.9.0-monitor-recovery-workflow.sh"
 require_file "checks/verify-v0.9.0-dashboard-observability-timeline.sh"
 require_file "checks/verify-v0.9.0-alert-read-model.sh"
 require_file "checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh"
+require_file "checks/verify-v0.9.0-risk-policy-application-audit.sh"
+require_file "checks/verify-v0.9.0-run-monitor-export-bundle.sh"
+require_file "checks/verify-v0.9.0-validation-lanes.sh"
 require_file "checks/verify-v0.9.0-dashboard-cli-operator-ux.sh"
+require_file "checks/verify-v0.9.0.sh"
+require_file "docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.9.0-testnet-no-order-observability-notes.md"
+require_file "docs/operators/release-v0.9.0-testnet-no-order-observability-runbook.md"
 require_file "checks/verify-v0.8.0-run-registry-store.sh"
 require_file "checks/verify-v0.8.0-cli-local-session.sh"
 require_file "checks/verify-v0.8.0-operational-session-store.sh"
@@ -545,6 +554,42 @@ for v090_operator_ux_anchor in \
   require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "$v090_operator_ux_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v090_operator_ux_anchor"
   require_contains "docs/validation/validation-plan.md" "$v090_operator_ux_anchor"
+done
+require_contains "checks/verify-v0.9.0.sh" "GH-856-VERIFY-V090-FINAL-AUDIT-DOCS-RUNBOOK"
+require_contains "checks/verify-v0.9.0.sh" "bash checks/verify-v0.9.0-dashboard-cli-operator-ux.sh"
+require_contains "checks/run.sh" "bash checks/verify-v0.9.0.sh"
+require_contains "docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md" "GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
+require_contains "docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md" "Project Closure Count to \`43 / 43 (100%)\`"
+require_contains "docs/release/mtpro-release-v0.9.0-testnet-no-order-observability-notes.md" "MTPRO Release v0.9.0 Testnet No-order Observability Notes"
+require_contains "docs/operators/release-v0.9.0-testnet-no-order-observability-runbook.md" "V090-014-VALIDATION-SUMMARY"
+require_contains "README.md" "MTPRO Release v0.9.0 Testnet No-order Observability"
+require_contains "README.md" "bash checks/verify-v0.9.0.sh"
+require_contains "GOAL.md" "MTPRO Release v0.9.0 Testnet No-order Observability"
+require_contains "BLUEPRINT.md" "v0.9.0 testnet no-order observability"
+require_contains "docs/roadmap.md" "GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
+require_contains "docs/roadmap.md" "Project Closure Count: 43 / 43 (100%)"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.9.0 Closure Snapshot"
+require_contains "docs/validation/latest-verification-summary.md" "docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md"
+require_contains "docs/validation/validation-plan.md" "GH-856 Release v0.9.0 Final Audit / Docs / Runbook Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
+require_contains "docs/automation/automation-readiness.md" "Release v0.9.0 final audit / docs / runbook anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH856ReleaseV090FinalAuditDocsRunbookCloseCompletedFactsOnly"
+for v090_final_anchor in \
+  "GH-856-VERIFY-V090-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "V090-014-VALIDATION-SUMMARY" \
+  "V090-014-STAGE-CODE-AUDIT" \
+  "V090-014-RELEASE-NOTES" \
+  "V090-014-OPERATOR-RUNBOOK" \
+  "V090-014-ROOT-DOCS-REFRESH" \
+  "V090-014-AGGREGATE-VERIFY" \
+  "V090-014-NO-PRODUCTION-CUTOVER"; do
+  require_contains "docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md" "$v090_final_anchor"
+  require_contains "docs/operators/release-v0.9.0-testnet-no-order-observability-runbook.md" "$v090_final_anchor"
+  require_contains "checks/verify-v0.9.0.sh" "$v090_final_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v090_final_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v090_final_anchor"
 done
 require_contains "docs/release/release-publication-policy.md" "GH-808-RELEASE-PUBLICATION-POLICY"
 require_contains "docs/release/release-publication-policy.md" "V080-002-V070-ACTUAL-GITHUB-RELEASE"
