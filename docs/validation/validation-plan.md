@@ -101,6 +101,21 @@
 - Focused tests: `testGH849DashboardObservabilityTimelineShowsMonitorArtifactsWithoutCommands` and `testGH849DashboardObservabilityTimelineIsAnchoredInV090Guards`
 - Boundary: GH-849 只新增 Dashboard read-only observability timeline surface，展示 GH-845..GH-848 的 monitor/session artifact 摘要、snapshot timeline、private stream timeline、freshness timeline、stale / disconnected / recovered 事件和 last observed event kind；不新增 DataClient / Database runtime dependency，不读取 secret，不连接 endpoint / broker，不展示 trading button / order form / live command，不提交 testnet 或 production order，不授权 production cutover。
 
+## GH-850 Release v0.9.0 Alert Read-model Validation
+
+- `GH-850-VERIFY-V090-ALERT-READ-MODEL`
+- `TVM-RELEASE-V090-ALERT-READ-MODEL`
+- `V090-008-ALERT-READ-MODEL`
+- `V090-008-ALERT-FIELDS`
+- `V090-008-MONITOR-SESSION-EVIDENCE-BINDING`
+- `V090-008-LOCAL-READ-MODEL-ONLY`
+- `V090-008-NO-NOTIFICATION-SIDE-EFFECTS`
+- `V090-008-NO-AUTOMATED-TRADING-REACTION`
+- `V090-008-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.9.0-alert-read-model.sh`
+- Focused test: `testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects`
+- Boundary: GH-850 只新增本地 alert read-model，派生 `alert_id`、`severity`、`reason`、`source`、`ack_required` 和 `lifecycle` 字段，并绑定 monitor session、account snapshot freshness 和 private stream heartbeat checksum；不写 SMS / email / webhook / push，不调用外部服务，不创建 paging / incident command，不触发 automatic recovery 或 automated trading reaction，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`

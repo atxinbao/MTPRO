@@ -134,6 +134,25 @@
 - dependency boundary: Dashboard target 不新增 DataClient 或 Database runtime dependency；该 surface 只绑定 Dashboard-safe ViewModel source 和 checksum reference。
 - forbidden scope: no Dashboard command surface, no trading button, no order form, no live command, no notification side effect, no automatic reconnect command, no raw listenKey, no raw private payload, no credential value, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no production cutover.
 
+## TVM-RELEASE-V090-ALERT-READ-MODEL
+
+- TVM-RELEASE-V090-ALERT-READ-MODEL
+- GH-850-VERIFY-V090-ALERT-READ-MODEL
+- V090-008-ALERT-READ-MODEL
+- V090-008-ALERT-FIELDS
+- V090-008-MONITOR-SESSION-EVIDENCE-BINDING
+- V090-008-LOCAL-READ-MODEL-ONLY
+- V090-008-NO-NOTIFICATION-SIDE-EFFECTS
+- V090-008-NO-AUTOMATED-TRADING-REACTION
+- V090-008-NO-PRODUCTION-CUTOVER
+- GH-850 Release v0.9.0 Alert Read-model Validation
+- testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects
+- `bash checks/verify-v0.9.0-alert-read-model.sh`
+- alert fields: `alert_id`、`severity`、`reason`、`source`、`ack_required` 和 `lifecycle` 必须可 inspect，且只表示本地 read-model state。
+- evidence binding: alert 必须绑定 `monitorSessionChecksum`、`accountSnapshotFreshnessChecksum`、`privateStreamHeartbeatChecksum` 和 source artifact checksum，snapshot stale 只能来自 `account-snapshot-freshness.json`，private stream stale / disconnected / expired / recovered 只能来自 `private-stream-heartbeat.json`。
+- no notification side effects: `notificationSideEffectsEnabled=false`、`smsNotificationSent=false`、`emailNotificationSent=false`、`webhookNotificationSent=false`、`pushNotificationSent=false` 和 `externalServiceCalled=false`。
+- forbidden scope: no SMS, no email, no webhook, no push notification, no external service call, no paging command, no incident command, no automatic recovery command, no automated trading reaction, no trading button, no order form, no live command, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no production cutover.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
