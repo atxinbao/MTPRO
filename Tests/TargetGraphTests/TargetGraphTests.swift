@@ -8328,6 +8328,112 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT"))
     }
 
+    func testGH878ReleaseV0100ProductionReadinessContractDoesNotAuthorizeCutover() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.10.0-production-readiness-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let verifyScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.10.0-contract.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        for anchor in [
+            "V0100-001-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT",
+            "V0100-001-READINESS-ASSESSMENT-NOT-CUTOVER",
+            "V0100-001-DOWNSTREAM-QUEUE-ORDER",
+            "V0100-001-FORBIDDEN-CAPABILITIES",
+            "V0100-001-RELEASE-VALIDATION-MATRIX",
+            "TVM-RELEASE-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT",
+            "GH-878-VERIFY-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT"
+        ] {
+            XCTAssertTrue(
+                contract.contains(anchor)
+                    || verifyScript.contains(anchor)
+                    || validationPlan.contains(anchor)
+                    || tradingMatrix.contains(anchor)
+                    || automationReadiness.contains(anchor),
+                "\(anchor) must stay wired into v0.10.0 contract evidence"
+            )
+        }
+
+        for allowedReadinessFlag in [
+            "productionReadinessAssessmentAllowed=true",
+            "productionCutoverRequiresSeparateApproval=true",
+            "readinessEvidenceOnly=true",
+            "manualApprovalEvidenceAllowed=true",
+            "readinessDashboardReadModelAllowed=true"
+        ] {
+            XCTAssertTrue(contract.contains(allowedReadinessFlag), "\(allowedReadinessFlag) must stay allowed")
+        }
+
+        for disabledCapability in [
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "productionBrokerConnected=false",
+            "productionOrderSubmitted=false",
+            "realOrderSubmissionEnabled=false",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false"
+        ] {
+            XCTAssertTrue(contract.contains(disabledCapability), "\(disabledCapability) must stay disabled")
+        }
+
+        for queueAnchor in [
+            "GH-878..GH-891",
+            "GH-879",
+            "GH-891",
+            "WIP=1"
+        ] {
+            XCTAssertTrue(contract.contains(queueAnchor), "\(queueAnchor) must stay fixed in contract")
+        }
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "realOrderSubmissionEnabled=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "api.binance.com",
+            "fapi.binance.com",
+            "orderFormEnabled=true",
+            "tradingButtonEnabled=true"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization), "v0.10.0 contract must not authorize \(forbiddenAuthorization)")
+        }
+
+        XCTAssertTrue(contract.contains("不是“生产切换”"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-contract.sh"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.10.0 production readiness no-authorization contract anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-878 Release v0.10.0 Production Readiness No-authorization Contract Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT"))
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(

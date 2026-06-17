@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT
+
+- TVM-RELEASE-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT
+- GH-878-VERIFY-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT
+- V0100-001-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT
+- V0100-001-READINESS-ASSESSMENT-NOT-CUTOVER
+- V0100-001-DOWNSTREAM-QUEUE-ORDER
+- V0100-001-FORBIDDEN-CAPABILITIES
+- V0100-001-RELEASE-VALIDATION-MATRIX
+- GH-878 Release v0.10.0 Production Readiness No-authorization Contract Validation
+- testGH878ReleaseV0100ProductionReadinessContractDoesNotAuthorizeCutover
+- `bash checks/verify-v0.10.0-contract.sh`
+- allowed readiness flags: `productionReadinessAssessmentAllowed=true`、`productionCutoverRequiresSeparateApproval=true`、`readinessEvidenceOnly=true`、`manualApprovalEvidenceAllowed=true` 和 `readinessDashboardReadModelAllowed=true`。
+- fixed disabled flags: `productionTradingEnabledByDefault=false`、`productionCutoverAuthorized=false`、`productionSecretRead=false`、`productionEndpointConnected=false`、`productionBrokerConnected=false`、`productionOrderSubmitted=false`、`realOrderSubmissionEnabled=false`、`testnetOrderSubmissionAllowed=false` 和 `testnetOrderRoutingAllowed=false`。
+- forbidden scope: readiness assessment is not production cutover; no production trading, no production secret value read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order, no production OMS, no trading button, no order form, no live command.
+
 ## TVM-RELEASE-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT
 
 - TVM-RELEASE-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT

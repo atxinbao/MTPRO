@@ -6,6 +6,19 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-878 Release v0.10.0 Production Readiness No-authorization Contract Validation
+
+- `GH-878-VERIFY-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT`
+- `TVM-RELEASE-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT`
+- `V0100-001-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT`
+- `V0100-001-READINESS-ASSESSMENT-NOT-CUTOVER`
+- `V0100-001-DOWNSTREAM-QUEUE-ORDER`
+- `V0100-001-FORBIDDEN-CAPABILITIES`
+- `V0100-001-RELEASE-VALIDATION-MATRIX`
+- Required command: `bash checks/verify-v0.10.0-contract.sh`
+- Focused test: `testGH878ReleaseV0100ProductionReadinessContractDoesNotAuthorizeCutover`
+- Boundary: v0.10.0 只允许 production readiness assessment / 生产切换就绪评估 evidence，固定 `productionReadinessAssessmentAllowed=true` 和 `productionCutoverRequiresSeparateApproval=true`；不授权 production trading、production cutover、production secret read、production endpoint / broker connection、testnet order routing、testnet order submission、real order submission、production OMS、trading button、order form 或 live command。
+
 ## GH-843 Release v0.9.0 Testnet No-order Observability Contract Validation
 
 - `GH-843-VERIFY-V090-TESTNET-NO-ORDER-OBSERVABILITY-CONTRACT`
