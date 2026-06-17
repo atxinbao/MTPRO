@@ -151,6 +151,25 @@
 - Focused test: `testGH852RiskPolicyApplicationAuditBindsPolicyVersionHashAndMonitorArtifacts`
 - Boundary: GH-852 只新增本地 Risk policy application audit read-model，记录 `risk_policy_version`、`risk_policy_hash`、`policy_applied_at` 和 `operator_change_reference`，并把 monitor session、account snapshot freshness、private stream heartbeat 和 Portfolio reconciliation timeline artifact 绑定到同一 local profile evidence；policy change 只作为 audit metadata，不驱动 order execution，不连接 broker / production path，不提交 testnet 或 production order，不授权 production cutover。
 
+## GH-853 Release v0.9.0 Run Monitor Export Bundle Validation
+
+- `GH-853-VERIFY-V090-RUN-MONITOR-EXPORT-BUNDLE`
+- `TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE`
+- `V090-011-RUN-MONITOR-EXPORT-BUNDLE`
+- `V090-011-RUN-BUNDLE-CHECKSUM`
+- `V090-011-MONITOR-BUNDLE-CHECKSUM`
+- `V090-011-RISK-POLICY-BUNDLE-CHECKSUM`
+- `V090-011-RECONCILIATION-BUNDLE-CHECKSUM`
+- `V090-011-REDACTION-PROOF`
+- `V090-011-LOCAL-EXPORT-ONLY`
+- `V090-011-NO-UPLOAD-NOTIFICATION-SIDE-EFFECT`
+- `V090-011-NO-RAW-SECRET-LISTENKEY-PRIVATE-PAYLOAD`
+- `V090-011-NO-PRODUCTION-DATA-EXPORT`
+- `V090-011-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.9.0-run-monitor-export-bundle.sh`
+- Focused test: `testGH853RunMonitorExportBundleIsChecksumBackedAndRedacted`
+- Boundary: GH-853 只新增本地 run / monitor export bundle manifest，聚合 run、monitor、Risk policy 和 Portfolio reconciliation evidence 的 checksum 与 redaction proof；export bundle 不上传、不通知、不包含 raw secret / listenKey / private payload，不导出 production data，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`

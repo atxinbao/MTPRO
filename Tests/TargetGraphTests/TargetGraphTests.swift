@@ -10085,6 +10085,252 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH853RunMonitorExportBundleIsChecksumBackedAndRedacted() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift"
+            ),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.9.0-run-monitor-export-bundle.sh"),
+            encoding: .utf8
+        )
+
+        let temporaryRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH853-RunMonitorExportBundle-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = temporaryRoot
+            .appendingPathComponent(".local", isDirectory: true)
+            .appendingPathComponent("mtpro", isDirectory: true)
+            .appendingPathComponent("runs", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: temporaryRoot)
+        }
+
+        let store = ReleaseV090TestnetReadOnlyMonitorSessionStore(storageRootURL: storageRoot)
+        let runID = Identifier.constant("gh-853-run-monitor-export-bundle")
+        _ = try store.create(runID: runID, createdAt: Date(timeIntervalSince1970: 1_782_800_000))
+        _ = try store.apply(runID: runID, command: .connect, reason: "monitor-started", at: Date(timeIntervalSince1970: 1_782_800_010))
+        _ = try store.apply(runID: runID, command: .observe, reason: "read-only-monitor-observing", at: Date(timeIntervalSince1970: 1_782_800_020))
+        _ = try store.apply(runID: runID, command: .markStale, reason: "heartbeat-age-threshold", at: Date(timeIntervalSince1970: 1_782_800_095))
+        let recovery = try store.recordMonitorRecovery(
+            runID: runID,
+            recoveredAt: Date(timeIntervalSince1970: 1_782_800_100),
+            listenKeyReference: "gh-853-stream-lease-profile",
+            recoveryReason: "manual-operator-recovery",
+            rebuiltReadModelEvidenceReference: "gh-853-rebuilt-read-model",
+            observedAfterRecoveryAt: Date(timeIntervalSince1970: 1_782_800_101)
+        )
+        let session = try store.load(runID: runID)
+        let status = try store.status(runID: runID)
+        let freshness = try store.recordAccountSnapshotFreshness(
+            runID: runID,
+            snapshotObservedAt: Date(timeIntervalSince1970: 1_782_800_105),
+            recordedAt: Date(timeIntervalSince1970: 1_782_800_120),
+            latencyMilliseconds: 180,
+            staleThresholdSeconds: 90,
+            credentialReference: "gh-853-testnet-readonly-profile"
+        )
+        let heartbeat = try store.recordPrivateStreamHeartbeat(
+            runID: runID,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_800_115),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_800_120),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 90,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_800_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_803_600),
+            listenKeyReference: "gh-853-stream-lease-profile"
+        )
+        let generatedAt = Date(timeIntervalSince1970: 1_782_800_140)
+        let timeline = try store.portfolioReconciliationTimeline(
+            runID: runID,
+            generatedAt: generatedAt
+        )
+        let policyAudit = try store.recordRiskPolicyApplicationAudit(
+            runID: runID,
+            riskPolicyVersion: "v0.8.0-risk-policy-profile.3",
+            riskPolicyHash: "risk-policy-fnv64-gh853",
+            policyAppliedAt: Date(timeIntervalSince1970: 1_782_800_030),
+            operatorChangeReference: "op-change-gh853",
+            generatedAt: generatedAt
+        )
+        let exportBundle = try store.recordRunMonitorExportBundle(
+            runID: runID,
+            generatedAt: Date(timeIntervalSince1970: 1_782_800_160)
+        )
+        let loadedExportBundle = try store.runMonitorExportBundle(runID: runID)
+
+        XCTAssertEqual(loadedExportBundle, exportBundle)
+        XCTAssertEqual(exportBundle.issueID.rawValue, "GH-853")
+        XCTAssertEqual(exportBundle.upstreamIssueIDs.map(\.rawValue), ["GH-848", "GH-849", "GH-851", "GH-852"])
+        XCTAssertEqual(exportBundle.previousIssueID.rawValue, "GH-852")
+        XCTAssertEqual(exportBundle.downstreamIssueID.rawValue, "GH-854")
+        XCTAssertEqual(exportBundle.monitorSessionChecksum, session.sessionChecksum)
+        XCTAssertEqual(exportBundle.monitorStatusChecksum, status.statusChecksum)
+        XCTAssertEqual(exportBundle.monitorRecoveryChecksum, recovery.recoveryChecksum)
+        XCTAssertEqual(exportBundle.riskPolicyApplicationAuditChecksum, policyAudit.auditChecksum)
+        XCTAssertEqual(exportBundle.portfolioReconciliationTimelineChecksum, timeline.timelineChecksum)
+        XCTAssertEqual(exportBundle.bundleEntries.map(\.bundleRole), ReleaseV090RunMonitorExportBundleRole.allCases)
+        XCTAssertEqual(exportBundle.bundleEntries.count, 4)
+        XCTAssertTrue(exportBundle.bundleEntries.allSatisfy(\.entryHeld))
+        XCTAssertTrue(exportBundle.bundleEntries.allSatisfy(\.localOnly))
+        XCTAssertTrue(exportBundle.bundleEntries.allSatisfy(\.rawCredentialMaterialAbsent))
+        XCTAssertTrue(exportBundle.bundleEntries.allSatisfy(\.rawListenKeyAbsent))
+        XCTAssertTrue(exportBundle.bundleEntries.allSatisfy(\.rawPrivatePayloadAbsent))
+        XCTAssertTrue(exportBundle.bundleEntries.allSatisfy { $0.uploadSideEffectEnabled == false })
+        XCTAssertTrue(exportBundle.bundleEntries.allSatisfy { $0.notificationWebhookEnabled == false })
+        XCTAssertTrue(exportBundle.readModelHeld)
+        XCTAssertTrue(exportBundle.localExportOnly)
+        XCTAssertTrue(exportBundle.rawCredentialMaterialAbsent)
+        XCTAssertTrue(exportBundle.rawListenKeyAbsent)
+        XCTAssertTrue(exportBundle.rawPrivatePayloadAbsent)
+        XCTAssertFalse(exportBundle.uploadSideEffectEnabled)
+        XCTAssertFalse(exportBundle.externalSharingEnabled)
+        XCTAssertFalse(exportBundle.notificationWebhookEnabled)
+        XCTAssertFalse(exportBundle.productionDataExported)
+        XCTAssertFalse(exportBundle.testnetOrderRoutingAllowed)
+        XCTAssertFalse(exportBundle.productionTradingEnabledByDefault)
+        XCTAssertFalse(exportBundle.productionSecretRead)
+        XCTAssertFalse(exportBundle.productionEndpointConnected)
+        XCTAssertFalse(exportBundle.brokerEndpointConnected)
+        XCTAssertFalse(exportBundle.productionOrderSubmitted)
+        XCTAssertFalse(exportBundle.productionCutoverAuthorized)
+
+        XCTAssertTrue(exportBundle.runBundleChecksum.hasPrefix("sha256:"))
+        XCTAssertTrue(exportBundle.monitorBundleChecksum.hasPrefix("sha256:"))
+        XCTAssertTrue(exportBundle.riskPolicyBundleChecksum.hasPrefix("sha256:"))
+        XCTAssertTrue(exportBundle.reconciliationBundleChecksum.hasPrefix("sha256:"))
+        XCTAssertTrue(exportBundle.redactionProofChecksum.hasPrefix("sha256:"))
+        XCTAssertTrue(exportBundle.bundleEntries.contains { $0.artifactChecksums.contains(session.sessionChecksum) })
+        XCTAssertTrue(exportBundle.bundleEntries.contains { $0.artifactChecksums.contains(status.statusChecksum) })
+        XCTAssertTrue(exportBundle.bundleEntries.contains { $0.artifactChecksums.contains(recovery.recoveryChecksum) })
+        XCTAssertTrue(exportBundle.bundleEntries.contains { $0.artifactChecksums.contains(policyAudit.auditChecksum) })
+        XCTAssertTrue(exportBundle.bundleEntries.contains { $0.artifactChecksums.contains(timeline.timelineChecksum) })
+        XCTAssertTrue(exportBundle.bundleEntries.contains { $0.artifactChecksums.contains(freshness.freshnessChecksum) })
+        XCTAssertTrue(exportBundle.bundleEntries.contains { $0.artifactChecksums.contains(heartbeat.heartbeatChecksum) })
+
+        let exportBundleURL = storageRoot
+            .appendingPathComponent(runID.rawValue, isDirectory: true)
+            .appendingPathComponent("testnet-readonly-monitor", isDirectory: true)
+            .appendingPathComponent("run-monitor-export-bundle.json", isDirectory: false)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: exportBundleURL.path))
+        let exportBundlePayload = try String(contentsOf: exportBundleURL, encoding: .utf8)
+        XCTAssertTrue(exportBundlePayload.contains("run-monitor-export-bundle.json"))
+        XCTAssertTrue(exportBundlePayload.contains("redactionProofChecksum"))
+        XCTAssertTrue(exportBundlePayload.contains("runBundleChecksum"))
+        XCTAssertTrue(exportBundlePayload.contains("monitorBundleChecksum"))
+        XCTAssertTrue(exportBundlePayload.contains("riskPolicyBundleChecksum"))
+        XCTAssertTrue(exportBundlePayload.contains("reconciliationBundleChecksum"))
+        XCTAssertFalse(exportBundlePayload.contains("api_key"))
+        XCTAssertFalse(exportBundlePayload.contains("signature="))
+        XCTAssertFalse(exportBundlePayload.contains("gh-853-stream-lease-profile"))
+        XCTAssertFalse(exportBundlePayload.contains("gh-853-testnet-readonly-profile"))
+
+        let fixture = try ReleaseV090RunMonitorExportBundleReadModel.deterministicFixture()
+        XCTAssertTrue(fixture.readModelHeld)
+        XCTAssertEqual(fixture.bundleEntries.map(\.bundleRole), ReleaseV090RunMonitorExportBundleRole.allCases)
+
+        let issueAnchors = [
+            "GH-853-VERIFY-V090-RUN-MONITOR-EXPORT-BUNDLE",
+            "TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE",
+            "V090-011-RUN-MONITOR-EXPORT-BUNDLE",
+            "V090-011-RUN-BUNDLE-CHECKSUM",
+            "V090-011-MONITOR-BUNDLE-CHECKSUM",
+            "V090-011-RISK-POLICY-BUNDLE-CHECKSUM",
+            "V090-011-RECONCILIATION-BUNDLE-CHECKSUM",
+            "V090-011-REDACTION-PROOF",
+            "V090-011-LOCAL-EXPORT-ONLY",
+            "V090-011-NO-UPLOAD-NOTIFICATION-SIDE-EFFECT",
+            "V090-011-NO-RAW-SECRET-LISTENKEY-PRIVATE-PAYLOAD",
+            "V090-011-NO-PRODUCTION-DATA-EXPORT",
+            "V090-011-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(issueAnchors, ReleaseV090RunMonitorExportBundleReadModel.requiredValidationAnchors)
+
+        for anchor in issueAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-853 source")
+            XCTAssertTrue(verificationScript.contains(anchor), "\(anchor) must stay in GH-853 verifier")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in v0.9 contract")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-run-monitor-export-bundle.sh"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 Run and monitor export bundle anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-853 Release v0.9.0 Run Monitor Export Bundle Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE"))
+        XCTAssertTrue(contractDoc.contains("run-monitor-export-bundle.json"))
+
+        for requiredSource in [
+            "ReleaseV090RunMonitorExportBundleReadModel",
+            "ReleaseV090RunMonitorExportBundleEntry",
+            "ReleaseV090RunMonitorExportBundleRole",
+            "runMonitorExportBundleJSONPath",
+            "redactionProofChecksum",
+            "recordRunMonitorExportBundle",
+            "runMonitorExportBundle"
+        ] {
+            XCTAssertTrue(source.contains(requiredSource), "run monitor export bundle source must contain \(requiredSource)")
+        }
+
+        for forbiddenAuthorization in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/order",
+            "/fapi/v1/order",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<",
+            "uploadSideEffectEnabled=true",
+            "notificationWebhookEnabled=true",
+            "productionDataExported=true",
+            "externalSharingEnabled=true",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderRoutingAllowed=true"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-853 source must not contain \(forbiddenAuthorization)")
+            XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-853 contract must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-853 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-853 matrix must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(

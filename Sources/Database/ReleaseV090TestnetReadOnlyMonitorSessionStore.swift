@@ -18,6 +18,7 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreError: Error, Equatable
     case corruptedPrivateStreamHeartbeat(String)
     case corruptedMonitorRecovery(String)
     case corruptedRiskPolicyApplicationAudit(String)
+    case corruptedRunMonitorExportBundle(String)
     case checksumMismatch(expected: String, actual: String)
     case invalidTransition(command: String, fromState: String)
     case unsafeCredentialReference(String)
@@ -47,6 +48,8 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreError: Error, Equatable
             "Release v0.9.0 monitor recovery fails closed because monitor-recovery.json is corrupted at \(path)"
         case let .corruptedRiskPolicyApplicationAudit(path):
             "Release v0.9.0 risk policy application audit fails closed because risk-policy-application-audit.json is corrupted at \(path)"
+        case let .corruptedRunMonitorExportBundle(path):
+            "Release v0.9.0 run and monitor export bundle fails closed because run-monitor-export-bundle.json is corrupted at \(path)"
         case let .checksumMismatch(expected, actual):
             "Release v0.9.0 testnet read-only monitor session checksum mismatch: expected \(expected), actual \(actual)"
         case let .invalidTransition(command, fromState):
@@ -125,7 +128,20 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "V090-010-LOCAL-PROFILE-EVIDENCE",
         "V090-010-NO-POLICY-DRIVEN-ORDER-EXECUTION",
         "V090-010-NO-BROKER-PRODUCTION-PATH",
-        "V090-010-NO-PRODUCTION-CUTOVER"
+        "V090-010-NO-PRODUCTION-CUTOVER",
+        "GH-853-VERIFY-V090-RUN-MONITOR-EXPORT-BUNDLE",
+        "TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE",
+        "V090-011-RUN-MONITOR-EXPORT-BUNDLE",
+        "V090-011-RUN-BUNDLE-CHECKSUM",
+        "V090-011-MONITOR-BUNDLE-CHECKSUM",
+        "V090-011-RISK-POLICY-BUNDLE-CHECKSUM",
+        "V090-011-RECONCILIATION-BUNDLE-CHECKSUM",
+        "V090-011-REDACTION-PROOF",
+        "V090-011-LOCAL-EXPORT-ONLY",
+        "V090-011-NO-UPLOAD-NOTIFICATION-SIDE-EFFECT",
+        "V090-011-NO-RAW-SECRET-LISTENKEY-PRIVATE-PAYLOAD",
+        "V090-011-NO-PRODUCTION-DATA-EXPORT",
+        "V090-011-NO-PRODUCTION-CUTOVER"
     ]
 
     public static let requiredValidationCommands: [String] = [
@@ -136,10 +152,12 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "bash checks/verify-v0.9.0-alert-read-model.sh",
         "bash checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh",
         "bash checks/verify-v0.9.0-risk-policy-application-audit.sh",
+        "bash checks/verify-v0.9.0-run-monitor-export-bundle.sh",
         "swift test --filter TargetGraphTests/testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed",
         "swift test --filter TargetGraphTests/testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects",
         "swift test --filter TargetGraphTests/testGH851PortfolioReconciliationTimelineBindsExpectedObservedDeltaAndAckMetadata",
-        "swift test --filter TargetGraphTests/testGH852RiskPolicyApplicationAuditBindsPolicyVersionHashAndMonitorArtifacts"
+        "swift test --filter TargetGraphTests/testGH852RiskPolicyApplicationAuditBindsPolicyVersionHashAndMonitorArtifacts",
+        "swift test --filter TargetGraphTests/testGH853RunMonitorExportBundleIsChecksumBackedAndRedacted"
     ]
 }
 
@@ -184,6 +202,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
     public let privateStreamHeartbeatJSONPath: String
     public let monitorRecoveryJSONPath: String
     public let riskPolicyApplicationAuditJSONPath: String
+    public let runMonitorExportBundleJSONPath: String
 
     public var pathsHeld: Bool {
         runDirectoryPath.hasPrefix(".local/mtpro/runs/")
@@ -195,6 +214,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
             && privateStreamHeartbeatJSONPath == "\(monitorDirectoryPath)/private-stream-heartbeat.json"
             && monitorRecoveryJSONPath == "\(monitorDirectoryPath)/monitor-recovery.json"
             && riskPolicyApplicationAuditJSONPath == "\(monitorDirectoryPath)/risk-policy-application-audit.json"
+            && runMonitorExportBundleJSONPath == "\(monitorDirectoryPath)/run-monitor-export-bundle.json"
     }
 
     public init(runID: Identifier) throws {
@@ -212,6 +232,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
         self.privateStreamHeartbeatJSONPath = "\(monitorDirectoryPath)/private-stream-heartbeat.json"
         self.monitorRecoveryJSONPath = "\(monitorDirectoryPath)/monitor-recovery.json"
         self.riskPolicyApplicationAuditJSONPath = "\(monitorDirectoryPath)/risk-policy-application-audit.json"
+        self.runMonitorExportBundleJSONPath = "\(monitorDirectoryPath)/run-monitor-export-bundle.json"
 
         guard pathsHeld else {
             throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("monitorArtifactPaths")
@@ -639,6 +660,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionDocument: Codable, Equatab
             artifactPaths.privateStreamHeartbeatJSONPath,
             artifactPaths.monitorRecoveryJSONPath,
             artifactPaths.riskPolicyApplicationAuditJSONPath,
+            artifactPaths.runMonitorExportBundleJSONPath,
             state.rawValue,
             String(createdAt.timeIntervalSince1970),
             String(updatedAt.timeIntervalSince1970),
@@ -4166,6 +4188,684 @@ public struct ReleaseV090RiskPolicyApplicationAuditReadModel: Codable, Equatable
     }
 }
 
+/// ReleaseV090RunMonitorExportBundleRole 固定 GH-853 export bundle 的四类本地分包。
+///
+/// 这些 role 只描述本地 manifest 中的 checksum 分组，不上传文件、不通知外部系统，
+/// 也不代表 production data export。
+public enum ReleaseV090RunMonitorExportBundleRole: String, Codable, CaseIterable, Equatable, Sendable {
+    case runBundle
+    case monitorBundle
+    case riskPolicyBundle
+    case reconciliationBundle
+}
+
+/// ReleaseV090RunMonitorExportBundleEntry 是 GH-853 export bundle 的单个 checksum 分组。
+///
+/// Entry 保存 artifact checksum 和 redaction proof checksum；它不保存 raw credential、
+/// raw listenKey、private payload、broker command payload 或 order request payload。
+public struct ReleaseV090RunMonitorExportBundleEntry: Codable, Equatable, Sendable {
+    public let bundleID: Identifier
+    public let sequence: Int
+    public let bundleRole: ReleaseV090RunMonitorExportBundleRole
+    public let bundlePath: String
+    public let artifactChecksums: [String]
+    public let localOnly: Bool
+    public let rawCredentialMaterialAbsent: Bool
+    public let rawListenKeyAbsent: Bool
+    public let rawPrivatePayloadAbsent: Bool
+    public let brokerCommandPayloadAbsent: Bool
+    public let orderRequestPayloadAbsent: Bool
+    public let uploadSideEffectEnabled: Bool
+    public let notificationWebhookEnabled: Bool
+    public let productionDataExported: Bool
+    public let redactionProofChecksum: String
+    public let bundleChecksum: String
+
+    public var entryHeld: Bool {
+        bundleID.rawValue.isEmpty == false
+            && sequence >= 1
+            && bundlePath == Self.expectedBundlePath(runID: runIDFromBundle, role: bundleRole)
+            && artifactChecksums.isEmpty == false
+            && artifactChecksums.allSatisfy { $0.hasPrefix("sha256:") }
+            && localOnly
+            && rawCredentialMaterialAbsent
+            && rawListenKeyAbsent
+            && rawPrivatePayloadAbsent
+            && brokerCommandPayloadAbsent
+            && orderRequestPayloadAbsent
+            && uploadSideEffectEnabled == false
+            && notificationWebhookEnabled == false
+            && productionDataExported == false
+            && redactionProofChecksum == Self.stableRedactionProofChecksum(
+                bundleID: bundleID,
+                bundleRole: bundleRole,
+                bundlePath: bundlePath,
+                artifactChecksums: artifactChecksums
+            )
+            && bundleChecksum == Self.stableBundleChecksum(
+                bundleID: bundleID,
+                sequence: sequence,
+                bundleRole: bundleRole,
+                bundlePath: bundlePath,
+                artifactChecksums: artifactChecksums,
+                redactionProofChecksum: redactionProofChecksum
+            )
+    }
+
+    private var runIDFromBundle: Identifier {
+        let prefix = "gh-853-"
+        let suffix = "-\(bundleRole.rawValue)"
+        let raw = bundleID.rawValue
+        if raw.hasPrefix(prefix), raw.hasSuffix(suffix) {
+            let start = raw.index(raw.startIndex, offsetBy: prefix.count)
+            let end = raw.index(raw.endIndex, offsetBy: -suffix.count)
+            return Identifier.constant(String(raw[start..<end]))
+        }
+        return Identifier.constant(raw)
+    }
+
+    public init(
+        bundleID: Identifier,
+        sequence: Int,
+        bundleRole: ReleaseV090RunMonitorExportBundleRole,
+        bundlePath: String,
+        artifactChecksums: [String],
+        redactionProofChecksum: String? = nil,
+        bundleChecksum: String? = nil,
+        localOnly: Bool = true,
+        rawCredentialMaterialAbsent: Bool = true,
+        rawListenKeyAbsent: Bool = true,
+        rawPrivatePayloadAbsent: Bool = true,
+        brokerCommandPayloadAbsent: Bool = true,
+        orderRequestPayloadAbsent: Bool = true,
+        uploadSideEffectEnabled: Bool = false,
+        notificationWebhookEnabled: Bool = false,
+        productionDataExported: Bool = false
+    ) throws {
+        self.bundleID = bundleID
+        self.sequence = sequence
+        self.bundleRole = bundleRole
+        self.bundlePath = bundlePath
+        self.artifactChecksums = artifactChecksums
+        self.localOnly = localOnly
+        self.rawCredentialMaterialAbsent = rawCredentialMaterialAbsent
+        self.rawListenKeyAbsent = rawListenKeyAbsent
+        self.rawPrivatePayloadAbsent = rawPrivatePayloadAbsent
+        self.brokerCommandPayloadAbsent = brokerCommandPayloadAbsent
+        self.orderRequestPayloadAbsent = orderRequestPayloadAbsent
+        self.uploadSideEffectEnabled = uploadSideEffectEnabled
+        self.notificationWebhookEnabled = notificationWebhookEnabled
+        self.productionDataExported = productionDataExported
+        self.redactionProofChecksum = redactionProofChecksum ?? Self.stableRedactionProofChecksum(
+            bundleID: bundleID,
+            bundleRole: bundleRole,
+            bundlePath: bundlePath,
+            artifactChecksums: artifactChecksums
+        )
+        self.bundleChecksum = bundleChecksum ?? Self.stableBundleChecksum(
+            bundleID: bundleID,
+            sequence: sequence,
+            bundleRole: bundleRole,
+            bundlePath: bundlePath,
+            artifactChecksums: artifactChecksums,
+            redactionProofChecksum: self.redactionProofChecksum
+        )
+
+        guard entryHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("runMonitorExportBundleEntry")
+        }
+    }
+
+    public static func expectedBundlePath(
+        runID: Identifier,
+        role: ReleaseV090RunMonitorExportBundleRole
+    ) -> String {
+        let runDirectoryPath = ".local/mtpro/runs/\(runID.rawValue)"
+        let monitorDirectoryPath = "\(runDirectoryPath)/testnet-readonly-monitor"
+        switch role {
+        case .runBundle:
+            return runDirectoryPath
+        case .monitorBundle:
+            return monitorDirectoryPath
+        case .riskPolicyBundle:
+            return ".local/mtpro/risk_policy.json"
+        case .reconciliationBundle:
+            return "\(monitorDirectoryPath)/reconciliation-timeline.json"
+        }
+    }
+
+    public static func stableRedactionProofChecksum(
+        bundleID: Identifier,
+        bundleRole: ReleaseV090RunMonitorExportBundleRole,
+        bundlePath: String,
+        artifactChecksums: [String]
+    ) -> String {
+        stableSHA256([
+            "GH-853",
+            "v0.9.0",
+            bundleID.rawValue,
+            bundleRole.rawValue,
+            bundlePath,
+            "rawCredentialMaterialAbsent=true",
+            "rawListenKeyAbsent=true",
+            "rawPrivatePayloadAbsent=true",
+            "brokerCommandPayloadAbsent=true",
+            "orderRequestPayloadAbsent=true",
+            "uploadSideEffectEnabled=false",
+            "notificationWebhookEnabled=false",
+            "productionDataExported=false"
+        ] + artifactChecksums)
+    }
+
+    public static func stableBundleChecksum(
+        bundleID: Identifier,
+        sequence: Int,
+        bundleRole: ReleaseV090RunMonitorExportBundleRole,
+        bundlePath: String,
+        artifactChecksums: [String],
+        redactionProofChecksum: String
+    ) -> String {
+        stableSHA256([
+            "GH-853",
+            "v0.9.0",
+            bundleID.rawValue,
+            String(sequence),
+            bundleRole.rawValue,
+            bundlePath,
+            redactionProofChecksum,
+            "localOnly=true"
+        ] + artifactChecksums)
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV090RunMonitorExportBundleReadModel 是 GH-853 的本地 export bundle manifest。
+///
+/// 它只把 run、monitor、risk policy 和 reconciliation evidence 汇总成 checksum-backed
+/// manifest；不上传、不通知、不导出 production data，也不包含 raw secret / listenKey。
+public struct ReleaseV090RunMonitorExportBundleReadModel: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.9.0.run-monitor-export-bundle.v1"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let previousIssueID: Identifier
+    public let downstreamIssueID: Identifier
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let runID: Identifier
+    public let generatedAt: Date
+    public let runMonitorExportBundleJSONPath: String
+    public let monitorSessionChecksum: String
+    public let monitorStatusChecksum: String
+    public let monitorRecoveryChecksum: String
+    public let riskPolicyApplicationAuditChecksum: String
+    public let portfolioReconciliationTimelineChecksum: String
+    public let bundleEntries: [ReleaseV090RunMonitorExportBundleEntry]
+    public let runBundleChecksum: String
+    public let monitorBundleChecksum: String
+    public let riskPolicyBundleChecksum: String
+    public let reconciliationBundleChecksum: String
+    public let redactionProofChecksum: String
+    public let localExportOnly: Bool
+    public let rawCredentialMaterialAbsent: Bool
+    public let rawListenKeyAbsent: Bool
+    public let rawPrivatePayloadAbsent: Bool
+    public let brokerCommandPayloadAbsent: Bool
+    public let orderRequestPayloadAbsent: Bool
+    public let uploadSideEffectEnabled: Bool
+    public let externalSharingEnabled: Bool
+    public let notificationWebhookEnabled: Bool
+    public let productionDataExported: Bool
+    public let testnetOrderRoutingAllowed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+    public let requiredValidationAnchors: [String]
+    public let requiredValidationCommands: [String]
+    public let exportBundleChecksum: String
+
+    public var readModelHeld: Bool {
+        issueID.rawValue == "GH-853"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-848", "GH-849", "GH-851", "GH-852"]
+            && previousIssueID.rawValue == "GH-852"
+            && downstreamIssueID.rawValue == "GH-854"
+            && releaseVersion == "v0.9.0"
+            && schemaVersion == Self.schemaVersion
+            && runID.rawValue.isEmpty == false
+            && runMonitorExportBundleJSONPath == ".local/mtpro/runs/\(runID.rawValue)/testnet-readonly-monitor/run-monitor-export-bundle.json"
+            && monitorSessionChecksum.hasPrefix("sha256:")
+            && monitorStatusChecksum.hasPrefix("sha256:")
+            && monitorRecoveryChecksum.hasPrefix("sha256:")
+            && riskPolicyApplicationAuditChecksum.hasPrefix("sha256:")
+            && portfolioReconciliationTimelineChecksum.hasPrefix("sha256:")
+            && bundleEntries.map(\.sequence) == Array(1...bundleEntries.count)
+            && bundleEntries.map(\.bundleRole) == ReleaseV090RunMonitorExportBundleRole.allCases
+            && bundleEntries.allSatisfy(\.entryHeld)
+            && runBundleChecksum == checksum(for: .runBundle)
+            && monitorBundleChecksum == checksum(for: .monitorBundle)
+            && riskPolicyBundleChecksum == checksum(for: .riskPolicyBundle)
+            && reconciliationBundleChecksum == checksum(for: .reconciliationBundle)
+            && redactionProofChecksum == Self.stableAggregateRedactionProofChecksum(bundleEntries: bundleEntries)
+            && localExportOnly
+            && rawCredentialMaterialAbsent
+            && rawListenKeyAbsent
+            && rawPrivatePayloadAbsent
+            && brokerCommandPayloadAbsent
+            && orderRequestPayloadAbsent
+            && uploadSideEffectEnabled == false
+            && externalSharingEnabled == false
+            && notificationWebhookEnabled == false
+            && productionDataExported == false
+            && testnetOrderRoutingAllowed == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && requiredValidationAnchors == Self.requiredValidationAnchors
+            && requiredValidationCommands == Self.requiredValidationCommands
+            && exportBundleChecksum == Self.stableExportBundleChecksum(
+                runID: runID,
+                generatedAt: generatedAt,
+                runMonitorExportBundleJSONPath: runMonitorExportBundleJSONPath,
+                monitorSessionChecksum: monitorSessionChecksum,
+                monitorStatusChecksum: monitorStatusChecksum,
+                monitorRecoveryChecksum: monitorRecoveryChecksum,
+                riskPolicyApplicationAuditChecksum: riskPolicyApplicationAuditChecksum,
+                portfolioReconciliationTimelineChecksum: portfolioReconciliationTimelineChecksum,
+                bundleEntries: bundleEntries,
+                redactionProofChecksum: redactionProofChecksum
+            )
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-853"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-848"),
+            Identifier.constant("GH-849"),
+            Identifier.constant("GH-851"),
+            Identifier.constant("GH-852")
+        ],
+        previousIssueID: Identifier = Identifier.constant("GH-852"),
+        downstreamIssueID: Identifier = Identifier.constant("GH-854"),
+        releaseVersion: String = "v0.9.0",
+        schemaVersion: String = Self.schemaVersion,
+        runID: Identifier,
+        generatedAt: Date,
+        runMonitorExportBundleJSONPath: String,
+        monitorSessionChecksum: String,
+        monitorStatusChecksum: String,
+        monitorRecoveryChecksum: String,
+        riskPolicyApplicationAuditChecksum: String,
+        portfolioReconciliationTimelineChecksum: String,
+        bundleEntries: [ReleaseV090RunMonitorExportBundleEntry],
+        redactionProofChecksum: String? = nil,
+        exportBundleChecksum: String? = nil,
+        localExportOnly: Bool = true,
+        rawCredentialMaterialAbsent: Bool = true,
+        rawListenKeyAbsent: Bool = true,
+        rawPrivatePayloadAbsent: Bool = true,
+        brokerCommandPayloadAbsent: Bool = true,
+        orderRequestPayloadAbsent: Bool = true,
+        uploadSideEffectEnabled: Bool = false,
+        externalSharingEnabled: Bool = false,
+        notificationWebhookEnabled: Bool = false,
+        productionDataExported: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        requiredValidationAnchors: [String] = Self.requiredValidationAnchors,
+        requiredValidationCommands: [String] = Self.requiredValidationCommands
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.previousIssueID = previousIssueID
+        self.downstreamIssueID = downstreamIssueID
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.runID = runID
+        self.generatedAt = generatedAt
+        self.runMonitorExportBundleJSONPath = runMonitorExportBundleJSONPath
+        self.monitorSessionChecksum = monitorSessionChecksum
+        self.monitorStatusChecksum = monitorStatusChecksum
+        self.monitorRecoveryChecksum = monitorRecoveryChecksum
+        self.riskPolicyApplicationAuditChecksum = riskPolicyApplicationAuditChecksum
+        self.portfolioReconciliationTimelineChecksum = portfolioReconciliationTimelineChecksum
+        self.bundleEntries = bundleEntries
+        self.runBundleChecksum = Self.bundleChecksum(for: .runBundle, in: bundleEntries)
+        self.monitorBundleChecksum = Self.bundleChecksum(for: .monitorBundle, in: bundleEntries)
+        self.riskPolicyBundleChecksum = Self.bundleChecksum(for: .riskPolicyBundle, in: bundleEntries)
+        self.reconciliationBundleChecksum = Self.bundleChecksum(for: .reconciliationBundle, in: bundleEntries)
+        self.redactionProofChecksum = redactionProofChecksum ?? Self.stableAggregateRedactionProofChecksum(
+            bundleEntries: bundleEntries
+        )
+        self.localExportOnly = localExportOnly
+        self.rawCredentialMaterialAbsent = rawCredentialMaterialAbsent
+        self.rawListenKeyAbsent = rawListenKeyAbsent
+        self.rawPrivatePayloadAbsent = rawPrivatePayloadAbsent
+        self.brokerCommandPayloadAbsent = brokerCommandPayloadAbsent
+        self.orderRequestPayloadAbsent = orderRequestPayloadAbsent
+        self.uploadSideEffectEnabled = uploadSideEffectEnabled
+        self.externalSharingEnabled = externalSharingEnabled
+        self.notificationWebhookEnabled = notificationWebhookEnabled
+        self.productionDataExported = productionDataExported
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.requiredValidationAnchors = requiredValidationAnchors
+        self.requiredValidationCommands = requiredValidationCommands
+        self.exportBundleChecksum = exportBundleChecksum ?? Self.stableExportBundleChecksum(
+            runID: runID,
+            generatedAt: generatedAt,
+            runMonitorExportBundleJSONPath: runMonitorExportBundleJSONPath,
+            monitorSessionChecksum: monitorSessionChecksum,
+            monitorStatusChecksum: monitorStatusChecksum,
+            monitorRecoveryChecksum: monitorRecoveryChecksum,
+            riskPolicyApplicationAuditChecksum: riskPolicyApplicationAuditChecksum,
+            portfolioReconciliationTimelineChecksum: portfolioReconciliationTimelineChecksum,
+            bundleEntries: bundleEntries,
+            redactionProofChecksum: self.redactionProofChecksum
+        )
+
+        guard readModelHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("runMonitorExportBundleReadModel")
+        }
+    }
+
+    public init(
+        session: ReleaseV090TestnetReadOnlyMonitorSessionDocument,
+        monitorStatus: ReleaseV090TestnetReadOnlyMonitorStatusDocument,
+        monitorRecovery: ReleaseV090MonitorRecoveryDocument,
+        riskPolicyApplicationAudit: ReleaseV090RiskPolicyApplicationAuditReadModel,
+        generatedAt: Date
+    ) throws {
+        let bundleEntries = try Self.makeBundleEntries(
+            session: session,
+            monitorStatus: monitorStatus,
+            monitorRecovery: monitorRecovery,
+            riskPolicyApplicationAudit: riskPolicyApplicationAudit
+        )
+        try self.init(
+            runID: session.runID,
+            generatedAt: generatedAt,
+            runMonitorExportBundleJSONPath: session.artifactPaths.runMonitorExportBundleJSONPath,
+            monitorSessionChecksum: session.sessionChecksum,
+            monitorStatusChecksum: monitorStatus.statusChecksum,
+            monitorRecoveryChecksum: monitorRecovery.recoveryChecksum,
+            riskPolicyApplicationAuditChecksum: riskPolicyApplicationAudit.auditChecksum,
+            portfolioReconciliationTimelineChecksum: riskPolicyApplicationAudit.portfolioReconciliationTimelineChecksum,
+            bundleEntries: bundleEntries
+        )
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-853-VERIFY-V090-RUN-MONITOR-EXPORT-BUNDLE",
+        "TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE",
+        "V090-011-RUN-MONITOR-EXPORT-BUNDLE",
+        "V090-011-RUN-BUNDLE-CHECKSUM",
+        "V090-011-MONITOR-BUNDLE-CHECKSUM",
+        "V090-011-RISK-POLICY-BUNDLE-CHECKSUM",
+        "V090-011-RECONCILIATION-BUNDLE-CHECKSUM",
+        "V090-011-REDACTION-PROOF",
+        "V090-011-LOCAL-EXPORT-ONLY",
+        "V090-011-NO-UPLOAD-NOTIFICATION-SIDE-EFFECT",
+        "V090-011-NO-RAW-SECRET-LISTENKEY-PRIVATE-PAYLOAD",
+        "V090-011-NO-PRODUCTION-DATA-EXPORT",
+        "V090-011-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static let requiredValidationCommands = [
+        "swift test --filter TargetGraphTests/testGH853RunMonitorExportBundleIsChecksumBackedAndRedacted",
+        "bash checks/verify-v0.9.0-run-monitor-export-bundle.sh",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+
+    public static func makeBundleEntries(
+        session: ReleaseV090TestnetReadOnlyMonitorSessionDocument,
+        monitorStatus: ReleaseV090TestnetReadOnlyMonitorStatusDocument,
+        monitorRecovery: ReleaseV090MonitorRecoveryDocument,
+        riskPolicyApplicationAudit: ReleaseV090RiskPolicyApplicationAuditReadModel
+    ) throws -> [ReleaseV090RunMonitorExportBundleEntry] {
+        let rows: [(role: ReleaseV090RunMonitorExportBundleRole, checksums: [String])] = [
+            (.runBundle, [session.sessionChecksum, monitorStatus.statusChecksum]),
+            (
+                .monitorBundle,
+                [
+                    session.sessionChecksum,
+                    riskPolicyApplicationAudit.accountSnapshotFreshnessChecksum,
+                    riskPolicyApplicationAudit.privateStreamHeartbeatChecksum,
+                    monitorRecovery.recoveryChecksum
+                ]
+            ),
+            (
+                .riskPolicyBundle,
+                [
+                    riskPolicyApplicationAudit.profileReference.profileReferenceChecksum,
+                    riskPolicyApplicationAudit.auditChecksum
+                ]
+            ),
+            (.reconciliationBundle, [riskPolicyApplicationAudit.portfolioReconciliationTimelineChecksum])
+        ]
+        return try rows.enumerated().map { index, row in
+            let sequence = index + 1
+            return try ReleaseV090RunMonitorExportBundleEntry(
+                bundleID: Identifier.constant("gh-853-\(session.runID.rawValue)-\(row.role.rawValue)"),
+                sequence: sequence,
+                bundleRole: row.role,
+                bundlePath: ReleaseV090RunMonitorExportBundleEntry.expectedBundlePath(
+                    runID: session.runID,
+                    role: row.role
+                ),
+                artifactChecksums: row.checksums
+            )
+        }
+    }
+
+    public static func deterministicFixture(
+        generatedAt: Date = Date(timeIntervalSince1970: 1_782_800_120)
+    ) throws -> ReleaseV090RunMonitorExportBundleReadModel {
+        let createdSession = try ReleaseV090TestnetReadOnlyMonitorSessionStore.deterministicFixture(
+            createdAt: Date(timeIntervalSince1970: 1_782_800_000)
+        )
+        let connectedSession = try createdSession.applying(
+            command: .connect,
+            reason: "deterministic-export-monitor-started",
+            at: Date(timeIntervalSince1970: 1_782_800_010)
+        )
+        let observingSession = try connectedSession.applying(
+            command: .observe,
+            reason: "deterministic-export-monitor-observing",
+            at: Date(timeIntervalSince1970: 1_782_800_020)
+        )
+        let staleSession = try observingSession.applying(
+            command: .markStale,
+            reason: "deterministic-export-heartbeat-age-threshold",
+            at: Date(timeIntervalSince1970: 1_782_800_050)
+        )
+        let recoveringSession = try staleSession.applying(
+            command: .recover,
+            reason: "deterministic-export-recovery",
+            at: Date(timeIntervalSince1970: 1_782_800_060)
+        )
+        let session = try recoveringSession.applying(
+            command: .observe,
+            reason: "deterministic-export-recovered-observe",
+            at: Date(timeIntervalSince1970: 1_782_800_061)
+        )
+        let status = try ReleaseV090TestnetReadOnlyMonitorStatusDocument(document: session)
+        let recovery = try ReleaseV090MonitorRecoveryDocument(
+            runID: session.runID,
+            monitorRecoveryJSONPath: session.artifactPaths.monitorRecoveryJSONPath,
+            preRecoveryMonitorSessionChecksum: staleSession.sessionChecksum,
+            recoveredMonitorSessionChecksum: session.sessionChecksum,
+            recoveryAction: .recoverStaleMonitor,
+            fromState: .stale,
+            intermediateState: .recovering,
+            toState: .observing,
+            recoveryReason: "deterministic-export-bundle-fixture",
+            recoveredAt: Date(timeIntervalSince1970: 1_782_800_060),
+            observedAfterRecoveryAt: Date(timeIntervalSince1970: 1_782_800_061),
+            previousEventChecksums: staleSession.events.map(\.eventChecksum),
+            recoveredEventChecksums: session.events.map(\.eventChecksum),
+            redactedListenKeyReference: "gh-853-stream-lease:<redacted>",
+            listenKeyReferenceHash: ReleaseV090PrivateStreamHeartbeatDocument.listenKeyReferenceHash(
+                "gh-853-stream-lease"
+            ),
+            rebuiltReadModelEvidenceChecksum: ReleaseV090MonitorRecoveryDocument.readModelEvidenceChecksum(
+                "gh-853-rebuilt-monitor-read-model"
+            )
+        )
+        let freshness = try ReleaseV090AccountSnapshotFreshnessDocument(
+            runID: session.runID,
+            monitorSessionChecksum: session.sessionChecksum,
+            accountSnapshotFreshnessJSONPath: session.artifactPaths.accountSnapshotFreshnessJSONPath,
+            snapshotObservedAt: Date(timeIntervalSince1970: 1_782_800_070),
+            recordedAt: Date(timeIntervalSince1970: 1_782_800_100),
+            latencyMilliseconds: 180,
+            staleThresholdSeconds: 90,
+            redactedCredentialReference: "gh-853-testnet-readonly-profile:<redacted>"
+        )
+        let heartbeat = try ReleaseV090PrivateStreamHeartbeatDocument(
+            runID: session.runID,
+            monitorSessionChecksum: session.sessionChecksum,
+            privateStreamHeartbeatJSONPath: session.artifactPaths.privateStreamHeartbeatJSONPath,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_800_090),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_800_100),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 90,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_800_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_803_600),
+            redactedListenKeyReference: "gh-853-stream-lease-profile:<redacted>",
+            listenKeyReferenceHash: ReleaseV090PrivateStreamHeartbeatDocument.listenKeyReferenceHash(
+                "gh-853-stream-lease-profile"
+            )
+        )
+        let timeline = try ReleaseV090PortfolioReconciliationTimelineReadModel(
+            session: session,
+            accountSnapshotFreshness: freshness,
+            privateStreamHeartbeat: heartbeat,
+            generatedAt: Date(timeIntervalSince1970: 1_782_800_100)
+        )
+        let profileReference = try ReleaseV090RiskPolicyApplicationProfileReference(
+            riskPolicyVersion: "v0.8.0-risk-policy-profile.3",
+            riskPolicyHash: "risk-policy-fnv64-gh853",
+            policyAppliedAt: Date(timeIntervalSince1970: 1_782_800_030),
+            operatorChangeReference: "op-change-gh853"
+        )
+        let riskPolicyApplicationAudit = try ReleaseV090RiskPolicyApplicationAuditReadModel(
+            session: session,
+            accountSnapshotFreshness: freshness,
+            privateStreamHeartbeat: heartbeat,
+            portfolioReconciliationTimeline: timeline,
+            profileReference: profileReference,
+            generatedAt: Date(timeIntervalSince1970: 1_782_800_100)
+        )
+        return try ReleaseV090RunMonitorExportBundleReadModel(
+            session: session,
+            monitorStatus: status,
+            monitorRecovery: recovery,
+            riskPolicyApplicationAudit: riskPolicyApplicationAudit,
+            generatedAt: generatedAt
+        )
+    }
+
+    public static func stableAggregateRedactionProofChecksum(
+        bundleEntries: [ReleaseV090RunMonitorExportBundleEntry]
+    ) -> String {
+        stableSHA256([
+            "GH-853",
+            "v0.9.0",
+            "aggregateRedactionProof",
+            "rawCredentialMaterialAbsent=true",
+            "rawListenKeyAbsent=true",
+            "rawPrivatePayloadAbsent=true",
+            "brokerCommandPayloadAbsent=true",
+            "orderRequestPayloadAbsent=true",
+            "uploadSideEffectEnabled=false",
+            "notificationWebhookEnabled=false",
+            "productionDataExported=false"
+        ] + bundleEntries.map(\.redactionProofChecksum))
+    }
+
+    public static func stableExportBundleChecksum(
+        runID: Identifier,
+        generatedAt: Date,
+        runMonitorExportBundleJSONPath: String,
+        monitorSessionChecksum: String,
+        monitorStatusChecksum: String,
+        monitorRecoveryChecksum: String,
+        riskPolicyApplicationAuditChecksum: String,
+        portfolioReconciliationTimelineChecksum: String,
+        bundleEntries: [ReleaseV090RunMonitorExportBundleEntry],
+        redactionProofChecksum: String
+    ) -> String {
+        stableSHA256([
+            "GH-853",
+            "v0.9.0",
+            Self.schemaVersion,
+            runID.rawValue,
+            String(generatedAt.timeIntervalSince1970),
+            runMonitorExportBundleJSONPath,
+            monitorSessionChecksum,
+            monitorStatusChecksum,
+            monitorRecoveryChecksum,
+            riskPolicyApplicationAuditChecksum,
+            portfolioReconciliationTimelineChecksum,
+            redactionProofChecksum,
+            "localExportOnly=true",
+            "uploadSideEffectEnabled=false",
+            "externalSharingEnabled=false",
+            "notificationWebhookEnabled=false",
+            "productionDataExported=false",
+            "testnetOrderRoutingAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false"
+        ] + bundleEntries.map(\.bundleChecksum))
+    }
+
+    private func checksum(for role: ReleaseV090RunMonitorExportBundleRole) -> String {
+        Self.bundleChecksum(for: role, in: bundleEntries)
+    }
+
+    private static func bundleChecksum(
+        for role: ReleaseV090RunMonitorExportBundleRole,
+        in bundleEntries: [ReleaseV090RunMonitorExportBundleEntry]
+    ) -> String {
+        bundleEntries.first { $0.bundleRole == role }?.bundleChecksum ?? ""
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
 /// ReleaseV090TestnetReadOnlyMonitorSessionStore 提供 GH-845 monitor session 本地持久化入口。
 ///
 /// Store 只操作本地 `monitor_session.json`、`monitor_events.jsonl` 和
@@ -4660,6 +5360,68 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
     }
 
     @discardableResult
+    public func recordRunMonitorExportBundle(
+        runID: Identifier,
+        generatedAt: Date
+    ) throws -> ReleaseV090RunMonitorExportBundleReadModel {
+        try withMonitorLock(runID: runID) {
+            let session = try load(runID: runID)
+            let monitorStatus = try status(runID: runID)
+            let monitorRecovery = try monitorRecovery(runID: runID)
+            let riskPolicyApplicationAudit = try riskPolicyApplicationAudit(runID: runID)
+            let bundle = try ReleaseV090RunMonitorExportBundleReadModel(
+                session: session,
+                monitorStatus: monitorStatus,
+                monitorRecovery: monitorRecovery,
+                riskPolicyApplicationAudit: riskPolicyApplicationAudit,
+                generatedAt: generatedAt
+            )
+            try writeJSON(bundle, to: runMonitorExportBundleURL(runID: runID))
+            return bundle
+        }
+    }
+
+    public func runMonitorExportBundle(
+        runID: Identifier
+    ) throws -> ReleaseV090RunMonitorExportBundleReadModel {
+        let exportBundleURL = try runMonitorExportBundleURL(runID: runID)
+        guard fileManager.fileExists(atPath: exportBundleURL.path) else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedRunMonitorExportBundle(exportBundleURL.path)
+        }
+        do {
+            let session = try load(runID: runID)
+            let data = try Data(contentsOf: exportBundleURL)
+            let document = try Self.decoder.decode(ReleaseV090RunMonitorExportBundleReadModel.self, from: data)
+            let expectedChecksum = ReleaseV090RunMonitorExportBundleReadModel.stableExportBundleChecksum(
+                runID: document.runID,
+                generatedAt: document.generatedAt,
+                runMonitorExportBundleJSONPath: document.runMonitorExportBundleJSONPath,
+                monitorSessionChecksum: document.monitorSessionChecksum,
+                monitorStatusChecksum: document.monitorStatusChecksum,
+                monitorRecoveryChecksum: document.monitorRecoveryChecksum,
+                riskPolicyApplicationAuditChecksum: document.riskPolicyApplicationAuditChecksum,
+                portfolioReconciliationTimelineChecksum: document.portfolioReconciliationTimelineChecksum,
+                bundleEntries: document.bundleEntries,
+                redactionProofChecksum: document.redactionProofChecksum
+            )
+            guard document.exportBundleChecksum == expectedChecksum else {
+                throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.checksumMismatch(
+                    expected: expectedChecksum,
+                    actual: document.exportBundleChecksum
+                )
+            }
+            guard document.monitorSessionChecksum == session.sessionChecksum, document.readModelHeld else {
+                throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("decodedRunMonitorExportBundle")
+            }
+            return document
+        } catch let error as ReleaseV090TestnetReadOnlyMonitorSessionStoreError {
+            throw error
+        } catch {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedRunMonitorExportBundle(exportBundleURL.path)
+        }
+    }
+
+    @discardableResult
     public func apply(
         runID: Identifier,
         command: ReleaseV090TestnetReadOnlyMonitorCommand,
@@ -4825,6 +5587,13 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
             throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.emptyRunID
         }
         return monitorDirectoryURL(runID: runID).appendingPathComponent("risk-policy-application-audit.json", isDirectory: false)
+    }
+
+    private func runMonitorExportBundleURL(runID: Identifier) throws -> URL {
+        guard runID.rawValue.isEmpty == false else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.emptyRunID
+        }
+        return monitorDirectoryURL(runID: runID).appendingPathComponent("run-monitor-export-bundle.json", isDirectory: false)
     }
 
     private static func redactedCredentialReference(from credentialReference: String) throws -> String {

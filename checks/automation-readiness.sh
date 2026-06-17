@@ -443,6 +443,45 @@ for v090_risk_policy_application_anchor in \
   require_contains "docs/validation/trading-validation-matrix.md" "$v090_risk_policy_application_anchor"
   require_contains "docs/validation/validation-plan.md" "$v090_risk_policy_application_anchor"
 done
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090RunMonitorExportBundleReadModel"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090RunMonitorExportBundleEntry"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090RunMonitorExportBundleRole"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "run-monitor-export-bundle.json"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "runBundleChecksum"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "monitorBundleChecksum"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "riskPolicyBundleChecksum"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "reconciliationBundleChecksum"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "redactionProofChecksum"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "recordRunMonitorExportBundle"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "runMonitorExportBundle"
+require_contains "checks/verify-v0.9.0-run-monitor-export-bundle.sh" "GH-853-VERIFY-V090-RUN-MONITOR-EXPORT-BUNDLE"
+require_contains "checks/verify-v0.9.0-run-monitor-export-bundle.sh" "TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE"
+require_contains "checks/verify-v0.9.0-run-monitor-export-bundle.sh" "V090-011-RUN-MONITOR-EXPORT-BUNDLE"
+require_contains "checks/run.sh" "bash checks/verify-v0.9.0-run-monitor-export-bundle.sh"
+require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "V090-011-RUN-MONITOR-EXPORT-BUNDLE"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE"
+require_contains "docs/validation/validation-plan.md" "GH-853 Release v0.9.0 Run Monitor Export Bundle Validation"
+require_contains "docs/automation/automation-readiness.md" "Release v0.9.0 Run and monitor export bundle anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH853RunMonitorExportBundleIsChecksumBackedAndRedacted"
+for v090_run_monitor_export_anchor in \
+  "GH-853-VERIFY-V090-RUN-MONITOR-EXPORT-BUNDLE" \
+  "TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE" \
+  "V090-011-RUN-MONITOR-EXPORT-BUNDLE" \
+  "V090-011-RUN-BUNDLE-CHECKSUM" \
+  "V090-011-MONITOR-BUNDLE-CHECKSUM" \
+  "V090-011-RISK-POLICY-BUNDLE-CHECKSUM" \
+  "V090-011-RECONCILIATION-BUNDLE-CHECKSUM" \
+  "V090-011-REDACTION-PROOF" \
+  "V090-011-LOCAL-EXPORT-ONLY" \
+  "V090-011-NO-UPLOAD-NOTIFICATION-SIDE-EFFECT" \
+  "V090-011-NO-RAW-SECRET-LISTENKEY-PRIVATE-PAYLOAD" \
+  "V090-011-NO-PRODUCTION-DATA-EXPORT" \
+  "V090-011-NO-PRODUCTION-CUTOVER"; do
+  require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "$v090_run_monitor_export_anchor"
+  require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "$v090_run_monitor_export_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v090_run_monitor_export_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v090_run_monitor_export_anchor"
+done
 require_contains "docs/release/release-publication-policy.md" "GH-808-RELEASE-PUBLICATION-POLICY"
 require_contains "docs/release/release-publication-policy.md" "V080-002-V070-ACTUAL-GITHUB-RELEASE"
 require_contains "docs/release/release-publication-policy.md" "V080-002-TAG-NAMING-RULES"

@@ -424,6 +424,54 @@ Risk policy application audit 只引用 `.local/mtpro/risk_policy.json` 本地 p
 
 GH-852 保持 no-order / no-production boundary：policy change 只作为 audit metadata，不授权 automated policy-driven order execution，不连接 broker / production path，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
 
+## V090-011-RUN-MONITOR-EXPORT-BUNDLE
+
+`GH-853-VERIFY-V090-RUN-MONITOR-EXPORT-BUNDLE`
+`TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE`
+`V090-011-RUN-MONITOR-EXPORT-BUNDLE`
+
+GH-853 在 GH-848 / GH-849 / GH-851 / GH-852 evidence 之上新增本地 `run-monitor-export-bundle.json` manifest。该 manifest 只聚合 run bundle、monitor bundle、Risk policy bundle 和 reconciliation bundle 的 checksum 与 redaction proof，不上传、不通知、不导出 production data。
+
+### V090-011-RUN-BUNDLE-CHECKSUM
+
+`V090-011-RUN-BUNDLE-CHECKSUM`
+
+Run bundle 必须引用 `.local/mtpro/runs/<runID>` 的本地 run evidence，并绑定 monitor session checksum 与 monitor status checksum。
+
+### V090-011-MONITOR-BUNDLE-CHECKSUM
+
+`V090-011-MONITOR-BUNDLE-CHECKSUM`
+
+Monitor bundle 必须绑定 monitor session、account snapshot freshness、private stream heartbeat 和 monitor recovery artifact checksum；它不包含 raw credential、raw listenKey 或 private stream payload。
+
+### V090-011-RISK-POLICY-BUNDLE-CHECKSUM
+
+`V090-011-RISK-POLICY-BUNDLE-CHECKSUM`
+
+Risk policy bundle 必须绑定 `.local/mtpro/risk_policy.json` 本地 profile reference checksum 和 GH-852 risk policy application audit checksum；policy change 仍只作为 audit metadata，不授权 order execution。
+
+### V090-011-RECONCILIATION-BUNDLE-CHECKSUM
+
+`V090-011-RECONCILIATION-BUNDLE-CHECKSUM`
+
+Reconciliation bundle 必须绑定 Portfolio reconciliation timeline checksum；它只保留 explain-only review evidence，不创建 correction command、broker write、account mutation 或 trading adjustment。
+
+### V090-011-REDACTION-PROOF
+
+`V090-011-REDACTION-PROOF`
+
+Export bundle 必须保存 aggregate redaction proof checksum，证明 raw secret、raw listenKey、raw private payload、broker command payload 和 order request payload 均未进入 manifest。
+
+### V090-011-FORBIDDEN-CAPABILITIES
+
+`V090-011-LOCAL-EXPORT-ONLY`
+`V090-011-NO-UPLOAD-NOTIFICATION-SIDE-EFFECT`
+`V090-011-NO-RAW-SECRET-LISTENKEY-PRIVATE-PAYLOAD`
+`V090-011-NO-PRODUCTION-DATA-EXPORT`
+`V090-011-NO-PRODUCTION-CUTOVER`
+
+GH-853 保持 local export only：不上传、不外部分享、不发送 notification / webhook，不导出 production data，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## V090-001-DOWNSTREAM-QUEUE-ORDER
 
 `V090-001-DOWNSTREAM-QUEUE-ORDER`
