@@ -1,6 +1,6 @@
 # 最近验证摘要
 
-日期：2026-06-16
+日期：2026-06-17
 
 执行者：Codex
 
@@ -16,15 +16,34 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 
 | 项 | 当前事实 |
 | --- | --- |
-| Latest completed release construction scope | `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring` |
+| Latest completed release construction scope | `MTPRO Release v0.9.0 Testnet No-order Observability` |
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
-| Active queue | v0.8.1 patch closeout 由 GitHub issue `#841` closure PR 收口；PR merge 后不得自动推进下一 Project / Issue |
-| Stage Code Audit Report | `docs/audit/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-stage-code-audit.md` |
-| Progress | Project Closure Count: 42 / 42 (100%)；Current Foundation Progress: 4 / 4 (100%)；Final Product Goal Progress: 9 / 9 (100%)；Engine Maturity Roadmap Progress: 4 / 4（100%） |
+| Active queue | v0.9.0 final audit / docs / runbook 由 GitHub issue `#856` closure PR 收口；PR merge 后不得自动推进下一 Project / Issue |
+| Stage Code Audit Report | `docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md` |
+| Progress | Project Closure Count: 43 / 43 (100%)；Current Foundation Progress: 4 / 4 (100%)；Final Product Goal Progress: 9 / 9 (100%)；Engine Maturity Roadmap Progress: 4 / 4（100%） |
 
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。
+
+## Release v0.9.0 Closure Snapshot
+
+`GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK`
+
+`MTPRO Release v0.9.0 Testnet No-order Observability` 已进入 GitHub fallback queue `#843` 至 `#856` 的 final closure。`#843` 至 `#855` 均已 `CLOSED / done`；PR `#863` 至 `#875` 均已 merged，required check `checks` 均为 `SUCCESS`；#856 closure PR 输出 Stage Code Audit Report、release notes、operator runbook、root docs refresh 和 aggregate verifier final guard。
+
+Stage Code Audit Report：`docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md`。
+
+本阶段只收口 testnet read-only no-order observability、persistent monitor session、signed account snapshot freshness、private stream heartbeat / staleness、monitor recovery observe、Dashboard observability timeline、alert read-model、Portfolio reconciliation timeline、Risk policy application audit、run monitor export bundle、validation lanes split、Dashboard / CLI operator UX 和 no-production guard。Production trading 仍默认关闭；不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Project / Issue。
+
+本地验证入口：
+
+```bash
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/verify-v0.9.0.sh
+bash checks/run.sh
+```
 
 ## Release v0.8.1 Patch Closeout Snapshot
 
@@ -50,6 +69,8 @@ bash checks/run.sh
 `GH-820-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK`
 
 `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring` 已进入 GitHub fallback queue `#807` 至 `#820` 的 final closure。`#807` 至 `#819` 均已 `CLOSED / done`；PR `#821` 至 `#833` 均已 merged，required check `checks` 均为 `SUCCESS`；#820 closure PR 输出 Stage Code Audit Report、release notes、operator runbook、root docs refresh 和 aggregate verifier final guard。
+
+Stage Code Audit Report：`docs/audit/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-stage-code-audit.md`。
 
 本阶段只收口 persistent no-order operator runtime evidence、manual Binance testnet read-only monitoring、read-only Dashboard / CLI run operations、Risk policy profile、Portfolio explain-only reconciliation review、validation lanes split 和 no-production guard。Production trading 仍默认关闭；不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Project / Issue。
 

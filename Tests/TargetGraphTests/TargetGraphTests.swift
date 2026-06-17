@@ -10642,6 +10642,117 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH856ReleaseV090FinalAuditDocsRunbookCloseCompletedFactsOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let audit = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md"
+            ),
+            encoding: .utf8
+        )
+        let notes = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/release/mtpro-release-v0.9.0-testnet-no-order-observability-notes.md"
+            ),
+            encoding: .utf8
+        )
+        let runbook = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/operators/release-v0.9.0-testnet-no-order-observability-runbook.md"
+            ),
+            encoding: .utf8
+        )
+        let verifier = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.9.0.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let readme = try String(contentsOf: repositoryRoot.appendingPathComponent("README.md"), encoding: .utf8)
+        let goal = try String(contentsOf: repositoryRoot.appendingPathComponent("GOAL.md"), encoding: .utf8)
+        let blueprint = try String(contentsOf: repositoryRoot.appendingPathComponent("BLUEPRINT.md"), encoding: .utf8)
+        let roadmap = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"), encoding: .utf8)
+        let latestSummary = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+
+        let anchors = [
+            "GH-856-VERIFY-V090-FINAL-AUDIT-DOCS-RUNBOOK",
+            "GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK",
+            "TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK",
+            "V090-014-VALIDATION-SUMMARY",
+            "V090-014-STAGE-CODE-AUDIT",
+            "V090-014-RELEASE-NOTES",
+            "V090-014-OPERATOR-RUNBOOK",
+            "V090-014-ROOT-DOCS-REFRESH",
+            "V090-014-AGGREGATE-VERIFY",
+            "V090-014-NO-PRODUCTION-CUTOVER"
+        ]
+        for anchor in anchors {
+            XCTAssertTrue(audit.contains(anchor), "\(anchor) must stay in v0.9 audit")
+            XCTAssertTrue(runbook.contains(anchor), "\(anchor) must stay in v0.9 runbook")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in aggregate verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+
+        XCTAssertTrue(audit.contains("GitHub fallback queue `#843` 至 `#856`"))
+        XCTAssertTrue(audit.contains("PR `#863` 至 `#875`"))
+        XCTAssertTrue(audit.contains("Project Closure Count to `43 / 43 (100%)`"))
+        XCTAssertTrue(audit.contains("current #856 closure PR"))
+        XCTAssertTrue(notes.contains("MTPRO Release v0.9.0 Testnet No-order Observability Notes"))
+        XCTAssertTrue(runbook.contains("MTPRO Release v0.9.0 Testnet No-order Observability Runbook"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0.sh"))
+        XCTAssertTrue(verifier.contains("bash checks/verify-v0.9.0-dashboard-cli-operator-ux.sh"))
+        XCTAssertTrue(readme.contains("MTPRO Release v0.9.0 Testnet No-order Observability"))
+        XCTAssertTrue(readme.contains("bash checks/verify-v0.9.0.sh"))
+        XCTAssertTrue(goal.contains("MTPRO Release v0.9.0 Testnet No-order Observability"))
+        XCTAssertTrue(blueprint.contains("v0.9.0 testnet no-order observability"))
+        XCTAssertTrue(roadmap.contains("Project Closure Count: 43 / 43 (100%)"))
+        XCTAssertTrue(roadmap.contains("Latest Completed Project：`MTPRO Release v0.9.0 Testnet No-order Observability`"))
+        XCTAssertTrue(latestSummary.contains("Release v0.9.0 Closure Snapshot"))
+        XCTAssertTrue(latestSummary.contains("docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 final audit / docs / runbook anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-856 Release v0.9.0 Final Audit / Docs / Runbook Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "ordersSubmitted=true",
+            "testnetOrderRoutingAllowed=true",
+            "testnetOrderSubmissionAllowed=true",
+            "productionCutoverAuthorized=true"
+        ] {
+            XCTAssertFalse(audit.contains(forbiddenAuthorization), "GH-856 audit must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(notes.contains(forbiddenAuthorization), "GH-856 notes must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(runbook.contains(forbiddenAuthorization), "GH-856 runbook must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(

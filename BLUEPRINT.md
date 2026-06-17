@@ -93,8 +93,9 @@ Current Foundation Progress 已完成 4 / 4；Final Product Goal Progress 当前
 
 ## Complete Capability Map
 
-当前 foundation 已覆盖 Binance public read-only ingest、Event Log / Replay、Research / Backtest / Report、Trading Validation、Paper Session Runtime、Paper Execution Workflow、Dashboard / Workbench、Market Data Replay Operations、Portfolio / Risk paper-only evidence。Release line 已推进到 v0.8.0 persistent operator runtime + testnet read-only monitoring，但 production trading disabled by default。
+当前 foundation 已覆盖 Binance public read-only ingest、Event Log / Replay、Research / Backtest / Report、Trading Validation、Paper Session Runtime、Paper Execution Workflow、Dashboard / Workbench、Market Data Replay Operations、Portfolio / Risk paper-only evidence。Release line 已推进到 v0.9.0 testnet no-order observability，但 production trading disabled by default。
 
+Historical release line anchor retained：Release line 已推进到 v0.8.0 persistent operator runtime + testnet read-only monitoring。
 Historical release line anchor retained：Release line 已推进到 v0.7.0 operator runtime session + real testnet read-only connectivity。
 Historical release line anchor retained：Release line 已推进到 v0.6.0 local operational runtime + testnet read-only probe hardening。
 
@@ -191,7 +192,7 @@ Future live 能力必须作为独立 Project Definition 和独立 execution cont
 | L3 read-model readiness | `MTPRO Live Read-only Readiness Boundary v1`、`MTPRO Account / Position / Balance Read-model-only v1`、Private Stream / Snapshot simulation、Live Monitoring v2、Strategy / Trader readiness 已完成 | 真实 Live read-only runtime、private WebSocket runtime、real account read、broker position sync、real balance、real PnL、live command |
 | Trader / target graph | `MTPRO Trader-Owned Strategies Layout Correction v1`、`MTPRO Trader EMA Strategy Layout Consolidation v1`、`MTPRO Trader Accounts / Coordination Compatibility Consolidation v1`、`MTPRO SwiftPM Target Graph Module Split v1` 已完成 Project closure、TargetGraph Anchor Retirement 已完成 | Strategy runtime、Trader runtime、SwiftPM target graph 再拆、ExecutionClient implementation、OMS、broker gateway、L4 implementation |
 | Core envelope / L4 / production readiness | Core Envelope Retirement / Real Module Ownership Completion before L4 complete；`MTPRO L4 Live Production / Trading Commands v1` Done / no-default-production-trading；`MTPRO Production Cutover Readiness / Real Broker Enablement Gate v1` Done / readiness-only | production cutover、production secret read、production endpoint、real broker gateway、real submit / cancel / replace、Live PRO Console production command、order form、trading button |
-| Release line | `MTPRO Release v0.1.0` Done / Binance + EMA runtime validation / production disabled by default；`MTPRO Release v0.2.0`、v0.3.x、v0.4.0、v0.5.0、`MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening`、`MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity`、`MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring` 均作为后续 release evidence 记录 | 自动进入下一阶段、production trading、non-gated broker connection、默认真实订单 |
+| Release line | `MTPRO Release v0.1.0` Done / Binance + EMA runtime validation / production disabled by default；`MTPRO Release v0.2.0`、v0.3.x、v0.4.0、v0.5.0、`MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening`、`MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity`、`MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring`、`MTPRO Release v0.9.0 Testnet No-order Observability` 均作为后续 release evidence 记录 | 自动进入下一阶段、production trading、non-gated broker connection、默认真实订单、testnet order routing |
 
 Historical Core Envelope Retirement / Real Module Ownership Completion evidence 仍保留：PR #448 后完成 final residual hardening audit，确认 production executable `try!` = 0、`@unchecked Sendable` = 0、open GitHub issue / PR = 0。
 

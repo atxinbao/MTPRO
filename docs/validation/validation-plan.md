@@ -200,6 +200,24 @@
 - CLI commands: `monitor start`、`monitor status`、`monitor stop`、`monitor recover` and `monitor export` expose deterministic no-order operator UX only.
 - Boundary: GH-855 只新增 Dashboard / CLI operator UX read model。Dashboard 只能展示 monitor state、timelines、alerts、export status 和 safe local controls；CLI 只能输出本地 artifact path、checksum reference 和 no-order flags。不读取 secret、不连接 network / endpoint / broker、不重放 manual proof、不创建 trading button / order form / live command、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-856 Release v0.9.0 Final Audit / Docs / Runbook Validation
+
+- `GH-856-VERIFY-V090-FINAL-AUDIT-DOCS-RUNBOOK`
+- `GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK`
+- `TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK`
+- `V090-014-VALIDATION-SUMMARY`
+- `V090-014-STAGE-CODE-AUDIT`
+- `V090-014-RELEASE-NOTES`
+- `V090-014-OPERATOR-RUNBOOK`
+- `V090-014-ROOT-DOCS-REFRESH`
+- `V090-014-AGGREGATE-VERIFY`
+- `V090-014-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.9.0.sh`
+- Focused test: `testGH856ReleaseV090FinalAuditDocsRunbookCloseCompletedFactsOnly`
+- Evidence files: `docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md`、`docs/release/mtpro-release-v0.9.0-testnet-no-order-observability-notes.md`、`docs/operators/release-v0.9.0-testnet-no-order-observability-runbook.md`。
+- Root docs refresh: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md` 只同步 v0.9.0 已完成事实、Project Closure Count `43 / 43 (100%)`、stage audit path、release notes、operator runbook、validation command 和 no-default-production-trading boundary。
+- Boundary: GH-856 只收口 v0.9.0 final audit、release notes、operator runbook、root docs refresh 和 aggregate verifier guard；不发布 tag，不创建下一 Project / Issue，不推进下一 Todo，不启动 Linear / Symphony / Graphify / code-index / Figma，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`

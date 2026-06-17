@@ -2,9 +2,13 @@
 
 MTPRO 是 SwiftPM-first、local-first 的 macOS 原生专业交易工作台。它以 Research -> Backtest -> Report -> Paper -> guarded runtime evidence 的可追溯链路为基础，最终目标是专业版交易工作台：Live trading、实盘监控、实盘执行控制、实盘风险控制、实盘审计、事故回放和停机控制。
 
-Latest completed release construction scope: `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring`。
+Latest completed release construction scope: `MTPRO Release v0.9.0 Testnet No-order Observability`。
 
-当前最新完成范围：`MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring`。它是 persistent no-order operator runtime、manual Binance testnet read-only monitoring、read-only Dashboard / CLI operations、Risk policy profile、Portfolio reconciliation review、validation lanes split 和 final audit / docs / runbook closure。v0.7.0 和 v0.8.0 均已通过各自独立 release publication gate 发布 stable GitHub Release；v0.8.0 GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0`。v0.8.1 patch evidence 只收口 release publication docs alignment、Dashboard macOS guard、CLI wording、local session wording、status artifact role、private stream redaction 和 patch docs；construction closeout、public GitHub Release publication 和 production cutover 仍是三个独立 gate；已发布事实和 patch evidence 均不授权 production cutover。
+Historical guard retains previous Latest completed release construction scope: `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring`。
+
+当前最新完成范围：`MTPRO Release v0.9.0 Testnet No-order Observability`。它是 testnet read-only no-order observability、persistent monitor session、signed account snapshot freshness、private stream heartbeat / staleness、monitor recovery observe、Dashboard observability timeline、alert read-model、Portfolio reconciliation timeline、Risk policy application audit、run monitor export bundle、validation lanes split、Dashboard / CLI operator UX 和 final audit / docs / runbook closure。v0.7.0 和 v0.8.0 均已通过各自独立 release publication gate 发布 stable GitHub Release；v0.8.0 GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0`。v0.8.1 patch evidence 只收口 release publication docs alignment、Dashboard macOS guard、CLI wording、local session wording、status artifact role、private stream redaction 和 patch docs；v0.9.0 construction closeout、public GitHub Release publication 和 production cutover 仍是三个独立 gate；已发布事实、patch evidence 和 v0.9.0 construction evidence 均不授权 production cutover。
+
+Historical completed release construction scope：`MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring`。
 
 Historical completed release construction scope：`MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity`。
 
@@ -14,14 +18,14 @@ MTPRO 借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapte
 
 | 项 | 当前事实 |
 | --- | --- |
-| Current maturity statement | `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring complete with production trading disabled by default` |
+| Current maturity statement | `MTPRO Release v0.9.0 Testnet No-order Observability complete with production trading disabled by default` |
 | Active venue / products / strategies | `activeVenue == Binance`；`activeProductTypes == [spot, usdsPerpetual]`；`activeStrategies == [ema, rsi]` |
 | Runtime modes | `runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]` |
 | Production default | `productionTradingEnabledByDefault == false` |
 | Production capability | `productionCapabilityGatedNotMissing == true` |
 | Historical boundary | `oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true` |
 
-Production trading、production secret、production endpoint、production broker connection、testnet / production submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.8.0 授权。后续执行只能来自 Human 指定的唯一 live queue source，并且必须经过 Parent Codex queue preflight。
+Production trading、production secret、production endpoint、production broker connection、testnet / production submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.9.0 授权。后续执行只能来自 Human 指定的唯一 live queue source，并且必须经过 Parent Codex queue preflight。
 
 ## 必读入口
 
@@ -58,6 +62,7 @@ Production trading、production secret、production endpoint、production broker
 
 | 类别 | 锚点 / 文件 |
 | --- | --- |
+| v0.9.0 | `GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK`；`docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md`；`docs/operators/release-v0.9.0-testnet-no-order-observability-runbook.md`；`docs/release/mtpro-release-v0.9.0-testnet-no-order-observability-notes.md`；`checks/verify-v0.9.0.sh` |
 | v0.8.1 patch evidence | `GH-841-RELEASE-V081-PATCH-AUDIT-DOCS-RELEASE-NOTES`；`docs/audit/mtpro-release-v0.8.1-release-publication-dashboard-guard-patch-stage-code-audit.md`；`docs/release/mtpro-release-v0.8.1-release-publication-dashboard-guard-patch-notes.md`；`checks/verify-v0.8.1.sh` |
 | v0.8.0 | `GH-820-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK`；`docs/audit/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-stage-code-audit.md`；`docs/operators/release-v0.8.0-operator-persistent-runtime-testnet-readonly-monitoring-runbook.md`；`docs/operators/release-v0.8.0-validation-lanes-runbook.md`；`docs/release/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-notes.md`；`checks/verify-v0.8.0.sh` |
 | v0.7.0 | `GH-792-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK`；`docs/audit/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-stage-code-audit.md`；`docs/operators/release-v0.7.0-operator-runtime-session-testnet-readonly-connectivity-runbook.md`；`docs/release/mtpro-release-v0.7.0-operator-runtime-session-testnet-read-only-connectivity-notes.md`；`checks/verify-v0.7.0.sh` |
@@ -81,6 +86,7 @@ bash checks/run.sh
 轻量当前 release guard：
 
 ```bash
+bash checks/verify-v0.9.0.sh
 bash checks/verify-v0.8.1.sh
 bash checks/verify-v0.8.0.sh
 ```
