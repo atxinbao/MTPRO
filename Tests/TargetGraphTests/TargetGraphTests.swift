@@ -8647,6 +8647,168 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH881SecretProviderReadinessGateKeepsSecretsOutOfRuntimeCIDashboardAndEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let gate = try ReleaseV0100SecretProviderReadinessGate.deterministicFixture()
+
+        XCTAssertTrue(gate.gateHeld)
+        XCTAssertTrue(gate.credentialReferenceCoverageHeld)
+        XCTAssertTrue(gate.evidenceArtifactsHeld)
+        XCTAssertTrue(gate.productionCapabilitiesDisabled)
+        XCTAssertEqual(gate.issueID.rawValue, "GH-881")
+        XCTAssertEqual(gate.upstreamIssueID.rawValue, "GH-880")
+        XCTAssertEqual(gate.downstreamIssueID.rawValue, "GH-882")
+        XCTAssertEqual(gate.canonicalQueueRange, "GH-878..GH-891")
+        XCTAssertEqual(
+            Set(gate.credentialReferences.map(\.providerType)),
+            Set(ReleaseV0100SecretProviderReferenceType.allCases)
+        )
+        XCTAssertTrue(gate.credentialReferences.allSatisfy(\.referenceOnlyHeld))
+        XCTAssertEqual(
+            Set(gate.evidenceArtifacts.map(\.kind)),
+            Set(ReleaseV0100SecretProviderEvidenceArtifactKind.allCases)
+        )
+        XCTAssertEqual(gate.evidenceArtifacts.map(\.fileName), ["secret_readiness.json", "redaction_proof.json"])
+        XCTAssertTrue(gate.evidenceArtifacts.allSatisfy(\.evidenceBoundaryHeld))
+        XCTAssertTrue(gate.ciNoSecretProof)
+        XCTAssertTrue(gate.manualSecretGateRequired)
+        XCTAssertFalse(gate.cutoverAuthorized)
+        XCTAssertFalse(gate.orderSubmissionEnabled)
+        XCTAssertFalse(gate.productionEndpointConnectionEnabled)
+        XCTAssertFalse(gate.productionBrokerConnectionEnabled)
+        XCTAssertFalse(gate.productionSecretValueRead)
+        XCTAssertFalse(gate.productionSecretValueStored)
+        XCTAssertFalse(gate.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(gate.productionOMSRuntimeEnabled)
+        XCTAssertFalse(gate.tradingButtonEnabled)
+        XCTAssertFalse(gate.orderFormEnabled)
+        XCTAssertFalse(gate.liveCommandEnabled)
+
+        XCTAssertThrowsError(try ReleaseV0100SecretProviderReadinessGate(ciNoSecretProof: false))
+        XCTAssertThrowsError(try ReleaseV0100SecretProviderReadinessGate(manualSecretGateRequired: false))
+        XCTAssertThrowsError(try ReleaseV0100SecretProviderReadinessGate(cutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100SecretProviderReadinessGate(orderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100SecretProviderReadinessGate(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100SecretProviderReadinessGate(productionBrokerConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100SecretProviderReadinessGate(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0100SecretProviderReadinessGate(testnetOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(
+            try ReleaseV0100SecretProviderReference(
+                referenceID: Identifier.constant("forbidden-secret-value"),
+                providerType: .environmentVariableReference,
+                storesSecretValue: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0100SecretProviderReadinessEvidenceArtifact(
+                kind: .secretReadiness,
+                fileName: "secret_readiness.json",
+                containsSecretValue: true
+            )
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100SecretProviderReadinessGate.swift")
+        let contract = try read("docs/contracts/release-v0.10.0-secret-provider-readiness-gate-contract.md")
+        let verifier = try read("checks/verify-v0.10.0-secret-provider-readiness-gate.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "V0100-004-SECRET-PROVIDER-READINESS-GATE",
+            "V0100-004-CREDENTIAL-REFERENCE-EXISTS",
+            "V0100-004-PROVIDER-TYPE-REFERENCE-ONLY",
+            "V0100-004-REDACTION-POLICY-REQUIRED",
+            "V0100-004-SECRET-READINESS-JSON",
+            "V0100-004-REDACTION-PROOF-JSON",
+            "V0100-004-CI-NO-SECRET-PROOF",
+            "V0100-004-MANUAL-SECRET-GATE-REQUIRED",
+            "V0100-004-PRODUCTION-CAPABILITIES-DISABLED",
+            "GH-881-VERIFY-V0100-SECRET-PROVIDER-READINESS-GATE",
+            "TVM-RELEASE-V0100-SECRET-PROVIDER-READINESS-GATE"
+        ]
+        XCTAssertEqual(ReleaseV0100SecretProviderReadinessGate.requiredValidationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        for exactString in [
+            "credentialReferenceExists=true",
+            "providerType=environmentVariableReference",
+            "providerType=keychainItemReference",
+            "providerType=operatorManualReference",
+            "redactionPolicy=redactedIdentifierOnly",
+            "secret_readiness.json",
+            "secret_readiness_evidence_exists=true",
+            "secret_readiness_contains_secret_value=false",
+            "secret_readiness_produced_by_ci=false",
+            "redaction_proof.json",
+            "redaction_proof_evidence_exists=true",
+            "redaction_proof_contains_secret_value=false",
+            "redaction_proof_produced_by_ci=false",
+            "ci_no_secret_proof=true",
+            "manual_secret_gate_required=true",
+            "operatorConfirmationRequired=true",
+            "storesSecretValue=false",
+            "readsSecretValue=false",
+            "printsSecretValue=false",
+            "dashboardDisplaysSecretValue=false",
+            "ciSecretAvailable=false",
+            "cutoverAuthorized=false",
+            "orderSubmissionEnabled=false",
+            "productionEndpointConnectionEnabled=false",
+            "productionBrokerConnectionEnabled=false",
+            "productionSecretValueRead=false",
+            "productionSecretValueStored=false",
+            "testnetOrderSubmissionEnabled=false"
+        ] {
+            XCTAssertTrue(contract.contains(exactString), "\(exactString) must stay fixed in #881 docs")
+        }
+
+        XCTAssertTrue(verifier.contains("MTPRO release v0.10.0 secret provider readiness gate verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-secret-provider-readiness-gate.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-secret-provider-readiness-gate.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.10.0 secret provider readiness gate anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-881 Release v0.10.0 Secret Provider Readiness Gate Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-SECRET-PROVIDER-READINESS-GATE"))
+        XCTAssertTrue(latest.contains("`#881` 定义 SecretProviderReadinessGate reference-only contract"))
+
+        for forbiddenAuthorization in [
+            "cutoverAuthorized=true",
+            "orderSubmissionEnabled=true",
+            "productionEndpointConnectionEnabled=true",
+            "productionBrokerConnectionEnabled=true",
+            "productionSecretValueRead=true",
+            "productionSecretValueStored=true",
+            "testnetOrderSubmissionEnabled=true",
+            "productionOMSRuntimeEnabled=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true",
+            "storesSecretValue=true",
+            "readsSecretValue=true",
+            "printsSecretValue=true",
+            "dashboardDisplaysSecretValue=true",
+            "ciSecretAvailable=true",
+            "containsSecretValue=true",
+            "producedByCI=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(
