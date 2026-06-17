@@ -336,6 +336,48 @@ Alert read-model 必须保持 `automatedTradingReactionEnabled=false`、`automat
 
 GH-850 保持 no-order / no-production boundary：不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
 
+## V090-009-PORTFOLIO-RECONCILIATION-TIMELINE
+
+`GH-851-VERIFY-V090-PORTFOLIO-RECONCILIATION-TIMELINE`
+`TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE`
+`V090-009-PORTFOLIO-RECONCILIATION-TIMELINE`
+
+GH-851 在 GH-845 monitor session、GH-846 signed account snapshot freshness 和 GH-847 private stream heartbeat evidence 之上新增本地 Portfolio reconciliation timeline read-model。该 timeline 只展示 expected state、observed state、delta、stale reason、operator acknowledgement metadata 和 review history，并绑定 monitor session、account snapshot freshness 和 private stream heartbeat checksum。
+
+### V090-009-EXPECTED-OBSERVED-DELTA
+
+`V090-009-EXPECTED-OBSERVED-DELTA`
+
+Portfolio reconciliation timeline 必须覆盖 matched / delta / missing / stale 四类 explain-only 状态。expected state 只能来自本地 run journal Portfolio projection evidence；observed state 只能来自 redacted read-only monitor values；delta 只作为审计解释字段，不驱动 correction command、broker write、account mutation 或 trading adjustment。
+
+### V090-009-STALE-REASON-REVIEW-HISTORY
+
+`V090-009-STALE-REASON-REVIEW-HISTORY`
+
+stale observed state 必须携带 stale reason。每条 timeline record 必须有 review history，至少记录 observed；delta / missing / stale 记录必须记录 review required 和 acknowledged history。review history 只服务本地审计，不调用外部服务，不触发 incident command，不触发 automatic recovery。
+
+### V090-009-OPERATOR-ACKNOWLEDGEMENT-METADATA-ONLY
+
+`V090-009-OPERATOR-ACKNOWLEDGEMENT-METADATA-ONLY`
+
+operator acknowledgement 只能保存 acknowledgedAt、acknowledgedBy 和 operatorNote metadata。acknowledgement 不得创建 correction command、broker write、account mutation、trading adjustment、testnet order routing 或 production cutover authorization。
+
+### V090-009-MONITOR-SESSION-EVIDENCE-BINDING
+
+`V090-009-MONITOR-SESSION-EVIDENCE-BINDING`
+
+Portfolio reconciliation timeline 必须绑定 monitorSessionChecksum、accountSnapshotFreshnessChecksum 和 privateStreamHeartbeatChecksum；不能读取 raw private payload、credential value、raw listenKey、production secret、production endpoint 或 broker endpoint。
+
+### V090-009-FORBIDDEN-CAPABILITIES
+
+`V090-009-NO-CORRECTION-COMMAND`
+`V090-009-NO-BROKER-WRITE`
+`V090-009-NO-ACCOUNT-MUTATION`
+`V090-009-NO-TRADING-ADJUSTMENT`
+`V090-009-NO-PRODUCTION-CUTOVER`
+
+GH-851 保持 no-order / no-production boundary：不创建 correction command，不写 broker，不 mutate account，不创建 trading adjustment，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
+
 ## V090-001-DOWNSTREAM-QUEUE-ORDER
 
 `V090-001-DOWNSTREAM-QUEUE-ORDER`

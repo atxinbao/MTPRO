@@ -99,7 +99,19 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "V090-008-LOCAL-READ-MODEL-ONLY",
         "V090-008-NO-NOTIFICATION-SIDE-EFFECTS",
         "V090-008-NO-AUTOMATED-TRADING-REACTION",
-        "V090-008-NO-PRODUCTION-CUTOVER"
+        "V090-008-NO-PRODUCTION-CUTOVER",
+        "GH-851-VERIFY-V090-PORTFOLIO-RECONCILIATION-TIMELINE",
+        "TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE",
+        "V090-009-PORTFOLIO-RECONCILIATION-TIMELINE",
+        "V090-009-EXPECTED-OBSERVED-DELTA",
+        "V090-009-STALE-REASON-REVIEW-HISTORY",
+        "V090-009-OPERATOR-ACKNOWLEDGEMENT-METADATA-ONLY",
+        "V090-009-MONITOR-SESSION-EVIDENCE-BINDING",
+        "V090-009-NO-CORRECTION-COMMAND",
+        "V090-009-NO-BROKER-WRITE",
+        "V090-009-NO-ACCOUNT-MUTATION",
+        "V090-009-NO-TRADING-ADJUSTMENT",
+        "V090-009-NO-PRODUCTION-CUTOVER"
     ]
 
     public static let requiredValidationCommands: [String] = [
@@ -108,8 +120,10 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "bash checks/verify-v0.9.0-private-stream-heartbeat-monitor.sh",
         "bash checks/verify-v0.9.0-monitor-recovery-workflow.sh",
         "bash checks/verify-v0.9.0-alert-read-model.sh",
+        "bash checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh",
         "swift test --filter TargetGraphTests/testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed",
-        "swift test --filter TargetGraphTests/testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects"
+        "swift test --filter TargetGraphTests/testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects",
+        "swift test --filter TargetGraphTests/testGH851PortfolioReconciliationTimelineBindsExpectedObservedDeltaAndAckMetadata"
     ]
 }
 
@@ -2514,6 +2528,929 @@ public struct ReleaseV090MonitorAlertReadModel: Codable, Equatable, Sendable {
     }
 }
 
+/// ReleaseV090PortfolioReconciliationTimelineStatus 固定 GH-851 timeline 的 explain-only 状态分类。
+///
+/// 这些状态只服务 read-only monitor audit：matched / delta / missing / stale 都不会
+/// 创建 correction command、broker write、account mutation 或 trading adjustment。
+public enum ReleaseV090PortfolioReconciliationTimelineStatus: String, Codable, CaseIterable, Equatable, Sendable {
+    case matched
+    case delta
+    case missing
+    case stale
+}
+
+/// ReleaseV090PortfolioReconciliationReviewAction 固定 timeline review history 的本地动作分类。
+public enum ReleaseV090PortfolioReconciliationReviewAction: String, Codable, CaseIterable, Equatable, Sendable {
+    case observed
+    case reviewRequired
+    case acknowledged
+    case resolved
+}
+
+/// ReleaseV090PortfolioReconciliationStateSnapshot 是 GH-851 expected / observed state 的本地快照。
+///
+/// 快照只保存 asset、quantity、source artifact 和 stale marker；它不读取 broker account、
+/// 不保存 raw private payload，也不驱动任何 Portfolio runtime mutation。
+public struct ReleaseV090PortfolioReconciliationStateSnapshot: Codable, Equatable, Sendable {
+    public let stateID: Identifier
+    public let asset: String
+    public let quantity: Decimal?
+    public let sourceArtifact: String
+    public let stale: Bool
+    public let stateChecksum: String
+
+    public var stateHeld: Bool {
+        stateID.rawValue.isEmpty == false
+            && asset.isEmpty == false
+            && [
+                "local-run-journal-portfolio-projection",
+                "account-snapshot-freshness.json",
+                "private-stream-heartbeat.json"
+            ].contains(sourceArtifact)
+            && (quantity.map { $0 >= Decimal(0) } ?? true)
+            && stateChecksum == Self.stableStateChecksum(
+                stateID: stateID,
+                asset: asset,
+                quantity: quantity,
+                sourceArtifact: sourceArtifact,
+                stale: stale
+            )
+    }
+
+    public init(
+        stateID: Identifier,
+        asset: String,
+        quantity: Decimal?,
+        sourceArtifact: String,
+        stale: Bool = false,
+        stateChecksum: String? = nil
+    ) throws {
+        self.stateID = stateID
+        self.asset = asset
+        self.quantity = quantity
+        self.sourceArtifact = sourceArtifact
+        self.stale = stale
+        self.stateChecksum = stateChecksum ?? Self.stableStateChecksum(
+            stateID: stateID,
+            asset: asset,
+            quantity: quantity,
+            sourceArtifact: sourceArtifact,
+            stale: stale
+        )
+
+        guard stateHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("portfolioReconciliationStateSnapshot")
+        }
+    }
+
+    public static func stableStateChecksum(
+        stateID: Identifier,
+        asset: String,
+        quantity: Decimal?,
+        sourceArtifact: String,
+        stale: Bool
+    ) -> String {
+        stableSHA256([
+            "GH-851",
+            "v0.9.0",
+            stateID.rawValue,
+            asset,
+            decimalString(quantity),
+            sourceArtifact,
+            "stale=\(stale)"
+        ])
+    }
+
+    private static func decimalString(_ value: Decimal?) -> String {
+        value.map { NSDecimalNumber(decimal: $0).stringValue } ?? "nil"
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV090PortfolioReconciliationOperatorAcknowledgement 固定 GH-851 operator acknowledgement metadata。
+///
+/// acknowledgement 只是一段 audit metadata：记录 acknowledgedAt / acknowledgedBy /
+/// operatorNote，不创建 correction command、broker write、account mutation 或交易调整。
+public struct ReleaseV090PortfolioReconciliationOperatorAcknowledgement: Codable, Equatable, Sendable {
+    public let acknowledgedAt: Date
+    public let acknowledgedBy: String
+    public let operatorNote: String
+    public let auditMetadataOnly: Bool
+    public let correctionCommandCreated: Bool
+    public let brokerWriteCreated: Bool
+    public let accountMutationCreated: Bool
+    public let tradingAdjustmentCreated: Bool
+    public let acknowledgementChecksum: String
+
+    public var acknowledgementHeld: Bool {
+        acknowledgedBy.isEmpty == false
+            && operatorNote.isEmpty == false
+            && auditMetadataOnly
+            && correctionCommandCreated == false
+            && brokerWriteCreated == false
+            && accountMutationCreated == false
+            && tradingAdjustmentCreated == false
+            && acknowledgementChecksum == Self.stableAcknowledgementChecksum(
+                acknowledgedAt: acknowledgedAt,
+                acknowledgedBy: acknowledgedBy,
+                operatorNote: operatorNote
+            )
+    }
+
+    public init(
+        acknowledgedAt: Date,
+        acknowledgedBy: String,
+        operatorNote: String,
+        acknowledgementChecksum: String? = nil,
+        auditMetadataOnly: Bool = true,
+        correctionCommandCreated: Bool = false,
+        brokerWriteCreated: Bool = false,
+        accountMutationCreated: Bool = false,
+        tradingAdjustmentCreated: Bool = false
+    ) throws {
+        self.acknowledgedAt = acknowledgedAt
+        self.acknowledgedBy = acknowledgedBy
+        self.operatorNote = operatorNote
+        self.auditMetadataOnly = auditMetadataOnly
+        self.correctionCommandCreated = correctionCommandCreated
+        self.brokerWriteCreated = brokerWriteCreated
+        self.accountMutationCreated = accountMutationCreated
+        self.tradingAdjustmentCreated = tradingAdjustmentCreated
+        self.acknowledgementChecksum = acknowledgementChecksum ?? Self.stableAcknowledgementChecksum(
+            acknowledgedAt: acknowledgedAt,
+            acknowledgedBy: acknowledgedBy,
+            operatorNote: operatorNote
+        )
+
+        guard acknowledgementHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("portfolioReconciliationOperatorAcknowledgement")
+        }
+    }
+
+    public static func stableAcknowledgementChecksum(
+        acknowledgedAt: Date,
+        acknowledgedBy: String,
+        operatorNote: String
+    ) -> String {
+        stableSHA256([
+            "GH-851",
+            "v0.9.0",
+            "operatorAcknowledgement",
+            String(acknowledgedAt.timeIntervalSince1970),
+            acknowledgedBy,
+            operatorNote,
+            "auditMetadataOnly=true",
+            "correctionCommandCreated=false",
+            "brokerWriteCreated=false",
+            "accountMutationCreated=false",
+            "tradingAdjustmentCreated=false"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV090PortfolioReconciliationReviewHistoryEntry 是 GH-851 timeline 的 review history 行。
+public struct ReleaseV090PortfolioReconciliationReviewHistoryEntry: Codable, Equatable, Sendable {
+    public let action: ReleaseV090PortfolioReconciliationReviewAction
+    public let occurredAt: Date
+    public let actor: String?
+    public let note: String
+    public let auditOnly: Bool
+    public let correctionCommandCreated: Bool
+    public let brokerWriteCreated: Bool
+    public let accountMutationCreated: Bool
+    public let tradingAdjustmentCreated: Bool
+    public let historyChecksum: String
+
+    public var historyHeld: Bool {
+        note.isEmpty == false
+            && (action == .acknowledged ? actor?.isEmpty == false : true)
+            && auditOnly
+            && correctionCommandCreated == false
+            && brokerWriteCreated == false
+            && accountMutationCreated == false
+            && tradingAdjustmentCreated == false
+            && historyChecksum == Self.stableHistoryChecksum(
+                action: action,
+                occurredAt: occurredAt,
+                actor: actor,
+                note: note
+            )
+    }
+
+    public init(
+        action: ReleaseV090PortfolioReconciliationReviewAction,
+        occurredAt: Date,
+        actor: String? = nil,
+        note: String,
+        historyChecksum: String? = nil,
+        auditOnly: Bool = true,
+        correctionCommandCreated: Bool = false,
+        brokerWriteCreated: Bool = false,
+        accountMutationCreated: Bool = false,
+        tradingAdjustmentCreated: Bool = false
+    ) throws {
+        self.action = action
+        self.occurredAt = occurredAt
+        self.actor = actor
+        self.note = note
+        self.auditOnly = auditOnly
+        self.correctionCommandCreated = correctionCommandCreated
+        self.brokerWriteCreated = brokerWriteCreated
+        self.accountMutationCreated = accountMutationCreated
+        self.tradingAdjustmentCreated = tradingAdjustmentCreated
+        self.historyChecksum = historyChecksum ?? Self.stableHistoryChecksum(
+            action: action,
+            occurredAt: occurredAt,
+            actor: actor,
+            note: note
+        )
+
+        guard historyHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("portfolioReconciliationReviewHistory")
+        }
+    }
+
+    public static func stableHistoryChecksum(
+        action: ReleaseV090PortfolioReconciliationReviewAction,
+        occurredAt: Date,
+        actor: String?,
+        note: String
+    ) -> String {
+        stableSHA256([
+            "GH-851",
+            "v0.9.0",
+            action.rawValue,
+            String(occurredAt.timeIntervalSince1970),
+            actor ?? "",
+            note,
+            "auditOnly=true",
+            "correctionCommandCreated=false",
+            "brokerWriteCreated=false",
+            "accountMutationCreated=false",
+            "tradingAdjustmentCreated=false"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV090PortfolioReconciliationTimelineRecord 是 GH-851 的单条 read-only reconciliation timeline 行。
+public struct ReleaseV090PortfolioReconciliationTimelineRecord: Codable, Equatable, Sendable {
+    public let recordID: Identifier
+    public let sequence: Int
+    public let asset: String
+    public let expectedState: ReleaseV090PortfolioReconciliationStateSnapshot
+    public let observedState: ReleaseV090PortfolioReconciliationStateSnapshot?
+    public let status: ReleaseV090PortfolioReconciliationTimelineStatus
+    public let deltaQuantity: Decimal
+    public let staleReason: String?
+    public let reviewRequired: Bool
+    public let operatorAcknowledgement: ReleaseV090PortfolioReconciliationOperatorAcknowledgement?
+    public let reviewHistory: [ReleaseV090PortfolioReconciliationReviewHistoryEntry]
+    public let auditTrailArtifact: String
+    public let monitorSessionChecksum: String
+    public let accountSnapshotFreshnessChecksum: String
+    public let privateStreamHeartbeatChecksum: String
+    public let localReadModelOnly: Bool
+    public let explainOnly: Bool
+    public let correctionCommandCreated: Bool
+    public let brokerWriteCreated: Bool
+    public let accountMutationCreated: Bool
+    public let tradingAdjustmentCreated: Bool
+    public let testnetOrderRoutingAllowed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+    public let timelineRecordChecksum: String
+
+    public var recordHeld: Bool {
+        recordID.rawValue.isEmpty == false
+            && sequence >= 1
+            && asset == expectedState.asset
+            && asset == (observedState?.asset ?? asset)
+            && expectedState.stateHeld
+            && (observedState?.stateHeld ?? true)
+            && status == Self.status(expectedState: expectedState, observedState: observedState)
+            && deltaQuantity == Self.delta(expectedState: expectedState, observedState: observedState)
+            && (status == .stale ? staleReason?.isEmpty == false : true)
+            && reviewRequired == (status != .matched)
+            && (reviewRequired ? operatorAcknowledgement?.acknowledgementHeld == true : operatorAcknowledgement == nil)
+            && reviewHistory.isEmpty == false
+            && reviewHistory.allSatisfy(\.historyHeld)
+            && reviewHistory.contains { $0.action == .observed }
+            && (reviewRequired ? reviewHistory.contains { $0.action == .reviewRequired } : true)
+            && (reviewRequired ? reviewHistory.contains { $0.action == .acknowledged } : true)
+            && auditTrailArtifact == ".local/mtpro/runs/\(asset.lowercased())/portfolio-reconciliation-timeline/\(recordID.rawValue).json"
+            && monitorSessionChecksum.hasPrefix("sha256:")
+            && accountSnapshotFreshnessChecksum.hasPrefix("sha256:")
+            && privateStreamHeartbeatChecksum.hasPrefix("sha256:")
+            && localReadModelOnly
+            && explainOnly
+            && correctionCommandCreated == false
+            && brokerWriteCreated == false
+            && accountMutationCreated == false
+            && tradingAdjustmentCreated == false
+            && testnetOrderRoutingAllowed == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && timelineRecordChecksum == Self.stableTimelineRecordChecksum(
+                recordID: recordID,
+                sequence: sequence,
+                asset: asset,
+                expectedState: expectedState,
+                observedState: observedState,
+                status: status,
+                deltaQuantity: deltaQuantity,
+                staleReason: staleReason,
+                reviewRequired: reviewRequired,
+                operatorAcknowledgement: operatorAcknowledgement,
+                reviewHistory: reviewHistory,
+                auditTrailArtifact: auditTrailArtifact,
+                monitorSessionChecksum: monitorSessionChecksum,
+                accountSnapshotFreshnessChecksum: accountSnapshotFreshnessChecksum,
+                privateStreamHeartbeatChecksum: privateStreamHeartbeatChecksum
+            )
+    }
+
+    public init(
+        recordID: Identifier,
+        sequence: Int,
+        asset: String,
+        expectedState: ReleaseV090PortfolioReconciliationStateSnapshot,
+        observedState: ReleaseV090PortfolioReconciliationStateSnapshot?,
+        staleReason: String? = nil,
+        operatorAcknowledgement: ReleaseV090PortfolioReconciliationOperatorAcknowledgement? = nil,
+        reviewHistory: [ReleaseV090PortfolioReconciliationReviewHistoryEntry],
+        monitorSessionChecksum: String,
+        accountSnapshotFreshnessChecksum: String,
+        privateStreamHeartbeatChecksum: String,
+        timelineRecordChecksum: String? = nil,
+        localReadModelOnly: Bool = true,
+        explainOnly: Bool = true,
+        correctionCommandCreated: Bool = false,
+        brokerWriteCreated: Bool = false,
+        accountMutationCreated: Bool = false,
+        tradingAdjustmentCreated: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        let status = Self.status(expectedState: expectedState, observedState: observedState)
+        let deltaQuantity = Self.delta(expectedState: expectedState, observedState: observedState)
+        let reviewRequired = status != .matched
+        let auditTrailArtifact = ".local/mtpro/runs/\(asset.lowercased())/portfolio-reconciliation-timeline/\(recordID.rawValue).json"
+
+        self.recordID = recordID
+        self.sequence = sequence
+        self.asset = asset
+        self.expectedState = expectedState
+        self.observedState = observedState
+        self.status = status
+        self.deltaQuantity = deltaQuantity
+        self.staleReason = staleReason
+        self.reviewRequired = reviewRequired
+        self.operatorAcknowledgement = operatorAcknowledgement
+        self.reviewHistory = reviewHistory
+        self.auditTrailArtifact = auditTrailArtifact
+        self.monitorSessionChecksum = monitorSessionChecksum
+        self.accountSnapshotFreshnessChecksum = accountSnapshotFreshnessChecksum
+        self.privateStreamHeartbeatChecksum = privateStreamHeartbeatChecksum
+        self.localReadModelOnly = localReadModelOnly
+        self.explainOnly = explainOnly
+        self.correctionCommandCreated = correctionCommandCreated
+        self.brokerWriteCreated = brokerWriteCreated
+        self.accountMutationCreated = accountMutationCreated
+        self.tradingAdjustmentCreated = tradingAdjustmentCreated
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.timelineRecordChecksum = timelineRecordChecksum ?? Self.stableTimelineRecordChecksum(
+            recordID: recordID,
+            sequence: sequence,
+            asset: asset,
+            expectedState: expectedState,
+            observedState: observedState,
+            status: status,
+            deltaQuantity: deltaQuantity,
+            staleReason: staleReason,
+            reviewRequired: reviewRequired,
+            operatorAcknowledgement: operatorAcknowledgement,
+            reviewHistory: reviewHistory,
+            auditTrailArtifact: auditTrailArtifact,
+            monitorSessionChecksum: monitorSessionChecksum,
+            accountSnapshotFreshnessChecksum: accountSnapshotFreshnessChecksum,
+            privateStreamHeartbeatChecksum: privateStreamHeartbeatChecksum
+        )
+
+        guard recordHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("portfolioReconciliationTimelineRecord")
+        }
+    }
+
+    public static func status(
+        expectedState: ReleaseV090PortfolioReconciliationStateSnapshot,
+        observedState: ReleaseV090PortfolioReconciliationStateSnapshot?
+    ) -> ReleaseV090PortfolioReconciliationTimelineStatus {
+        guard let observedState else {
+            return .missing
+        }
+        if observedState.stale {
+            return .stale
+        }
+        return expectedState.quantity == observedState.quantity ? .matched : .delta
+    }
+
+    public static func delta(
+        expectedState: ReleaseV090PortfolioReconciliationStateSnapshot,
+        observedState: ReleaseV090PortfolioReconciliationStateSnapshot?
+    ) -> Decimal {
+        (observedState?.quantity ?? Decimal(0)) - (expectedState.quantity ?? Decimal(0))
+    }
+
+    public static func stableTimelineRecordChecksum(
+        recordID: Identifier,
+        sequence: Int,
+        asset: String,
+        expectedState: ReleaseV090PortfolioReconciliationStateSnapshot,
+        observedState: ReleaseV090PortfolioReconciliationStateSnapshot?,
+        status: ReleaseV090PortfolioReconciliationTimelineStatus,
+        deltaQuantity: Decimal,
+        staleReason: String?,
+        reviewRequired: Bool,
+        operatorAcknowledgement: ReleaseV090PortfolioReconciliationOperatorAcknowledgement?,
+        reviewHistory: [ReleaseV090PortfolioReconciliationReviewHistoryEntry],
+        auditTrailArtifact: String,
+        monitorSessionChecksum: String,
+        accountSnapshotFreshnessChecksum: String,
+        privateStreamHeartbeatChecksum: String
+    ) -> String {
+        stableSHA256([
+            "GH-851",
+            "v0.9.0",
+            recordID.rawValue,
+            String(sequence),
+            asset,
+            expectedState.stateChecksum,
+            observedState?.stateChecksum ?? "missing",
+            status.rawValue,
+            decimalString(deltaQuantity),
+            staleReason ?? "",
+            "reviewRequired=\(reviewRequired)",
+            operatorAcknowledgement?.acknowledgementChecksum ?? "",
+            auditTrailArtifact,
+            monitorSessionChecksum,
+            accountSnapshotFreshnessChecksum,
+            privateStreamHeartbeatChecksum,
+            "localReadModelOnly=true",
+            "explainOnly=true",
+            "correctionCommandCreated=false",
+            "brokerWriteCreated=false",
+            "accountMutationCreated=false",
+            "tradingAdjustmentCreated=false",
+            "testnetOrderRoutingAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false"
+        ] + reviewHistory.map(\.historyChecksum))
+    }
+
+    private static func decimalString(_ value: Decimal) -> String {
+        NSDecimalNumber(decimal: value).stringValue
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV090PortfolioReconciliationTimelineReadModel 是 GH-851 的 monitor audit timeline envelope。
+///
+/// 它把 expected portfolio projection、observed read-only state、delta、stale reason、
+/// acknowledgement metadata 和 review history 组织成可审计 timeline。该 envelope 不执行
+/// reconciliation runtime，不创建 correction command，不写 broker / account，也不授权订单。
+public struct ReleaseV090PortfolioReconciliationTimelineReadModel: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.9.0.portfolio-reconciliation-timeline.v1"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let previousIssueID: Identifier
+    public let downstreamIssueID: Identifier
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let runID: Identifier
+    public let generatedAt: Date
+    public let monitorSessionChecksum: String
+    public let accountSnapshotFreshnessChecksum: String
+    public let privateStreamHeartbeatChecksum: String
+    public let timelineRecords: [ReleaseV090PortfolioReconciliationTimelineRecord]
+    public let statusCoverage: [ReleaseV090PortfolioReconciliationTimelineStatus]
+    public let expectedStateCount: Int
+    public let observedStateCount: Int
+    public let reviewRequiredCount: Int
+    public let operatorAcknowledgementMetadataOnly: Bool
+    public let localReadModelOnly: Bool
+    public let explainOnly: Bool
+    public let correctionCommandCreated: Bool
+    public let brokerWriteCreated: Bool
+    public let accountMutationCreated: Bool
+    public let tradingAdjustmentCreated: Bool
+    public let testnetOrderRoutingAllowed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+    public let requiredValidationAnchors: [String]
+    public let requiredValidationCommands: [String]
+    public let timelineChecksum: String
+
+    public var readModelHeld: Bool {
+        issueID.rawValue == "GH-851"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-845", "GH-846", "GH-847"]
+            && previousIssueID.rawValue == "GH-850"
+            && downstreamIssueID.rawValue == "GH-852"
+            && releaseVersion == "v0.9.0"
+            && schemaVersion == Self.schemaVersion
+            && runID.rawValue.isEmpty == false
+            && monitorSessionChecksum.hasPrefix("sha256:")
+            && accountSnapshotFreshnessChecksum.hasPrefix("sha256:")
+            && privateStreamHeartbeatChecksum.hasPrefix("sha256:")
+            && timelineRecords.isEmpty == false
+            && timelineRecords.map(\.sequence) == Array(1...timelineRecords.count)
+            && timelineRecords.allSatisfy(\.recordHeld)
+            && timelineRecords.allSatisfy { $0.monitorSessionChecksum == monitorSessionChecksum }
+            && timelineRecords.allSatisfy { $0.accountSnapshotFreshnessChecksum == accountSnapshotFreshnessChecksum }
+            && timelineRecords.allSatisfy { $0.privateStreamHeartbeatChecksum == privateStreamHeartbeatChecksum }
+            && Set(timelineRecords.map(\.status)) == Set(ReleaseV090PortfolioReconciliationTimelineStatus.allCases)
+            && statusCoverage == ReleaseV090PortfolioReconciliationTimelineStatus.allCases
+            && expectedStateCount == timelineRecords.count
+            && observedStateCount == timelineRecords.compactMap(\.observedState).count
+            && reviewRequiredCount == timelineRecords.filter(\.reviewRequired).count
+            && timelineRecords.filter(\.reviewRequired).allSatisfy { $0.operatorAcknowledgement?.acknowledgementHeld == true }
+            && operatorAcknowledgementMetadataOnly
+            && localReadModelOnly
+            && explainOnly
+            && correctionCommandCreated == false
+            && brokerWriteCreated == false
+            && accountMutationCreated == false
+            && tradingAdjustmentCreated == false
+            && testnetOrderRoutingAllowed == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && requiredValidationAnchors == Self.requiredValidationAnchors
+            && requiredValidationCommands == Self.requiredValidationCommands
+            && timelineChecksum == Self.stableTimelineChecksum(
+                runID: runID,
+                generatedAt: generatedAt,
+                monitorSessionChecksum: monitorSessionChecksum,
+                accountSnapshotFreshnessChecksum: accountSnapshotFreshnessChecksum,
+                privateStreamHeartbeatChecksum: privateStreamHeartbeatChecksum,
+                timelineRecords: timelineRecords
+            )
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-851"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-845"),
+            Identifier.constant("GH-846"),
+            Identifier.constant("GH-847")
+        ],
+        previousIssueID: Identifier = Identifier.constant("GH-850"),
+        downstreamIssueID: Identifier = Identifier.constant("GH-852"),
+        releaseVersion: String = "v0.9.0",
+        schemaVersion: String = Self.schemaVersion,
+        runID: Identifier,
+        generatedAt: Date,
+        monitorSessionChecksum: String,
+        accountSnapshotFreshnessChecksum: String,
+        privateStreamHeartbeatChecksum: String,
+        timelineRecords: [ReleaseV090PortfolioReconciliationTimelineRecord],
+        timelineChecksum: String? = nil,
+        operatorAcknowledgementMetadataOnly: Bool = true,
+        localReadModelOnly: Bool = true,
+        explainOnly: Bool = true,
+        correctionCommandCreated: Bool = false,
+        brokerWriteCreated: Bool = false,
+        accountMutationCreated: Bool = false,
+        tradingAdjustmentCreated: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        requiredValidationAnchors: [String] = Self.requiredValidationAnchors,
+        requiredValidationCommands: [String] = Self.requiredValidationCommands
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.previousIssueID = previousIssueID
+        self.downstreamIssueID = downstreamIssueID
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.runID = runID
+        self.generatedAt = generatedAt
+        self.monitorSessionChecksum = monitorSessionChecksum
+        self.accountSnapshotFreshnessChecksum = accountSnapshotFreshnessChecksum
+        self.privateStreamHeartbeatChecksum = privateStreamHeartbeatChecksum
+        self.timelineRecords = timelineRecords
+        self.statusCoverage = ReleaseV090PortfolioReconciliationTimelineStatus.allCases
+        self.expectedStateCount = timelineRecords.count
+        self.observedStateCount = timelineRecords.compactMap(\.observedState).count
+        self.reviewRequiredCount = timelineRecords.filter(\.reviewRequired).count
+        self.operatorAcknowledgementMetadataOnly = operatorAcknowledgementMetadataOnly
+        self.localReadModelOnly = localReadModelOnly
+        self.explainOnly = explainOnly
+        self.correctionCommandCreated = correctionCommandCreated
+        self.brokerWriteCreated = brokerWriteCreated
+        self.accountMutationCreated = accountMutationCreated
+        self.tradingAdjustmentCreated = tradingAdjustmentCreated
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.requiredValidationAnchors = requiredValidationAnchors
+        self.requiredValidationCommands = requiredValidationCommands
+        self.timelineChecksum = timelineChecksum ?? Self.stableTimelineChecksum(
+            runID: runID,
+            generatedAt: generatedAt,
+            monitorSessionChecksum: monitorSessionChecksum,
+            accountSnapshotFreshnessChecksum: accountSnapshotFreshnessChecksum,
+            privateStreamHeartbeatChecksum: privateStreamHeartbeatChecksum,
+            timelineRecords: timelineRecords
+        )
+
+        guard readModelHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("portfolioReconciliationTimelineReadModel")
+        }
+    }
+
+    public init(
+        session: ReleaseV090TestnetReadOnlyMonitorSessionDocument,
+        accountSnapshotFreshness: ReleaseV090AccountSnapshotFreshnessDocument,
+        privateStreamHeartbeat: ReleaseV090PrivateStreamHeartbeatDocument,
+        generatedAt: Date
+    ) throws {
+        let records = try Self.makeTimelineRecords(
+            session: session,
+            accountSnapshotFreshness: accountSnapshotFreshness,
+            privateStreamHeartbeat: privateStreamHeartbeat,
+            generatedAt: generatedAt
+        )
+        try self.init(
+            runID: session.runID,
+            generatedAt: generatedAt,
+            monitorSessionChecksum: session.sessionChecksum,
+            accountSnapshotFreshnessChecksum: accountSnapshotFreshness.freshnessChecksum,
+            privateStreamHeartbeatChecksum: privateStreamHeartbeat.heartbeatChecksum,
+            timelineRecords: records
+        )
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-851-VERIFY-V090-PORTFOLIO-RECONCILIATION-TIMELINE",
+        "TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE",
+        "V090-009-PORTFOLIO-RECONCILIATION-TIMELINE",
+        "V090-009-EXPECTED-OBSERVED-DELTA",
+        "V090-009-STALE-REASON-REVIEW-HISTORY",
+        "V090-009-OPERATOR-ACKNOWLEDGEMENT-METADATA-ONLY",
+        "V090-009-MONITOR-SESSION-EVIDENCE-BINDING",
+        "V090-009-NO-CORRECTION-COMMAND",
+        "V090-009-NO-BROKER-WRITE",
+        "V090-009-NO-ACCOUNT-MUTATION",
+        "V090-009-NO-TRADING-ADJUSTMENT",
+        "V090-009-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static let requiredValidationCommands = [
+        "swift test --filter TargetGraphTests/testGH851PortfolioReconciliationTimelineBindsExpectedObservedDeltaAndAckMetadata",
+        "bash checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+
+    public static func makeTimelineRecords(
+        session: ReleaseV090TestnetReadOnlyMonitorSessionDocument,
+        accountSnapshotFreshness: ReleaseV090AccountSnapshotFreshnessDocument,
+        privateStreamHeartbeat: ReleaseV090PrivateStreamHeartbeatDocument,
+        generatedAt: Date
+    ) throws -> [ReleaseV090PortfolioReconciliationTimelineRecord] {
+        let rows: [(asset: String, expected: Decimal, observed: Decimal?, stale: Bool, staleReason: String?)] = [
+            ("BTC", Decimal(1), Decimal(1), false, nil),
+            ("ETH", Decimal(1), Decimal(string: "1.5"), false, nil),
+            ("BNB", Decimal(2), nil, false, nil),
+            ("XRP", Decimal(2), Decimal(2), true, "private-stream-observed-state-stale")
+        ]
+
+        return try rows.enumerated().map { index, row in
+            let sequence = index + 1
+            let recordID = Identifier.constant("gh-851-\(session.runID.rawValue)-\(row.asset.lowercased())")
+            let expectedState = try ReleaseV090PortfolioReconciliationStateSnapshot(
+                stateID: Identifier.constant("\(recordID.rawValue)-expected"),
+                asset: row.asset,
+                quantity: row.expected,
+                sourceArtifact: "local-run-journal-portfolio-projection"
+            )
+            let observedState = try row.observed.map {
+                try ReleaseV090PortfolioReconciliationStateSnapshot(
+                    stateID: Identifier.constant("\(recordID.rawValue)-observed"),
+                    asset: row.asset,
+                    quantity: $0,
+                    sourceArtifact: row.stale ? "private-stream-heartbeat.json" : "account-snapshot-freshness.json",
+                    stale: row.stale
+                )
+            }
+            let provisionalStatus = ReleaseV090PortfolioReconciliationTimelineRecord.status(
+                expectedState: expectedState,
+                observedState: observedState
+            )
+            let acknowledgement = try provisionalStatus == .matched ? nil : ReleaseV090PortfolioReconciliationOperatorAcknowledgement(
+                acknowledgedAt: generatedAt.addingTimeInterval(Double(sequence)),
+                acknowledgedBy: "operator.v090",
+                operatorNote: "\(provisionalStatus.rawValue) reviewed as audit-only reconciliation timeline metadata."
+            )
+            let reviewHistory = try Self.reviewHistory(
+                status: provisionalStatus,
+                generatedAt: generatedAt,
+                acknowledgement: acknowledgement
+            )
+            return try ReleaseV090PortfolioReconciliationTimelineRecord(
+                recordID: recordID,
+                sequence: sequence,
+                asset: row.asset,
+                expectedState: expectedState,
+                observedState: observedState,
+                staleReason: row.staleReason,
+                operatorAcknowledgement: acknowledgement,
+                reviewHistory: reviewHistory,
+                monitorSessionChecksum: session.sessionChecksum,
+                accountSnapshotFreshnessChecksum: accountSnapshotFreshness.freshnessChecksum,
+                privateStreamHeartbeatChecksum: privateStreamHeartbeat.heartbeatChecksum
+            )
+        }
+    }
+
+    public static func deterministicFixture(
+        generatedAt: Date = Date(timeIntervalSince1970: 1_782_600_080)
+    ) throws -> ReleaseV090PortfolioReconciliationTimelineReadModel {
+        let session = try ReleaseV090TestnetReadOnlyMonitorSessionStore.deterministicFixture(
+            createdAt: Date(timeIntervalSince1970: 1_782_600_000)
+        )
+        let freshness = try ReleaseV090AccountSnapshotFreshnessDocument(
+            runID: session.runID,
+            monitorSessionChecksum: session.sessionChecksum,
+            accountSnapshotFreshnessJSONPath: session.artifactPaths.accountSnapshotFreshnessJSONPath,
+            snapshotObservedAt: Date(timeIntervalSince1970: 1_782_600_010),
+            recordedAt: Date(timeIntervalSince1970: 1_782_600_080),
+            latencyMilliseconds: 210,
+            staleThresholdSeconds: 90,
+            redactedCredentialReference: "gh-851-testnet-readonly-profile:<redacted>"
+        )
+        let heartbeat = try ReleaseV090PrivateStreamHeartbeatDocument(
+            runID: session.runID,
+            monitorSessionChecksum: session.sessionChecksum,
+            privateStreamHeartbeatJSONPath: session.artifactPaths.privateStreamHeartbeatJSONPath,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_600_060),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_600_080),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 90,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_600_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_603_600),
+            redactedListenKeyReference: "gh-851-stream-lease-profile:<redacted>",
+            listenKeyReferenceHash: ReleaseV090PrivateStreamHeartbeatDocument.listenKeyReferenceHash(
+                "gh-851-stream-lease-profile"
+            )
+        )
+        return try ReleaseV090PortfolioReconciliationTimelineReadModel(
+            session: session,
+            accountSnapshotFreshness: freshness,
+            privateStreamHeartbeat: heartbeat,
+            generatedAt: generatedAt
+        )
+    }
+
+    public static func stableTimelineChecksum(
+        runID: Identifier,
+        generatedAt: Date,
+        monitorSessionChecksum: String,
+        accountSnapshotFreshnessChecksum: String,
+        privateStreamHeartbeatChecksum: String,
+        timelineRecords: [ReleaseV090PortfolioReconciliationTimelineRecord]
+    ) -> String {
+        stableSHA256([
+            "GH-851",
+            "v0.9.0",
+            Self.schemaVersion,
+            runID.rawValue,
+            String(generatedAt.timeIntervalSince1970),
+            monitorSessionChecksum,
+            accountSnapshotFreshnessChecksum,
+            privateStreamHeartbeatChecksum,
+            "operatorAcknowledgementMetadataOnly=true",
+            "localReadModelOnly=true",
+            "explainOnly=true",
+            "correctionCommandCreated=false",
+            "brokerWriteCreated=false",
+            "accountMutationCreated=false",
+            "tradingAdjustmentCreated=false",
+            "testnetOrderRoutingAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false"
+        ] + timelineRecords.map(\.timelineRecordChecksum))
+    }
+
+    private static func reviewHistory(
+        status: ReleaseV090PortfolioReconciliationTimelineStatus,
+        generatedAt: Date,
+        acknowledgement: ReleaseV090PortfolioReconciliationOperatorAcknowledgement?
+    ) throws -> [ReleaseV090PortfolioReconciliationReviewHistoryEntry] {
+        var history = [
+            try ReleaseV090PortfolioReconciliationReviewHistoryEntry(
+                action: .observed,
+                occurredAt: generatedAt,
+                note: "Expected and observed state projected into read-only reconciliation timeline."
+            )
+        ]
+        if status != .matched {
+            history.append(try ReleaseV090PortfolioReconciliationReviewHistoryEntry(
+                action: .reviewRequired,
+                occurredAt: generatedAt,
+                note: "\(status.rawValue) requires audit-only operator review."
+            ))
+            if let acknowledgement {
+                history.append(try ReleaseV090PortfolioReconciliationReviewHistoryEntry(
+                    action: .acknowledged,
+                    occurredAt: acknowledgement.acknowledgedAt,
+                    actor: acknowledgement.acknowledgedBy,
+                    note: acknowledgement.operatorNote
+                ))
+            }
+        }
+        return history
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
 /// ReleaseV090TestnetReadOnlyMonitorSessionStore 提供 GH-845 monitor session 本地持久化入口。
 ///
 /// Store 只操作本地 `monitor_session.json`、`monitor_events.jsonl` 和
@@ -2908,6 +3845,21 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
         let freshness = try accountSnapshotFreshness(runID: runID)
         let heartbeat = try privateStreamHeartbeat(runID: runID)
         return try ReleaseV090MonitorAlertReadModel(
+            session: session,
+            accountSnapshotFreshness: freshness,
+            privateStreamHeartbeat: heartbeat,
+            generatedAt: generatedAt
+        )
+    }
+
+    public func portfolioReconciliationTimeline(
+        runID: Identifier,
+        generatedAt: Date
+    ) throws -> ReleaseV090PortfolioReconciliationTimelineReadModel {
+        let session = try load(runID: runID)
+        let freshness = try accountSnapshotFreshness(runID: runID)
+        let heartbeat = try privateStreamHeartbeat(runID: runID)
+        return try ReleaseV090PortfolioReconciliationTimelineReadModel(
             session: session,
             accountSnapshotFreshness: freshness,
             privateStreamHeartbeat: heartbeat,

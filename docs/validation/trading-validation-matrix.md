@@ -153,6 +153,28 @@
 - no notification side effects: `notificationSideEffectsEnabled=false`、`smsNotificationSent=false`、`emailNotificationSent=false`、`webhookNotificationSent=false`、`pushNotificationSent=false` 和 `externalServiceCalled=false`。
 - forbidden scope: no SMS, no email, no webhook, no push notification, no external service call, no paging command, no incident command, no automatic recovery command, no automated trading reaction, no trading button, no order form, no live command, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no production cutover.
 
+## TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE
+
+- TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE
+- GH-851-VERIFY-V090-PORTFOLIO-RECONCILIATION-TIMELINE
+- V090-009-PORTFOLIO-RECONCILIATION-TIMELINE
+- V090-009-EXPECTED-OBSERVED-DELTA
+- V090-009-STALE-REASON-REVIEW-HISTORY
+- V090-009-OPERATOR-ACKNOWLEDGEMENT-METADATA-ONLY
+- V090-009-MONITOR-SESSION-EVIDENCE-BINDING
+- V090-009-NO-CORRECTION-COMMAND
+- V090-009-NO-BROKER-WRITE
+- V090-009-NO-ACCOUNT-MUTATION
+- V090-009-NO-TRADING-ADJUSTMENT
+- V090-009-NO-PRODUCTION-CUTOVER
+- GH-851 Release v0.9.0 Portfolio Reconciliation Timeline Validation
+- testGH851PortfolioReconciliationTimelineBindsExpectedObservedDeltaAndAckMetadata
+- `bash checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh`
+- timeline evidence: matched / delta / missing / stale 四类状态必须可 inspect，且每条 record 必须包含 expected state、observed state、delta、stale reason、operator acknowledgement metadata 和 review history。
+- evidence binding: timeline 必须绑定 `monitorSessionChecksum`、`accountSnapshotFreshnessChecksum` 和 `privateStreamHeartbeatChecksum`，observed state 只能来自 redacted read-only monitor evidence。
+- acknowledgement boundary: acknowledgement 只保存 acknowledgedAt、acknowledgedBy 和 operatorNote metadata，不创建 correction command、broker write、account mutation 或 trading adjustment。
+- forbidden scope: no correction command, no broker write, no account mutation, no trading adjustment, no trading button, no order form, no live command, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no production cutover.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
