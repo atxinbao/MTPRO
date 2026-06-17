@@ -85,6 +85,22 @@
 - Focused test: `testGH848MonitorRecoveryWorkflowPreservesHistoryAndRedactedEvidence`
 - Boundary: GH-848 只新增本地 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor-recovery.json` artifact，记录 stale / disconnected monitor 的本地手动 recovery、事件历史 checksum 前缀、redacted listenKey reference、listenKey reference hash、reopened listenKey evidence 和 rebuilt read-model evidence checksum；不启动 automatic reconnect、不启动 CI network、不读取 production secret、不连接 endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
 
+## GH-849 Release v0.9.0 Dashboard Observability Timeline Validation
+
+- `GH-849-VERIFY-V090-DASHBOARD-OBSERVABILITY-TIMELINE`
+- `TVM-RELEASE-V090-DASHBOARD-OBSERVABILITY-TIMELINE`
+- `V090-007-DASHBOARD-OBSERVABILITY-TIMELINE`
+- `V090-007-MONITOR-SESSION-ARTIFACTS-ONLY`
+- `V090-007-SNAPSHOT-PRIVATE-STREAM-FRESHNESS-TIMELINES`
+- `V090-007-STALE-DISCONNECTED-RECOVERED-EVENTS`
+- `V090-007-LAST-OBSERVED-EVENT-KIND`
+- `V090-007-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND`
+- `V090-007-NO-TESTNET-ORDER-ROUTING`
+- `V090-007-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.9.0-dashboard-observability-timeline.sh`
+- Focused tests: `testGH849DashboardObservabilityTimelineShowsMonitorArtifactsWithoutCommands` and `testGH849DashboardObservabilityTimelineIsAnchoredInV090Guards`
+- Boundary: GH-849 只新增 Dashboard read-only observability timeline surface，展示 GH-845..GH-848 的 monitor/session artifact 摘要、snapshot timeline、private stream timeline、freshness timeline、stale / disconnected / recovered 事件和 last observed event kind；不新增 DataClient / Database runtime dependency，不读取 secret，不连接 endpoint / broker，不展示 trading button / order form / live command，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`

@@ -3344,6 +3344,86 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH849DashboardObservabilityTimelineShowsMonitorArtifactsWithoutCommands() throws {
+        // 测试场景：GH-849 Dashboard 只展示 GH-845..GH-848 已落仓 monitor/session artifacts
+        // 的 timeline 摘要。snapshot、private stream、freshness、stale、disconnected 和 recovered
+        // 均为只读 evidence，不得出现交易按钮、订单表单、live command、secret 或 raw payload。
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV090ObservabilityTimelineSurface
+
+        XCTAssertEqual(surface.issueID, "GH-849")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-845", "GH-846", "GH-847", "GH-848"])
+        XCTAssertEqual(surface.previousIssueID, "GH-848")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-850")
+        XCTAssertEqual(surface.releaseVersion, "v0.9.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertTrue(surface.monitorSessionArtifactsOnly)
+        XCTAssertEqual(surface.timelineEvents.count, 6)
+        XCTAssertTrue(surface.timelineEvents.allSatisfy(\.eventHeld))
+        XCTAssertEqual(surface.snapshotTimeline.count, 1)
+        XCTAssertEqual(surface.privateStreamTimeline.count, 3)
+        XCTAssertEqual(surface.freshnessTimeline.count, 2)
+        XCTAssertTrue(surface.snapshotTimelineVisible)
+        XCTAssertTrue(surface.privateStreamTimelineVisible)
+        XCTAssertTrue(surface.freshnessTimelineVisible)
+        XCTAssertTrue(surface.staleEventsVisible)
+        XCTAssertTrue(surface.disconnectedEventsVisible)
+        XCTAssertTrue(surface.recoveredEventsVisible)
+        XCTAssertTrue(surface.lastObservedEventKindVisible)
+        XCTAssertEqual(surface.lastObservedEventKind, "monitorRecovered")
+        XCTAssertTrue(surface.timelineEvents.contains { $0.sourceArtifact == "monitor_session.json" })
+        XCTAssertTrue(surface.timelineEvents.contains { $0.sourceArtifact == "account-snapshot-freshness.json" })
+        XCTAssertTrue(surface.timelineEvents.contains { $0.sourceArtifact == "private-stream-heartbeat.json" })
+        XCTAssertTrue(surface.timelineEvents.contains { $0.sourceArtifact == "monitor-recovery.json" })
+        XCTAssertTrue(surface.timelineEvents.contains { $0.kind == .stale })
+        XCTAssertTrue(surface.timelineEvents.contains { $0.kind == .disconnected })
+        XCTAssertTrue(surface.timelineEvents.contains { $0.kind == .recovered })
+        XCTAssertTrue(surface.readModelOnly)
+        XCTAssertFalse(surface.dashboardDependsOnDataClientTarget)
+        XCTAssertFalse(surface.dashboardDependsOnDatabaseRuntime)
+        XCTAssertFalse(surface.credentialValueVisible)
+        XCTAssertFalse(surface.rawListenKeyVisible)
+        XCTAssertFalse(surface.rawPrivatePayloadVisible)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandEnabled)
+        XCTAssertFalse(surface.productionCommandEnabled)
+        XCTAssertFalse(surface.orderSubmitVisible)
+        XCTAssertFalse(surface.orderCancelVisible)
+        XCTAssertFalse(surface.orderReplaceVisible)
+        XCTAssertFalse(surface.testnetOrderRoutingAllowed)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretAutoReadEnabled)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertEqual(metricValue("v0.9 timeline events", in: surface.metrics), "6")
+        XCTAssertEqual(metricValue("Snapshot timeline", in: surface.metrics), "1")
+        XCTAssertEqual(metricValue("Stream timeline", in: surface.metrics), "3")
+        XCTAssertEqual(metricValue("Last event", in: surface.metrics), "monitorRecovered")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Credential values: none"))
+        XCTAssertTrue(surface.details.contains("Raw listenKey: none"))
+        XCTAssertTrue(surface.details.contains("Raw private payload: none"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV090ObservabilityTimelineEvents=6"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV090ObservabilitySnapshotTimeline=1"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV090ObservabilityStreamTimeline=3"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV090ObservabilityLastEvent=monitorRecovered"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV090ObservabilityBoundary=confirmed"))
+
+        for anchor in ReleaseV090DashboardObservabilityTimelineSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-849 surface")
+        }
+    }
+
     func testGH818DashboardSafeLocalControlsBindSessionStoresWithoutCommands() throws {
         // 测试场景：GH-818 Dashboard 可展示 start / stop / recover / archive / open-detail
         // safe local controls，并将它们绑定到 v0.8 local registry 和 session store artifact；

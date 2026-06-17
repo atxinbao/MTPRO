@@ -248,6 +248,51 @@ v0.9.0 reconciliation hardening 只允许 explain-only / review-only evidence。
 
 Reconciliation hardening 可以串联 local run journal projection、testnet read-only monitor snapshot、operator acknowledgement、risk policy application audit 和 Dashboard / CLI timeline。它不得创建 correction command、broker write path、account mutation、portfolio mutation command、trading adjustment command、testnet order routing、testnet order submission、production trading、production secret auto-read、production endpoint / broker connection、production order submission 或 production cutover。
 
+## V090-007-DASHBOARD-OBSERVABILITY-TIMELINE
+
+`V090-007-DASHBOARD-OBSERVABILITY-TIMELINE`
+
+`GH-849-VERIFY-V090-DASHBOARD-OBSERVABILITY-TIMELINE`
+
+`TVM-RELEASE-V090-DASHBOARD-OBSERVABILITY-TIMELINE`
+
+GH-849 Dashboard observability timeline 只允许消费 GH-845..GH-848 的本地 monitor/session artifact 摘要：
+
+- `monitor_session.json`
+- `monitor_events.jsonl`
+- `monitor_status.json`
+- `account-snapshot-freshness.json`
+- `private-stream-heartbeat.json`
+- `monitor-recovery.json`
+
+`V090-007-MONITOR-SESSION-ARTIFACTS-ONLY`
+
+Dashboard 不直接依赖 DataClient target，不直接依赖 Database runtime，不读取 `.local/mtpro/runs/...` raw payload，不打开 network，不读取 secret，不连接 endpoint，也不调用 recovery / reconnect command。Dashboard 只能展示 artifact source、source issue、checksum reference、redaction status、no-order status 和 read-model summary。
+
+`V090-007-SNAPSHOT-PRIVATE-STREAM-FRESHNESS-TIMELINES`
+
+Dashboard 必须同时展示：
+
+- account snapshot timeline；
+- private stream timeline；
+- freshness timeline。
+
+`V090-007-STALE-DISCONNECTED-RECOVERED-EVENTS`
+
+Dashboard 必须展示 `stale`、`disconnected` 和 `recovered` 事件，但这些事件只表示已落仓 evidence 的状态，不授权 automatic reconnect、listenKey refresh、broker command 或 order routing。
+
+`V090-007-LAST-OBSERVED-EVENT-KIND`
+
+Dashboard 必须展示 last observed event kind，且该字段只能来自 redacted monitor artifact summary，不能来自 raw private stream payload。
+
+`V090-007-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND`
+
+Dashboard observability timeline 不得包含 trading button、order form、live command、submit / cancel / replace、testnet order routing、production trading、production secret auto-read、production endpoint / broker connection、production order submission 或 production cutover authorization。
+
+`V090-007-NO-TESTNET-ORDER-ROUTING`
+
+`V090-007-NO-PRODUCTION-CUTOVER`
+
 ## V090-001-DOWNSTREAM-QUEUE-ORDER
 
 `V090-001-DOWNSTREAM-QUEUE-ORDER`

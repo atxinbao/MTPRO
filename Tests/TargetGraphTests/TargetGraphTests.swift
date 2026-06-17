@@ -25807,6 +25807,157 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("productionCutoverAuthorized = true"))
     }
 
+    func testGH849DashboardObservabilityTimelineIsAnchoredInV090Guards() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dashboardTarget = try packageTargetBlock(named: "Dashboard", packageSource: packageSource)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Dashboard/Report/ReleaseV090DashboardObservabilityTimelineSurface.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let dashboardShell = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Dashboard/DashboardShell.swift"),
+            encoding: .utf8
+        )
+        let appTests = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tests/AppTests/AppTests.swift"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verifierScript = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("checks/verify-v0.9.0-dashboard-observability-timeline.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"),
+            encoding: .utf8
+        )
+
+        let surface = ReleaseV090DashboardObservabilityTimelineSurfaceViewModel.deterministicFixture
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-845", "GH-846", "GH-847", "GH-848"])
+        XCTAssertEqual(surface.previousIssueID, "GH-848")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-850")
+        XCTAssertEqual(surface.releaseVersion, "v0.9.0")
+        XCTAssertTrue(surface.monitorSessionArtifactsOnly)
+        XCTAssertEqual(surface.timelineEvents.count, 6)
+        XCTAssertTrue(surface.timelineEvents.allSatisfy(\.eventHeld))
+        XCTAssertEqual(surface.snapshotTimeline.count, 1)
+        XCTAssertEqual(surface.privateStreamTimeline.count, 3)
+        XCTAssertEqual(surface.freshnessTimeline.count, 2)
+        XCTAssertEqual(surface.lastObservedEventKind, "monitorRecovered")
+        XCTAssertTrue(surface.timelineEvents.contains { $0.kind == .stale })
+        XCTAssertTrue(surface.timelineEvents.contains { $0.kind == .disconnected })
+        XCTAssertTrue(surface.timelineEvents.contains { $0.kind == .recovered })
+        XCTAssertTrue(surface.snapshotTimelineVisible)
+        XCTAssertTrue(surface.privateStreamTimelineVisible)
+        XCTAssertTrue(surface.freshnessTimelineVisible)
+        XCTAssertTrue(surface.staleEventsVisible)
+        XCTAssertTrue(surface.disconnectedEventsVisible)
+        XCTAssertTrue(surface.recoveredEventsVisible)
+        XCTAssertTrue(surface.lastObservedEventKindVisible)
+        XCTAssertFalse(surface.dashboardDependsOnDataClientTarget)
+        XCTAssertFalse(surface.dashboardDependsOnDatabaseRuntime)
+        XCTAssertFalse(surface.credentialValueVisible)
+        XCTAssertFalse(surface.rawListenKeyVisible)
+        XCTAssertFalse(surface.rawPrivatePayloadVisible)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandEnabled)
+        XCTAssertFalse(surface.orderSubmitVisible)
+        XCTAssertFalse(surface.orderCancelVisible)
+        XCTAssertFalse(surface.orderReplaceVisible)
+        XCTAssertFalse(surface.testnetOrderRoutingAllowed)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretAutoReadEnabled)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        let expectedAnchors = [
+            "GH-849-VERIFY-V090-DASHBOARD-OBSERVABILITY-TIMELINE",
+            "TVM-RELEASE-V090-DASHBOARD-OBSERVABILITY-TIMELINE",
+            "V090-007-DASHBOARD-OBSERVABILITY-TIMELINE",
+            "V090-007-MONITOR-SESSION-ARTIFACTS-ONLY",
+            "V090-007-SNAPSHOT-PRIVATE-STREAM-FRESHNESS-TIMELINES",
+            "V090-007-STALE-DISCONNECTED-RECOVERED-EVENTS",
+            "V090-007-LAST-OBSERVED-EVENT-KIND",
+            "V090-007-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND",
+            "V090-007-NO-TESTNET-ORDER-ROUTING",
+            "V090-007-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(
+            ReleaseV090DashboardObservabilityTimelineSurfaceViewModel.requiredValidationAnchors,
+            expectedAnchors
+        )
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-849 source")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(verifierScript.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in v0.9 contract")
+        }
+
+        XCTAssertTrue(dashboardTarget.contains("\"Report\""))
+        XCTAssertFalse(dashboardTarget.contains("\"DataClient\""))
+        XCTAssertFalse(dashboardTarget.contains("\"Database\""))
+        XCTAssertTrue(source.contains("ReleaseV090DashboardObservabilityTimelineSurfaceViewModel"))
+        XCTAssertTrue(source.contains("ReleaseV090DashboardObservabilityTimelineEvent"))
+        XCTAssertTrue(source.contains("monitor_session.json"))
+        XCTAssertTrue(source.contains("monitor_events.jsonl"))
+        XCTAssertTrue(source.contains("monitor_status.json"))
+        XCTAssertTrue(source.contains("account-snapshot-freshness.json"))
+        XCTAssertTrue(source.contains("private-stream-heartbeat.json"))
+        XCTAssertTrue(source.contains("monitor-recovery.json"))
+        XCTAssertTrue(dashboardShell.contains("releaseV090ObservabilityTimelineSurface"))
+        XCTAssertTrue(dashboardShell.contains("releaseV090ObservabilityTimelineEvents"))
+        XCTAssertTrue(appTests.contains(
+            "testGH849DashboardObservabilityTimelineShowsMonitorArtifactsWithoutCommands"
+        ))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 Dashboard observability timeline anchor"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-dashboard-observability-timeline.sh"))
+        XCTAssertTrue(verifierScript.contains(
+            "testGH849DashboardObservabilityTimelineShowsMonitorArtifactsWithoutCommands"
+        ))
+        XCTAssertTrue(verifierScript.contains(
+            "testGH849DashboardObservabilityTimelineIsAnchoredInV090Guards"
+        ))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("api.binance.com"))
+        XCTAssertFalse(source.contains("fapi.binance.com"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+        XCTAssertFalse(source.contains("productionCutoverAuthorized = true"))
+    }
+
     func testGH818DashboardSafeLocalControlsSurfaceIsAnchoredInV080Guards() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

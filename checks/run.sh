@@ -119,6 +119,7 @@ bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
 bash checks/verify-v0.9.0-private-stream-heartbeat-monitor.sh
 bash checks/verify-v0.9.0-monitor-recovery-workflow.sh
+bash checks/verify-v0.9.0-dashboard-observability-timeline.sh
 bash checks/verify-v0.8.0-run-registry-store.sh
 bash checks/verify-v0.8.0-cli-local-session.sh
 bash checks/verify-v0.8.0-operational-session-store.sh
