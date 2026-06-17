@@ -378,6 +378,52 @@ Portfolio reconciliation timeline 必须绑定 monitorSessionChecksum、accountS
 
 GH-851 保持 no-order / no-production boundary：不创建 correction command，不写 broker，不 mutate account，不创建 trading adjustment，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
 
+## V090-010-RISK-POLICY-APPLICATION-AUDIT
+
+`GH-852-VERIFY-V090-RISK-POLICY-APPLICATION-AUDIT`
+`TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT`
+`V090-010-RISK-POLICY-APPLICATION-AUDIT`
+
+GH-852 在 GH-845 monitor session artifact 之上新增本地 Risk policy application audit read-model。该 audit 记录 `risk_policy_version`、`risk_policy_hash`、`policy_applied_at` 和 `operator_change_reference`，并把 monitor session、account snapshot freshness、private stream heartbeat 和 Portfolio reconciliation timeline artifact 绑定到同一 policy profile。它只说明 run / monitor 当时适用哪份本地 `risk_policy.json` evidence，不执行 RiskEngine runtime，不创建 order authorization。
+
+### V090-010-RISK-POLICY-VERSION-HASH
+
+`V090-010-RISK-POLICY-VERSION-HASH`
+
+Risk policy application audit 必须记录 policy version 和 deterministic policy hash；hash 可以沿用 v0.8.0 `risk-policy-fnv64-*` profile hash 或 checksum-backed local profile hash。该字段只作为 replay / audit evidence，不读取 production secret，不连接 endpoint，不读取 broker account。
+
+### V090-010-POLICY-APPLIED-AT
+
+`V090-010-POLICY-APPLIED-AT`
+
+Risk policy application audit 必须记录 `policy_applied_at`，并要求每个 monitor / reconciliation artifact 通过 checksum 绑定同一 application timestamp。该 timestamp 只用于解释 run context，不触发 policy-driven order execution。
+
+### V090-010-OPERATOR-CHANGE-REFERENCE
+
+`V090-010-OPERATOR-CHANGE-REFERENCE`
+
+Risk policy application audit 必须记录 operator change reference，并保存 reference hash。reference 只能是本地 profile change metadata，不得包含 secret value、raw credential、private stream payload、production endpoint token 或 broker authorization。
+
+### V090-010-MONITOR-SESSION-EVIDENCE-BINDING
+
+`V090-010-MONITOR-SESSION-EVIDENCE-BINDING`
+
+Risk policy application audit 必须绑定 monitorSessionChecksum、accountSnapshotFreshnessChecksum、privateStreamHeartbeatChecksum 和 portfolioReconciliationTimelineChecksum。每个 artifact binding 必须能证明同一 risk policy version/hash 被应用到该 run / monitor context。
+
+### V090-010-LOCAL-PROFILE-EVIDENCE
+
+`V090-010-LOCAL-PROFILE-EVIDENCE`
+
+Risk policy application audit 只引用 `.local/mtpro/risk_policy.json` 本地 profile evidence；不新增 remote policy service、broker-side policy sync、production policy cutover 或 runtime policy mutation command。
+
+### V090-010-FORBIDDEN-CAPABILITIES
+
+`V090-010-NO-POLICY-DRIVEN-ORDER-EXECUTION`
+`V090-010-NO-BROKER-PRODUCTION-PATH`
+`V090-010-NO-PRODUCTION-CUTOVER`
+
+GH-852 保持 no-order / no-production boundary：policy change 只作为 audit metadata，不授权 automated policy-driven order execution，不连接 broker / production path，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
+
 ## V090-001-DOWNSTREAM-QUEUE-ORDER
 
 `V090-001-DOWNSTREAM-QUEUE-ORDER`

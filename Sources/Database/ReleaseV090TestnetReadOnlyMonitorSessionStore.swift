@@ -17,6 +17,7 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreError: Error, Equatable
     case corruptedAccountSnapshotFreshness(String)
     case corruptedPrivateStreamHeartbeat(String)
     case corruptedMonitorRecovery(String)
+    case corruptedRiskPolicyApplicationAudit(String)
     case checksumMismatch(expected: String, actual: String)
     case invalidTransition(command: String, fromState: String)
     case unsafeCredentialReference(String)
@@ -44,6 +45,8 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreError: Error, Equatable
             "Release v0.9.0 private stream heartbeat fails closed because private-stream-heartbeat.json is corrupted at \(path)"
         case let .corruptedMonitorRecovery(path):
             "Release v0.9.0 monitor recovery fails closed because monitor-recovery.json is corrupted at \(path)"
+        case let .corruptedRiskPolicyApplicationAudit(path):
+            "Release v0.9.0 risk policy application audit fails closed because risk-policy-application-audit.json is corrupted at \(path)"
         case let .checksumMismatch(expected, actual):
             "Release v0.9.0 testnet read-only monitor session checksum mismatch: expected \(expected), actual \(actual)"
         case let .invalidTransition(command, fromState):
@@ -111,7 +114,18 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "V090-009-NO-BROKER-WRITE",
         "V090-009-NO-ACCOUNT-MUTATION",
         "V090-009-NO-TRADING-ADJUSTMENT",
-        "V090-009-NO-PRODUCTION-CUTOVER"
+        "V090-009-NO-PRODUCTION-CUTOVER",
+        "GH-852-VERIFY-V090-RISK-POLICY-APPLICATION-AUDIT",
+        "TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT",
+        "V090-010-RISK-POLICY-APPLICATION-AUDIT",
+        "V090-010-RISK-POLICY-VERSION-HASH",
+        "V090-010-POLICY-APPLIED-AT",
+        "V090-010-OPERATOR-CHANGE-REFERENCE",
+        "V090-010-MONITOR-SESSION-EVIDENCE-BINDING",
+        "V090-010-LOCAL-PROFILE-EVIDENCE",
+        "V090-010-NO-POLICY-DRIVEN-ORDER-EXECUTION",
+        "V090-010-NO-BROKER-PRODUCTION-PATH",
+        "V090-010-NO-PRODUCTION-CUTOVER"
     ]
 
     public static let requiredValidationCommands: [String] = [
@@ -121,9 +135,11 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "bash checks/verify-v0.9.0-monitor-recovery-workflow.sh",
         "bash checks/verify-v0.9.0-alert-read-model.sh",
         "bash checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh",
+        "bash checks/verify-v0.9.0-risk-policy-application-audit.sh",
         "swift test --filter TargetGraphTests/testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed",
         "swift test --filter TargetGraphTests/testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects",
-        "swift test --filter TargetGraphTests/testGH851PortfolioReconciliationTimelineBindsExpectedObservedDeltaAndAckMetadata"
+        "swift test --filter TargetGraphTests/testGH851PortfolioReconciliationTimelineBindsExpectedObservedDeltaAndAckMetadata",
+        "swift test --filter TargetGraphTests/testGH852RiskPolicyApplicationAuditBindsPolicyVersionHashAndMonitorArtifacts"
     ]
 }
 
@@ -167,6 +183,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
     public let accountSnapshotFreshnessJSONPath: String
     public let privateStreamHeartbeatJSONPath: String
     public let monitorRecoveryJSONPath: String
+    public let riskPolicyApplicationAuditJSONPath: String
 
     public var pathsHeld: Bool {
         runDirectoryPath.hasPrefix(".local/mtpro/runs/")
@@ -177,6 +194,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
             && accountSnapshotFreshnessJSONPath == "\(monitorDirectoryPath)/account-snapshot-freshness.json"
             && privateStreamHeartbeatJSONPath == "\(monitorDirectoryPath)/private-stream-heartbeat.json"
             && monitorRecoveryJSONPath == "\(monitorDirectoryPath)/monitor-recovery.json"
+            && riskPolicyApplicationAuditJSONPath == "\(monitorDirectoryPath)/risk-policy-application-audit.json"
     }
 
     public init(runID: Identifier) throws {
@@ -193,6 +211,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorArtifactPaths: Codable, Equatable
         self.accountSnapshotFreshnessJSONPath = "\(monitorDirectoryPath)/account-snapshot-freshness.json"
         self.privateStreamHeartbeatJSONPath = "\(monitorDirectoryPath)/private-stream-heartbeat.json"
         self.monitorRecoveryJSONPath = "\(monitorDirectoryPath)/monitor-recovery.json"
+        self.riskPolicyApplicationAuditJSONPath = "\(monitorDirectoryPath)/risk-policy-application-audit.json"
 
         guard pathsHeld else {
             throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("monitorArtifactPaths")
@@ -619,6 +638,7 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionDocument: Codable, Equatab
             artifactPaths.accountSnapshotFreshnessJSONPath,
             artifactPaths.privateStreamHeartbeatJSONPath,
             artifactPaths.monitorRecoveryJSONPath,
+            artifactPaths.riskPolicyApplicationAuditJSONPath,
             state.rawValue,
             String(createdAt.timeIntervalSince1970),
             String(updatedAt.timeIntervalSince1970),
@@ -3443,6 +3463,701 @@ public struct ReleaseV090PortfolioReconciliationTimelineReadModel: Codable, Equa
         return history
     }
 
+private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV090RiskPolicyApplicationAuditArtifactRole 固定 GH-852 policy audit 绑定的 artifact 类型。
+///
+/// 这些 role 只说明 monitor / reconciliation evidence 是由哪一个本地 risk policy profile 约束；
+/// 它们不表示 RiskEngine runtime 执行，也不授权任何 testnet 或 production order。
+public enum ReleaseV090RiskPolicyApplicationAuditArtifactRole: String, Codable, CaseIterable, Equatable, Sendable {
+    case monitorSession
+    case accountSnapshotFreshness
+    case privateStreamHeartbeat
+    case portfolioReconciliationTimeline
+}
+
+/// ReleaseV090RiskPolicyApplicationProfileReference 保存 GH-852 要求的 policy version/hash/application metadata。
+///
+/// profile reference 只指向本地 `risk_policy.json` 的版本和 hash，不读取 secret、不连接 endpoint，
+/// 也不把 policy change 解释为 order authorization。
+public struct ReleaseV090RiskPolicyApplicationProfileReference: Codable, Equatable, Sendable {
+    public let profilePath: String
+    public let riskPolicyVersion: String
+    public let riskPolicyHash: String
+    public let policyAppliedAt: Date
+    public let operatorChangeReference: String
+    public let operatorChangeReferenceHash: String
+    public let localProfileEvidence: Bool
+    public let policyChangeIsOrderAuthorization: Bool
+    public let automatedPolicyDrivenOrderExecution: Bool
+    public let brokerOrProductionPathEnabled: Bool
+    public let profileReferenceChecksum: String
+
+    public var profileReferenceHeld: Bool {
+        profilePath == ".local/mtpro/risk_policy.json"
+            && riskPolicyVersion.isEmpty == false
+            && (riskPolicyHash.hasPrefix("risk-policy-fnv64-") || riskPolicyHash.hasPrefix("sha256:"))
+            && operatorChangeReference.isEmpty == false
+            && operatorChangeReference.containsForbiddenCredentialMaterial == false
+            && operatorChangeReferenceHash == Self.operatorChangeReferenceHash(operatorChangeReference)
+            && localProfileEvidence
+            && policyChangeIsOrderAuthorization == false
+            && automatedPolicyDrivenOrderExecution == false
+            && brokerOrProductionPathEnabled == false
+            && profileReferenceChecksum == Self.stableProfileReferenceChecksum(
+                profilePath: profilePath,
+                riskPolicyVersion: riskPolicyVersion,
+                riskPolicyHash: riskPolicyHash,
+                policyAppliedAt: policyAppliedAt,
+                operatorChangeReference: operatorChangeReference,
+                operatorChangeReferenceHash: operatorChangeReferenceHash
+            )
+    }
+
+    public init(
+        profilePath: String = ".local/mtpro/risk_policy.json",
+        riskPolicyVersion: String,
+        riskPolicyHash: String,
+        policyAppliedAt: Date,
+        operatorChangeReference: String,
+        operatorChangeReferenceHash: String? = nil,
+        profileReferenceChecksum: String? = nil,
+        localProfileEvidence: Bool = true,
+        policyChangeIsOrderAuthorization: Bool = false,
+        automatedPolicyDrivenOrderExecution: Bool = false,
+        brokerOrProductionPathEnabled: Bool = false
+    ) throws {
+        self.profilePath = profilePath
+        self.riskPolicyVersion = riskPolicyVersion
+        self.riskPolicyHash = riskPolicyHash
+        self.policyAppliedAt = policyAppliedAt
+        self.operatorChangeReference = operatorChangeReference
+        self.operatorChangeReferenceHash = operatorChangeReferenceHash ?? Self.operatorChangeReferenceHash(
+            operatorChangeReference
+        )
+        self.localProfileEvidence = localProfileEvidence
+        self.policyChangeIsOrderAuthorization = policyChangeIsOrderAuthorization
+        self.automatedPolicyDrivenOrderExecution = automatedPolicyDrivenOrderExecution
+        self.brokerOrProductionPathEnabled = brokerOrProductionPathEnabled
+        self.profileReferenceChecksum = profileReferenceChecksum ?? Self.stableProfileReferenceChecksum(
+            profilePath: profilePath,
+            riskPolicyVersion: riskPolicyVersion,
+            riskPolicyHash: riskPolicyHash,
+            policyAppliedAt: policyAppliedAt,
+            operatorChangeReference: operatorChangeReference,
+            operatorChangeReferenceHash: self.operatorChangeReferenceHash
+        )
+
+        guard profileReferenceHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("riskPolicyApplicationProfileReference")
+        }
+    }
+
+    public static func operatorChangeReferenceHash(_ reference: String) -> String {
+        stableSHA256(["GH-852", "operatorChangeReference", reference])
+    }
+
+    public static func stableProfileReferenceChecksum(
+        profilePath: String,
+        riskPolicyVersion: String,
+        riskPolicyHash: String,
+        policyAppliedAt: Date,
+        operatorChangeReference: String,
+        operatorChangeReferenceHash: String
+    ) -> String {
+        stableSHA256([
+            "GH-852",
+            "v0.9.0",
+            profilePath,
+            riskPolicyVersion,
+            riskPolicyHash,
+            String(policyAppliedAt.timeIntervalSince1970),
+            operatorChangeReference,
+            operatorChangeReferenceHash,
+            "localProfileEvidence=true",
+            "policyChangeIsOrderAuthorization=false",
+            "automatedPolicyDrivenOrderExecution=false",
+            "brokerOrProductionPathEnabled=false"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV090RiskPolicyApplicationArtifactBinding 说明单个 monitor artifact 使用的 policy profile。
+public struct ReleaseV090RiskPolicyApplicationArtifactBinding: Codable, Equatable, Sendable {
+    public let bindingID: Identifier
+    public let sequence: Int
+    public let artifactRole: ReleaseV090RiskPolicyApplicationAuditArtifactRole
+    public let artifactPath: String
+    public let artifactChecksum: String
+    public let profileReference: ReleaseV090RiskPolicyApplicationProfileReference
+    public let monitorSessionChecksum: String
+    public let localAuditMetadataOnly: Bool
+    public let policyChangeIsOrderAuthorization: Bool
+    public let automatedPolicyDrivenOrderExecution: Bool
+    public let brokerOrProductionPathEnabled: Bool
+    public let testnetOrderRoutingAllowed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+    public let bindingChecksum: String
+
+    public var bindingHeld: Bool {
+        bindingID.rawValue.isEmpty == false
+            && sequence >= 1
+            && artifactPath == Self.expectedArtifactPath(
+                runID: runIDFromBinding,
+                role: artifactRole
+            )
+            && artifactChecksum.hasPrefix("sha256:")
+            && profileReference.profileReferenceHeld
+            && monitorSessionChecksum.hasPrefix("sha256:")
+            && localAuditMetadataOnly
+            && policyChangeIsOrderAuthorization == false
+            && automatedPolicyDrivenOrderExecution == false
+            && brokerOrProductionPathEnabled == false
+            && testnetOrderRoutingAllowed == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && bindingChecksum == Self.stableBindingChecksum(
+                bindingID: bindingID,
+                sequence: sequence,
+                artifactRole: artifactRole,
+                artifactPath: artifactPath,
+                artifactChecksum: artifactChecksum,
+                profileReference: profileReference,
+                monitorSessionChecksum: monitorSessionChecksum
+            )
+    }
+
+    private var runIDFromBinding: Identifier {
+        let prefix = "gh-852-"
+        let suffix = "-\(artifactRole.rawValue)"
+        let raw = bindingID.rawValue
+        if raw.hasPrefix(prefix), raw.hasSuffix(suffix) {
+            let start = raw.index(raw.startIndex, offsetBy: prefix.count)
+            let end = raw.index(raw.endIndex, offsetBy: -suffix.count)
+            return Identifier.constant(String(raw[start..<end]))
+        }
+        return Identifier.constant(raw)
+    }
+
+    public init(
+        bindingID: Identifier,
+        sequence: Int,
+        artifactRole: ReleaseV090RiskPolicyApplicationAuditArtifactRole,
+        artifactPath: String,
+        artifactChecksum: String,
+        profileReference: ReleaseV090RiskPolicyApplicationProfileReference,
+        monitorSessionChecksum: String,
+        bindingChecksum: String? = nil,
+        localAuditMetadataOnly: Bool = true,
+        policyChangeIsOrderAuthorization: Bool = false,
+        automatedPolicyDrivenOrderExecution: Bool = false,
+        brokerOrProductionPathEnabled: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.bindingID = bindingID
+        self.sequence = sequence
+        self.artifactRole = artifactRole
+        self.artifactPath = artifactPath
+        self.artifactChecksum = artifactChecksum
+        self.profileReference = profileReference
+        self.monitorSessionChecksum = monitorSessionChecksum
+        self.localAuditMetadataOnly = localAuditMetadataOnly
+        self.policyChangeIsOrderAuthorization = policyChangeIsOrderAuthorization
+        self.automatedPolicyDrivenOrderExecution = automatedPolicyDrivenOrderExecution
+        self.brokerOrProductionPathEnabled = brokerOrProductionPathEnabled
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.bindingChecksum = bindingChecksum ?? Self.stableBindingChecksum(
+            bindingID: bindingID,
+            sequence: sequence,
+            artifactRole: artifactRole,
+            artifactPath: artifactPath,
+            artifactChecksum: artifactChecksum,
+            profileReference: profileReference,
+            monitorSessionChecksum: monitorSessionChecksum
+        )
+
+        guard bindingHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("riskPolicyApplicationArtifactBinding")
+        }
+    }
+
+    public static func expectedArtifactPath(
+        runID: Identifier,
+        role: ReleaseV090RiskPolicyApplicationAuditArtifactRole
+    ) -> String {
+        let monitorDirectoryPath = ".local/mtpro/runs/\(runID.rawValue)/testnet-readonly-monitor"
+        switch role {
+        case .monitorSession:
+            return "\(monitorDirectoryPath)/monitor_session.json"
+        case .accountSnapshotFreshness:
+            return "\(monitorDirectoryPath)/account-snapshot-freshness.json"
+        case .privateStreamHeartbeat:
+            return "\(monitorDirectoryPath)/private-stream-heartbeat.json"
+        case .portfolioReconciliationTimeline:
+            return "\(monitorDirectoryPath)/portfolio-reconciliation-timeline.json"
+        }
+    }
+
+    public static func stableBindingChecksum(
+        bindingID: Identifier,
+        sequence: Int,
+        artifactRole: ReleaseV090RiskPolicyApplicationAuditArtifactRole,
+        artifactPath: String,
+        artifactChecksum: String,
+        profileReference: ReleaseV090RiskPolicyApplicationProfileReference,
+        monitorSessionChecksum: String
+    ) -> String {
+        stableSHA256([
+            "GH-852",
+            "v0.9.0",
+            bindingID.rawValue,
+            String(sequence),
+            artifactRole.rawValue,
+            artifactPath,
+            artifactChecksum,
+            profileReference.profileReferenceChecksum,
+            monitorSessionChecksum,
+            "localAuditMetadataOnly=true",
+            "policyChangeIsOrderAuthorization=false",
+            "automatedPolicyDrivenOrderExecution=false",
+            "brokerOrProductionPathEnabled=false",
+            "testnetOrderRoutingAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV090RiskPolicyApplicationAuditReadModel 是 GH-852 的本地 policy application audit envelope。
+///
+/// Read model 让每个 monitor / reconciliation artifact 都能引用同一份本地 risk policy
+/// version/hash/application metadata。它只写 audit evidence，不执行 policy-driven order。
+public struct ReleaseV090RiskPolicyApplicationAuditReadModel: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.9.0.risk-policy-application-audit.v1"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let historicalProfileIssueID: Identifier
+    public let previousIssueID: Identifier
+    public let downstreamIssueID: Identifier
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let runID: Identifier
+    public let generatedAt: Date
+    public let riskPolicyApplicationAuditJSONPath: String
+    public let monitorSessionChecksum: String
+    public let accountSnapshotFreshnessChecksum: String
+    public let privateStreamHeartbeatChecksum: String
+    public let portfolioReconciliationTimelineChecksum: String
+    public let profileReference: ReleaseV090RiskPolicyApplicationProfileReference
+    public let riskPolicyVersion: String
+    public let riskPolicyHash: String
+    public let policyAppliedAt: Date
+    public let operatorChangeReference: String
+    public let artifactBindings: [ReleaseV090RiskPolicyApplicationArtifactBinding]
+    public let localProfileEvidence: Bool
+    public let policyChangesAreAuditMetadata: Bool
+    public let automatedPolicyDrivenOrderExecution: Bool
+    public let brokerOrProductionPathEnabled: Bool
+    public let testnetOrderRoutingAllowed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+    public let requiredValidationAnchors: [String]
+    public let requiredValidationCommands: [String]
+    public let auditChecksum: String
+
+    private enum CodingKeys: String, CodingKey {
+        case issueID
+        case upstreamIssueIDs
+        case historicalProfileIssueID
+        case previousIssueID
+        case downstreamIssueID
+        case releaseVersion
+        case schemaVersion
+        case runID
+        case generatedAt
+        case riskPolicyApplicationAuditJSONPath
+        case monitorSessionChecksum
+        case accountSnapshotFreshnessChecksum
+        case privateStreamHeartbeatChecksum
+        case portfolioReconciliationTimelineChecksum
+        case profileReference
+        case riskPolicyVersion = "risk_policy_version"
+        case riskPolicyHash = "risk_policy_hash"
+        case policyAppliedAt = "policy_applied_at"
+        case operatorChangeReference = "operator_change_reference"
+        case artifactBindings
+        case localProfileEvidence
+        case policyChangesAreAuditMetadata
+        case automatedPolicyDrivenOrderExecution
+        case brokerOrProductionPathEnabled
+        case testnetOrderRoutingAllowed
+        case productionTradingEnabledByDefault
+        case productionSecretRead
+        case productionEndpointConnected
+        case brokerEndpointConnected
+        case productionOrderSubmitted
+        case productionCutoverAuthorized
+        case requiredValidationAnchors
+        case requiredValidationCommands
+        case auditChecksum
+    }
+
+    public var readModelHeld: Bool {
+        issueID.rawValue == "GH-852"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-845"]
+            && historicalProfileIssueID.rawValue == "GH-816"
+            && previousIssueID.rawValue == "GH-851"
+            && downstreamIssueID.rawValue == "GH-853"
+            && releaseVersion == "v0.9.0"
+            && schemaVersion == Self.schemaVersion
+            && runID.rawValue.isEmpty == false
+            && riskPolicyApplicationAuditJSONPath == ".local/mtpro/runs/\(runID.rawValue)/testnet-readonly-monitor/risk-policy-application-audit.json"
+            && monitorSessionChecksum.hasPrefix("sha256:")
+            && accountSnapshotFreshnessChecksum.hasPrefix("sha256:")
+            && privateStreamHeartbeatChecksum.hasPrefix("sha256:")
+            && portfolioReconciliationTimelineChecksum.hasPrefix("sha256:")
+            && profileReference.profileReferenceHeld
+            && riskPolicyVersion == profileReference.riskPolicyVersion
+            && riskPolicyHash == profileReference.riskPolicyHash
+            && policyAppliedAt == profileReference.policyAppliedAt
+            && operatorChangeReference == profileReference.operatorChangeReference
+            && artifactBindings.map(\.sequence) == Array(1...artifactBindings.count)
+            && artifactBindings.map(\.artifactRole) == ReleaseV090RiskPolicyApplicationAuditArtifactRole.allCases
+            && artifactBindings.allSatisfy(\.bindingHeld)
+            && artifactBindings.allSatisfy { $0.profileReference == profileReference }
+            && artifactBindings.allSatisfy { $0.monitorSessionChecksum == monitorSessionChecksum }
+            && artifactBindings.contains { $0.artifactChecksum == monitorSessionChecksum }
+            && artifactBindings.contains { $0.artifactChecksum == accountSnapshotFreshnessChecksum }
+            && artifactBindings.contains { $0.artifactChecksum == privateStreamHeartbeatChecksum }
+            && artifactBindings.contains { $0.artifactChecksum == portfolioReconciliationTimelineChecksum }
+            && localProfileEvidence
+            && policyChangesAreAuditMetadata
+            && automatedPolicyDrivenOrderExecution == false
+            && brokerOrProductionPathEnabled == false
+            && testnetOrderRoutingAllowed == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && requiredValidationAnchors == Self.requiredValidationAnchors
+            && requiredValidationCommands == Self.requiredValidationCommands
+            && auditChecksum == Self.stableAuditChecksum(
+                runID: runID,
+                generatedAt: generatedAt,
+                riskPolicyApplicationAuditJSONPath: riskPolicyApplicationAuditJSONPath,
+                monitorSessionChecksum: monitorSessionChecksum,
+                accountSnapshotFreshnessChecksum: accountSnapshotFreshnessChecksum,
+                privateStreamHeartbeatChecksum: privateStreamHeartbeatChecksum,
+                portfolioReconciliationTimelineChecksum: portfolioReconciliationTimelineChecksum,
+                profileReference: profileReference,
+                artifactBindings: artifactBindings
+            )
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-852"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-845")],
+        historicalProfileIssueID: Identifier = Identifier.constant("GH-816"),
+        previousIssueID: Identifier = Identifier.constant("GH-851"),
+        downstreamIssueID: Identifier = Identifier.constant("GH-853"),
+        releaseVersion: String = "v0.9.0",
+        schemaVersion: String = Self.schemaVersion,
+        runID: Identifier,
+        generatedAt: Date,
+        riskPolicyApplicationAuditJSONPath: String,
+        monitorSessionChecksum: String,
+        accountSnapshotFreshnessChecksum: String,
+        privateStreamHeartbeatChecksum: String,
+        portfolioReconciliationTimelineChecksum: String,
+        profileReference: ReleaseV090RiskPolicyApplicationProfileReference,
+        artifactBindings: [ReleaseV090RiskPolicyApplicationArtifactBinding],
+        auditChecksum: String? = nil,
+        localProfileEvidence: Bool = true,
+        policyChangesAreAuditMetadata: Bool = true,
+        automatedPolicyDrivenOrderExecution: Bool = false,
+        brokerOrProductionPathEnabled: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        requiredValidationAnchors: [String] = Self.requiredValidationAnchors,
+        requiredValidationCommands: [String] = Self.requiredValidationCommands
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.historicalProfileIssueID = historicalProfileIssueID
+        self.previousIssueID = previousIssueID
+        self.downstreamIssueID = downstreamIssueID
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.runID = runID
+        self.generatedAt = generatedAt
+        self.riskPolicyApplicationAuditJSONPath = riskPolicyApplicationAuditJSONPath
+        self.monitorSessionChecksum = monitorSessionChecksum
+        self.accountSnapshotFreshnessChecksum = accountSnapshotFreshnessChecksum
+        self.privateStreamHeartbeatChecksum = privateStreamHeartbeatChecksum
+        self.portfolioReconciliationTimelineChecksum = portfolioReconciliationTimelineChecksum
+        self.profileReference = profileReference
+        self.riskPolicyVersion = profileReference.riskPolicyVersion
+        self.riskPolicyHash = profileReference.riskPolicyHash
+        self.policyAppliedAt = profileReference.policyAppliedAt
+        self.operatorChangeReference = profileReference.operatorChangeReference
+        self.artifactBindings = artifactBindings
+        self.localProfileEvidence = localProfileEvidence
+        self.policyChangesAreAuditMetadata = policyChangesAreAuditMetadata
+        self.automatedPolicyDrivenOrderExecution = automatedPolicyDrivenOrderExecution
+        self.brokerOrProductionPathEnabled = brokerOrProductionPathEnabled
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.requiredValidationAnchors = requiredValidationAnchors
+        self.requiredValidationCommands = requiredValidationCommands
+        self.auditChecksum = auditChecksum ?? Self.stableAuditChecksum(
+            runID: runID,
+            generatedAt: generatedAt,
+            riskPolicyApplicationAuditJSONPath: riskPolicyApplicationAuditJSONPath,
+            monitorSessionChecksum: monitorSessionChecksum,
+            accountSnapshotFreshnessChecksum: accountSnapshotFreshnessChecksum,
+            privateStreamHeartbeatChecksum: privateStreamHeartbeatChecksum,
+            portfolioReconciliationTimelineChecksum: portfolioReconciliationTimelineChecksum,
+            profileReference: profileReference,
+            artifactBindings: artifactBindings
+        )
+
+        guard readModelHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("riskPolicyApplicationAuditReadModel")
+        }
+    }
+
+    public init(
+        session: ReleaseV090TestnetReadOnlyMonitorSessionDocument,
+        accountSnapshotFreshness: ReleaseV090AccountSnapshotFreshnessDocument,
+        privateStreamHeartbeat: ReleaseV090PrivateStreamHeartbeatDocument,
+        portfolioReconciliationTimeline: ReleaseV090PortfolioReconciliationTimelineReadModel,
+        profileReference: ReleaseV090RiskPolicyApplicationProfileReference,
+        generatedAt: Date
+    ) throws {
+        let artifactBindings = try Self.makeArtifactBindings(
+            session: session,
+            accountSnapshotFreshness: accountSnapshotFreshness,
+            privateStreamHeartbeat: privateStreamHeartbeat,
+            portfolioReconciliationTimeline: portfolioReconciliationTimeline,
+            profileReference: profileReference
+        )
+        try self.init(
+            runID: session.runID,
+            generatedAt: generatedAt,
+            riskPolicyApplicationAuditJSONPath: session.artifactPaths.riskPolicyApplicationAuditJSONPath,
+            monitorSessionChecksum: session.sessionChecksum,
+            accountSnapshotFreshnessChecksum: accountSnapshotFreshness.freshnessChecksum,
+            privateStreamHeartbeatChecksum: privateStreamHeartbeat.heartbeatChecksum,
+            portfolioReconciliationTimelineChecksum: portfolioReconciliationTimeline.timelineChecksum,
+            profileReference: profileReference,
+            artifactBindings: artifactBindings
+        )
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-852-VERIFY-V090-RISK-POLICY-APPLICATION-AUDIT",
+        "TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT",
+        "V090-010-RISK-POLICY-APPLICATION-AUDIT",
+        "V090-010-RISK-POLICY-VERSION-HASH",
+        "V090-010-POLICY-APPLIED-AT",
+        "V090-010-OPERATOR-CHANGE-REFERENCE",
+        "V090-010-MONITOR-SESSION-EVIDENCE-BINDING",
+        "V090-010-LOCAL-PROFILE-EVIDENCE",
+        "V090-010-NO-POLICY-DRIVEN-ORDER-EXECUTION",
+        "V090-010-NO-BROKER-PRODUCTION-PATH",
+        "V090-010-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static let requiredValidationCommands = [
+        "swift test --filter TargetGraphTests/testGH852RiskPolicyApplicationAuditBindsPolicyVersionHashAndMonitorArtifacts",
+        "bash checks/verify-v0.9.0-risk-policy-application-audit.sh",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+
+    public static func makeArtifactBindings(
+        session: ReleaseV090TestnetReadOnlyMonitorSessionDocument,
+        accountSnapshotFreshness: ReleaseV090AccountSnapshotFreshnessDocument,
+        privateStreamHeartbeat: ReleaseV090PrivateStreamHeartbeatDocument,
+        portfolioReconciliationTimeline: ReleaseV090PortfolioReconciliationTimelineReadModel,
+        profileReference: ReleaseV090RiskPolicyApplicationProfileReference
+    ) throws -> [ReleaseV090RiskPolicyApplicationArtifactBinding] {
+        let rows: [(role: ReleaseV090RiskPolicyApplicationAuditArtifactRole, checksum: String)] = [
+            (.monitorSession, session.sessionChecksum),
+            (.accountSnapshotFreshness, accountSnapshotFreshness.freshnessChecksum),
+            (.privateStreamHeartbeat, privateStreamHeartbeat.heartbeatChecksum),
+            (.portfolioReconciliationTimeline, portfolioReconciliationTimeline.timelineChecksum)
+        ]
+        return try rows.enumerated().map { index, row in
+            let sequence = index + 1
+            return try ReleaseV090RiskPolicyApplicationArtifactBinding(
+                bindingID: Identifier.constant("gh-852-\(session.runID.rawValue)-\(row.role.rawValue)"),
+                sequence: sequence,
+                artifactRole: row.role,
+                artifactPath: ReleaseV090RiskPolicyApplicationArtifactBinding.expectedArtifactPath(
+                    runID: session.runID,
+                    role: row.role
+                ),
+                artifactChecksum: row.checksum,
+                profileReference: profileReference,
+                monitorSessionChecksum: session.sessionChecksum
+            )
+        }
+    }
+
+    public static func deterministicFixture(
+        generatedAt: Date = Date(timeIntervalSince1970: 1_782_700_090)
+    ) throws -> ReleaseV090RiskPolicyApplicationAuditReadModel {
+        let session = try ReleaseV090TestnetReadOnlyMonitorSessionStore.deterministicFixture(
+            createdAt: Date(timeIntervalSince1970: 1_782_700_000)
+        )
+        let freshness = try ReleaseV090AccountSnapshotFreshnessDocument(
+            runID: session.runID,
+            monitorSessionChecksum: session.sessionChecksum,
+            accountSnapshotFreshnessJSONPath: session.artifactPaths.accountSnapshotFreshnessJSONPath,
+            snapshotObservedAt: Date(timeIntervalSince1970: 1_782_700_010),
+            recordedAt: Date(timeIntervalSince1970: 1_782_700_080),
+            latencyMilliseconds: 205,
+            staleThresholdSeconds: 90,
+            redactedCredentialReference: "gh-852-testnet-readonly-profile:<redacted>"
+        )
+        let heartbeat = try ReleaseV090PrivateStreamHeartbeatDocument(
+            runID: session.runID,
+            monitorSessionChecksum: session.sessionChecksum,
+            privateStreamHeartbeatJSONPath: session.artifactPaths.privateStreamHeartbeatJSONPath,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_700_060),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_700_080),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 90,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_700_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_703_600),
+            redactedListenKeyReference: "gh-852-stream-lease-profile:<redacted>",
+            listenKeyReferenceHash: ReleaseV090PrivateStreamHeartbeatDocument.listenKeyReferenceHash(
+                "gh-852-stream-lease-profile"
+            )
+        )
+        let timeline = try ReleaseV090PortfolioReconciliationTimelineReadModel(
+            session: session,
+            accountSnapshotFreshness: freshness,
+            privateStreamHeartbeat: heartbeat,
+            generatedAt: generatedAt
+        )
+        let profileReference = try ReleaseV090RiskPolicyApplicationProfileReference(
+            riskPolicyVersion: "v0.8.0-risk-policy-profile.2",
+            riskPolicyHash: "risk-policy-fnv64-gh852",
+            policyAppliedAt: Date(timeIntervalSince1970: 1_782_700_030),
+            operatorChangeReference: "op-change-gh852"
+        )
+        return try ReleaseV090RiskPolicyApplicationAuditReadModel(
+            session: session,
+            accountSnapshotFreshness: freshness,
+            privateStreamHeartbeat: heartbeat,
+            portfolioReconciliationTimeline: timeline,
+            profileReference: profileReference,
+            generatedAt: generatedAt
+        )
+    }
+
+    public static func stableAuditChecksum(
+        runID: Identifier,
+        generatedAt: Date,
+        riskPolicyApplicationAuditJSONPath: String,
+        monitorSessionChecksum: String,
+        accountSnapshotFreshnessChecksum: String,
+        privateStreamHeartbeatChecksum: String,
+        portfolioReconciliationTimelineChecksum: String,
+        profileReference: ReleaseV090RiskPolicyApplicationProfileReference,
+        artifactBindings: [ReleaseV090RiskPolicyApplicationArtifactBinding]
+    ) -> String {
+        stableSHA256([
+            "GH-852",
+            "v0.9.0",
+            Self.schemaVersion,
+            runID.rawValue,
+            String(generatedAt.timeIntervalSince1970),
+            riskPolicyApplicationAuditJSONPath,
+            monitorSessionChecksum,
+            accountSnapshotFreshnessChecksum,
+            privateStreamHeartbeatChecksum,
+            portfolioReconciliationTimelineChecksum,
+            profileReference.profileReferenceChecksum,
+            "localProfileEvidence=true",
+            "policyChangesAreAuditMetadata=true",
+            "automatedPolicyDrivenOrderExecution=false",
+            "brokerOrProductionPathEnabled=false",
+            "testnetOrderRoutingAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false"
+        ] + artifactBindings.map(\.bindingChecksum))
+    }
+
     private static func stableSHA256(_ parts: [String]) -> String {
         let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
             .map { String(format: "%02x", $0) }
@@ -3868,6 +4583,83 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
     }
 
     @discardableResult
+    public func recordRiskPolicyApplicationAudit(
+        runID: Identifier,
+        riskPolicyVersion: String,
+        riskPolicyHash: String,
+        policyAppliedAt: Date,
+        operatorChangeReference: String,
+        generatedAt: Date
+    ) throws -> ReleaseV090RiskPolicyApplicationAuditReadModel {
+        try withMonitorLock(runID: runID) {
+            let session = try load(runID: runID)
+            let freshness = try accountSnapshotFreshness(runID: runID)
+            let heartbeat = try privateStreamHeartbeat(runID: runID)
+            let reconciliationTimeline = try ReleaseV090PortfolioReconciliationTimelineReadModel(
+                session: session,
+                accountSnapshotFreshness: freshness,
+                privateStreamHeartbeat: heartbeat,
+                generatedAt: generatedAt
+            )
+            let profileReference = try ReleaseV090RiskPolicyApplicationProfileReference(
+                riskPolicyVersion: riskPolicyVersion,
+                riskPolicyHash: riskPolicyHash,
+                policyAppliedAt: policyAppliedAt,
+                operatorChangeReference: operatorChangeReference
+            )
+            let audit = try ReleaseV090RiskPolicyApplicationAuditReadModel(
+                session: session,
+                accountSnapshotFreshness: freshness,
+                privateStreamHeartbeat: heartbeat,
+                portfolioReconciliationTimeline: reconciliationTimeline,
+                profileReference: profileReference,
+                generatedAt: generatedAt
+            )
+            try writeJSON(audit, to: riskPolicyApplicationAuditURL(runID: runID))
+            return audit
+        }
+    }
+
+    public func riskPolicyApplicationAudit(
+        runID: Identifier
+    ) throws -> ReleaseV090RiskPolicyApplicationAuditReadModel {
+        let auditURL = try riskPolicyApplicationAuditURL(runID: runID)
+        guard fileManager.fileExists(atPath: auditURL.path) else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedRiskPolicyApplicationAudit(auditURL.path)
+        }
+        do {
+            let session = try load(runID: runID)
+            let data = try Data(contentsOf: auditURL)
+            let document = try Self.decoder.decode(ReleaseV090RiskPolicyApplicationAuditReadModel.self, from: data)
+            let expectedChecksum = ReleaseV090RiskPolicyApplicationAuditReadModel.stableAuditChecksum(
+                runID: document.runID,
+                generatedAt: document.generatedAt,
+                riskPolicyApplicationAuditJSONPath: document.riskPolicyApplicationAuditJSONPath,
+                monitorSessionChecksum: document.monitorSessionChecksum,
+                accountSnapshotFreshnessChecksum: document.accountSnapshotFreshnessChecksum,
+                privateStreamHeartbeatChecksum: document.privateStreamHeartbeatChecksum,
+                portfolioReconciliationTimelineChecksum: document.portfolioReconciliationTimelineChecksum,
+                profileReference: document.profileReference,
+                artifactBindings: document.artifactBindings
+            )
+            guard document.auditChecksum == expectedChecksum else {
+                throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.checksumMismatch(
+                    expected: expectedChecksum,
+                    actual: document.auditChecksum
+                )
+            }
+            guard document.monitorSessionChecksum == session.sessionChecksum, document.readModelHeld else {
+                throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("decodedRiskPolicyApplicationAudit")
+            }
+            return document
+        } catch let error as ReleaseV090TestnetReadOnlyMonitorSessionStoreError {
+            throw error
+        } catch {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedRiskPolicyApplicationAudit(auditURL.path)
+        }
+    }
+
+    @discardableResult
     public func apply(
         runID: Identifier,
         command: ReleaseV090TestnetReadOnlyMonitorCommand,
@@ -4026,6 +4818,13 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
             throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.emptyRunID
         }
         return monitorDirectoryURL(runID: runID).appendingPathComponent("monitor-recovery.json", isDirectory: false)
+    }
+
+    private func riskPolicyApplicationAuditURL(runID: Identifier) throws -> URL {
+        guard runID.rawValue.isEmpty == false else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.emptyRunID
+        }
+        return monitorDirectoryURL(runID: runID).appendingPathComponent("risk-policy-application-audit.json", isDirectory: false)
     }
 
     private static func redactedCredentialReference(from credentialReference: String) throws -> String {

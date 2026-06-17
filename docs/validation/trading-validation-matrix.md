@@ -175,6 +175,27 @@
 - acknowledgement boundary: acknowledgement 只保存 acknowledgedAt、acknowledgedBy 和 operatorNote metadata，不创建 correction command、broker write、account mutation 或 trading adjustment。
 - forbidden scope: no correction command, no broker write, no account mutation, no trading adjustment, no trading button, no order form, no live command, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no production cutover.
 
+## TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT
+
+- TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT
+- GH-852-VERIFY-V090-RISK-POLICY-APPLICATION-AUDIT
+- V090-010-RISK-POLICY-APPLICATION-AUDIT
+- V090-010-RISK-POLICY-VERSION-HASH
+- V090-010-POLICY-APPLIED-AT
+- V090-010-OPERATOR-CHANGE-REFERENCE
+- V090-010-MONITOR-SESSION-EVIDENCE-BINDING
+- V090-010-LOCAL-PROFILE-EVIDENCE
+- V090-010-NO-POLICY-DRIVEN-ORDER-EXECUTION
+- V090-010-NO-BROKER-PRODUCTION-PATH
+- V090-010-NO-PRODUCTION-CUTOVER
+- GH-852 Release v0.9.0 Risk Policy Application Audit Validation
+- testGH852RiskPolicyApplicationAuditBindsPolicyVersionHashAndMonitorArtifacts
+- `bash checks/verify-v0.9.0-risk-policy-application-audit.sh`
+- profile evidence: audit 必须记录 `risk_policy_version`、`risk_policy_hash`、`policy_applied_at` 和 `operator_change_reference`，并引用 `.local/mtpro/risk_policy.json` 本地 profile evidence。
+- evidence binding: monitor session、account snapshot freshness、private stream heartbeat 和 Portfolio reconciliation timeline artifact 必须绑定同一 risk policy version/hash 和 monitorSessionChecksum。
+- audit boundary: policy change 只作为 audit metadata，不表示 order authorization，不驱动 automated policy-driven order execution。
+- forbidden scope: no broker / production path, no trading button, no order form, no live command, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no production cutover.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT

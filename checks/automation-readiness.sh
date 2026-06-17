@@ -407,6 +407,42 @@ for v090_reconciliation_timeline_anchor in \
   require_contains "docs/validation/trading-validation-matrix.md" "$v090_reconciliation_timeline_anchor"
   require_contains "docs/validation/validation-plan.md" "$v090_reconciliation_timeline_anchor"
 done
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090RiskPolicyApplicationAuditReadModel"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090RiskPolicyApplicationProfileReference"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090RiskPolicyApplicationArtifactBinding"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "risk_policy_version"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "risk_policy_hash"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "policy_applied_at"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "operator_change_reference"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "risk-policy-application-audit.json"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "recordRiskPolicyApplicationAudit"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "riskPolicyApplicationAudit"
+require_contains "checks/verify-v0.9.0-risk-policy-application-audit.sh" "GH-852-VERIFY-V090-RISK-POLICY-APPLICATION-AUDIT"
+require_contains "checks/verify-v0.9.0-risk-policy-application-audit.sh" "TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT"
+require_contains "checks/verify-v0.9.0-risk-policy-application-audit.sh" "V090-010-RISK-POLICY-APPLICATION-AUDIT"
+require_contains "checks/run.sh" "bash checks/verify-v0.9.0-risk-policy-application-audit.sh"
+require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "V090-010-RISK-POLICY-APPLICATION-AUDIT"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT"
+require_contains "docs/validation/validation-plan.md" "GH-852 Release v0.9.0 Risk Policy Application Audit Validation"
+require_contains "docs/automation/automation-readiness.md" "Release v0.9.0 Risk policy application audit anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH852RiskPolicyApplicationAuditBindsPolicyVersionHashAndMonitorArtifacts"
+for v090_risk_policy_application_anchor in \
+  "GH-852-VERIFY-V090-RISK-POLICY-APPLICATION-AUDIT" \
+  "TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT" \
+  "V090-010-RISK-POLICY-APPLICATION-AUDIT" \
+  "V090-010-RISK-POLICY-VERSION-HASH" \
+  "V090-010-POLICY-APPLIED-AT" \
+  "V090-010-OPERATOR-CHANGE-REFERENCE" \
+  "V090-010-MONITOR-SESSION-EVIDENCE-BINDING" \
+  "V090-010-LOCAL-PROFILE-EVIDENCE" \
+  "V090-010-NO-POLICY-DRIVEN-ORDER-EXECUTION" \
+  "V090-010-NO-BROKER-PRODUCTION-PATH" \
+  "V090-010-NO-PRODUCTION-CUTOVER"; do
+  require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "$v090_risk_policy_application_anchor"
+  require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "$v090_risk_policy_application_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v090_risk_policy_application_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v090_risk_policy_application_anchor"
+done
 require_contains "docs/release/release-publication-policy.md" "GH-808-RELEASE-PUBLICATION-POLICY"
 require_contains "docs/release/release-publication-policy.md" "V080-002-V070-ACTUAL-GITHUB-RELEASE"
 require_contains "docs/release/release-publication-policy.md" "V080-002-TAG-NAMING-RULES"
