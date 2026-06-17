@@ -195,6 +195,7 @@ require_file "checks/verify-v0.9.0-contract.sh"
 require_file "checks/verify-v0.9.0-v080-publication-alignment.sh"
 require_file "checks/verify-v0.9.0-monitor-session-store.sh"
 require_file "checks/verify-v0.9.0-snapshot-freshness-monitor.sh"
+require_file "checks/verify-v0.9.0-dashboard-observability-timeline.sh"
 require_file "checks/verify-v0.8.0-run-registry-store.sh"
 require_file "checks/verify-v0.8.0-cli-local-session.sh"
 require_file "checks/verify-v0.8.0-operational-session-store.sh"
@@ -301,6 +302,40 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V09
 require_contains "docs/validation/validation-plan.md" "GH-848 Release v0.9.0 Monitor Recovery Workflow Validation"
 require_contains "docs/automation/automation-readiness.md" "Release v0.9.0 monitor recovery workflow anchor"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH848MonitorRecoveryWorkflowPreservesHistoryAndRedactedEvidence"
+require_contains "Sources/Dashboard/Report/ReleaseV090DashboardObservabilityTimelineSurface.swift" "ReleaseV090DashboardObservabilityTimelineSurfaceViewModel"
+require_contains "Sources/Dashboard/Report/ReleaseV090DashboardObservabilityTimelineSurface.swift" "GH-849-VERIFY-V090-DASHBOARD-OBSERVABILITY-TIMELINE"
+require_contains "Sources/Dashboard/Report/ReleaseV090DashboardObservabilityTimelineSurface.swift" "V090-007-DASHBOARD-OBSERVABILITY-TIMELINE"
+require_contains "Sources/Dashboard/Report/ReleaseV090DashboardObservabilityTimelineSurface.swift" "monitor_session.json"
+require_contains "Sources/Dashboard/Report/ReleaseV090DashboardObservabilityTimelineSurface.swift" "account-snapshot-freshness.json"
+require_contains "Sources/Dashboard/Report/ReleaseV090DashboardObservabilityTimelineSurface.swift" "private-stream-heartbeat.json"
+require_contains "Sources/Dashboard/Report/ReleaseV090DashboardObservabilityTimelineSurface.swift" "monitor-recovery.json"
+require_contains "Sources/Dashboard/DashboardShell.swift" "releaseV090ObservabilityTimelineSurface"
+require_contains "checks/verify-v0.9.0-dashboard-observability-timeline.sh" "GH-849-VERIFY-V090-DASHBOARD-OBSERVABILITY-TIMELINE"
+require_contains "checks/verify-v0.9.0-dashboard-observability-timeline.sh" "TVM-RELEASE-V090-DASHBOARD-OBSERVABILITY-TIMELINE"
+require_contains "checks/verify-v0.9.0-dashboard-observability-timeline.sh" "V090-007-DASHBOARD-OBSERVABILITY-TIMELINE"
+require_contains "checks/run.sh" "bash checks/verify-v0.9.0-dashboard-observability-timeline.sh"
+require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "V090-007-DASHBOARD-OBSERVABILITY-TIMELINE"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V090-DASHBOARD-OBSERVABILITY-TIMELINE"
+require_contains "docs/validation/validation-plan.md" "GH-849 Release v0.9.0 Dashboard Observability Timeline Validation"
+require_contains "docs/automation/automation-readiness.md" "Release v0.9.0 Dashboard observability timeline anchor"
+require_contains "Tests/AppTests/AppTests.swift" "testGH849DashboardObservabilityTimelineShowsMonitorArtifactsWithoutCommands"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH849DashboardObservabilityTimelineIsAnchoredInV090Guards"
+for v090_dashboard_observability_anchor in \
+  "GH-849-VERIFY-V090-DASHBOARD-OBSERVABILITY-TIMELINE" \
+  "TVM-RELEASE-V090-DASHBOARD-OBSERVABILITY-TIMELINE" \
+  "V090-007-DASHBOARD-OBSERVABILITY-TIMELINE" \
+  "V090-007-MONITOR-SESSION-ARTIFACTS-ONLY" \
+  "V090-007-SNAPSHOT-PRIVATE-STREAM-FRESHNESS-TIMELINES" \
+  "V090-007-STALE-DISCONNECTED-RECOVERED-EVENTS" \
+  "V090-007-LAST-OBSERVED-EVENT-KIND" \
+  "V090-007-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND" \
+  "V090-007-NO-TESTNET-ORDER-ROUTING" \
+  "V090-007-NO-PRODUCTION-CUTOVER"; do
+  require_contains "Sources/Dashboard/Report/ReleaseV090DashboardObservabilityTimelineSurface.swift" "$v090_dashboard_observability_anchor"
+  require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "$v090_dashboard_observability_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v090_dashboard_observability_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v090_dashboard_observability_anchor"
+done
 require_contains "docs/release/release-publication-policy.md" "GH-808-RELEASE-PUBLICATION-POLICY"
 require_contains "docs/release/release-publication-policy.md" "V080-002-V070-ACTUAL-GITHUB-RELEASE"
 require_contains "docs/release/release-publication-policy.md" "V080-002-TAG-NAMING-RULES"

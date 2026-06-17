@@ -113,6 +113,27 @@
 - fail-closed scope: invalid transition、corrupted monitor-recovery.json、checksum mismatch、recoveredMonitorSessionChecksum mismatch、event history mismatch 和 unsafe listenKey reference 均必须 fail closed。
 - forbidden scope: no automatic reconnect command, no private WebSocket CI runtime, no broker recovery operation, no order command, no raw listenKey persistence, no raw private payload persistence, no credential value persistence, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no trading button, no order form, no production cutover.
 
+## TVM-RELEASE-V090-DASHBOARD-OBSERVABILITY-TIMELINE
+
+- TVM-RELEASE-V090-DASHBOARD-OBSERVABILITY-TIMELINE
+- GH-849-VERIFY-V090-DASHBOARD-OBSERVABILITY-TIMELINE
+- V090-007-DASHBOARD-OBSERVABILITY-TIMELINE
+- V090-007-MONITOR-SESSION-ARTIFACTS-ONLY
+- V090-007-SNAPSHOT-PRIVATE-STREAM-FRESHNESS-TIMELINES
+- V090-007-STALE-DISCONNECTED-RECOVERED-EVENTS
+- V090-007-LAST-OBSERVED-EVENT-KIND
+- V090-007-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+- V090-007-NO-TESTNET-ORDER-ROUTING
+- V090-007-NO-PRODUCTION-CUTOVER
+- GH-849 Release v0.9.0 Dashboard Observability Timeline Validation
+- testGH849DashboardObservabilityTimelineShowsMonitorArtifactsWithoutCommands
+- testGH849DashboardObservabilityTimelineIsAnchoredInV090Guards
+- `bash checks/verify-v0.9.0-dashboard-observability-timeline.sh`
+- Dashboard timeline evidence: snapshot timeline、private stream timeline、freshness timeline、stale / disconnected / recovered events 和 last observed event kind 必须可 inspect。
+- artifact boundary: Dashboard 只展示 `monitor_session.json`、`monitor_events.jsonl`、`monitor_status.json`、`account-snapshot-freshness.json`、`private-stream-heartbeat.json` 和 `monitor-recovery.json` 的 read-model summary，不保存 raw payload。
+- dependency boundary: Dashboard target 不新增 DataClient 或 Database runtime dependency；该 surface 只绑定 Dashboard-safe ViewModel source 和 checksum reference。
+- forbidden scope: no Dashboard command surface, no trading button, no order form, no live command, no notification side effect, no automatic reconnect command, no raw listenKey, no raw private payload, no credential value, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no production cutover.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
