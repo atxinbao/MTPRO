@@ -6,6 +6,23 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-PRODUCTION-ENVIRONMENT-PROFILE
+
+- TVM-RELEASE-V0100-PRODUCTION-ENVIRONMENT-PROFILE
+- GH-880-VERIFY-V0100-PRODUCTION-ENVIRONMENT-PROFILE
+- V0100-003-PRODUCTION-ENVIRONMENT-PROFILE-CONTRACT
+- V0100-003-REFERENCE-ONLY-POLICY-REFS
+- V0100-003-BINANCE-SPOT-USDSM-PERPETUAL-SCOPE
+- V0100-003-PRODUCTION-CUTOVER-DISABLED
+- V0100-003-ORDER-SUBMISSION-DISABLED
+- V0100-003-PRODUCTION-ENDPOINT-CONNECTION-DISABLED
+- GH-880 Release v0.10.0 Production Environment Profile Validation
+- testGH880ProductionEnvironmentProfilePersistsReferencesOnlyAndKeepsProductionDisabled
+- `bash checks/verify-v0.10.0-production-environment-profile.sh`
+- fixed profile schema: `environment=production`、`venue=Binance`、`productTypes=spot,usdsPerpetual`、`endpointPolicyRef=v0.10.0-production-endpoint-policy-ref`、`secretPolicyRef=v0.10.0-production-secret-policy-ref`、`riskPolicyRef=v0.10.0-production-risk-policy-ref`。
+- fixed disabled flags: `referencesOnlyPersisted=true`、`cutoverAuthorized=false`、`orderSubmissionEnabled=false`、`productionEndpointConnectionEnabled=false`、`productionBrokerConnectionEnabled=false`、`productionSecretValueRead=false`、`productionSecretValueStored=false`、`testnetOrderSubmissionEnabled=false`。
+- forbidden scope: no secret value persistence, no production endpoint / broker connection, no production cutover, no testnet or production submit / cancel / replace order, no production OMS, no trading button, no order form, no live command.
+
 ## TVM-RELEASE-V0100-V091-PUBLICATION-POLICY
 
 - TVM-RELEASE-V0100-V091-PUBLICATION-POLICY

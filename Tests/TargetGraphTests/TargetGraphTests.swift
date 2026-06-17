@@ -8518,6 +8518,135 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH880ProductionEnvironmentProfilePersistsReferencesOnlyAndKeepsProductionDisabled() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let profile = try ReleaseV0100ProductionEnvironmentProfile.deterministicFixture()
+
+        XCTAssertTrue(profile.profileHeld)
+        XCTAssertTrue(profile.referenceCoverageHeld)
+        XCTAssertTrue(profile.productionCapabilitiesDisabled)
+        XCTAssertEqual(profile.issueID.rawValue, "GH-880")
+        XCTAssertEqual(profile.upstreamIssueID.rawValue, "GH-878")
+        XCTAssertEqual(profile.downstreamIssueID.rawValue, "GH-881")
+        XCTAssertEqual(profile.canonicalQueueRange, "GH-878..GH-891")
+        XCTAssertEqual(profile.environment, "production")
+        XCTAssertEqual(profile.venue, "Binance")
+        XCTAssertEqual(profile.productTypes, ["spot", "usdsPerpetual"])
+        XCTAssertEqual(
+            Set(profile.policyReferences.map(\.kind)),
+            Set(ReleaseV0100ProductionEnvironmentPolicyReferenceKind.allCases)
+        )
+        XCTAssertTrue(profile.policyReferences.allSatisfy(\.referenceOnlyHeld))
+        XCTAssertTrue(profile.referencesOnlyPersisted)
+        XCTAssertFalse(profile.cutoverAuthorized)
+        XCTAssertFalse(profile.orderSubmissionEnabled)
+        XCTAssertFalse(profile.productionEndpointConnectionEnabled)
+        XCTAssertFalse(profile.productionBrokerConnectionEnabled)
+        XCTAssertFalse(profile.productionSecretValueRead)
+        XCTAssertFalse(profile.productionSecretValueStored)
+        XCTAssertFalse(profile.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(profile.productionOMSRuntimeEnabled)
+        XCTAssertFalse(profile.tradingButtonEnabled)
+        XCTAssertFalse(profile.orderFormEnabled)
+        XCTAssertFalse(profile.liveCommandEnabled)
+
+        XCTAssertThrowsError(try ReleaseV0100ProductionEnvironmentProfile(cutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionEnvironmentProfile(orderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionEnvironmentProfile(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionEnvironmentProfile(productionBrokerConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionEnvironmentProfile(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionEnvironmentProfile(testnetOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(
+            try ReleaseV0100ProductionEnvironmentPolicyReference(
+                kind: .secretPolicy,
+                reference: "forbidden-secret-value",
+                anchor: "forbidden",
+                storesResolvedValue: true
+            )
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100ProductionEnvironmentProfile.swift")
+        let contract = try read("docs/contracts/release-v0.10.0-production-environment-profile-contract.md")
+        let verifier = try read("checks/verify-v0.10.0-production-environment-profile.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "V0100-003-PRODUCTION-ENVIRONMENT-PROFILE-CONTRACT",
+            "V0100-003-REFERENCE-ONLY-POLICY-REFS",
+            "V0100-003-BINANCE-SPOT-USDSM-PERPETUAL-SCOPE",
+            "V0100-003-PRODUCTION-CUTOVER-DISABLED",
+            "V0100-003-ORDER-SUBMISSION-DISABLED",
+            "V0100-003-PRODUCTION-ENDPOINT-CONNECTION-DISABLED",
+            "GH-880-VERIFY-V0100-PRODUCTION-ENVIRONMENT-PROFILE",
+            "TVM-RELEASE-V0100-PRODUCTION-ENVIRONMENT-PROFILE"
+        ]
+        XCTAssertEqual(ReleaseV0100ProductionEnvironmentProfile.requiredValidationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        for exactString in [
+            "environment=production",
+            "venue=Binance",
+            "productTypes=spot,usdsPerpetual",
+            "endpointPolicyRef=v0.10.0-production-endpoint-policy-ref",
+            "secretPolicyRef=v0.10.0-production-secret-policy-ref",
+            "riskPolicyRef=v0.10.0-production-risk-policy-ref",
+            "referencesOnlyPersisted=true",
+            "cutoverAuthorized=false",
+            "orderSubmissionEnabled=false",
+            "productionEndpointConnectionEnabled=false",
+            "productionBrokerConnectionEnabled=false",
+            "productionSecretValueRead=false",
+            "productionSecretValueStored=false",
+            "testnetOrderSubmissionEnabled=false",
+            "storesResolvedValue=false",
+            "readsSecretValue=false",
+            "connectsEndpoint=false",
+            "enablesOrderSubmission=false"
+        ] {
+            XCTAssertTrue(contract.contains(exactString), "\(exactString) must stay fixed in #880 docs")
+        }
+
+        XCTAssertTrue(verifier.contains("MTPRO release v0.10.0 production environment profile verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-production-environment-profile.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-production-environment-profile.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.10.0 production environment profile contract anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-880 Release v0.10.0 Production Environment Profile Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-PRODUCTION-ENVIRONMENT-PROFILE"))
+        XCTAssertTrue(latest.contains("`#880` 定义 reference-only ProductionEnvironmentProfile contract"))
+
+        for forbiddenAuthorization in [
+            "cutoverAuthorized=true",
+            "orderSubmissionEnabled=true",
+            "productionEndpointConnectionEnabled=true",
+            "productionBrokerConnectionEnabled=true",
+            "productionSecretValueRead=true",
+            "productionSecretValueStored=true",
+            "testnetOrderSubmissionEnabled=true",
+            "productionOMSRuntimeEnabled=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(
