@@ -6,6 +6,25 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-884 Release v0.10.0 Kill Switch / No-trade Readiness Gate Validation
+
+- `GH-884-VERIFY-V0100-KILL-SWITCH-NO-TRADE-READINESS-GATE`
+- `TVM-RELEASE-V0100-KILL-SWITCH-NO-TRADE-READINESS-GATE`
+- `V0100-007-KILL-SWITCH-NO-TRADE-READINESS-GATE`
+- `V0100-007-KILL-SWITCH-STATE`
+- `V0100-007-NO-TRADE-STATE`
+- `V0100-007-LAST-OPERATOR-REVIEW`
+- `V0100-007-RISK-APPROVAL-REQUIRED`
+- `V0100-007-CUTOVER-BLOCKED-IF-KILL-SWITCH-ACTIVE`
+- `V0100-007-CUTOVER-BLOCKED-IF-NO-TRADE-ACTIVE`
+- `V0100-007-KILL-SWITCH-READINESS-JSON`
+- `V0100-007-NO-TRADE-READINESS-JSON`
+- `V0100-007-PRODUCTION-CUTOVER-BLOCKED`
+- `V0100-007-PRODUCTION-CAPABILITIES-DISABLED`
+- Required command: `bash checks/verify-v0.10.0-kill-switch-no-trade-readiness-gate.sh`
+- Focused test: `testGH884KillSwitchNoTradeReadinessGateBlocksCutoverAndOrders`
+- Boundary: KillSwitchNoTradeReadinessGate 只持久化 kill switch / no-trade gate state、last operator review、risk approval requirement 和 readiness evidence 文件名，固定 `kill_switch_readiness.json`、`no_trade_readiness.json`、`killSwitchState=active`、`noTradeState=active`、`cutoverBlockedIfKillSwitchActive=true`、`cutoverBlockedIfNoTradeActive=true` 和 `production_cutover_blocked=true`；不连接 production endpoint / broker，不读取 production secret，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## GH-883 Release v0.10.0 Capital / Exposure Limit Readiness Gate Validation
 
 - `GH-883-VERIFY-V0100-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE`

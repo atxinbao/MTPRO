@@ -6,6 +6,27 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-KILL-SWITCH-NO-TRADE-READINESS-GATE
+
+- TVM-RELEASE-V0100-KILL-SWITCH-NO-TRADE-READINESS-GATE
+- GH-884-VERIFY-V0100-KILL-SWITCH-NO-TRADE-READINESS-GATE
+- V0100-007-KILL-SWITCH-NO-TRADE-READINESS-GATE
+- V0100-007-KILL-SWITCH-STATE
+- V0100-007-NO-TRADE-STATE
+- V0100-007-LAST-OPERATOR-REVIEW
+- V0100-007-RISK-APPROVAL-REQUIRED
+- V0100-007-CUTOVER-BLOCKED-IF-KILL-SWITCH-ACTIVE
+- V0100-007-CUTOVER-BLOCKED-IF-NO-TRADE-ACTIVE
+- V0100-007-KILL-SWITCH-READINESS-JSON
+- V0100-007-NO-TRADE-READINESS-JSON
+- V0100-007-PRODUCTION-CUTOVER-BLOCKED
+- V0100-007-PRODUCTION-CAPABILITIES-DISABLED
+- GH-884 Release v0.10.0 Kill Switch / No-trade Readiness Gate Validation
+- `bash checks/verify-v0.10.0-kill-switch-no-trade-readiness-gate.sh`
+- `swift test --filter TargetGraphTests/testGH884KillSwitchNoTradeReadinessGateBlocksCutoverAndOrders`
+- fixed kill switch / no-trade schema: `kill_switch_readiness.json`、`no_trade_readiness.json`、`killSwitchState=active`、`noTradeState=active`、`lastOperatorReview=manual-operator-review-required-before-production-cutover`、`riskApprovalRequired=true`、`cutoverBlockedIfKillSwitchActive=true`、`cutoverBlockedIfNoTradeActive=true` 和 `production_cutover_blocked=true`。
+- Boundary: readiness evidence 不包含 broker / account response，不来自 endpoint connection，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## TVM-RELEASE-V0100-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE
 
 - TVM-RELEASE-V0100-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE
