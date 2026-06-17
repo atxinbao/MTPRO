@@ -141,7 +141,15 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "V090-011-NO-UPLOAD-NOTIFICATION-SIDE-EFFECT",
         "V090-011-NO-RAW-SECRET-LISTENKEY-PRIVATE-PAYLOAD",
         "V090-011-NO-PRODUCTION-DATA-EXPORT",
-        "V090-011-NO-PRODUCTION-CUTOVER"
+        "V090-011-NO-PRODUCTION-CUTOVER",
+        "GH-854-VERIFY-V090-VALIDATION-LANES",
+        "TVM-RELEASE-V090-VALIDATION-LANES",
+        "V090-012-VALIDATION-LANES",
+        "V090-012-DETERMINISTIC-CI-LANE",
+        "V090-012-MANUAL-OPERATOR-TESTNET-LANE",
+        "V090-012-MANUAL-PROOF-NOT-CI-REPLAYABLE",
+        "V090-012-CI-NO-NETWORK-SECRET-ORDER",
+        "V090-012-MANUAL-NO-ORDER-PRODUCTION-CUTOVER"
     ]
 
     public static let requiredValidationCommands: [String] = [
@@ -153,12 +161,480 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "bash checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh",
         "bash checks/verify-v0.9.0-risk-policy-application-audit.sh",
         "bash checks/verify-v0.9.0-run-monitor-export-bundle.sh",
+        "bash checks/verify-v0.9.0-validation-lanes.sh",
         "swift test --filter TargetGraphTests/testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed",
         "swift test --filter TargetGraphTests/testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects",
         "swift test --filter TargetGraphTests/testGH851PortfolioReconciliationTimelineBindsExpectedObservedDeltaAndAckMetadata",
         "swift test --filter TargetGraphTests/testGH852RiskPolicyApplicationAuditBindsPolicyVersionHashAndMonitorArtifacts",
-        "swift test --filter TargetGraphTests/testGH853RunMonitorExportBundleIsChecksumBackedAndRedacted"
+        "swift test --filter TargetGraphTests/testGH853RunMonitorExportBundleIsChecksumBackedAndRedacted",
+        "swift test --filter TargetGraphTests/testGH854ValidationLanesKeepManualProofOutOfCIReplay"
     ]
+}
+
+/// ReleaseV090ValidationLaneKind 固定 GH-854 的两条验证 lane。
+///
+/// CI lane 只允许 deterministic fixture；manual lane 只允许 operator 明确确认后的
+/// testnet read-only proof 摘要。两者不能互相替代，尤其 manual proof 不能被 CI 自动重放。
+public enum ReleaseV090ValidationLaneKind: String, Codable, CaseIterable, Equatable, Sendable {
+    case deterministicCI = "deterministic-ci"
+    case manualOperatorTestnetReadOnly = "manual-operator-testnet-read-only"
+}
+
+/// ReleaseV090ValidationLanePolicy 描述单条 lane 的 no-secret / no-order 边界。
+///
+/// 该类型只建模验证合同，不执行网络请求、不读取 secret、不连接 broker，也不提交、
+/// 取消或替换任何 testnet / production order。
+public struct ReleaseV090ValidationLanePolicy: Codable, Equatable, Sendable {
+    public let laneKind: ReleaseV090ValidationLaneKind
+    public let laneName: String
+    public let artifactPath: String
+    public let deterministicFixtureOnly: Bool
+    public let networkRequired: Bool
+    public let secretRead: Bool
+    public let orderSubmissionAllowed: Bool
+    public let operatorConfirmationRequired: Bool
+    public let credentialReferenceRequired: Bool
+    public let manualProofReferenceRequired: Bool
+    public let manualProofRedacted: Bool
+    public let manualProofReplayableByCI: Bool
+    public let workflowDispatchCanInjectSecret: Bool
+    public let testnetReadOnly: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionCutoverAuthorized: Bool
+    public let policyChecksum: String
+
+    public var policyHeld: Bool {
+        switch laneKind {
+        case .deterministicCI:
+            laneName == "deterministic-ci-proof-lane"
+                && artifactPath == ".local/mtpro/ci/release-v0.9.0/deterministic-validation-lanes.json"
+                && deterministicFixtureOnly
+                && networkRequired == false
+                && secretRead == false
+                && orderSubmissionAllowed == false
+                && operatorConfirmationRequired == false
+                && credentialReferenceRequired == false
+                && manualProofReferenceRequired == false
+                && manualProofRedacted == false
+                && manualProofReplayableByCI == false
+                && workflowDispatchCanInjectSecret == false
+                && testnetReadOnly == false
+                && productionEndpointConnected == false
+                && brokerEndpointConnected == false
+                && productionCutoverAuthorized == false
+                && policyChecksum == Self.stablePolicyChecksum(
+                    laneKind: laneKind,
+                    laneName: laneName,
+                    artifactPath: artifactPath,
+                    deterministicFixtureOnly: deterministicFixtureOnly,
+                    networkRequired: networkRequired,
+                    secretRead: secretRead,
+                    orderSubmissionAllowed: orderSubmissionAllowed,
+                    operatorConfirmationRequired: operatorConfirmationRequired,
+                    credentialReferenceRequired: credentialReferenceRequired,
+                    manualProofReferenceRequired: manualProofReferenceRequired,
+                    manualProofRedacted: manualProofRedacted,
+                    manualProofReplayableByCI: manualProofReplayableByCI,
+                    workflowDispatchCanInjectSecret: workflowDispatchCanInjectSecret,
+                    testnetReadOnly: testnetReadOnly,
+                    productionEndpointConnected: productionEndpointConnected,
+                    brokerEndpointConnected: brokerEndpointConnected,
+                    productionCutoverAuthorized: productionCutoverAuthorized
+                )
+        case .manualOperatorTestnetReadOnly:
+            laneName == "manual-operator-testnet-read-only-lane"
+                && artifactPath == ".local/mtpro/manual-proof/release-v0.9.0/redacted-operator-proof-reference.json"
+                && deterministicFixtureOnly == false
+                && networkRequired
+                && secretRead == false
+                && orderSubmissionAllowed == false
+                && operatorConfirmationRequired
+                && credentialReferenceRequired
+                && manualProofReferenceRequired
+                && manualProofRedacted
+                && manualProofReplayableByCI == false
+                && workflowDispatchCanInjectSecret == false
+                && testnetReadOnly
+                && productionEndpointConnected == false
+                && brokerEndpointConnected == false
+                && productionCutoverAuthorized == false
+                && policyChecksum == Self.stablePolicyChecksum(
+                    laneKind: laneKind,
+                    laneName: laneName,
+                    artifactPath: artifactPath,
+                    deterministicFixtureOnly: deterministicFixtureOnly,
+                    networkRequired: networkRequired,
+                    secretRead: secretRead,
+                    orderSubmissionAllowed: orderSubmissionAllowed,
+                    operatorConfirmationRequired: operatorConfirmationRequired,
+                    credentialReferenceRequired: credentialReferenceRequired,
+                    manualProofReferenceRequired: manualProofReferenceRequired,
+                    manualProofRedacted: manualProofRedacted,
+                    manualProofReplayableByCI: manualProofReplayableByCI,
+                    workflowDispatchCanInjectSecret: workflowDispatchCanInjectSecret,
+                    testnetReadOnly: testnetReadOnly,
+                    productionEndpointConnected: productionEndpointConnected,
+                    brokerEndpointConnected: brokerEndpointConnected,
+                    productionCutoverAuthorized: productionCutoverAuthorized
+                )
+        }
+    }
+
+    public init(
+        laneKind: ReleaseV090ValidationLaneKind,
+        laneName: String,
+        artifactPath: String,
+        deterministicFixtureOnly: Bool,
+        networkRequired: Bool,
+        secretRead: Bool,
+        orderSubmissionAllowed: Bool,
+        operatorConfirmationRequired: Bool,
+        credentialReferenceRequired: Bool,
+        manualProofReferenceRequired: Bool,
+        manualProofRedacted: Bool,
+        manualProofReplayableByCI: Bool = false,
+        workflowDispatchCanInjectSecret: Bool = false,
+        testnetReadOnly: Bool,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        policyChecksum: String? = nil
+    ) throws {
+        self.laneKind = laneKind
+        self.laneName = laneName
+        self.artifactPath = artifactPath
+        self.deterministicFixtureOnly = deterministicFixtureOnly
+        self.networkRequired = networkRequired
+        self.secretRead = secretRead
+        self.orderSubmissionAllowed = orderSubmissionAllowed
+        self.operatorConfirmationRequired = operatorConfirmationRequired
+        self.credentialReferenceRequired = credentialReferenceRequired
+        self.manualProofReferenceRequired = manualProofReferenceRequired
+        self.manualProofRedacted = manualProofRedacted
+        self.manualProofReplayableByCI = manualProofReplayableByCI
+        self.workflowDispatchCanInjectSecret = workflowDispatchCanInjectSecret
+        self.testnetReadOnly = testnetReadOnly
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.policyChecksum = policyChecksum ?? Self.stablePolicyChecksum(
+            laneKind: laneKind,
+            laneName: laneName,
+            artifactPath: artifactPath,
+            deterministicFixtureOnly: deterministicFixtureOnly,
+            networkRequired: networkRequired,
+            secretRead: secretRead,
+            orderSubmissionAllowed: orderSubmissionAllowed,
+            operatorConfirmationRequired: operatorConfirmationRequired,
+            credentialReferenceRequired: credentialReferenceRequired,
+            manualProofReferenceRequired: manualProofReferenceRequired,
+            manualProofRedacted: manualProofRedacted,
+            manualProofReplayableByCI: manualProofReplayableByCI,
+            workflowDispatchCanInjectSecret: workflowDispatchCanInjectSecret,
+            testnetReadOnly: testnetReadOnly,
+            productionEndpointConnected: productionEndpointConnected,
+            brokerEndpointConnected: brokerEndpointConnected,
+            productionCutoverAuthorized: productionCutoverAuthorized
+        )
+
+        guard policyHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("validationLanePolicy")
+        }
+    }
+
+    public static func deterministicCILane() throws -> Self {
+        try Self(
+            laneKind: .deterministicCI,
+            laneName: "deterministic-ci-proof-lane",
+            artifactPath: ".local/mtpro/ci/release-v0.9.0/deterministic-validation-lanes.json",
+            deterministicFixtureOnly: true,
+            networkRequired: false,
+            secretRead: false,
+            orderSubmissionAllowed: false,
+            operatorConfirmationRequired: false,
+            credentialReferenceRequired: false,
+            manualProofReferenceRequired: false,
+            manualProofRedacted: false,
+            testnetReadOnly: false
+        )
+    }
+
+    public static func manualOperatorLane() throws -> Self {
+        try Self(
+            laneKind: .manualOperatorTestnetReadOnly,
+            laneName: "manual-operator-testnet-read-only-lane",
+            artifactPath: ".local/mtpro/manual-proof/release-v0.9.0/redacted-operator-proof-reference.json",
+            deterministicFixtureOnly: false,
+            networkRequired: true,
+            secretRead: false,
+            orderSubmissionAllowed: false,
+            operatorConfirmationRequired: true,
+            credentialReferenceRequired: true,
+            manualProofReferenceRequired: true,
+            manualProofRedacted: true,
+            testnetReadOnly: true
+        )
+    }
+
+    public static func stablePolicyChecksum(
+        laneKind: ReleaseV090ValidationLaneKind,
+        laneName: String,
+        artifactPath: String,
+        deterministicFixtureOnly: Bool,
+        networkRequired: Bool,
+        secretRead: Bool,
+        orderSubmissionAllowed: Bool,
+        operatorConfirmationRequired: Bool,
+        credentialReferenceRequired: Bool,
+        manualProofReferenceRequired: Bool,
+        manualProofRedacted: Bool,
+        manualProofReplayableByCI: Bool,
+        workflowDispatchCanInjectSecret: Bool,
+        testnetReadOnly: Bool,
+        productionEndpointConnected: Bool,
+        brokerEndpointConnected: Bool,
+        productionCutoverAuthorized: Bool
+    ) -> String {
+        stableSHA256([
+            laneKind.rawValue,
+            laneName,
+            artifactPath,
+            "\(deterministicFixtureOnly)",
+            "\(networkRequired)",
+            "\(secretRead)",
+            "\(orderSubmissionAllowed)",
+            "\(operatorConfirmationRequired)",
+            "\(credentialReferenceRequired)",
+            "\(manualProofReferenceRequired)",
+            "\(manualProofRedacted)",
+            "\(manualProofReplayableByCI)",
+            "\(workflowDispatchCanInjectSecret)",
+            "\(testnetReadOnly)",
+            "\(productionEndpointConnected)",
+            "\(brokerEndpointConnected)",
+            "\(productionCutoverAuthorized)"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV090ValidationLaneSplitReadModel 是 GH-854 的 CI / manual lane 分离合同。
+///
+/// 它把 manual operator testnet read-only proof 保留为本地、redacted、不可由 CI 重放的
+/// evidence reference；CI lane 只运行 deterministic guard，不读取 secret，不连接网络。
+public struct ReleaseV090ValidationLaneSplitReadModel: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.9.0.validation-lanes.v1"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let previousIssueID: Identifier
+    public let downstreamIssueID: Identifier
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let validationLanesJSONPath: String
+    public let deterministicCILane: ReleaseV090ValidationLanePolicy
+    public let manualOperatorLane: ReleaseV090ValidationLanePolicy
+    public let ciLaneCommands: [String]
+    public let manualOperatorChecklist: [String]
+    public let manualProofCannotEnterCIReplay: Bool
+    public let manualProofCannotSatisfyRequiredChecks: Bool
+    public let workflowDispatchUsesDeterministicGuardsOnly: Bool
+    public let ciNetworkRequired: Bool
+    public let ciSecretRead: Bool
+    public let ciOrderSubmissionAllowed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+    public let requiredValidationAnchors: [String]
+    public let requiredValidationCommands: [String]
+    public let laneSplitChecksum: String
+
+    public var readModelHeld: Bool {
+        issueID.rawValue == "GH-854"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-853"]
+            && previousIssueID.rawValue == "GH-853"
+            && downstreamIssueID.rawValue == "GH-855"
+            && releaseVersion == "v0.9.0"
+            && schemaVersion == Self.schemaVersion
+            && validationLanesJSONPath == ".local/mtpro/runs/<runID>/testnet-readonly-monitor/validation-lanes.json"
+            && deterministicCILane.policyHeld
+            && manualOperatorLane.policyHeld
+            && ciLaneCommands == [
+                "bash checks/verify-v0.9.0-validation-lanes.sh",
+                "swift test --filter TargetGraphTests/testGH854ValidationLanesKeepManualProofOutOfCIReplay"
+            ]
+            && ciLaneCommands.allSatisfy { command in
+                command.contains("manual-network-proof") == false
+                    && command.contains("manual-proof-reference") == false
+                    && command.contains("MTPRO_TESTNET") == false
+            }
+            && manualOperatorChecklist == [
+                "explicit-operator-confirmation-id",
+                "redacted-credential-reference",
+                "redacted-manual-proof-reference",
+                "testnet-read-only-source-artifact",
+                "no-order-submission-proof"
+            ]
+            && manualProofCannotEnterCIReplay
+            && manualProofCannotSatisfyRequiredChecks
+            && workflowDispatchUsesDeterministicGuardsOnly
+            && ciNetworkRequired == false
+            && ciSecretRead == false
+            && ciOrderSubmissionAllowed == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+            && requiredValidationAnchors == Self.requiredValidationAnchors
+            && requiredValidationCommands == Self.requiredValidationCommands
+            && laneSplitChecksum == Self.stableLaneSplitChecksum(
+                validationLanesJSONPath: validationLanesJSONPath,
+                deterministicCILane: deterministicCILane,
+                manualOperatorLane: manualOperatorLane,
+                ciLaneCommands: ciLaneCommands,
+                manualOperatorChecklist: manualOperatorChecklist
+            )
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-854"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-853")],
+        previousIssueID: Identifier = Identifier.constant("GH-853"),
+        downstreamIssueID: Identifier = Identifier.constant("GH-855"),
+        releaseVersion: String = "v0.9.0",
+        schemaVersion: String = Self.schemaVersion,
+        validationLanesJSONPath: String = ".local/mtpro/runs/<runID>/testnet-readonly-monitor/validation-lanes.json",
+        deterministicCILane: ReleaseV090ValidationLanePolicy,
+        manualOperatorLane: ReleaseV090ValidationLanePolicy,
+        ciLaneCommands: [String] = Self.ciLaneCommands,
+        manualOperatorChecklist: [String] = Self.manualOperatorChecklist,
+        manualProofCannotEnterCIReplay: Bool = true,
+        manualProofCannotSatisfyRequiredChecks: Bool = true,
+        workflowDispatchUsesDeterministicGuardsOnly: Bool = true,
+        ciNetworkRequired: Bool = false,
+        ciSecretRead: Bool = false,
+        ciOrderSubmissionAllowed: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        requiredValidationAnchors: [String] = Self.requiredValidationAnchors,
+        requiredValidationCommands: [String] = Self.requiredValidationCommands,
+        laneSplitChecksum: String? = nil
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.previousIssueID = previousIssueID
+        self.downstreamIssueID = downstreamIssueID
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.validationLanesJSONPath = validationLanesJSONPath
+        self.deterministicCILane = deterministicCILane
+        self.manualOperatorLane = manualOperatorLane
+        self.ciLaneCommands = ciLaneCommands
+        self.manualOperatorChecklist = manualOperatorChecklist
+        self.manualProofCannotEnterCIReplay = manualProofCannotEnterCIReplay
+        self.manualProofCannotSatisfyRequiredChecks = manualProofCannotSatisfyRequiredChecks
+        self.workflowDispatchUsesDeterministicGuardsOnly = workflowDispatchUsesDeterministicGuardsOnly
+        self.ciNetworkRequired = ciNetworkRequired
+        self.ciSecretRead = ciSecretRead
+        self.ciOrderSubmissionAllowed = ciOrderSubmissionAllowed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.requiredValidationAnchors = requiredValidationAnchors
+        self.requiredValidationCommands = requiredValidationCommands
+        self.laneSplitChecksum = laneSplitChecksum ?? Self.stableLaneSplitChecksum(
+            validationLanesJSONPath: validationLanesJSONPath,
+            deterministicCILane: deterministicCILane,
+            manualOperatorLane: manualOperatorLane,
+            ciLaneCommands: ciLaneCommands,
+            manualOperatorChecklist: manualOperatorChecklist
+        )
+
+        guard readModelHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("validationLaneSplitReadModel")
+        }
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-854-VERIFY-V090-VALIDATION-LANES",
+        "TVM-RELEASE-V090-VALIDATION-LANES",
+        "V090-012-VALIDATION-LANES",
+        "V090-012-DETERMINISTIC-CI-LANE",
+        "V090-012-MANUAL-OPERATOR-TESTNET-LANE",
+        "V090-012-MANUAL-PROOF-NOT-CI-REPLAYABLE",
+        "V090-012-CI-NO-NETWORK-SECRET-ORDER",
+        "V090-012-MANUAL-NO-ORDER-PRODUCTION-CUTOVER"
+    ]
+
+    public static let requiredValidationCommands = [
+        "swift test --filter TargetGraphTests/testGH854ValidationLanesKeepManualProofOutOfCIReplay",
+        "bash checks/verify-v0.9.0-validation-lanes.sh",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+
+    public static let ciLaneCommands = [
+        "bash checks/verify-v0.9.0-validation-lanes.sh",
+        "swift test --filter TargetGraphTests/testGH854ValidationLanesKeepManualProofOutOfCIReplay"
+    ]
+
+    public static let manualOperatorChecklist = [
+        "explicit-operator-confirmation-id",
+        "redacted-credential-reference",
+        "redacted-manual-proof-reference",
+        "testnet-read-only-source-artifact",
+        "no-order-submission-proof"
+    ]
+
+    public static func deterministicFixture() throws -> Self {
+        try Self(
+            deterministicCILane: ReleaseV090ValidationLanePolicy.deterministicCILane(),
+            manualOperatorLane: ReleaseV090ValidationLanePolicy.manualOperatorLane()
+        )
+    }
+
+    public static func stableLaneSplitChecksum(
+        validationLanesJSONPath: String,
+        deterministicCILane: ReleaseV090ValidationLanePolicy,
+        manualOperatorLane: ReleaseV090ValidationLanePolicy,
+        ciLaneCommands: [String],
+        manualOperatorChecklist: [String]
+    ) -> String {
+        stableSHA256([
+            validationLanesJSONPath,
+            deterministicCILane.policyChecksum,
+            manualOperatorLane.policyChecksum,
+            ciLaneCommands.joined(separator: ","),
+            manualOperatorChecklist.joined(separator: ",")
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
 }
 
 /// ReleaseV090TestnetReadOnlyMonitorState 固定 GH-845 monitor session 的本地状态分类。

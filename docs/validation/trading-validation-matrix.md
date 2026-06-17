@@ -218,6 +218,23 @@
 - redaction proof: manifest 必须记录 aggregate redaction proof checksum，并证明 raw secret、raw listenKey、raw private payload、broker command payload 和 order request payload 未进入 export artifact。
 - forbidden scope: no upload, no external sharing, no notification / webhook, no production data export, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no production cutover.
 
+## TVM-RELEASE-V090-VALIDATION-LANES
+
+- TVM-RELEASE-V090-VALIDATION-LANES
+- GH-854-VERIFY-V090-VALIDATION-LANES
+- V090-012-VALIDATION-LANES
+- V090-012-DETERMINISTIC-CI-LANE
+- V090-012-MANUAL-OPERATOR-TESTNET-LANE
+- V090-012-MANUAL-PROOF-NOT-CI-REPLAYABLE
+- V090-012-CI-NO-NETWORK-SECRET-ORDER
+- V090-012-MANUAL-NO-ORDER-PRODUCTION-CUTOVER
+- GH-854 Release v0.9.0 Validation Lanes Hardening Validation
+- testGH854ValidationLanesKeepManualProofOutOfCIReplay
+- `bash checks/verify-v0.9.0-validation-lanes.sh`
+- CI lane: deterministic fixture only; `ciNetworkRequired=false`、`ciSecretRead=false`、`ciOrderSubmissionAllowed=false`、`workflowDispatchCanInjectSecret=false`。
+- manual lane: operator confirmed testnet read-only proof reference only; `manualOperatorConfirmationRequired=true`、`manualProofRedacted=true`、`manualOrderSubmissionAllowed=false`、`manualProofReplayableByCI=false`。
+- forbidden scope: manual proof cannot be replayed by CI, cannot satisfy required checks, cannot inject secret through workflow_dispatch, no testnet submit / cancel / replace, no production secret read, no production endpoint / broker connection, no production cutover.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT

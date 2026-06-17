@@ -482,6 +482,37 @@ for v090_run_monitor_export_anchor in \
   require_contains "docs/validation/trading-validation-matrix.md" "$v090_run_monitor_export_anchor"
   require_contains "docs/validation/validation-plan.md" "$v090_run_monitor_export_anchor"
 done
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090ValidationLaneSplitReadModel"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090ValidationLanePolicy"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "manualProofCannotEnterCIReplay"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "manualProofCannotSatisfyRequiredChecks"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "workflowDispatchUsesDeterministicGuardsOnly"
+require_contains "checks/verify-v0.9.0-validation-lanes.sh" "GH-854-VERIFY-V090-VALIDATION-LANES"
+require_contains "checks/verify-v0.9.0-validation-lanes.sh" "TVM-RELEASE-V090-VALIDATION-LANES"
+require_contains "checks/verify-v0.9.0-validation-lanes.sh" "V090-012-VALIDATION-LANES"
+require_contains "checks/run.sh" "bash checks/verify-v0.9.0-validation-lanes.sh"
+require_contains "docs/operators/release-v0.9.0-validation-lanes-runbook.md" "GH-854-RELEASE-V090-VALIDATION-LANES-RUNBOOK"
+require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "V090-012-VALIDATION-LANES"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V090-VALIDATION-LANES"
+require_contains "docs/validation/validation-plan.md" "GH-854 Release v0.9.0 Validation Lanes Hardening Validation"
+require_contains "docs/automation/automation-readiness.md" "Release v0.9.0 validation lanes hardening anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH854ValidationLanesKeepManualProofOutOfCIReplay"
+for v090_validation_lanes_anchor in \
+  "GH-854-VERIFY-V090-VALIDATION-LANES" \
+  "TVM-RELEASE-V090-VALIDATION-LANES" \
+  "V090-012-VALIDATION-LANES" \
+  "V090-012-DETERMINISTIC-CI-LANE" \
+  "V090-012-MANUAL-OPERATOR-TESTNET-LANE" \
+  "V090-012-MANUAL-PROOF-NOT-CI-REPLAYABLE" \
+  "V090-012-CI-NO-NETWORK-SECRET-ORDER" \
+  "V090-012-MANUAL-NO-ORDER-PRODUCTION-CUTOVER"; do
+  require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "$v090_validation_lanes_anchor"
+  require_contains "checks/verify-v0.9.0-validation-lanes.sh" "$v090_validation_lanes_anchor"
+  require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "$v090_validation_lanes_anchor"
+  require_contains "docs/operators/release-v0.9.0-validation-lanes-runbook.md" "$v090_validation_lanes_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v090_validation_lanes_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v090_validation_lanes_anchor"
+done
 require_contains "docs/release/release-publication-policy.md" "GH-808-RELEASE-PUBLICATION-POLICY"
 require_contains "docs/release/release-publication-policy.md" "V080-002-V070-ACTUAL-GITHUB-RELEASE"
 require_contains "docs/release/release-publication-policy.md" "V080-002-TAG-NAMING-RULES"

@@ -170,6 +170,20 @@
 - Focused test: `testGH853RunMonitorExportBundleIsChecksumBackedAndRedacted`
 - Boundary: GH-853 只新增本地 run / monitor export bundle manifest，聚合 run、monitor、Risk policy 和 Portfolio reconciliation evidence 的 checksum 与 redaction proof；export bundle 不上传、不通知、不包含 raw secret / listenKey / private payload，不导出 production data，不提交 testnet 或 production order，不授权 production cutover。
 
+## GH-854 Release v0.9.0 Validation Lanes Hardening Validation
+
+- `GH-854-VERIFY-V090-VALIDATION-LANES`
+- `TVM-RELEASE-V090-VALIDATION-LANES`
+- `V090-012-VALIDATION-LANES`
+- `V090-012-DETERMINISTIC-CI-LANE`
+- `V090-012-MANUAL-OPERATOR-TESTNET-LANE`
+- `V090-012-MANUAL-PROOF-NOT-CI-REPLAYABLE`
+- `V090-012-CI-NO-NETWORK-SECRET-ORDER`
+- `V090-012-MANUAL-NO-ORDER-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.9.0-validation-lanes.sh`
+- Focused test: `testGH854ValidationLanesKeepManualProofOutOfCIReplay`
+- Boundary: GH-854 只强化 CI / manual validation lane split。CI lane 只运行 deterministic fixture、source/docs/script anchor 和 no-order guard，不打开 network、不读取 secret、不重放 manual proof；manual lane 只记录 operator confirmed testnet read-only redacted proof reference，manual proof 不能满足 required checks，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`

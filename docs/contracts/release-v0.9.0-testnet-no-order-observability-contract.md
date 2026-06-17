@@ -472,6 +472,50 @@ Export bundle 必须保存 aggregate redaction proof checksum，证明 raw secre
 
 GH-853 保持 local export only：不上传、不外部分享、不发送 notification / webhook，不导出 production data，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
 
+## V090-012-VALIDATION-LANES
+
+`GH-854-VERIFY-V090-VALIDATION-LANES`
+`TVM-RELEASE-V090-VALIDATION-LANES`
+`V090-012-VALIDATION-LANES`
+
+GH-854 将 v0.9.0 validation lanes 从 GH-843 的基础定义提升为独立 guard。CI lane 只能运行 deterministic fixture 和 source / docs / script anchor checks；manual operator lane 只能记录 operator 明确确认过的 Binance testnet read-only proof reference。两条 lane 不共享执行入口，manual proof cannot be replayed by CI，manual proof 也不能满足 required checks。
+
+### V090-012-DETERMINISTIC-CI-LANE
+
+`V090-012-DETERMINISTIC-CI-LANE`
+
+Deterministic CI lane 只允许：
+
+- `ciNetworkRequired=false`
+- `ciSecretRead=false`
+- `ciOrderSubmissionAllowed=false`
+- deterministic fixture / contract anchor / redaction boundary / artifact schema check
+- required checks 中的 `bash checks/verify-v0.9.0-validation-lanes.sh`
+
+CI lane 不接收 credential value，不读取 testnet 或 production secret，不连接 testnet / production endpoint，不读取 manual proof reference，不重放 operator network proof。
+
+### V090-012-MANUAL-OPERATOR-TESTNET-LANE
+
+`V090-012-MANUAL-OPERATOR-TESTNET-LANE`
+
+Manual operator lane 只允许 operator 手动确认后的 testnet read-only evidence reference。它必须固定：
+
+- `manualOperatorConfirmationRequired=true`
+- `manualProofRedacted=true`
+- `manualOrderSubmissionAllowed=false`
+- `manualProofReplayableByCI=false`
+- `workflowDispatchCanInjectSecret=false`
+
+Manual lane artifact 只能保存 redacted credential reference、redacted manual proof reference、testnet read-only source artifact reference 和 no-order proof summary。它不得保存 raw credential、raw listenKey、raw private payload、broker state、order request、testnet submit / cancel / replace payload、production endpoint 或 production cutover authorization。
+
+### V090-012-FORBIDDEN-CAPABILITIES
+
+`V090-012-MANUAL-PROOF-NOT-CI-REPLAYABLE`
+`V090-012-CI-NO-NETWORK-SECRET-ORDER`
+`V090-012-MANUAL-NO-ORDER-PRODUCTION-CUTOVER`
+
+GH-854 不新增 runtime pipeline，不打开 CI network，不读取 secret，不提交 testnet 或 production order，不授权 production cutover。Manual proof 只作为 operator audit evidence，不是 required check input、不是 CI replay source、不是 Dashboard / CLI command source。
+
 ## V090-001-DOWNSTREAM-QUEUE-ORDER
 
 `V090-001-DOWNSTREAM-QUEUE-ORDER`

@@ -124,6 +124,7 @@ bash checks/verify-v0.9.0-alert-read-model.sh
 bash checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh
 bash checks/verify-v0.9.0-risk-policy-application-audit.sh
 bash checks/verify-v0.9.0-run-monitor-export-bundle.sh
+bash checks/verify-v0.9.0-validation-lanes.sh
 bash checks/verify-v0.8.0-run-registry-store.sh
 bash checks/verify-v0.8.0-cli-local-session.sh
 bash checks/verify-v0.8.0-operational-session-store.sh
