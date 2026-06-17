@@ -42,7 +42,7 @@ Project：`MTPRO Release v0.9.0 Testnet No-order Observability`
 
 该结论只表示 Binance-only、Spot + USDⓈ-M Perpetual、EMA + RSI 的 testnet read-only no-order observability contract、v0.8.0 publication alignment carry-forward、persistent monitor session store、signed account snapshot freshness monitor、private stream heartbeat / staleness monitor、monitor recovery workflow、Dashboard observability timeline、alert read-model、Portfolio reconciliation timeline、Risk policy application audit、run monitor export bundle、CI/manual validation lane split、Dashboard / CLI operator UX 和 final docs/runbook closure 已闭环。它不表示 production trading 已获授权，不表示真实 broker 已连接，不表示 production secret 可读取，不表示 production endpoint / broker endpoint 可连接，也不表示 testnet 或 production submit / cancel / replace、production OMS、production reconciliation、Live PRO Console production command、trading button、live command 或 order form 已启用。
 
-本报告和 root docs refresh 只同步已发生事实；不创建下一 Project / Issue，不推进 release v0.9.0 之后的阶段，不启动 Linear、Symphony / `symphony-issue`，不运行 Graphify / code-index，不修改 Figma，不发布 tag，不授权 production cutover。
+本报告和 root docs refresh 只同步 construction closeout 已发生事实；不创建下一 Project / Issue，不推进 release v0.9.0 之后的阶段，不启动 Linear、Symphony / `symphony-issue`，不运行 Graphify / code-index，不修改 Figma，不授权 production cutover。后续独立 release publication gate 已发布 v0.9.0 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`，target commit `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`；该 publication 不授权 production cutover。
 
 ## Repository State Evidence
 
@@ -180,7 +180,7 @@ Release v0.9.0 remains closed for these capabilities by default:
 - `docs/roadmap.md` adds `MTPRO Release v0.9.0 Testnet No-order Observability` to completed Project map, updates Project Closure Count to `43 / 43 (100%)`, and sets latest completed Project / maturity statement to the v0.9.0 closure.
 - `docs/validation/latest-verification-summary.md` records the final audit report, issue / PR / checks evidence, validation result and no-default-production-trading boundary.
 - `docs/operators/release-v0.9.0-testnet-no-order-observability-runbook.md` records local operator validation and testnet read-only observability proof.
-- `docs/release/mtpro-release-v0.9.0-testnet-no-order-observability-notes.md` records release notes for the completed docs closeout. It does not create a Git tag or GitHub Release.
+- `docs/release/mtpro-release-v0.9.0-testnet-no-order-observability-notes.md` records release notes for the completed docs closeout and the later independent v0.9.0 stable GitHub Release publication fact. Construction closeout itself did not create a Git tag or GitHub Release.
 - `docs/validation/validation-plan.md` and `docs/validation/trading-validation-matrix.md` record `TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK`.
 - `docs/automation/automation-readiness.md` and `checks/automation-readiness.sh` mechanically guard this final audit report and v0.9.0 verification command.
 

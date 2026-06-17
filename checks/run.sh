@@ -127,6 +127,7 @@ bash checks/verify-v0.9.0-run-monitor-export-bundle.sh
 bash checks/verify-v0.9.0-validation-lanes.sh
 bash checks/verify-v0.9.0-dashboard-cli-operator-ux.sh
 bash checks/verify-v0.9.0.sh
+bash checks/verify-v0.9.1.sh
 bash checks/verify-v0.8.0-run-registry-store.sh
 bash checks/verify-v0.8.0-cli-local-session.sh
 bash checks/verify-v0.8.0-operational-session-store.sh

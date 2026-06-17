@@ -20,6 +20,7 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
 | Active queue | v0.9.0 final audit / docs / runbook 由 GitHub issue `#856` closure PR 收口；PR merge 后不得自动推进下一 Project / Issue |
 | Stage Code Audit Report | `docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md` |
+| Release publication | v0.9.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`；target commit `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`；不授权 production cutover |
 | Progress | Project Closure Count: 43 / 43 (100%)；Current Foundation Progress: 4 / 4 (100%)；Final Product Goal Progress: 9 / 9 (100%)；Engine Maturity Roadmap Progress: 4 / 4（100%） |
 
 ## Boundary
@@ -34,6 +35,8 @@ productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing
 
 Stage Code Audit Report：`docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md`。
 
+Post-closeout release publication：v0.9.0 stable GitHub Release 已通过独立 publication gate 发布，URL 为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`，target commit 为 `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`。该 publication 只发布已完成 no-order observability evidence，不授权 production cutover。
+
 本阶段只收口 testnet read-only no-order observability、persistent monitor session、signed account snapshot freshness、private stream heartbeat / staleness、monitor recovery observe、Dashboard observability timeline、alert read-model、Portfolio reconciliation timeline、Risk policy application audit、run monitor export bundle、validation lanes split、Dashboard / CLI operator UX 和 no-production guard。Production trading 仍默认关闭；不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Project / Issue。
 
 本地验证入口：
@@ -41,9 +44,28 @@ Stage Code Audit Report：`docs/audit/mtpro-release-v0.9.0-testnet-no-order-obse
 ```bash
 git diff --check
 bash checks/automation-readiness.sh
+bash checks/verify-v0.9.1.sh
 bash checks/verify-v0.9.0.sh
 bash checks/run.sh
 ```
+
+## Release v0.9.1 Audit Hardening Patch Snapshot
+
+`V091-006-VERIFY-PATCH-AUDIT-DOCS-RUNBOOK`
+
+`MTPRO Release v0.9.1 v0.9.0 Audit Hardening Patch` 只收口 v0.9.0 tag 静态审计发现的边界漂移风险，不发布 tag，不创建 GitHub Release，不推进下一阶段。
+
+Patch evidence：
+
+- Stage Code Audit Report：`docs/audit/mtpro-release-v0.9.1-v090-audit-hardening-stage-code-audit.md`
+- Release notes：`docs/release/mtpro-release-v0.9.1-v090-audit-hardening-notes.md`
+- Aggregate verifier：`checks/verify-v0.9.1.sh`
+- Dashboard macOS guard：`checks/verify-v0.9.1-dashboard-macos-v090-guards.sh`
+- CLI verify wording guard：`checks/verify-v0.9.1-cli-verify-v090-wording.sh`
+
+本 patch 固定：Dashboard macOS lane 必须先运行 v0.9.0 focused guards；`mtpro verify` 当前输出必须是 `mtpro verify v0.9.0`；`mtpro monitor` actions 必须绑定 `ReleaseV090TestnetReadOnlyMonitorSessionStore`；`testnet-read-only-monitor` 是当前 runtime mode，`testnet-read-only-probe` 只保留为 legacy compatibility。
+
+Production trading 仍默认关闭；不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
 
 ## Release v0.8.1 Patch Closeout Snapshot
 

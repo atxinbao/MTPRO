@@ -8,7 +8,18 @@
 
 v0.9.0 是 `Testnet No-order Observability` construction closure docs。它收口 GitHub fallback queue `GH-843..GH-856` 的 testnet read-only no-order observability contract、monitor session persistence、snapshot freshness、private stream heartbeat、recovery workflow、Dashboard / CLI observability、alert read-model、Portfolio reconciliation timeline、Risk policy audit、export bundle、validation lanes、operator UX、Stage Code Audit 和 root docs refresh。
 
-本文档是 v0.9.0 construction closeout 的 release notes evidence。它不创建 Git tag，不创建 GitHub Release，不移动已有 release，不授权 production cutover，不创建下一 Project / Issue。
+本文档最初是 v0.9.0 construction closeout 的 release notes evidence。construction closeout 本身不创建 Git tag、不创建 GitHub Release、不移动已有 release、不授权 production cutover、不创建下一 Project / Issue。
+
+后续独立 release publication gate 已完成 v0.9.0 stable GitHub Release publication：
+
+- release tag：`v0.9.0`
+- release title：`MTPRO v0.9.0 Testnet No-order Observability`
+- release URL：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`
+- release type：stable release；非 draft；非 prerelease
+- tag peeled commit：`4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`
+- publication timestamp：`2026-06-17T17:09:19Z`
+
+该 publication 只发布已完成的 v0.9.0 no-order observability evidence，不授权 production cutover、不读取 secret、不连接 production endpoint / broker endpoint、不发送 testnet 或 production order。
 
 ## Scope
 

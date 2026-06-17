@@ -16580,3 +16580,46 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: required whitespace validation.
   - `bash checks/automation-readiness.sh`: required readiness validation.
   - `bash checks/run.sh`: required full local validation.
+
+## 2026-06-18 - v0.9.0 Release Publication Fact Audit Fix
+
+- Executor: Codex.
+- Scope:
+  - Audited the already-published stable GitHub Release `v0.9.0`.
+  - Confirmed release URL: `https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`.
+  - Confirmed tag peeled commit: `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`.
+  - Updated root/release/validation docs so v0.9.0 is no longer described as publication-pending.
+  - Added v0.9.0 publication-fact guards to `checks/verify-v0.9.0.sh` and `TargetGraphTests/testGH856ReleaseV090FinalAuditDocsRunbookCloseCompletedFactsOnly`.
+- Boundary:
+  - Did not move or rewrite the existing `v0.9.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+- Validation:
+  - `bash checks/verify-v0.9.0.sh`: pass.
+  - `swift test --filter TargetGraphTests/testGH856ReleaseV090FinalAuditDocsRunbookCloseCompletedFactsOnly`: pass.
+
+## 2026-06-18 - v0.9.1 v0.9.0 Audit Hardening Patch
+
+- Executor: Codex.
+- Scope:
+  - Fixed v0.9.0 audit findings without moving or rewriting the existing `v0.9.0` tag or GitHub Release.
+  - Added Dashboard macOS v0.9 focused guard coverage before Dashboard build / smoke.
+  - Updated `mtpro verify` wording to current `v0.9.0` release facts while retaining historical v0.8 / v0.7 evidence.
+  - Bound monitor CLI actions to `ReleaseV090TestnetReadOnlyMonitorSessionStore` evidence instead of pure placeholder output.
+  - Standardized current runtime mode wording to `testnet-read-only-monitor` while keeping `testnet-read-only-probe` as legacy.
+  - Added v0.9.1 patch audit notes, release notes, aggregate verification script, and automation readiness anchors.
+- Boundary:
+  - Did not create a `v0.9.1` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not add trading buttons, order forms, OMS production commands, or broker submission paths.
+- Validation:
+  - `bash checks/verify-v0.9.1-dashboard-macos-v090-guards.sh`: required Dashboard macOS v0.9 focused guard.
+  - `bash checks/verify-v0.9.1-cli-verify-v090-wording.sh`: required CLI verify v0.9.0 wording guard.
+  - `swift test --filter TargetGraphTests/testV091DashboardGuardAndCLIMonitorStoreBindingPatch`: required focused patch guard.
+  - `bash checks/verify-v0.9.1.sh`: required aggregate v0.9.1 patch validation.
+  - `git diff --check`: required whitespace validation.
+  - `bash checks/automation-readiness.sh`: required readiness validation.
+  - `bash checks/run.sh`: required full local validation.

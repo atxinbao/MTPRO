@@ -44,6 +44,8 @@ private enum MTPROStrictCLI {
     static let riskPolicyProfileAnchor = "TVM-RELEASE-V080-RISK-POLICY-PROFILE-MANAGEMENT"
     static let releaseV080VerificationAnchor = "GH-820-VERIFY-V080-FINAL-AUDIT-DOCS-RUNBOOK"
     static let releaseV080ValidationAnchor = "TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK"
+    static let releaseV090VerificationAnchor = "GH-856-VERIFY-V090-FINAL-AUDIT-DOCS-RUNBOOK"
+    static let releaseV090ValidationAnchor = "TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
     static let releaseV090OperatorUXVerificationAnchor = "GH-855-VERIFY-V090-DASHBOARD-CLI-OPERATOR-UX"
     static let releaseV090OperatorUXValidationAnchor = "TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX"
     static let releaseV090OperatorUXRequiredAnchors = [
@@ -166,7 +168,8 @@ private enum MTPROStrictCLI {
             "runtimeSessionContract=v0.7.0",
             "persistentLocalSessionContract=v0.8.0",
             "riskPolicyProfileContract=v0.8.0",
-            "runtimeModes=local-dry-run,testnet-read-only-probe,production-blocked",
+            "runtimeModes=local-dry-run,testnet-read-only-monitor,recovery-observe,production-blocked",
+            "legacyRuntimeModes=testnet-read-only-probe",
             "localSessionActions=run,status,stop,recover",
             "riskPolicyActions=\(riskPolicySupportedActionCommands.joined(separator: ","))",
             "monitorActions=\(monitorSupportedActionCommands.joined(separator: ","))",
@@ -197,16 +200,17 @@ private enum MTPROStrictCLI {
             )
         }
         let runID = arguments.count == 3 ? arguments[2] : "latest"
+        let binding = try ReleaseV090CLIMonitorSessionBinder().perform(action: action, runID: Identifier.constant(runID))
         let localArtifactMutationOnly = ["start", "stop", "recover"].contains(action)
         let readOnlySnapshotOnly = ["status", "export"].contains(action)
         let monitorState: String
         switch action {
         case "start":
-            monitorState = "observing"
+            monitorState = binding.operatorState
         case "status":
             monitorState = "read-only-status"
         case "stop":
-            monitorState = "stopped"
+            monitorState = binding.operatorState
         case "recover":
             monitorState = "recovered"
         default:
@@ -223,14 +227,18 @@ private enum MTPROStrictCLI {
             "monitorAction=\(action)",
             "runID=\(runID)",
             "monitorState=\(monitorState)",
+            "monitorStoreBinding=ReleaseV090TestnetReadOnlyMonitorSessionStore",
+            "monitorStoreMutationApplied=\(binding.storeMutationApplied)",
+            "monitorStoreSessionState=\(binding.session.state.rawValue)",
+            "monitorStoreStatusChecksum=\(binding.status.statusChecksum)",
             "cliMonitorCommands=\(monitorSupportedActionCommands.joined(separator: ","))",
             "dashboardMonitorSurfaces=monitor-state,timelines,alerts,export-status,safe-local-controls",
-            "monitorSessionPath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor_session.json",
-            "monitorStatusPath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor_status.json",
-            "monitorTimelinePath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor_events.jsonl",
-            "alertReadModelPath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor-alerts.json",
-            "exportBundlePath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/run-monitor-export-bundle.json",
-            "exportStatusPath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/export-status.json",
+            "monitorSessionPath=\(binding.session.artifactPaths.monitorSessionJSONPath)",
+            "monitorStatusPath=\(binding.session.artifactPaths.monitorStatusJSONPath)",
+            "monitorTimelinePath=\(binding.session.artifactPaths.monitorEventsJSONLPath)",
+            "alertReadModelPath=\(binding.session.artifactPaths.monitorDirectoryPath)/monitor-alerts.json",
+            "exportBundlePath=\(binding.session.artifactPaths.runMonitorExportBundleJSONPath)",
+            "exportStatusPath=\(binding.session.artifactPaths.monitorDirectoryPath)/export-status.json",
             "localArtifactMutationOnly=\(localArtifactMutationOnly)",
             "readOnlySnapshotOnly=\(readOnlySnapshotOnly)",
             "manualProofReplayableByCI=false",
@@ -564,15 +572,17 @@ private enum MTPROStrictCLI {
 
     private static func verifyOutput() -> String {
         [
-            "mtpro verify v0.8.0",
-            "issue=GH-820",
-            "validationAnchor=\(releaseV080ValidationAnchor)",
-            "verificationAnchor=\(releaseV080VerificationAnchor)",
+            "mtpro verify v0.9.0",
+            "issue=GH-856",
+            "validationAnchor=\(releaseV090ValidationAnchor)",
+            "verificationAnchor=\(releaseV090VerificationAnchor)",
             "wordingGuard=\(cliVerifyV080WordingAnchor)",
             "wordingValidationAnchor=\(cliVerifyV080WordingValidationAnchor)",
             "persistentValidationAnchor=\(persistentLocalSessionAnchor)",
             "persistentVerificationAnchor=\(persistentLocalSessionVerificationAnchor)",
-            "checks=verify-v0.8.0-contract,verify-v0.8.0-release-publication-policy,verify-v0.8.0-cli-local-session,verify-v0.8.0-validation-lanes,verify-v0.8.0,automation-readiness,checks-run",
+            "checks=verify-v0.9.0-contract,verify-v0.9.0-dashboard-cli-operator-ux,verify-v0.9.0,automation-readiness,checks-run",
+            "historicalV080Issue=GH-820",
+            "historicalV080Checks=verify-v0.8.0-contract,verify-v0.8.0-release-publication-policy,verify-v0.8.0-cli-local-session,verify-v0.8.0-validation-lanes,verify-v0.8.0",
             "historicalV070Checks=verify-v0.7.0-contract,verify-v0.7.0-testnet-endpoint-policy,verify-v0.7.0-cli",
             "requiredAnchors=\(cliVerifyV080WordingRequiredAnchors.joined(separator: ","))",
             "unknownCommandFailure=mtpro.strict.arguments",
@@ -597,6 +607,10 @@ private enum MTPROStrictCLI {
         switch parsed.mode {
         case "dry-run", "local-dry-run":
             return "local-dry-run"
+        case "testnet-read-only-monitor":
+            return "testnet-read-only-monitor"
+        case "recovery-observe":
+            return "recovery-observe"
         case "testnet-read-only-probe":
             return "testnet-read-only-probe"
         case "production":
@@ -608,7 +622,7 @@ private enum MTPROStrictCLI {
         default:
             throw MTPROCLIParserError.invalidArguments(
                 field: "mtpro.run.arguments",
-                expected: "run [--mode dry-run|testnet-read-only-probe] [--run-id id]",
+                expected: "run [--mode dry-run|testnet-read-only-monitor|recovery-observe|testnet-read-only-probe] [--run-id id]",
                 actual: arguments.joined(separator: " ")
             )
         }
@@ -658,7 +672,7 @@ private enum MTPROStrictCLI {
             default:
                 throw MTPROCLIParserError.invalidArguments(
                     field: "mtpro.run.arguments",
-                    expected: "run [--mode dry-run|testnet-read-only-probe] [--run-id id]",
+                    expected: "run [--mode dry-run|testnet-read-only-monitor|recovery-observe|testnet-read-only-probe] [--run-id id]",
                     actual: arguments.joined(separator: " ")
                 )
             }
@@ -674,6 +688,167 @@ private enum MTPROStrictCLI {
                 actual: arguments.joined(separator: " ")
             )
         }
+    }
+}
+
+/// ReleaseV090CLIMonitorSessionBinder 将 `mtpro monitor` 绑定到 v0.9.0 本地 monitor session store。
+///
+/// 该绑定层只读写 `.local/mtpro/runs/<runID>/testnet-readonly-monitor/` 下的
+/// monitor_session / monitor_status / monitor_events evidence；不读取 secret、不连接
+/// endpoint / broker，也不创建 testnet 或 production order。
+private struct ReleaseV090CLIMonitorSessionBinder {
+    private static let rootEnvironmentKey = "MTPRO_LOCAL_RUNS_ROOT"
+
+    let storageRootURL: URL
+    let store: ReleaseV090TestnetReadOnlyMonitorSessionStore
+
+    init(storageRootURL: URL? = nil, fileManager: FileManager = .default) {
+        if let storageRootURL {
+            self.storageRootURL = storageRootURL
+        } else if let override = ProcessInfo.processInfo.environment[Self.rootEnvironmentKey], override.isEmpty == false {
+            self.storageRootURL = URL(fileURLWithPath: override, isDirectory: true)
+        } else {
+            self.storageRootURL = URL(fileURLWithPath: ".local/mtpro/runs", isDirectory: true)
+        }
+        self.store = ReleaseV090TestnetReadOnlyMonitorSessionStore(
+            storageRootURL: self.storageRootURL,
+            fileManager: fileManager
+        )
+    }
+
+    struct Result {
+        let session: ReleaseV090TestnetReadOnlyMonitorSessionDocument
+        let status: ReleaseV090TestnetReadOnlyMonitorStatusDocument
+        let storeMutationApplied: Bool
+        let operatorState: String
+    }
+
+    func perform(action: String, runID: Identifier) throws -> Result {
+        let now = Self.canonicalNow()
+        switch action {
+        case "start":
+            let session = try startedSession(runID: runID, at: now)
+            return try result(session: session, mutationApplied: true, operatorState: "observing")
+        case "status":
+            let session = try requireExistingSession(runID: runID)
+            return try result(session: session, mutationApplied: false, operatorState: "read-only-status")
+        case "stop":
+            let session = try stoppedSession(runID: runID, at: now)
+            return try result(session: session, mutationApplied: true, operatorState: "stopped")
+        case "recover":
+            let session = try recoveredSession(runID: runID, at: now)
+            return try result(session: session, mutationApplied: true, operatorState: "recovered")
+        case "export":
+            let session = try requireExistingSession(runID: runID)
+            return try result(session: session, mutationApplied: false, operatorState: "local-export-ready")
+        default:
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.monitor.action",
+                expected: "start,status,stop,recover,export",
+                actual: action
+            )
+        }
+    }
+
+    private static func canonicalNow() -> Date {
+        Date(timeIntervalSince1970: floor(Date().timeIntervalSince1970))
+    }
+
+    private func result(
+        session: ReleaseV090TestnetReadOnlyMonitorSessionDocument,
+        mutationApplied: Bool,
+        operatorState: String
+    ) throws -> Result {
+        Result(
+            session: session,
+            status: try store.status(runID: session.runID),
+            storeMutationApplied: mutationApplied,
+            operatorState: operatorState
+        )
+    }
+
+    private func requireExistingSession(
+        runID: Identifier
+    ) throws -> ReleaseV090TestnetReadOnlyMonitorSessionDocument {
+        try store.load(runID: runID)
+    }
+
+    private func ensureSession(
+        runID: Identifier,
+        createdAt: Date
+    ) throws -> ReleaseV090TestnetReadOnlyMonitorSessionDocument {
+        do {
+            return try store.load(runID: runID)
+        } catch ReleaseV090TestnetReadOnlyMonitorSessionStoreError.missingMonitorSession(_) {
+            return try store.create(runID: runID, reason: "cli-monitor-session-created", createdAt: createdAt)
+        }
+    }
+
+    private func startedSession(
+        runID: Identifier,
+        at observedAt: Date
+    ) throws -> ReleaseV090TestnetReadOnlyMonitorSessionDocument {
+        var session = try ensureSession(runID: runID, createdAt: observedAt)
+        if session.state == .created {
+            session = try store.apply(
+                runID: runID,
+                command: .connect,
+                reason: "cli-monitor-start-connect",
+                at: observedAt.addingTimeInterval(1)
+            )
+        }
+        if session.state == .connecting || session.state == .recovering {
+            session = try store.apply(
+                runID: runID,
+                command: .observe,
+                reason: "cli-monitor-start-observe",
+                at: observedAt.addingTimeInterval(2)
+            )
+        }
+        return session
+    }
+
+    private func stoppedSession(
+        runID: Identifier,
+        at observedAt: Date
+    ) throws -> ReleaseV090TestnetReadOnlyMonitorSessionDocument {
+        let session = try ensureSession(runID: runID, createdAt: observedAt)
+        guard session.state != .stopped, session.state != .failed else {
+            return session
+        }
+        return try store.apply(
+            runID: runID,
+            command: .stop,
+            reason: "cli-monitor-local-stop",
+            at: observedAt.addingTimeInterval(1)
+        )
+    }
+
+    private func recoveredSession(
+        runID: Identifier,
+        at observedAt: Date
+    ) throws -> ReleaseV090TestnetReadOnlyMonitorSessionDocument {
+        var session = try startedSession(runID: runID, at: observedAt)
+        if session.state == .observing {
+            session = try store.apply(
+                runID: runID,
+                command: .markStale,
+                reason: "cli-monitor-recovery-drill-stale",
+                at: observedAt.addingTimeInterval(3)
+            )
+        }
+        guard session.state == .stale || session.state == .disconnected else {
+            return session
+        }
+        _ = try store.recordCLIMonitorRecovery(
+            runID: runID,
+            recoveredAt: observedAt.addingTimeInterval(4),
+            streamEvidenceReference: "cli-monitor-stream-reference",
+            recoveryReason: "cli-monitor-manual-recovery",
+            rebuiltReadModelEvidenceReference: "cli-monitor-rebuilt-read-model",
+            observedAfterRecoveryAt: observedAt.addingTimeInterval(5)
+        )
+        return try store.load(runID: runID)
     }
 }
 
