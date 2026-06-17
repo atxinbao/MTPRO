@@ -196,6 +196,28 @@
 - audit boundary: policy change 只作为 audit metadata，不表示 order authorization，不驱动 automated policy-driven order execution。
 - forbidden scope: no broker / production path, no trading button, no order form, no live command, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no production cutover.
 
+## TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE
+
+- TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE
+- GH-853-VERIFY-V090-RUN-MONITOR-EXPORT-BUNDLE
+- V090-011-RUN-MONITOR-EXPORT-BUNDLE
+- V090-011-RUN-BUNDLE-CHECKSUM
+- V090-011-MONITOR-BUNDLE-CHECKSUM
+- V090-011-RISK-POLICY-BUNDLE-CHECKSUM
+- V090-011-RECONCILIATION-BUNDLE-CHECKSUM
+- V090-011-REDACTION-PROOF
+- V090-011-LOCAL-EXPORT-ONLY
+- V090-011-NO-UPLOAD-NOTIFICATION-SIDE-EFFECT
+- V090-011-NO-RAW-SECRET-LISTENKEY-PRIVATE-PAYLOAD
+- V090-011-NO-PRODUCTION-DATA-EXPORT
+- V090-011-NO-PRODUCTION-CUTOVER
+- GH-853 Release v0.9.0 Run Monitor Export Bundle Validation
+- testGH853RunMonitorExportBundleIsChecksumBackedAndRedacted
+- `bash checks/verify-v0.9.0-run-monitor-export-bundle.sh`
+- bundle evidence: export bundle 必须包含 run、monitor、Risk policy 和 reconciliation 四类 checksum-backed entry。
+- redaction proof: manifest 必须记录 aggregate redaction proof checksum，并证明 raw secret、raw listenKey、raw private payload、broker command payload 和 order request payload 未进入 export artifact。
+- forbidden scope: no upload, no external sharing, no notification / webhook, no production data export, no production secret read, no production endpoint / broker connection, no testnet order routing, no testnet submit / cancel / replace, no production order, no production OMS, no production cutover.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
