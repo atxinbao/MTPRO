@@ -9640,6 +9640,230 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH851PortfolioReconciliationTimelineBindsExpectedObservedDeltaAndAckMetadata() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let sourcePath = repositoryRoot.appendingPathComponent(
+            "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift"
+        )
+        let source = try String(contentsOf: sourcePath, encoding: .utf8)
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot
+                .appendingPathComponent("checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh"),
+            encoding: .utf8
+        )
+
+        let temporaryRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH851-PortfolioReconciliationTimeline-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = temporaryRoot
+            .appendingPathComponent(".local", isDirectory: true)
+            .appendingPathComponent("mtpro", isDirectory: true)
+            .appendingPathComponent("runs", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: temporaryRoot)
+        }
+
+        let store = ReleaseV090TestnetReadOnlyMonitorSessionStore(storageRootURL: storageRoot)
+        let runID = Identifier.constant("gh-851-reconciliation-timeline")
+        _ = try store.create(runID: runID, createdAt: Date(timeIntervalSince1970: 1_782_600_000))
+        _ = try store.apply(runID: runID, command: .connect, reason: "monitor-started", at: Date(timeIntervalSince1970: 1_782_600_010))
+        let observing = try store.apply(runID: runID, command: .observe, reason: "read-only-monitor-observing", at: Date(timeIntervalSince1970: 1_782_600_020))
+        let freshness = try store.recordAccountSnapshotFreshness(
+            runID: runID,
+            snapshotObservedAt: Date(timeIntervalSince1970: 1_782_600_010),
+            recordedAt: Date(timeIntervalSince1970: 1_782_600_080),
+            latencyMilliseconds: 210,
+            staleThresholdSeconds: 90,
+            credentialReference: "gh-851-testnet-readonly-profile"
+        )
+        let heartbeat = try store.recordPrivateStreamHeartbeat(
+            runID: runID,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_600_060),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_600_080),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 90,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_600_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_603_600),
+            listenKeyReference: "gh-851-stream-lease-profile"
+        )
+
+        let timeline = try store.portfolioReconciliationTimeline(
+            runID: runID,
+            generatedAt: Date(timeIntervalSince1970: 1_782_600_090)
+        )
+        XCTAssertEqual(timeline.issueID.rawValue, "GH-851")
+        XCTAssertEqual(timeline.upstreamIssueIDs.map(\.rawValue), ["GH-845", "GH-846", "GH-847"])
+        XCTAssertEqual(timeline.previousIssueID.rawValue, "GH-850")
+        XCTAssertEqual(timeline.downstreamIssueID.rawValue, "GH-852")
+        XCTAssertEqual(timeline.monitorSessionChecksum, observing.sessionChecksum)
+        XCTAssertEqual(timeline.accountSnapshotFreshnessChecksum, freshness.freshnessChecksum)
+        XCTAssertEqual(timeline.privateStreamHeartbeatChecksum, heartbeat.heartbeatChecksum)
+        XCTAssertEqual(timeline.timelineRecords.count, 4)
+        XCTAssertEqual(timeline.statusCoverage, ReleaseV090PortfolioReconciliationTimelineStatus.allCases)
+        XCTAssertEqual(timeline.expectedStateCount, 4)
+        XCTAssertEqual(timeline.observedStateCount, 3)
+        XCTAssertEqual(timeline.reviewRequiredCount, 3)
+        XCTAssertTrue(timeline.readModelHeld)
+        XCTAssertTrue(timeline.operatorAcknowledgementMetadataOnly)
+        XCTAssertTrue(timeline.localReadModelOnly)
+        XCTAssertTrue(timeline.explainOnly)
+        XCTAssertFalse(timeline.correctionCommandCreated)
+        XCTAssertFalse(timeline.brokerWriteCreated)
+        XCTAssertFalse(timeline.accountMutationCreated)
+        XCTAssertFalse(timeline.tradingAdjustmentCreated)
+        XCTAssertFalse(timeline.testnetOrderRoutingAllowed)
+        XCTAssertFalse(timeline.productionTradingEnabledByDefault)
+        XCTAssertFalse(timeline.productionSecretRead)
+        XCTAssertFalse(timeline.productionEndpointConnected)
+        XCTAssertFalse(timeline.brokerEndpointConnected)
+        XCTAssertFalse(timeline.productionOrderSubmitted)
+        XCTAssertFalse(timeline.productionCutoverAuthorized)
+
+        let matched = try XCTUnwrap(timeline.timelineRecords.first { $0.status == .matched })
+        XCTAssertEqual(matched.asset, "BTC")
+        XCTAssertEqual(matched.deltaQuantity, Decimal(0))
+        XCTAssertFalse(matched.reviewRequired)
+        XCTAssertNil(matched.operatorAcknowledgement)
+        XCTAssertEqual(matched.reviewHistory.map(\.action), [.observed])
+
+        let delta = try XCTUnwrap(timeline.timelineRecords.first { $0.status == .delta })
+        XCTAssertEqual(delta.asset, "ETH")
+        XCTAssertEqual(delta.deltaQuantity, Decimal(string: "0.5"))
+        XCTAssertTrue(delta.reviewRequired)
+        XCTAssertEqual(delta.operatorAcknowledgement?.acknowledgedBy, "operator.v090")
+        XCTAssertTrue(try XCTUnwrap(delta.operatorAcknowledgement).acknowledgementHeld)
+
+        let missing = try XCTUnwrap(timeline.timelineRecords.first { $0.status == .missing })
+        XCTAssertEqual(missing.asset, "BNB")
+        XCTAssertNil(missing.observedState)
+        XCTAssertEqual(missing.deltaQuantity, Decimal(-2))
+        XCTAssertTrue(missing.reviewRequired)
+
+        let stale = try XCTUnwrap(timeline.timelineRecords.first { $0.status == .stale })
+        XCTAssertEqual(stale.asset, "XRP")
+        XCTAssertEqual(stale.staleReason, "private-stream-observed-state-stale")
+        XCTAssertTrue(try XCTUnwrap(stale.observedState).stale)
+        XCTAssertTrue(stale.reviewRequired)
+
+        XCTAssertTrue(timeline.timelineRecords.allSatisfy(\.recordHeld))
+        XCTAssertTrue(timeline.timelineRecords.allSatisfy { $0.expectedState.stateHeld })
+        XCTAssertTrue(timeline.timelineRecords.compactMap(\.observedState).allSatisfy(\.stateHeld))
+        XCTAssertTrue(timeline.timelineRecords.allSatisfy { $0.reviewHistory.allSatisfy(\.historyHeld) })
+        XCTAssertTrue(timeline.timelineRecords.filter(\.reviewRequired).allSatisfy { $0.operatorAcknowledgement?.auditMetadataOnly == true })
+        XCTAssertTrue(timeline.timelineRecords.filter(\.reviewRequired).allSatisfy { $0.operatorAcknowledgement?.correctionCommandCreated == false })
+        XCTAssertTrue(timeline.timelineRecords.filter(\.reviewRequired).allSatisfy { $0.operatorAcknowledgement?.brokerWriteCreated == false })
+        XCTAssertTrue(timeline.timelineRecords.filter(\.reviewRequired).allSatisfy { $0.operatorAcknowledgement?.accountMutationCreated == false })
+        XCTAssertTrue(timeline.timelineRecords.filter(\.reviewRequired).allSatisfy { $0.operatorAcknowledgement?.tradingAdjustmentCreated == false })
+
+        let fixture = try ReleaseV090PortfolioReconciliationTimelineReadModel.deterministicFixture()
+        XCTAssertTrue(fixture.readModelHeld)
+        XCTAssertEqual(fixture.timelineRecords.map(\.status), [.matched, .delta, .missing, .stale])
+        XCTAssertEqual(fixture.reviewRequiredCount, 3)
+
+        let issueAnchors = [
+            "GH-851-VERIFY-V090-PORTFOLIO-RECONCILIATION-TIMELINE",
+            "TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE",
+            "V090-009-PORTFOLIO-RECONCILIATION-TIMELINE",
+            "V090-009-EXPECTED-OBSERVED-DELTA",
+            "V090-009-STALE-REASON-REVIEW-HISTORY",
+            "V090-009-OPERATOR-ACKNOWLEDGEMENT-METADATA-ONLY",
+            "V090-009-MONITOR-SESSION-EVIDENCE-BINDING",
+            "V090-009-NO-CORRECTION-COMMAND",
+            "V090-009-NO-BROKER-WRITE",
+            "V090-009-NO-ACCOUNT-MUTATION",
+            "V090-009-NO-TRADING-ADJUSTMENT",
+            "V090-009-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(issueAnchors, ReleaseV090PortfolioReconciliationTimelineReadModel.requiredValidationAnchors)
+
+        for anchor in issueAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-851 source")
+            XCTAssertTrue(verificationScript.contains(anchor), "\(anchor) must stay in GH-851 verifier")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in v0.9 contract")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 Portfolio reconciliation timeline anchor"))
+        XCTAssertTrue(readinessScript.contains("GH-851-VERIFY-V090-PORTFOLIO-RECONCILIATION-TIMELINE"))
+        XCTAssertTrue(validationPlan.contains("GH-851 Release v0.9.0 Portfolio Reconciliation Timeline Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE"))
+        XCTAssertTrue(contractDoc.contains("V090-009-PORTFOLIO-RECONCILIATION-TIMELINE"))
+
+        for requiredSource in [
+            "ReleaseV090PortfolioReconciliationTimelineReadModel",
+            "ReleaseV090PortfolioReconciliationTimelineRecord",
+            "ReleaseV090PortfolioReconciliationStateSnapshot",
+            "ReleaseV090PortfolioReconciliationOperatorAcknowledgement",
+            "ReleaseV090PortfolioReconciliationReviewHistoryEntry",
+            "expectedState",
+            "observedState",
+            "deltaQuantity",
+            "staleReason",
+            "operatorAcknowledgement",
+            "reviewHistory",
+            "portfolioReconciliationTimeline"
+        ] {
+            XCTAssertTrue(source.contains(requiredSource), "reconciliation timeline source must contain \(requiredSource)")
+        }
+
+        for forbiddenAuthorization in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/order",
+            "/fapi/v1/order",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<",
+            "correctionCommandCreated=true",
+            "brokerWriteCreated=true",
+            "accountMutationCreated=true",
+            "tradingAdjustmentCreated=true",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderRoutingAllowed=true"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-851 source must not contain \(forbiddenAuthorization)")
+            XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-851 contract must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-851 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-851 matrix must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(

@@ -116,6 +116,24 @@
 - Focused test: `testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects`
 - Boundary: GH-850 只新增本地 alert read-model，派生 `alert_id`、`severity`、`reason`、`source`、`ack_required` 和 `lifecycle` 字段，并绑定 monitor session、account snapshot freshness 和 private stream heartbeat checksum；不写 SMS / email / webhook / push，不调用外部服务，不创建 paging / incident command，不触发 automatic recovery 或 automated trading reaction，不提交 testnet 或 production order，不授权 production cutover。
 
+## GH-851 Release v0.9.0 Portfolio Reconciliation Timeline Validation
+
+- `GH-851-VERIFY-V090-PORTFOLIO-RECONCILIATION-TIMELINE`
+- `TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE`
+- `V090-009-PORTFOLIO-RECONCILIATION-TIMELINE`
+- `V090-009-EXPECTED-OBSERVED-DELTA`
+- `V090-009-STALE-REASON-REVIEW-HISTORY`
+- `V090-009-OPERATOR-ACKNOWLEDGEMENT-METADATA-ONLY`
+- `V090-009-MONITOR-SESSION-EVIDENCE-BINDING`
+- `V090-009-NO-CORRECTION-COMMAND`
+- `V090-009-NO-BROKER-WRITE`
+- `V090-009-NO-ACCOUNT-MUTATION`
+- `V090-009-NO-TRADING-ADJUSTMENT`
+- `V090-009-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh`
+- Focused test: `testGH851PortfolioReconciliationTimelineBindsExpectedObservedDeltaAndAckMetadata`
+- Boundary: GH-851 只新增本地 Portfolio reconciliation timeline read-model，展示 expected state、observed state、delta、stale reason、operator acknowledgement metadata 和 review history，并绑定 monitor session、account snapshot freshness 和 private stream heartbeat checksum；operator acknowledgement 只作为 audit metadata，不创建 correction command、broker write、account mutation 或 trading adjustment，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`

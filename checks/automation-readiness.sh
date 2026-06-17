@@ -197,6 +197,7 @@ require_file "checks/verify-v0.9.0-monitor-session-store.sh"
 require_file "checks/verify-v0.9.0-snapshot-freshness-monitor.sh"
 require_file "checks/verify-v0.9.0-dashboard-observability-timeline.sh"
 require_file "checks/verify-v0.9.0-alert-read-model.sh"
+require_file "checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh"
 require_file "checks/verify-v0.8.0-run-registry-store.sh"
 require_file "checks/verify-v0.8.0-cli-local-session.sh"
 require_file "checks/verify-v0.8.0-operational-session-store.sh"
@@ -347,6 +348,7 @@ require_contains "checks/verify-v0.9.0-alert-read-model.sh" "GH-850-VERIFY-V090-
 require_contains "checks/verify-v0.9.0-alert-read-model.sh" "TVM-RELEASE-V090-ALERT-READ-MODEL"
 require_contains "checks/verify-v0.9.0-alert-read-model.sh" "V090-008-ALERT-READ-MODEL"
 require_contains "checks/run.sh" "bash checks/verify-v0.9.0-alert-read-model.sh"
+require_contains "checks/run.sh" "bash checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh"
 require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "V090-008-ALERT-READ-MODEL"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V090-ALERT-READ-MODEL"
 require_contains "docs/validation/validation-plan.md" "GH-850 Release v0.9.0 Alert Read-model Validation"
@@ -366,6 +368,44 @@ for v090_alert_read_model_anchor in \
   require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "$v090_alert_read_model_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v090_alert_read_model_anchor"
   require_contains "docs/validation/validation-plan.md" "$v090_alert_read_model_anchor"
+done
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090PortfolioReconciliationTimelineReadModel"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090PortfolioReconciliationTimelineRecord"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "expectedState"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "observedState"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "deltaQuantity"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "staleReason"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "operatorAcknowledgement"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "reviewHistory"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "correctionCommandCreated"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "brokerWriteCreated"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "accountMutationCreated"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "tradingAdjustmentCreated"
+require_contains "checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh" "GH-851-VERIFY-V090-PORTFOLIO-RECONCILIATION-TIMELINE"
+require_contains "checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh" "TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE"
+require_contains "checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh" "V090-009-PORTFOLIO-RECONCILIATION-TIMELINE"
+require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "V090-009-PORTFOLIO-RECONCILIATION-TIMELINE"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE"
+require_contains "docs/validation/validation-plan.md" "GH-851 Release v0.9.0 Portfolio Reconciliation Timeline Validation"
+require_contains "docs/automation/automation-readiness.md" "Release v0.9.0 Portfolio reconciliation timeline anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH851PortfolioReconciliationTimelineBindsExpectedObservedDeltaAndAckMetadata"
+for v090_reconciliation_timeline_anchor in \
+  "GH-851-VERIFY-V090-PORTFOLIO-RECONCILIATION-TIMELINE" \
+  "TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE" \
+  "V090-009-PORTFOLIO-RECONCILIATION-TIMELINE" \
+  "V090-009-EXPECTED-OBSERVED-DELTA" \
+  "V090-009-STALE-REASON-REVIEW-HISTORY" \
+  "V090-009-OPERATOR-ACKNOWLEDGEMENT-METADATA-ONLY" \
+  "V090-009-MONITOR-SESSION-EVIDENCE-BINDING" \
+  "V090-009-NO-CORRECTION-COMMAND" \
+  "V090-009-NO-BROKER-WRITE" \
+  "V090-009-NO-ACCOUNT-MUTATION" \
+  "V090-009-NO-TRADING-ADJUSTMENT" \
+  "V090-009-NO-PRODUCTION-CUTOVER"; do
+  require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "$v090_reconciliation_timeline_anchor"
+  require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "$v090_reconciliation_timeline_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v090_reconciliation_timeline_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v090_reconciliation_timeline_anchor"
 done
 require_contains "docs/release/release-publication-policy.md" "GH-808-RELEASE-PUBLICATION-POLICY"
 require_contains "docs/release/release-publication-policy.md" "V080-002-V070-ACTUAL-GITHUB-RELEASE"
