@@ -6,6 +6,23 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-881 Release v0.10.0 Secret Provider Readiness Gate Validation
+
+- `GH-881-VERIFY-V0100-SECRET-PROVIDER-READINESS-GATE`
+- `TVM-RELEASE-V0100-SECRET-PROVIDER-READINESS-GATE`
+- `V0100-004-SECRET-PROVIDER-READINESS-GATE`
+- `V0100-004-CREDENTIAL-REFERENCE-EXISTS`
+- `V0100-004-PROVIDER-TYPE-REFERENCE-ONLY`
+- `V0100-004-REDACTION-POLICY-REQUIRED`
+- `V0100-004-SECRET-READINESS-JSON`
+- `V0100-004-REDACTION-PROOF-JSON`
+- `V0100-004-CI-NO-SECRET-PROOF`
+- `V0100-004-MANUAL-SECRET-GATE-REQUIRED`
+- `V0100-004-PRODUCTION-CAPABILITIES-DISABLED`
+- Required command: `bash checks/verify-v0.10.0-secret-provider-readiness-gate.sh`
+- Focused test: `testGH881SecretProviderReadinessGateKeepsSecretsOutOfRuntimeCIDashboardAndEvidence`
+- Boundary: SecretProviderReadinessGate 只持久化 credential reference、provider type、redaction policy 和 evidence 文件名，固定 `secret_readiness.json`、`redaction_proof.json`、`ci_no_secret_proof=true` 和 `manual_secret_gate_required=true`；不保存 secret value，不读取 production secret，不把 secret 暴露到 CI、Dashboard 或日志，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## GH-880 Release v0.10.0 Production Environment Profile Validation
 
 - `GH-880-VERIFY-V0100-PRODUCTION-ENVIRONMENT-PROFILE`

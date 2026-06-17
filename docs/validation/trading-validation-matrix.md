@@ -6,6 +6,26 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-SECRET-PROVIDER-READINESS-GATE
+
+- TVM-RELEASE-V0100-SECRET-PROVIDER-READINESS-GATE
+- GH-881-VERIFY-V0100-SECRET-PROVIDER-READINESS-GATE
+- V0100-004-SECRET-PROVIDER-READINESS-GATE
+- V0100-004-CREDENTIAL-REFERENCE-EXISTS
+- V0100-004-PROVIDER-TYPE-REFERENCE-ONLY
+- V0100-004-REDACTION-POLICY-REQUIRED
+- V0100-004-SECRET-READINESS-JSON
+- V0100-004-REDACTION-PROOF-JSON
+- V0100-004-CI-NO-SECRET-PROOF
+- V0100-004-MANUAL-SECRET-GATE-REQUIRED
+- V0100-004-PRODUCTION-CAPABILITIES-DISABLED
+- GH-881 Release v0.10.0 Secret Provider Readiness Gate Validation
+- testGH881SecretProviderReadinessGateKeepsSecretsOutOfRuntimeCIDashboardAndEvidence
+- `bash checks/verify-v0.10.0-secret-provider-readiness-gate.sh`
+- fixed secret provider schema: `credentialReferenceExists=true`、`providerType=environmentVariableReference`、`providerType=keychainItemReference`、`providerType=operatorManualReference`、`redactionPolicy=redactedIdentifierOnly`、`secret_readiness.json`、`redaction_proof.json`。
+- fixed gate proof: `ci_no_secret_proof=true`、`manual_secret_gate_required=true`、`storesSecretValue=false`、`readsSecretValue=false`、`printsSecretValue=false`、`dashboardDisplaysSecretValue=false`、`ciSecretAvailable=false`。
+- forbidden scope: no secret value persistence, no production secret read, no CI secret availability, no Dashboard secret display, no production endpoint / broker connection, no production cutover, no testnet or production submit / cancel / replace order, no production OMS, no trading button, no order form, no live command.
+
 ## TVM-RELEASE-V0100-PRODUCTION-ENVIRONMENT-PROFILE
 
 - TVM-RELEASE-V0100-PRODUCTION-ENVIRONMENT-PROFILE
