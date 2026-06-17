@@ -235,6 +235,26 @@
 - manual lane: operator confirmed testnet read-only proof reference only; `manualOperatorConfirmationRequired=true`、`manualProofRedacted=true`、`manualOrderSubmissionAllowed=false`、`manualProofReplayableByCI=false`。
 - forbidden scope: manual proof cannot be replayed by CI, cannot satisfy required checks, cannot inject secret through workflow_dispatch, no testnet submit / cancel / replace, no production secret read, no production endpoint / broker connection, no production cutover.
 
+## TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX
+
+- TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX
+- GH-855-VERIFY-V090-DASHBOARD-CLI-OPERATOR-UX
+- V090-013-DASHBOARD-CLI-OPERATOR-UX
+- V090-013-MONITOR-START-STATUS-STOP-RECOVER-EXPORT
+- V090-013-DASHBOARD-READ-STATE-TIMELINES-ALERTS-EXPORT
+- V090-013-SAFE-LOCAL-READONLY-CONTROLS
+- V090-013-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+- V090-013-NO-TESTNET-ORDER-ROUTING
+- V090-013-NO-PRODUCTION-CUTOVER
+- GH-855 Release v0.9.0 Dashboard / CLI Operator UX Validation
+- testGH855DashboardOperatorUXShowsMonitorOperationsWithoutCommands
+- testGH855DashboardCLIOperatorUXIsAnchoredInV090Guards
+- `bash checks/verify-v0.9.0-dashboard-cli-operator-ux.sh`
+- CLI monitor commands: `monitor start`、`monitor status`、`monitor stop`、`monitor recover` and `monitor export` must only output local artifact paths, checksum references and no-order flags.
+- Dashboard operator UX: monitor state、timelines、alerts、export status and safe local controls must be visible as read-model-only rows.
+- artifact boundary: all UX rows must stay under `.local/mtpro/runs/<runID>/testnet-readonly-monitor/...` and must not persist raw credential, raw listenKey, raw private payload, broker state or order request.
+- forbidden scope: no trading button, no order form, no live command, no broker command, no notification side effect, no automatic recovery command, no testnet order routing, no testnet submit / cancel / replace, no production secret read, no production endpoint / broker connection, no production order, no production OMS, no production cutover.
+
 ## TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT
 
 - TVM-RELEASE-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT

@@ -516,6 +516,51 @@ Manual lane artifact 只能保存 redacted credential reference、redacted manua
 
 GH-854 不新增 runtime pipeline，不打开 CI network，不读取 secret，不提交 testnet 或 production order，不授权 production cutover。Manual proof 只作为 operator audit evidence，不是 required check input、不是 CI replay source、不是 Dashboard / CLI command source。
 
+## V090-013-DASHBOARD-CLI-OPERATOR-UX
+
+`GH-855-VERIFY-V090-DASHBOARD-CLI-OPERATOR-UX`
+`TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX`
+`V090-013-DASHBOARD-CLI-OPERATOR-UX`
+
+GH-855 只把 GH-849 Dashboard timeline、GH-850 alert read-model、GH-853 local export bundle 和 GH-854 validation lane split 汇总成 operator-facing UX。Dashboard 可以展示 monitor state、timelines、alerts、export status 和 safe local controls。CLI 可以展示 `monitor start`、`monitor status`、`monitor stop`、`monitor recover` 和 `monitor export` 五个 deterministic 输出。
+
+### V090-013-MONITOR-START-STATUS-STOP-RECOVER-EXPORT
+
+`V090-013-MONITOR-START-STATUS-STOP-RECOVER-EXPORT`
+
+CLI monitor commands 只允许输出本地 artifact path、monitor state、checksum reference 和 boundary flags：
+
+- `monitor start`：只表示本地 monitor session evidence 进入 observing UX 状态。
+- `monitor status`：只读取本地 `monitor_status.json` / Dashboard status projection。
+- `monitor stop`：只表示本地 monitor session 被 operator 标记 stopped。
+- `monitor recover`：只表示本地 recovery evidence 被 operator 查看和归档。
+- `monitor export`：只展示 GH-853 `run-monitor-export-bundle.json` 的 local export status。
+
+这些命令不得读取 secret、不得连接 network、不得刷新 listenKey、不得连接 endpoint / broker、不得提交 testnet 或 production order。
+
+### V090-013-DASHBOARD-READ-STATE-TIMELINES-ALERTS-EXPORT
+
+`V090-013-DASHBOARD-READ-STATE-TIMELINES-ALERTS-EXPORT`
+
+Dashboard operator UX 只能读取并展示以下只读或 safe-local evidence surface：
+
+- monitor state
+- timelines
+- alerts
+- export status
+- safe local controls
+
+Dashboard target 不新增 DataClient dependency，不新增 Database runtime dependency，不读取 raw credential、raw listenKey、raw private payload 或 broker state。
+
+### V090-013-FORBIDDEN-CAPABILITIES
+
+`V090-013-SAFE-LOCAL-READONLY-CONTROLS`
+`V090-013-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND`
+`V090-013-NO-TESTNET-ORDER-ROUTING`
+`V090-013-NO-PRODUCTION-CUTOVER`
+
+GH-855 不新增 runtime pipeline，不创建 trading button、order form、live command、broker command、notification side effect、automatic recovery command、testnet order routing、testnet submit / cancel / replace、production secret read、production endpoint / broker connection、production order 或 production cutover authorization。Manual proof 不能被 CLI 或 Dashboard 当作 required check input 或 command source。
+
 ## V090-001-DOWNSTREAM-QUEUE-ORDER
 
 `V090-001-DOWNSTREAM-QUEUE-ORDER`

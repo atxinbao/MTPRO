@@ -3424,6 +3424,95 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH855DashboardOperatorUXShowsMonitorOperationsWithoutCommands() throws {
+        // 测试场景：GH-855 Dashboard / CLI operator UX 只展示 v0.9 monitor start / status /
+        // stop / recover / export 的本地 evidence 操作，不创建交易按钮、订单表单、live command、
+        // broker command、testnet order routing 或 production cutover。
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV090OperatorUXSurface
+
+        XCTAssertEqual(surface.issueID, "GH-855")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-849", "GH-853", "GH-854"])
+        XCTAssertEqual(surface.previousIssueID, "GH-854")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-856")
+        XCTAssertEqual(surface.releaseVersion, "v0.9.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.controlRows.map(\.control), ReleaseV090OperatorUXControl.allCases)
+        XCTAssertTrue(surface.controlRows.allSatisfy(\.rowHeld))
+        XCTAssertEqual(surface.monitorOperationNames, ["start", "status", "stop", "recover", "export"])
+        XCTAssertEqual(
+            surface.dashboardStateSurfaces,
+            ["monitor-state", "timelines", "alerts", "export-status", "safe-local-controls"]
+        )
+        XCTAssertTrue(surface.monitorStateReadModelVisible)
+        XCTAssertTrue(surface.timelineReadModelVisible)
+        XCTAssertTrue(surface.alertReadModelVisible)
+        XCTAssertTrue(surface.exportStatusReadModelVisible)
+        XCTAssertTrue(surface.safeLocalControlsVisible)
+        XCTAssertTrue(surface.cliMonitorCommandsVisible)
+
+        let localMutatingControls = surface.controlRows.filter(\.localArtifactMutationOnly).map(\.control)
+        XCTAssertEqual(localMutatingControls, [.start, .stop, .recover])
+        let readOnlyControls = surface.controlRows.filter(\.readOnlySnapshotOnly).map(\.control)
+        XCTAssertEqual(readOnlyControls, [.status, .export])
+        XCTAssertTrue(surface.controlRows.allSatisfy { $0.cliCommand.hasPrefix("mtpro monitor ") })
+        XCTAssertTrue(surface.controlRows.allSatisfy { $0.sourceArtifactPath.contains("testnet-readonly-monitor") })
+        XCTAssertTrue(surface.controlRows.allSatisfy { $0.resultArtifactPath.contains("testnet-readonly-monitor") })
+        XCTAssertTrue(surface.controlRows.allSatisfy { $0.checksumReference.hasPrefix("sha256:") })
+
+        XCTAssertFalse(surface.manualProofReplayableByCI)
+        XCTAssertFalse(surface.dashboardDependsOnDataClientTarget)
+        XCTAssertFalse(surface.dashboardDependsOnDatabaseRuntime)
+        XCTAssertFalse(surface.cliReadsSecret)
+        XCTAssertFalse(surface.cliOpensNetwork)
+        XCTAssertFalse(surface.rawCredentialVisible)
+        XCTAssertFalse(surface.rawListenKeyVisible)
+        XCTAssertFalse(surface.rawPrivatePayloadVisible)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.brokerCommandCreated)
+        XCTAssertFalse(surface.testnetOrderRoutingAllowed)
+        XCTAssertFalse(surface.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        XCTAssertEqual(metricValue("v0.9 monitor UX controls", in: surface.metrics), "5")
+        XCTAssertEqual(metricValue("CLI monitor commands", in: surface.metrics), "start,status,stop,recover,export")
+        XCTAssertEqual(
+            metricValue("Dashboard monitor surfaces", in: surface.metrics),
+            "monitor-state,timelines,alerts,export-status,safe-local-controls"
+        )
+        XCTAssertEqual(metricValue("Export status", in: surface.metrics), "local-export-ready")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Broker command: none"))
+        XCTAssertTrue(surface.details.contains("Testnet order routing: none"))
+        XCTAssertTrue(surface.details.contains("Production cutover: none"))
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV090OperatorUXControls=5"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV090OperatorUXCommands=start,status,stop,recover,export"))
+        XCTAssertTrue(
+            snapshot.smokeSummary.contains(
+                "releaseV090OperatorUXDashboardSurfaces=monitor-state,timelines,alerts,export-status,safe-local-controls"
+            )
+        )
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV090OperatorUXExportStatus=local-export-ready"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV090OperatorUXBoundary=confirmed"))
+
+        for anchor in ReleaseV090DashboardOperatorUXSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-855 surface")
+        }
+    }
+
     func testGH818DashboardSafeLocalControlsBindSessionStoresWithoutCommands() throws {
         // 测试场景：GH-818 Dashboard 可展示 start / stop / recover / archive / open-detail
         // safe local controls，并将它们绑定到 v0.8 local registry 和 session store artifact；

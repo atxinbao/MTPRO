@@ -10478,6 +10478,170 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH855DashboardCLIOperatorUXIsAnchoredInV090Guards() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let packageSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let dashboardTarget = try packageTargetBlock(named: "Dashboard", packageSource: packageSource)
+        let cliTarget = try packageTargetBlock(named: "MTPROCLI", packageSource: packageSource)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Dashboard/Report/ReleaseV090DashboardOperatorUXSurface.swift"
+            ),
+            encoding: .utf8
+        )
+        let cliSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift"),
+            encoding: .utf8
+        )
+        let dashboardShell = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Dashboard/DashboardShell.swift"),
+            encoding: .utf8
+        )
+        let appTests = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Tests/AppTests/AppTests.swift"),
+            encoding: .utf8
+        )
+        let verifier = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "checks/verify-v0.9.0-dashboard-cli-operator-ux.sh"
+            ),
+            encoding: .utf8
+        )
+        let contract = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let cliVerifier = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.5.0-cli.sh"),
+            encoding: .utf8
+        )
+
+        let surface = ReleaseV090DashboardOperatorUXSurfaceViewModel.deterministicFixture
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.issueID, "GH-855")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-849", "GH-853", "GH-854"])
+        XCTAssertEqual(surface.previousIssueID, "GH-854")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-856")
+        XCTAssertEqual(surface.controlRows.map(\.control), ReleaseV090OperatorUXControl.allCases)
+        XCTAssertTrue(surface.controlRows.allSatisfy(\.rowHeld))
+        XCTAssertEqual(surface.monitorOperationNames, ["start", "status", "stop", "recover", "export"])
+        XCTAssertEqual(
+            surface.dashboardStateSurfaces,
+            ["monitor-state", "timelines", "alerts", "export-status", "safe-local-controls"]
+        )
+        XCTAssertFalse(surface.cliReadsSecret)
+        XCTAssertFalse(surface.cliOpensNetwork)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.brokerCommandCreated)
+        XCTAssertFalse(surface.testnetOrderRoutingAllowed)
+        XCTAssertFalse(surface.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        let anchors = [
+            "GH-855-VERIFY-V090-DASHBOARD-CLI-OPERATOR-UX",
+            "TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX",
+            "V090-013-DASHBOARD-CLI-OPERATOR-UX",
+            "V090-013-MONITOR-START-STATUS-STOP-RECOVER-EXPORT",
+            "V090-013-DASHBOARD-READ-STATE-TIMELINES-ALERTS-EXPORT",
+            "V090-013-SAFE-LOCAL-READONLY-CONTROLS",
+            "V090-013-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND",
+            "V090-013-NO-TESTNET-ORDER-ROUTING",
+            "V090-013-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(anchors, ReleaseV090DashboardOperatorUXSurfaceViewModel.requiredValidationAnchors)
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-855 source")
+            XCTAssertTrue(cliSource.contains(anchor), "\(anchor) must stay in GH-855 CLI output")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in GH-855 verifier")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.9 contract")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+
+        XCTAssertTrue(dashboardTarget.contains("\"Report\""))
+        XCTAssertFalse(dashboardTarget.contains("\"DataClient\""))
+        XCTAssertFalse(dashboardTarget.contains("\"Database\""))
+        XCTAssertTrue(cliTarget.contains("\"main.swift\""))
+        XCTAssertTrue(source.contains("ReleaseV090DashboardOperatorUXSurfaceViewModel"))
+        XCTAssertTrue(source.contains("ReleaseV090DashboardOperatorUXControlRow"))
+        XCTAssertTrue(source.contains("mtpro monitor \\(control.rawValue)"))
+        XCTAssertTrue(source.contains("monitor-state"))
+        XCTAssertTrue(source.contains("export-status"))
+        XCTAssertTrue(cliSource.contains("monitorSupportedActionCommands"))
+        XCTAssertTrue(cliSource.contains("mtpro monitor \\(action) v0.9.0"))
+        XCTAssertTrue(cliSource.contains("monitorActions=\\(monitorSupportedActionCommands.joined(separator: \",\"))"))
+        XCTAssertTrue(dashboardShell.contains("releaseV090OperatorUXSurface"))
+        XCTAssertTrue(dashboardShell.contains("releaseV090OperatorUXControls"))
+        XCTAssertTrue(appTests.contains("testGH855DashboardOperatorUXShowsMonitorOperationsWithoutCommands"))
+        XCTAssertTrue(verifier.contains("swift run mtpro monitor start"))
+        XCTAssertTrue(verifier.contains("swift run mtpro monitor status"))
+        XCTAssertTrue(verifier.contains("swift run mtpro monitor stop"))
+        XCTAssertTrue(verifier.contains("swift run mtpro monitor recover"))
+        XCTAssertTrue(verifier.contains("swift run mtpro monitor export"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-dashboard-cli-operator-ux.sh"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 Dashboard / CLI operator UX anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-855 Release v0.9.0 Dashboard / CLI Operator UX Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX"))
+        XCTAssertTrue(cliVerifier.contains("risk-policy,monitor,verify"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderRoutingAllowed=true",
+            "testnetOrderSubmissionAllowed=true",
+            "cliReadsSecret=true",
+            "cliOpensNetwork=true",
+            "manualProofReplayableByCI=true",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/order",
+            "/fapi/v1/order"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-855 source must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(cliSource.contains(forbiddenAuthorization), "GH-855 CLI must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(contract.contains(forbiddenAuthorization), "GH-855 contract must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-855 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-855 matrix must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(
@@ -11485,7 +11649,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro help"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro run"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro status"))
-        XCTAssertTrue(cliVerificationScript.contains("risk-policy,verify"))
+        XCTAssertTrue(cliVerificationScript.contains("risk-policy,monitor,verify"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro verify"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro unified-run-status"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro rehearsal-status"))
