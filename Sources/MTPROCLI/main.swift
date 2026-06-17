@@ -30,8 +30,8 @@ private enum MTPROCLIParserError: Error, CustomStringConvertible, Equatable {
 
 /// MTPROStrictCLI 固定 GH-727 的严格命令路由。
 ///
-/// 新 v0.8.0 shape 暴露 `help`、`run`、`status`、`stop`、`recover`、`verify`
-/// 和 `risk-policy` 等安全本地入口；历史
+/// 新 v0.9.0 shape 继续暴露 `help`、`run`、`status`、`stop`、`recover`、
+/// `monitor`、`verify` 和 `risk-policy` 等安全本地入口；历史
 /// `rehearsal-status`、`unified-run-status`、`run-observer`、`run-detail-observer`、
 /// `testnet-readonly-probe`、`verify-fast`、`verify-release` 仍可被显式调用。
 /// 任何其他命令必须在这里失败，不得 fallback 到旧 release surface。
@@ -44,6 +44,17 @@ private enum MTPROStrictCLI {
     static let riskPolicyProfileAnchor = "TVM-RELEASE-V080-RISK-POLICY-PROFILE-MANAGEMENT"
     static let releaseV080VerificationAnchor = "GH-820-VERIFY-V080-FINAL-AUDIT-DOCS-RUNBOOK"
     static let releaseV080ValidationAnchor = "TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK"
+    static let releaseV090OperatorUXVerificationAnchor = "GH-855-VERIFY-V090-DASHBOARD-CLI-OPERATOR-UX"
+    static let releaseV090OperatorUXValidationAnchor = "TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX"
+    static let releaseV090OperatorUXRequiredAnchors = [
+        "V090-013-DASHBOARD-CLI-OPERATOR-UX",
+        "V090-013-MONITOR-START-STATUS-STOP-RECOVER-EXPORT",
+        "V090-013-DASHBOARD-READ-STATE-TIMELINES-ALERTS-EXPORT",
+        "V090-013-SAFE-LOCAL-READONLY-CONTROLS",
+        "V090-013-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND",
+        "V090-013-NO-TESTNET-ORDER-ROUTING",
+        "V090-013-NO-PRODUCTION-CUTOVER"
+    ]
     static let cliVerifyV080WordingAnchor = "GH-837-VERIFY-V081-CLI-VERIFY-V080-WORDING"
     static let cliVerifyV080WordingValidationAnchor = "TVM-RELEASE-V081-CLI-VERIFY-V080-WORDING"
     static let cliVerifyV080WordingRequiredAnchors = [
@@ -65,6 +76,13 @@ private enum MTPROStrictCLI {
         "risk-policy validate",
         "risk-policy diff"
     ]
+    static let monitorSupportedActionCommands = [
+        "monitor start",
+        "monitor status",
+        "monitor stop",
+        "monitor recover",
+        "monitor export"
+    ]
     static let supportedCommands = [
         "help",
         "run",
@@ -72,6 +90,7 @@ private enum MTPROStrictCLI {
         "stop",
         "recover",
         "risk-policy",
+        "monitor",
         "verify",
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
@@ -101,6 +120,8 @@ private enum MTPROStrictCLI {
             return try recoverOutput(arguments: arguments)
         case "risk-policy":
             return try riskPolicyOutput(arguments: arguments)
+        case "monitor":
+            return try monitorOutput(arguments: arguments)
         case "verify":
             try requireExactCount(arguments, expected: 1, command: command)
             return verifyOutput()
@@ -148,10 +169,84 @@ private enum MTPROStrictCLI {
             "runtimeModes=local-dry-run,testnet-read-only-probe,production-blocked",
             "localSessionActions=run,status,stop,recover",
             "riskPolicyActions=\(riskPolicySupportedActionCommands.joined(separator: ","))",
+            "monitorActions=\(monitorSupportedActionCommands.joined(separator: ","))",
             "testnetRequiresOperatorConfirmation=true",
             "productionTradingEnabledByDefault=false",
             "productionSecretRead=false",
             "productionEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "boundaryHeld=true"
+        ].joined(separator: "\n")
+    }
+
+    private static func monitorOutput(arguments: [String]) throws -> String {
+        guard arguments.count == 2 || arguments.count == 3 else {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.monitor.arguments",
+                expected: "monitor start|status|stop|recover|export [runID]",
+                actual: arguments.joined(separator: " ")
+            )
+        }
+        let action = arguments[1]
+        guard ["start", "status", "stop", "recover", "export"].contains(action) else {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.monitor.action",
+                expected: "start,status,stop,recover,export",
+                actual: arguments.joined(separator: " ")
+            )
+        }
+        let runID = arguments.count == 3 ? arguments[2] : "latest"
+        let localArtifactMutationOnly = ["start", "stop", "recover"].contains(action)
+        let readOnlySnapshotOnly = ["status", "export"].contains(action)
+        let monitorState: String
+        switch action {
+        case "start":
+            monitorState = "observing"
+        case "status":
+            monitorState = "read-only-status"
+        case "stop":
+            monitorState = "stopped"
+        case "recover":
+            monitorState = "recovered"
+        default:
+            monitorState = "local-export-ready"
+        }
+
+        return [
+            "mtpro monitor \(action) v0.9.0",
+            "issue=GH-855",
+            "validationAnchor=\(releaseV090OperatorUXValidationAnchor)",
+            "verificationAnchor=\(releaseV090OperatorUXVerificationAnchor)",
+            "requiredAnchors=\(releaseV090OperatorUXRequiredAnchors.joined(separator: ","))",
+            "operatorUXContract=v0.9.0",
+            "monitorAction=\(action)",
+            "runID=\(runID)",
+            "monitorState=\(monitorState)",
+            "cliMonitorCommands=\(monitorSupportedActionCommands.joined(separator: ","))",
+            "dashboardMonitorSurfaces=monitor-state,timelines,alerts,export-status,safe-local-controls",
+            "monitorSessionPath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor_session.json",
+            "monitorStatusPath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor_status.json",
+            "monitorTimelinePath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor_events.jsonl",
+            "alertReadModelPath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/monitor-alerts.json",
+            "exportBundlePath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/run-monitor-export-bundle.json",
+            "exportStatusPath=.local/mtpro/runs/<runID>/testnet-readonly-monitor/export-status.json",
+            "localArtifactMutationOnly=\(localArtifactMutationOnly)",
+            "readOnlySnapshotOnly=\(readOnlySnapshotOnly)",
+            "manualProofReplayableByCI=false",
+            "credentialValueVisible=false",
+            "rawListenKeyVisible=false",
+            "rawPrivatePayloadVisible=false",
+            "tradingButtonVisible=false",
+            "orderFormVisible=false",
+            "liveCommandVisible=false",
+            "brokerCommandCreated=false",
+            "testnetOrderRoutingAllowed=false",
+            "testnetOrderSubmissionAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
             "productionOrderSubmitted=false",
             "productionCutoverAuthorized=false",
             "boundaryHeld=true"

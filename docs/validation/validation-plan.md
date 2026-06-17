@@ -184,6 +184,22 @@
 - Focused test: `testGH854ValidationLanesKeepManualProofOutOfCIReplay`
 - Boundary: GH-854 只强化 CI / manual validation lane split。CI lane 只运行 deterministic fixture、source/docs/script anchor 和 no-order guard，不打开 network、不读取 secret、不重放 manual proof；manual lane 只记录 operator confirmed testnet read-only redacted proof reference，manual proof 不能满足 required checks，不提交 testnet 或 production order，不授权 production cutover。
 
+## GH-855 Release v0.9.0 Dashboard / CLI Operator UX Validation
+
+- `GH-855-VERIFY-V090-DASHBOARD-CLI-OPERATOR-UX`
+- `TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX`
+- `V090-013-DASHBOARD-CLI-OPERATOR-UX`
+- `V090-013-MONITOR-START-STATUS-STOP-RECOVER-EXPORT`
+- `V090-013-DASHBOARD-READ-STATE-TIMELINES-ALERTS-EXPORT`
+- `V090-013-SAFE-LOCAL-READONLY-CONTROLS`
+- `V090-013-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND`
+- `V090-013-NO-TESTNET-ORDER-ROUTING`
+- `V090-013-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.9.0-dashboard-cli-operator-ux.sh`
+- Focused tests: `testGH855DashboardOperatorUXShowsMonitorOperationsWithoutCommands` and `testGH855DashboardCLIOperatorUXIsAnchoredInV090Guards`
+- CLI commands: `monitor start`、`monitor status`、`monitor stop`、`monitor recover` and `monitor export` expose deterministic no-order operator UX only.
+- Boundary: GH-855 只新增 Dashboard / CLI operator UX read model。Dashboard 只能展示 monitor state、timelines、alerts、export status 和 safe local controls；CLI 只能输出本地 artifact path、checksum reference 和 no-order flags。不读取 secret、不连接 network / endpoint / broker、不重放 manual proof、不创建 trading button / order form / live command、不提交 testnet 或 production order、不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`

@@ -198,6 +198,7 @@ require_file "checks/verify-v0.9.0-snapshot-freshness-monitor.sh"
 require_file "checks/verify-v0.9.0-dashboard-observability-timeline.sh"
 require_file "checks/verify-v0.9.0-alert-read-model.sh"
 require_file "checks/verify-v0.9.0-portfolio-reconciliation-timeline.sh"
+require_file "checks/verify-v0.9.0-dashboard-cli-operator-ux.sh"
 require_file "checks/verify-v0.8.0-run-registry-store.sh"
 require_file "checks/verify-v0.8.0-cli-local-session.sh"
 require_file "checks/verify-v0.8.0-operational-session-store.sh"
@@ -512,6 +513,38 @@ for v090_validation_lanes_anchor in \
   require_contains "docs/operators/release-v0.9.0-validation-lanes-runbook.md" "$v090_validation_lanes_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v090_validation_lanes_anchor"
   require_contains "docs/validation/validation-plan.md" "$v090_validation_lanes_anchor"
+done
+require_contains "Sources/Dashboard/Report/ReleaseV090DashboardOperatorUXSurface.swift" "ReleaseV090DashboardOperatorUXSurfaceViewModel"
+require_contains "Sources/Dashboard/Report/ReleaseV090DashboardOperatorUXSurface.swift" "ReleaseV090DashboardOperatorUXControlRow"
+require_contains "Sources/MTPROCLI/main.swift" "monitorSupportedActionCommands"
+require_contains "Sources/MTPROCLI/main.swift" "mtpro monitor \\(action) v0.9.0"
+require_contains "Sources/Dashboard/DashboardShell.swift" "releaseV090OperatorUXSurface"
+require_contains "checks/verify-v0.9.0-dashboard-cli-operator-ux.sh" "GH-855-VERIFY-V090-DASHBOARD-CLI-OPERATOR-UX"
+require_contains "checks/verify-v0.9.0-dashboard-cli-operator-ux.sh" "TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX"
+require_contains "checks/verify-v0.9.0-dashboard-cli-operator-ux.sh" "V090-013-DASHBOARD-CLI-OPERATOR-UX"
+require_contains "checks/run.sh" "bash checks/verify-v0.9.0-dashboard-cli-operator-ux.sh"
+require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "V090-013-DASHBOARD-CLI-OPERATOR-UX"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX"
+require_contains "docs/validation/validation-plan.md" "GH-855 Release v0.9.0 Dashboard / CLI Operator UX Validation"
+require_contains "docs/automation/automation-readiness.md" "Release v0.9.0 Dashboard / CLI operator UX anchor"
+require_contains "Tests/AppTests/AppTests.swift" "testGH855DashboardOperatorUXShowsMonitorOperationsWithoutCommands"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH855DashboardCLIOperatorUXIsAnchoredInV090Guards"
+for v090_operator_ux_anchor in \
+  "GH-855-VERIFY-V090-DASHBOARD-CLI-OPERATOR-UX" \
+  "TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX" \
+  "V090-013-DASHBOARD-CLI-OPERATOR-UX" \
+  "V090-013-MONITOR-START-STATUS-STOP-RECOVER-EXPORT" \
+  "V090-013-DASHBOARD-READ-STATE-TIMELINES-ALERTS-EXPORT" \
+  "V090-013-SAFE-LOCAL-READONLY-CONTROLS" \
+  "V090-013-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND" \
+  "V090-013-NO-TESTNET-ORDER-ROUTING" \
+  "V090-013-NO-PRODUCTION-CUTOVER"; do
+  require_contains "Sources/Dashboard/Report/ReleaseV090DashboardOperatorUXSurface.swift" "$v090_operator_ux_anchor"
+  require_contains "Sources/MTPROCLI/main.swift" "$v090_operator_ux_anchor"
+  require_contains "checks/verify-v0.9.0-dashboard-cli-operator-ux.sh" "$v090_operator_ux_anchor"
+  require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "$v090_operator_ux_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v090_operator_ux_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v090_operator_ux_anchor"
 done
 require_contains "docs/release/release-publication-policy.md" "GH-808-RELEASE-PUBLICATION-POLICY"
 require_contains "docs/release/release-publication-policy.md" "V080-002-V070-ACTUAL-GITHUB-RELEASE"
