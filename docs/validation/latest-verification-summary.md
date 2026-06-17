@@ -1,6 +1,6 @@
 # 最近验证摘要
 
-日期：2026-06-17
+日期：2026-06-18
 
 执行者：Codex
 
@@ -18,9 +18,9 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | --- | --- |
 | Latest completed release construction scope | `MTPRO Release v0.9.0 Testnet No-order Observability` |
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
-| Active queue | v0.9.0 final audit / docs / runbook 由 GitHub issue `#856` closure PR 收口；PR merge 后不得自动推进下一 Project / Issue |
+| Active queue | v0.10.0 production cutover readiness GitHub fallback queue `#878..#891` 是当前队列来源；`#878` 已定义 no-authorization readiness contract；`#879` 只同步 v0.9.1 publication fact 和 v0.10.0 release policy anchor；任何后续 issue 仍必须 WIP=1 queue preflight |
 | Stage Code Audit Report | `docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md` |
-| Release publication | v0.9.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`；target commit `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`；不授权 production cutover |
+| Release publication | v0.9.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`；target commit `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`；v0.9.1 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`；tag peeled commit `d041f0dd304075562a85e494695697290972288f`；均不授权 production cutover |
 | Progress | Project Closure Count: 43 / 43 (100%)；Current Foundation Progress: 4 / 4 (100%)；Final Product Goal Progress: 9 / 9 (100%)；Engine Maturity Roadmap Progress: 4 / 4（100%） |
 
 ## Boundary
@@ -53,7 +53,7 @@ bash checks/run.sh
 
 `V091-006-VERIFY-PATCH-AUDIT-DOCS-RUNBOOK`
 
-`MTPRO Release v0.9.1 v0.9.0 Audit Hardening Patch` 只收口 v0.9.0 tag 静态审计发现的边界漂移风险，不发布 tag，不创建 GitHub Release，不推进下一阶段。
+`MTPRO Release v0.9.1 v0.9.0 Audit Hardening Patch` 只收口 v0.9.0 tag 静态审计发现的边界漂移风险。它已通过独立 release publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`；tag peeled commit `d041f0dd304075562a85e494695697290972288f`；publication timestamp `2026-06-17T19:45:42Z`。该 publication 不推进下一阶段，不授权 production cutover。
 
 Patch evidence：
 
@@ -65,7 +65,7 @@ Patch evidence：
 
 本 patch 固定：Dashboard macOS lane 必须先运行 v0.9.0 focused guards；`mtpro verify` 当前输出必须是 `mtpro verify v0.9.0`；`mtpro monitor` actions 必须绑定 `ReleaseV090TestnetReadOnlyMonitorSessionStore`；`testnet-read-only-monitor` 是当前 runtime mode，`testnet-read-only-probe` 只保留为 legacy compatibility。
 
-Production trading 仍默认关闭；不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
+Production trading 仍默认关闭；不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。v0.9.1 patch closeout、public GitHub Release publication 和 production cutover 保持三段独立 gate。
 
 ## Release v0.8.1 Patch Closeout Snapshot
 

@@ -6,6 +6,19 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-879 Release v0.10.0 v0.9.1 Publication Policy Validation
+
+- `GH-879-VERIFY-V0100-V091-PUBLICATION-POLICY`
+- `GH-879-V0100-V091-ACTUAL-GITHUB-RELEASE`
+- `V0100-002-V091-PUBLICATION-FACT`
+- `V0100-002-V0100-RELEASE-POLICY-ANCHOR`
+- `TVM-RELEASE-V0100-V091-PUBLICATION-POLICY`
+- v0.9.1 stable GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`
+- v0.9.1 tag peeled commit: `d041f0dd304075562a85e494695697290972288f`
+- Required command: `bash checks/verify-v0.10.0-release-policy.sh`
+- Focused test: `testGH879ReleaseV0100V091PublicationPolicyRecordsPublishedTagAndCutoverSeparation`
+- Boundary: v0.9.1 stable GitHub Release fact is recorded without describing it as tagless; v0.10.0 construction / readiness closeout、public release publication 和 production cutover 保持三个独立 gate；不授权 production trading、production cutover、production secret read、production endpoint / broker connection、testnet order routing、testnet order submission、real order submission、production OMS、trading button、order form 或 live command。
+
 ## GH-878 Release v0.10.0 Production Readiness No-authorization Contract Validation
 
 - `GH-878-VERIFY-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT`

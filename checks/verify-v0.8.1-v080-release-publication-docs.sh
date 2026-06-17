@@ -63,7 +63,7 @@ require_file_contains "$POLICY" "publication pending"
 require_file_contains "$POLICY" "不得把 GitHub Release publication 当作 production cutover authorization"
 
 require_file_contains "README.md" "v0.7.0 和 v0.8.0 均已通过各自独立 release publication gate 发布 stable GitHub Release"
-require_file_contains "README.md" "v0.9.0 construction closeout 和 public GitHub Release publication 已分别完成，production cutover 仍是独立 gate"
+require_file_contains "README.md" "v0.9.0 construction closeout、v0.9.0 / v0.9.1 public GitHub Release publication 和 production cutover 仍是独立 gate"
 require_file_contains "$NOTES" "v0.8.0 后续已通过独立 release publication gate 发布 stable GitHub Release"
 require_file_contains "$AUDIT" "v0.8.0 was later published through a separate stable GitHub Release gate"
 require_file_contains "$VALIDATION_PLAN" "GH-835 Release v0.8.0 Public GitHub Release Docs Alignment Validation"
