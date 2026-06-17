@@ -6,6 +6,20 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-V091-PUBLICATION-POLICY
+
+- TVM-RELEASE-V0100-V091-PUBLICATION-POLICY
+- GH-879-VERIFY-V0100-V091-PUBLICATION-POLICY
+- GH-879-V0100-V091-ACTUAL-GITHUB-RELEASE
+- V0100-002-V091-PUBLICATION-FACT
+- V0100-002-V0100-RELEASE-POLICY-ANCHOR
+- GH-879 Release v0.10.0 v0.9.1 Publication Policy Validation
+- testGH879ReleaseV0100V091PublicationPolicyRecordsPublishedTagAndCutoverSeparation
+- `bash checks/verify-v0.10.0-release-policy.sh`
+- v0.9.1 stable GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`；tag peeled commit `d041f0dd304075562a85e494695697290972288f`；publication timestamp `2026-06-17T19:45:42Z`。
+- release gate split: construction / readiness closeout、public GitHub Release publication 和 production cutover 是三个独立 gate。
+- forbidden scope: no tag rewrite, no production cutover, no production trading, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order, no production OMS, no trading button, no order form, no live command.
+
 ## TVM-RELEASE-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT
 
 - TVM-RELEASE-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT

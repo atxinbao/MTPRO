@@ -8434,6 +8434,90 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT"))
     }
 
+    func testGH879ReleaseV0100V091PublicationPolicyRecordsPublishedTagAndCutoverSeparation() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let readme = try read("README.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let notes = try read("docs/release/mtpro-release-v0.9.1-v090-audit-hardening-notes.md")
+        let audit = try read("docs/audit/mtpro-release-v0.9.1-v090-audit-hardening-stage-code-audit.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let releasePolicyVerifier = try read("checks/verify-v0.10.0-release-policy.sh")
+        let v091Verifier = try read("checks/verify-v0.9.1.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+
+        let publicationURL = "https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1"
+        let v091Commit = "d041f0dd304075562a85e494695697290972288f"
+        let publicationTimestamp = "2026-06-17T19:45:42Z"
+
+        for document in [readme, policy, notes, audit, latest, tradingMatrix, readiness] {
+            XCTAssertTrue(document.contains(publicationURL), "v0.9.1 GitHub Release URL must be recorded")
+            XCTAssertTrue(document.contains(v091Commit), "v0.9.1 peeled commit must be recorded")
+        }
+
+        for anchor in [
+            "GH-879-VERIFY-V0100-V091-PUBLICATION-POLICY",
+            "GH-879-V0100-V091-ACTUAL-GITHUB-RELEASE",
+            "V0100-002-V091-PUBLICATION-FACT",
+            "V0100-002-V0100-RELEASE-POLICY-ANCHOR",
+            "TVM-RELEASE-V0100-V091-PUBLICATION-POLICY"
+        ] {
+            XCTAssertTrue(
+                policy.contains(anchor)
+                    || validationPlan.contains(anchor)
+                    || tradingMatrix.contains(anchor)
+                    || readiness.contains(anchor)
+                    || releasePolicyVerifier.contains(anchor),
+                "\(anchor) must stay wired into v0.10.0 v0.9.1 publication policy evidence"
+            )
+        }
+
+        XCTAssertTrue(policy.contains("construction / readiness closeout gate"))
+        XCTAssertTrue(policy.contains("public release publication gate"))
+        XCTAssertTrue(policy.contains("production cutover gate"))
+        XCTAssertTrue(policy.contains(publicationTimestamp))
+        XCTAssertTrue(notes.contains(publicationTimestamp))
+        XCTAssertTrue(audit.contains(publicationTimestamp))
+        XCTAssertTrue(latest.contains(publicationTimestamp))
+        XCTAssertTrue(releasePolicyVerifier.contains("release v0.10.0 v0.9.1 publication policy verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-release-policy.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-release-policy.sh"))
+        XCTAssertTrue(v091Verifier.contains(publicationURL))
+        XCTAssertTrue(v091Verifier.contains("GH-879-V0100-V091-ACTUAL-GITHUB-RELEASE"))
+
+        for outdatedTaglessPhrase in [
+            "v0.9.1 不发布 tag",
+            "v0.9.1 不创建 GitHub Release"
+        ] {
+            XCTAssertFalse(readme.contains(outdatedTaglessPhrase))
+            XCTAssertFalse(notes.contains(outdatedTaglessPhrase))
+            XCTAssertFalse(audit.contains(outdatedTaglessPhrase))
+            XCTAssertFalse(latest.contains(outdatedTaglessPhrase))
+        }
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault == true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true"
+        ] {
+            XCTAssertFalse(policy.contains(forbiddenAuthorization))
+            XCTAssertFalse(notes.contains(forbiddenAuthorization))
+            XCTAssertFalse(audit.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(

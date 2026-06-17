@@ -41,6 +41,7 @@ Validation anchors:
 | `mtpro verify` still spoke as v0.8.0 | `mtpro verify` now prints `mtpro verify v0.9.0`, `issue=GH-856`, and v0.9.0 validation / verification anchors while retaining historical v0.8.0 and v0.7.0 checks. |
 | probe / monitor naming drift | Current help output lists `testnet-read-only-monitor`; `testnet-read-only-probe` remains explicit legacy compatibility only. |
 | CLI monitor actions were evidence-only | `mtpro monitor` now writes / reads `ReleaseV090TestnetReadOnlyMonitorSessionStore` artifacts and emits store status checksum evidence. |
+| v0.9.1 publication fact drift | v0.9.1 stable GitHub Release is now recorded as `https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`, tag peeled commit `d041f0dd304075562a85e494695697290972288f`, publication timestamp `2026-06-17T19:45:42Z`; publication remains separate from production cutover. |
 
 ## Boundaries
 
@@ -52,7 +53,18 @@ Validation anchors:
 - 不新增 trading button、order form、live command。
 - 不实现 production OMS。
 - 不创建下一 Project / Issue。
-- v0.9.1 不发布 tag；它是 v0.9.0 后的 audit hardening patch evidence。
+- v0.9.1 已通过独立 release publication gate 发布 stable GitHub Release；它仍是 v0.9.0 后的 audit hardening patch release，不授权 production cutover。
+
+## Publication Fact
+
+- stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`
+- release tag：`v0.9.1`
+- release title：`MTPRO v0.9.1 Audit Hardening Patch`
+- release type：stable release；非 draft；非 prerelease
+- tag peeled commit：`d041f0dd304075562a85e494695697290972288f`
+- publication timestamp：`2026-06-17T19:45:42Z`
+
+v0.9.1 patch closeout、public GitHub Release publication 和 production cutover 保持三段 gate。该 publication 只发布已完成 audit hardening patch evidence，不创建 production trading permission。
 
 ## Validation
 
