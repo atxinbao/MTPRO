@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-880 Release v0.10.0 Production Environment Profile Validation
+
+- `GH-880-VERIFY-V0100-PRODUCTION-ENVIRONMENT-PROFILE`
+- `TVM-RELEASE-V0100-PRODUCTION-ENVIRONMENT-PROFILE`
+- `V0100-003-PRODUCTION-ENVIRONMENT-PROFILE-CONTRACT`
+- `V0100-003-REFERENCE-ONLY-POLICY-REFS`
+- `V0100-003-BINANCE-SPOT-USDSM-PERPETUAL-SCOPE`
+- `V0100-003-PRODUCTION-CUTOVER-DISABLED`
+- `V0100-003-ORDER-SUBMISSION-DISABLED`
+- `V0100-003-PRODUCTION-ENDPOINT-CONNECTION-DISABLED`
+- Required command: `bash checks/verify-v0.10.0-production-environment-profile.sh`
+- Focused test: `testGH880ProductionEnvironmentProfilePersistsReferencesOnlyAndKeepsProductionDisabled`
+- Boundary: ProductionEnvironmentProfile 只持久化 endpoint / secret / risk policy reference identity，固定 `environment=production`、`venue=Binance`、`productTypes=spot,usdsPerpetual`、`referencesOnlyPersisted=true`、`cutoverAuthorized=false`、`orderSubmissionEnabled=false` 和 `productionEndpointConnectionEnabled=false`；不保存 secret value，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## GH-879 Release v0.10.0 v0.9.1 Publication Policy Validation
 
 - `GH-879-VERIFY-V0100-V091-PUBLICATION-POLICY`
