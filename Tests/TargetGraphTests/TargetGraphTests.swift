@@ -8979,6 +8979,191 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH883CapitalExposureLimitReadinessGateBindsRiskPolicyAndDisablesOrders() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let gate = try ReleaseV0100CapitalExposureLimitReadinessGate.deterministicFixture()
+
+        XCTAssertTrue(gate.gateHeld)
+        XCTAssertTrue(gate.limitProfile.profileHeld)
+        XCTAssertTrue(gate.limitProfile.riskPolicyIdentity.identityHeld)
+        XCTAssertTrue(gate.evidenceArtifact.evidenceBoundaryHeld)
+        XCTAssertTrue(gate.productionCapabilitiesDisabled)
+        XCTAssertEqual(gate.issueID.rawValue, "GH-883")
+        XCTAssertEqual(gate.upstreamIssueIDs.map(\.rawValue), ["GH-878", "GH-882"])
+        XCTAssertEqual(gate.downstreamIssueID.rawValue, "GH-884")
+        XCTAssertEqual(gate.canonicalQueueRange, "GH-878..GH-891")
+        XCTAssertEqual(gate.projectName, "MTPRO Release v0.10.0 Production Cutover Readiness Gate")
+        XCTAssertEqual(gate.limitProfile.maxCapital, "100000.00")
+        XCTAssertEqual(gate.limitProfile.maxNotional, "25000.00")
+        XCTAssertEqual(gate.limitProfile.maxSingleOrderNotional, "5000.00")
+        XCTAssertEqual(gate.limitProfile.maxSymbolExposure, "15000.00")
+        XCTAssertEqual(gate.limitProfile.maxProductExposure, "50000.00")
+        XCTAssertEqual(gate.limitProfile.maxDailyLoss, "2500.00")
+        XCTAssertEqual(gate.limitProfile.maxOpenOrders, 10)
+        XCTAssertEqual(gate.limitProfile.maxLeverage, "3.0")
+        XCTAssertEqual(gate.limitProfile.allowedSymbols, ["BTCUSDT", "ETHUSDT"])
+        XCTAssertEqual(gate.limitProfile.allowedProductTypes, ["spot", "usdsPerpetual"])
+        XCTAssertEqual(gate.limitProfile.riskPolicyIdentity.policyID.rawValue, "v0.10.0-capital-exposure-risk-policy")
+        XCTAssertEqual(gate.limitProfile.riskPolicyIdentity.policyVersion, "v0.10.0-production-readiness")
+        XCTAssertEqual(gate.limitProfile.riskPolicyIdentity.hashAlgorithm, "sha256")
+        XCTAssertEqual(gate.limitProfile.riskPolicyIdentity.policyHash, "sha256:v0100-capital-exposure-risk-policy-reference")
+        XCTAssertTrue(gate.limitProfile.riskPolicyIdentity.riskPolicyHashBound)
+        XCTAssertEqual(gate.evidenceArtifact.fileName, "capital_exposure_limits.json")
+        XCTAssertTrue(gate.evidenceArtifact.evidenceExists)
+        XCTAssertFalse(gate.evidenceArtifact.containsBrokerOrAccountResponse)
+        XCTAssertFalse(gate.evidenceArtifact.producedByEndpointConnection)
+        XCTAssertTrue(gate.riskPolicyHashBound)
+        XCTAssertTrue(gate.operatorReviewRequired)
+        XCTAssertFalse(gate.cutoverAuthorized)
+        XCTAssertFalse(gate.orderSubmissionEnabled)
+        XCTAssertFalse(gate.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(gate.productionEndpointConnectionEnabled)
+        XCTAssertFalse(gate.productionBrokerConnectionEnabled)
+        XCTAssertFalse(gate.productionSecretValueRead)
+        XCTAssertFalse(gate.productionOMSRuntimeEnabled)
+        XCTAssertFalse(gate.tradingButtonEnabled)
+        XCTAssertFalse(gate.orderFormEnabled)
+        XCTAssertFalse(gate.liveCommandEnabled)
+        XCTAssertFalse(gate.capitalExposureLimitBypassEnabled)
+
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxCapital: "99999.00"))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxNotional: "1.00"))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxSingleOrderNotional: "1.00"))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxSymbolExposure: "1.00"))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxProductExposure: "1.00"))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxDailyLoss: "1.00"))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxOpenOrders: 11))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxLeverage: "5.0"))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(allowedSymbols: ["BTCUSDT"]))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(allowedProductTypes: ["spot"]))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureRiskPolicyIdentity(policyHash: "sha256:wrong"))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureRiskPolicyIdentity(riskPolicyHashBound: false))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(operatorReviewRequired: false))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(orderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitEvidenceArtifact(evidenceExists: false))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitEvidenceArtifact(containsBrokerOrAccountResponse: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitEvidenceArtifact(producedByEndpointConnection: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(riskPolicyHashBound: false))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(operatorReviewRequired: false))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(cutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(orderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(testnetOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(productionBrokerConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(productionOMSRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(tradingButtonEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(orderFormEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(liveCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitReadinessGate(capitalExposureLimitBypassEnabled: true))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift")
+        let contract = try read("docs/contracts/release-v0.10.0-capital-exposure-limit-readiness-gate-contract.md")
+        let verifier = try read("checks/verify-v0.10.0-capital-exposure-limit-readiness-gate.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "V0100-006-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE",
+            "V0100-006-MAX-CAPITAL-LIMIT",
+            "V0100-006-MAX-NOTIONAL-LIMIT",
+            "V0100-006-MAX-SINGLE-ORDER-NOTIONAL-LIMIT",
+            "V0100-006-MAX-SYMBOL-EXPOSURE-LIMIT",
+            "V0100-006-MAX-PRODUCT-EXPOSURE-LIMIT",
+            "V0100-006-MAX-DAILY-LOSS-LIMIT",
+            "V0100-006-MAX-OPEN-ORDERS-LEVERAGE-LIMIT",
+            "V0100-006-ALLOWED-SYMBOLS-PRODUCT-TYPES",
+            "V0100-006-RISK-POLICY-HASH-BINDING",
+            "V0100-006-CAPITAL-EXPOSURE-LIMITS-JSON",
+            "V0100-006-PRODUCTION-CAPABILITIES-DISABLED",
+            "GH-883-VERIFY-V0100-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE",
+            "TVM-RELEASE-V0100-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE"
+        ]
+        XCTAssertEqual(ReleaseV0100CapitalExposureLimitReadinessGate.requiredValidationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        for exactString in [
+            "capital_exposure_limits.json",
+            "capital_exposure_limits_evidence_exists=true",
+            "capital_exposure_limits_contains_broker_or_account_response=false",
+            "capital_exposure_limits_produced_by_endpoint_connection=false",
+            "maxCapital=100000.00",
+            "maxNotional=25000.00",
+            "maxSingleOrderNotional=5000.00",
+            "maxSymbolExposure=15000.00",
+            "maxProductExposure=50000.00",
+            "maxDailyLoss=2500.00",
+            "maxOpenOrders=10",
+            "maxLeverage=3.0",
+            "allowedSymbols=BTCUSDT,ETHUSDT",
+            "allowedProductTypes=spot,usdsPerpetual",
+            "riskPolicyID=v0.10.0-capital-exposure-risk-policy",
+            "riskPolicyVersion=v0.10.0-production-readiness",
+            "riskPolicyHashAlgorithm=sha256",
+            "riskPolicyHash=sha256:v0100-capital-exposure-risk-policy-reference",
+            "risk_policy_hash_bound=true",
+            "operator_review_required=true",
+            "order_submission_enabled=false",
+            "cutoverAuthorized=false",
+            "orderSubmissionEnabled=false",
+            "testnetOrderSubmissionEnabled=false",
+            "productionEndpointConnectionEnabled=false",
+            "productionBrokerConnectionEnabled=false",
+            "productionSecretValueRead=false",
+            "productionOMSRuntimeEnabled=false",
+            "tradingButtonEnabled=false",
+            "orderFormEnabled=false",
+            "liveCommandEnabled=false",
+            "capitalExposureLimitBypassEnabled=false"
+        ] {
+            XCTAssertTrue(contract.contains(exactString), "\(exactString) must stay fixed in #883 docs")
+        }
+
+        XCTAssertTrue(verifier.contains("MTPRO release v0.10.0 capital exposure limit readiness gate verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-capital-exposure-limit-readiness-gate.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-capital-exposure-limit-readiness-gate.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.10.0 capital / exposure limit readiness gate anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-883 Release v0.10.0 Capital / Exposure Limit Readiness Gate Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE"))
+        XCTAssertTrue(latest.contains("`#883` 定义 CapitalExposureLimitReadinessGate reference-only contract"))
+
+        for forbiddenAuthorization in [
+            "risk_policy_hash_bound=false",
+            "operator_review_required=false",
+            "order_submission_enabled=true",
+            "cutoverAuthorized=true",
+            "orderSubmissionEnabled=true",
+            "testnetOrderSubmissionEnabled=true",
+            "productionEndpointConnectionEnabled=true",
+            "productionBrokerConnectionEnabled=true",
+            "productionSecretValueRead=true",
+            "productionOMSRuntimeEnabled=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true",
+            "capitalExposureLimitBypassEnabled=true",
+            "containsBrokerOrAccountResponse=true",
+            "producedByEndpointConnection=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(

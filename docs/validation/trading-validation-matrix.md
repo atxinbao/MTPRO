@@ -6,6 +6,28 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE
+
+- TVM-RELEASE-V0100-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE
+- GH-883-VERIFY-V0100-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE
+- V0100-006-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE
+- V0100-006-MAX-CAPITAL-LIMIT
+- V0100-006-MAX-NOTIONAL-LIMIT
+- V0100-006-MAX-SINGLE-ORDER-NOTIONAL-LIMIT
+- V0100-006-MAX-SYMBOL-EXPOSURE-LIMIT
+- V0100-006-MAX-PRODUCT-EXPOSURE-LIMIT
+- V0100-006-MAX-DAILY-LOSS-LIMIT
+- V0100-006-MAX-OPEN-ORDERS-LEVERAGE-LIMIT
+- V0100-006-ALLOWED-SYMBOLS-PRODUCT-TYPES
+- V0100-006-RISK-POLICY-HASH-BINDING
+- V0100-006-CAPITAL-EXPOSURE-LIMITS-JSON
+- V0100-006-PRODUCTION-CAPABILITIES-DISABLED
+- GH-883 Release v0.10.0 Capital / Exposure Limit Readiness Gate Validation
+- `bash checks/verify-v0.10.0-capital-exposure-limit-readiness-gate.sh`
+- `swift test --filter TargetGraphTests/testGH883CapitalExposureLimitReadinessGateBindsRiskPolicyAndDisablesOrders`
+- fixed capital / exposure schema: `capital_exposure_limits.json`、`maxCapital=100000.00`、`maxNotional=25000.00`、`maxSingleOrderNotional=5000.00`、`maxSymbolExposure=15000.00`、`maxProductExposure=50000.00`、`maxDailyLoss=2500.00`、`maxOpenOrders=10`、`maxLeverage=3.0`、`allowedSymbols=BTCUSDT,ETHUSDT`、`allowedProductTypes=spot,usdsPerpetual`、`riskPolicyHash=sha256:v0100-capital-exposure-risk-policy-reference`、`risk_policy_hash_bound=true`、`operator_review_required=true` 和 `order_submission_enabled=false`。
+- Boundary: readiness evidence 不包含 broker / account response，不来自 endpoint connection，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## TVM-RELEASE-V0100-ENDPOINT-POLICY-READINESS-GATE
 
 - TVM-RELEASE-V0100-ENDPOINT-POLICY-READINESS-GATE
