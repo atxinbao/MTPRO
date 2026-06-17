@@ -134,6 +134,23 @@
 - Focused test: `testGH851PortfolioReconciliationTimelineBindsExpectedObservedDeltaAndAckMetadata`
 - Boundary: GH-851 只新增本地 Portfolio reconciliation timeline read-model，展示 expected state、observed state、delta、stale reason、operator acknowledgement metadata 和 review history，并绑定 monitor session、account snapshot freshness 和 private stream heartbeat checksum；operator acknowledgement 只作为 audit metadata，不创建 correction command、broker write、account mutation 或 trading adjustment，不提交 testnet 或 production order，不授权 production cutover。
 
+## GH-852 Release v0.9.0 Risk Policy Application Audit Validation
+
+- `GH-852-VERIFY-V090-RISK-POLICY-APPLICATION-AUDIT`
+- `TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT`
+- `V090-010-RISK-POLICY-APPLICATION-AUDIT`
+- `V090-010-RISK-POLICY-VERSION-HASH`
+- `V090-010-POLICY-APPLIED-AT`
+- `V090-010-OPERATOR-CHANGE-REFERENCE`
+- `V090-010-MONITOR-SESSION-EVIDENCE-BINDING`
+- `V090-010-LOCAL-PROFILE-EVIDENCE`
+- `V090-010-NO-POLICY-DRIVEN-ORDER-EXECUTION`
+- `V090-010-NO-BROKER-PRODUCTION-PATH`
+- `V090-010-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.9.0-risk-policy-application-audit.sh`
+- Focused test: `testGH852RiskPolicyApplicationAuditBindsPolicyVersionHashAndMonitorArtifacts`
+- Boundary: GH-852 只新增本地 Risk policy application audit read-model，记录 `risk_policy_version`、`risk_policy_hash`、`policy_applied_at` 和 `operator_change_reference`，并把 monitor session、account snapshot freshness、private stream heartbeat 和 Portfolio reconciliation timeline artifact 绑定到同一 local profile evidence；policy change 只作为 audit metadata，不驱动 order execution，不连接 broker / production path，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-807 Release v0.8.0 Persistent Operator Runtime No-order Contract Validation
 
 - `GH-807-VERIFY-V080-PERSISTENT-OPERATOR-RUNTIME-NO-ORDER-CONTRACT`

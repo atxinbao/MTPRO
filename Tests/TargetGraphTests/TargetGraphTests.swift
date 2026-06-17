@@ -9864,6 +9864,227 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH852RiskPolicyApplicationAuditBindsPolicyVersionHashAndMonitorArtifacts() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift"
+            ),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.9.0-risk-policy-application-audit.sh"),
+            encoding: .utf8
+        )
+
+        let temporaryRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH852-RiskPolicyApplicationAudit-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = temporaryRoot
+            .appendingPathComponent(".local", isDirectory: true)
+            .appendingPathComponent("mtpro", isDirectory: true)
+            .appendingPathComponent("runs", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: temporaryRoot)
+        }
+
+        let store = ReleaseV090TestnetReadOnlyMonitorSessionStore(storageRootURL: storageRoot)
+        let runID = Identifier.constant("gh-852-risk-policy-application-audit")
+        _ = try store.create(runID: runID, createdAt: Date(timeIntervalSince1970: 1_782_700_000))
+        _ = try store.apply(runID: runID, command: .connect, reason: "monitor-started", at: Date(timeIntervalSince1970: 1_782_700_010))
+        let observing = try store.apply(runID: runID, command: .observe, reason: "read-only-monitor-observing", at: Date(timeIntervalSince1970: 1_782_700_020))
+        let freshness = try store.recordAccountSnapshotFreshness(
+            runID: runID,
+            snapshotObservedAt: Date(timeIntervalSince1970: 1_782_700_010),
+            recordedAt: Date(timeIntervalSince1970: 1_782_700_080),
+            latencyMilliseconds: 205,
+            staleThresholdSeconds: 90,
+            credentialReference: "gh-852-testnet-readonly-profile"
+        )
+        let heartbeat = try store.recordPrivateStreamHeartbeat(
+            runID: runID,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_700_060),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_700_080),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 90,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_700_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_703_600),
+            listenKeyReference: "gh-852-stream-lease-profile"
+        )
+        let policyAuditGeneratedAt = Date(timeIntervalSince1970: 1_782_700_100)
+        let timeline = try store.portfolioReconciliationTimeline(
+            runID: runID,
+            generatedAt: policyAuditGeneratedAt
+        )
+
+        let audit = try store.recordRiskPolicyApplicationAudit(
+            runID: runID,
+            riskPolicyVersion: "v0.8.0-risk-policy-profile.2",
+            riskPolicyHash: "risk-policy-fnv64-gh852",
+            policyAppliedAt: Date(timeIntervalSince1970: 1_782_700_030),
+            operatorChangeReference: "op-change-gh852",
+            generatedAt: policyAuditGeneratedAt
+        )
+        let loadedAudit = try store.riskPolicyApplicationAudit(runID: runID)
+
+        XCTAssertEqual(loadedAudit, audit)
+        XCTAssertEqual(audit.issueID.rawValue, "GH-852")
+        XCTAssertEqual(audit.upstreamIssueIDs.map(\.rawValue), ["GH-845"])
+        XCTAssertEqual(audit.historicalProfileIssueID.rawValue, "GH-816")
+        XCTAssertEqual(audit.previousIssueID.rawValue, "GH-851")
+        XCTAssertEqual(audit.downstreamIssueID.rawValue, "GH-853")
+        XCTAssertEqual(audit.riskPolicyVersion, "v0.8.0-risk-policy-profile.2")
+        XCTAssertEqual(audit.riskPolicyHash, "risk-policy-fnv64-gh852")
+        XCTAssertEqual(audit.operatorChangeReference, "op-change-gh852")
+        XCTAssertEqual(audit.monitorSessionChecksum, observing.sessionChecksum)
+        XCTAssertEqual(audit.accountSnapshotFreshnessChecksum, freshness.freshnessChecksum)
+        XCTAssertEqual(audit.privateStreamHeartbeatChecksum, heartbeat.heartbeatChecksum)
+        XCTAssertEqual(audit.portfolioReconciliationTimelineChecksum, timeline.timelineChecksum)
+        XCTAssertEqual(audit.artifactBindings.map(\.artifactRole), ReleaseV090RiskPolicyApplicationAuditArtifactRole.allCases)
+        XCTAssertTrue(audit.readModelHeld)
+        XCTAssertTrue(audit.localProfileEvidence)
+        XCTAssertTrue(audit.policyChangesAreAuditMetadata)
+        XCTAssertFalse(audit.automatedPolicyDrivenOrderExecution)
+        XCTAssertFalse(audit.brokerOrProductionPathEnabled)
+        XCTAssertFalse(audit.testnetOrderRoutingAllowed)
+        XCTAssertFalse(audit.productionTradingEnabledByDefault)
+        XCTAssertFalse(audit.productionSecretRead)
+        XCTAssertFalse(audit.productionEndpointConnected)
+        XCTAssertFalse(audit.brokerEndpointConnected)
+        XCTAssertFalse(audit.productionOrderSubmitted)
+        XCTAssertFalse(audit.productionCutoverAuthorized)
+
+        XCTAssertTrue(audit.profileReference.profileReferenceHeld)
+        XCTAssertEqual(audit.profileReference.profilePath, ".local/mtpro/risk_policy.json")
+        XCTAssertEqual(audit.profileReference.operatorChangeReferenceHash, ReleaseV090RiskPolicyApplicationProfileReference.operatorChangeReferenceHash("op-change-gh852"))
+        XCTAssertTrue(audit.artifactBindings.allSatisfy(\.bindingHeld))
+        XCTAssertTrue(audit.artifactBindings.allSatisfy { $0.profileReference == audit.profileReference })
+        XCTAssertTrue(audit.artifactBindings.allSatisfy { $0.localAuditMetadataOnly })
+        XCTAssertTrue(audit.artifactBindings.allSatisfy { $0.policyChangeIsOrderAuthorization == false })
+        XCTAssertTrue(audit.artifactBindings.allSatisfy { $0.automatedPolicyDrivenOrderExecution == false })
+        XCTAssertTrue(audit.artifactBindings.allSatisfy { $0.brokerOrProductionPathEnabled == false })
+        XCTAssertTrue(audit.artifactBindings.contains { $0.artifactChecksum == observing.sessionChecksum })
+        XCTAssertTrue(audit.artifactBindings.contains { $0.artifactChecksum == freshness.freshnessChecksum })
+        XCTAssertTrue(audit.artifactBindings.contains { $0.artifactChecksum == heartbeat.heartbeatChecksum })
+        XCTAssertTrue(audit.artifactBindings.contains { $0.artifactChecksum == timeline.timelineChecksum })
+
+        let auditURL = storageRoot
+            .appendingPathComponent(runID.rawValue, isDirectory: true)
+            .appendingPathComponent("testnet-readonly-monitor", isDirectory: true)
+            .appendingPathComponent("risk-policy-application-audit.json", isDirectory: false)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: auditURL.path))
+        let auditPayload = try String(contentsOf: auditURL, encoding: .utf8)
+        XCTAssertTrue(auditPayload.contains("\"risk_policy_version\""))
+        XCTAssertTrue(auditPayload.contains("\"risk_policy_hash\""))
+        XCTAssertTrue(auditPayload.contains("\"policy_applied_at\""))
+        XCTAssertTrue(auditPayload.contains("\"operator_change_reference\""))
+        XCTAssertFalse(auditPayload.contains("api_key"))
+        XCTAssertFalse(auditPayload.contains("signature="))
+
+        let fixture = try ReleaseV090RiskPolicyApplicationAuditReadModel.deterministicFixture()
+        XCTAssertTrue(fixture.readModelHeld)
+        XCTAssertEqual(fixture.artifactBindings.count, 4)
+        XCTAssertEqual(fixture.riskPolicyVersion, "v0.8.0-risk-policy-profile.2")
+        XCTAssertEqual(fixture.riskPolicyHash, "risk-policy-fnv64-gh852")
+
+        let issueAnchors = [
+            "GH-852-VERIFY-V090-RISK-POLICY-APPLICATION-AUDIT",
+            "TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT",
+            "V090-010-RISK-POLICY-APPLICATION-AUDIT",
+            "V090-010-RISK-POLICY-VERSION-HASH",
+            "V090-010-POLICY-APPLIED-AT",
+            "V090-010-OPERATOR-CHANGE-REFERENCE",
+            "V090-010-MONITOR-SESSION-EVIDENCE-BINDING",
+            "V090-010-LOCAL-PROFILE-EVIDENCE",
+            "V090-010-NO-POLICY-DRIVEN-ORDER-EXECUTION",
+            "V090-010-NO-BROKER-PRODUCTION-PATH",
+            "V090-010-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(issueAnchors, ReleaseV090RiskPolicyApplicationAuditReadModel.requiredValidationAnchors)
+
+        for anchor in issueAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-852 source")
+            XCTAssertTrue(verificationScript.contains(anchor), "\(anchor) must stay in GH-852 verifier")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in readiness script")
+            XCTAssertTrue(contractDoc.contains(anchor), "\(anchor) must stay in v0.9 contract")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-risk-policy-application-audit.sh"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 Risk policy application audit anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-852 Release v0.9.0 Risk Policy Application Audit Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT"))
+        XCTAssertTrue(contractDoc.contains("risk-policy-application-audit.json"))
+
+        for requiredSource in [
+            "ReleaseV090RiskPolicyApplicationAuditReadModel",
+            "ReleaseV090RiskPolicyApplicationProfileReference",
+            "ReleaseV090RiskPolicyApplicationArtifactBinding",
+            "risk_policy_version",
+            "risk_policy_hash",
+            "policy_applied_at",
+            "operator_change_reference",
+            "recordRiskPolicyApplicationAudit",
+            "riskPolicyApplicationAudit"
+        ] {
+            XCTAssertTrue(source.contains(requiredSource), "risk policy application audit source must contain \(requiredSource)")
+        }
+
+        for forbiddenAuthorization in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/order",
+            "/fapi/v1/order",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<",
+            "policyChangeIsOrderAuthorization=true",
+            "automatedPolicyDrivenOrderExecution=true",
+            "brokerOrProductionPathEnabled=true",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderRoutingAllowed=true"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-852 source must not contain \(forbiddenAuthorization)")
+            XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-852 contract must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-852 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-852 matrix must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(
