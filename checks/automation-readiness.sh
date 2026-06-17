@@ -196,6 +196,7 @@ require_file "checks/verify-v0.9.0-v080-publication-alignment.sh"
 require_file "checks/verify-v0.9.0-monitor-session-store.sh"
 require_file "checks/verify-v0.9.0-snapshot-freshness-monitor.sh"
 require_file "checks/verify-v0.9.0-dashboard-observability-timeline.sh"
+require_file "checks/verify-v0.9.0-alert-read-model.sh"
 require_file "checks/verify-v0.8.0-run-registry-store.sh"
 require_file "checks/verify-v0.8.0-cli-local-session.sh"
 require_file "checks/verify-v0.8.0-operational-session-store.sh"
@@ -335,6 +336,36 @@ for v090_dashboard_observability_anchor in \
   require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "$v090_dashboard_observability_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v090_dashboard_observability_anchor"
   require_contains "docs/validation/validation-plan.md" "$v090_dashboard_observability_anchor"
+done
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090MonitorAlertReadModel"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ReleaseV090MonitorAlert"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "alert_id"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "ack_required"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "notificationSideEffectsEnabled"
+require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "automatedTradingReactionEnabled"
+require_contains "checks/verify-v0.9.0-alert-read-model.sh" "GH-850-VERIFY-V090-ALERT-READ-MODEL"
+require_contains "checks/verify-v0.9.0-alert-read-model.sh" "TVM-RELEASE-V090-ALERT-READ-MODEL"
+require_contains "checks/verify-v0.9.0-alert-read-model.sh" "V090-008-ALERT-READ-MODEL"
+require_contains "checks/run.sh" "bash checks/verify-v0.9.0-alert-read-model.sh"
+require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "V090-008-ALERT-READ-MODEL"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V090-ALERT-READ-MODEL"
+require_contains "docs/validation/validation-plan.md" "GH-850 Release v0.9.0 Alert Read-model Validation"
+require_contains "docs/automation/automation-readiness.md" "Release v0.9.0 alert read-model anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects"
+for v090_alert_read_model_anchor in \
+  "GH-850-VERIFY-V090-ALERT-READ-MODEL" \
+  "TVM-RELEASE-V090-ALERT-READ-MODEL" \
+  "V090-008-ALERT-READ-MODEL" \
+  "V090-008-ALERT-FIELDS" \
+  "V090-008-MONITOR-SESSION-EVIDENCE-BINDING" \
+  "V090-008-LOCAL-READ-MODEL-ONLY" \
+  "V090-008-NO-NOTIFICATION-SIDE-EFFECTS" \
+  "V090-008-NO-AUTOMATED-TRADING-REACTION" \
+  "V090-008-NO-PRODUCTION-CUTOVER"; do
+  require_contains "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift" "$v090_alert_read_model_anchor"
+  require_contains "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md" "$v090_alert_read_model_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v090_alert_read_model_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v090_alert_read_model_anchor"
 done
 require_contains "docs/release/release-publication-policy.md" "GH-808-RELEASE-PUBLICATION-POLICY"
 require_contains "docs/release/release-publication-policy.md" "V080-002-V070-ACTUAL-GITHUB-RELEASE"

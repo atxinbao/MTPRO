@@ -293,6 +293,49 @@ Dashboard observability timeline 不得包含 trading button、order form、live
 
 `V090-007-NO-PRODUCTION-CUTOVER`
 
+## V090-008-ALERT-READ-MODEL
+
+`V090-008-ALERT-READ-MODEL`
+
+`GH-850-VERIFY-V090-ALERT-READ-MODEL`
+
+`TVM-RELEASE-V090-ALERT-READ-MODEL`
+
+GH-850 在 GH-845 monitor session、GH-846 signed account snapshot freshness 和 GH-847 private stream heartbeat evidence 之上新增本地 alert read-model。该 read-model 只派生 operator 可读的 freshness / staleness / disconnected alert 行，不持久化通知队列，不调用外部服务，不触发 automatic recovery，也不触发任何交易反应。
+
+`V090-008-ALERT-FIELDS`
+
+每条 alert 必须包含稳定 JSON 字段：
+
+- `alert_id`
+- `severity`
+- `reason`
+- `source`
+- `ack_required`
+- `lifecycle`
+
+`severity` 只允许 `info`、`warning` 和 `critical`；`source` 只允许 `accountSnapshotFreshness` 和 `privateStreamHeartbeat`；`lifecycle` 只允许 `raised`、`acknowledged` 和 `resolved`。这些字段只表达本地 read-model 状态，不授权 paging、incident command、automatic reconnect、broker command 或 order command。
+
+`V090-008-MONITOR-SESSION-EVIDENCE-BINDING`
+
+Alert read-model 必须绑定 `monitorSessionChecksum`、`accountSnapshotFreshnessChecksum` 和 `privateStreamHeartbeatChecksum`。Snapshot stale alert 必须引用 `account-snapshot-freshness.json`；private stream stale / disconnected / expired / recovered alert 必须引用 `private-stream-heartbeat.json`。Checksum mismatch、缺失 source artifact 或 source 与 checksum 不一致必须 fail closed 在本地读取层，不触发补偿命令。
+
+`V090-008-LOCAL-READ-MODEL-ONLY`
+
+Alert read-model 只允许作为 local read-model envelope 和 deterministic fixture。它不得写 SMS、email、webhook、push notification、paging queue、incident command、external metrics service、broker command、testnet order command 或 production command。
+
+`V090-008-NO-NOTIFICATION-SIDE-EFFECTS`
+
+Alert read-model 必须保持 `notificationSideEffectsEnabled=false`、`smsNotificationSent=false`、`emailNotificationSent=false`、`webhookNotificationSent=false`、`pushNotificationSent=false` 和 `externalServiceCalled=false`。
+
+`V090-008-NO-AUTOMATED-TRADING-REACTION`
+
+Alert read-model 必须保持 `automatedTradingReactionEnabled=false`、`automaticRecoveryCommand=false`、`tradingButtonVisible=false`、`orderFormVisible=false`、`liveCommandEnabled=false` 和 `testnetOrderRoutingAllowed=false`。
+
+`V090-008-NO-PRODUCTION-CUTOVER`
+
+GH-850 保持 no-order / no-production boundary：不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production submit / cancel / replace order，不创建 trading button、order form、Live PRO Console production command、production OMS 或 production cutover authorization。
+
 ## V090-001-DOWNSTREAM-QUEUE-ORDER
 
 `V090-001-DOWNSTREAM-QUEUE-ORDER`

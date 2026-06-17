@@ -9402,6 +9402,244 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift"
+            ),
+            encoding: .utf8
+        )
+        let verificationScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/verify-v0.9.0-alert-read-model.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+
+        let requiredAnchors = [
+            "GH-850-VERIFY-V090-ALERT-READ-MODEL",
+            "TVM-RELEASE-V090-ALERT-READ-MODEL",
+            "V090-008-ALERT-READ-MODEL",
+            "V090-008-ALERT-FIELDS",
+            "V090-008-MONITOR-SESSION-EVIDENCE-BINDING",
+            "V090-008-LOCAL-READ-MODEL-ONLY",
+            "V090-008-NO-NOTIFICATION-SIDE-EFFECTS",
+            "V090-008-NO-AUTOMATED-TRADING-REACTION",
+            "V090-008-NO-PRODUCTION-CUTOVER"
+        ]
+
+        for anchor in requiredAnchors {
+            XCTAssertTrue(
+                [
+                    source,
+                    verificationScript,
+                    readinessScript,
+                    contractDoc,
+                    validationPlan,
+                    tradingMatrix,
+                    automationReadiness
+                ].contains { $0.contains(anchor) },
+                "\(anchor) must stay wired into GH-850 alert read-model evidence chain"
+            )
+        }
+
+        let temporaryRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH850-AlertReadModel-\(UUID().uuidString)", isDirectory: true)
+        let storageRoot = temporaryRoot
+            .appendingPathComponent(".local", isDirectory: true)
+            .appendingPathComponent("mtpro", isDirectory: true)
+            .appendingPathComponent("runs", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: temporaryRoot)
+        }
+
+        let store = ReleaseV090TestnetReadOnlyMonitorSessionStore(storageRootURL: storageRoot)
+        let runID = Identifier.constant("gh-850-alert-read-model")
+        let listenKeyReference = "gh-850-stream-lease-profile"
+        _ = try store.create(runID: runID, createdAt: Date(timeIntervalSince1970: 1_782_500_000))
+        _ = try store.apply(runID: runID, command: .connect, reason: "monitor-started", at: Date(timeIntervalSince1970: 1_782_500_010))
+        let observing = try store.apply(runID: runID, command: .observe, reason: "read-only-monitor-observing", at: Date(timeIntervalSince1970: 1_782_500_020))
+        let freshness = try store.recordAccountSnapshotFreshness(
+            runID: runID,
+            snapshotObservedAt: Date(timeIntervalSince1970: 1_782_500_000),
+            recordedAt: Date(timeIntervalSince1970: 1_782_500_080),
+            latencyMilliseconds: 240,
+            staleThresholdSeconds: 30,
+            credentialReference: "gh-850-testnet-readonly-profile",
+            staleReason: "snapshot-age-over-threshold"
+        )
+        let heartbeat = try store.recordPrivateStreamHeartbeat(
+            runID: runID,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_500_000),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_500_080),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 45,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_500_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_503_600),
+            listenKeyReference: listenKeyReference,
+            disconnectedReason: "heartbeat-missed"
+        )
+
+        let readModel = try store.monitorAlertReadModel(
+            runID: runID,
+            generatedAt: Date(timeIntervalSince1970: 1_782_500_090)
+        )
+        XCTAssertEqual(readModel.issueID.rawValue, "GH-850")
+        XCTAssertEqual(readModel.upstreamIssueIDs.map(\.rawValue), ["GH-845", "GH-846", "GH-847", "GH-849"])
+        XCTAssertEqual(readModel.previousIssueID.rawValue, "GH-849")
+        XCTAssertEqual(readModel.downstreamIssueID.rawValue, "GH-851")
+        XCTAssertEqual(readModel.monitorSessionChecksum, observing.sessionChecksum)
+        XCTAssertEqual(readModel.accountSnapshotFreshnessChecksum, freshness.freshnessChecksum)
+        XCTAssertEqual(readModel.privateStreamHeartbeatChecksum, heartbeat.heartbeatChecksum)
+        XCTAssertEqual(readModel.alerts.count, 2)
+        XCTAssertTrue(readModel.readModelHeld)
+        XCTAssertTrue(readModel.localReadModelOnly)
+        XCTAssertTrue(readModel.noNotificationSideEffects)
+        XCTAssertFalse(readModel.smsNotificationSent)
+        XCTAssertFalse(readModel.emailNotificationSent)
+        XCTAssertFalse(readModel.webhookNotificationSent)
+        XCTAssertFalse(readModel.pushNotificationSent)
+        XCTAssertFalse(readModel.externalServiceCalled)
+        XCTAssertFalse(readModel.automatedTradingReactionEnabled)
+        XCTAssertTrue(readModel.noOrderHeld)
+        XCTAssertFalse(readModel.productionTradingEnabledByDefault)
+        XCTAssertFalse(readModel.productionSecretRead)
+        XCTAssertFalse(readModel.productionEndpointConnected)
+        XCTAssertFalse(readModel.brokerEndpointConnected)
+        XCTAssertFalse(readModel.productionOrderSubmitted)
+        XCTAssertFalse(readModel.productionCutoverAuthorized)
+
+        let snapshotAlert = try XCTUnwrap(readModel.alerts.first { $0.source == .accountSnapshotFreshness })
+        XCTAssertEqual(snapshotAlert.alertID.rawValue, "gh-850-gh-850-alert-read-model-snapshot-stale")
+        XCTAssertEqual(snapshotAlert.severity, .warning)
+        XCTAssertEqual(snapshotAlert.reason, "snapshot-age-over-threshold")
+        XCTAssertTrue(snapshotAlert.ackRequired)
+        XCTAssertEqual(snapshotAlert.lifecycle, .raised)
+        XCTAssertEqual(snapshotAlert.monitorSessionChecksum, observing.sessionChecksum)
+        XCTAssertEqual(snapshotAlert.sourceChecksum, freshness.freshnessChecksum)
+        XCTAssertEqual(snapshotAlert.sourceArtifact, "account-snapshot-freshness.json")
+        XCTAssertTrue(snapshotAlert.alertHeld)
+
+        let streamAlert = try XCTUnwrap(readModel.alerts.first { $0.source == .privateStreamHeartbeat })
+        XCTAssertEqual(streamAlert.alertID.rawValue, "gh-850-gh-850-alert-read-model-private-stream-disconnected")
+        XCTAssertEqual(streamAlert.severity, .critical)
+        XCTAssertEqual(streamAlert.reason, "heartbeat-missed")
+        XCTAssertTrue(streamAlert.ackRequired)
+        XCTAssertEqual(streamAlert.lifecycle, .raised)
+        XCTAssertEqual(streamAlert.monitorSessionChecksum, observing.sessionChecksum)
+        XCTAssertEqual(streamAlert.sourceChecksum, heartbeat.heartbeatChecksum)
+        XCTAssertEqual(streamAlert.sourceArtifact, "private-stream-heartbeat.json")
+        XCTAssertTrue(streamAlert.alertHeld)
+
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.sortedKeys]
+        let alertPayload = try String(data: encoder.encode(readModel.alerts[0]), encoding: .utf8)
+        XCTAssertTrue(try XCTUnwrap(alertPayload).contains("\"alert_id\""))
+        XCTAssertTrue(try XCTUnwrap(alertPayload).contains("\"ack_required\""))
+        XCTAssertFalse(try XCTUnwrap(alertPayload).contains("sms://"))
+        XCTAssertFalse(try XCTUnwrap(alertPayload).contains("https://"))
+        XCTAssertTrue(try XCTUnwrap(alertPayload).contains("\"webhookNotificationSent\":false"))
+
+        let fixture = try ReleaseV090MonitorAlertReadModel.deterministicFixture()
+        XCTAssertTrue(fixture.readModelHeld)
+        XCTAssertEqual(fixture.alerts.map(\.severity), [.warning, .critical])
+        XCTAssertEqual(fixture.alerts.map(\.lifecycle), [.raised, .raised])
+        XCTAssertTrue(fixture.alerts.allSatisfy(\.ackRequired))
+        XCTAssertTrue(fixture.alerts.allSatisfy(\.localReadModelOnly))
+        XCTAssertTrue(fixture.alerts.allSatisfy { $0.notificationSideEffectsEnabled == false })
+        XCTAssertTrue(fixture.alerts.allSatisfy { $0.automatedTradingReactionEnabled == false })
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.0-alert-read-model.sh"))
+        XCTAssertTrue(readinessScript.contains("GH-850-VERIFY-V090-ALERT-READ-MODEL"))
+        XCTAssertTrue(validationPlan.contains("GH-850 Release v0.9.0 Alert Read-model Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-ALERT-READ-MODEL"))
+        XCTAssertTrue(automationReadiness.contains("Release v0.9.0 alert read-model anchor"))
+
+        for requiredSource in [
+            "ReleaseV090MonitorAlertReadModel",
+            "ReleaseV090MonitorAlert",
+            "ReleaseV090MonitorAlertSeverity",
+            "ReleaseV090MonitorAlertSource",
+            "ReleaseV090MonitorAlertLifecycle",
+            "alert_id",
+            "ack_required",
+            "severity",
+            "reason",
+            "source",
+            "lifecycle",
+            "monitorAlertReadModel",
+            "notificationSideEffectsEnabled",
+            "smsNotificationSent",
+            "emailNotificationSent",
+            "webhookNotificationSent",
+            "pushNotificationSent",
+            "externalServiceCalled",
+            "automatedTradingReactionEnabled"
+        ] {
+            XCTAssertTrue(source.contains(requiredSource), "alert read-model source must contain \(requiredSource)")
+        }
+
+        for forbiddenAuthorization in [
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com",
+            "/api/v3/order",
+            "/fapi/v1/order",
+            "submitOrder",
+            "cancelOrder",
+            "replaceOrder",
+            "HMAC<",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "testnetCancelReplaceAllowed=true",
+            "notificationSideEffectsEnabled=true",
+            "smsNotificationSent=true",
+            "emailNotificationSent=true",
+            "webhookNotificationSent=true",
+            "pushNotificationSent=true",
+            "externalServiceCalled=true",
+            "automatedTradingReactionEnabled=true"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-850 source must not contain \(forbiddenAuthorization)")
+            XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-850 contract must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-850 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-850 matrix must not authorize \(forbiddenAuthorization)")
+        }
+    }
+
     func testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let policy = try String(

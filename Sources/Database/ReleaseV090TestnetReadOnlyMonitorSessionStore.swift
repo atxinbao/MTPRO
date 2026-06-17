@@ -90,7 +90,16 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "V090-006-MONITOR-RECOVERY-WORKFLOW",
         "V090-006-MONITOR-RECOVERY-JSON",
         "V090-006-PRESERVE-MONITOR-EVENT-HISTORY",
-        "V090-006-LOCAL-MANUAL-RECOVERY-ONLY"
+        "V090-006-LOCAL-MANUAL-RECOVERY-ONLY",
+        "GH-850-VERIFY-V090-ALERT-READ-MODEL",
+        "TVM-RELEASE-V090-ALERT-READ-MODEL",
+        "V090-008-ALERT-READ-MODEL",
+        "V090-008-ALERT-FIELDS",
+        "V090-008-MONITOR-SESSION-EVIDENCE-BINDING",
+        "V090-008-LOCAL-READ-MODEL-ONLY",
+        "V090-008-NO-NOTIFICATION-SIDE-EFFECTS",
+        "V090-008-NO-AUTOMATED-TRADING-REACTION",
+        "V090-008-NO-PRODUCTION-CUTOVER"
     ]
 
     public static let requiredValidationCommands: [String] = [
@@ -98,7 +107,9 @@ public enum ReleaseV090TestnetReadOnlyMonitorSessionStoreContract {
         "bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh",
         "bash checks/verify-v0.9.0-private-stream-heartbeat-monitor.sh",
         "bash checks/verify-v0.9.0-monitor-recovery-workflow.sh",
-        "swift test --filter TargetGraphTests/testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed"
+        "bash checks/verify-v0.9.0-alert-read-model.sh",
+        "swift test --filter TargetGraphTests/testGH845TestnetReadOnlyMonitorSessionStorePersistsArtifactsAndFailsClosed",
+        "swift test --filter TargetGraphTests/testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects"
     ]
 }
 
@@ -1832,6 +1843,677 @@ public struct ReleaseV090MonitorRecoveryDocument: Codable, Equatable, Sendable {
     }
 }
 
+/// ReleaseV090MonitorAlertSeverity 固定 GH-850 alert read-model 的本地严重度分类。
+///
+/// 严重度只用于 operator 可读的本地 monitor freshness / staleness 视图，不会触发
+/// SMS、email、webhook、push、paging、automatic recovery、broker command 或任何订单动作。
+public enum ReleaseV090MonitorAlertSeverity: String, Codable, CaseIterable, Equatable, Sendable {
+    case info
+    case warning
+    case critical
+}
+
+/// ReleaseV090MonitorAlertSource 固定 GH-850 alert 可以绑定的本地 evidence 来源。
+public enum ReleaseV090MonitorAlertSource: String, Codable, CaseIterable, Equatable, Sendable {
+    case accountSnapshotFreshness
+    case privateStreamHeartbeat
+}
+
+/// ReleaseV090MonitorAlertLifecycle 固定 GH-850 alert 的本地 lifecycle 状态。
+public enum ReleaseV090MonitorAlertLifecycle: String, Codable, CaseIterable, Equatable, Sendable {
+    case raised
+    case acknowledged
+    case resolved
+}
+
+/// ReleaseV090MonitorAlert 是 GH-850 的本地 alert 行。
+///
+/// JSON 字段显式保留 `alert_id` 和 `ack_required`，以便后续 Dashboard / CLI 可以
+/// 稳定读取；但该行只是一条本地 read-model evidence，不保存通知配置，不调用外部服务，
+/// 不触发 automatic trading reaction，也不授权 testnet / production submit / cancel / replace。
+public struct ReleaseV090MonitorAlert: Codable, Equatable, Sendable {
+    public let alertID: Identifier
+    public let severity: ReleaseV090MonitorAlertSeverity
+    public let reason: String
+    public let source: ReleaseV090MonitorAlertSource
+    public let ackRequired: Bool
+    public let lifecycle: ReleaseV090MonitorAlertLifecycle
+    public let raisedAt: Date
+    public let acknowledgedAt: Date?
+    public let resolvedAt: Date?
+    public let lastUpdatedAt: Date
+    public let monitorSessionChecksum: String
+    public let sourceChecksum: String
+    public let sourceArtifact: String
+    public let localReadModelOnly: Bool
+    public let notificationSideEffectsEnabled: Bool
+    public let smsNotificationSent: Bool
+    public let emailNotificationSent: Bool
+    public let webhookNotificationSent: Bool
+    public let pushNotificationSent: Bool
+    public let externalServiceCalled: Bool
+    public let pagingCommandCreated: Bool
+    public let incidentCommandCreated: Bool
+    public let automaticRecoveryCommand: Bool
+    public let automatedTradingReactionEnabled: Bool
+    public let tradingButtonVisible: Bool
+    public let orderFormVisible: Bool
+    public let liveCommandEnabled: Bool
+    public let testnetOrderRoutingAllowed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+    public let alertChecksum: String
+
+    private enum CodingKeys: String, CodingKey {
+        case alertID = "alert_id"
+        case severity
+        case reason
+        case source
+        case ackRequired = "ack_required"
+        case lifecycle
+        case raisedAt
+        case acknowledgedAt
+        case resolvedAt
+        case lastUpdatedAt
+        case monitorSessionChecksum
+        case sourceChecksum
+        case sourceArtifact
+        case localReadModelOnly
+        case notificationSideEffectsEnabled
+        case smsNotificationSent
+        case emailNotificationSent
+        case webhookNotificationSent
+        case pushNotificationSent
+        case externalServiceCalled
+        case pagingCommandCreated
+        case incidentCommandCreated
+        case automaticRecoveryCommand
+        case automatedTradingReactionEnabled
+        case tradingButtonVisible
+        case orderFormVisible
+        case liveCommandEnabled
+        case testnetOrderRoutingAllowed
+        case productionTradingEnabledByDefault
+        case productionSecretRead
+        case productionEndpointConnected
+        case brokerEndpointConnected
+        case productionOrderSubmitted
+        case productionCutoverAuthorized
+        case alertChecksum
+    }
+
+    public var alertHeld: Bool {
+        alertID.rawValue.isEmpty == false
+            && reason.isEmpty == false
+            && raisedAt <= lastUpdatedAt
+            && (ackRequired ? lifecycle == .raised || lifecycle == .acknowledged : true)
+            && (lifecycle == .acknowledged ? acknowledgedAt != nil : true)
+            && (lifecycle == .resolved ? resolvedAt != nil && ackRequired == false : true)
+            && monitorSessionChecksum.hasPrefix("sha256:")
+            && sourceChecksum.hasPrefix("sha256:")
+            && ["account-snapshot-freshness.json", "private-stream-heartbeat.json"].contains(sourceArtifact)
+            && localReadModelOnly
+            && notificationSideEffectsEnabled == false
+            && smsNotificationSent == false
+            && emailNotificationSent == false
+            && webhookNotificationSent == false
+            && pushNotificationSent == false
+            && externalServiceCalled == false
+            && pagingCommandCreated == false
+            && incidentCommandCreated == false
+            && automaticRecoveryCommand == false
+            && automatedTradingReactionEnabled == false
+            && tradingButtonVisible == false
+            && orderFormVisible == false
+            && liveCommandEnabled == false
+            && testnetOrderRoutingAllowed == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && alertChecksum == Self.stableAlertChecksum(
+                alertID: alertID,
+                severity: severity,
+                reason: reason,
+                source: source,
+                ackRequired: ackRequired,
+                lifecycle: lifecycle,
+                raisedAt: raisedAt,
+                acknowledgedAt: acknowledgedAt,
+                resolvedAt: resolvedAt,
+                lastUpdatedAt: lastUpdatedAt,
+                monitorSessionChecksum: monitorSessionChecksum,
+                sourceChecksum: sourceChecksum,
+                sourceArtifact: sourceArtifact
+            )
+    }
+
+    public init(
+        alertID: Identifier,
+        severity: ReleaseV090MonitorAlertSeverity,
+        reason: String,
+        source: ReleaseV090MonitorAlertSource,
+        ackRequired: Bool,
+        lifecycle: ReleaseV090MonitorAlertLifecycle,
+        raisedAt: Date,
+        acknowledgedAt: Date? = nil,
+        resolvedAt: Date? = nil,
+        lastUpdatedAt: Date,
+        monitorSessionChecksum: String,
+        sourceChecksum: String,
+        sourceArtifact: String,
+        alertChecksum: String? = nil,
+        localReadModelOnly: Bool = true,
+        notificationSideEffectsEnabled: Bool = false,
+        smsNotificationSent: Bool = false,
+        emailNotificationSent: Bool = false,
+        webhookNotificationSent: Bool = false,
+        pushNotificationSent: Bool = false,
+        externalServiceCalled: Bool = false,
+        pagingCommandCreated: Bool = false,
+        incidentCommandCreated: Bool = false,
+        automaticRecoveryCommand: Bool = false,
+        automatedTradingReactionEnabled: Bool = false,
+        tradingButtonVisible: Bool = false,
+        orderFormVisible: Bool = false,
+        liveCommandEnabled: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.alertID = alertID
+        self.severity = severity
+        self.reason = reason
+        self.source = source
+        self.ackRequired = ackRequired
+        self.lifecycle = lifecycle
+        self.raisedAt = raisedAt
+        self.acknowledgedAt = acknowledgedAt
+        self.resolvedAt = resolvedAt
+        self.lastUpdatedAt = lastUpdatedAt
+        self.monitorSessionChecksum = monitorSessionChecksum
+        self.sourceChecksum = sourceChecksum
+        self.sourceArtifact = sourceArtifact
+        self.localReadModelOnly = localReadModelOnly
+        self.notificationSideEffectsEnabled = notificationSideEffectsEnabled
+        self.smsNotificationSent = smsNotificationSent
+        self.emailNotificationSent = emailNotificationSent
+        self.webhookNotificationSent = webhookNotificationSent
+        self.pushNotificationSent = pushNotificationSent
+        self.externalServiceCalled = externalServiceCalled
+        self.pagingCommandCreated = pagingCommandCreated
+        self.incidentCommandCreated = incidentCommandCreated
+        self.automaticRecoveryCommand = automaticRecoveryCommand
+        self.automatedTradingReactionEnabled = automatedTradingReactionEnabled
+        self.tradingButtonVisible = tradingButtonVisible
+        self.orderFormVisible = orderFormVisible
+        self.liveCommandEnabled = liveCommandEnabled
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.alertChecksum = alertChecksum ?? Self.stableAlertChecksum(
+            alertID: alertID,
+            severity: severity,
+            reason: reason,
+            source: source,
+            ackRequired: ackRequired,
+            lifecycle: lifecycle,
+            raisedAt: raisedAt,
+            acknowledgedAt: acknowledgedAt,
+            resolvedAt: resolvedAt,
+            lastUpdatedAt: lastUpdatedAt,
+            monitorSessionChecksum: monitorSessionChecksum,
+            sourceChecksum: sourceChecksum,
+            sourceArtifact: sourceArtifact
+        )
+
+        guard alertHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("monitorAlert")
+        }
+    }
+
+    public static func stableAlertChecksum(
+        alertID: Identifier,
+        severity: ReleaseV090MonitorAlertSeverity,
+        reason: String,
+        source: ReleaseV090MonitorAlertSource,
+        ackRequired: Bool,
+        lifecycle: ReleaseV090MonitorAlertLifecycle,
+        raisedAt: Date,
+        acknowledgedAt: Date?,
+        resolvedAt: Date?,
+        lastUpdatedAt: Date,
+        monitorSessionChecksum: String,
+        sourceChecksum: String,
+        sourceArtifact: String
+    ) -> String {
+        stableSHA256([
+            "GH-850",
+            "v0.9.0",
+            alertID.rawValue,
+            severity.rawValue,
+            reason,
+            source.rawValue,
+            String(ackRequired),
+            lifecycle.rawValue,
+            String(raisedAt.timeIntervalSince1970),
+            String(acknowledgedAt?.timeIntervalSince1970 ?? 0),
+            String(resolvedAt?.timeIntervalSince1970 ?? 0),
+            String(lastUpdatedAt.timeIntervalSince1970),
+            monitorSessionChecksum,
+            sourceChecksum,
+            sourceArtifact,
+            "localReadModelOnly=true",
+            "notificationSideEffectsEnabled=false",
+            "smsNotificationSent=false",
+            "emailNotificationSent=false",
+            "webhookNotificationSent=false",
+            "pushNotificationSent=false",
+            "externalServiceCalled=false",
+            "pagingCommandCreated=false",
+            "incidentCommandCreated=false",
+            "automaticRecoveryCommand=false",
+            "automatedTradingReactionEnabled=false",
+            "tradingButtonVisible=false",
+            "orderFormVisible=false",
+            "liveCommandEnabled=false",
+            "testnetOrderRoutingAllowed=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV090MonitorAlertReadModel 是 GH-850 的本地 alert read-model envelope。
+///
+/// Read model 从 monitor session、account snapshot freshness 和 private stream heartbeat
+/// checksum 派生 alert_id / severity / reason / source / ack_required / lifecycle 字段。
+/// 它不持久化通知队列，不调用短信、邮件、webhook、push 或外部服务，不自动恢复，
+/// 不触发交易反应，也不授权 testnet / production 订单。
+public struct ReleaseV090MonitorAlertReadModel: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.9.0.monitor-alert-read-model.v1"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let previousIssueID: Identifier
+    public let downstreamIssueID: Identifier
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let runID: Identifier
+    public let generatedAt: Date
+    public let monitorSessionChecksum: String
+    public let accountSnapshotFreshnessChecksum: String
+    public let privateStreamHeartbeatChecksum: String
+    public let alerts: [ReleaseV090MonitorAlert]
+    public let localReadModelOnly: Bool
+    public let noNotificationSideEffects: Bool
+    public let smsNotificationSent: Bool
+    public let emailNotificationSent: Bool
+    public let webhookNotificationSent: Bool
+    public let pushNotificationSent: Bool
+    public let externalServiceCalled: Bool
+    public let automatedTradingReactionEnabled: Bool
+    public let noOrderHeld: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+    public let requiredValidationAnchors: [String]
+    public let requiredValidationCommands: [String]
+    public let readModelChecksum: String
+
+    public var readModelHeld: Bool {
+        issueID.rawValue == "GH-850"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-845", "GH-846", "GH-847", "GH-849"]
+            && previousIssueID.rawValue == "GH-849"
+            && downstreamIssueID.rawValue == "GH-851"
+            && releaseVersion == "v0.9.0"
+            && schemaVersion == Self.schemaVersion
+            && runID.rawValue.isEmpty == false
+            && monitorSessionChecksum.hasPrefix("sha256:")
+            && accountSnapshotFreshnessChecksum.hasPrefix("sha256:")
+            && privateStreamHeartbeatChecksum.hasPrefix("sha256:")
+            && alerts.isEmpty == false
+            && alerts.allSatisfy(\.alertHeld)
+            && alerts.allSatisfy { $0.monitorSessionChecksum == monitorSessionChecksum }
+            && alerts.contains { $0.source == .accountSnapshotFreshness }
+            && alerts.contains { $0.source == .privateStreamHeartbeat }
+            && alerts.contains { $0.ackRequired }
+            && localReadModelOnly
+            && noNotificationSideEffects
+            && smsNotificationSent == false
+            && emailNotificationSent == false
+            && webhookNotificationSent == false
+            && pushNotificationSent == false
+            && externalServiceCalled == false
+            && automatedTradingReactionEnabled == false
+            && noOrderHeld
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && requiredValidationAnchors == Self.requiredValidationAnchors
+            && requiredValidationCommands == Self.requiredValidationCommands
+            && readModelChecksum == Self.stableReadModelChecksum(
+                runID: runID,
+                generatedAt: generatedAt,
+                monitorSessionChecksum: monitorSessionChecksum,
+                accountSnapshotFreshnessChecksum: accountSnapshotFreshnessChecksum,
+                privateStreamHeartbeatChecksum: privateStreamHeartbeatChecksum,
+                alerts: alerts
+            )
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-850"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-845"),
+            Identifier.constant("GH-846"),
+            Identifier.constant("GH-847"),
+            Identifier.constant("GH-849")
+        ],
+        previousIssueID: Identifier = Identifier.constant("GH-849"),
+        downstreamIssueID: Identifier = Identifier.constant("GH-851"),
+        releaseVersion: String = "v0.9.0",
+        schemaVersion: String = Self.schemaVersion,
+        runID: Identifier,
+        generatedAt: Date,
+        monitorSessionChecksum: String,
+        accountSnapshotFreshnessChecksum: String,
+        privateStreamHeartbeatChecksum: String,
+        alerts: [ReleaseV090MonitorAlert],
+        readModelChecksum: String? = nil,
+        localReadModelOnly: Bool = true,
+        noNotificationSideEffects: Bool = true,
+        smsNotificationSent: Bool = false,
+        emailNotificationSent: Bool = false,
+        webhookNotificationSent: Bool = false,
+        pushNotificationSent: Bool = false,
+        externalServiceCalled: Bool = false,
+        automatedTradingReactionEnabled: Bool = false,
+        noOrderHeld: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        requiredValidationAnchors: [String] = Self.requiredValidationAnchors,
+        requiredValidationCommands: [String] = Self.requiredValidationCommands
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.previousIssueID = previousIssueID
+        self.downstreamIssueID = downstreamIssueID
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.runID = runID
+        self.generatedAt = generatedAt
+        self.monitorSessionChecksum = monitorSessionChecksum
+        self.accountSnapshotFreshnessChecksum = accountSnapshotFreshnessChecksum
+        self.privateStreamHeartbeatChecksum = privateStreamHeartbeatChecksum
+        self.alerts = alerts
+        self.localReadModelOnly = localReadModelOnly
+        self.noNotificationSideEffects = noNotificationSideEffects
+        self.smsNotificationSent = smsNotificationSent
+        self.emailNotificationSent = emailNotificationSent
+        self.webhookNotificationSent = webhookNotificationSent
+        self.pushNotificationSent = pushNotificationSent
+        self.externalServiceCalled = externalServiceCalled
+        self.automatedTradingReactionEnabled = automatedTradingReactionEnabled
+        self.noOrderHeld = noOrderHeld
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.requiredValidationAnchors = requiredValidationAnchors
+        self.requiredValidationCommands = requiredValidationCommands
+        self.readModelChecksum = readModelChecksum ?? Self.stableReadModelChecksum(
+            runID: runID,
+            generatedAt: generatedAt,
+            monitorSessionChecksum: monitorSessionChecksum,
+            accountSnapshotFreshnessChecksum: accountSnapshotFreshnessChecksum,
+            privateStreamHeartbeatChecksum: privateStreamHeartbeatChecksum,
+            alerts: alerts
+        )
+
+        guard readModelHeld else {
+            throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.boundaryDrift("monitorAlertReadModel")
+        }
+    }
+
+    public init(
+        session: ReleaseV090TestnetReadOnlyMonitorSessionDocument,
+        accountSnapshotFreshness: ReleaseV090AccountSnapshotFreshnessDocument,
+        privateStreamHeartbeat: ReleaseV090PrivateStreamHeartbeatDocument,
+        generatedAt: Date
+    ) throws {
+        let alerts = try Self.makeAlerts(
+            session: session,
+            accountSnapshotFreshness: accountSnapshotFreshness,
+            privateStreamHeartbeat: privateStreamHeartbeat,
+            generatedAt: generatedAt
+        )
+        try self.init(
+            runID: session.runID,
+            generatedAt: generatedAt,
+            monitorSessionChecksum: session.sessionChecksum,
+            accountSnapshotFreshnessChecksum: accountSnapshotFreshness.freshnessChecksum,
+            privateStreamHeartbeatChecksum: privateStreamHeartbeat.heartbeatChecksum,
+            alerts: alerts
+        )
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-850-VERIFY-V090-ALERT-READ-MODEL",
+        "TVM-RELEASE-V090-ALERT-READ-MODEL",
+        "V090-008-ALERT-READ-MODEL",
+        "V090-008-ALERT-FIELDS",
+        "V090-008-MONITOR-SESSION-EVIDENCE-BINDING",
+        "V090-008-LOCAL-READ-MODEL-ONLY",
+        "V090-008-NO-NOTIFICATION-SIDE-EFFECTS",
+        "V090-008-NO-AUTOMATED-TRADING-REACTION",
+        "V090-008-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static let requiredValidationCommands = [
+        "swift test --filter TargetGraphTests/testGH850MonitorAlertReadModelBindsFreshnessAndHeartbeatWithoutNotificationSideEffects",
+        "bash checks/verify-v0.9.0-alert-read-model.sh",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+
+    public static func makeAlerts(
+        session: ReleaseV090TestnetReadOnlyMonitorSessionDocument,
+        accountSnapshotFreshness: ReleaseV090AccountSnapshotFreshnessDocument,
+        privateStreamHeartbeat: ReleaseV090PrivateStreamHeartbeatDocument,
+        generatedAt: Date
+    ) throws -> [ReleaseV090MonitorAlert] {
+        var alerts: [ReleaseV090MonitorAlert] = []
+
+        if accountSnapshotFreshness.freshnessStatus == .stale {
+            alerts.append(try ReleaseV090MonitorAlert(
+                alertID: Identifier.constant("gh-850-\(session.runID.rawValue)-snapshot-stale"),
+                severity: .warning,
+                reason: accountSnapshotFreshness.staleReason ?? "account-snapshot-freshness-stale",
+                source: .accountSnapshotFreshness,
+                ackRequired: true,
+                lifecycle: .raised,
+                raisedAt: generatedAt,
+                lastUpdatedAt: generatedAt,
+                monitorSessionChecksum: session.sessionChecksum,
+                sourceChecksum: accountSnapshotFreshness.freshnessChecksum,
+                sourceArtifact: "account-snapshot-freshness.json"
+            ))
+        }
+
+        switch privateStreamHeartbeat.heartbeatStatus {
+        case .stale:
+            alerts.append(try ReleaseV090MonitorAlert(
+                alertID: Identifier.constant("gh-850-\(session.runID.rawValue)-private-stream-stale"),
+                severity: .warning,
+                reason: "private-stream-heartbeat-stale",
+                source: .privateStreamHeartbeat,
+                ackRequired: true,
+                lifecycle: .raised,
+                raisedAt: generatedAt,
+                lastUpdatedAt: generatedAt,
+                monitorSessionChecksum: session.sessionChecksum,
+                sourceChecksum: privateStreamHeartbeat.heartbeatChecksum,
+                sourceArtifact: "private-stream-heartbeat.json"
+            ))
+        case .disconnected, .expired:
+            alerts.append(try ReleaseV090MonitorAlert(
+                alertID: Identifier.constant("gh-850-\(session.runID.rawValue)-private-stream-\(privateStreamHeartbeat.heartbeatStatus.rawValue)"),
+                severity: .critical,
+                reason: privateStreamHeartbeat.disconnectedReason ?? "private-stream-\(privateStreamHeartbeat.heartbeatStatus.rawValue)",
+                source: .privateStreamHeartbeat,
+                ackRequired: true,
+                lifecycle: .raised,
+                raisedAt: generatedAt,
+                lastUpdatedAt: generatedAt,
+                monitorSessionChecksum: session.sessionChecksum,
+                sourceChecksum: privateStreamHeartbeat.heartbeatChecksum,
+                sourceArtifact: "private-stream-heartbeat.json"
+            ))
+        case .recovered:
+            alerts.append(try ReleaseV090MonitorAlert(
+                alertID: Identifier.constant("gh-850-\(session.runID.rawValue)-private-stream-recovered"),
+                severity: .info,
+                reason: privateStreamHeartbeat.recoveryReason ?? "private-stream-recovered",
+                source: .privateStreamHeartbeat,
+                ackRequired: false,
+                lifecycle: .resolved,
+                raisedAt: generatedAt,
+                resolvedAt: generatedAt,
+                lastUpdatedAt: generatedAt,
+                monitorSessionChecksum: session.sessionChecksum,
+                sourceChecksum: privateStreamHeartbeat.heartbeatChecksum,
+                sourceArtifact: "private-stream-heartbeat.json"
+            ))
+        case .healthy, .recovering, .unavailable:
+            break
+        }
+
+        return alerts
+    }
+
+    public static func deterministicFixture(
+        generatedAt: Date = Date(timeIntervalSince1970: 1_782_500_080)
+    ) throws -> ReleaseV090MonitorAlertReadModel {
+        let session = try ReleaseV090TestnetReadOnlyMonitorSessionStore.deterministicFixture(
+            createdAt: Date(timeIntervalSince1970: 1_782_500_000)
+        )
+        let freshness = try ReleaseV090AccountSnapshotFreshnessDocument(
+            runID: session.runID,
+            monitorSessionChecksum: session.sessionChecksum,
+            accountSnapshotFreshnessJSONPath: session.artifactPaths.accountSnapshotFreshnessJSONPath,
+            snapshotObservedAt: Date(timeIntervalSince1970: 1_782_500_000),
+            recordedAt: Date(timeIntervalSince1970: 1_782_500_080),
+            latencyMilliseconds: 240,
+            staleThresholdSeconds: 30,
+            redactedCredentialReference: "gh-850-testnet-readonly-profile:<redacted>",
+            staleReason: "snapshot-age-over-threshold"
+        )
+        let heartbeat = try ReleaseV090PrivateStreamHeartbeatDocument(
+            runID: session.runID,
+            monitorSessionChecksum: session.sessionChecksum,
+            privateStreamHeartbeatJSONPath: session.artifactPaths.privateStreamHeartbeatJSONPath,
+            lastEventObservedAt: Date(timeIntervalSince1970: 1_782_500_000),
+            heartbeatRecordedAt: Date(timeIntervalSince1970: 1_782_500_080),
+            heartbeatIntervalSeconds: 60,
+            staleThresholdSeconds: 45,
+            listenKeyCreatedAt: Date(timeIntervalSince1970: 1_782_500_000),
+            listenKeyExpiresAt: Date(timeIntervalSince1970: 1_782_503_600),
+            redactedListenKeyReference: "gh-850-stream-lease-profile:<redacted>",
+            listenKeyReferenceHash: ReleaseV090PrivateStreamHeartbeatDocument.listenKeyReferenceHash(
+                "gh-850-stream-lease-profile"
+            ),
+            disconnectedReason: "heartbeat-missed"
+        )
+        return try ReleaseV090MonitorAlertReadModel(
+            session: session,
+            accountSnapshotFreshness: freshness,
+            privateStreamHeartbeat: heartbeat,
+            generatedAt: generatedAt
+        )
+    }
+
+    public static func stableReadModelChecksum(
+        runID: Identifier,
+        generatedAt: Date,
+        monitorSessionChecksum: String,
+        accountSnapshotFreshnessChecksum: String,
+        privateStreamHeartbeatChecksum: String,
+        alerts: [ReleaseV090MonitorAlert]
+    ) -> String {
+        stableSHA256([
+            "GH-850",
+            "v0.9.0",
+            Self.schemaVersion,
+            runID.rawValue,
+            String(generatedAt.timeIntervalSince1970),
+            monitorSessionChecksum,
+            accountSnapshotFreshnessChecksum,
+            privateStreamHeartbeatChecksum,
+            "localReadModelOnly=true",
+            "noNotificationSideEffects=true",
+            "smsNotificationSent=false",
+            "emailNotificationSent=false",
+            "webhookNotificationSent=false",
+            "pushNotificationSent=false",
+            "externalServiceCalled=false",
+            "automatedTradingReactionEnabled=false",
+            "noOrderHeld=true",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false"
+        ] + alerts.map(\.alertChecksum))
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
 /// ReleaseV090TestnetReadOnlyMonitorSessionStore 提供 GH-845 monitor session 本地持久化入口。
 ///
 /// Store 只操作本地 `monitor_session.json`、`monitor_events.jsonl` 和
@@ -2216,6 +2898,21 @@ public struct ReleaseV090TestnetReadOnlyMonitorSessionStore {
         } catch {
             throw ReleaseV090TestnetReadOnlyMonitorSessionStoreError.corruptedMonitorRecovery(recoveryURL.path)
         }
+    }
+
+    public func monitorAlertReadModel(
+        runID: Identifier,
+        generatedAt: Date
+    ) throws -> ReleaseV090MonitorAlertReadModel {
+        let session = try load(runID: runID)
+        let freshness = try accountSnapshotFreshness(runID: runID)
+        let heartbeat = try privateStreamHeartbeat(runID: runID)
+        return try ReleaseV090MonitorAlertReadModel(
+            session: session,
+            accountSnapshotFreshness: freshness,
+            privateStreamHeartbeat: heartbeat,
+            generatedAt: generatedAt
+        )
     }
 
     @discardableResult
