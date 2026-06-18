@@ -9711,6 +9711,221 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH887ProductionReadinessAuditBundleAggregatesRedactedNoOrderEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let bundle = try ReleaseV0100ProductionReadinessAuditBundle.deterministicFixture()
+
+        XCTAssertTrue(bundle.bundleHeld)
+        XCTAssertTrue(bundle.evidenceArtifact.artifactHeld)
+        XCTAssertTrue(bundle.evidenceEntries.allSatisfy(\.entryHeld))
+        XCTAssertTrue(bundle.requiredUpstreamEvidenceHeld)
+        XCTAssertTrue(bundle.productionCapabilitiesDisabled)
+        XCTAssertEqual(bundle.issueID.rawValue, "GH-887")
+        XCTAssertEqual(bundle.upstreamIssueIDs.map(\.rawValue), ["GH-880", "GH-881", "GH-882", "GH-883", "GH-884", "GH-885", "GH-886"])
+        XCTAssertEqual(bundle.downstreamIssueID.rawValue, "GH-888")
+        XCTAssertEqual(bundle.canonicalQueueRange, "GH-878..GH-891")
+        XCTAssertEqual(bundle.evidenceArtifact.fileName, "production_readiness_bundle.json")
+        XCTAssertEqual(bundle.bundleChecksum, ReleaseV0100ProductionReadinessBundleChecksum.bundle)
+        XCTAssertTrue(bundle.bundleChecksum.hasPrefix("sha256:"))
+        XCTAssertEqual(bundle.bundleChecksum.dropFirst("sha256:".count).count, 64)
+        XCTAssertEqual(bundle.evidenceEntries.map(\.kind), ReleaseV0100ProductionReadinessBundleEntryKind.allCases)
+        XCTAssertTrue(bundle.evidenceEntries.allSatisfy { $0.checksum.hasPrefix("sha256:") })
+        XCTAssertTrue(bundle.redactionProof)
+        XCTAssertTrue(bundle.noSecretValue)
+        XCTAssertTrue(bundle.noOrderPayload)
+        XCTAssertTrue(bundle.riskPolicySnapshotIncluded)
+        XCTAssertTrue(bundle.portfolioReconciliationSnapshotIncluded)
+        XCTAssertTrue(bundle.productionCutoverBlocked)
+        XCTAssertFalse(bundle.cutoverAuthorized)
+        XCTAssertFalse(bundle.productionCutoverUnblocked)
+        XCTAssertFalse(bundle.productionEndpointConnectionEnabled)
+        XCTAssertFalse(bundle.productionBrokerConnectionEnabled)
+        XCTAssertFalse(bundle.productionSecretValueRead)
+        XCTAssertFalse(bundle.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(bundle.productionOrderSubmissionEnabled)
+        XCTAssertFalse(bundle.orderPayloadCreated)
+        XCTAssertFalse(bundle.brokerCommandCreated)
+        XCTAssertFalse(bundle.productionOMSRuntimeEnabled)
+        XCTAssertFalse(bundle.tradingButtonVisible)
+        XCTAssertFalse(bundle.orderFormVisible)
+        XCTAssertFalse(bundle.liveCommandEnabled)
+        XCTAssertFalse(bundle.productionCommandEnabled)
+        XCTAssertFalse(bundle.readinessApprovalConvertedToTradingPermission)
+        XCTAssertFalse(bundle.bundleBypassEnabled)
+
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleArtifact(fileName: "wrong.json"))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleArtifact(bundleChecksum: "sha256:bad"))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleArtifact(evidenceExists: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleArtifact(redactionProof: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleArtifact(noSecretValue: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleArtifact(noOrderPayload: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleArtifact(containsBrokerOrAccountResponse: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleArtifact(producedByEndpointConnection: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleArtifact(containsOrderPayload: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleEntry(kind: .riskPolicySnapshot, fileName: "wrong.json"))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleEntry(kind: .riskPolicySnapshot, checksum: "sha256:bad"))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleEntry(kind: .riskPolicySnapshot, includedInBundle: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleEntry(kind: .riskPolicySnapshot, redactionProof: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleEntry(kind: .riskPolicySnapshot, noSecretValue: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleEntry(kind: .riskPolicySnapshot, noOrderPayload: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleEntry(kind: .riskPolicySnapshot, containsBrokerOrAccountResponse: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessBundleEntry(kind: .riskPolicySnapshot, producedByEndpointConnection: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(redactionProof: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(noSecretValue: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(noOrderPayload: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(upstreamSecretReadinessHeld: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(upstreamShadowDryRunParityHeld: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(riskPolicySnapshotIncluded: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(portfolioReconciliationSnapshotIncluded: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(productionCutoverBlocked: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(cutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(productionCutoverUnblocked: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(productionBrokerConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(testnetOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(productionOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(orderPayloadCreated: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(brokerCommandCreated: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(productionOMSRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(tradingButtonVisible: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(orderFormVisible: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(liveCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(productionCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(readinessApprovalConvertedToTradingPermission: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionReadinessAuditBundle(bundleBypassEnabled: true))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100ProductionReadinessAuditBundle.swift")
+        let contract = try read("docs/contracts/release-v0.10.0-production-readiness-audit-bundle-contract.md")
+        let verifier = try read("checks/verify-v0.10.0-production-readiness-bundle.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "V0100-010-PRODUCTION-READINESS-AUDIT-BUNDLE",
+            "V0100-010-PRODUCTION-READINESS-BUNDLE-JSON",
+            "V0100-010-BUNDLE-SHA256-CHECKSUM",
+            "V0100-010-ENVIRONMENT-SECRET-ENDPOINT-EVIDENCE",
+            "V0100-010-CAPITAL-KILL-SWITCH-NO-TRADE-EVIDENCE",
+            "V0100-010-COMMAND-SURFACE-SHADOW-DRY-RUN-EVIDENCE",
+            "V0100-010-RISK-POLICY-SNAPSHOT",
+            "V0100-010-PORTFOLIO-RECONCILIATION-SNAPSHOT",
+            "V0100-010-REDACTION-PROOF-TRUE",
+            "V0100-010-NO-SECRET-VALUE-TRUE",
+            "V0100-010-NO-ORDER-PAYLOAD-TRUE",
+            "V0100-010-PRODUCTION-CAPABILITIES-DISABLED",
+            "GH-887-VERIFY-V0100-PRODUCTION-READINESS-BUNDLE",
+            "TVM-RELEASE-V0100-PRODUCTION-READINESS-BUNDLE"
+        ]
+        XCTAssertEqual(ReleaseV0100ProductionReadinessAuditBundle.requiredValidationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        for evidence in [
+            "production_readiness_bundle.json",
+            "production_environment_profile.json",
+            "secret_readiness.json",
+            "endpoint_policy_readiness.json",
+            "capital_exposure_limits.json",
+            "kill_switch_readiness.json",
+            "no_trade_readiness.json",
+            "dashboard_production_surface_disabled.json",
+            "cli_production_surface_disabled.json",
+            "shadow_dry_run_parity.json",
+            "risk_policy_snapshot.json",
+            "portfolio_reconciliation_snapshot.json"
+        ] {
+            XCTAssertTrue(source.contains(evidence), "\(evidence) must stay in Swift bundle contract")
+            XCTAssertTrue(contract.contains(evidence), "\(evidence) must stay in docs")
+        }
+
+        for exactString in [
+            "bundleChecksum=sha256:",
+            "redaction_proof=true",
+            "redactionProof=true",
+            "no_secret_value=true",
+            "noSecretValue=true",
+            "no_order_payload=true",
+            "noOrderPayload=true",
+            "riskPolicySnapshotIncluded=true",
+            "portfolioReconciliationSnapshotIncluded=true",
+            "production_cutover_blocked=true",
+            "productionCutoverBlocked=true",
+            "productionCutoverUnblocked=false",
+            "cutoverAuthorized=false",
+            "productionEndpointConnectionEnabled=false",
+            "productionBrokerConnectionEnabled=false",
+            "productionSecretValueRead=false",
+            "testnetOrderSubmissionEnabled=false",
+            "productionOrderSubmissionEnabled=false",
+            "orderPayloadCreated=false",
+            "brokerCommandCreated=false",
+            "productionOMSRuntimeEnabled=false",
+            "tradingButtonVisible=false",
+            "orderFormVisible=false",
+            "liveCommandEnabled=false",
+            "productionCommandEnabled=false",
+            "readinessApprovalConvertedToTradingPermission=false",
+            "bundleBypassEnabled=false"
+        ] {
+            XCTAssertTrue(contract.contains(exactString), "\(exactString) must stay fixed in #887 docs")
+        }
+
+        XCTAssertTrue(verifier.contains("MTPRO release v0.10.0 production readiness audit bundle verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-production-readiness-bundle.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-production-readiness-bundle.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.10.0 production readiness audit bundle anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-887 Release v0.10.0 Production Readiness Audit Bundle Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-PRODUCTION-READINESS-BUNDLE"))
+        XCTAssertTrue(latest.contains("`#887` 定义 ProductionReadinessAuditBundle reference-only contract"))
+
+        for forbiddenAuthorization in [
+            "production_cutover_blocked=false",
+            "productionCutoverBlocked=false",
+            "productionCutoverUnblocked=true",
+            "cutoverAuthorized=true",
+            "redaction_proof=false",
+            "redactionProof=false",
+            "no_secret_value=false",
+            "noSecretValue=false",
+            "no_order_payload=false",
+            "noOrderPayload=false",
+            "testnetOrderSubmissionEnabled=true",
+            "productionOrderSubmissionEnabled=true",
+            "productionEndpointConnectionEnabled=true",
+            "productionBrokerConnectionEnabled=true",
+            "productionSecretValueRead=true",
+            "orderPayloadCreated=true",
+            "brokerCommandCreated=true",
+            "productionOMSRuntimeEnabled=true",
+            "tradingButtonVisible=true",
+            "orderFormVisible=true",
+            "liveCommandEnabled=true",
+            "productionCommandEnabled=true",
+            "readinessApprovalConvertedToTradingPermission=true",
+            "bundleBypassEnabled=true",
+            "containsBrokerOrAccountResponse=true",
+            "producedByEndpointConnection=true",
+            "containsOrderPayload=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(

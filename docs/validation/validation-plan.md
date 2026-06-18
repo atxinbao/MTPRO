@@ -6,6 +6,26 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-887 Release v0.10.0 Production Readiness Audit Bundle Validation
+
+- `GH-887-VERIFY-V0100-PRODUCTION-READINESS-BUNDLE`
+- `TVM-RELEASE-V0100-PRODUCTION-READINESS-BUNDLE`
+- `V0100-010-PRODUCTION-READINESS-AUDIT-BUNDLE`
+- `V0100-010-PRODUCTION-READINESS-BUNDLE-JSON`
+- `V0100-010-BUNDLE-SHA256-CHECKSUM`
+- `V0100-010-ENVIRONMENT-SECRET-ENDPOINT-EVIDENCE`
+- `V0100-010-CAPITAL-KILL-SWITCH-NO-TRADE-EVIDENCE`
+- `V0100-010-COMMAND-SURFACE-SHADOW-DRY-RUN-EVIDENCE`
+- `V0100-010-RISK-POLICY-SNAPSHOT`
+- `V0100-010-PORTFOLIO-RECONCILIATION-SNAPSHOT`
+- `V0100-010-REDACTION-PROOF-TRUE`
+- `V0100-010-NO-SECRET-VALUE-TRUE`
+- `V0100-010-NO-ORDER-PAYLOAD-TRUE`
+- `V0100-010-PRODUCTION-CAPABILITIES-DISABLED`
+- Required command: `bash checks/verify-v0.10.0-production-readiness-bundle.sh`
+- Focused test: `testGH887ProductionReadinessAuditBundleAggregatesRedactedNoOrderEvidence`
+- Boundary: ProductionReadinessAuditBundle 只聚合 `production_readiness_bundle.json` reference-only bundle，覆盖 environment profile、secret readiness、endpoint policy readiness、capital / exposure limits、kill switch、no-trade、command surface disabled、shadow dry-run parity、risk policy snapshot 和 portfolio reconciliation snapshot；固定 sha256 checksum、`redaction_proof=true`、`no_secret_value=true`、`no_order_payload=true` 和 `production_cutover_blocked=true`；不连接 production endpoint / broker，不读取 production secret，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## GH-886 Release v0.10.0 Shadow Dry-run Parity Assessment Validation
 
 - `GH-886-VERIFY-V0100-SHADOW-DRY-RUN-PARITY`
