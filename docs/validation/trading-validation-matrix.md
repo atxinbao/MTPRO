@@ -6,6 +6,26 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
+
+- TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
+- GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
+- V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
+- V0110-001-LOCAL-READINESS-ARTIFACT-RUNTIME
+- V0110-001-READINESS-ARTIFACT-LIFECYCLE
+- V0110-001-RUNTIME-STATES
+- V0110-001-MANIFEST-CHECKSUM-RULES
+- V0110-001-ALLOWED-LOCAL-COMMANDS
+- V0110-001-FORBIDDEN-PRODUCTION-CAPABILITIES
+- V0110-001-DASHBOARD-CLI-POLICY-KILL-SWITCH-APPROVAL-SHADOW-PARITY-BOUNDARIES
+- V0110-001-DOWNSTREAM-QUEUE-ORDER
+- V0110-001-RELEASE-VALIDATION-MATRIX
+- GH-913 Release v0.11.0 Production Readiness Evidence Runtime Contract Validation
+- `bash checks/verify-v0.11.0.sh`
+- `swift test --filter TargetGraphTests/testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract`
+- fixed contract evidence: `docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`、`checks/verify-v0.11.0.sh`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md`、`docs/validation/validation-plan.md` 和 TargetGraph focused test。
+- Boundary: v0.11.0 contract 只定义 local readiness evidence runtime、artifact store、manifest、canonical JSON SHA256、Dashboard read-model、readonly readiness CLI、policy、kill switch / no-trade、approval workflow 和 shadow parity boundaries；不实现 runtime artifact writing in GH-913，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不实现 production OMS、trading button、order form 或 live command，不授权 production cutover。
+
 ## TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK
 
 - TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK

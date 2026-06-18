@@ -17040,3 +17040,26 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `bash checks/verify-v0.10.0.sh`: pass.
   - `bash checks/verify-v0.10.1.sh`: pass.
   - `bash checks/run.sh`: pass, 596 tests / 0 failures.
+
+## 2026-06-18 - GH-913 v0.11.0 Production Readiness Evidence Runtime Contract
+
+- Executor: Codex.
+- Scope:
+  - Defined `docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`.
+  - Added `checks/verify-v0.11.0.sh` and wired it into `checks/run.sh`.
+  - Added automation readiness, validation plan, trading validation matrix, latest summary and TargetGraph anchors for `GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`.
+  - Fixed V0110 queue order as `GH-913..GH-924`.
+  - Defined local readiness artifact lifecycle, runtime states, manifest requirements, SHA256 checksum rules, allowed local readiness commands, Dashboard / CLI / policy / kill switch / approval workflow / shadow parity boundaries and forbidden production capability flags.
+- Boundary:
+  - Did not create a `v0.11.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement artifact writing, `ProductionReadinessArtifactStore`, production OMS, trading button, order form or live command path.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract`: pass.
+  - `bash checks/verify-v0.11.0.sh`: pass.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/verify-v0.10.0.sh`: pass.
+  - `bash checks/run.sh`: pass, 597 tests / 0 failures.

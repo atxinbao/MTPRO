@@ -6,6 +6,25 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-913 Release v0.11.0 Production Readiness Evidence Runtime Contract Validation
+
+- `GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`
+- `TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`
+- `V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`
+- `V0110-001-LOCAL-READINESS-ARTIFACT-RUNTIME`
+- `V0110-001-READINESS-ARTIFACT-LIFECYCLE`
+- `V0110-001-RUNTIME-STATES`
+- `V0110-001-MANIFEST-CHECKSUM-RULES`
+- `V0110-001-ALLOWED-LOCAL-COMMANDS`
+- `V0110-001-FORBIDDEN-PRODUCTION-CAPABILITIES`
+- `V0110-001-DASHBOARD-CLI-POLICY-KILL-SWITCH-APPROVAL-SHADOW-PARITY-BOUNDARIES`
+- `V0110-001-DOWNSTREAM-QUEUE-ORDER`
+- `V0110-001-RELEASE-VALIDATION-MATRIX`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract`
+- Evidence file: `docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`
+- Boundary: GH-913 只定义 v0.11.0 local readiness evidence runtime contract、artifact lifecycle、runtime states、manifest requirements、checksum rules、allowed local readiness commands 和 forbidden production capabilities；不实现 `ProductionReadinessArtifactStore`，不写 readiness artifact，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不实现 production OMS、trading button、order form 或 live command，不授权 production cutover。
+
 ## GH-891 Release v0.10.0 Final Audit / Docs / Runbook Validation
 
 - `GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK`
