@@ -691,6 +691,38 @@ for v0110_kill_switch_no_trade_state_model_anchor in \
   require_contains "docs/validation/validation-plan.md" "$v0110_kill_switch_no_trade_state_model_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_kill_switch_no_trade_state_model_anchor"
 done
+require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 auditable approval workflow transitions anchor"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Auditable Approval Workflow Transitions Snapshot"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS"
+require_contains "docs/validation/validation-plan.md" "GH-923 Release v0.11.0 Auditable Approval Workflow Transitions Validation"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "ReleaseV0110AuditableApprovalWorkflowStateModel"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "ReleaseV0110ApprovalWorkflowTransition"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "requestedBy"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "reviewedBy"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "approvedBy"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "quorumRequired"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "expiresAt"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "revokedReason"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "approval_workflow_transitions.json"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence"
+require_contains "checks/verify-v0.11.0.sh" "testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence"
+for v0110_approval_workflow_anchor in \
+  "GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS" \
+  "TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS" \
+  "V0110-011-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS" \
+  "V0110-011-REQUEST-REVIEW-APPROVE-REVOKE-EXPIRE" \
+  "V0110-011-QUORUM-EXPIRY-REVOCATION-FAIL-CLOSED" \
+  "V0110-011-LOCAL-APPROVAL-EVIDENCE-ARTIFACT" \
+  "V0110-011-NO-PRODUCTION-CUTOVER-ORDER"; do
+  require_contains "checks/verify-v0.11.0.sh" "$v0110_approval_workflow_anchor"
+  require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_approval_workflow_anchor"
+  require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "$v0110_approval_workflow_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0110_approval_workflow_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0110_approval_workflow_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_approval_workflow_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0110_approval_workflow_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_approval_workflow_anchor"
+done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands"

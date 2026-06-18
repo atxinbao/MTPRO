@@ -21,6 +21,8 @@ set -euo pipefail
 # TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY
 # GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL
 # TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL
+# GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS
+# TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -64,6 +66,7 @@ DASHBOARD_READINESS_SOURCE="Sources/Dashboard/Report/ReleaseV0100DashboardProduc
 MTPRO_CLI_SOURCE="Sources/MTPROCLI/main.swift"
 CAPITAL_EXPOSURE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift"
 KILL_SWITCH_NO_TRADE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift"
+APPROVAL_WORKFLOW_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift"
 PACKAGE_SOURCE="Package.swift"
 
 for anchor in \
@@ -505,6 +508,42 @@ require_file_contains "$LATEST" "Release v0.11.0 Kill Switch / No-trade State Mo
 require_file_contains "$LATEST" "#922"
 require_file_contains "$TESTS" "testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility"
 
+for anchor in \
+  "GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS" \
+  "TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS" \
+  "V0110-011-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS" \
+  "V0110-011-REQUEST-REVIEW-APPROVE-REVOKE-EXPIRE" \
+  "V0110-011-QUORUM-EXPIRY-REVOCATION-FAIL-CLOSED" \
+  "V0110-011-LOCAL-APPROVAL-EVIDENCE-ARTIFACT" \
+  "V0110-011-NO-PRODUCTION-CUTOVER-ORDER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "ReleaseV0110AuditableApprovalWorkflowStateModel"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "ReleaseV0110ApprovalWorkflowTransition"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "requestedBy"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "reviewedBy"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "approvedBy"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "quorumRequired"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "expiresAt"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "revokedReason"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "approval_workflow_transitions.json"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "productionCutoverBlocked"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "productionCutoverAuthorized == false"
+require_file_contains "$READINESS" "Release v0.11.0 auditable approval workflow transitions anchor"
+require_file_contains "$PLAN" "GH-923 Release v0.11.0 Auditable Approval Workflow Transitions Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS"
+require_file_contains "$LATEST" "Release v0.11.0 Auditable Approval Workflow Transitions Snapshot"
+require_file_contains "$LATEST" "#923"
+require_file_contains "$TESTS" "testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence"
+
 for required in \
   "mtpro readiness build v0.11.0" \
   "mutationApplied=true" \
@@ -564,5 +603,6 @@ swift test --filter TargetGraphTests/testGH919DashboardProductionReadinessCenter
 swift test --filter TargetGraphTests/testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities
 swift test --filter TargetGraphTests/testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons
 swift test --filter TargetGraphTests/testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility
+swift test --filter TargetGraphTests/testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence
 
 echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."

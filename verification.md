@@ -17281,3 +17281,27 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass.
   - `bash checks/run.sh`: pass, 607 tests / 0 failures.
+
+## 2026-06-19 - GH-923 v0.11.0 Auditable Approval Workflow Transitions
+
+- Executor: Codex.
+- Scope:
+  - Added `Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift`.
+  - Added `ReleaseV0110AuditableApprovalWorkflowStateModel`, `ReleaseV0110ApprovalWorkflowState`, `ReleaseV0110ApprovalWorkflowTransition` and actor references for requested / reviewed / approved approval workflow evidence.
+  - Defined the local-only approval transition graph: not requested -> requested -> reviewing -> approved / rejected, with explicit expired and revoked fail-closed exits.
+  - Added quorum, expiry, revocation reason, transition contiguity, timestamp monotonicity and duplicate reviewer validation.
+  - Added `approval_workflow_transitions.json` as a local readiness artifact written through `ProductionReadinessArtifactStore`.
+  - Added `GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS` anchors to the v0.11.0 contract, automation readiness, validation plan, trading validation matrix, latest summary, verifier and TargetGraph focused test.
+- Boundary:
+  - Did not create a `v0.11.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement production OMS, trading button, order form or live command path.
+  - Approval workflow evidence remains local readiness evidence only; approved evidence does not convert into trading permission.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence`: pass.
+  - `bash checks/verify-v0.11.0.sh`: pass.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/run.sh`: pass, 608 tests / 0 failures.

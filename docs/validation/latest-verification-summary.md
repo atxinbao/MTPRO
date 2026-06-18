@@ -18,7 +18,7 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | --- | --- |
 | Latest completed release construction scope | `MTPRO Release v0.10.0 Production Cutover Readiness Gate` |
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
-| Active queue | GitHub fallback queue `#913..#924` for v0.11.0；当前 gate：`#922 V0110-010 Expand kill switch / no-trade state model`；#913、#914、#915、#916、#917、#918、#919、#920、#921 均已 closed / done 且 PR #932、#933、#934、#935、#936、#937、#938、#939、#940 merged / checks SUCCESS |
+| Active queue | GitHub fallback queue `#913..#924` for v0.11.0；当前 gate：`#923 V0110-011 Add auditable approval workflow transitions`；#913、#914、#915、#916、#917、#918、#919、#920、#921、#922 均已 closed / done 且 PR #932、#933、#934、#935、#936、#937、#938、#939、#940、#941 merged / checks SUCCESS |
 | Stage Code Audit Report | `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md` |
 | Release publication | v0.10.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；target commit `7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`；publication timestamp `2026-06-18T05:19:46Z`；v0.9.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`；target commit `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`；v0.9.1 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`；tag peeled commit `d041f0dd304075562a85e494695697290972288f`；均不授权 production cutover |
 | v0.10.1 patch closeout | `GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES`；Stage Code Audit Report：`docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md`；release notes：`docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md`；aggregate verifier：`checks/verify-v0.10.1.sh`；#907 至 #911 均已 `CLOSED / done` 且 PR #926 至 #930 merged / checks SUCCESS；v0.11.0 owns real readiness artifact runtime + integrity hardening |
@@ -32,6 +32,7 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | v0.11.0 readiness CLI local artifact commands gate | `GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS`；implementation：`Sources/MTPROCLI/main.swift` + `Package.swift`；focused test：`testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities`；`mtpro readiness build/status/validate/export/approval-status` 只读写本地 readiness artifact store、manifest 和 bundle validation，不授权 production cutover |
 | v0.11.0 fixed-point capital / exposure policy gate | `GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY`；implementation：`Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift`；focused test：`testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons`；capital / exposure readiness policy 使用 typed fixed-point value、unit / scale validation、numeric relationship validation 和 policy hash inputs，不授权 production cutover |
 | v0.11.0 kill switch / no-trade state model gate | `GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL`；implementation：`Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift`；focused test：`testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility`；kill switch / no-trade readiness state 从 active-only evidence 扩展为 active、inactive、unknown、stale、unavailable；active、unknown、stale、unavailable 或未 reviewed 状态必须 fail closed；只有 inactive + fresh + reviewed 可进入 approval-request eligibility，不授权 production cutover |
+| v0.11.0 auditable approval workflow transitions gate | `GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS`；implementation：`Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift`；focused test：`testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence`；approval workflow transition state model 记录 requestedBy、reviewedBy、approvedBy、timestamp、quorum、expiry 和 revocation reason；missing quorum、expired、revoked 或 incomplete review state 必须 fail closed；`approval_workflow_transitions.json` 只作为本地 readiness evidence，不授权 production cutover |
 | Release fact sync guard | `GH-907-VERIFY-V0101-RELEASE-FACT-STALE-WORDING-GUARD`；`checks/verify-v0.10.1-release-fact-sync.sh` 固定 v0.10.0 publication 后的四段 release fact flow：construction closeout、release publication、release fact sync、stale wording guard；guard 不授权 production cutover |
 | Readiness CLI help placeholder retirement guard | `GH-910-VERIFY-V0101-READINESS-CLI-HELP`；`checks/verify-v0.10.1-readiness-cli-help.sh` 固定 v0.10.1 placeholder 已由 GH-920 退休，当前输出 `readinessPlaceholderContract=retired-by-v0.11.0` 并使用本地 readiness artifact runtime；不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order |
 | CLI verify v0.10.0 wording guard | `GH-909-VERIFY-V0101-CLI-V0100-WORDING`；`checks/verify-v0.10.1-cli-verify-v0100-wording.sh` 固定 `mtpro verify` 的 v0.10.0 输出为 Production Readiness Contract / Reference Evidence Model，并拒绝 operational production readiness、production cutover readiness、production endpoint readiness 和 live order authorization 语义 |
@@ -41,6 +42,29 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。
+
+## Release v0.11.0 Auditable Approval Workflow Transitions Snapshot
+
+`GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS`
+
+`TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS`
+
+`V0110-011-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS`
+
+GH-923 在 v0.11.0 queue 中把 approval workflow 从 reference-only state list 升级为本地 auditable transition state model。当前 gate 覆盖 `ReleaseV0110AuditableApprovalWorkflowStateModel`、`ReleaseV0110ApprovalWorkflowTransition`、`requestedBy`、`reviewedBy`、`approvedBy`、`quorumRequired`、`expiresAt`、`revokedReason` 和 `approval_workflow_transitions.json`。
+
+Validation anchors：`V0110-011-REQUEST-REVIEW-APPROVE-REVOKE-EXPIRE`、`V0110-011-QUORUM-EXPIRY-REVOCATION-FAIL-CLOSED`、`V0110-011-LOCAL-APPROVAL-EVIDENCE-ARTIFACT` 和 `V0110-011-NO-PRODUCTION-CUTOVER-ORDER`。
+
+Fail-closed rule 固定为 missing quorum、expired、revoked、requested / reviewing incomplete review state 或非法 transition 均 blocked / fail closed。`approved` 只代表本地 approval evidence 完整，不等于 production cutover authorization。
+
+Boundary flags 固定为 `productionCutoverBlocked=true`、`productionCutoverAuthorized=false`、`orderSubmissionEnabled=false`、`testnetOrderSubmissionAllowed=false`、`productionTradingEnabledByDefault=false`、`productionSecretRead=false`、`productionEndpointConnected=false`、`brokerEndpointConnected=false`、`orderPayloadCreated=false`、`brokerCommandCreated=false`、`productionOMSRuntimeEnabled=false`、`tradingButtonEnabled=false`、`orderFormEnabled=false`、`liveCommandEnabled=false`、`readinessApprovalConvertedToTradingPermission=false` 和 `approvalWorkflowBypassEnabled=false`。GH-923 不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
+Focused validation：
+
+```bash
+swift test --filter TargetGraphTests/testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence
+bash checks/verify-v0.11.0.sh
+```
 
 ## Release v0.11.0 Kill Switch / No-trade State Model Snapshot
 
