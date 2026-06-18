@@ -6,6 +6,26 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-886 Release v0.10.0 Shadow Dry-run Parity Assessment Validation
+
+- `GH-886-VERIFY-V0100-SHADOW-DRY-RUN-PARITY`
+- `TVM-RELEASE-V0100-SHADOW-DRY-RUN-PARITY`
+- `V0100-009-SHADOW-DRY-RUN-PARITY-ASSESSMENT`
+- `V0100-009-SHADOW-DRY-RUN-PARITY-JSON`
+- `V0100-009-MARKET-READONLY-OBSERVATION`
+- `V0100-009-STRATEGY-INTENT`
+- `V0100-009-RISK-DECISION-AUDITED`
+- `V0100-009-OMS-DRY-RUN-LIFECYCLE`
+- `V0100-009-PORTFOLIO-PROJECTION-AUDITED`
+- `V0100-009-RECONCILIATION-TIMELINE-AUDITED`
+- `V0100-009-READINESS-DIFF-AUDITED`
+- `V0100-009-ORDERS-SUBMITTED-FALSE`
+- `V0100-009-BROKER-COMMAND-CREATED-FALSE`
+- `V0100-009-PRODUCTION-CAPABILITIES-DISABLED`
+- Required command: `bash checks/verify-v0.10.0-shadow-dry-run-parity.sh`
+- Focused test: `testGH886ShadowDryRunParityAssessmentAuditsNearProductionPathWithoutOrders`
+- Boundary: ShadowDryRunParityAssessment 只持久化 `shadow_dry_run_parity.json` reference-only evidence 文件名，并覆盖 market/read-only observation、strategy intent、risk decision、OMS dry-run lifecycle、portfolio projection、reconciliation timeline 和 readiness diff；固定 `riskDecisionAudited=true`、`portfolioProjectionAudited=true`、`ordersSubmitted=false`、`brokerCommandCreated=false` 和 `production_cutover_blocked=true`；不连接 production endpoint / broker，不读取 production secret，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## GH-885 Release v0.10.0 Production Command Surface Disabled Proof Validation
 
 - `GH-885-VERIFY-V0100-COMMAND-SURFACE-DISABLED`

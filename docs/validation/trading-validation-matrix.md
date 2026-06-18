@@ -6,6 +6,28 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-SHADOW-DRY-RUN-PARITY
+
+- TVM-RELEASE-V0100-SHADOW-DRY-RUN-PARITY
+- GH-886-VERIFY-V0100-SHADOW-DRY-RUN-PARITY
+- V0100-009-SHADOW-DRY-RUN-PARITY-ASSESSMENT
+- V0100-009-SHADOW-DRY-RUN-PARITY-JSON
+- V0100-009-MARKET-READONLY-OBSERVATION
+- V0100-009-STRATEGY-INTENT
+- V0100-009-RISK-DECISION-AUDITED
+- V0100-009-OMS-DRY-RUN-LIFECYCLE
+- V0100-009-PORTFOLIO-PROJECTION-AUDITED
+- V0100-009-RECONCILIATION-TIMELINE-AUDITED
+- V0100-009-READINESS-DIFF-AUDITED
+- V0100-009-ORDERS-SUBMITTED-FALSE
+- V0100-009-BROKER-COMMAND-CREATED-FALSE
+- V0100-009-PRODUCTION-CAPABILITIES-DISABLED
+- GH-886 Release v0.10.0 Shadow Dry-run Parity Assessment Validation
+- `bash checks/verify-v0.10.0-shadow-dry-run-parity.sh`
+- `swift test --filter TargetGraphTests/testGH886ShadowDryRunParityAssessmentAuditsNearProductionPathWithoutOrders`
+- fixed shadow dry-run parity schema: `shadow_dry_run_parity.json`、market/read-only observation、strategy intent、risk decision、OMS dry-run lifecycle、portfolio projection、reconciliation timeline、readiness diff、`riskDecisionAudited=true`、`portfolioProjectionAudited=true`、`reconciliationTimelineAudited=true`、`readinessDiffAudited=true`、`ordersSubmitted=false`、`brokerCommandCreated=false`、`production_cutover_blocked=true`。
+- Boundary: parity evidence 不包含 broker / account response，不来自 endpoint connection，不包含 order payload，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## TVM-RELEASE-V0100-COMMAND-SURFACE-DISABLED
 
 - TVM-RELEASE-V0100-COMMAND-SURFACE-DISABLED
