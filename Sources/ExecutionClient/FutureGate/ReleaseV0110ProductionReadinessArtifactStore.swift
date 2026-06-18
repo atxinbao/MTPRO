@@ -17,6 +17,22 @@ public enum ProductionReadinessArtifactStoreAnchors {
     ]
 }
 
+/// ProductionReadinessManifestAnchors 固定 GH-915 的 manifest schema / atomic IO 验证锚点。
+///
+/// GH-915 只把 v0.11.0 readiness evidence 升级为可校验的本地 manifest，不授权
+/// production endpoint、secret provider、broker adapter 或任何 submit / cancel / replace 命令。
+public enum ProductionReadinessManifestAnchors {
+    public static let validationAnchors = [
+        "GH-915-VERIFY-V0110-READINESS-MANIFEST-ATOMIC-IO",
+        "TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO",
+        "V0110-003-READINESS-MANIFEST-SCHEMA",
+        "V0110-003-ATOMIC-JSON-ARTIFACT-IO",
+        "V0110-003-MANIFEST-POLICY-VERSION",
+        "V0110-003-MANIFEST-ENTRY-STATE-VALIDATION",
+        "V0110-003-EVIDENCE-EXISTS-IS-NOT-SUFFICIENT"
+    ]
+}
+
 /// ProductionReadinessArtifactStoreError 描述 GH-914 本地 readiness artifact store 的失败类型。
 ///
 /// 这些错误只覆盖本地 evidence root、relative path、JSON payload 和 forbidden capability
@@ -29,6 +45,10 @@ public enum ProductionReadinessArtifactStoreError: Error, Equatable, Sendable, C
     case invalidJSON(String)
     case forbiddenCapability(String)
     case missingArtifact(String)
+    case invalidManifest(String)
+    case manifestPolicyMismatch(expected: String, actual: String)
+    case manifestEntryRejected(String)
+    case checksumMismatch(String)
 
     public var description: String {
         switch self {
@@ -46,6 +66,14 @@ public enum ProductionReadinessArtifactStoreError: Error, Equatable, Sendable, C
             "GH-914 ProductionReadinessArtifactStore rejects forbidden production capability \(flag)"
         case let .missingArtifact(path):
             "GH-914 ProductionReadinessArtifactStore cannot read missing artifact \(path)"
+        case let .invalidManifest(reason):
+            "GH-915 ProductionReadinessManifest rejects invalid manifest: \(reason)"
+        case let .manifestPolicyMismatch(expected, actual):
+            "GH-915 ProductionReadinessManifest expected policy \(expected), got \(actual)"
+        case let .manifestEntryRejected(reason):
+            "GH-915 ProductionReadinessManifest rejects entry: \(reason)"
+        case let .checksumMismatch(path):
+            "GH-915 ProductionReadinessManifest checksum mismatch for \(path)"
         }
     }
 }
@@ -247,6 +275,177 @@ public struct ProductionReadinessArtifactReadResult: Equatable, Sendable {
 
     public var readHeld: Bool {
         record.state == .valid && record.recordHeld && data.isEmpty == false
+    }
+}
+
+/// ProductionReadinessManifestEntry 是 GH-915 manifest 中单个 readiness artifact 的 schema。
+///
+/// Entry 必须绑定真实 artifact path、type、size、checksum、createdAt、policyVersion 和
+/// validationState。`evidenceExists` 只是审计字段，读取 manifest 时仍会重新 inspect / read 本地
+/// artifact；不能因为该字段为 true 就把 missing / stale / malformed artifact 视为有效。
+public struct ProductionReadinessManifestEntry: Codable, Equatable, Sendable {
+    public let artifactID: Identifier
+    public let relativePath: String
+    public let artifactType: ProductionReadinessArtifactType
+    public let staleAfterSeconds: TimeInterval?
+    public let size: Int
+    public let checksum: String
+    public let createdAt: Date
+    public let policyVersion: String
+    public let validationState: ProductionReadinessArtifactState
+    public let evidenceExists: Bool
+    public let stateReason: String
+
+    public var entryHeld: Bool {
+        artifactID.rawValue.isEmpty == false
+            && ProductionReadinessArtifactDescriptor.isSafeRelativePath(relativePath)
+            && (staleAfterSeconds == nil || staleAfterSeconds ?? 0 > 0)
+            && size > 0
+            && checksum.isEmpty == false
+            && policyVersion.isEmpty == false
+            && validationState == .valid
+            && evidenceExists
+            && stateReason == "artifact valid"
+    }
+
+    public init(
+        artifactID: Identifier,
+        relativePath: String,
+        artifactType: ProductionReadinessArtifactType,
+        staleAfterSeconds: TimeInterval? = nil,
+        size: Int,
+        checksum: String,
+        createdAt: Date,
+        policyVersion: String,
+        validationState: ProductionReadinessArtifactState,
+        evidenceExists: Bool,
+        stateReason: String
+    ) throws {
+        self.artifactID = artifactID
+        self.relativePath = relativePath
+        self.artifactType = artifactType
+        self.staleAfterSeconds = staleAfterSeconds
+        self.size = size
+        self.checksum = checksum
+        self.createdAt = createdAt
+        self.policyVersion = policyVersion
+        self.validationState = validationState
+        self.evidenceExists = evidenceExists
+        self.stateReason = stateReason
+
+        guard entryHeld else {
+            throw ProductionReadinessArtifactStoreError.manifestEntryRejected("entryHeld=false")
+        }
+    }
+
+    public init(
+        record: ProductionReadinessArtifactRecord,
+        data: Data,
+        policyVersion: String,
+        createdAt: Date
+    ) throws {
+        try self.init(
+            artifactID: record.descriptor.artifactID,
+            relativePath: record.descriptor.relativePath,
+            artifactType: record.descriptor.artifactType,
+            staleAfterSeconds: record.descriptor.staleAfterSeconds,
+            size: data.count,
+            checksum: ProductionReadinessArtifactStore.deterministicChecksum(for: data),
+            createdAt: createdAt,
+            policyVersion: policyVersion,
+            validationState: record.state,
+            evidenceExists: record.state == .valid,
+            stateReason: record.stateReason
+        )
+    }
+}
+
+/// ProductionReadinessManifest 是 GH-915 的 readiness manifest schema。
+///
+/// Manifest 只描述本地 readiness evidence artifact 的完整性，不携带 secret、endpoint、
+/// broker session 或订单命令。所有 production capability flags 必须固定为 false。
+public struct ProductionReadinessManifest: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let releaseVersion: String
+    public let manifestID: Identifier
+    public let policyVersion: String
+    public let generatedAt: Date
+    public let entries: [ProductionReadinessManifestEntry]
+    public let atomicWriteRequired: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var manifestHeld: Bool {
+        issueID.rawValue == "GH-915"
+            && releaseVersion == "v0.11.0"
+            && manifestID.rawValue.isEmpty == false
+            && policyVersion.isEmpty == false
+            && entries.isEmpty == false
+            && entries.allSatisfy(\.entryHeld)
+            && entries.allSatisfy { $0.policyVersion == policyVersion }
+            && atomicWriteRequired
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-915"),
+        releaseVersion: String = "v0.11.0",
+        manifestID: Identifier,
+        policyVersion: String,
+        generatedAt: Date,
+        entries: [ProductionReadinessManifestEntry],
+        atomicWriteRequired: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.releaseVersion = releaseVersion
+        self.manifestID = manifestID
+        self.policyVersion = policyVersion
+        self.generatedAt = generatedAt
+        self.entries = entries
+        self.atomicWriteRequired = atomicWriteRequired
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard manifestHeld else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("manifestHeld=false")
+        }
+    }
+}
+
+/// ProductionReadinessManifestReadResult 绑定 manifest JSON payload、manifest record 和 decoded schema。
+public struct ProductionReadinessManifestReadResult: Equatable, Sendable {
+    public let manifest: ProductionReadinessManifest
+    public let record: ProductionReadinessArtifactRecord
+    public let data: Data
+
+    public var manifestReadHeld: Bool {
+        manifest.manifestHeld
+            && record.recordHeld
+            && record.state == .valid
+            && data.isEmpty == false
     }
 }
 
@@ -511,6 +710,167 @@ public struct ProductionReadinessArtifactStore {
         )
     }
 
+    /// deterministicChecksum 是 GH-915 的本地 manifest 完整性校验值。
+    ///
+    /// 当前 issue 只要求 deterministic local checksum；canonical JSON SHA256 由后续 GH-916
+    /// 接管，避免在 GH-915 越权定义最终 hash policy。
+    public static func deterministicChecksum(for data: Data) -> String {
+        var hash: UInt64 = 0xcbf29ce484222325
+        for byte in data {
+            hash ^= UInt64(byte)
+            hash = hash &* 0x100000001b3
+        }
+        return String(format: "fnv1a64-%016llx", hash)
+    }
+
+    @discardableResult
+    public func writeReadinessManifest(
+        manifestID: Identifier = Identifier.constant("gh-915-readiness-manifest"),
+        manifestRelativePath: String,
+        descriptors: [ProductionReadinessArtifactDescriptor],
+        policyVersion: String,
+        generatedAt: Date,
+        now: Date
+    ) throws -> ProductionReadinessManifestReadResult {
+        guard policyVersion.isEmpty == false else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("empty policyVersion")
+        }
+        guard descriptors.isEmpty == false else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("empty entries")
+        }
+
+        let entries = try descriptors.map { descriptor -> ProductionReadinessManifestEntry in
+            let record = try inspectArtifact(descriptor, now: now)
+            guard record.state == .valid else {
+                throw ProductionReadinessArtifactStoreError.manifestEntryRejected(
+                    "\(descriptor.relativePath) state=\(record.state.rawValue)"
+                )
+            }
+            let read = try readArtifact(descriptor: descriptor, now: now)
+            return try ProductionReadinessManifestEntry(
+                record: record,
+                data: read.data,
+                policyVersion: policyVersion,
+                createdAt: record.modifiedAt ?? generatedAt
+            )
+        }
+
+        let manifest = try ProductionReadinessManifest(
+            manifestID: manifestID,
+            policyVersion: policyVersion,
+            generatedAt: generatedAt,
+            entries: entries
+        )
+        let data = try encodeManifest(manifest)
+        let descriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: manifestID,
+            relativePath: manifestRelativePath,
+            artifactType: .jsonEvidence,
+            staleAfterSeconds: nil
+        )
+        let record = try writeArtifact(
+            descriptor: descriptor,
+            data: data,
+            modifiedAt: generatedAt
+        )
+        let result = ProductionReadinessManifestReadResult(
+            manifest: manifest,
+            record: record,
+            data: data
+        )
+        guard result.manifestReadHeld else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("manifestReadHeld=false")
+        }
+        return result
+    }
+
+    public func readReadinessManifest(
+        descriptor: ProductionReadinessArtifactDescriptor,
+        requiredPolicyVersion: String,
+        now: Date
+    ) throws -> ProductionReadinessManifestReadResult {
+        guard requiredPolicyVersion.isEmpty == false else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("empty requiredPolicyVersion")
+        }
+        let read = try readArtifact(descriptor: descriptor, now: now)
+        let manifest: ProductionReadinessManifest
+        do {
+            manifest = try manifestDecoder().decode(ProductionReadinessManifest.self, from: read.data)
+        } catch {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("malformed JSON schema")
+        }
+        try validateReadinessManifest(
+            manifest,
+            requiredPolicyVersion: requiredPolicyVersion,
+            now: now
+        )
+        let result = ProductionReadinessManifestReadResult(
+            manifest: manifest,
+            record: read.record,
+            data: read.data
+        )
+        guard result.manifestReadHeld else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("manifestReadHeld=false")
+        }
+        return result
+    }
+
+    public func validateReadinessManifest(
+        _ manifest: ProductionReadinessManifest,
+        requiredPolicyVersion: String,
+        now: Date
+    ) throws {
+        guard manifest.manifestHeld else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("manifestHeld=false")
+        }
+        guard manifest.policyVersion == requiredPolicyVersion else {
+            throw ProductionReadinessArtifactStoreError.manifestPolicyMismatch(
+                expected: requiredPolicyVersion,
+                actual: manifest.policyVersion
+            )
+        }
+
+        for entry in manifest.entries {
+            guard entry.policyVersion == requiredPolicyVersion else {
+                throw ProductionReadinessArtifactStoreError.manifestPolicyMismatch(
+                    expected: requiredPolicyVersion,
+                    actual: entry.policyVersion
+                )
+            }
+            guard entry.entryHeld else {
+                throw ProductionReadinessArtifactStoreError.manifestEntryRejected(
+                    "\(entry.relativePath) entryHeld=false"
+                )
+            }
+            let descriptor = try ProductionReadinessArtifactDescriptor(
+                artifactID: entry.artifactID,
+                relativePath: entry.relativePath,
+                artifactType: entry.artifactType,
+                staleAfterSeconds: entry.staleAfterSeconds
+            )
+            let record = try inspectArtifact(descriptor, now: now)
+            guard record.state == .valid else {
+                throw ProductionReadinessArtifactStoreError.manifestEntryRejected(
+                    "\(entry.relativePath) state=\(record.state.rawValue)"
+                )
+            }
+            let data = try Data(contentsOf: try artifactURL(for: descriptor))
+            guard data.count == entry.size else {
+                throw ProductionReadinessArtifactStoreError.manifestEntryRejected(
+                    "\(entry.relativePath) size mismatch"
+                )
+            }
+            guard Self.deterministicChecksum(for: data) == entry.checksum else {
+                throw ProductionReadinessArtifactStoreError.checksumMismatch(entry.relativePath)
+            }
+            guard entry.validationState == record.state else {
+                throw ProductionReadinessArtifactStoreError.manifestEntryRejected(
+                    "\(entry.relativePath) validationState mismatch"
+                )
+            }
+        }
+    }
+
     private func validateForbiddenInputs(
         data: Data,
         descriptor: ProductionReadinessArtifactDescriptor,
@@ -542,6 +902,27 @@ public struct ProductionReadinessArtifactStore {
                 throw ProductionReadinessArtifactStoreError.invalidJSON(descriptor.relativePath)
             }
         }
+    }
+
+    private func encodeManifest(_ manifest: ProductionReadinessManifest) throws -> Data {
+        do {
+            return try manifestEncoder().encode(manifest)
+        } catch {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("encoding failed")
+        }
+    }
+
+    private func manifestEncoder() -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return encoder
+    }
+
+    private func manifestDecoder() -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
     }
 
     private func forbiddenTrueFlags(in data: Data) -> [String] {

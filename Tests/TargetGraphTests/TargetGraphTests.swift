@@ -28671,6 +28671,175 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts() throws {
+        XCTAssertEqual(ProductionReadinessManifestAnchors.validationAnchors, [
+            "GH-915-VERIFY-V0110-READINESS-MANIFEST-ATOMIC-IO",
+            "TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO",
+            "V0110-003-READINESS-MANIFEST-SCHEMA",
+            "V0110-003-ATOMIC-JSON-ARTIFACT-IO",
+            "V0110-003-MANIFEST-POLICY-VERSION",
+            "V0110-003-MANIFEST-ENTRY-STATE-VALIDATION",
+            "V0110-003-EVIDENCE-EXISTS-IS-NOT-SUFFICIENT"
+        ])
+
+        let evidenceRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH915-ReadinessManifest-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: evidenceRoot)
+        }
+
+        let store = try ProductionReadinessArtifactStore(evidenceRootURL: evidenceRoot)
+        let artifactDescriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-915-risk-policy"),
+            relativePath: "artifacts/risk-policy.json",
+            artifactType: .jsonEvidence,
+            staleAfterSeconds: 60
+        )
+        let manifestDescriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-915-readiness-manifest"),
+            relativePath: "manifest/readiness-manifest.json",
+            artifactType: .jsonEvidence
+        )
+        let now = Date(timeIntervalSince1970: 1_800_010_000)
+        let policyVersion = "policy-v0.11.0-001"
+        let payload = """
+        {
+          "artifactID": "gh-915-risk-policy",
+          "policyVersion": "\(policyVersion)",
+          "validationState": "valid",
+          "redactionProof": true,
+          "noSecretValue": true,
+          "noOrderPayload": true,
+          "productionTradingEnabledByDefault": false,
+          "productionCutoverAuthorized": false,
+          "productionSecretRead": false,
+          "productionEndpointConnected": false,
+          "brokerEndpointConnected": false,
+          "productionOrderSubmitted": false,
+          "testnetOrderSubmissionAllowed": false
+        }
+        """
+        let artifactRecord = try store.writeStringArtifact(
+            descriptor: artifactDescriptor,
+            string: payload,
+            modifiedAt: now
+        )
+        XCTAssertEqual(artifactRecord.state, .valid)
+
+        let manifest = try store.writeReadinessManifest(
+            manifestID: manifestDescriptor.artifactID,
+            manifestRelativePath: manifestDescriptor.relativePath,
+            descriptors: [artifactDescriptor],
+            policyVersion: policyVersion,
+            generatedAt: now.addingTimeInterval(1),
+            now: now
+        )
+        XCTAssertTrue(manifest.manifestReadHeld)
+        XCTAssertEqual(manifest.manifest.issueID.rawValue, "GH-915")
+        XCTAssertEqual(manifest.manifest.releaseVersion, "v0.11.0")
+        XCTAssertEqual(manifest.manifest.policyVersion, policyVersion)
+        XCTAssertEqual(manifest.manifest.entries.count, 1)
+        XCTAssertTrue(manifest.manifest.manifestHeld)
+        XCTAssertFalse(manifest.manifest.productionCutoverAuthorized)
+        XCTAssertFalse(manifest.manifest.productionSecretRead)
+        XCTAssertFalse(manifest.manifest.productionEndpointConnected)
+        XCTAssertFalse(manifest.manifest.productionOrderSubmitted)
+
+        let entry = try XCTUnwrap(manifest.manifest.entries.first)
+        XCTAssertEqual(entry.relativePath, artifactDescriptor.relativePath)
+        XCTAssertEqual(entry.artifactType, .jsonEvidence)
+        XCTAssertEqual(entry.staleAfterSeconds, 60)
+        XCTAssertEqual(entry.size, Data(payload.utf8).count)
+        XCTAssertEqual(entry.checksum, ProductionReadinessArtifactStore.deterministicChecksum(for: Data(payload.utf8)))
+        XCTAssertEqual(entry.validationState, .valid)
+        XCTAssertTrue(entry.evidenceExists)
+        XCTAssertTrue(entry.entryHeld)
+
+        let manifestText = String(decoding: manifest.data, as: UTF8.self)
+        XCTAssertTrue(manifestText.contains("\"atomicWriteRequired\" : true"))
+        XCTAssertTrue(manifestText.contains("\"policyVersion\" : \"\(policyVersion)\""))
+
+        let readManifest = try store.readReadinessManifest(
+            descriptor: manifestDescriptor,
+            requiredPolicyVersion: policyVersion,
+            now: now.addingTimeInterval(10)
+        )
+        XCTAssertEqual(readManifest.manifest, manifest.manifest)
+        XCTAssertTrue(readManifest.manifestReadHeld)
+
+        let secondManifest = try store.writeReadinessManifest(
+            manifestID: manifestDescriptor.artifactID,
+            manifestRelativePath: manifestDescriptor.relativePath,
+            descriptors: [artifactDescriptor],
+            policyVersion: policyVersion,
+            generatedAt: now.addingTimeInterval(1),
+            now: now
+        )
+        XCTAssertEqual(secondManifest.data, manifest.data)
+
+        XCTAssertThrowsError(
+            try store.readReadinessManifest(
+                descriptor: manifestDescriptor,
+                requiredPolicyVersion: "policy-v0.11.0-other",
+                now: now.addingTimeInterval(10)
+            )
+        ) { error in
+            guard case ProductionReadinessArtifactStoreError.manifestPolicyMismatch = error else {
+                return XCTFail("expected manifestPolicyMismatch, got \(error)")
+            }
+        }
+
+        let manifestURL = try store.artifactURL(for: manifestDescriptor)
+        try Data("{\"evidenceExists\":true}".utf8).write(to: manifestURL, options: .atomic)
+        try FileManager.default.setAttributes([.modificationDate: now], ofItemAtPath: manifestURL.path)
+        XCTAssertThrowsError(
+            try store.readReadinessManifest(
+                descriptor: manifestDescriptor,
+                requiredPolicyVersion: policyVersion,
+                now: now.addingTimeInterval(10)
+            )
+        ) { error in
+            guard case ProductionReadinessArtifactStoreError.invalidManifest = error else {
+                return XCTFail("expected invalidManifest, got \(error)")
+            }
+        }
+
+        _ = try store.writeReadinessManifest(
+            manifestID: manifestDescriptor.artifactID,
+            manifestRelativePath: manifestDescriptor.relativePath,
+            descriptors: [artifactDescriptor],
+            policyVersion: policyVersion,
+            generatedAt: now.addingTimeInterval(1),
+            now: now
+        )
+        XCTAssertThrowsError(
+            try store.readReadinessManifest(
+                descriptor: manifestDescriptor,
+                requiredPolicyVersion: policyVersion,
+                now: now.addingTimeInterval(120)
+            )
+        ) { error in
+            guard case ProductionReadinessArtifactStoreError.manifestEntryRejected = error else {
+                return XCTFail("expected manifestEntryRejected for stale artifact, got \(error)")
+            }
+        }
+
+        try FileManager.default.removeItem(at: try store.artifactURL(for: artifactDescriptor))
+        XCTAssertThrowsError(
+            try store.readReadinessManifest(
+                descriptor: manifestDescriptor,
+                requiredPolicyVersion: policyVersion,
+                now: now.addingTimeInterval(10)
+            )
+        ) { error in
+            guard case ProductionReadinessArtifactStoreError.manifestEntryRejected = error else {
+                return XCTFail("expected manifestEntryRejected for missing artifact despite evidenceExists=true, got \(error)")
+            }
+        }
+    }
+
     func testGH838TopLevelCLIRunSeparatesLocalSessionCreatedFromBrokerSessionStarted() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

@@ -35,6 +35,27 @@ Artifact store 必须满足：
 
 GH-914 不实现 readiness manifest schema、atomic manifest write order、canonical JSON SHA256、Dashboard real artifact binding、CLI build / status / validate / export / approval-status runtime、approval transition 或 shadow parity runner；这些能力必须留给后续 GH-915 至 GH-924。
 
+## V0110-003-READINESS-MANIFEST-SCHEMA
+
+`V0110-003-READINESS-MANIFEST-SCHEMA`
+
+`GH-915-VERIFY-V0110-READINESS-MANIFEST-ATOMIC-IO`
+
+`TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO`
+
+GH-915 在 GH-914 的 local artifact store 之上增加 readiness manifest schema 和 atomic JSON artifact IO。当前授权范围固定为本地 readiness evidence integrity hardening：
+
+- `V0110-003-ATOMIC-JSON-ARTIFACT-IO`
+- `V0110-003-MANIFEST-POLICY-VERSION`
+- `V0110-003-MANIFEST-ENTRY-STATE-VALIDATION`
+- `V0110-003-EVIDENCE-EXISTS-IS-NOT-SUFFICIENT`
+
+Manifest entry 必须包含 artifact path、artifact type、size、checksum、createdAt、policy version 和 validation state。`evidenceExists` 只能作为审计字段，不能单独证明 artifact valid；manifest 读取时必须重新 inspect/read 本地 artifact，并拒绝 malformed、missing、stale、policy-mismatched、size-mismatched 或 checksum-mismatched entry。
+
+Atomic JSON IO 固定为本地 file artifact write，不连接 endpoint，不读取 secret，不产生 broker session，不提交 testnet 或 production order。GH-915 使用 deterministic local checksum 验证 manifest 与真实 artifact payload 一致；canonical JSON SHA256 仍保留给 GH-916。
+
+GH-915 不实现 Dashboard real artifact binding、CLI build / status / validate / export / approval-status runtime、approval transition、shadow parity runner、production cutover、production OMS、trading button、order form 或 live command path。
+
 ## V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 
 `V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`

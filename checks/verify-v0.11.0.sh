@@ -5,6 +5,8 @@ set -euo pipefail
 # TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 # GH-914-VERIFY-V0110-PRODUCTION-READINESS-ARTIFACT-STORE
 # TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE
+# GH-915-VERIFY-V0110-READINESS-MANIFEST-ATOMIC-IO
+# TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -149,6 +151,46 @@ require_file_contains "$MATRIX" "TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT
 require_file_contains "$LATEST" "Release v0.11.0 Production Readiness Artifact Store Snapshot"
 require_file_contains "$TESTS" "testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates"
 
+for anchor in \
+  "GH-915-VERIFY-V0110-READINESS-MANIFEST-ATOMIC-IO" \
+  "TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO" \
+  "V0110-003-READINESS-MANIFEST-SCHEMA" \
+  "V0110-003-ATOMIC-JSON-ARTIFACT-IO" \
+  "V0110-003-MANIFEST-POLICY-VERSION" \
+  "V0110-003-MANIFEST-ENTRY-STATE-VALIDATION" \
+  "V0110-003-EVIDENCE-EXISTS-IS-NOT-SUFFICIENT"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$ARTIFACT_STORE_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public struct ProductionReadinessManifestEntry"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public struct ProductionReadinessManifest"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public struct ProductionReadinessManifestReadResult"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "writeReadinessManifest("
+require_file_contains "$ARTIFACT_STORE_SOURCE" "readReadinessManifest("
+require_file_contains "$ARTIFACT_STORE_SOURCE" "validateReadinessManifest("
+require_file_contains "$ARTIFACT_STORE_SOURCE" "deterministicChecksum(for data: Data)"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "manifestPolicyMismatch"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "manifestEntryRejected"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "checksumMismatch"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "evidenceExists"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "atomicWriteRequired"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "entry.policyVersion == requiredPolicyVersion"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "record.state == .valid"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "data.count == entry.size"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "Self.deterministicChecksum(for: data) == entry.checksum"
+require_file_contains "$READINESS" "Release v0.11.0 readiness manifest atomic IO anchor"
+require_file_contains "$PLAN" "GH-915 Release v0.11.0 Readiness Manifest Atomic IO Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO"
+require_file_contains "$LATEST" "Release v0.11.0 Readiness Manifest Atomic IO Snapshot"
+require_file_contains "$TESTS" "testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts"
+
 for forbidden in \
   "productionTradingEnabledByDefault=true" \
   "productionCutoverAuthorized=true" \
@@ -172,5 +214,6 @@ done
 
 swift test --filter TargetGraphTests/testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract
 swift test --filter TargetGraphTests/testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates
+swift test --filter TargetGraphTests/testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts
 
 echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."

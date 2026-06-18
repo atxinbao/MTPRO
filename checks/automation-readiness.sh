@@ -475,6 +475,29 @@ for v0110_artifact_store_anchor in \
   require_contains "docs/validation/validation-plan.md" "$v0110_artifact_store_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_artifact_store_anchor"
 done
+require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 readiness manifest atomic IO anchor"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "ProductionReadinessManifest"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Readiness Manifest Atomic IO Snapshot"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO"
+require_contains "docs/validation/validation-plan.md" "GH-915 Release v0.11.0 Readiness Manifest Atomic IO Validation"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts"
+for v0110_manifest_anchor in \
+  "GH-915-VERIFY-V0110-READINESS-MANIFEST-ATOMIC-IO" \
+  "TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO" \
+  "V0110-003-READINESS-MANIFEST-SCHEMA" \
+  "V0110-003-ATOMIC-JSON-ARTIFACT-IO" \
+  "V0110-003-MANIFEST-POLICY-VERSION" \
+  "V0110-003-MANIFEST-ENTRY-STATE-VALIDATION" \
+  "V0110-003-EVIDENCE-EXISTS-IS-NOT-SUFFICIENT"; do
+  require_contains "checks/verify-v0.11.0.sh" "$v0110_manifest_anchor"
+  require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_manifest_anchor"
+  require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_manifest_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0110_manifest_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0110_manifest_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_manifest_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0110_manifest_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_manifest_anchor"
+done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands"
