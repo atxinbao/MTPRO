@@ -42,7 +42,7 @@ Project：`MTPRO Release v0.10.0 Production Cutover Readiness Gate`
 
 该结论只表示 Binance-only、Spot + USDⓈ-M Perpetual、EMA + RSI 的 production cutover readiness assessment、v0.9.1 publication policy alignment、ProductionEnvironmentProfile、SecretProviderReadinessGate、EndpointPolicyReadinessGate、capital / exposure limit readiness、kill switch / no-trade readiness、production command surface disabled proof、shadow dry-run parity assessment、production readiness audit bundle、cutover approval workflow evidence、incident / rollback readiness runbook、Dashboard Production Readiness Center 和 final docs / runbook closure 已闭环。它不表示 production trading 已获授权，不表示真实 broker 已连接，不表示 production secret 可读取，不表示 production endpoint / broker endpoint 可连接，也不表示 testnet 或 production submit / cancel / replace、production OMS、production reconciliation、Live PRO Console production command、trading button、live command 或 order form 已启用。
 
-本报告和 root docs refresh 只同步 construction closeout 已发生事实；不创建下一 Project / Issue，不推进 release v0.10.0 之后的阶段，不启动 Linear、Symphony / `symphony-issue`，不运行 Graphify / code-index，不修改 Figma，不创建 tag，不发布 GitHub Release，不授权 production cutover。后续 public release publication gate 必须单独由 Human 明确发布指令触发。
+本报告和 root docs refresh 只同步 construction closeout 已发生事实；不创建下一 Project / Issue，不推进 release v0.10.0 之后的阶段，不启动 Linear、Symphony / `symphony-issue`，不运行 Graphify / code-index，不修改 Figma，不授权 production cutover。#891 construction closeout PR 本身未执行 tag / GitHub Release publication；后续 public release publication gate 已发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`，tag target commit：`7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`。
 
 ## Repository State Evidence
 
@@ -176,7 +176,7 @@ Release v0.10.0 remains closed for these capabilities by default:
 - `docs/roadmap.md` adds `MTPRO Release v0.10.0 Production Cutover Readiness Gate` to completed Project map, updates Project Closure Count to `44 / 44 (100%)`, and sets latest completed Project / maturity statement to the v0.10.0 closure.
 - `docs/validation/latest-verification-summary.md` records the final audit report, issue / PR / checks evidence, validation result and no-default-production-trading boundary.
 - `docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md` records local operator validation and readiness-only proof.
-- `docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md` records release notes for the completed docs closeout. Construction closeout itself does not create a Git tag or GitHub Release.
+- `docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md` records release notes for the completed docs closeout. Construction closeout itself did not execute tag / GitHub Release publication; v0.10.0 was later published through a separate stable GitHub Release gate.
 - `docs/validation/validation-plan.md` and `docs/validation/trading-validation-matrix.md` record `TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK`.
 - `docs/automation/automation-readiness.md` and `checks/automation-readiness.sh` mechanically guard this final audit report and v0.10.0 verification command.
 
@@ -202,5 +202,5 @@ Root docs refresh does not create or promote another issue, does not define futu
 - No `.codex/*`, `.build/*` or `graphify-out/*` is submitted.
 - No new Project / Issue is created.
 - No next Todo is promoted.
-- No Git tag or GitHub Release is created by this construction closeout.
+- No Git tag or GitHub Release was created by this construction closeout PR; v0.10.0 stable GitHub Release publication later completed as a separate gate.
 - Production trading remains disabled by default.

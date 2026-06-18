@@ -21,7 +21,7 @@
 - Required command: `bash checks/verify-v0.10.0.sh`
 - Evidence files: `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md`、`docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md`、`docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md`。
 - Root docs refresh: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md` 只同步 v0.10.0 已完成 readiness evidence、Project Closure Count `44 / 44 (100%)`、stage audit path、release notes、operator runbook、validation command 和 no-default-production-trading boundary。
-- Boundary: GH-891 只收口 v0.10.0 final audit / docs / runbook 和 aggregate verifier；不创建 tag、不创建 GitHub Release、不创建下一 Project / Issue、不推进下一 Todo、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order。
+- Boundary: GH-891 只收口 v0.10.0 final audit / docs / runbook 和 aggregate verifier；#891 construction closeout PR 本身未执行 tag / GitHub Release publication、不创建下一 Project / Issue、不推进下一 Todo、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order。v0.10.0 已在后续独立 publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；该 publication 仍不授权 production cutover。
 
 ## GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation
 
