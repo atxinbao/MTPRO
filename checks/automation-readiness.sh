@@ -206,6 +206,10 @@ require_file "checks/verify-v0.10.0-production-readiness-bundle.sh"
 require_file "checks/verify-v0.10.0-cutover-approval-workflow.sh"
 require_file "checks/verify-v0.10.0-incident-rollback-runbook.sh"
 require_file "checks/verify-v0.10.0-dashboard-production-readiness-center.sh"
+require_file "checks/verify-v0.10.0.sh"
+require_file "docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md"
+require_file "docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md"
 require_file "checks/verify-v0.9.0-v080-publication-alignment.sh"
 require_file "checks/verify-v0.9.0-monitor-session-store.sh"
 require_file "checks/verify-v0.9.0-snapshot-freshness-monitor.sh"
@@ -365,6 +369,31 @@ for v0100_dashboard_readiness_anchor in \
   require_contains "checks/verify-v0.10.0-dashboard-production-readiness-center.sh" "$v0100_dashboard_readiness_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0100_dashboard_readiness_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0100_dashboard_readiness_anchor"
+done
+require_contains "docs/automation/automation-readiness.md" "Release v0.10.0 final audit / docs / runbook anchor"
+require_contains "checks/verify-v0.10.0.sh" "GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
+require_contains "checks/run.sh" "bash checks/verify-v0.10.0.sh"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
+require_contains "docs/validation/validation-plan.md" "GH-891 Release v0.10.0 Final Audit / Docs / Runbook Validation"
+require_contains "docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md" "GH-891-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
+require_contains "docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md" "V0100-014-RELEASE-NOTES"
+require_contains "docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md" "V0100-014-OPERATOR-RUNBOOK"
+for v0100_final_anchor in \
+  "GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "GH-891-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "V0100-014-VALIDATION-SUMMARY" \
+  "V0100-014-STAGE-CODE-AUDIT" \
+  "V0100-014-RELEASE-NOTES" \
+  "V0100-014-OPERATOR-RUNBOOK" \
+  "V0100-014-ROOT-DOCS-REFRESH" \
+  "V0100-014-AGGREGATE-VERIFY" \
+  "V0100-014-NO-PRODUCTION-CUTOVER"; do
+  require_contains "checks/verify-v0.10.0.sh" "$v0100_final_anchor"
+  require_contains "docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md" "$v0100_final_anchor"
+  require_contains "docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md" "$v0100_final_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0100_final_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0100_final_anchor"
 done
 require_contains "checks/verify-v0.9.0-v080-publication-alignment.sh" "GH-844-VERIFY-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD"
 require_contains "checks/verify-v0.9.0-v080-publication-alignment.sh" "TVM-RELEASE-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD"

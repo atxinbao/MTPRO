@@ -16,16 +16,39 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 
 | 项 | 当前事实 |
 | --- | --- |
-| Latest completed release construction scope | `MTPRO Release v0.9.0 Testnet No-order Observability` |
+| Latest completed release construction scope | `MTPRO Release v0.10.0 Production Cutover Readiness Gate` |
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
-| Active queue | v0.10.0 production cutover readiness GitHub fallback queue `#878..#891` 是当前队列来源；`#878` 已定义 no-authorization readiness contract；`#879` 只同步 v0.9.1 publication fact 和 v0.10.0 release policy anchor；`#880` 定义 reference-only ProductionEnvironmentProfile contract；`#881` 定义 SecretProviderReadinessGate reference-only contract；`#882` 定义 EndpointPolicyReadinessGate reference-only contract，固定 `endpoint_policy_readiness.json`、testnet / production endpoint allowlist、`scheme=https`、`production_endpoint_connected=false`、`fallback_to_production=false`、`testnet_to_production_fallback_forbidden=true` 和 `no_silent_fallback_required=true`；`#883` 定义 CapitalExposureLimitReadinessGate reference-only contract，固定 `capital_exposure_limits.json`、maxCapital / maxNotional / maxSingleOrderNotional / maxSymbolExposure / maxProductExposure / maxDailyLoss / maxOpenOrders / maxLeverage、allowedSymbols / allowedProductTypes、risk policy hash binding、`operator_review_required=true` 和 `order_submission_enabled=false`；`#884` 定义 KillSwitchNoTradeReadinessGate reference-only contract，固定 `kill_switch_readiness.json`、`no_trade_readiness.json`、`killSwitchState=active`、`noTradeState=active`、`riskApprovalRequired=true`、`cutoverBlockedIfKillSwitchActive=true`、`cutoverBlockedIfNoTradeActive=true` 和 `production_cutover_blocked=true`；`#885` 定义 ProductionCommandSurfaceDisabledProof reference-only contract，固定 `dashboard_production_surface_disabled.json`、`cli_production_surface_disabled.json`、`tradingButtonVisible=false`、`orderFormVisible=false`、`liveCommandEnabled=false`、`submitCommandEnabled=false`、`cancelCommandEnabled=false`、`replaceCommandEnabled=false`、`productionCommandEnabled=false` 和 `production_cutover_blocked=true`；`#886` 定义 ShadowDryRunParityAssessment reference-only contract，固定 `shadow_dry_run_parity.json`、market/read-only observation、strategy intent、risk decision、OMS dry-run lifecycle、portfolio projection、reconciliation timeline、readiness diff、`riskDecisionAudited=true`、`portfolioProjectionAudited=true`、`ordersSubmitted=false`、`brokerCommandCreated=false` 和 `production_cutover_blocked=true`；`#887` 定义 ProductionReadinessAuditBundle reference-only contract，固定 `production_readiness_bundle.json`、sha256 bundle checksum、environment / secret / endpoint / capital / kill switch / no-trade / command surface / shadow dry-run / risk policy / portfolio reconciliation evidence entries、`redaction_proof=true`、`no_secret_value=true`、`no_order_payload=true` 和 `production_cutover_blocked=true`；`#888` 定义 CutoverApprovalWorkflow reference-only contract，固定 `cutover_approval_workflow.json`、requested / reviewing / approved / rejected / expired / revoked、`approvedStateIsReviewEvidenceOnly=true`、`productionCutoverAuthorized=false`、`orderSubmissionEnabled=false`、`productionTradingEnabled=false` 和 `production_cutover_blocked=true`；`#889` 定义 IncidentRollbackReadinessRunbook reference-only runbook，固定 `docs/operators/release-v0.10.0-production-readiness-runbook.md`、`incident_rollback_readiness.json`、incident classification、stop procedure、rollback procedure、operator chain、evidence export、post-incident audit、kill switch checklist、no-trade checklist、`productionCutoverAuthorized=false`、`orderSubmissionEnabled=false`、`productionTradingEnabled=false` 和 `production_cutover_blocked=true`；`#890` 新增 Dashboard Production Readiness Center read-model-only surface，展示 readiness overview、environment profile、secret readiness、endpoint policy、risk / capital limits、kill switch / no-trade、command surface disabled、shadow dry-run parity、approval workflow 和 readiness bundle，引用 `incident_rollback_readiness.json`，且不显示 trading button / order form / live command / submit / cancel / replace，不授权 production cutover；任何后续 issue 仍必须 WIP=1 queue preflight |
-| Stage Code Audit Report | `docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md` |
+| Active queue | none after v0.10.0 closure；下一阶段必须由 Human + `@001 / PLN` 重新规划并写入新的 live queue source |
+| Stage Code Audit Report | `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md` |
 | Release publication | v0.9.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`；target commit `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`；v0.9.1 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`；tag peeled commit `d041f0dd304075562a85e494695697290972288f`；均不授权 production cutover |
-| Progress | Project Closure Count: 43 / 43 (100%)；Current Foundation Progress: 4 / 4 (100%)；Final Product Goal Progress: 9 / 9 (100%)；Engine Maturity Roadmap Progress: 4 / 4（100%） |
+| Progress | Project Closure Count: 44 / 44 (100%)；Historical Project Closure Count: 43 / 43 (100%)；Current Foundation Progress: 4 / 4 (100%)；Final Product Goal Progress: 9 / 9 (100%)；Engine Maturity Roadmap Progress: 4 / 4（100%） |
 
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。
+
+## Release v0.10.0 Closure Snapshot
+
+`GH-891-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK`
+
+`MTPRO Release v0.10.0 Production Cutover Readiness Gate` 已进入 GitHub fallback queue `#878` 至 `#891` 的 final closure。`#878` 至 `#890` 均已 `CLOSED / done`；PR `#892` 至 `#904` 均已 merged，required check `checks` 均为 `SUCCESS`；#891 closure PR 输出 Stage Code Audit Report、release notes、operator runbook、root docs refresh 和 aggregate verifier final guard。
+
+Stage Code Audit Report：`docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md`。
+
+本阶段只收口 production readiness no-authorization contract、v0.9.1 publication policy carry-forward、production environment profile、secret provider readiness、endpoint policy readiness、capital / exposure limits、kill switch / no-trade、production command surface disabled proof、shadow dry-run parity、production readiness audit bundle、cutover approval workflow、incident / rollback runbook、Dashboard Production Readiness Center 和 final audit / docs / runbook closure。v0.10.0 是 construction closeout，不创建 tag，不创建 GitHub Release；release publication 和 production cutover 仍是独立 gate。
+
+Focused evidence carry-forward：`#880` 定义 reference-only ProductionEnvironmentProfile contract；`#881` 定义 SecretProviderReadinessGate reference-only contract；`#882` 定义 EndpointPolicyReadinessGate reference-only contract；`#883` 定义 CapitalExposureLimitReadinessGate reference-only contract；`#884` 定义 KillSwitchNoTradeReadinessGate reference-only contract；`#885` 定义 ProductionCommandSurfaceDisabledProof reference-only contract；`#886` 定义 ShadowDryRunParityAssessment reference-only contract；`#887` 定义 ProductionReadinessAuditBundle reference-only contract；`#888` 定义 CutoverApprovalWorkflow reference-only contract；`#889` 定义 IncidentRollbackReadinessRunbook reference-only runbook；`#890` 新增 Dashboard Production Readiness Center read-model-only surface。以上 evidence 均保持 production cutover blocked，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不显示 trading button / order form / live command。
+
+Production trading 仍默认关闭；不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Project / Issue。
+
+本地验证入口：
+
+```bash
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/verify-v0.10.0.sh
+bash checks/run.sh
+```
 
 ## Release v0.9.0 Closure Snapshot
 

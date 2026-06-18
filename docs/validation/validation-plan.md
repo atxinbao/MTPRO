@@ -6,6 +6,23 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-891 Release v0.10.0 Final Audit / Docs / Runbook Validation
+
+- `GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK`
+- `GH-891-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK`
+- `TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK`
+- `V0100-014-VALIDATION-SUMMARY`
+- `V0100-014-STAGE-CODE-AUDIT`
+- `V0100-014-RELEASE-NOTES`
+- `V0100-014-OPERATOR-RUNBOOK`
+- `V0100-014-ROOT-DOCS-REFRESH`
+- `V0100-014-AGGREGATE-VERIFY`
+- `V0100-014-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.10.0.sh`
+- Evidence files: `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md`、`docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md`、`docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md`。
+- Root docs refresh: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md` 只同步 v0.10.0 已完成 readiness evidence、Project Closure Count `44 / 44 (100%)`、stage audit path、release notes、operator runbook、validation command 和 no-default-production-trading boundary。
+- Boundary: GH-891 只收口 v0.10.0 final audit / docs / runbook 和 aggregate verifier；不创建 tag、不创建 GitHub Release、不创建下一 Project / Issue、不推进下一 Todo、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order。
+
 ## GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation
 
 - `GH-890-VERIFY-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER`

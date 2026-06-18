@@ -6,6 +6,23 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK
+
+- TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK
+- GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK
+- GH-891-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK
+- V0100-014-VALIDATION-SUMMARY
+- V0100-014-STAGE-CODE-AUDIT
+- V0100-014-RELEASE-NOTES
+- V0100-014-OPERATOR-RUNBOOK
+- V0100-014-ROOT-DOCS-REFRESH
+- V0100-014-AGGREGATE-VERIFY
+- V0100-014-NO-PRODUCTION-CUTOVER
+- GH-891 Release v0.10.0 Final Audit / Docs / Runbook Validation
+- `bash checks/verify-v0.10.0.sh`
+- fixed release evidence: `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md`、`docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md`、`docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md`、Project Closure Count `44 / 44 (100%)` 和 aggregate verifier。
+- Boundary: v0.10.0 final closeout 只证明 production cutover readiness assessment、reference-only production profile、secret readiness、endpoint policy、capital / exposure limits、kill switch / no-trade、disabled command surface、shadow dry-run parity、readiness bundle、approval workflow、incident / rollback runbook 和 Dashboard readiness center 已闭环；不读取 production secret，不连接 production endpoint / broker，不显示 trading button / order form / live command，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER
 
 - TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER
