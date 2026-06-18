@@ -225,6 +225,68 @@ PR：#905 `Close v0.10.0 final audit docs runbook` 已 merged
 | `bash checks/verify-v0.10.0.sh` | pass | v0.10.0 aggregate verifier 已调用 v0.10.1 Dashboard macOS v0.10 focused guard |
 | `bash checks/run.sh` | pass | 全量本地验证，593 tests / 0 failures |
 
+## GH-909 v0.10.1 CLI verify v0.10.0 wording guard
+
+日期：2026-06-18
+
+执行者：Codex
+
+目的：
+
+- 修正 `mtpro verify` 当前输出口径，将 v0.10.0 明确为 `Production Readiness Contract / Reference Evidence Model`。
+- 防止 `mtpro verify v0.10.0` 被误读为 operational production readiness、production cutover readiness、production endpoint readiness 或 live order authorization。
+- 保留 v0.9.0 historical verification evidence，并将当前 release verification 指向 v0.10.0 readiness contract / reference evidence。
+- 保持 production cutover 未授权、production trading 默认关闭。
+
+文件范围：
+
+- 新增：
+  - `checks/verify-v0.10.1-cli-verify-v0100-wording.sh`
+- 更新：
+  - `Sources/MTPROCLI/main.swift`
+  - `checks/verify-v0.10.0.sh`
+  - `checks/run.sh`
+  - `checks/automation-readiness.sh`
+  - `checks/verify-v0.5.0-cli.sh`
+  - `checks/verify-v0.7.0-cli.sh`
+  - `checks/verify-v0.8.1-cli-verify-v080-wording.sh`
+  - `checks/verify-v0.9.1-cli-verify-v090-wording.sh`
+  - `docs/automation/automation-readiness.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/validation-plan.md`
+  - `Tests/TargetGraphTests/TargetGraphTests.swift`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 runtime / OMS / broker gateway / Live PRO Console command。
+- 未移动既有 release tag。
+- 未重写 GitHub Release。
+- 未创建下一 Project / Issue。
+- 未推进下一 Todo。
+- 未启动 Linear。
+- 未启动 Symphony / `symphony-issue`。
+- 未运行 Graphify / code-index。
+- 未修改 Figma。
+- 未授权 production cutover / production trading。
+- 未读取 production secret。
+- 未连接 production endpoint / broker endpoint。
+- 未提交 testnet 或 production order。
+- 未显示 trading button、order form、live command、submit / cancel / replace。
+- 未提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+验证计划：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/verify-v0.10.1-cli-verify-v0100-wording.sh` | pass | focused CLI verify v0.10.0 wording guard，拒绝 operational readiness / cutover / endpoint / live order 授权误读 |
+| `swift test --filter TargetGraphTests/testGH909CLIVerifyV0100WordingUsesReadinessContractReferenceEvidence` | pass | 1 test / 0 failures |
+| `git diff --check` | pass | whitespace 检查 |
+| `bash checks/automation-readiness.sh` | pass | automation readiness guard |
+| `bash checks/verify-v0.10.0.sh` | pass | v0.10.0 aggregate verifier 已调用 v0.10.1 CLI verify v0.10.0 wording guard |
+| `bash checks/run.sh` | pass | 全量本地验证，594 tests / 0 failures |
+
 ## MTPRO Release v0.7.0 final audit / docs / runbook closure
 
 日期：2026-06-15

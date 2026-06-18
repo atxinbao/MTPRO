@@ -27809,7 +27809,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliSource.contains("strictParserAnchor"))
         XCTAssertTrue(cliSource.contains("mtpro run no-order-runtime-session"))
         XCTAssertTrue(cliSource.contains("mtpro status no-order-runtime-session"))
-        XCTAssertTrue(cliSource.contains("mtpro verify v0.9.0"))
+        XCTAssertTrue(cliSource.contains("mtpro verify v0.10.0"))
+        XCTAssertTrue(cliSource.contains("historicalV090Checks=verify-v0.9.0-contract"))
         XCTAssertTrue(cliSource.contains(
             "historicalV080Checks=verify-v0.8.0-contract,verify-v0.8.0-release-publication-policy,verify-v0.8.0-cli-local-session,verify-v0.8.0-validation-lanes,verify-v0.8.0"
         ))
@@ -28009,12 +28010,19 @@ final class TargetGraphTests: XCTestCase {
             )
         }
 
-        XCTAssertTrue(cliSource.contains("mtpro verify v0.9.0"))
-        XCTAssertTrue(cliSource.contains("issue=GH-856"))
-        XCTAssertTrue(cliSource.contains("TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"))
-        XCTAssertTrue(cliSource.contains("GH-856-VERIFY-V090-FINAL-AUDIT-DOCS-RUNBOOK"))
+        XCTAssertTrue(cliSource.contains("mtpro verify v0.10.0"))
+        XCTAssertTrue(cliSource.contains("issue=GH-909"))
+        XCTAssertTrue(cliSource.contains("TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK"))
+        XCTAssertTrue(cliSource.contains("GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK"))
+        XCTAssertTrue(cliSource.contains("releaseModel=production-readiness-contract-reference-evidence"))
+        XCTAssertTrue(cliSource.contains("readinessContractOnly=true"))
+        XCTAssertTrue(cliSource.contains("referenceEvidenceModel=true"))
+        XCTAssertTrue(cliSource.contains("operationalProductionReadiness=false"))
+        XCTAssertTrue(cliSource.contains("historicalV090ValidationAnchor=\\(releaseV090ValidationAnchor)"))
+        XCTAssertTrue(cliSource.contains("historicalV090VerificationAnchor=\\(releaseV090VerificationAnchor)"))
+        XCTAssertTrue(cliSource.contains("historicalV090Checks=verify-v0.9.0-contract"))
         XCTAssertTrue(cliSource.contains(
-            "checks=verify-v0.9.0-contract,verify-v0.9.0-dashboard-cli-operator-ux,verify-v0.9.0,automation-readiness,checks-run"
+            "checks=verify-v0.10.0-contract,verify-v0.10.0-dashboard-production-readiness-center,verify-v0.10.1-cli-verify-v0100-wording,verify-v0.10.0,automation-readiness,checks-run"
         ))
         XCTAssertTrue(cliSource.contains(
             "historicalV080Checks=verify-v0.8.0-contract,verify-v0.8.0-release-publication-policy,verify-v0.8.0-cli-local-session,verify-v0.8.0-validation-lanes,verify-v0.8.0"
@@ -28027,8 +28035,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.1-cli-verify-v080-wording.sh"))
         XCTAssertTrue(verifierScript.contains("swift run mtpro verify"))
         XCTAssertTrue(verifierScript.contains("reject_output_contains \"$verify_output\" \"mtpro verify v0.7.0\""))
-        XCTAssertTrue(v070CLIScript.contains("mtpro verify v0.9.0"))
-        XCTAssertTrue(v050CLIScript.contains("mtpro verify v0.9.0"))
+        XCTAssertTrue(v070CLIScript.contains("mtpro verify v0.10.0"))
+        XCTAssertTrue(v050CLIScript.contains("mtpro verify v0.10.0"))
+        XCTAssertTrue(v070CLIScript.contains("historicalV090Checks=verify-v0.9.0-contract"))
+        XCTAssertTrue(v050CLIScript.contains("historicalV090Checks=verify-v0.9.0-contract"))
         XCTAssertTrue(v070CLIScript.contains("historicalV080Checks=verify-v0.8.0-contract"))
         XCTAssertTrue(v050CLIScript.contains("historicalV080Checks=verify-v0.8.0-contract"))
         XCTAssertTrue(v070CLIScript.contains("historicalV070Checks=verify-v0.7.0-contract"))
@@ -28090,7 +28100,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliSource.contains("monitorStoreBinding=ReleaseV090TestnetReadOnlyMonitorSessionStore"))
         XCTAssertTrue(cliSource.contains("runtimeModes=local-dry-run,testnet-read-only-monitor,recovery-observe,production-blocked"))
         XCTAssertTrue(cliSource.contains("legacyRuntimeModes=testnet-read-only-probe"))
-        XCTAssertTrue(cliSource.contains("mtpro verify v0.9.0"))
+        XCTAssertTrue(cliSource.contains("mtpro verify v0.10.0"))
+        XCTAssertTrue(cliSource.contains("historicalV090Checks=verify-v0.9.0-contract"))
         XCTAssertTrue(cliVerifyScript.contains("reject_output_contains \"$verify_output\" \"mtpro verify v0.8.0\""))
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.9.1.sh"))
         XCTAssertTrue(aggregateScript.contains("bash checks/verify-v0.9.1-dashboard-macos-v090-guards.sh"))
@@ -28167,6 +28178,93 @@ final class TargetGraphTests: XCTestCase {
             "swift run mtpro replace"
         ] {
             XCTAssertFalse(workflowSource.contains(forbidden), "\(forbidden) must stay out of dashboard-macos workflow")
+        }
+    }
+
+    func testGH909CLIVerifyV0100WordingUsesReadinessContractReferenceEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let wordingGuardScript = try read("checks/verify-v0.10.1-cli-verify-v0100-wording.sh")
+        let v0100Verifier = try read("checks/verify-v0.10.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-909-VERIFY-V0101-CLI-V0100-WORDING",
+            "TVM-RELEASE-V0101-CLI-V0100-WORDING",
+            "V0101-004-CLI-V0100-READINESS-CONTRACT-WORDING",
+            "V0101-004-REFERENCE-EVIDENCE-MODEL",
+            "V0101-004-NOT-OPERATIONAL-PRODUCTION-READINESS",
+            "V0101-004-NO-PRODUCTION-CUTOVER",
+            "V0101-004-NO-ENDPOINT-READINESS-CLAIM",
+            "V0101-004-NO-LIVE-ORDER-AUTHORIZATION"
+        ] {
+            XCTAssertTrue(cliSource.contains(anchor), "\(anchor) must stay in CLI source output")
+            XCTAssertTrue(wordingGuardScript.contains(anchor), "\(anchor) must be enforced by #909 guard")
+            XCTAssertTrue(readinessDoc.contains(anchor), "\(anchor) must be documented in automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+        }
+
+        for requiredOutputLine in [
+            "mtpro verify v0.10.0",
+            "issue=GH-909",
+            "releaseModel=production-readiness-contract-reference-evidence",
+            "releaseScope=MTPRO Release v0.10.0 Production Readiness Contract / Reference Evidence Model",
+            "readinessContractOnly=true",
+            "referenceEvidenceModel=true",
+            "operationalProductionReadiness=false",
+            "productionCutoverReadinessClaim=false",
+            "productionEndpointReadinessClaim=false",
+            "liveOrderAuthorization=false",
+            "productionCutoverRequiresSeparateGate=true",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false"
+        ] {
+            XCTAssertTrue(cliSource.contains(requiredOutputLine), "\(requiredOutputLine) must stay in mtpro verify output")
+            XCTAssertTrue(wordingGuardScript.contains(requiredOutputLine), "\(requiredOutputLine) must be guarded")
+        }
+        XCTAssertTrue(cliSource.contains("historicalV090ValidationAnchor=\\(releaseV090ValidationAnchor)"))
+        XCTAssertTrue(cliSource.contains("historicalV090VerificationAnchor=\\(releaseV090VerificationAnchor)"))
+        XCTAssertTrue(wordingGuardScript.contains(
+            "historicalV090ValidationAnchor=TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
+        ))
+        XCTAssertTrue(wordingGuardScript.contains(
+            "historicalV090VerificationAnchor=GH-856-VERIFY-V090-FINAL-AUDIT-DOCS-RUNBOOK"
+        ))
+
+        XCTAssertTrue(wordingGuardScript.contains("swift run mtpro verify"))
+        XCTAssertTrue(wordingGuardScript.contains("verify-v0.10.1-cli-verify-v0100-wording"))
+        XCTAssertTrue(v0100Verifier.contains("bash checks/verify-v0.10.1-cli-verify-v0100-wording.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.1-cli-verify-v0100-wording.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.1-cli-verify-v0100-wording.sh"))
+        XCTAssertTrue(readinessScript.contains("testGH909CLIVerifyV0100WordingUsesReadinessContractReferenceEvidence"))
+        XCTAssertTrue(validationPlan.contains("GH-909 Release v0.10.1 CLI verify v0.10.0 Wording Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0101-CLI-V0100-WORDING"))
+
+        for forbiddenOutputLine in [
+            "mtpro verify v0.9.0",
+            "operationalProductionReadiness=true",
+            "productionCutoverReadinessClaim=true",
+            "productionEndpointReadinessClaim=true",
+            "liveOrderAuthorization=true",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true"
+        ] {
+            XCTAssertFalse(cliSource.contains(forbiddenOutputLine), "\(forbiddenOutputLine) must stay out of mtpro verify output")
         }
     }
 
