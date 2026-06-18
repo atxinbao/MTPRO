@@ -6,6 +6,24 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-888 Release v0.10.0 Cutover Approval Workflow Validation
+
+- `GH-888-VERIFY-V0100-CUTOVER-APPROVAL-WORKFLOW`
+- `TVM-RELEASE-V0100-CUTOVER-APPROVAL-WORKFLOW`
+- `V0100-011-CUTOVER-APPROVAL-WORKFLOW`
+- `V0100-011-CUTOVER-APPROVAL-WORKFLOW-JSON`
+- `V0100-011-APPROVAL-STATES-REPRESENTED`
+- `V0100-011-APPROVED-NOT-CUTOVER-AUTHORIZED`
+- `V0100-011-APPROVED-NOT-ORDER-SUBMISSION-ENABLED`
+- `V0100-011-APPROVED-NOT-PRODUCTION-TRADING-ENABLED`
+- `V0100-011-PRODUCTION-CUTOVER-AUTHORIZED-FALSE`
+- `V0100-011-ORDER-SUBMISSION-ENABLED-FALSE`
+- `V0100-011-PRODUCTION-TRADING-ENABLED-FALSE`
+- `V0100-011-PRODUCTION-CAPABILITIES-DISABLED`
+- Required command: `bash checks/verify-v0.10.0-cutover-approval-workflow.sh`
+- Focused test: `testGH888CutoverApprovalWorkflowRepresentsApprovalWithoutTradingPermission`
+- Boundary: CutoverApprovalWorkflow 只定义 `cutover_approval_workflow.json` reference-only evidence，可以表达 requested、reviewing、approved、rejected、expired、revoked；`approved` 只表示 review evidence，不等于 production cutover authorization、order submission enablement 或 production trading enablement；不连接 production endpoint / broker，不读取 production secret，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## GH-887 Release v0.10.0 Production Readiness Audit Bundle Validation
 
 - `GH-887-VERIFY-V0100-PRODUCTION-READINESS-BUNDLE`

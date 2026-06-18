@@ -9926,6 +9926,184 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH888CutoverApprovalWorkflowRepresentsApprovalWithoutTradingPermission() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let workflow = try ReleaseV0100CutoverApprovalWorkflow.deterministicFixture()
+
+        XCTAssertTrue(workflow.workflowHeld)
+        XCTAssertTrue(workflow.evidenceArtifact.artifactHeld)
+        XCTAssertTrue(workflow.approvalStates.allSatisfy(\.stateHeld))
+        XCTAssertTrue(workflow.productionCapabilitiesDisabled)
+        XCTAssertEqual(workflow.issueID.rawValue, "GH-888")
+        XCTAssertEqual(workflow.upstreamIssueID.rawValue, "GH-887")
+        XCTAssertEqual(workflow.downstreamIssueID.rawValue, "GH-889")
+        XCTAssertEqual(workflow.canonicalQueueRange, "GH-878..GH-891")
+        XCTAssertEqual(workflow.evidenceArtifact.fileName, "cutover_approval_workflow.json")
+        XCTAssertEqual(workflow.workflowChecksum, ReleaseV0100CutoverApprovalWorkflowChecksum.workflow)
+        XCTAssertTrue(workflow.workflowChecksum.hasPrefix("sha256:"))
+        XCTAssertEqual(workflow.workflowChecksum.dropFirst("sha256:".count).count, 64)
+        XCTAssertEqual(workflow.approvalStates.map(\.state), ReleaseV0100CutoverApprovalState.allCases)
+        XCTAssertTrue(workflow.approvalStates.allSatisfy { $0.checksum.hasPrefix("sha256:") })
+        XCTAssertTrue(workflow.previousProductionReadinessBundleHeld)
+        XCTAssertTrue(workflow.approvalStateEvidenceCanRepresentApproved)
+        XCTAssertTrue(workflow.approvalStateEvidenceCanRepresentRejected)
+        XCTAssertTrue(workflow.productionCutoverBlocked)
+        XCTAssertFalse(workflow.productionCutoverAuthorized)
+        XCTAssertFalse(workflow.orderSubmissionEnabled)
+        XCTAssertFalse(workflow.productionTradingEnabled)
+        XCTAssertFalse(workflow.productionEndpointConnectionEnabled)
+        XCTAssertFalse(workflow.productionBrokerConnectionEnabled)
+        XCTAssertFalse(workflow.productionSecretValueRead)
+        XCTAssertFalse(workflow.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(workflow.productionOrderSubmissionEnabled)
+        XCTAssertFalse(workflow.orderPayloadCreated)
+        XCTAssertFalse(workflow.brokerCommandCreated)
+        XCTAssertFalse(workflow.productionOMSRuntimeEnabled)
+        XCTAssertFalse(workflow.tradingButtonVisible)
+        XCTAssertFalse(workflow.orderFormVisible)
+        XCTAssertFalse(workflow.liveCommandEnabled)
+        XCTAssertFalse(workflow.readinessApprovalConvertedToTradingPermission)
+        XCTAssertFalse(workflow.approvalWorkflowBypassEnabled)
+
+        let approvedState = try XCTUnwrap(workflow.approvalStates.first { $0.state == .approved })
+        XCTAssertTrue(approvedState.reviewEvidenceOnly)
+        XCTAssertFalse(approvedState.productionCutoverAuthorized)
+        XCTAssertFalse(approvedState.orderSubmissionEnabled)
+        XCTAssertFalse(approvedState.productionTradingEnabled)
+
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflowArtifact(fileName: "wrong.json"))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflowArtifact(workflowChecksum: "sha256:bad"))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflowArtifact(evidenceExists: false))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflowArtifact(noSecretValue: false))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflowArtifact(noOrderPayload: false))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflowArtifact(containsBrokerOrAccountResponse: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflowArtifact(producedByEndpointConnection: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflowArtifact(containsOrderPayload: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalStateEvidence(state: .approved, checksum: "sha256:bad"))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalStateEvidence(state: .approved, represented: false))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalStateEvidence(state: .approved, reviewEvidenceOnly: false))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalStateEvidence(state: .approved, productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalStateEvidence(state: .approved, orderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalStateEvidence(state: .approved, productionTradingEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(previousProductionReadinessBundleHeld: false))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(approvalStateEvidenceCanRepresentApproved: false))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(approvalStateEvidenceCanRepresentRejected: false))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(productionCutoverBlocked: false))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(orderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(productionTradingEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(productionBrokerConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(testnetOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(productionOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(orderPayloadCreated: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(brokerCommandCreated: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(productionOMSRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(tradingButtonVisible: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(orderFormVisible: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(liveCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(readinessApprovalConvertedToTradingPermission: true))
+        XCTAssertThrowsError(try ReleaseV0100CutoverApprovalWorkflow(approvalWorkflowBypassEnabled: true))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100CutoverApprovalWorkflow.swift")
+        let contract = try read("docs/contracts/release-v0.10.0-cutover-approval-workflow-contract.md")
+        let verifier = try read("checks/verify-v0.10.0-cutover-approval-workflow.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "V0100-011-CUTOVER-APPROVAL-WORKFLOW",
+            "V0100-011-CUTOVER-APPROVAL-WORKFLOW-JSON",
+            "V0100-011-APPROVAL-STATES-REPRESENTED",
+            "V0100-011-APPROVED-NOT-CUTOVER-AUTHORIZED",
+            "V0100-011-APPROVED-NOT-ORDER-SUBMISSION-ENABLED",
+            "V0100-011-APPROVED-NOT-PRODUCTION-TRADING-ENABLED",
+            "V0100-011-PRODUCTION-CUTOVER-AUTHORIZED-FALSE",
+            "V0100-011-ORDER-SUBMISSION-ENABLED-FALSE",
+            "V0100-011-PRODUCTION-TRADING-ENABLED-FALSE",
+            "V0100-011-PRODUCTION-CAPABILITIES-DISABLED",
+            "GH-888-VERIFY-V0100-CUTOVER-APPROVAL-WORKFLOW",
+            "TVM-RELEASE-V0100-CUTOVER-APPROVAL-WORKFLOW"
+        ]
+        XCTAssertEqual(ReleaseV0100CutoverApprovalWorkflow.requiredValidationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        for state in ["requested", "reviewing", "approved", "rejected", "expired", "revoked"] {
+            XCTAssertTrue(source.contains(state), "\(state) must stay in Swift approval workflow")
+            XCTAssertTrue(contract.contains(state), "\(state) must stay in docs")
+        }
+
+        for exactString in [
+            "cutover_approval_workflow.json",
+            "workflowChecksum=sha256:",
+            "approvalStateEvidenceCanRepresentApproved=true",
+            "approvalStateEvidenceCanRepresentRejected=true",
+            "approvedStateIsReviewEvidenceOnly=true",
+            "previousProductionReadinessBundleHeld=true",
+            "production_cutover_blocked=true",
+            "productionCutoverBlocked=true",
+            "productionCutoverAuthorized=false",
+            "orderSubmissionEnabled=false",
+            "productionTradingEnabled=false",
+            "no_secret_value=true",
+            "noSecretValue=true",
+            "no_order_payload=true",
+            "noOrderPayload=true"
+        ] {
+            XCTAssertTrue(contract.contains(exactString), "\(exactString) must stay fixed in #888 docs")
+        }
+
+        XCTAssertTrue(verifier.contains("MTPRO release v0.10.0 cutover approval workflow verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-cutover-approval-workflow.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-cutover-approval-workflow.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.10.0 cutover approval workflow anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-888 Release v0.10.0 Cutover Approval Workflow Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-CUTOVER-APPROVAL-WORKFLOW"))
+        XCTAssertTrue(latest.contains("`#888` 定义 CutoverApprovalWorkflow reference-only contract"))
+
+        for forbiddenAuthorization in [
+            "productionCutoverAuthorized=true",
+            "orderSubmissionEnabled=true",
+            "productionTradingEnabled=true",
+            "production_cutover_blocked=false",
+            "productionCutoverBlocked=false",
+            "testnetOrderSubmissionEnabled=true",
+            "productionOrderSubmissionEnabled=true",
+            "productionEndpointConnectionEnabled=true",
+            "productionBrokerConnectionEnabled=true",
+            "productionSecretValueRead=true",
+            "orderPayloadCreated=true",
+            "brokerCommandCreated=true",
+            "productionOMSRuntimeEnabled=true",
+            "tradingButtonVisible=true",
+            "orderFormVisible=true",
+            "liveCommandEnabled=true",
+            "readinessApprovalConvertedToTradingPermission=true",
+            "approvalWorkflowBypassEnabled=true",
+            "containsBrokerOrAccountResponse=true",
+            "producedByEndpointConnection=true",
+            "containsOrderPayload=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(
