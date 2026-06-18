@@ -110,6 +110,63 @@ PR：#905 `Close v0.10.0 final audit docs runbook` 已 merged
 - 未连接 production endpoint / broker endpoint。
 - 未提交 testnet 或 production order。
 
+## GH-907 v0.10.1 release fact sync stale wording guard
+
+日期：2026-06-18
+
+执行者：Codex
+
+目的：
+
+- 新增 release fact sync / stale wording guard，确保 v0.10.0 stable GitHub Release 已发布事实持续同步。
+- 固定四段 release fact flow：construction closeout gate、release publication gate、release fact sync gate、stale wording guard gate。
+- 将 v0.10.0 release URL `https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0` 和 target commit `7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4` 纳入 guard。
+- 保持 production cutover 独立且未授权，production trading 默认关闭。
+
+文件范围：
+
+- 新增：
+  - `checks/verify-v0.10.1-release-fact-sync.sh`
+- 更新：
+  - `checks/verify-v0.10.0.sh`
+  - `checks/run.sh`
+  - `checks/automation-readiness.sh`
+  - `docs/release/release-publication-policy.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/automation/automation-readiness.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `Tests/TargetGraphTests/TargetGraphTests.swift`
+  - `verification.md`
+
+边界确认：
+
+- 未移动既有 release tag。
+- 未重写 GitHub Release。
+- 未创建下一 Project / Issue。
+- 未推进下一 Todo。
+- 未启动 Linear。
+- 未启动 Symphony / `symphony-issue`。
+- 未运行 Graphify / code-index。
+- 未修改 Figma。
+- 未实现 runtime / OMS / broker gateway / Live PRO Console command。
+- 未授权 production cutover / production trading。
+- 未读取 production secret。
+- 未连接 production endpoint / broker endpoint。
+- 未提交 testnet 或 production order。
+- 未提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+验证计划：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/verify-v0.10.1-release-fact-sync.sh` | pass | focused stale wording / release fact sync guard |
+| `swift test --filter TargetGraphTests/testGH907ReleaseFactSyncGuardRejectsV0100StalePublicationWording` | pass | 1 test / 0 failures |
+| `git diff --check` | pass | whitespace 检查 |
+| `bash checks/automation-readiness.sh` | pass | automation readiness guard |
+| `bash checks/verify-v0.10.0.sh` | pass | v0.10.0 aggregate verifier 已调用 v0.10.1 release fact sync guard |
+| `bash checks/run.sh` | pass | 全量本地验证，592 tests / 0 failures |
+
 ## MTPRO Release v0.7.0 final audit / docs / runbook closure
 
 日期：2026-06-15

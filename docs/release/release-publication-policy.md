@@ -93,11 +93,14 @@ v0.9.1 的 Stage Code Audit 和 release notes 是 audit hardening patch closeout
 
 v0.10.0 使用 `MTPRO Release v0.10.0 Production Cutover Readiness Gate` 作为 release construction queue。该 queue 只能评估 production cutover readiness，不授权 production cutover。
 
-v0.10.0 版本策略固定为三段 gate：
+v0.10.0 release fact flow 在 v0.10.1 patch 中固定为四段 gate：
 
-1. construction / readiness closeout gate：收口 GitHub fallback queue `GH-878..GH-891`、Stage Code Audit、release docs、runbook、validation command 和 no-default-production-trading evidence。
-2. public release publication gate：只有在 construction / readiness closeout 完成后，才能通过显式发布指令创建或核对 tag / GitHub Release。
-3. production cutover gate：必须保持独立，不能由 construction closeout 或 public GitHub Release publication 自动触发。
+1. construction closeout gate（也称 construction / readiness closeout gate）：收口 GitHub fallback queue `GH-878..GH-891`、Stage Code Audit、release docs、runbook、validation command 和 no-default-production-trading evidence。
+2. release publication gate：只有在 construction closeout 完成后，才能通过显式发布指令创建或核对 tag / GitHub Release。
+3. release fact sync gate：publication 完成后同步 root docs、release docs、validation summary、automation readiness 和 audit / runbook 里的已发生事实。
+4. stale wording guard gate：通过 `GH-907-VERIFY-V0101-RELEASE-FACT-STALE-WORDING-GUARD` / `V0101-002-RELEASE-FACT-SYNC-GUARD` / `V0101-002-FOUR-GATE-RELEASE-FLOW` / `TVM-RELEASE-V0101-RELEASE-FACT-SYNC-GUARD` 阻止 v0.10.0 文档保留过期 publication wording。
+
+Production cutover remains a separate non-release gate；production cutover gate 保持独立，不能由 construction closeout、release publication、release fact sync 或 stale wording guard 自动触发。
 
 v0.10.0 当前存在 stable GitHub Release：
 
@@ -107,7 +110,7 @@ v0.10.0 当前存在 stable GitHub Release：
 - publication timestamp：`2026-06-18T05:19:46Z`
 - release type：stable；非 draft；非 prerelease
 
-v0.10.0 的 construction / readiness closeout 已通过 `GH-878..GH-891` 完成，public GitHub Release publication 已通过独立 gate 完成。文档不得再把 v0.10.0 描述成 publication 尚未完成、release artifact 缺失或仍需创建 release；也不得把 GitHub Release publication 当作 production cutover authorization。
+v0.10.0 的 construction / readiness closeout 已通过 `GH-878..GH-891` 完成，public GitHub Release publication 已通过独立 gate 完成。文档不得再保留与当前 publication fact 冲突的旧 wording；也不得把 GitHub Release publication 当作 production cutover authorization。
 
 v0.10.0 readiness evidence 允许记录 approval workflow、manual confirmation checklist、operator runbook、Dashboard readiness center 和 audit bundle；这些 evidence 仍不授权 production trading，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order。
 
