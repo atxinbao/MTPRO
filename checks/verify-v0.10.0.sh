@@ -43,6 +43,7 @@ reject_file_contains() {
 bash checks/verify-v0.10.0-contract.sh
 bash checks/verify-v0.10.0-release-policy.sh
 bash checks/verify-v0.10.1-release-fact-sync.sh
+bash checks/verify-v0.10.1-cli-verify-v0100-wording.sh
 bash checks/verify-v0.10.0-production-environment-profile.sh
 bash checks/verify-v0.10.0-secret-provider-readiness-gate.sh
 bash checks/verify-v0.10.0-endpoint-policy-readiness-gate.sh
@@ -109,6 +110,7 @@ for script in \
   "bash checks/verify-v0.10.0-contract.sh" \
   "bash checks/verify-v0.10.0-release-policy.sh" \
   "bash checks/verify-v0.10.1-release-fact-sync.sh" \
+  "bash checks/verify-v0.10.1-cli-verify-v0100-wording.sh" \
   "bash checks/verify-v0.10.0-production-environment-profile.sh" \
   "bash checks/verify-v0.10.0-secret-provider-readiness-gate.sh" \
   "bash checks/verify-v0.10.0-endpoint-policy-readiness-gate.sh" \

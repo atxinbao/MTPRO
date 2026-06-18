@@ -23,6 +23,20 @@
 - Root docs refresh: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md` 只同步 v0.10.0 已完成 readiness evidence、Project Closure Count `44 / 44 (100%)`、stage audit path、release notes、operator runbook、validation command 和 no-default-production-trading boundary。
 - Boundary: GH-891 只收口 v0.10.0 final audit / docs / runbook 和 aggregate verifier；#891 construction closeout PR 本身未执行 tag / GitHub Release publication、不创建下一 Project / Issue、不推进下一 Todo、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order。v0.10.0 已在后续独立 publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；该 publication 仍不授权 production cutover。
 
+## GH-909 Release v0.10.1 CLI verify v0.10.0 Wording Validation
+
+- `GH-909-VERIFY-V0101-CLI-V0100-WORDING`
+- `TVM-RELEASE-V0101-CLI-V0100-WORDING`
+- `V0101-004-CLI-V0100-READINESS-CONTRACT-WORDING`
+- `V0101-004-REFERENCE-EVIDENCE-MODEL`
+- `V0101-004-NOT-OPERATIONAL-PRODUCTION-READINESS`
+- `V0101-004-NO-PRODUCTION-CUTOVER`
+- `V0101-004-NO-ENDPOINT-READINESS-CLAIM`
+- `V0101-004-NO-LIVE-ORDER-AUTHORIZATION`
+- Required command: `bash checks/verify-v0.10.1-cli-verify-v0100-wording.sh`
+- Focused test: `testGH909CLIVerifyV0100WordingUsesReadinessContractReferenceEvidence`
+- Boundary: `mtpro verify` 的 v0.10.0 输出只表达 Production Readiness Contract / Reference Evidence Model；不声称 operational production readiness、production cutover readiness、production endpoint readiness 或 live order authorization。
+
 ## GH-908 Release v0.10.1 Dashboard macOS v0.10 Focused Guard Validation
 
 - `GH-908-VERIFY-V0101-DASHBOARD-MACOS-V0100-GUARDS`

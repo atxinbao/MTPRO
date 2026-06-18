@@ -23,6 +23,22 @@
 - fixed release evidence: `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md`、`docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md`、`docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md`、Project Closure Count `44 / 44 (100%)` 和 aggregate verifier。
 - Boundary: v0.10.0 final closeout 只证明 production cutover readiness assessment、reference-only production profile、secret readiness、endpoint policy、capital / exposure limits、kill switch / no-trade、disabled command surface、shadow dry-run parity、readiness bundle、approval workflow、incident / rollback runbook 和 Dashboard readiness center 已闭环；不读取 production secret，不连接 production endpoint / broker，不显示 trading button / order form / live command，不提交 testnet 或 production order，不授权 production cutover。
 
+## TVM-RELEASE-V0101-CLI-V0100-WORDING
+
+- TVM-RELEASE-V0101-CLI-V0100-WORDING
+- GH-909-VERIFY-V0101-CLI-V0100-WORDING
+- V0101-004-CLI-V0100-READINESS-CONTRACT-WORDING
+- V0101-004-REFERENCE-EVIDENCE-MODEL
+- V0101-004-NOT-OPERATIONAL-PRODUCTION-READINESS
+- V0101-004-NO-PRODUCTION-CUTOVER
+- V0101-004-NO-ENDPOINT-READINESS-CLAIM
+- V0101-004-NO-LIVE-ORDER-AUTHORIZATION
+- GH-909 Release v0.10.1 CLI verify v0.10.0 Wording Validation
+- `bash checks/verify-v0.10.1-cli-verify-v0100-wording.sh`
+- `swift test --filter TargetGraphTests/testGH909CLIVerifyV0100WordingUsesReadinessContractReferenceEvidence`
+- `mtpro verify` 输出 v0.10.0 readiness contract / reference evidence model，并固定 `operationalProductionReadiness=false`、`productionCutoverReadinessClaim=false`、`productionEndpointReadinessClaim=false` 和 `liveOrderAuthorization=false`。
+- Boundary: CLI wording 不授权 production cutover、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order、不提供 live order authorization。
+
 ## TVM-RELEASE-V0101-DASHBOARD-MACOS-V0100-GUARDS
 
 - TVM-RELEASE-V0101-DASHBOARD-MACOS-V0100-GUARDS

@@ -30,7 +30,7 @@ private enum MTPROCLIParserError: Error, CustomStringConvertible, Equatable {
 
 /// MTPROStrictCLI 固定 GH-727 的严格命令路由。
 ///
-/// 新 v0.9.0 shape 继续暴露 `help`、`run`、`status`、`stop`、`recover`、
+/// 新 v0.10.0 readiness contract shape 继续暴露 `help`、`run`、`status`、`stop`、`recover`、
 /// `monitor`、`verify` 和 `risk-policy` 等安全本地入口；历史
 /// `rehearsal-status`、`unified-run-status`、`run-observer`、`run-detail-observer`、
 /// `testnet-readonly-probe`、`verify-fast`、`verify-release` 仍可被显式调用。
@@ -48,6 +48,18 @@ private enum MTPROStrictCLI {
     static let releaseV090ValidationAnchor = "TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
     static let releaseV090OperatorUXVerificationAnchor = "GH-855-VERIFY-V090-DASHBOARD-CLI-OPERATOR-UX"
     static let releaseV090OperatorUXValidationAnchor = "TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX"
+    static let releaseV0100VerificationAnchor = "GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
+    static let releaseV0100ValidationAnchor = "TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
+    static let cliVerifyV0100WordingAnchor = "GH-909-VERIFY-V0101-CLI-V0100-WORDING"
+    static let cliVerifyV0100WordingValidationAnchor = "TVM-RELEASE-V0101-CLI-V0100-WORDING"
+    static let cliVerifyV0100WordingRequiredAnchors = [
+        "V0101-004-CLI-V0100-READINESS-CONTRACT-WORDING",
+        "V0101-004-REFERENCE-EVIDENCE-MODEL",
+        "V0101-004-NOT-OPERATIONAL-PRODUCTION-READINESS",
+        "V0101-004-NO-PRODUCTION-CUTOVER",
+        "V0101-004-NO-ENDPOINT-READINESS-CLAIM",
+        "V0101-004-NO-LIVE-ORDER-AUTHORIZATION"
+    ]
     static let releaseV090OperatorUXRequiredAnchors = [
         "V090-013-DASHBOARD-CLI-OPERATOR-UX",
         "V090-013-MONITOR-START-STATUS-STOP-RECOVER-EXPORT",
@@ -572,19 +584,32 @@ private enum MTPROStrictCLI {
 
     private static func verifyOutput() -> String {
         [
-            "mtpro verify v0.9.0",
-            "issue=GH-856",
-            "validationAnchor=\(releaseV090ValidationAnchor)",
-            "verificationAnchor=\(releaseV090VerificationAnchor)",
-            "wordingGuard=\(cliVerifyV080WordingAnchor)",
-            "wordingValidationAnchor=\(cliVerifyV080WordingValidationAnchor)",
+            "mtpro verify v0.10.0",
+            "issue=GH-909",
+            "validationAnchor=\(releaseV0100ValidationAnchor)",
+            "verificationAnchor=\(releaseV0100VerificationAnchor)",
+            "wordingGuard=\(cliVerifyV0100WordingAnchor)",
+            "wordingValidationAnchor=\(cliVerifyV0100WordingValidationAnchor)",
+            "releaseModel=production-readiness-contract-reference-evidence",
+            "releaseScope=MTPRO Release v0.10.0 Production Readiness Contract / Reference Evidence Model",
+            "readinessContractOnly=true",
+            "referenceEvidenceModel=true",
+            "operationalProductionReadiness=false",
+            "productionCutoverReadinessClaim=false",
+            "productionEndpointReadinessClaim=false",
+            "liveOrderAuthorization=false",
+            "productionCutoverRequiresSeparateGate=true",
             "persistentValidationAnchor=\(persistentLocalSessionAnchor)",
             "persistentVerificationAnchor=\(persistentLocalSessionVerificationAnchor)",
-            "checks=verify-v0.9.0-contract,verify-v0.9.0-dashboard-cli-operator-ux,verify-v0.9.0,automation-readiness,checks-run",
+            "checks=verify-v0.10.0-contract,verify-v0.10.0-dashboard-production-readiness-center,verify-v0.10.1-cli-verify-v0100-wording,verify-v0.10.0,automation-readiness,checks-run",
+            "historicalV090Issue=GH-856",
+            "historicalV090ValidationAnchor=\(releaseV090ValidationAnchor)",
+            "historicalV090VerificationAnchor=\(releaseV090VerificationAnchor)",
+            "historicalV090Checks=verify-v0.9.0-contract,verify-v0.9.0-dashboard-cli-operator-ux,verify-v0.9.0",
             "historicalV080Issue=GH-820",
             "historicalV080Checks=verify-v0.8.0-contract,verify-v0.8.0-release-publication-policy,verify-v0.8.0-cli-local-session,verify-v0.8.0-validation-lanes,verify-v0.8.0",
             "historicalV070Checks=verify-v0.7.0-contract,verify-v0.7.0-testnet-endpoint-policy,verify-v0.7.0-cli",
-            "requiredAnchors=\(cliVerifyV080WordingRequiredAnchors.joined(separator: ","))",
+            "requiredAnchors=\(cliVerifyV0100WordingRequiredAnchors.joined(separator: ","))",
             "unknownCommandFailure=mtpro.strict.arguments",
             "legacyFallbackDisabled=true",
             "legacyV040ActiveTopLevelSurface=false",
