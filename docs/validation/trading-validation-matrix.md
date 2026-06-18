@@ -6,6 +6,26 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-COMMAND-SURFACE-DISABLED
+
+- TVM-RELEASE-V0100-COMMAND-SURFACE-DISABLED
+- GH-885-VERIFY-V0100-COMMAND-SURFACE-DISABLED
+- V0100-008-PRODUCTION-COMMAND-SURFACE-DISABLED-PROOF
+- V0100-008-DASHBOARD-PRODUCTION-SURFACE-DISABLED-JSON
+- V0100-008-CLI-PRODUCTION-SURFACE-DISABLED-JSON
+- V0100-008-TRADING-BUTTON-VISIBLE-FALSE
+- V0100-008-ORDER-FORM-VISIBLE-FALSE
+- V0100-008-LIVE-COMMAND-ENABLED-FALSE
+- V0100-008-SUBMIT-CANCEL-REPLACE-COMMANDS-DISABLED
+- V0100-008-PRODUCTION-COMMAND-ENABLED-FALSE
+- V0100-008-PRODUCTION-CUTOVER-BLOCKED
+- V0100-008-PRODUCTION-CAPABILITIES-DISABLED
+- GH-885 Release v0.10.0 Production Command Surface Disabled Proof Validation
+- `bash checks/verify-v0.10.0-command-surface-disabled.sh`
+- `swift test --filter TargetGraphTests/testGH885ProductionCommandSurfaceDisabledProofKeepsDashboardAndCLIReadOnly`
+- fixed Dashboard / CLI proof schema: `dashboard_production_surface_disabled.json`、`cli_production_surface_disabled.json`、`tradingButtonVisible=false`、`orderFormVisible=false`、`liveCommandEnabled=false`、`submitCommandEnabled=false`、`cancelCommandEnabled=false`、`replaceCommandEnabled=false`、`productionCommandEnabled=false`、`production_cutover_blocked=true`。
+- Boundary: disabled evidence 不包含 broker / account response，不来自 endpoint connection，不包含 order payload，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## TVM-RELEASE-V0100-KILL-SWITCH-NO-TRADE-READINESS-GATE
 
 - TVM-RELEASE-V0100-KILL-SWITCH-NO-TRADE-READINESS-GATE
