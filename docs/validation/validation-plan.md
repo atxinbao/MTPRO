@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-914 Release v0.11.0 Production Readiness Artifact Store Validation
+
+- `GH-914-VERIFY-V0110-PRODUCTION-READINESS-ARTIFACT-STORE`
+- `TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE`
+- `V0110-002-PRODUCTION-READINESS-ARTIFACT-STORE`
+- `V0110-002-LOCAL-EVIDENCE-ROOT`
+- `V0110-002-ARTIFACT-STATES`
+- `V0110-002-READ-WRITE-PRIMITIVES`
+- `V0110-002-NO-PRODUCTION-SECRET-ENDPOINT-ORDER`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`。
+- Boundary: GH-914 只实现本地 `ProductionReadinessArtifactStore`、approved local evidence root、safe relative path、missing / invalid / stale / valid 状态和 read / write primitives；不实现 manifest schema、atomic manifest write order、canonical JSON SHA256、Dashboard real artifact binding、CLI runtime、approval transition 或 shadow parity runner；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-913 Release v0.11.0 Production Readiness Evidence Runtime Contract Validation
 
 - `GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`

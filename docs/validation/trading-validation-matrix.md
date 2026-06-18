@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE
+
+- TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE
+- GH-914-VERIFY-V0110-PRODUCTION-READINESS-ARTIFACT-STORE
+- V0110-002-PRODUCTION-READINESS-ARTIFACT-STORE
+- V0110-002-LOCAL-EVIDENCE-ROOT
+- V0110-002-ARTIFACT-STATES
+- V0110-002-READ-WRITE-PRIMITIVES
+- V0110-002-NO-PRODUCTION-SECRET-ENDPOINT-ORDER
+- GH-914 Release v0.11.0 Production Readiness Artifact Store Validation
+- `bash checks/verify-v0.11.0.sh`
+- `swift test --filter TargetGraphTests/testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates`
+- fixed artifact store evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`、`checks/verify-v0.11.0.sh` 和 TargetGraph focused test。
+- Boundary: v0.11.0 artifact store 只读写 approved local evidence root 下的 local JSON / text evidence，显式输出 missing / invalid / stale / valid 状态；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 
 - TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
