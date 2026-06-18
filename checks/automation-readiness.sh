@@ -205,6 +205,7 @@ require_file "checks/verify-v0.10.0-shadow-dry-run-parity.sh"
 require_file "checks/verify-v0.10.0-production-readiness-bundle.sh"
 require_file "checks/verify-v0.10.0-cutover-approval-workflow.sh"
 require_file "checks/verify-v0.10.0-incident-rollback-runbook.sh"
+require_file "checks/verify-v0.10.0-dashboard-production-readiness-center.sh"
 require_file "checks/verify-v0.9.0-v080-publication-alignment.sh"
 require_file "checks/verify-v0.9.0-monitor-session-store.sh"
 require_file "checks/verify-v0.9.0-snapshot-freshness-monitor.sh"
@@ -332,6 +333,39 @@ require_contains "checks/run.sh" "bash checks/verify-v0.10.0-incident-rollback-r
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-INCIDENT-ROLLBACK-RUNBOOK"
 require_contains "docs/validation/validation-plan.md" "GH-889 Release v0.10.0 Incident / Rollback Readiness Runbook Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH889IncidentRollbackReadinessRunbookKeepsProductionCutoverDisabled"
+require_contains "docs/automation/automation-readiness.md" "Release v0.10.0 Dashboard production readiness center anchor"
+require_contains "Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift" "ReleaseV0100DashboardProductionReadinessCenterViewModel"
+require_contains "Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift" "GH-890-VERIFY-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
+require_contains "Sources/Dashboard/DashboardShell.swift" "releaseV0100ProductionReadinessCenter"
+require_contains "Sources/Dashboard/DashboardShell.swift" "releaseV0100ReadinessCenterCards="
+require_contains "checks/verify-v0.10.0-dashboard-production-readiness-center.sh" "GH-890-VERIFY-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
+require_contains "checks/run.sh" "bash checks/verify-v0.10.0-dashboard-production-readiness-center.sh"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
+require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
+require_contains "Tests/AppTests/AppTests.swift" "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH890DashboardProductionReadinessCenterIsAnchoredInV0100Guards"
+for v0100_dashboard_readiness_anchor in \
+  "GH-890-VERIFY-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER" \
+  "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER" \
+  "V0100-013-DASHBOARD-PRODUCTION-READINESS-CENTER" \
+  "V0100-013-READINESS-OVERVIEW" \
+  "V0100-013-ENVIRONMENT-PROFILE" \
+  "V0100-013-SECRET-READINESS" \
+  "V0100-013-ENDPOINT-POLICY" \
+  "V0100-013-RISK-CAPITAL-LIMITS" \
+  "V0100-013-KILL-SWITCH-NO-TRADE" \
+  "V0100-013-COMMAND-SURFACE-DISABLED" \
+  "V0100-013-SHADOW-DRY-RUN-PARITY" \
+  "V0100-013-APPROVAL-WORKFLOW" \
+  "V0100-013-READINESS-BUNDLE" \
+  "V0100-013-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND" \
+  "V0100-013-NO-SUBMIT-CANCEL-REPLACE" \
+  "V0100-013-NO-PRODUCTION-CUTOVER"; do
+  require_contains "Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift" "$v0100_dashboard_readiness_anchor"
+  require_contains "checks/verify-v0.10.0-dashboard-production-readiness-center.sh" "$v0100_dashboard_readiness_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0100_dashboard_readiness_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0100_dashboard_readiness_anchor"
+done
 require_contains "checks/verify-v0.9.0-v080-publication-alignment.sh" "GH-844-VERIFY-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD"
 require_contains "checks/verify-v0.9.0-v080-publication-alignment.sh" "TVM-RELEASE-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD"
 require_contains "checks/verify-v0.9.0-v080-publication-alignment.sh" "V090-002-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD"

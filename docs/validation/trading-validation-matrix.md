@@ -6,6 +6,31 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER
+
+- TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER
+- GH-890-VERIFY-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER
+- V0100-013-DASHBOARD-PRODUCTION-READINESS-CENTER
+- V0100-013-READINESS-OVERVIEW
+- V0100-013-ENVIRONMENT-PROFILE
+- V0100-013-SECRET-READINESS
+- V0100-013-ENDPOINT-POLICY
+- V0100-013-RISK-CAPITAL-LIMITS
+- V0100-013-KILL-SWITCH-NO-TRADE
+- V0100-013-COMMAND-SURFACE-DISABLED
+- V0100-013-SHADOW-DRY-RUN-PARITY
+- V0100-013-APPROVAL-WORKFLOW
+- V0100-013-READINESS-BUNDLE
+- V0100-013-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+- V0100-013-NO-SUBMIT-CANCEL-REPLACE
+- V0100-013-NO-PRODUCTION-CUTOVER
+- GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation
+- `bash checks/verify-v0.10.0-dashboard-production-readiness-center.sh`
+- `swift test --filter AppTests/testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands`
+- `swift test --filter TargetGraphTests/testGH890DashboardProductionReadinessCenterIsAnchoredInV0100Guards`
+- fixed Dashboard readiness center surface: `ReleaseV0100DashboardProductionReadinessCenterViewModel`、`production-readiness-bundle.json`、`incident_rollback_readiness.json`、readiness overview、environment profile、secret readiness、endpoint policy、risk / capital limits、kill switch / no-trade、command surface disabled、shadow dry-run parity、approval workflow 和 readiness bundle。
+- Boundary: Dashboard center 只读展示 production readiness evidence，不读取 production secret，不连接 production endpoint / broker，不显示 trading button / order form / live command，不提交 testnet 或 production order，不生成 submit / cancel / replace command，不授权 production cutover。
+
 ## TVM-RELEASE-V0100-INCIDENT-ROLLBACK-RUNBOOK
 
 - TVM-RELEASE-V0100-INCIDENT-ROLLBACK-RUNBOOK
