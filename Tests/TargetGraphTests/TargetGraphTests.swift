@@ -10104,6 +10104,214 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH889IncidentRollbackReadinessRunbookKeepsProductionCutoverDisabled() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let runbookContract = try ReleaseV0100IncidentRollbackReadinessRunbook.deterministicFixture()
+
+        XCTAssertTrue(runbookContract.runbookHeld)
+        XCTAssertTrue(runbookContract.evidenceArtifact.artifactHeld)
+        XCTAssertTrue(runbookContract.incidentClassifications.allSatisfy(\.classificationHeld))
+        XCTAssertTrue(runbookContract.runbookSections.allSatisfy(\.sectionHeld))
+        XCTAssertTrue(runbookContract.productionCapabilitiesDisabled)
+        XCTAssertEqual(runbookContract.issueID.rawValue, "GH-889")
+        XCTAssertEqual(runbookContract.upstreamIssueID.rawValue, "GH-888")
+        XCTAssertEqual(runbookContract.downstreamIssueID.rawValue, "GH-890")
+        XCTAssertEqual(runbookContract.canonicalQueueRange, "GH-878..GH-891")
+        XCTAssertEqual(runbookContract.runbookFile, "docs/operators/release-v0.10.0-production-readiness-runbook.md")
+        XCTAssertEqual(runbookContract.evidenceArtifact.fileName, "incident_rollback_readiness.json")
+        XCTAssertTrue(runbookContract.runbookChecksum.hasPrefix("sha256:"))
+        XCTAssertTrue(runbookContract.evidenceArtifact.evidenceChecksum.hasPrefix("sha256:"))
+        XCTAssertEqual(runbookContract.incidentClassifications.map(\.classification), ReleaseV0100IncidentRollbackClassification.allCases)
+        XCTAssertEqual(runbookContract.runbookSections.map(\.section), ReleaseV0100IncidentRollbackReadinessSection.allCases)
+        XCTAssertTrue(runbookContract.previousCutoverApprovalWorkflowHeld)
+        XCTAssertTrue(runbookContract.incidentClassificationCovered)
+        XCTAssertTrue(runbookContract.stopProcedureCovered)
+        XCTAssertTrue(runbookContract.rollbackProcedureCovered)
+        XCTAssertTrue(runbookContract.operatorChainCovered)
+        XCTAssertTrue(runbookContract.evidenceExportCovered)
+        XCTAssertTrue(runbookContract.postIncidentAuditCovered)
+        XCTAssertTrue(runbookContract.killSwitchChecklistCovered)
+        XCTAssertTrue(runbookContract.noTradeChecklistCovered)
+        XCTAssertTrue(runbookContract.productionCutoverBlocked)
+        XCTAssertFalse(runbookContract.productionCutoverAuthorized)
+        XCTAssertFalse(runbookContract.orderSubmissionEnabled)
+        XCTAssertFalse(runbookContract.productionTradingEnabled)
+        XCTAssertFalse(runbookContract.productionEndpointConnectionEnabled)
+        XCTAssertFalse(runbookContract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(runbookContract.productionSecretValueRead)
+        XCTAssertFalse(runbookContract.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(runbookContract.productionOrderSubmissionEnabled)
+        XCTAssertFalse(runbookContract.orderPayloadCreated)
+        XCTAssertFalse(runbookContract.brokerCommandCreated)
+        XCTAssertFalse(runbookContract.productionOMSRuntimeEnabled)
+        XCTAssertFalse(runbookContract.tradingButtonVisible)
+        XCTAssertFalse(runbookContract.orderFormVisible)
+        XCTAssertFalse(runbookContract.liveCommandEnabled)
+        XCTAssertFalse(runbookContract.incidentRunbookConvertedToTradingPermission)
+        XCTAssertFalse(runbookContract.rollbackBypassEnabled)
+
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessArtifact(fileName: "wrong.json"))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessArtifact(evidenceChecksum: "sha256:bad"))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessArtifact(evidenceExists: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessArtifact(noSecretValue: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessArtifact(noOrderPayload: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessArtifact(containsBrokerOrAccountResponse: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessArtifact(producedByEndpointConnection: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessArtifact(containsOrderPayload: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackClassificationEvidence(classification: .monitorAnomaly, checksum: "sha256:bad"))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackClassificationEvidence(classification: .monitorAnomaly, documented: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackClassificationEvidence(classification: .monitorAnomaly, stopProcedureRequired: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackClassificationEvidence(classification: .monitorAnomaly, rollbackReviewRequired: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackClassificationEvidence(classification: .monitorAnomaly, productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackClassificationEvidence(classification: .monitorAnomaly, orderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackClassificationEvidence(classification: .monitorAnomaly, productionTradingEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackSectionEvidence(section: .stopProcedure, checksum: "sha256:bad"))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackSectionEvidence(section: .stopProcedure, documented: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackSectionEvidence(section: .stopProcedure, operatorManualOnly: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackSectionEvidence(section: .stopProcedure, checklistRequired: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackSectionEvidence(section: .stopProcedure, productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackSectionEvidence(section: .stopProcedure, orderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackSectionEvidence(section: .stopProcedure, productionTradingEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(previousCutoverApprovalWorkflowHeld: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(incidentClassificationCovered: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(stopProcedureCovered: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(rollbackProcedureCovered: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(operatorChainCovered: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(evidenceExportCovered: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(postIncidentAuditCovered: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(killSwitchChecklistCovered: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(noTradeChecklistCovered: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(productionCutoverBlocked: false))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(orderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(productionTradingEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(productionBrokerConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(testnetOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(productionOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(orderPayloadCreated: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(brokerCommandCreated: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(productionOMSRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(tradingButtonVisible: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(orderFormVisible: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(liveCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(incidentRunbookConvertedToTradingPermission: true))
+        XCTAssertThrowsError(try ReleaseV0100IncidentRollbackReadinessRunbook(rollbackBypassEnabled: true))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100IncidentRollbackReadinessRunbook.swift")
+        let runbook = try read("docs/operators/release-v0.10.0-production-readiness-runbook.md")
+        let verifier = try read("checks/verify-v0.10.0-incident-rollback-runbook.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "V0100-012-INCIDENT-ROLLBACK-READINESS-RUNBOOK",
+            "V0100-012-PRODUCTION-READINESS-RUNBOOK-MD",
+            "V0100-012-INCIDENT-ROLLBACK-READINESS-JSON",
+            "V0100-012-INCIDENT-CLASSIFICATION",
+            "V0100-012-STOP-PROCEDURE",
+            "V0100-012-ROLLBACK-PROCEDURE",
+            "V0100-012-OPERATOR-CHAIN",
+            "V0100-012-EVIDENCE-EXPORT",
+            "V0100-012-POST-INCIDENT-AUDIT",
+            "V0100-012-KILL-SWITCH-CHECKLIST",
+            "V0100-012-NO-TRADE-CHECKLIST",
+            "V0100-012-PRODUCTION-CAPABILITIES-DISABLED",
+            "GH-889-VERIFY-V0100-INCIDENT-ROLLBACK-RUNBOOK",
+            "TVM-RELEASE-V0100-INCIDENT-ROLLBACK-RUNBOOK"
+        ]
+        XCTAssertEqual(ReleaseV0100IncidentRollbackReadinessRunbook.requiredValidationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(runbook.contains(anchor), "\(anchor) must stay in runbook")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        for classification in [
+            "monitor anomaly",
+            "credential exposure suspected",
+            "endpoint policy drift",
+            "risk limit breach",
+            "command surface regression",
+            "readiness evidence mismatch"
+        ] {
+            XCTAssertTrue(source.contains(classification), "\(classification) must stay in Swift classification")
+            XCTAssertTrue(runbook.contains(classification), "\(classification) must stay in runbook")
+        }
+
+        for exactString in [
+            "docs/operators/release-v0.10.0-production-readiness-runbook.md",
+            "incident_rollback_readiness.json",
+            "runbookChecksum=sha256:",
+            "evidenceChecksum=sha256:",
+            "incidentClassificationCovered=true",
+            "stopProcedureCovered=true",
+            "rollbackProcedureCovered=true",
+            "operatorChainCovered=true",
+            "evidenceExportCovered=true",
+            "postIncidentAuditCovered=true",
+            "killSwitchChecklistCovered=true",
+            "noTradeChecklistCovered=true",
+            "production_cutover_blocked=true",
+            "productionCutoverBlocked=true",
+            "productionCutoverAuthorized=false",
+            "orderSubmissionEnabled=false",
+            "productionTradingEnabled=false",
+            "no_secret_value=true",
+            "noSecretValue=true",
+            "no_order_payload=true",
+            "noOrderPayload=true"
+        ] {
+            XCTAssertTrue(runbook.contains(exactString), "\(exactString) must stay fixed in #889 runbook")
+        }
+
+        XCTAssertTrue(verifier.contains("MTPRO release v0.10.0 incident rollback runbook verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-incident-rollback-runbook.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-incident-rollback-runbook.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.10.0 incident / rollback readiness runbook anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-889 Release v0.10.0 Incident / Rollback Readiness Runbook Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-INCIDENT-ROLLBACK-RUNBOOK"))
+        XCTAssertTrue(latest.contains("`#889` 定义 IncidentRollbackReadinessRunbook reference-only runbook"))
+
+        for forbiddenAuthorization in [
+            "productionCutoverAuthorized=true",
+            "orderSubmissionEnabled=true",
+            "productionTradingEnabled=true",
+            "production_cutover_blocked=false",
+            "productionCutoverBlocked=false",
+            "testnetOrderSubmissionEnabled=true",
+            "productionOrderSubmissionEnabled=true",
+            "productionEndpointConnectionEnabled=true",
+            "productionBrokerConnectionEnabled=true",
+            "productionSecretValueRead=true",
+            "orderPayloadCreated=true",
+            "brokerCommandCreated=true",
+            "productionOMSRuntimeEnabled=true",
+            "tradingButtonVisible=true",
+            "orderFormVisible=true",
+            "liveCommandEnabled=true",
+            "incidentRunbookConvertedToTradingPermission=true",
+            "rollbackBypassEnabled=true",
+            "containsBrokerOrAccountResponse=true",
+            "producedByEndpointConnection=true",
+            "containsOrderPayload=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(runbook.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(

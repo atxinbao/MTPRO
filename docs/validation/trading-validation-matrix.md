@@ -6,6 +6,28 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-INCIDENT-ROLLBACK-RUNBOOK
+
+- TVM-RELEASE-V0100-INCIDENT-ROLLBACK-RUNBOOK
+- GH-889-VERIFY-V0100-INCIDENT-ROLLBACK-RUNBOOK
+- V0100-012-INCIDENT-ROLLBACK-READINESS-RUNBOOK
+- V0100-012-PRODUCTION-READINESS-RUNBOOK-MD
+- V0100-012-INCIDENT-ROLLBACK-READINESS-JSON
+- V0100-012-INCIDENT-CLASSIFICATION
+- V0100-012-STOP-PROCEDURE
+- V0100-012-ROLLBACK-PROCEDURE
+- V0100-012-OPERATOR-CHAIN
+- V0100-012-EVIDENCE-EXPORT
+- V0100-012-POST-INCIDENT-AUDIT
+- V0100-012-KILL-SWITCH-CHECKLIST
+- V0100-012-NO-TRADE-CHECKLIST
+- V0100-012-PRODUCTION-CAPABILITIES-DISABLED
+- GH-889 Release v0.10.0 Incident / Rollback Readiness Runbook Validation
+- `bash checks/verify-v0.10.0-incident-rollback-runbook.sh`
+- `swift test --filter TargetGraphTests/testGH889IncidentRollbackReadinessRunbookKeepsProductionCutoverDisabled`
+- fixed incident / rollback schema: `docs/operators/release-v0.10.0-production-readiness-runbook.md`、`incident_rollback_readiness.json`、incident classification、stop procedure、rollback procedure、operator chain、evidence export、post-incident audit、kill switch checklist、no-trade checklist、`productionCutoverAuthorized=false`、`orderSubmissionEnabled=false`、`productionTradingEnabled=false`、`production_cutover_blocked=true`。
+- Boundary: incident / rollback readiness evidence 只记录人工操作路径，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不生成 order payload，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## TVM-RELEASE-V0100-CUTOVER-APPROVAL-WORKFLOW
 
 - TVM-RELEASE-V0100-CUTOVER-APPROVAL-WORKFLOW
