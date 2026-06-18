@@ -54,6 +54,7 @@ bash checks/verify-v0.10.0-production-readiness-bundle.sh
 bash checks/verify-v0.10.0-cutover-approval-workflow.sh
 bash checks/verify-v0.10.0-incident-rollback-runbook.sh
 bash checks/verify-v0.10.0-dashboard-production-readiness-center.sh
+bash checks/verify-v0.10.1-dashboard-macos-v0100-guards.sh
 
 AUDIT="docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md"
 NOTES="docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md"
@@ -118,7 +119,8 @@ for script in \
   "bash checks/verify-v0.10.0-production-readiness-bundle.sh" \
   "bash checks/verify-v0.10.0-cutover-approval-workflow.sh" \
   "bash checks/verify-v0.10.0-incident-rollback-runbook.sh" \
-  "bash checks/verify-v0.10.0-dashboard-production-readiness-center.sh"; do
+  "bash checks/verify-v0.10.0-dashboard-production-readiness-center.sh" \
+  "bash checks/verify-v0.10.1-dashboard-macos-v0100-guards.sh"; do
   require_file_contains "checks/run.sh" "$script"
   require_file_contains "checks/verify-v0.10.0.sh" "$script"
 done
