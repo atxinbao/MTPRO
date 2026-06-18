@@ -17158,3 +17158,25 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `bash checks/automation-readiness.sh`: pass.
   - `bash checks/verify-v0.10.0.sh`: pass.
   - `bash checks/run.sh`: pass, 601 tests / 0 failures.
+
+## 2026-06-18 - GH-918 v0.11.0 Shadow Dry-run Parity Runner
+
+- Executor: Codex.
+- Scope:
+  - Updated `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`.
+  - Added `ProductionReadinessShadowDryRunParityRunnerAnchors`, local evidence input kinds, evidence summaries, `ProductionReadinessShadowDryRunParityArtifact`, run result bundling and `writeShadowDryRunParityArtifact(...)`.
+  - The runner consumes local run evidence descriptors for `events.jsonl`, strategy intents, risk decisions, OMS dry-run events, portfolio projection and reconciliation timeline, then writes `shadow_dry_run_parity.json` through the artifact store, manifest and bundle validation pipeline.
+  - Missing evidence now returns blocked state; marker/checksum/staleness/incomplete evidence returns invalid state; valid evidence records source checksums and keeps `derivedFromLocalRunEvidence=true` with `referenceOnlyStageConstantsUsed=false`.
+  - Added `GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER` anchors to the v0.11.0 contract, automation readiness, validation plan, trading validation matrix, latest summary, verifier and TargetGraph focused test.
+- Boundary:
+  - Did not create a `v0.11.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement Dashboard real artifact binding, CLI runtime, approval transition, production OMS, trading button, order form or live command path.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence`: pass.
+  - `bash checks/verify-v0.11.0.sh`: pass.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/run.sh`: pass, 602 tests / 0 failures.

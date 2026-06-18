@@ -66,6 +66,22 @@ public enum ProductionReadinessBundleValidationAnchors {
     ]
 }
 
+/// ProductionReadinessShadowDryRunParityRunnerAnchors 固定 GH-918 的本地 shadow dry-run parity runner 验证锚点。
+///
+/// GH-918 只把 local run evidence 转换成本地 `shadow_dry_run_parity.json` 与 manifest；
+/// 它不读取 production secret、不连接 endpoint / broker、不提交订单，也不授权 production cutover。
+public enum ProductionReadinessShadowDryRunParityRunnerAnchors {
+    public static let validationAnchors = [
+        "GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER",
+        "TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER",
+        "V0110-006-SHADOW-DRY-RUN-PARITY-RUNNER",
+        "V0110-006-LOCAL-RUN-EVIDENCE",
+        "V0110-006-SHADOW-PARITY-ARTIFACT",
+        "V0110-006-MISSING-INCOMPLETE-BLOCKED",
+        "V0110-006-NO-PRODUCTION-ENDPOINT-SECRET-ORDER"
+    ]
+}
+
 /// ProductionReadinessArtifactStoreError 描述 GH-914 本地 readiness artifact store 的失败类型。
 ///
 /// 这些错误只覆盖本地 evidence root、relative path、JSON payload 和 forbidden capability
@@ -602,6 +618,270 @@ public struct ProductionReadinessBundleValidationResult: Codable, Equatable, Sen
     }
 }
 
+/// ProductionReadinessShadowDryRunParityEvidenceKind 固定 GH-918 runner 必须读取的本地 run evidence 类型。
+///
+/// 这些类型只代表本地 run evidence artifact 名称，不代表 broker payload、account endpoint response
+/// 或真实订单生命周期。
+public enum ProductionReadinessShadowDryRunParityEvidenceKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case eventsJSONL = "events.jsonl"
+    case strategyIntents = "strategy_intents.json"
+    case riskDecisions = "risk_decisions.json"
+    case omsDryRunEvents = "oms_dry_run_events.json"
+    case portfolioProjection = "portfolio_projection.json"
+    case reconciliationTimeline = "reconciliation_timeline.json"
+
+    public var artifactIDComponent: String {
+        rawValue
+            .replacingOccurrences(of: ".jsonl", with: "")
+            .replacingOccurrences(of: ".json", with: "")
+            .replacingOccurrences(of: "_", with: "-")
+    }
+}
+
+/// ProductionReadinessShadowDryRunParityEvidenceInput 绑定 GH-918 runner 的单个本地 evidence artifact。
+///
+/// Input 必须是本地 JSON evidence descriptor，并携带 required marker。Runner 只通过 artifact store
+/// inspect/read 本地文件，不访问网络、不读取 secret、不创建 order payload。
+public struct ProductionReadinessShadowDryRunParityEvidenceInput: Equatable, Sendable {
+    public let kind: ProductionReadinessShadowDryRunParityEvidenceKind
+    public let descriptor: ProductionReadinessArtifactDescriptor
+    public let requiredMarker: String
+
+    public var inputHeld: Bool {
+        descriptor.descriptorHeld
+            && descriptor.artifactType == .jsonEvidence
+            && descriptor.required
+            && requiredMarker.isEmpty == false
+    }
+
+    public init(
+        kind: ProductionReadinessShadowDryRunParityEvidenceKind,
+        descriptor: ProductionReadinessArtifactDescriptor,
+        requiredMarker: String? = nil
+    ) throws {
+        self.kind = kind
+        self.descriptor = descriptor
+        self.requiredMarker = requiredMarker ?? kind.rawValue
+
+        guard inputHeld else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("shadow parity evidence input invalid")
+        }
+    }
+
+    /// defaultInputs 为测试和本地 runner 提供固定 evidence 文件布局。
+    ///
+    /// 文件名可包含 `events.jsonl` 语义，但内容仍必须是 JSON evidence，才能进入 v0.11.0
+    /// canonical JSON SHA256 / manifest pipeline。
+    public static func defaultInputs(
+        runID: Identifier,
+        staleAfterSeconds: TimeInterval? = nil
+    ) throws -> [ProductionReadinessShadowDryRunParityEvidenceInput] {
+        try ProductionReadinessShadowDryRunParityEvidenceKind.allCases.map { kind in
+            try ProductionReadinessShadowDryRunParityEvidenceInput(
+                kind: kind,
+                descriptor: ProductionReadinessArtifactDescriptor(
+                    artifactID: Identifier.constant("gh-918-\(runID.rawValue)-\(kind.artifactIDComponent)"),
+                    relativePath: "runs/\(runID.rawValue)/\(kind.rawValue)",
+                    artifactType: .jsonEvidence,
+                    staleAfterSeconds: staleAfterSeconds
+                )
+            )
+        }
+    }
+}
+
+/// ProductionReadinessShadowDryRunParityEvidenceSummary 是 GH-918 输出 artifact 中的 sourceEvidence row。
+///
+/// Summary 必须来自 artifact store 读到的 valid JSON evidence，并绑定真实 canonical SHA256 checksum。
+public struct ProductionReadinessShadowDryRunParityEvidenceSummary: Codable, Equatable, Sendable {
+    public let kind: ProductionReadinessShadowDryRunParityEvidenceKind
+    public let artifactID: Identifier
+    public let relativePath: String
+    public let byteCount: Int
+    public let checksum: String
+    public let requiredMarker: String
+    public let validationState: ProductionReadinessArtifactState
+
+    public var summaryHeld: Bool {
+        artifactID.rawValue.isEmpty == false
+            && ProductionReadinessArtifactDescriptor.isSafeRelativePath(relativePath)
+            && byteCount > 0
+            && ProductionReadinessArtifactStore.isValidSHA256Checksum(checksum)
+            && requiredMarker.isEmpty == false
+            && validationState == .valid
+    }
+
+    public init(
+        kind: ProductionReadinessShadowDryRunParityEvidenceKind,
+        artifactID: Identifier,
+        relativePath: String,
+        byteCount: Int,
+        checksum: String,
+        requiredMarker: String,
+        validationState: ProductionReadinessArtifactState = .valid
+    ) throws {
+        self.kind = kind
+        self.artifactID = artifactID
+        self.relativePath = relativePath
+        self.byteCount = byteCount
+        self.checksum = checksum
+        self.requiredMarker = requiredMarker
+        self.validationState = validationState
+
+        guard summaryHeld else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("shadow parity source evidence summary invalid")
+        }
+    }
+}
+
+/// ProductionReadinessShadowDryRunParityArtifact 是 GH-918 生成的 `shadow_dry_run_parity.json` schema。
+///
+/// Artifact 必须由 local run evidence checksum 推导；`valid` 只表示本地 parity evidence 完整，
+/// 不授权 production cutover，不读取 production secret，不连接 endpoint / broker，也不提交订单。
+public struct ProductionReadinessShadowDryRunParityArtifact: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let releaseVersion: String
+    public let runID: Identifier
+    public let policyVersion: String
+    public let generatedAt: Date
+    public let state: ProductionReadinessBundleValidationState
+    public let stateReason: String
+    public let requiredEvidenceKinds: [ProductionReadinessShadowDryRunParityEvidenceKind]
+    public let sourceEvidence: [ProductionReadinessShadowDryRunParityEvidenceSummary]
+    public let missingEvidenceKinds: [ProductionReadinessShadowDryRunParityEvidenceKind]
+    public let invalidEvidenceKinds: [ProductionReadinessShadowDryRunParityEvidenceKind]
+    public let derivedFromLocalRunEvidence: Bool
+    public let referenceOnlyStageConstantsUsed: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var artifactHeld: Bool {
+        issueID.rawValue == "GH-918"
+            && releaseVersion == "v0.11.0"
+            && runID.rawValue.isEmpty == false
+            && policyVersion.isEmpty == false
+            && stateReason.isEmpty == false
+            && Set(requiredEvidenceKinds) == Set(ProductionReadinessShadowDryRunParityEvidenceKind.allCases)
+            && sourceEvidence.allSatisfy(\.summaryHeld)
+            && derivedFromLocalRunEvidence
+            && referenceOnlyStageConstantsUsed == false
+            && productionCapabilitiesDisabled
+            && stateHeld
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+    }
+
+    private var stateHeld: Bool {
+        switch state {
+        case .valid:
+            sourceEvidence.count == ProductionReadinessShadowDryRunParityEvidenceKind.allCases.count
+                && missingEvidenceKinds.isEmpty
+                && invalidEvidenceKinds.isEmpty
+        case .blocked:
+            missingEvidenceKinds.isEmpty == false
+        case .invalid:
+            invalidEvidenceKinds.isEmpty == false
+        case .notEvaluated, .stale, .missing, .checksumMismatch:
+            false
+        }
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-918"),
+        releaseVersion: String = "v0.11.0",
+        runID: Identifier,
+        policyVersion: String,
+        generatedAt: Date,
+        state: ProductionReadinessBundleValidationState,
+        stateReason: String,
+        requiredEvidenceKinds: [ProductionReadinessShadowDryRunParityEvidenceKind] = ProductionReadinessShadowDryRunParityEvidenceKind.allCases,
+        sourceEvidence: [ProductionReadinessShadowDryRunParityEvidenceSummary],
+        missingEvidenceKinds: [ProductionReadinessShadowDryRunParityEvidenceKind] = [],
+        invalidEvidenceKinds: [ProductionReadinessShadowDryRunParityEvidenceKind] = [],
+        derivedFromLocalRunEvidence: Bool = true,
+        referenceOnlyStageConstantsUsed: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.releaseVersion = releaseVersion
+        self.runID = runID
+        self.policyVersion = policyVersion
+        self.generatedAt = generatedAt
+        self.state = state
+        self.stateReason = stateReason
+        self.requiredEvidenceKinds = requiredEvidenceKinds
+        self.sourceEvidence = sourceEvidence.sorted { $0.kind.rawValue < $1.kind.rawValue }
+        self.missingEvidenceKinds = missingEvidenceKinds.sorted { $0.rawValue < $1.rawValue }
+        self.invalidEvidenceKinds = invalidEvidenceKinds.sorted { $0.rawValue < $1.rawValue }
+        self.derivedFromLocalRunEvidence = derivedFromLocalRunEvidence
+        self.referenceOnlyStageConstantsUsed = referenceOnlyStageConstantsUsed
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard artifactHeld else {
+            throw ProductionReadinessArtifactStoreError.forbiddenCapability("shadowDryRunParityArtifactHeld=false")
+        }
+    }
+}
+
+/// ProductionReadinessShadowDryRunParityRunResult 汇总 GH-918 runner 写入 artifact、manifest 与 bundle validation 的结果。
+public struct ProductionReadinessShadowDryRunParityRunResult: Equatable, Sendable {
+    public let artifact: ProductionReadinessShadowDryRunParityArtifact
+    public let artifactRecord: ProductionReadinessArtifactRecord
+    public let manifest: ProductionReadinessManifestReadResult
+    public let bundleValidation: ProductionReadinessBundleValidationResult
+
+    public var resultHeld: Bool {
+        artifact.artifactHeld
+            && artifactRecord.recordHeld
+            && artifactRecord.state == .valid
+            && artifactRecord.descriptor.relativePath.hasSuffix("shadow_dry_run_parity.json")
+            && manifest.manifestReadHeld
+            && bundleValidation.bundleValidHeld
+            && artifact.productionCapabilitiesDisabled
+    }
+
+    public init(
+        artifact: ProductionReadinessShadowDryRunParityArtifact,
+        artifactRecord: ProductionReadinessArtifactRecord,
+        manifest: ProductionReadinessManifestReadResult,
+        bundleValidation: ProductionReadinessBundleValidationResult
+    ) throws {
+        self.artifact = artifact
+        self.artifactRecord = artifactRecord
+        self.manifest = manifest
+        self.bundleValidation = bundleValidation
+
+        guard resultHeld else {
+            throw ProductionReadinessArtifactStoreError.forbiddenCapability("shadowDryRunParityRunResultHeld=false")
+        }
+    }
+}
+
 /// ProductionReadinessArtifactStoreSnapshot 是 GH-914 多 artifact inspect 的只读快照。
 public struct ProductionReadinessArtifactStoreSnapshot: Codable, Equatable, Sendable {
     public let issueID: Identifier
@@ -1015,6 +1295,146 @@ public struct ProductionReadinessArtifactStore {
             requiredArtifactIDs: requiredArtifactIDs,
             validatedAt: evaluatedAt,
             stateReason: "bundle validation not evaluated"
+        )
+    }
+
+    /// writeShadowDryRunParityArtifact 执行 GH-918 的本地 shadow dry-run parity runner。
+    ///
+    /// Runner 只读取调用方传入的 local run evidence descriptors，并把实际 checksum 写入
+    /// `shadow_dry_run_parity.json`。缺失 evidence 输出 `blocked`，invalid / stale / marker
+    /// 不完整输出 `invalid`；任一状态都不触发 endpoint、secret、broker 或 order command。
+    public func writeShadowDryRunParityArtifact(
+        runID: Identifier,
+        policyVersion: String,
+        evidenceInputs: [ProductionReadinessShadowDryRunParityEvidenceInput],
+        artifactDescriptor: ProductionReadinessArtifactDescriptor,
+        manifestDescriptor: ProductionReadinessArtifactDescriptor,
+        generatedAt: Date,
+        now: Date
+    ) throws -> ProductionReadinessShadowDryRunParityRunResult {
+        guard runID.rawValue.isEmpty == false else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("empty runID")
+        }
+        guard policyVersion.isEmpty == false else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("empty policyVersion")
+        }
+        guard artifactDescriptor.artifactType == .jsonEvidence,
+              artifactDescriptor.relativePath.hasSuffix("shadow_dry_run_parity.json") else {
+            throw ProductionReadinessArtifactStoreError.unsafeRelativePath(artifactDescriptor.relativePath)
+        }
+        guard manifestDescriptor.artifactType == .jsonEvidence else {
+            throw ProductionReadinessArtifactStoreError.unsafeRelativePath(manifestDescriptor.relativePath)
+        }
+
+        var inputsByKind: [ProductionReadinessShadowDryRunParityEvidenceKind: ProductionReadinessShadowDryRunParityEvidenceInput] = [:]
+        var duplicateInputKinds: [ProductionReadinessShadowDryRunParityEvidenceKind] = []
+        for input in evidenceInputs {
+            if inputsByKind[input.kind] == nil {
+                inputsByKind[input.kind] = input
+            } else {
+                duplicateInputKinds.append(input.kind)
+            }
+        }
+        let missingInputKinds = ProductionReadinessShadowDryRunParityEvidenceKind.allCases
+            .filter { inputsByKind[$0] == nil }
+        var missingEvidenceKinds = missingInputKinds
+        var invalidEvidenceKinds = duplicateInputKinds
+        var sourceEvidence: [ProductionReadinessShadowDryRunParityEvidenceSummary] = []
+
+        for kind in ProductionReadinessShadowDryRunParityEvidenceKind.allCases {
+            guard let input = inputsByKind[kind] else {
+                continue
+            }
+            guard input.inputHeld else {
+                invalidEvidenceKinds.append(kind)
+                continue
+            }
+            let record = try inspectArtifact(input.descriptor, now: now)
+            switch record.state {
+            case .missing:
+                missingEvidenceKinds.append(kind)
+                continue
+            case .invalid, .stale:
+                invalidEvidenceKinds.append(kind)
+                continue
+            case .valid:
+                break
+            }
+
+            let read = try readArtifact(descriptor: input.descriptor, now: now)
+            let payloadText = String(decoding: read.data, as: UTF8.self)
+            guard payloadText.contains(input.requiredMarker) else {
+                invalidEvidenceKinds.append(kind)
+                continue
+            }
+            let checksum: String
+            do {
+                checksum = try Self.canonicalJSONSHA256Checksum(for: read.data)
+            } catch {
+                invalidEvidenceKinds.append(kind)
+                continue
+            }
+            sourceEvidence.append(
+                try ProductionReadinessShadowDryRunParityEvidenceSummary(
+                    kind: kind,
+                    artifactID: input.descriptor.artifactID,
+                    relativePath: input.descriptor.relativePath,
+                    byteCount: read.data.count,
+                    checksum: checksum,
+                    requiredMarker: input.requiredMarker,
+                    validationState: record.state
+                )
+            )
+        }
+
+        let state: ProductionReadinessBundleValidationState
+        let stateReason: String
+        if missingEvidenceKinds.isEmpty == false {
+            state = .blocked
+            stateReason = "missing local run evidence"
+        } else if invalidEvidenceKinds.isEmpty == false {
+            state = .invalid
+            stateReason = "invalid or incomplete local run evidence"
+        } else {
+            state = .valid
+            stateReason = "shadow dry-run parity derived from local run evidence"
+        }
+
+        let artifact = try ProductionReadinessShadowDryRunParityArtifact(
+            runID: runID,
+            policyVersion: policyVersion,
+            generatedAt: generatedAt,
+            state: state,
+            stateReason: stateReason,
+            sourceEvidence: sourceEvidence,
+            missingEvidenceKinds: missingEvidenceKinds,
+            invalidEvidenceKinds: invalidEvidenceKinds
+        )
+        let artifactData = try encodeShadowDryRunParityArtifact(artifact)
+        let artifactRecord = try writeArtifact(
+            descriptor: artifactDescriptor,
+            data: artifactData,
+            modifiedAt: generatedAt
+        )
+        let manifest = try writeReadinessManifest(
+            manifestID: manifestDescriptor.artifactID,
+            manifestRelativePath: manifestDescriptor.relativePath,
+            descriptors: [artifactDescriptor],
+            policyVersion: policyVersion,
+            generatedAt: generatedAt.addingTimeInterval(1),
+            now: generatedAt
+        )
+        let bundleValidation = try validateReadinessBundle(
+            manifestDescriptor: manifestDescriptor,
+            requiredPolicyVersion: policyVersion,
+            requiredArtifactIDs: [artifactDescriptor.artifactID],
+            now: now
+        )
+        return try ProductionReadinessShadowDryRunParityRunResult(
+            artifact: artifact,
+            artifactRecord: artifactRecord,
+            manifest: manifest,
+            bundleValidation: bundleValidation
         )
     }
 
@@ -1432,6 +1852,14 @@ public struct ProductionReadinessArtifactStore {
             return try Self.canonicalJSONData(for: manifestEncoder().encode(manifest))
         } catch {
             throw ProductionReadinessArtifactStoreError.invalidManifest("encoding failed")
+        }
+    }
+
+    private func encodeShadowDryRunParityArtifact(_ artifact: ProductionReadinessShadowDryRunParityArtifact) throws -> Data {
+        do {
+            return try Self.canonicalJSONData(for: manifestEncoder().encode(artifact))
+        } catch {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("shadow parity artifact encoding failed")
         }
     }
 

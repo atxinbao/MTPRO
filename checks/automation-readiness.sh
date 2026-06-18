@@ -545,6 +545,30 @@ for v0110_bundle_anchor in \
   require_contains "docs/validation/validation-plan.md" "$v0110_bundle_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_bundle_anchor"
 done
+require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 shadow dry-run parity runner anchor"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "ProductionReadinessShadowDryRunParityRunnerAnchors"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "writeShadowDryRunParityArtifact("
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Shadow Dry-run Parity Runner Snapshot"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER"
+require_contains "docs/validation/validation-plan.md" "GH-918 Release v0.11.0 Shadow Dry-run Parity Runner Validation"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence"
+for v0110_shadow_parity_anchor in \
+  "GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER" \
+  "TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER" \
+  "V0110-006-SHADOW-DRY-RUN-PARITY-RUNNER" \
+  "V0110-006-LOCAL-RUN-EVIDENCE" \
+  "V0110-006-SHADOW-PARITY-ARTIFACT" \
+  "V0110-006-MISSING-INCOMPLETE-BLOCKED" \
+  "V0110-006-NO-PRODUCTION-ENDPOINT-SECRET-ORDER"; do
+  require_contains "checks/verify-v0.11.0.sh" "$v0110_shadow_parity_anchor"
+  require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_shadow_parity_anchor"
+  require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_shadow_parity_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0110_shadow_parity_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0110_shadow_parity_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_shadow_parity_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0110_shadow_parity_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_shadow_parity_anchor"
+done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands"

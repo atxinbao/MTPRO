@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-918 Release v0.11.0 Shadow Dry-run Parity Runner Validation
+
+- `GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER`
+- `TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER`
+- `V0110-006-SHADOW-DRY-RUN-PARITY-RUNNER`
+- `V0110-006-LOCAL-RUN-EVIDENCE`
+- `V0110-006-SHADOW-PARITY-ARTIFACT`
+- `V0110-006-MISSING-INCOMPLETE-BLOCKED`
+- `V0110-006-NO-PRODUCTION-ENDPOINT-SECRET-ORDER`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`。
+- Boundary: GH-918 只从本地 run evidence 生成 `shadow_dry_run_parity.json` 与 manifest，并记录 source evidence checksum；missing local run evidence 输出 `blocked`，invalid / stale / marker 不完整输出 `invalid`；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-917 Release v0.11.0 Readiness Bundle Validation
 
 - `GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION`

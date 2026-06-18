@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER
+
+- TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER
+- GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER
+- V0110-006-SHADOW-DRY-RUN-PARITY-RUNNER
+- V0110-006-LOCAL-RUN-EVIDENCE
+- V0110-006-SHADOW-PARITY-ARTIFACT
+- V0110-006-MISSING-INCOMPLETE-BLOCKED
+- V0110-006-NO-PRODUCTION-ENDPOINT-SECRET-ORDER
+- GH-918 Release v0.11.0 Shadow Dry-run Parity Runner Validation
+- `bash checks/verify-v0.11.0.sh`
+- `swift test --filter TargetGraphTests/testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence`
+- fixed shadow parity runner evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`、`checks/verify-v0.11.0.sh` 和 TargetGraph focused test。
+- Boundary: v0.11.0 shadow dry-run parity runner 只读取本地 run evidence，生成 `shadow_dry_run_parity.json` 和 manifest；missing evidence 输出 `blocked`，incomplete evidence 输出 `invalid`；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION
 
 - TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION

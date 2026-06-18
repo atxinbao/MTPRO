@@ -96,6 +96,46 @@ Bundle validation 必须重新校验 manifest schema、artifact existence、cano
 
 GH-917 不实现 Dashboard real artifact binding、CLI build / status / validate / export / approval-status runtime、approval transition、shadow parity runner、production OMS、trading button、order form 或 live command path。
 
+## V0110-006-SHADOW-DRY-RUN-PARITY-RUNNER
+
+`V0110-006-SHADOW-DRY-RUN-PARITY-RUNNER`
+
+`GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER`
+
+`TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER`
+
+GH-918 在 GH-917 bundle validation 之后增加本地 shadow dry-run parity runner。授权范围只覆盖本地 run evidence 到 `shadow_dry_run_parity.json` 的 artifact / manifest pipeline：
+
+- `V0110-006-LOCAL-RUN-EVIDENCE`
+- `V0110-006-SHADOW-PARITY-ARTIFACT`
+- `V0110-006-MISSING-INCOMPLETE-BLOCKED`
+- `V0110-006-NO-PRODUCTION-ENDPOINT-SECRET-ORDER`
+
+Runner 必须从本地 run evidence 推导 output，不能复用 v0.10.0 reference-only audited stage constants。Required input 固定为：
+
+- `events.jsonl`
+- `strategy_intents.json`
+- `risk_decisions.json`
+- `oms_dry_run_events.json`
+- `portfolio_projection.json`
+- `reconciliation_timeline.json`
+
+`shadow_dry_run_parity.json` 必须记录每个 source evidence 的 artifact id、relative path、byte count、required marker 和 canonical JSON SHA256 checksum。Output 固定包含：
+
+- `derivedFromLocalRunEvidence=true`
+- `referenceOnlyStageConstantsUsed=false`
+- `productionTradingEnabledByDefault=false`
+- `productionCutoverAuthorized=false`
+- `productionSecretRead=false`
+- `productionEndpointConnected=false`
+- `brokerEndpointConnected=false`
+- `productionOrderSubmitted=false`
+- `testnetOrderSubmissionAllowed=false`
+
+缺少任一 local run evidence 必须输出 `blocked`；JSON invalid、stale 或 required marker 不完整必须输出 `invalid`。`valid` 只表示本地 shadow dry-run parity artifact integrity pass，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order。
+
+GH-918 不实现 Dashboard real artifact binding、CLI build / status / validate / export / approval-status runtime、approval transition、production OMS、trading button、order form 或 live command path。
+
 ## V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 
 `V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`
