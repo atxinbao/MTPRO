@@ -29012,6 +29012,100 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH924ReleaseV0110FinalAuditReleaseDocsCloseout() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let auditPath = "docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md"
+        let notesPath = "docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md"
+        let audit = try read(auditPath)
+        let notes = try read(notesPath)
+        let verifier = try read("checks/verify-v0.11.0.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+
+        for anchor in [
+            "GH-924-VERIFY-V0110-FINAL-AUDIT-RELEASE-DOCS",
+            "TVM-RELEASE-V0110-FINAL-AUDIT-RELEASE-DOCS",
+            "V0110-012-STAGE-CODE-AUDIT",
+            "V0110-012-RELEASE-NOTES",
+            "V0110-012-VALIDATION-SUMMARY",
+            "V0110-012-AGGREGATE-VERIFY",
+            "V0110-012-ROOT-DOCS-REFRESH",
+            "V0110-012-NO-PRODUCTION-CUTOVER",
+            "V0110-012-NO-PUBLIC-RELEASE-PUBLICATION"
+        ] {
+            XCTAssertTrue(audit.contains(anchor), "\(anchor) must stay in v0.11.0 stage audit")
+            XCTAssertTrue(notes.contains(anchor), "\(anchor) must stay in v0.11.0 release notes")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be enforced by v0.11.0 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be enforced by automation readiness")
+            XCTAssertTrue(readinessDoc.contains(anchor), "\(anchor) must stay documented in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        for issueEvidence in [
+            "#913", "#914", "#915", "#916", "#917", "#918",
+            "#919", "#920", "#921", "#922", "#923", "#924",
+            "PR `#932`", "PR `#933`", "PR `#934`", "PR `#935`",
+            "PR `#936`", "PR `#937`", "PR `#938`", "PR `#939`",
+            "PR `#940`", "PR `#941`", "PR `#942`",
+            "checks`, `linux-checks`, `dashboard-macos` SUCCESS"
+        ] {
+            XCTAssertTrue([audit, notes, latest].contains { $0.contains(issueEvidence) }, "\(issueEvidence) must stay in closeout evidence docs")
+        }
+
+        for closeoutEvidence in [
+            auditPath,
+            notesPath,
+            "checks/verify-v0.11.0.sh",
+            "Release v0.11.0 final audit / release docs closeout anchor",
+            "Release v0.11.0 Final Audit / Release Docs Snapshot",
+            "GH-924 Release v0.11.0 Final Audit / Release Docs Validation",
+            "TVM-RELEASE-V0110-FINAL-AUDIT-RELEASE-DOCS",
+            "swift test --filter TargetGraphTests/testGH924ReleaseV0110FinalAuditReleaseDocsCloseout"
+        ] {
+            XCTAssertTrue(
+                [audit, notes, verifier, readinessScript, readinessDoc, latest, validationPlan, tradingMatrix, readme, goal, blueprint, roadmap]
+                    .contains { $0.contains(closeoutEvidence) },
+                "\(closeoutEvidence) must stay anchored by v0.11.0 final closeout"
+            )
+        }
+
+        XCTAssertTrue(readme.contains("Latest completed release construction scope: `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening`"))
+        XCTAssertTrue(goal.contains("MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening complete with production trading disabled by default and production cutover not authorized"))
+        XCTAssertTrue(blueprint.contains("Release line 已推进到 v0.11.0 production readiness evidence runtime + integrity hardening"))
+        XCTAssertTrue(roadmap.contains("最新完成的 release construction scope 是 `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening`"))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "productionCutoverAuthorized=true",
+            "readinessApprovalConvertedToTradingPermission=true",
+            "approvalWorkflowBypassEnabled=true",
+            "v0.11.0 stable GitHub Release 已发布"
+        ] {
+            XCTAssertFalse(audit.contains(forbidden), "\(forbidden) must stay out of v0.11.0 final audit")
+            XCTAssertFalse(notes.contains(forbidden), "\(forbidden) must stay out of v0.11.0 release notes")
+            XCTAssertFalse(latest.contains(forbidden), "\(forbidden) must stay out of latest v0.11.0 summary")
+        }
+    }
+
     func testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

@@ -23,6 +23,8 @@ set -euo pipefail
 # TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL
 # GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS
 # TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS
+# GH-924-VERIFY-V0110-FINAL-AUDIT-RELEASE-DOCS
+# TVM-RELEASE-V0110-FINAL-AUDIT-RELEASE-DOCS
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -68,6 +70,12 @@ CAPITAL_EXPOSURE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalE
 KILL_SWITCH_NO_TRADE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift"
 APPROVAL_WORKFLOW_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift"
 PACKAGE_SOURCE="Package.swift"
+AUDIT="docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md"
+RELEASE_NOTES="docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md"
+README_DOC="README.md"
+GOAL_DOC="GOAL.md"
+BLUEPRINT_DOC="BLUEPRINT.md"
+ROADMAP_DOC="docs/roadmap.md"
 
 for anchor in \
   "GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT" \
@@ -544,6 +552,61 @@ require_file_contains "$LATEST" "Release v0.11.0 Auditable Approval Workflow Tra
 require_file_contains "$LATEST" "#923"
 require_file_contains "$TESTS" "testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence"
 
+for anchor in \
+  "GH-924-VERIFY-V0110-FINAL-AUDIT-RELEASE-DOCS" \
+  "TVM-RELEASE-V0110-FINAL-AUDIT-RELEASE-DOCS" \
+  "V0110-012-STAGE-CODE-AUDIT" \
+  "V0110-012-RELEASE-NOTES" \
+  "V0110-012-VALIDATION-SUMMARY" \
+  "V0110-012-AGGREGATE-VERIFY" \
+  "V0110-012-ROOT-DOCS-REFRESH" \
+  "V0110-012-NO-PRODUCTION-CUTOVER" \
+  "V0110-012-NO-PUBLIC-RELEASE-PUBLICATION"; do
+  require_file_contains "$AUDIT" "$anchor"
+  require_file_contains "$RELEASE_NOTES" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "$AUDIT" "MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening"
+require_file_contains "$AUDIT" "PR \`#932\`"
+require_file_contains "$AUDIT" "PR \`#933\`"
+require_file_contains "$AUDIT" "PR \`#934\`"
+require_file_contains "$AUDIT" "PR \`#935\`"
+require_file_contains "$AUDIT" "PR \`#936\`"
+require_file_contains "$AUDIT" "PR \`#937\`"
+require_file_contains "$AUDIT" "PR \`#938\`"
+require_file_contains "$AUDIT" "PR \`#939\`"
+require_file_contains "$AUDIT" "PR \`#940\`"
+require_file_contains "$AUDIT" "PR \`#941\`"
+require_file_contains "$AUDIT" "PR \`#942\`"
+require_file_contains "$AUDIT" "checks\`, \`linux-checks\`, \`dashboard-macos\` SUCCESS"
+require_file_contains "$AUDIT" "This PR owns final v0.11.0 Stage Code Audit"
+require_file_contains "$AUDIT" "productionTradingEnabledByDefault=false"
+require_file_contains "$AUDIT" "productionCutoverAuthorized=false"
+require_file_contains "$AUDIT" "readinessApprovalConvertedToTradingPermission=false"
+require_file_contains "$AUDIT" "approvalWorkflowBypassEnabled=false"
+require_file_contains "$RELEASE_NOTES" "v0.11.0 是 v0.10.0 / v0.10.1 production readiness evidence 之后的本地 evidence runtime 和 integrity hardening construction closeout"
+require_file_contains "$RELEASE_NOTES" "#924：收口 final validation suite"
+require_file_contains "$RELEASE_NOTES" "不创建 \`v0.11.0\` tag"
+require_file_contains "$READINESS" "Release v0.11.0 final audit / release docs closeout anchor"
+require_file_contains "$PLAN" "GH-924 Release v0.11.0 Final Audit / Release Docs Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0110-FINAL-AUDIT-RELEASE-DOCS"
+require_file_contains "$LATEST" "Release v0.11.0 Final Audit / Release Docs Snapshot"
+require_file_contains "$LATEST" "Latest completed release construction scope | \`MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening\`"
+require_file_contains "$README_DOC" "Latest completed release construction scope: \`MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening\`"
+require_file_contains "$GOAL_DOC" "MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening complete with production trading disabled by default and production cutover not authorized"
+require_file_contains "$BLUEPRINT_DOC" "Release line 已推进到 v0.11.0 production readiness evidence runtime + integrity hardening"
+require_file_contains "$ROADMAP_DOC" "GH-924-VERIFY-V0110-FINAL-AUDIT-RELEASE-DOCS"
+require_file_contains "$TESTS" "testGH924ReleaseV0110FinalAuditReleaseDocsCloseout"
+require_file_contains "$TESTS" "$AUDIT"
+require_file_contains "$TESTS" "$RELEASE_NOTES"
+require_file_contains "$0" "swift test --filter TargetGraphTests/testGH924ReleaseV0110FinalAuditReleaseDocsCloseout"
+
 for required in \
   "mtpro readiness build v0.11.0" \
   "mutationApplied=true" \
@@ -604,5 +667,6 @@ swift test --filter TargetGraphTests/testGH920ReadinessCLIOperatesOnLocalArtifac
 swift test --filter TargetGraphTests/testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons
 swift test --filter TargetGraphTests/testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility
 swift test --filter TargetGraphTests/testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence
+swift test --filter TargetGraphTests/testGH924ReleaseV0110FinalAuditReleaseDocsCloseout
 
 echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."
