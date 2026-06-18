@@ -130,9 +130,9 @@ This does not retire the four rich files yet. It prevents drift by making the re
 GH-632 does not change product surfaces:
 
 - `Dashboard` remains an executable target depending on `Core` and `Persistence`.
-- `MTPROCLI` remains an executable target depending on `Database`; GH-705 also permits a `Portfolio` dependency for the v0.4.0 read-model-only `unified-run-status` route while Core / MessageBus / RiskEngine / ExecutionEngine / ExecutionClient / broker / OMS dependencies remain forbidden.
+- `MTPROCLI` remains an executable target depending on `Database`; GH-705 also permits a `Portfolio` dependency for the v0.4.0 read-model-only `unified-run-status` route. GH-920 later permits an `ExecutionClient` dependency only for the local `ProductionReadinessArtifactStore` readiness artifact API; Core / MessageBus / RiskEngine / ExecutionEngine / broker / OMS dependencies remain forbidden.
 - `Dashboard` is still read-model-only and must not consume `MessageBusRichRoutingCompatibilityContract` as runtime command authority.
-- `MTPROCLI` must not gain `Core`, `MessageBus`, `ExecutionEngine`, `ExecutionClient`, broker or OMS dependency through this issue.
+- `MTPROCLI` must not gain `Core`, `MessageBus`, `ExecutionEngine`, broker or OMS dependency through this issue. The later GH-920 `ExecutionClient` dependency is limited to local readiness artifact store evidence and must not expose broker, OMS, endpoint or order command paths.
 
 ## GH-632-NO-PRODUCTION-AUTHORIZATION
 

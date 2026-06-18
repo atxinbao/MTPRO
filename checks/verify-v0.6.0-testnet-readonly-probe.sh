@@ -39,7 +39,7 @@ require_file_contains \
   "\"Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift\""
 require_file_contains \
   "Package.swift" \
-  "dependencies: [\"DomainModel\", \"Database\", \"DataClient\", \"Portfolio\"]"
+  "dependencies: [\"DomainModel\", \"Database\", \"DataClient\", \"Portfolio\", \"ExecutionClient\"]"
 require_file_contains \
   "Sources/DataClient/Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift" \
   "ReleaseV060TestnetReadOnlyProbe"

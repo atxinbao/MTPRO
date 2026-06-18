@@ -15,6 +15,8 @@ set -euo pipefail
 # TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER
 # GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE
 # TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE
+# GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS
+# TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -55,6 +57,8 @@ TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
 APP_TESTS="Tests/AppTests/AppTests.swift"
 ARTIFACT_STORE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift"
 DASHBOARD_READINESS_SOURCE="Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift"
+MTPRO_CLI_SOURCE="Sources/MTPROCLI/main.swift"
+PACKAGE_SOURCE="Package.swift"
 
 for anchor in \
   "GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT" \
@@ -361,6 +365,97 @@ require_file_contains "$PLAN" "GH-919 Release v0.11.0 Dashboard Real Artifact St
 require_file_contains "$MATRIX" "TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE"
 require_file_contains "$LATEST" "Release v0.11.0 Dashboard Real Artifact State Snapshot"
 
+for anchor in \
+  "GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS" \
+  "TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS" \
+  "V0110-008-READINESS-CLI-LOCAL-ARTIFACTS" \
+  "V0110-008-BUILD-STATUS-VALIDATE-EXPORT-APPROVAL-STATUS" \
+  "V0110-008-LOCAL-ARTIFACT-STORE-BUNDLE-VALIDATION" \
+  "V0110-008-MISSING-INVALID-STALE-CHECKSUM-MISMATCH" \
+  "V0110-008-NO-PRODUCTION-SECRET-ENDPOINT-ORDER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$MTPRO_CLI_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "$PACKAGE_SOURCE" "\"MTPROCLI\""
+require_file_contains "$PACKAGE_SOURCE" "\"ExecutionClient\""
+require_file_contains "$MTPRO_CLI_SOURCE" "ReleaseV0110ReadinessCLI"
+require_file_contains "$MTPRO_CLI_SOURCE" "ProductionReadinessArtifactStore"
+require_file_contains "$MTPRO_CLI_SOURCE" "readinessPlaceholderContract=retired-by-v0.11.0"
+require_file_contains "$MTPRO_CLI_SOURCE" "readinessArtifactRuntimeImplemented=true"
+require_file_contains "$MTPRO_CLI_SOURCE" "productionReadinessArtifactStoreImplemented=true"
+require_file_contains "$MTPRO_CLI_SOURCE" "policy-v0.11.0-readiness-cli-local"
+require_file_contains "$MTPRO_CLI_SOURCE" "production-readiness-overview.json"
+require_file_contains "$MTPRO_CLI_SOURCE" "production-readiness-bundle.json"
+require_file_contains "$MTPRO_CLI_SOURCE" "missingInvalidStaleChecksumMismatchStates=missing,invalid,stale,checksum-mismatch"
+require_file_contains "$MTPRO_CLI_SOURCE" "approvalConvertedToTradingPermission=false"
+require_file_contains "$MTPRO_CLI_SOURCE" "productionCutoverRemainsSeparatelyGated=true"
+require_file_contains "$READINESS" "Release v0.11.0 readiness CLI local artifact commands anchor"
+require_file_contains "$PLAN" "GH-920 Release v0.11.0 Readiness CLI Local Artifact Commands Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS"
+require_file_contains "$LATEST" "Release v0.11.0 Readiness CLI Local Artifact Commands Snapshot"
+require_file_contains "$TESTS" "testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities"
+
+BUILD_OUTPUT="$(swift run mtpro readiness build)"
+STATUS_OUTPUT="$(swift run mtpro readiness status)"
+VALIDATE_OUTPUT="$(swift run mtpro readiness validate)"
+EXPORT_OUTPUT="$(swift run mtpro readiness export)"
+APPROVAL_OUTPUT="$(swift run mtpro readiness approval-status)"
+
+for output in "$BUILD_OUTPUT" "$STATUS_OUTPUT" "$VALIDATE_OUTPUT" "$EXPORT_OUTPUT" "$APPROVAL_OUTPUT"; do
+  for required in \
+    "issue=GH-920" \
+    "readinessPlaceholderContract=retired-by-v0.11.0" \
+    "readinessArtifactRuntimeImplemented=true" \
+    "productionReadinessArtifactStoreImplemented=true" \
+    "productionTradingEnabledByDefault=false" \
+    "productionSecretRead=false" \
+    "productionEndpointConnected=false" \
+    "brokerEndpointConnected=false" \
+    "productionOrderSubmitted=false" \
+    "testnetOrderSubmissionAllowed=false" \
+    "productionCutoverAuthorized=false"; do
+    if [[ "$output" != *"$required"* ]]; then
+      printf 'release v0.11.0 readiness CLI verification failed: output must contain: %s\n' "$required" >&2
+      printf '%s\n' "$output" >&2
+      exit 1
+    fi
+  done
+done
+
+for required in \
+  "mtpro readiness build v0.11.0" \
+  "mutationApplied=true" \
+  "artifactWritten=true" \
+  "readinessBundleWritten=true" \
+  "readinessState=valid" \
+  "bundleValidationHeld=true"; do
+  if [[ "$BUILD_OUTPUT" != *"$required"* ]]; then
+    printf 'release v0.11.0 readiness CLI build verification failed: output must contain: %s\n' "$required" >&2
+    printf '%s\n' "$BUILD_OUTPUT" >&2
+    exit 1
+  fi
+done
+
+for required in \
+  "mtpro readiness approval-status v0.11.0" \
+  "operatorApprovalStatus=not-authorized" \
+  "approvalConvertedToTradingPermission=false" \
+  "approvalCanAuthorizeProductionCutover=false" \
+  "productionCutoverRemainsSeparatelyGated=true"; do
+  if [[ "$APPROVAL_OUTPUT" != *"$required"* ]]; then
+    printf 'release v0.11.0 readiness CLI approval-status verification failed: output must contain: %s\n' "$required" >&2
+    printf '%s\n' "$APPROVAL_OUTPUT" >&2
+    exit 1
+  fi
+done
+
 for forbidden in \
   "productionTradingEnabledByDefault=true" \
   "productionCutoverAuthorized=true" \
@@ -390,5 +485,6 @@ swift test --filter TargetGraphTests/testGH917ReadinessBundleValidationClassifie
 swift test --filter TargetGraphTests/testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence
 swift test --filter AppTests/testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly
 swift test --filter TargetGraphTests/testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors
+swift test --filter TargetGraphTests/testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities
 
 echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."

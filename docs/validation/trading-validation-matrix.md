@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS
+
+- TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS
+- GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS
+- V0110-008-READINESS-CLI-LOCAL-ARTIFACTS
+- V0110-008-BUILD-STATUS-VALIDATE-EXPORT-APPROVAL-STATUS
+- V0110-008-LOCAL-ARTIFACT-STORE-BUNDLE-VALIDATION
+- V0110-008-MISSING-INVALID-STALE-CHECKSUM-MISMATCH
+- V0110-008-NO-PRODUCTION-SECRET-ENDPOINT-ORDER
+- GH-920 Release v0.11.0 Readiness CLI Local Artifact Commands Validation
+- `bash checks/verify-v0.11.0.sh`
+- `swift test --filter TargetGraphTests/testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities`
+- `mtpro readiness build/status/validate/export/approval-status` 只读写本地 readiness JSON artifacts、manifest 和 bundle validation；`valid` 只表示 local artifact integrity pass。
+- Boundary: 不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover；`MTPROCLI -> ExecutionClient` 只允许访问本地 `ProductionReadinessArtifactStore` API。
+
 ## TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE
 
 - TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE
@@ -160,11 +175,11 @@
 - V0101-005-NO-PRODUCTION-CUTOVER
 - V0101-005-NO-PRODUCTION-SECRET-ENDPOINT-ORDER
 - V0101-005-NO-READINESS-ARTIFACT-RUNTIME
-- GH-910 Release v0.10.1 Readiness CLI Help Placeholder Validation
+- GH-910 Release v0.10.1 Readiness CLI Help Placeholder Retirement Validation
 - `bash checks/verify-v0.10.1-readiness-cli-help.sh`
 - `swift test --filter TargetGraphTests/testGH910ReadinessCLIHelpPlaceholderIsNonMutatingAndFailsClosed`
-- `mtpro readiness help/build/status/validate/export/approval-status` 输出 v0.10.1 help-only / no-op placeholder，并固定 `artifactWritten=false`、`readinessArtifactRuntimeImplemented=false`、`productionReadinessArtifactStoreImplemented=false` 和 `productionCutoverAuthorized=false`。
-- Boundary: Readiness CLI placeholder 不写 readiness artifact、不实现 real readiness runtime、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+- v0.10.1 `mtpro readiness help/build/status/validate/export/approval-status` placeholder 合同已由 GH-920 退休；当前 guard 固定 `readinessPlaceholderContract=retired-by-v0.11.0`，并确认本地 readiness artifact runtime 仍不授权 production cutover。
+- Boundary: Readiness CLI local artifact runtime 不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
 
 ## TVM-RELEASE-V0101-CLI-V0100-WORDING
 

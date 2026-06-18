@@ -4682,7 +4682,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(cliTarget.contains("\"Core\""))
         XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
         XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
-        XCTAssertFalse(cliTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(cliTarget.contains("\"ExecutionClient\""))
 
         for forbiddenDefault in [
             "productionTradingEnabledByDefault == false",
@@ -13361,7 +13361,7 @@ final class TargetGraphTests: XCTestCase {
         }
 
         XCTAssertTrue(gitignore.contains(".local/"))
-        XCTAssertTrue(packageSource.contains(#""DomainModel", "Database", "DataClient", "Portfolio""#))
+        XCTAssertTrue(packageSource.contains(#""DomainModel", "Database", "DataClient", "Portfolio", "ExecutionClient""#))
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-cli-local-session.sh"))
         XCTAssertTrue(readinessScript.contains("GH-810-VERIFY-V080-CLI-LOCAL-SESSION"))
 
@@ -13518,7 +13518,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(riskEngineTarget.contains("\"LiveGate\""))
         XCTAssertFalse(riskEngineTarget.contains("\"ExecutionClient\""))
         XCTAssertFalse(riskEngineTarget.contains("\"ExecutionEngine\""))
-        XCTAssertTrue(cliTarget.contains(#""DomainModel", "Database", "DataClient", "Portfolio""#))
+        XCTAssertTrue(cliTarget.contains(#""DomainModel", "Database", "DataClient", "Portfolio", "ExecutionClient""#))
         XCTAssertFalse(cliTarget.contains("\"RiskEngine\""))
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.8.0-risk-policy-profiles.sh"))
         XCTAssertTrue(automationReadiness.contains("Release v0.8.0 Risk policy profile management anchor"))
@@ -21127,7 +21127,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
         XCTAssertFalse(cliTarget.contains("\"RiskEngine\""))
         XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
-        XCTAssertFalse(cliTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(cliTarget.contains("\"ExecutionClient\""))
         XCTAssertTrue(cliSource.contains("ReleaseV030CLIRehearsalSurface.cliCommand"))
         XCTAssertTrue(
             PortfolioParityOwnershipContract.gh634.activeSourcePaths.contains(
@@ -21158,10 +21158,12 @@ final class TargetGraphTests: XCTestCase {
                 dashboardSurfaceSource.contains(forbidden),
                 "Dashboard rehearsal surface source must not contain \(forbidden)"
             )
-            XCTAssertFalse(
-                cliSource.contains(forbidden),
-                "CLI rehearsal surface route must not contain \(forbidden)"
-            )
+            if forbidden != "import ExecutionClient" {
+                XCTAssertFalse(
+                    cliSource.contains(forbidden),
+                    "CLI rehearsal surface route must not contain \(forbidden)"
+                )
+            }
         }
 
         XCTAssertThrowsError(
@@ -27074,7 +27076,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliTarget.contains("\"main.swift\""))
         XCTAssertFalse(cliTarget.contains("\"Core\""))
         XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
-        XCTAssertFalse(cliTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(cliTarget.contains("\"ExecutionClient\""))
         XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
         XCTAssertFalse(cliTarget.contains("\"RiskEngine\""))
         XCTAssertTrue(databaseSources.contains("\"ReleaseV020CLIProductSurface.swift\""))
@@ -28307,26 +28309,27 @@ final class TargetGraphTests: XCTestCase {
         }
 
         for requiredOutputLine in [
-            "readinessPlaceholderContract=v0.10.1",
-            "futureReadinessRuntime=v0.11.0",
-            "supportedActions=\\(readinessSupportedActionCommands.joined(separator: \",\"))",
-            "placeholderOnly=true",
-            "noOp=true",
+            "readinessPlaceholderContract=retired-by-v0.11.0",
+            "supportedActions=\\(MTPROStrictCLI.readinessSupportedActionCommands.joined(separator: \",\"))",
             "mutationApplied=false",
             "artifactWritten=false",
             "readinessBundleWritten=false",
-            "readinessArtifactRuntimeImplemented=false",
-            "productionReadinessArtifactStoreImplemented=false",
-            "operatorApprovalStatus=not-requested",
+            "readinessArtifactRuntimeImplemented=true",
+            "productionReadinessArtifactStoreImplemented=true",
+            "operatorApprovalStatus=not-authorized",
             "productionTradingEnabledByDefault=false",
             "productionSecretRead=false",
             "productionEndpointConnected=false",
             "brokerEndpointConnected=false",
             "productionOrderSubmitted=false",
+            "testnetOrderSubmissionAllowed=false",
             "productionCutoverAuthorized=false",
             "boundaryHeld=true"
         ] {
-            XCTAssertTrue(cliSource.contains(requiredOutputLine), "\(requiredOutputLine) must stay in readiness CLI output")
+            XCTAssertTrue(
+                [cliSource, readinessGuardScript].contains { $0.contains(requiredOutputLine) },
+                "\(requiredOutputLine) must stay in readiness CLI retirement output or guard"
+            )
         }
 
         for requiredScriptLine in [
@@ -28334,9 +28337,10 @@ final class TargetGraphTests: XCTestCase {
             "require_command_fails_with \"mtpro.readiness.action\" swift run mtpro readiness write",
             "require_command_fails_with \"mtpro.readiness.arguments\" swift run mtpro readiness build --write",
             "require_command_fails_with \"mtpro.readiness.arguments\" swift run mtpro readiness export ./readiness.json",
-            "artifactWritten=false",
-            "readinessArtifactRuntimeImplemented=false",
-            "productionReadinessArtifactStoreImplemented=false",
+            "readinessPlaceholderContract=retired-by-v0.11.0",
+            "GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS",
+            "readinessArtifactRuntimeImplemented=true",
+            "productionReadinessArtifactStoreImplemented=true",
             "productionCutoverAuthorized=false"
         ] {
             XCTAssertTrue(readinessGuardScript.contains(requiredScriptLine), "\(requiredScriptLine) must be guarded")
@@ -28357,24 +28361,20 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.1-readiness-cli-help.sh"))
         XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.1-readiness-cli-help.sh"))
         XCTAssertTrue(readinessScript.contains("testGH910ReadinessCLIHelpPlaceholderIsNonMutatingAndFailsClosed"))
-        XCTAssertTrue(readinessDoc.contains("Release v0.10.1 readiness CLI help placeholder anchor"))
-        XCTAssertTrue(latest.contains("Readiness CLI help placeholder guard"))
-        XCTAssertTrue(validationPlan.contains("GH-910 Release v0.10.1 Readiness CLI Help Placeholder Validation"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.10.1 readiness CLI help placeholder retirement anchor"))
+        XCTAssertTrue(latest.contains("Readiness CLI help placeholder retirement guard"))
+        XCTAssertTrue(validationPlan.contains("GH-910 Release v0.10.1 Readiness CLI Help Placeholder Retirement Validation"))
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0101-READINESS-CLI-HELP"))
 
         for forbiddenOutputLine in [
             "mutationApplied=true",
-            "artifactWritten=true",
-            "readinessBundleWritten=true",
-            "readinessArtifactRuntimeImplemented=true",
-            "productionReadinessArtifactStoreImplemented=true",
             "productionTradingEnabledByDefault=true",
             "productionSecretRead=true",
             "productionEndpointConnected=true",
             "brokerEndpointConnected=true",
             "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
             "productionCutoverAuthorized=true",
-            "ProductionReadinessArtifactStore()",
             "FileManager.default.createFile",
             "swift run mtpro readiness submit",
             "swift run mtpro readiness cancel",
@@ -29399,6 +29399,114 @@ final class TargetGraphTests: XCTestCase {
             "fapi.binance.com"
         ] {
             XCTAssertFalse(source.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of GH-919")
+        }
+    }
+
+    func testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let packageSource = try read("Package.swift")
+        let cliTarget = try packageTargetBlock(named: "MTPROCLI", packageSource: packageSource)
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let contract = try read("docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md")
+        let verifier = try read("checks/verify-v0.11.0.sh")
+        let v0101RetirementGuard = try read("checks/verify-v0.10.1-readiness-cli-help.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        for anchor in [
+            "GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS",
+            "TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS",
+            "V0110-008-READINESS-CLI-LOCAL-ARTIFACTS",
+            "V0110-008-BUILD-STATUS-VALIDATE-EXPORT-APPROVAL-STATUS",
+            "V0110-008-LOCAL-ARTIFACT-STORE-BUNDLE-VALIDATION",
+            "V0110-008-MISSING-INVALID-STALE-CHECKSUM-MISMATCH",
+            "V0110-008-NO-PRODUCTION-SECRET-ENDPOINT-ORDER"
+        ] {
+            XCTAssertTrue(cliSource.contains(anchor), "\(anchor) must stay in CLI source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.11.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.11.0 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+        }
+
+        XCTAssertTrue(cliTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(cliTarget.contains("\"Database\""))
+        XCTAssertTrue(cliTarget.contains("\"Portfolio\""))
+        XCTAssertFalse(cliTarget.contains("\"Core\""))
+        XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
+        XCTAssertFalse(cliTarget.contains("\"RiskEngine\""))
+        XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
+
+        for required in [
+            "ReleaseV0110ReadinessCLI",
+            "ProductionReadinessArtifactStore",
+            "readinessPlaceholderContract=retired-by-v0.11.0",
+            "readinessArtifactRuntimeImplemented=true",
+            "productionReadinessArtifactStoreImplemented=true",
+            "readinessCLIAllowed=true",
+            "policy-v0.11.0-readiness-cli-local",
+            "production-readiness-overview.json",
+            "production-readiness-bundle.json",
+            "missingInvalidStaleChecksumMismatchStates=missing,invalid,stale,checksum-mismatch",
+            "operatorApprovalStatus=not-authorized",
+            "approvalConvertedToTradingPermission=false",
+            "approvalCanAuthorizeProductionCutover=false",
+            "productionCutoverRemainsSeparatelyGated=true",
+            "noSecretValue=true",
+            "noOrderPayload=true",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "testnetOrderSubmissionAllowed=false",
+            "productionCutoverAuthorized=false"
+        ] {
+            XCTAssertTrue(cliSource.contains(required), "\(required) must stay in readiness CLI source")
+        }
+
+        for scriptEvidence in [
+            "swift run mtpro readiness build",
+            "swift run mtpro readiness status",
+            "swift run mtpro readiness validate",
+            "swift run mtpro readiness export",
+            "swift run mtpro readiness approval-status",
+            "testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities",
+            "readinessPlaceholderContract=retired-by-v0.11.0"
+        ] {
+            XCTAssertTrue(verifier.contains(scriptEvidence), "\(scriptEvidence) must be enforced by v0.11.0 verifier")
+        }
+
+        XCTAssertTrue(v0101RetirementGuard.contains("readinessPlaceholderContract=retired-by-v0.11.0"))
+        XCTAssertTrue(v0101RetirementGuard.contains("GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS"))
+        XCTAssertTrue(contract.contains("MTPROCLI` 依赖 `ExecutionClient` 的唯一目的"))
+        XCTAssertTrue(contract.contains("本地 `ProductionReadinessArtifactStore`"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "productionCutoverAuthorized=true",
+            "api.binance.com",
+            "fapi.binance.com",
+            "URLSession",
+            "URLRequest",
+            "listenKey"
+        ] {
+            XCTAssertFalse(cliSource.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of GH-920 CLI")
         }
     }
 
