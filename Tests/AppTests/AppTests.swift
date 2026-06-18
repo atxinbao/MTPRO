@@ -3513,6 +3513,102 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands() throws {
+        // 测试场景：GH-890 Dashboard 只能展示 v0.10.0 production readiness evidence center。
+        // Readiness Overview / Environment / Secret / Endpoint / Risk / Kill Switch /
+        // Command Surface / Shadow Dry-run / Approval / Bundle 都是只读卡片，不能出现交易入口。
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV0100ProductionReadinessCenter
+
+        XCTAssertEqual(surface.issueID, "GH-890")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-887", "GH-888", "GH-889"])
+        XCTAssertEqual(surface.previousIssueID, "GH-889")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-891")
+        XCTAssertEqual(surface.releaseVersion, "v0.10.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.readinessCards.map(\.panel), ReleaseV0100DashboardProductionReadinessCenterPanel.allCases)
+        XCTAssertEqual(surface.readinessCards.count, 10)
+        XCTAssertTrue(surface.readinessCards.allSatisfy(\.cardHeld))
+        XCTAssertEqual(
+            surface.panelNames,
+            [
+                "readiness-overview",
+                "environment-profile",
+                "secret-readiness",
+                "endpoint-policy",
+                "risk-capital-limits",
+                "kill-switch-no-trade",
+                "command-surface-disabled",
+                "shadow-dry-run-parity",
+                "approval-workflow",
+                "readiness-bundle"
+            ]
+        )
+        XCTAssertTrue(surface.readinessOverviewVisible)
+        XCTAssertTrue(surface.environmentProfileVisible)
+        XCTAssertTrue(surface.secretReadinessVisible)
+        XCTAssertTrue(surface.endpointPolicyVisible)
+        XCTAssertTrue(surface.riskCapitalLimitsVisible)
+        XCTAssertTrue(surface.killSwitchNoTradeVisible)
+        XCTAssertTrue(surface.commandSurfaceDisabledVisible)
+        XCTAssertTrue(surface.shadowDryRunParityVisible)
+        XCTAssertTrue(surface.approvalWorkflowVisible)
+        XCTAssertTrue(surface.readinessBundleVisible)
+        XCTAssertTrue(surface.incidentRollbackEvidenceReferenced)
+        XCTAssertTrue(surface.dashboardSmokeRequired)
+        XCTAssertTrue(surface.readModelOnly)
+        XCTAssertFalse(surface.dashboardDependsOnDataClientTarget)
+        XCTAssertFalse(surface.dashboardDependsOnDatabaseRuntime)
+        XCTAssertFalse(surface.credentialValueVisible)
+        XCTAssertFalse(surface.rawListenKeyVisible)
+        XCTAssertFalse(surface.rawPrivatePayloadVisible)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.productionCommandEnabled)
+        XCTAssertFalse(surface.submitCancelReplaceVisible)
+        XCTAssertFalse(surface.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretAutoReadEnabled)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertFalse(surface.readinessApprovalConvertedToTradingPermission)
+
+        XCTAssertEqual(metricValue("v0.10 readiness center cards", in: surface.metrics), "10")
+        XCTAssertEqual(
+            metricValue("Readiness center panels", in: surface.metrics),
+            "readiness-overview,environment-profile,secret-readiness,endpoint-policy,risk-capital-limits,kill-switch-no-trade,command-surface-disabled,shadow-dry-run-parity,approval-workflow,readiness-bundle"
+        )
+        XCTAssertEqual(metricValue("Readiness evidence", in: surface.metrics), "bundle+runbook")
+        XCTAssertEqual(metricValue("Production command", in: surface.metrics), "disabled")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Incident rollback evidence: incident_rollback_readiness.json"))
+        XCTAssertTrue(surface.details.contains("Credential values: none"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(surface.details.contains("Production command: none"))
+        XCTAssertTrue(surface.details.contains("Production cutover: none"))
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0100ReadinessCenterCards=10"))
+        XCTAssertTrue(
+            snapshot.smokeSummary.contains(
+                "releaseV0100ReadinessCenterPanels=readiness-overview,environment-profile,secret-readiness,endpoint-policy,risk-capital-limits,kill-switch-no-trade,command-surface-disabled,shadow-dry-run-parity,approval-workflow,readiness-bundle"
+            )
+        )
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0100ReadinessCenterEvidence=bundle+runbook"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0100ReadinessCenterBoundary=confirmed"))
+
+        for anchor in ReleaseV0100DashboardProductionReadinessCenterViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-890 surface")
+        }
+    }
+
     func testGH818DashboardSafeLocalControlsBindSessionStoresWithoutCommands() throws {
         // 测试场景：GH-818 Dashboard 可展示 start / stop / recover / archive / open-detail
         // safe local controls，并将它们绑定到 v0.8 local registry 和 session store artifact；

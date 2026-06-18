@@ -6,6 +6,29 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation
+
+- `GH-890-VERIFY-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER`
+- `TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER`
+- `V0100-013-DASHBOARD-PRODUCTION-READINESS-CENTER`
+- `V0100-013-READINESS-OVERVIEW`
+- `V0100-013-ENVIRONMENT-PROFILE`
+- `V0100-013-SECRET-READINESS`
+- `V0100-013-ENDPOINT-POLICY`
+- `V0100-013-RISK-CAPITAL-LIMITS`
+- `V0100-013-KILL-SWITCH-NO-TRADE`
+- `V0100-013-COMMAND-SURFACE-DISABLED`
+- `V0100-013-SHADOW-DRY-RUN-PARITY`
+- `V0100-013-APPROVAL-WORKFLOW`
+- `V0100-013-READINESS-BUNDLE`
+- `V0100-013-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND`
+- `V0100-013-NO-SUBMIT-CANCEL-REPLACE`
+- `V0100-013-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.10.0-dashboard-production-readiness-center.sh`
+- Focused test: `testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands`
+- Focused test: `testGH890DashboardProductionReadinessCenterIsAnchoredInV0100Guards`
+- Boundary: Dashboard Production Readiness Center 只展示 readiness overview、environment profile、secret readiness、endpoint policy、risk / capital limits、kill switch / no-trade、command surface disabled、shadow dry-run parity、approval workflow 和 readiness bundle 的 read-model-only 卡片，并引用 `incident_rollback_readiness.json` dependency evidence；不显示 trading button、order form、live command、submit / cancel / replace，不连接 production endpoint / broker，不读取 production secret，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-889 Release v0.10.0 Incident / Rollback Readiness Runbook Validation
 
 - `GH-889-VERIFY-V0100-INCIDENT-ROLLBACK-RUNBOOK`

@@ -10312,6 +10312,136 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH890DashboardProductionReadinessCenterIsAnchoredInV0100Guards() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let surface = ReleaseV0100DashboardProductionReadinessCenterViewModel.deterministicFixture
+
+        XCTAssertEqual(surface.issueID, "GH-890")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-887", "GH-888", "GH-889"])
+        XCTAssertEqual(surface.previousIssueID, "GH-889")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-891")
+        XCTAssertEqual(surface.releaseVersion, "v0.10.0")
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.readinessCards.map(\.panel), ReleaseV0100DashboardProductionReadinessCenterPanel.allCases)
+        XCTAssertTrue(surface.readinessCards.allSatisfy(\.cardHeld))
+        XCTAssertTrue(surface.incidentRollbackEvidenceReferenced)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.productionCommandEnabled)
+        XCTAssertFalse(surface.submitCancelReplaceVisible)
+        XCTAssertFalse(surface.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretAutoReadEnabled)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertFalse(surface.readinessApprovalConvertedToTradingPermission)
+
+        let source = try read("Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift")
+        let shell = try read("Sources/Dashboard/DashboardShell.swift")
+        let appTests = try read("Tests/AppTests/AppTests.swift")
+        let targetTests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+        let verifier = try read("checks/verify-v0.10.0-dashboard-production-readiness-center.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "GH-890-VERIFY-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER",
+            "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER",
+            "V0100-013-DASHBOARD-PRODUCTION-READINESS-CENTER",
+            "V0100-013-READINESS-OVERVIEW",
+            "V0100-013-ENVIRONMENT-PROFILE",
+            "V0100-013-SECRET-READINESS",
+            "V0100-013-ENDPOINT-POLICY",
+            "V0100-013-RISK-CAPITAL-LIMITS",
+            "V0100-013-KILL-SWITCH-NO-TRADE",
+            "V0100-013-COMMAND-SURFACE-DISABLED",
+            "V0100-013-SHADOW-DRY-RUN-PARITY",
+            "V0100-013-APPROVAL-WORKFLOW",
+            "V0100-013-READINESS-BUNDLE",
+            "V0100-013-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND",
+            "V0100-013-NO-SUBMIT-CANCEL-REPLACE",
+            "V0100-013-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(ReleaseV0100DashboardProductionReadinessCenterViewModel.requiredValidationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Dashboard readiness center")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        for requiredString in [
+            "ReleaseV0100DashboardProductionReadinessCenterViewModel",
+            "ReleaseV0100DashboardProductionReadinessCenterCard",
+            "ReleaseV0100DashboardProductionReadinessCenterPanel",
+            "production-readiness-bundle.json",
+            "incident_rollback_readiness.json",
+            "releaseV0100ProductionReadinessCenter",
+            "releaseV0100ReadinessCenterCards=",
+            "DashboardReleaseV0100ProductionReadinessCenterPanel",
+            "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands",
+            "testGH890DashboardProductionReadinessCenterIsAnchoredInV0100Guards",
+            "Release v0.10.0 Dashboard production readiness center anchor",
+            "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation",
+            "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER",
+            "`#890` 新增 Dashboard Production Readiness Center"
+        ] {
+            XCTAssertTrue(
+                source.contains(requiredString)
+                    || shell.contains(requiredString)
+                    || appTests.contains(requiredString)
+                    || targetTests.contains(requiredString)
+                    || verifier.contains(requiredString)
+                    || runScript.contains(requiredString)
+                    || readinessScript.contains(requiredString)
+                    || readiness.contains(requiredString)
+                    || validationPlan.contains(requiredString)
+                    || tradingMatrix.contains(requiredString)
+                    || latest.contains(requiredString),
+                "\(requiredString) must stay wired into GH-890 evidence"
+            )
+        }
+
+        XCTAssertTrue(verifier.contains("MTPRO release v0.10.0 Dashboard production readiness center verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-dashboard-production-readiness-center.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-dashboard-production-readiness-center.sh"))
+
+        for forbiddenAuthorization in [
+            "productionCutoverAuthorized = true",
+            "productionTradingEnabledByDefault = true",
+            "productionSecretAutoReadEnabled = true",
+            "productionEndpointConnected = true",
+            "brokerEndpointConnected = true",
+            "testnetOrderSubmissionEnabled = true",
+            "productionOrderSubmitted = true",
+            "tradingButtonVisible = true",
+            "orderFormVisible = true",
+            "liveCommandVisible = true",
+            "productionCommandEnabled = true",
+            "submitCancelReplaceVisible = true",
+            "readinessApprovalConvertedToTradingPermission = true",
+            "URLSession",
+            "URLRequest",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(
