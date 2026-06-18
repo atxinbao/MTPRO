@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION
+
+- TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION
+- GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION
+- V0110-005-READINESS-BUNDLE-VALIDATION
+- V0110-005-REQUIRED-ARTIFACT-SET
+- V0110-005-BUNDLE-VALIDATION-STATES
+- V0110-005-POLICY-VERSION-BLOCKED
+- V0110-005-CHECKSUM-MISMATCH-STATE
+- V0110-005-NO-PRODUCTION-CUTOVER
+- GH-917 Release v0.11.0 Readiness Bundle Validation
+- `bash checks/verify-v0.11.0.sh`
+- `swift test --filter TargetGraphTests/testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum`
+- fixed bundle validation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`、`checks/verify-v0.11.0.sh` 和 TargetGraph focused test。
+- Boundary: v0.11.0 readiness bundle validation 只读取本地 manifest 和本地 artifacts，输出 `not-evaluated`、`valid`、`blocked`、`stale`、`missing`、`invalid`、`checksum-mismatch`；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM
 
 - TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM

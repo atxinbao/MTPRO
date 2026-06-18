@@ -18,7 +18,7 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | --- | --- |
 | Latest completed release construction scope | `MTPRO Release v0.10.0 Production Cutover Readiness Gate` |
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
-| Active queue | GitHub fallback queue `#913..#924` for v0.11.0；当前 gate：`#916 V0110-004 Replace hardcoded checksums with canonical JSON SHA256`；#913、#914、#915 均已 closed / done 且 PR #932、#933、#934 merged / checks SUCCESS |
+| Active queue | GitHub fallback queue `#913..#924` for v0.11.0；当前 gate：`#917 V0110-005 Add readiness bundle validation`；#913、#914、#915、#916 均已 closed / done 且 PR #932、#933、#934、#935 merged / checks SUCCESS |
 | Stage Code Audit Report | `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md` |
 | Release publication | v0.10.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；target commit `7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`；publication timestamp `2026-06-18T05:19:46Z`；v0.9.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`；target commit `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`；v0.9.1 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`；tag peeled commit `d041f0dd304075562a85e494695697290972288f`；均不授权 production cutover |
 | v0.10.1 patch closeout | `GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES`；Stage Code Audit Report：`docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md`；release notes：`docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md`；aggregate verifier：`checks/verify-v0.10.1.sh`；#907 至 #911 均已 `CLOSED / done` 且 PR #926 至 #930 merged / checks SUCCESS；v0.11.0 owns real readiness artifact runtime + integrity hardening |
@@ -26,6 +26,7 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | v0.11.0 artifact store gate | `GH-914-VERIFY-V0110-PRODUCTION-READINESS-ARTIFACT-STORE`；implementation：`Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`；focused test：`testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates`；只实现 approved local evidence root、safe relative path、missing / invalid / stale / valid 状态和 local read / write primitives，不授权 production cutover |
 | v0.11.0 manifest atomic IO gate | `GH-915-VERIFY-V0110-READINESS-MANIFEST-ATOMIC-IO`；implementation：`Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`；focused test：`testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts`；只实现 readiness manifest schema、atomic JSON artifact IO、policyVersion 校验、manifest entry state validation 和真实 artifact 重新验证入口，不授权 production cutover |
 | v0.11.0 canonical JSON SHA256 checksum gate | `GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM`；implementation：`Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`；focused test：`testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums`；只把 readiness artifact / manifest checksum policy 固定为 canonical JSON SHA256 和 `sha256:<64 hex>` 格式，不授权 production cutover |
+| v0.11.0 readiness bundle validation gate | `GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION`；implementation：`Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`；focused test：`testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum`；只实现本地 manifest / artifact bundle validation，不授权 production cutover |
 | Release fact sync guard | `GH-907-VERIFY-V0101-RELEASE-FACT-STALE-WORDING-GUARD`；`checks/verify-v0.10.1-release-fact-sync.sh` 固定 v0.10.0 publication 后的四段 release fact flow：construction closeout、release publication、release fact sync、stale wording guard；guard 不授权 production cutover |
 | Readiness CLI help placeholder guard | `GH-910-VERIFY-V0101-READINESS-CLI-HELP`；`checks/verify-v0.10.1-readiness-cli-help.sh` 固定 `mtpro readiness help/build/status/validate/export/approval-status` 只输出 v0.10.1 help-only / no-op placeholder；不写 readiness artifact、不实现 `ProductionReadinessArtifactStore`、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order |
 | CLI verify v0.10.0 wording guard | `GH-909-VERIFY-V0101-CLI-V0100-WORDING`；`checks/verify-v0.10.1-cli-verify-v0100-wording.sh` 固定 `mtpro verify` 的 v0.10.0 输出为 Production Readiness Contract / Reference Evidence Model，并拒绝 operational production readiness、production cutover readiness、production endpoint readiness 和 live order authorization 语义 |
@@ -35,6 +36,29 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。
+
+## Release v0.11.0 Readiness Bundle Validation Snapshot
+
+`GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION`
+
+`TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION`
+
+`V0110-005-READINESS-BUNDLE-VALIDATION`
+
+GH-917 在 v0.11.0 queue 中新增本地 readiness bundle validation。当前实现只覆盖本地 manifest 和 manifest entries 指向的本地 artifacts，重新校验 schema、required artifact set、artifact existence、canonical JSON SHA256 checksum、size、timestamp 和 policyVersion。
+
+Validation anchors：`V0110-005-REQUIRED-ARTIFACT-SET`、`V0110-005-BUNDLE-VALIDATION-STATES`、`V0110-005-POLICY-VERSION-BLOCKED`、`V0110-005-CHECKSUM-MISMATCH-STATE` 和 `V0110-005-NO-PRODUCTION-CUTOVER`。
+
+Validation states 固定为 `not-evaluated`、`valid`、`blocked`、`stale`、`missing`、`invalid` 和 `checksum-mismatch`。Policy mismatch 输出 `blocked`；required artifact 缺失或 artifact 文件缺失输出 `missing`；checksum drift 输出 `checksum-mismatch`。
+
+Boundary flags 固定为 `productionTradingEnabledByDefault=false`、`productionSecretRead=false`、`productionEndpointConnected=false`、`brokerEndpointConnected=false`、`productionOrderSubmitted=false`、`testnetOrderSubmissionAllowed=false` 和 `productionCutoverAuthorized=false`。GH-917 不实现 Dashboard real artifact binding、CLI runtime、approval transition 或 shadow parity runner。
+
+Focused validation：
+
+```bash
+swift test --filter TargetGraphTests/testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum
+bash checks/verify-v0.11.0.sh
+```
 
 ## Release v0.11.0 Canonical JSON SHA256 Checksum Snapshot
 

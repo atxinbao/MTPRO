@@ -28962,6 +28962,169 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum() throws {
+        XCTAssertEqual(ProductionReadinessBundleValidationAnchors.validationAnchors, [
+            "GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION",
+            "TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION",
+            "V0110-005-READINESS-BUNDLE-VALIDATION",
+            "V0110-005-REQUIRED-ARTIFACT-SET",
+            "V0110-005-BUNDLE-VALIDATION-STATES",
+            "V0110-005-POLICY-VERSION-BLOCKED",
+            "V0110-005-CHECKSUM-MISMATCH-STATE",
+            "V0110-005-NO-PRODUCTION-CUTOVER"
+        ])
+        XCTAssertEqual(
+            ProductionReadinessBundleValidationState.allCases.map(\.rawValue),
+            ["not-evaluated", "valid", "blocked", "stale", "missing", "invalid", "checksum-mismatch"]
+        )
+
+        let riskID = Identifier.constant("gh-917-risk-policy")
+        let secretID = Identifier.constant("gh-917-secret-readiness")
+        let requiredArtifactIDs = [riskID, secretID]
+        let policyVersion = "policy-v0.11.0-003"
+        let now = Date(timeIntervalSince1970: 1_800_030_000)
+        let notEvaluated = try ProductionReadinessArtifactStore.notEvaluatedReadinessBundleValidation(
+            requiredPolicyVersion: policyVersion,
+            requiredArtifactIDs: requiredArtifactIDs,
+            evaluatedAt: now
+        )
+        XCTAssertEqual(notEvaluated.state, .notEvaluated)
+        XCTAssertTrue(notEvaluated.resultHeld)
+        XCTAssertFalse(notEvaluated.productionCutoverAuthorized)
+
+        let evidenceRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH917-BundleValidation-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: evidenceRoot)
+        }
+
+        let store = try ProductionReadinessArtifactStore(evidenceRootURL: evidenceRoot)
+        let riskDescriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: riskID,
+            relativePath: "artifacts/risk-policy.json",
+            artifactType: .jsonEvidence,
+            staleAfterSeconds: 120
+        )
+        let secretDescriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: secretID,
+            relativePath: "artifacts/secret-readiness.json",
+            artifactType: .jsonEvidence,
+            staleAfterSeconds: 120
+        )
+        let manifestDescriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-917-readiness-manifest"),
+            relativePath: "manifest/readiness-manifest.json",
+            artifactType: .jsonEvidence
+        )
+        let riskPayload = #"{"artifactID":"gh-917-risk","policyVersion":"policy-v0.11.0-003","productionCutoverAuthorized":false,"productionTradingEnabledByDefault":false}"#
+        let riskDriftPayload = #"{"artifactID":"gh-917-fail","policyVersion":"policy-v0.11.0-003","productionCutoverAuthorized":false,"productionTradingEnabledByDefault":false}"#
+        XCTAssertEqual(Data(riskPayload.utf8).count, Data(riskDriftPayload.utf8).count)
+        let secretPayload = #"{"artifactID":"gh-917-secret","policyVersion":"policy-v0.11.0-003","productionCutoverAuthorized":false,"productionSecretRead":false}"#
+
+        func writeArtifactsAndManifest() throws {
+            _ = try store.writeStringArtifact(
+                descriptor: riskDescriptor,
+                string: riskPayload,
+                modifiedAt: now
+            )
+            _ = try store.writeStringArtifact(
+                descriptor: secretDescriptor,
+                string: secretPayload,
+                modifiedAt: now
+            )
+            _ = try store.writeReadinessManifest(
+                manifestID: manifestDescriptor.artifactID,
+                manifestRelativePath: manifestDescriptor.relativePath,
+                descriptors: [riskDescriptor, secretDescriptor],
+                policyVersion: policyVersion,
+                generatedAt: now.addingTimeInterval(1),
+                now: now
+            )
+        }
+
+        try writeArtifactsAndManifest()
+        let valid = try store.validateReadinessBundle(
+            manifestDescriptor: manifestDescriptor,
+            requiredPolicyVersion: policyVersion,
+            requiredArtifactIDs: requiredArtifactIDs,
+            now: now.addingTimeInterval(10)
+        )
+        XCTAssertEqual(valid.state, .valid)
+        XCTAssertTrue(valid.bundleValidHeld)
+        XCTAssertEqual(valid.requiredArtifactIDs.map(\.rawValue), requiredArtifactIDs.map(\.rawValue))
+        XCTAssertEqual(valid.manifestArtifactIDs.map(\.rawValue), requiredArtifactIDs.map(\.rawValue))
+        XCTAssertFalse(valid.productionCutoverAuthorized)
+        XCTAssertFalse(valid.productionTradingEnabledByDefault)
+        XCTAssertFalse(valid.productionEndpointConnected)
+        XCTAssertFalse(valid.productionOrderSubmitted)
+
+        let missingRequiredID = Identifier.constant("gh-917-required-but-absent")
+        let missingRequired = try store.validateReadinessBundle(
+            manifestDescriptor: manifestDescriptor,
+            requiredPolicyVersion: policyVersion,
+            requiredArtifactIDs: requiredArtifactIDs + [missingRequiredID],
+            now: now.addingTimeInterval(10)
+        )
+        XCTAssertEqual(missingRequired.state, .missing)
+        XCTAssertEqual(missingRequired.missingRequiredArtifactIDs.map(\.rawValue), [missingRequiredID.rawValue])
+
+        let blocked = try store.validateReadinessBundle(
+            manifestDescriptor: manifestDescriptor,
+            requiredPolicyVersion: "policy-v0.11.0-other",
+            requiredArtifactIDs: requiredArtifactIDs,
+            now: now.addingTimeInterval(10)
+        )
+        XCTAssertEqual(blocked.state, .blocked)
+        XCTAssertTrue(blocked.stateReason.contains("policy version"))
+
+        let stale = try store.validateReadinessBundle(
+            manifestDescriptor: manifestDescriptor,
+            requiredPolicyVersion: policyVersion,
+            requiredArtifactIDs: requiredArtifactIDs,
+            now: now.addingTimeInterval(240)
+        )
+        XCTAssertEqual(stale.state, .stale)
+
+        let manifestURL = try store.artifactURL(for: manifestDescriptor)
+        try Data("{\"evidenceExists\":true}".utf8).write(to: manifestURL, options: .atomic)
+        try FileManager.default.setAttributes([.modificationDate: now], ofItemAtPath: manifestURL.path)
+        let invalid = try store.validateReadinessBundle(
+            manifestDescriptor: manifestDescriptor,
+            requiredPolicyVersion: policyVersion,
+            requiredArtifactIDs: requiredArtifactIDs,
+            now: now.addingTimeInterval(10)
+        )
+        XCTAssertEqual(invalid.state, .invalid)
+
+        try writeArtifactsAndManifest()
+        try FileManager.default.removeItem(at: try store.artifactURL(for: secretDescriptor))
+        let missingArtifact = try store.validateReadinessBundle(
+            manifestDescriptor: manifestDescriptor,
+            requiredPolicyVersion: policyVersion,
+            requiredArtifactIDs: requiredArtifactIDs,
+            now: now.addingTimeInterval(10)
+        )
+        XCTAssertEqual(missingArtifact.state, .missing)
+        XCTAssertEqual(missingArtifact.missingRequiredArtifactIDs.map(\.rawValue), [secretID.rawValue])
+
+        try writeArtifactsAndManifest()
+        _ = try store.writeStringArtifact(
+            descriptor: riskDescriptor,
+            string: riskDriftPayload,
+            modifiedAt: now
+        )
+        let checksumMismatch = try store.validateReadinessBundle(
+            manifestDescriptor: manifestDescriptor,
+            requiredPolicyVersion: policyVersion,
+            requiredArtifactIDs: requiredArtifactIDs,
+            now: now.addingTimeInterval(10)
+        )
+        XCTAssertEqual(checksumMismatch.state, .checksumMismatch)
+        XCTAssertTrue(checksumMismatch.stateReason.contains("checksum mismatch"))
+    }
+
     func testGH838TopLevelCLIRunSeparatesLocalSessionCreatedFromBrokerSessionStarted() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

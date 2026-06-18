@@ -9,6 +9,8 @@ set -euo pipefail
 # TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO
 # GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM
 # TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM
+# GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION
+# TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -227,6 +229,51 @@ require_file_contains "$TESTS" "testGH916CanonicalJSONSHA256RejectsPlaceholderAn
 require_file_contains "$TESTS" "sha256:gh890-secret-readiness"
 require_file_contains "$TESTS" "checksumMismatch"
 
+for anchor in \
+  "GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION" \
+  "TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION" \
+  "V0110-005-READINESS-BUNDLE-VALIDATION" \
+  "V0110-005-REQUIRED-ARTIFACT-SET" \
+  "V0110-005-BUNDLE-VALIDATION-STATES" \
+  "V0110-005-POLICY-VERSION-BLOCKED" \
+  "V0110-005-CHECKSUM-MISMATCH-STATE" \
+  "V0110-005-NO-PRODUCTION-CUTOVER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$ARTIFACT_STORE_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public enum ProductionReadinessBundleValidationState"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "case notEvaluated = \"not-evaluated\""
+require_file_contains "$ARTIFACT_STORE_SOURCE" "case checksumMismatch = \"checksum-mismatch\""
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public struct ProductionReadinessBundleValidationResult"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "notEvaluatedReadinessBundleValidation("
+require_file_contains "$ARTIFACT_STORE_SOURCE" "validateReadinessBundle("
+require_file_contains "$ARTIFACT_STORE_SOURCE" "requiredArtifactIDs"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "missingRequiredArtifactIDs"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "unexpectedArtifactIDs"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "state: .blocked"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "state: .stale"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "state: .missing"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "state: .invalid"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "state: .checksumMismatch"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "state: .valid"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "Self.timestampsMatch(entry.createdAt, record.modifiedAt)"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "try Self.canonicalJSONSHA256Checksum(for: data) == entry.checksum"
+require_file_contains "$READINESS" "Release v0.11.0 readiness bundle validation anchor"
+require_file_contains "$PLAN" "GH-917 Release v0.11.0 Readiness Bundle Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION"
+require_file_contains "$LATEST" "Release v0.11.0 Readiness Bundle Validation Snapshot"
+require_file_contains "$TESTS" "testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum"
+require_file_contains "$TESTS" "ProductionReadinessBundleValidationState.allCases.map(\\.rawValue)"
+require_file_contains "$TESTS" "missingRequiredArtifactIDs"
+require_file_contains "$TESTS" "checksumMismatch.state"
+
 for forbidden in \
   "productionTradingEnabledByDefault=true" \
   "productionCutoverAuthorized=true" \
@@ -252,5 +299,6 @@ swift test --filter TargetGraphTests/testGH913ReleaseV0110ProductionReadinessEvi
 swift test --filter TargetGraphTests/testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates
 swift test --filter TargetGraphTests/testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts
 swift test --filter TargetGraphTests/testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums
+swift test --filter TargetGraphTests/testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum
 
 echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."

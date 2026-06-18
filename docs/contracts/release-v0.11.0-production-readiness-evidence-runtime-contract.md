@@ -76,6 +76,26 @@ Manifest read 必须重新读取真实 artifact，重新计算 canonical JSON SH
 
 GH-916 不实现 readiness bundle validation、Dashboard real artifact binding、CLI build / status / validate / export / approval-status runtime、approval transition、shadow parity runner、production OMS、trading button、order form 或 live command path。
 
+## V0110-005-READINESS-BUNDLE-VALIDATION
+
+`V0110-005-READINESS-BUNDLE-VALIDATION`
+
+`GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION`
+
+`TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION`
+
+GH-917 在 GH-916 canonical JSON SHA256 之上增加本地 readiness bundle validation。授权范围只覆盖本地 manifest 与 manifest entries 指向的本地 artifact：
+
+- `V0110-005-REQUIRED-ARTIFACT-SET`
+- `V0110-005-BUNDLE-VALIDATION-STATES`
+- `V0110-005-POLICY-VERSION-BLOCKED`
+- `V0110-005-CHECKSUM-MISMATCH-STATE`
+- `V0110-005-NO-PRODUCTION-CUTOVER`
+
+Bundle validation 必须重新校验 manifest schema、artifact existence、canonical JSON SHA256 checksum、size、timestamp、policy version 和 required artifact set。Validation state 固定为 `not-evaluated`、`valid`、`blocked`、`stale`、`missing`、`invalid` 和 `checksum-mismatch`。`valid` 只表示本地 readiness bundle integrity pass，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order。
+
+GH-917 不实现 Dashboard real artifact binding、CLI build / status / validate / export / approval-status runtime、approval transition、shadow parity runner、production OMS、trading button、order form 或 live command path。
+
 ## V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 
 `V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`
