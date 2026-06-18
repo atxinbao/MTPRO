@@ -6,6 +6,28 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-PRODUCTION-READINESS-BUNDLE
+
+- TVM-RELEASE-V0100-PRODUCTION-READINESS-BUNDLE
+- GH-887-VERIFY-V0100-PRODUCTION-READINESS-BUNDLE
+- V0100-010-PRODUCTION-READINESS-AUDIT-BUNDLE
+- V0100-010-PRODUCTION-READINESS-BUNDLE-JSON
+- V0100-010-BUNDLE-SHA256-CHECKSUM
+- V0100-010-ENVIRONMENT-SECRET-ENDPOINT-EVIDENCE
+- V0100-010-CAPITAL-KILL-SWITCH-NO-TRADE-EVIDENCE
+- V0100-010-COMMAND-SURFACE-SHADOW-DRY-RUN-EVIDENCE
+- V0100-010-RISK-POLICY-SNAPSHOT
+- V0100-010-PORTFOLIO-RECONCILIATION-SNAPSHOT
+- V0100-010-REDACTION-PROOF-TRUE
+- V0100-010-NO-SECRET-VALUE-TRUE
+- V0100-010-NO-ORDER-PAYLOAD-TRUE
+- V0100-010-PRODUCTION-CAPABILITIES-DISABLED
+- GH-887 Release v0.10.0 Production Readiness Audit Bundle Validation
+- `bash checks/verify-v0.10.0-production-readiness-bundle.sh`
+- `swift test --filter TargetGraphTests/testGH887ProductionReadinessAuditBundleAggregatesRedactedNoOrderEvidence`
+- fixed bundle schema: `production_readiness_bundle.json`、sha256 checksum、environment / secret / endpoint / capital / kill switch / no-trade / command surface / shadow dry-run / risk policy / portfolio reconciliation entries、`redaction_proof=true`、`no_secret_value=true`、`no_order_payload=true`、`production_cutover_blocked=true`。
+- Boundary: bundle evidence 不包含 broker / account response，不来自 endpoint connection，不包含 order payload，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## TVM-RELEASE-V0100-SHADOW-DRY-RUN-PARITY
 
 - TVM-RELEASE-V0100-SHADOW-DRY-RUN-PARITY
