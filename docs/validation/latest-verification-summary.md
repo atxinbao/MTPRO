@@ -18,10 +18,11 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | --- | --- |
 | Latest completed release construction scope | `MTPRO Release v0.10.0 Production Cutover Readiness Gate` |
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
-| Active queue | none after v0.10.1 patch closeout；下一阶段必须由 Human + `@001 / PLN` 重新规划并写入新的 live queue source |
+| Active queue | GitHub fallback queue `#913..#924` for v0.11.0；当前 gate：`#913 V0110-001 Define production readiness evidence runtime contract` |
 | Stage Code Audit Report | `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md` |
 | Release publication | v0.10.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；target commit `7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`；publication timestamp `2026-06-18T05:19:46Z`；v0.9.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`；target commit `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`；v0.9.1 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`；tag peeled commit `d041f0dd304075562a85e494695697290972288f`；均不授权 production cutover |
 | v0.10.1 patch closeout | `GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES`；Stage Code Audit Report：`docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md`；release notes：`docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md`；aggregate verifier：`checks/verify-v0.10.1.sh`；#907 至 #911 均已 `CLOSED / done` 且 PR #926 至 #930 merged / checks SUCCESS；v0.11.0 owns real readiness artifact runtime + integrity hardening |
+| v0.11.0 contract gate | `GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`；contract：`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`；verifier：`checks/verify-v0.11.0.sh`；只定义 local readiness evidence runtime contract，不授权 production cutover |
 | Release fact sync guard | `GH-907-VERIFY-V0101-RELEASE-FACT-STALE-WORDING-GUARD`；`checks/verify-v0.10.1-release-fact-sync.sh` 固定 v0.10.0 publication 后的四段 release fact flow：construction closeout、release publication、release fact sync、stale wording guard；guard 不授权 production cutover |
 | Readiness CLI help placeholder guard | `GH-910-VERIFY-V0101-READINESS-CLI-HELP`；`checks/verify-v0.10.1-readiness-cli-help.sh` 固定 `mtpro readiness help/build/status/validate/export/approval-status` 只输出 v0.10.1 help-only / no-op placeholder；不写 readiness artifact、不实现 `ProductionReadinessArtifactStore`、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order |
 | CLI verify v0.10.0 wording guard | `GH-909-VERIFY-V0101-CLI-V0100-WORDING`；`checks/verify-v0.10.1-cli-verify-v0100-wording.sh` 固定 `mtpro verify` 的 v0.10.0 输出为 Production Readiness Contract / Reference Evidence Model，并拒绝 operational production readiness、production cutover readiness、production endpoint readiness 和 live order authorization 语义 |
@@ -31,6 +32,30 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。
+
+## Release v0.11.0 Production Readiness Evidence Runtime Contract Snapshot
+
+`GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`
+
+`TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`
+
+`MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening` 当前只打开第一个合同 gate：`#913 V0110-001 Define production readiness evidence runtime contract`。本 gate 把 v0.10.0 reference readiness evidence 模型定义为 v0.11.0 本地 readiness evidence runtime contract，但不实现 artifact writer runtime。
+
+Contract anchors：`V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`、`V0110-001-LOCAL-READINESS-ARTIFACT-RUNTIME`、`V0110-001-READINESS-ARTIFACT-LIFECYCLE`、`V0110-001-RUNTIME-STATES`、`V0110-001-MANIFEST-CHECKSUM-RULES`、`V0110-001-ALLOWED-LOCAL-COMMANDS`、`V0110-001-FORBIDDEN-PRODUCTION-CAPABILITIES`、`V0110-001-DASHBOARD-CLI-POLICY-KILL-SWITCH-APPROVAL-SHADOW-PARITY-BOUNDARIES`、`V0110-001-DOWNSTREAM-QUEUE-ORDER` 和 `V0110-001-RELEASE-VALIDATION-MATRIX`。
+
+Allowed local scope 固定为 `readinessArtifactRuntimeAllowed=true`、`productionReadinessArtifactStoreAllowed=true`、`localArtifactStoreAllowed=true`、`manifestValidationAllowed=true`、`canonicalJSONSHA256Allowed=true`、`dashboardReadModelBindingAllowed=true`、`readinessCLIAllowed=true`、`approvalWorkflowEvidenceAllowed=true` 和 `shadowDryRunParityEvidenceAllowed=true`。
+
+Forbidden production capability flags 固定为 `productionTradingEnabledByDefault=false`、`productionCutoverAuthorized=false`、`productionSecretRead=false`、`productionEndpointConnected=false`、`brokerEndpointConnected=false`、`productionBrokerConnected=false`、`productionOrderSubmitted=false`、`realOrderSubmissionEnabled=false`、`testnetOrderSubmissionAllowed=false`、`testnetOrderRoutingAllowed=false`、`productionOMSImplemented=false`、`tradingButtonEnabled=false`、`orderFormEnabled=false` 和 `liveCommandEnabled=false`。
+
+本地验证入口：
+
+```bash
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/verify-v0.11.0.sh
+bash checks/verify-v0.10.0.sh
+bash checks/run.sh
+```
 
 ## Release v0.10.0 Closure Snapshot
 

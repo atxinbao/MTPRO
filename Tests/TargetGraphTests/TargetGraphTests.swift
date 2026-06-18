@@ -28464,6 +28464,93 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let contract = try read("docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md")
+        let verifier = try read("checks/verify-v0.11.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT",
+            "TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT",
+            "V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT",
+            "V0110-001-LOCAL-READINESS-ARTIFACT-RUNTIME",
+            "V0110-001-READINESS-ARTIFACT-LIFECYCLE",
+            "V0110-001-RUNTIME-STATES",
+            "V0110-001-MANIFEST-CHECKSUM-RULES",
+            "V0110-001-ALLOWED-LOCAL-COMMANDS",
+            "V0110-001-FORBIDDEN-PRODUCTION-CAPABILITIES",
+            "V0110-001-DASHBOARD-CLI-POLICY-KILL-SWITCH-APPROVAL-SHADOW-PARITY-BOUNDARIES",
+            "V0110-001-DOWNSTREAM-QUEUE-ORDER",
+            "V0110-001-RELEASE-VALIDATION-MATRIX"
+        ] {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.11.0 readiness evidence runtime contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be enforced by v0.11.0 verifier")
+            XCTAssertTrue(readinessDoc.contains(anchor), "\(anchor) must be documented in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be documented in latest verification summary")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be required by automation readiness")
+        }
+
+        for allowed in [
+            "readinessArtifactRuntimeAllowed=true",
+            "productionReadinessArtifactStoreAllowed=true",
+            "localArtifactStoreAllowed=true",
+            "manifestValidationAllowed=true",
+            "canonicalJSONSHA256Allowed=true",
+            "dashboardReadModelBindingAllowed=true",
+            "readinessCLIAllowed=true",
+            "approvalWorkflowEvidenceAllowed=true",
+            "shadowDryRunParityEvidenceAllowed=true",
+            "mtpro readiness build",
+            "mtpro readiness status",
+            "mtpro readiness validate",
+            "mtpro readiness export",
+            "mtpro readiness approval-status"
+        ] {
+            XCTAssertTrue(contract.contains(allowed), "\(allowed) must be part of the v0.11.0 local readiness contract")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.0.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.11.0.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.11.0 production readiness evidence runtime contract anchor"))
+        XCTAssertTrue(latest.contains("Release v0.11.0 Production Readiness Evidence Runtime Contract Snapshot"))
+        XCTAssertTrue(validationPlan.contains("GH-913 Release v0.11.0 Production Readiness Evidence Runtime Contract Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT"))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "realOrderSubmissionEnabled=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "productionOMSImplemented=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbidden), "\(forbidden) must stay out of v0.11.0 contract")
+            XCTAssertFalse(latest.contains(forbidden), "\(forbidden) must stay out of latest summary")
+        }
+    }
+
     func testGH838TopLevelCLIRunSeparatesLocalSessionCreatedFromBrokerSessionStarted() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

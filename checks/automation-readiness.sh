@@ -209,11 +209,13 @@ require_file "checks/verify-v0.10.0-incident-rollback-runbook.sh"
 require_file "checks/verify-v0.10.0-dashboard-production-readiness-center.sh"
 require_file "checks/verify-v0.10.0.sh"
 require_file "checks/verify-v0.10.1.sh"
+require_file "checks/verify-v0.11.0.sh"
 require_file "docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md"
 require_file "docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md"
 require_file "docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md"
+require_file "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md"
 require_file "checks/verify-v0.9.0-v080-publication-alignment.sh"
 require_file "checks/verify-v0.9.0-monitor-session-store.sh"
 require_file "checks/verify-v0.9.0-snapshot-freshness-monitor.sh"
@@ -420,6 +422,35 @@ for v0101_patch_closeout_anchor in \
   require_contains "docs/validation/trading-validation-matrix.md" "$v0101_patch_closeout_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0101_patch_closeout_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0101_patch_closeout_anchor"
+done
+require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 production readiness evidence runtime contract anchor"
+require_contains "checks/verify-v0.11.0.sh" "GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT"
+require_contains "checks/run.sh" "bash checks/verify-v0.11.0.sh"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT"
+require_contains "docs/validation/validation-plan.md" "GH-913 Release v0.11.0 Production Readiness Evidence Runtime Contract Validation"
+require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Production Readiness Evidence Runtime Contract Snapshot"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract"
+for v0110_contract_anchor in \
+  "GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT" \
+  "TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT" \
+  "V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT" \
+  "V0110-001-LOCAL-READINESS-ARTIFACT-RUNTIME" \
+  "V0110-001-READINESS-ARTIFACT-LIFECYCLE" \
+  "V0110-001-RUNTIME-STATES" \
+  "V0110-001-MANIFEST-CHECKSUM-RULES" \
+  "V0110-001-ALLOWED-LOCAL-COMMANDS" \
+  "V0110-001-FORBIDDEN-PRODUCTION-CAPABILITIES" \
+  "V0110-001-DASHBOARD-CLI-POLICY-KILL-SWITCH-APPROVAL-SHADOW-PARITY-BOUNDARIES" \
+  "V0110-001-DOWNSTREAM-QUEUE-ORDER" \
+  "V0110-001-RELEASE-VALIDATION-MATRIX"; do
+  require_contains "checks/verify-v0.11.0.sh" "$v0110_contract_anchor"
+  require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_contract_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0110_contract_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0110_contract_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_contract_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0110_contract_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_contract_anchor"
 done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
