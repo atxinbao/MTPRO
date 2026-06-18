@@ -3,6 +3,8 @@ set -euo pipefail
 
 # GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 # TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
+# GH-914-VERIFY-V0110-PRODUCTION-READINESS-ARTIFACT-STORE
+# TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -40,6 +42,7 @@ LATEST="docs/validation/latest-verification-summary.md"
 AUTOMATION_SCRIPT="checks/automation-readiness.sh"
 RUN_SCRIPT="checks/run.sh"
 TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
+ARTIFACT_STORE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift"
 
 for anchor in \
   "GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT" \
@@ -103,6 +106,49 @@ require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.11.0.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.11.0.sh"
 require_file_contains "$TESTS" "testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract"
 
+for anchor in \
+  "GH-914-VERIFY-V0110-PRODUCTION-READINESS-ARTIFACT-STORE" \
+  "TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE" \
+  "V0110-002-PRODUCTION-READINESS-ARTIFACT-STORE" \
+  "V0110-002-LOCAL-EVIDENCE-ROOT" \
+  "V0110-002-ARTIFACT-STATES" \
+  "V0110-002-READ-WRITE-PRIMITIVES" \
+  "V0110-002-NO-PRODUCTION-SECRET-ENDPOINT-ORDER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$ARTIFACT_STORE_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public struct ProductionReadinessArtifactStore"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public enum ProductionReadinessArtifactState"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "case missing"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "case invalid"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "case stale"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "case valid"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "defaultRelativeRoot = \".local/mtpro/readiness/v0.11.0\""
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public static func isSafeRelativePath"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "writeArtifact("
+require_file_contains "$ARTIFACT_STORE_SOURCE" "readArtifact("
+require_file_contains "$ARTIFACT_STORE_SOURCE" "inspectArtifact("
+require_file_contains "$ARTIFACT_STORE_SOURCE" "inspectArtifacts("
+require_file_contains "$ARTIFACT_STORE_SOURCE" "productionTradingEnabledByDefault == false"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "productionSecretRead == false"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "productionEndpointConnected == false"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "brokerEndpointConnected == false"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "productionOrderSubmitted == false"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "testnetOrderSubmissionAllowed == false"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "productionCutoverAuthorized == false"
+require_file_contains "$READINESS" "Release v0.11.0 production readiness artifact store anchor"
+require_file_contains "$PLAN" "GH-914 Release v0.11.0 Production Readiness Artifact Store Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE"
+require_file_contains "$LATEST" "Release v0.11.0 Production Readiness Artifact Store Snapshot"
+require_file_contains "$TESTS" "testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates"
+
 for forbidden in \
   "productionTradingEnabledByDefault=true" \
   "productionCutoverAuthorized=true" \
@@ -125,5 +171,6 @@ for forbidden in \
 done
 
 swift test --filter TargetGraphTests/testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract
+swift test --filter TargetGraphTests/testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates
 
-echo "MTPRO release v0.11.0 production readiness evidence runtime contract verification passed."
+echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."

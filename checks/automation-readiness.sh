@@ -452,6 +452,29 @@ for v0110_contract_anchor in \
   require_contains "docs/validation/validation-plan.md" "$v0110_contract_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_contract_anchor"
 done
+require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 production readiness artifact store anchor"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "ProductionReadinessArtifactStore"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Production Readiness Artifact Store Snapshot"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE"
+require_contains "docs/validation/validation-plan.md" "GH-914 Release v0.11.0 Production Readiness Artifact Store Validation"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates"
+for v0110_artifact_store_anchor in \
+  "GH-914-VERIFY-V0110-PRODUCTION-READINESS-ARTIFACT-STORE" \
+  "TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE" \
+  "V0110-002-PRODUCTION-READINESS-ARTIFACT-STORE" \
+  "V0110-002-LOCAL-EVIDENCE-ROOT" \
+  "V0110-002-ARTIFACT-STATES" \
+  "V0110-002-READ-WRITE-PRIMITIVES" \
+  "V0110-002-NO-PRODUCTION-SECRET-ENDPOINT-ORDER"; do
+  require_contains "checks/verify-v0.11.0.sh" "$v0110_artifact_store_anchor"
+  require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_artifact_store_anchor"
+  require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_artifact_store_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0110_artifact_store_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0110_artifact_store_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_artifact_store_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0110_artifact_store_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_artifact_store_anchor"
+done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands"

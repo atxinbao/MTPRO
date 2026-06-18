@@ -8,6 +8,33 @@
 
 本文档只定义 `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening` 的本地 readiness evidence runtime 合同。它把 v0.10.0 reference readiness evidence 模型推进为本地证据 artifact lifecycle、manifest、checksum、validation 和 operator approval evidence 边界，但不授权 production cutover，不读取 production secret value，不连接 production endpoint 或 broker endpoint，不提交、取消或替换 testnet / production order，不启用 production OMS、trading button、order form 或 live command。
 
+## V0110-002-PRODUCTION-READINESS-ARTIFACT-STORE
+
+`V0110-002-PRODUCTION-READINESS-ARTIFACT-STORE`
+
+`GH-914-VERIFY-V0110-PRODUCTION-READINESS-ARTIFACT-STORE`
+
+`TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE`
+
+GH-914 在 GH-913 合同之后增加 `ProductionReadinessArtifactStore`。Store 的授权范围固定为本地文件系统 evidence root：
+
+- `V0110-002-LOCAL-EVIDENCE-ROOT`
+- `V0110-002-ARTIFACT-STATES`
+- `V0110-002-READ-WRITE-PRIMITIVES`
+- `V0110-002-NO-PRODUCTION-SECRET-ENDPOINT-ORDER`
+
+Artifact store 必须满足：
+
+- approved local evidence root 只能是 file URL，本地默认 root 为 `.local/mtpro/readiness/v0.11.0`；
+- artifact descriptor 只能使用 safe relative path，拒绝绝对路径、`..`、空路径和 `~` 逃逸；
+- artifact state 必须显式表达 `missing`、`invalid`、`stale`、`valid`，不能硬编码 `evidenceExists=true`；
+- write primitive 只能写本地 JSON / text evidence，必须拒绝空 payload、invalid JSON 和 forbidden production true flag；
+- read primitive 只能读取 `valid` 本地 artifact；
+- snapshot 必须统计 missing / invalid / stale / valid 数量；
+- store record 必须固定 `productionTradingEnabledByDefault=false`、`productionSecretRead=false`、`productionEndpointConnected=false`、`brokerEndpointConnected=false`、`productionOrderSubmitted=false`、`testnetOrderSubmissionAllowed=false` 和 `productionCutoverAuthorized=false`。
+
+GH-914 不实现 readiness manifest schema、atomic manifest write order、canonical JSON SHA256、Dashboard real artifact binding、CLI build / status / validate / export / approval-status runtime、approval transition 或 shadow parity runner；这些能力必须留给后续 GH-915 至 GH-924。
+
 ## V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 
 `V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`

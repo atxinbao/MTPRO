@@ -28551,6 +28551,126 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates() throws {
+        XCTAssertEqual(ProductionReadinessArtifactStoreAnchors.validationAnchors, [
+            "GH-914-VERIFY-V0110-PRODUCTION-READINESS-ARTIFACT-STORE",
+            "TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE",
+            "V0110-002-PRODUCTION-READINESS-ARTIFACT-STORE",
+            "V0110-002-LOCAL-EVIDENCE-ROOT",
+            "V0110-002-ARTIFACT-STATES",
+            "V0110-002-READ-WRITE-PRIMITIVES",
+            "V0110-002-NO-PRODUCTION-SECRET-ENDPOINT-ORDER"
+        ])
+
+        let evidenceRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH914-ReadinessArtifactStore-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: evidenceRoot)
+        }
+
+        let store = try ProductionReadinessArtifactStore(evidenceRootURL: evidenceRoot)
+        let descriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-914-readiness-overview"),
+            relativePath: "readiness/production-readiness-overview.json",
+            artifactType: .jsonEvidence,
+            staleAfterSeconds: 60
+        )
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+
+        let missing = try store.inspectArtifact(descriptor, now: now)
+        XCTAssertEqual(missing.state, .missing)
+        XCTAssertEqual(missing.byteCount, 0)
+        XCTAssertTrue(missing.recordHeld)
+        XCTAssertTrue(missing.productionCapabilitiesDisabled)
+
+        XCTAssertThrowsError(
+            try ProductionReadinessArtifactDescriptor(
+                artifactID: Identifier.constant("gh-914-path-escape"),
+                relativePath: "../outside.json",
+                artifactType: .jsonEvidence
+            )
+        )
+
+        let invalidURL = try store.artifactURL(for: descriptor)
+        try FileManager.default.createDirectory(
+            at: invalidURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try Data("not-json".utf8).write(to: invalidURL, options: .atomic)
+        let invalid = try store.inspectArtifact(descriptor, now: now)
+        XCTAssertEqual(invalid.state, .invalid)
+        XCTAssertEqual(invalid.stateReason, "invalid JSON evidence")
+        XCTAssertTrue(invalid.recordHeld)
+        try FileManager.default.removeItem(at: invalidURL)
+
+        let payload = """
+        {
+          "artifactID": "gh-914-readiness-overview",
+          "releaseVersion": "v0.11.0",
+          "redactionProof": true,
+          "noSecretValue": true,
+          "noOrderPayload": true,
+          "productionTradingEnabledByDefault": false,
+          "productionCutoverAuthorized": false,
+          "productionSecretRead": false,
+          "productionEndpointConnected": false,
+          "brokerEndpointConnected": false,
+          "productionOrderSubmitted": false,
+          "testnetOrderSubmissionAllowed": false
+        }
+        """
+        let valid = try store.writeStringArtifact(
+            descriptor: descriptor,
+            string: payload,
+            modifiedAt: now
+        )
+        XCTAssertEqual(valid.state, .valid)
+        XCTAssertGreaterThan(valid.byteCount, 0)
+        XCTAssertTrue(valid.absolutePath.hasPrefix(evidenceRoot.path))
+        XCTAssertTrue(valid.recordHeld)
+        XCTAssertTrue(valid.productionCapabilitiesDisabled)
+
+        let read = try store.readArtifact(descriptor: descriptor, now: now)
+        XCTAssertTrue(read.readHeld)
+        XCTAssertEqual(String(decoding: read.data, as: UTF8.self), payload)
+
+        let stale = try store.inspectArtifact(
+            descriptor,
+            now: now.addingTimeInterval(120)
+        )
+        XCTAssertEqual(stale.state, .stale)
+        XCTAssertEqual(stale.stateReason, "artifact stale")
+        XCTAssertTrue(stale.recordHeld)
+
+        let snapshot = try store.inspectArtifacts(
+            [descriptor],
+            now: now.addingTimeInterval(120)
+        )
+        XCTAssertTrue(snapshot.snapshotHeld)
+        XCTAssertEqual(snapshot.staleCount, 1)
+        XCTAssertEqual(snapshot.validCount, 0)
+        XCTAssertFalse(snapshot.productionCutoverAuthorized)
+        XCTAssertFalse(snapshot.productionSecretRead)
+        XCTAssertFalse(snapshot.productionEndpointConnected)
+        XCTAssertFalse(snapshot.productionOrderSubmitted)
+
+        XCTAssertThrowsError(
+            try store.writeStringArtifact(
+                descriptor: descriptor,
+                string: payload,
+                productionCutoverAuthorized: true
+            )
+        )
+        XCTAssertThrowsError(
+            try store.writeStringArtifact(
+                descriptor: descriptor,
+                string: "{\"productionCutoverAuthorized=true\": true}"
+            )
+        )
+    }
+
     func testGH838TopLevelCLIRunSeparatesLocalSessionCreatedFromBrokerSessionStarted() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
