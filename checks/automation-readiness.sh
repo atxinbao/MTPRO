@@ -569,6 +569,36 @@ for v0110_shadow_parity_anchor in \
   require_contains "docs/validation/validation-plan.md" "$v0110_shadow_parity_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_shadow_parity_anchor"
 done
+require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 Dashboard real artifact state anchor"
+require_contains "Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift" "ReleaseV0110DashboardProductionReadinessCenterArtifactStateAnchors"
+require_contains "Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift" "ReleaseV0110DashboardReadinessArtifactState"
+require_contains "Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift" "artifactStates(fromReadinessManifestJSON data: Data)"
+require_contains "Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift" "bundleState(fromBundleValidationJSON data: Data)"
+require_contains "Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift" "localArtifactStateFixture("
+require_contains "Tests/AppTests/AppTests.swift" "testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors"
+require_contains "checks/verify-v0.11.0.sh" "testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Dashboard Real Artifact State Snapshot"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE"
+require_contains "docs/validation/validation-plan.md" "GH-919 Release v0.11.0 Dashboard Real Artifact State Validation"
+for v0110_dashboard_artifact_anchor in \
+  "GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE" \
+  "TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE" \
+  "V0110-007-DASHBOARD-REAL-ARTIFACT-STATE" \
+  "V0110-007-LOCAL-MANIFEST-BUNDLE-STATE" \
+  "V0110-007-MISSING-CORRUPT-STALE-CHECKSUM-MISMATCH" \
+  "V0110-007-NO-STATIC-EVIDENCE-EXISTS" \
+  "V0110-007-READ-ONLY-NO-PRODUCTION-CUTOVER"; do
+  require_contains "checks/verify-v0.11.0.sh" "$v0110_dashboard_artifact_anchor"
+  require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_dashboard_artifact_anchor"
+  require_contains "Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift" "$v0110_dashboard_artifact_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0110_dashboard_artifact_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0110_dashboard_artifact_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_dashboard_artifact_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0110_dashboard_artifact_anchor"
+  require_contains "Tests/AppTests/AppTests.swift" "$v0110_dashboard_artifact_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_dashboard_artifact_anchor"
+done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands"

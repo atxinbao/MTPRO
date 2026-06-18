@@ -18,7 +18,7 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | --- | --- |
 | Latest completed release construction scope | `MTPRO Release v0.10.0 Production Cutover Readiness Gate` |
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
-| Active queue | GitHub fallback queue `#913..#924` for v0.11.0；当前 gate：`#918 V0110-006 Add real shadow dry-run parity runner from local run evidence`；#913、#914、#915、#916、#917 均已 closed / done 且 PR #932、#933、#934、#935、#936 merged / checks SUCCESS |
+| Active queue | GitHub fallback queue `#913..#924` for v0.11.0；当前 gate：`#919 V0110-007 Wire Dashboard Production Readiness Center to real artifact state`；#913、#914、#915、#916、#917、#918 均已 closed / done 且 PR #932、#933、#934、#935、#936、#937 merged / checks SUCCESS |
 | Stage Code Audit Report | `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md` |
 | Release publication | v0.10.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；target commit `7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`；publication timestamp `2026-06-18T05:19:46Z`；v0.9.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`；target commit `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`；v0.9.1 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`；tag peeled commit `d041f0dd304075562a85e494695697290972288f`；均不授权 production cutover |
 | v0.10.1 patch closeout | `GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES`；Stage Code Audit Report：`docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md`；release notes：`docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md`；aggregate verifier：`checks/verify-v0.10.1.sh`；#907 至 #911 均已 `CLOSED / done` 且 PR #926 至 #930 merged / checks SUCCESS；v0.11.0 owns real readiness artifact runtime + integrity hardening |
@@ -28,6 +28,7 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | v0.11.0 canonical JSON SHA256 checksum gate | `GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM`；implementation：`Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`；focused test：`testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums`；只把 readiness artifact / manifest checksum policy 固定为 canonical JSON SHA256 和 `sha256:<64 hex>` 格式，不授权 production cutover |
 | v0.11.0 readiness bundle validation gate | `GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION`；implementation：`Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`；focused test：`testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum`；只实现本地 manifest / artifact bundle validation，不授权 production cutover |
 | v0.11.0 shadow dry-run parity runner gate | `GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER`；implementation：`Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`；focused test：`testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence`；只从本地 run evidence 生成 `shadow_dry_run_parity.json` 与 manifest，不授权 production cutover |
+| v0.11.0 Dashboard real artifact state gate | `GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE`；implementation：`Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift`；focused tests：`testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly`、`testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors`；只把本地 manifest / bundle validation JSON 的真实状态映射到 Dashboard read-model-only cards，不授权 production cutover |
 | Release fact sync guard | `GH-907-VERIFY-V0101-RELEASE-FACT-STALE-WORDING-GUARD`；`checks/verify-v0.10.1-release-fact-sync.sh` 固定 v0.10.0 publication 后的四段 release fact flow：construction closeout、release publication、release fact sync、stale wording guard；guard 不授权 production cutover |
 | Readiness CLI help placeholder guard | `GH-910-VERIFY-V0101-READINESS-CLI-HELP`；`checks/verify-v0.10.1-readiness-cli-help.sh` 固定 `mtpro readiness help/build/status/validate/export/approval-status` 只输出 v0.10.1 help-only / no-op placeholder；不写 readiness artifact、不实现 `ProductionReadinessArtifactStore`、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order |
 | CLI verify v0.10.0 wording guard | `GH-909-VERIFY-V0101-CLI-V0100-WORDING`；`checks/verify-v0.10.1-cli-verify-v0100-wording.sh` 固定 `mtpro verify` 的 v0.10.0 输出为 Production Readiness Contract / Reference Evidence Model，并拒绝 operational production readiness、production cutover readiness、production endpoint readiness 和 live order authorization 语义 |
@@ -37,6 +38,30 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。
+
+## Release v0.11.0 Dashboard Real Artifact State Snapshot
+
+`GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE`
+
+`TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE`
+
+`V0110-007-DASHBOARD-REAL-ARTIFACT-STATE`
+
+GH-919 在 v0.11.0 queue 中把 Dashboard Production Readiness Center 从 deterministic fixture-only evidence 推进到本地 artifact state read model。当前实现只消费本地 manifest / bundle validation JSON 的只读字段，并映射为 Dashboard cards。
+
+Validation anchors：`V0110-007-LOCAL-MANIFEST-BUNDLE-STATE`、`V0110-007-MISSING-CORRUPT-STALE-CHECKSUM-MISMATCH`、`V0110-007-NO-STATIC-EVIDENCE-EXISTS` 和 `V0110-007-READ-ONLY-NO-PRODUCTION-CUTOVER`。
+
+Dashboard 可展示 `not-evaluated`、`valid`、`blocked`、`stale`、`missing`、`invalid` 和 `checksum-mismatch`。默认 fixture 只表示 `local-artifact-state-not-evaluated`，不再把静态 `evidenceExists=true` 当作 readiness proof。
+
+Boundary flags 固定为 `productionTradingEnabledByDefault=false`、`productionSecretRead=false`、`productionEndpointConnected=false`、`brokerEndpointConnected=false`、`productionOrderSubmitted=false`、`testnetOrderSubmissionAllowed=false` 和 `productionCutoverAuthorized=false`。GH-919 不实现 CLI readiness runtime、approval transition、production OMS、trading button、order form、submit / cancel / replace 或 live command。
+
+Focused validation：
+
+```bash
+swift test --filter AppTests/testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly
+swift test --filter TargetGraphTests/testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors
+bash checks/verify-v0.11.0.sh
+```
 
 ## Release v0.11.0 Shadow Dry-run Parity Runner Snapshot
 

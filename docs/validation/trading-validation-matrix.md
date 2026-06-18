@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE
+
+- TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE
+- GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE
+- V0110-007-DASHBOARD-REAL-ARTIFACT-STATE
+- V0110-007-LOCAL-MANIFEST-BUNDLE-STATE
+- V0110-007-MISSING-CORRUPT-STALE-CHECKSUM-MISMATCH
+- V0110-007-NO-STATIC-EVIDENCE-EXISTS
+- V0110-007-READ-ONLY-NO-PRODUCTION-CUTOVER
+- GH-919 Release v0.11.0 Dashboard Real Artifact State Validation
+- `bash checks/verify-v0.11.0.sh`
+- `swift test --filter AppTests/testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly`
+- `swift test --filter TargetGraphTests/testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors`
+- fixed Dashboard real artifact state evidence: `Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift`、`Tests/AppTests/AppTests.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift` 和 `checks/verify-v0.11.0.sh`。
+- Boundary: v0.11.0 Dashboard real artifact state 只把本地 manifest / bundle validation JSON 映射为 read-model-only cards；missing / corrupt / stale / checksum mismatch 都必须显式展示；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER
 
 - TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER

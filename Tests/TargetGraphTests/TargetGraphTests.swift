@@ -29317,6 +29317,91 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        XCTAssertEqual(ReleaseV0110DashboardProductionReadinessCenterArtifactStateAnchors.validationAnchors, [
+            "GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE",
+            "TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE",
+            "V0110-007-DASHBOARD-REAL-ARTIFACT-STATE",
+            "V0110-007-LOCAL-MANIFEST-BUNDLE-STATE",
+            "V0110-007-MISSING-CORRUPT-STALE-CHECKSUM-MISMATCH",
+            "V0110-007-NO-STATIC-EVIDENCE-EXISTS",
+            "V0110-007-READ-ONLY-NO-PRODUCTION-CUTOVER"
+        ])
+
+        let source = try read("Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift")
+        let contract = try read("docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md")
+        let appTests = try read("Tests/AppTests/AppTests.swift")
+        let targetTests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+        let verifier = try read("checks/verify-v0.11.0.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        for anchor in ReleaseV0110DashboardProductionReadinessCenterArtifactStateAnchors.validationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Dashboard source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.11.0 contract")
+            XCTAssertTrue(appTests.contains(anchor), "\(anchor) must stay in AppTests")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.11.0 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+        }
+
+        for requiredString in [
+            "ReleaseV0110DashboardReadinessArtifactState",
+            "ReleaseV0110DashboardReadinessArtifactStateInput",
+            "ReleaseV0110DashboardReadinessBundleStateInput",
+            "artifactStates(fromReadinessManifestJSON:",
+            "bundleState(fromBundleValidationJSON:",
+            "localArtifactStateFixture(",
+            "testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly",
+            "testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors",
+            "checksum-mismatch",
+            "local-readiness-artifacts"
+        ] {
+            XCTAssertTrue(
+                source.contains(requiredString)
+                    || contract.contains(requiredString)
+                    || appTests.contains(requiredString)
+                    || targetTests.contains(requiredString)
+                    || verifier.contains(requiredString)
+                    || readiness.contains(requiredString)
+                    || readinessScript.contains(requiredString)
+                    || validationPlan.contains(requiredString)
+                    || tradingMatrix.contains(requiredString)
+                    || latest.contains(requiredString),
+                "\(requiredString) must stay wired into GH-919 evidence"
+            )
+        }
+
+        for forbiddenAuthorization in [
+            "productionCutoverAuthorized = true",
+            "productionTradingEnabledByDefault = true",
+            "productionSecretAutoReadEnabled = true",
+            "productionEndpointConnected = true",
+            "brokerEndpointConnected = true",
+            "productionOrderSubmitted = true",
+            "testnetOrderSubmissionEnabled = true",
+            "tradingButtonVisible = true",
+            "orderFormVisible = true",
+            "liveCommandVisible = true",
+            "submitCancelReplaceVisible = true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of GH-919")
+        }
+    }
+
     func testGH838TopLevelCLIRunSeparatesLocalSessionCreatedFromBrokerSessionStarted() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

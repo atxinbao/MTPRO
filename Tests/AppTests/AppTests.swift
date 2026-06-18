@@ -3582,9 +3582,13 @@ final class AppTests: XCTestCase {
             metricValue("Readiness center panels", in: surface.metrics),
             "readiness-overview,environment-profile,secret-readiness,endpoint-policy,risk-capital-limits,kill-switch-no-trade,command-surface-disabled,shadow-dry-run-parity,approval-workflow,readiness-bundle"
         )
-        XCTAssertEqual(metricValue("Readiness evidence", in: surface.metrics), "bundle+runbook")
+        XCTAssertEqual(metricValue("Readiness evidence", in: surface.metrics), "local-artifact-state-not-evaluated")
+        XCTAssertEqual(metricValue("Readiness bundle state", in: surface.metrics), "not-evaluated")
         XCTAssertEqual(metricValue("Production command", in: surface.metrics), "disabled")
         XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.readinessCards.allSatisfy { $0.artifactValidationState == .notEvaluated })
+        XCTAssertTrue(surface.readinessCards.allSatisfy { $0.artifactEvidenceExists == false })
+        XCTAssertTrue(surface.localArtifactStateBound)
         XCTAssertTrue(surface.details.contains("Incident rollback evidence: incident_rollback_readiness.json"))
         XCTAssertTrue(surface.details.contains("Credential values: none"))
         XCTAssertTrue(surface.details.contains("Trading button: none"))
@@ -3601,12 +3605,129 @@ final class AppTests: XCTestCase {
                 "releaseV0100ReadinessCenterPanels=readiness-overview,environment-profile,secret-readiness,endpoint-policy,risk-capital-limits,kill-switch-no-trade,command-surface-disabled,shadow-dry-run-parity,approval-workflow,readiness-bundle"
             )
         )
-        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0100ReadinessCenterEvidence=bundle+runbook"))
+        XCTAssertTrue(
+            snapshot.smokeSummary.contains(
+                "releaseV0100ReadinessCenterEvidence=local-artifact-state-not-evaluated"
+            )
+        )
         XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0100ReadinessCenterBoundary=confirmed"))
 
         for anchor in ReleaseV0100DashboardProductionReadinessCenterViewModel.requiredValidationAnchors {
             XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-890 surface")
         }
+    }
+
+    func testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly() throws {
+        // 测试场景：GH-919 Dashboard Production Readiness Center 必须消费本地 readiness
+        // manifest / bundle validation JSON 的真实状态，而不是继续把 fixture 当作 evidence exists。
+        // 这些状态只用于展示，不能启用 production cutover、broker endpoint 或订单命令。
+        let checksum = "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        let cards = ReleaseV0100DashboardProductionReadinessCenterViewModel.defaultReadinessCards
+        let stateByArtifact: [String: (ReleaseV0110DashboardReadinessArtifactState, Bool, Bool, String)] = [
+            "production-readiness-overview.json": (.valid, true, true, "artifact valid"),
+            "production-environment-profile.json": (.missing, false, false, "missing local readiness artifact"),
+            "secret-readiness.json": (.invalid, true, true, "malformed local readiness artifact"),
+            "endpoint-policy-readiness.json": (.stale, true, true, "stale local readiness artifact"),
+            "capital-exposure-limits.json": (.checksumMismatch, true, false, "checksum mismatch"),
+            "kill-switch-no-trade-readiness.json": (.blocked, false, false, "policy version mismatch"),
+            "dashboard-production-surface-disabled.json": (.valid, true, true, "artifact valid"),
+            "shadow-dry-run-parity.json": (.valid, true, true, "artifact valid"),
+            "cutover-approval-workflow.json": (.valid, true, true, "artifact valid"),
+            "production-readiness-bundle.json": (.valid, true, true, "artifact valid")
+        ]
+        let manifestEntries = cards.map { card -> String in
+            let state = try! XCTUnwrap(stateByArtifact[card.evidenceArtifact])
+            return """
+            {
+              "artifactID": "gh-919-\(card.panel.rawValue)",
+              "relativePath": "runs/gh-919/\(card.evidenceArtifact)",
+              "checksum": "\(checksum)",
+              "validationState": "\(state.0.rawValue)",
+              "evidenceExists": \(state.1),
+              "stateReason": "\(state.3)"
+            }
+            """
+        }
+        let manifestJSON = """
+        {
+          "entries": [
+            \(manifestEntries.joined(separator: ",\n"))
+          ],
+          "productionTradingEnabledByDefault": false,
+          "productionSecretRead": false,
+          "productionEndpointConnected": false,
+          "brokerEndpointConnected": false,
+          "productionOrderSubmitted": false,
+          "testnetOrderSubmissionAllowed": false,
+          "productionCutoverAuthorized": false
+        }
+        """
+        let artifactStates = try ReleaseV0100DashboardProductionReadinessCenterViewModel
+            .artifactStates(fromReadinessManifestJSON: Data(manifestJSON.utf8))
+        let bundleJSON = """
+        {
+          "policyVersion": "v0.11.0-dashboard-local-artifact-state",
+          "state": "checksum-mismatch",
+          "requiredArtifactIDs": ["gh-919-production-readiness-overview"],
+          "manifestArtifactIDs": ["gh-919-production-readiness-overview"],
+          "missingRequiredArtifactIDs": [],
+          "unexpectedArtifactIDs": [],
+          "stateReason": "checksum mismatch",
+          "productionTradingEnabledByDefault": false,
+          "productionSecretRead": false,
+          "productionEndpointConnected": false,
+          "brokerEndpointConnected": false,
+          "productionOrderSubmitted": false,
+          "testnetOrderSubmissionAllowed": false,
+          "productionCutoverAuthorized": false
+        }
+        """
+        let bundleState = try ReleaseV0100DashboardProductionReadinessCenterViewModel
+            .bundleState(fromBundleValidationJSON: Data(bundleJSON.utf8))
+        let surface = ReleaseV0100DashboardProductionReadinessCenterViewModel.localArtifactStateFixture(
+            artifactStates: artifactStates,
+            bundleState: bundleState
+        )
+        let cardsByPanel = Dictionary(uniqueKeysWithValues: surface.readinessCards.map { ($0.panel, $0) })
+
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.localArtifactStateSource, "local-readiness-artifacts")
+        XCTAssertEqual(surface.bundleValidationState, .checksumMismatch)
+        XCTAssertEqual(surface.bundleValidationReason, "checksum mismatch")
+        XCTAssertEqual(cardsByPanel[.readinessOverview]?.artifactValidationState, .valid)
+        XCTAssertEqual(cardsByPanel[.environmentProfile]?.artifactValidationState, .missing)
+        XCTAssertEqual(cardsByPanel[.secretReadiness]?.artifactValidationState, .invalid)
+        XCTAssertEqual(cardsByPanel[.endpointPolicy]?.artifactValidationState, .stale)
+        XCTAssertEqual(cardsByPanel[.riskCapitalLimits]?.artifactValidationState, .checksumMismatch)
+        XCTAssertEqual(cardsByPanel[.killSwitchNoTrade]?.artifactValidationState, .blocked)
+        XCTAssertEqual(cardsByPanel[.riskCapitalLimits]?.statusLabel, "readiness-checksum-mismatch")
+        XCTAssertEqual(cardsByPanel[.environmentProfile]?.artifactEvidenceExists, false)
+        XCTAssertEqual(cardsByPanel[.riskCapitalLimits]?.artifactChecksumMatches, false)
+        XCTAssertTrue(surface.readinessCards.allSatisfy(\.cardHeld))
+        XCTAssertTrue(surface.details.contains("Bundle validation state: checksum-mismatch"))
+        XCTAssertEqual(metricValue("Readiness bundle state", in: surface.metrics), "checksum-mismatch")
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretAutoReadEnabled)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.submitCancelReplaceVisible)
+        XCTAssertEqual(
+            ReleaseV0110DashboardProductionReadinessCenterArtifactStateAnchors.validationAnchors,
+            [
+                "GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE",
+                "TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE",
+                "V0110-007-DASHBOARD-REAL-ARTIFACT-STATE",
+                "V0110-007-LOCAL-MANIFEST-BUNDLE-STATE",
+                "V0110-007-MISSING-CORRUPT-STALE-CHECKSUM-MISMATCH",
+                "V0110-007-NO-STATIC-EVIDENCE-EXISTS",
+                "V0110-007-READ-ONLY-NO-PRODUCTION-CUTOVER"
+            ]
+        )
     }
 
     func testGH818DashboardSafeLocalControlsBindSessionStoresWithoutCommands() throws {

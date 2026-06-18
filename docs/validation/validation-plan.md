@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-919 Release v0.11.0 Dashboard Real Artifact State Validation
+
+- `GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE`
+- `TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE`
+- `V0110-007-DASHBOARD-REAL-ARTIFACT-STATE`
+- `V0110-007-LOCAL-MANIFEST-BUNDLE-STATE`
+- `V0110-007-MISSING-CORRUPT-STALE-CHECKSUM-MISMATCH`
+- `V0110-007-NO-STATIC-EVIDENCE-EXISTS`
+- `V0110-007-READ-ONLY-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly`
+- Focused test: `testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors`
+- Evidence files: `Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift`、`Tests/AppTests/AppTests.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-919 只让 Dashboard Production Readiness Center 消费本地 manifest / bundle validation JSON 状态，并展示 `not-evaluated`、`valid`、`blocked`、`stale`、`missing`、`invalid`、`checksum-mismatch`；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-918 Release v0.11.0 Shadow Dry-run Parity Runner Validation
 
 - `GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER`
