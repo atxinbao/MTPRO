@@ -82,6 +82,23 @@ public enum ProductionReadinessShadowDryRunParityRunnerAnchors {
     ]
 }
 
+/// ProductionReadinessFixedPointCapitalExposurePolicyAnchors 固定 GH-921 的 fixed-point policy 验证锚点。
+///
+/// GH-921 只把本地 readiness capital / exposure policy 从 string-only evidence 升级为
+/// fixed-point typed evidence；它不授权 production cutover、不读取 secret、不连接 endpoint / broker、
+/// 不提交订单，也不绕过人工审批和 no-trade gate。
+public enum ProductionReadinessFixedPointCapitalExposurePolicyAnchors {
+    public static let validationAnchors = [
+        "GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY",
+        "TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY",
+        "V0110-009-FIXED-POINT-CAPITAL-EXPOSURE-POLICY",
+        "V0110-009-POLICY-UNITS-SCALE",
+        "V0110-009-NUMERIC-RELATIONSHIP-VALIDATION",
+        "V0110-009-POLICY-HASH-INPUTS",
+        "V0110-009-NO-PRODUCTION-CUTOVER-ORDER"
+    ]
+}
+
 /// ProductionReadinessArtifactStoreError 描述 GH-914 本地 readiness artifact store 的失败类型。
 ///
 /// 这些错误只覆盖本地 evidence root、relative path、JSON payload 和 forbidden capability

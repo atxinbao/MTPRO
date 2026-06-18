@@ -17230,3 +17230,29 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass.
   - `bash checks/run.sh`: pass, 605 tests / 0 failures.
+
+## 2026-06-19 - GH-921 v0.11.0 Fixed-point Capital / Exposure Policy
+
+- Executor: Codex.
+- Scope:
+  - Updated `Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift`.
+  - Added `ReleaseV0110FixedPointPolicyValue` and `ReleaseV0110FixedPointPolicyUnit` so capital, notional, exposure, daily loss and leverage policy values are typed fixed-point values with explicit `minorUnits`, `scale` and `unit`.
+  - Replaced string-only readiness policy comparisons with unit-safe and scale-safe fixed-point comparisons for max capital, max notional, single-order notional, symbol exposure, product exposure, daily loss and leverage.
+  - Bound the risk policy identity to explicit policy hash inputs derived from the typed fixed-point values, preventing stale string-only policy fixtures from passing readiness.
+  - Added `GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY` anchors to the v0.11.0 contract, automation readiness, validation plan, trading validation matrix, latest summary, verifier and TargetGraph focused test.
+- Boundary:
+  - Did not create a `v0.11.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement approval transition, production OMS, trading button, order form or live command path.
+  - Policy evidence remains local readiness evidence only; it does not grant production trading permission.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH400TryBangPreconditionFailureAndFatalErrorStayInAllowedConstructs`: pass.
+  - `swift test --filter TargetGraphTests/testGH883CapitalExposureLimitReadinessGateBindsRiskPolicyAndDisablesOrders`: pass.
+  - `swift test --filter TargetGraphTests/testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons`: pass.
+  - `bash checks/verify-v0.10.0.sh`: pass.
+  - `bash checks/verify-v0.11.0.sh`: pass.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/run.sh`: pass, 606 tests / 0 failures.
