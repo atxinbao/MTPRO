@@ -9560,6 +9560,160 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        func snapshot(
+            _ name: String,
+            state: ReleaseV0100KillSwitchNoTradeReadinessState,
+            freshnessState: ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState = .fresh,
+            reviewState: ReleaseV0110KillSwitchNoTradeReviewState = .reviewed
+        ) throws -> ReleaseV0110KillSwitchNoTradeReadinessSnapshot {
+            try ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
+                name: name,
+                state: state,
+                freshnessState: freshnessState,
+                reviewState: reviewState
+            )
+        }
+
+        let blocked = try ReleaseV0110KillSwitchNoTradeReadinessStateModel.blockedFixture()
+        XCTAssertTrue(blocked.stateModelHeld)
+        XCTAssertTrue(blocked.failClosed)
+        XCTAssertFalse(blocked.approvalRequestEligible)
+        XCTAssertEqual(blocked.approvalRequestEligibility, .blocked)
+        XCTAssertEqual(blocked.killSwitchSnapshot.state, .active)
+        XCTAssertEqual(blocked.noTradeSnapshot.state, .active)
+        XCTAssertTrue(blocked.productionCutoverBlocked)
+        XCTAssertTrue(blocked.productionCapabilitiesDisabled)
+        XCTAssertFalse(blocked.cutoverAuthorized)
+        XCTAssertFalse(blocked.orderSubmissionEnabled)
+        XCTAssertFalse(blocked.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(blocked.productionEndpointConnectionEnabled)
+        XCTAssertFalse(blocked.productionBrokerConnectionEnabled)
+        XCTAssertFalse(blocked.productionSecretValueRead)
+        XCTAssertFalse(blocked.productionOMSRuntimeEnabled)
+        XCTAssertFalse(blocked.tradingButtonEnabled)
+        XCTAssertFalse(blocked.orderFormEnabled)
+        XCTAssertFalse(blocked.liveCommandEnabled)
+
+        let eligible = try ReleaseV0110KillSwitchNoTradeReadinessStateModel.approvalRequestEligibleFixture()
+        XCTAssertTrue(eligible.stateModelHeld)
+        XCTAssertTrue(eligible.approvalRequestEligible)
+        XCTAssertFalse(eligible.failClosed)
+        XCTAssertEqual(eligible.approvalRequestEligibility, .eligibleForApprovalRequest)
+        XCTAssertTrue(eligible.productionCutoverBlocked)
+        XCTAssertFalse(eligible.cutoverAuthorized)
+        XCTAssertFalse(eligible.orderSubmissionEnabled)
+        XCTAssertFalse(eligible.testnetOrderSubmissionEnabled)
+
+        let failClosedCases: [(
+            ReleaseV0100KillSwitchNoTradeReadinessState,
+            ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState,
+            ReleaseV0110KillSwitchNoTradeReviewState
+        )] = [
+            (.active, .fresh, .reviewed),
+            (.unknown, .fresh, .reviewed),
+            (.stale, .fresh, .reviewed),
+            (.unavailable, .fresh, .reviewed),
+            (.inactive, .unknown, .reviewed),
+            (.inactive, .stale, .reviewed),
+            (.inactive, .unavailable, .reviewed),
+            (.inactive, .fresh, .pending),
+            (.inactive, .fresh, .unknown),
+            (.inactive, .fresh, .unavailable)
+        ]
+        for (state, freshness, review) in failClosedCases {
+            let model = try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
+                killSwitchSnapshot: snapshot("kill-switch", state: state, freshnessState: freshness, reviewState: review),
+                noTradeSnapshot: snapshot("no-trade", state: .inactive, freshnessState: .fresh, reviewState: .reviewed)
+            )
+            XCTAssertTrue(model.failClosed, "\(state.rawValue)/\(freshness.rawValue)/\(review.rawValue) must fail closed")
+            XCTAssertFalse(model.approvalRequestEligible)
+            XCTAssertEqual(model.approvalRequestEligibility, .blocked)
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
+                killSwitchSnapshot: snapshot("kill-switch", state: .active),
+                noTradeSnapshot: snapshot("no-trade", state: .inactive),
+                approvalRequestEligibility: .eligibleForApprovalRequest
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
+                killSwitchSnapshot: snapshot("kill-switch", state: .inactive),
+                noTradeSnapshot: snapshot("no-trade", state: .inactive),
+                productionCutoverBlocked: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
+                killSwitchSnapshot: snapshot("kill-switch", state: .inactive),
+                noTradeSnapshot: snapshot("no-trade", state: .inactive),
+                cutoverAuthorized: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
+                killSwitchSnapshot: snapshot("kill-switch", state: .inactive),
+                noTradeSnapshot: snapshot("no-trade", state: .inactive),
+                orderSubmissionEnabled: true
+            )
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift")
+        let artifactStoreSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift")
+        let contract = try read("docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md")
+        let verifier = try read("checks/verify-v0.11.0.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL",
+            "TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL",
+            "V0110-010-KILL-SWITCH-NO-TRADE-STATE-MODEL",
+            "V0110-010-UNKNOWN-STALE-UNAVAILABLE-FAIL-CLOSED",
+            "V0110-010-INACTIVE-FRESH-REVIEWED-APPROVAL-REQUEST-ELIGIBILITY",
+            "V0110-010-NO-PRODUCTION-CUTOVER-ORDER"
+        ]
+        XCTAssertEqual(ReleaseV0110KillSwitchNoTradeReadinessStateModel.requiredValidationAnchors, expectedAnchors)
+        XCTAssertEqual(ProductionReadinessKillSwitchNoTradeStateModelAnchors.validationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in kill switch / no-trade source")
+            XCTAssertTrue(artifactStoreSource.contains(anchor), "\(anchor) must stay in artifact store anchors")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.11.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.11.0 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in readiness docs")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest summary")
+        }
+
+        for expected in [
+            "case active",
+            "case inactive",
+            "case unknown",
+            "case stale",
+            "case unavailable",
+            "ReleaseV0110KillSwitchNoTradeReadinessStateModel",
+            "ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState",
+            "ReleaseV0110KillSwitchNoTradeReviewState",
+            "eligibleForApprovalRequest",
+            "productionCutoverBlocked",
+            "orderSubmissionEnabled"
+        ] {
+            XCTAssertTrue(source.contains(expected), "\(expected) must stay represented in GH-922 source")
+        }
+    }
+
     func testGH885ProductionCommandSurfaceDisabledProofKeepsDashboardAndCLIReadOnly() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

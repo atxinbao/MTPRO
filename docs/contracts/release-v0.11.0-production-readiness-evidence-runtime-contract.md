@@ -205,6 +205,48 @@ Policy hash inputs 必须来自 typed fixed-point value 的 canonical `minorUnit
 
 GH-921 只强化本地 readiness evidence。它不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover，不实现 production OMS、trading button、order form、submit / cancel / replace 或 live command path。
 
+## V0110-010-KILL-SWITCH-NO-TRADE-STATE-MODEL
+
+`V0110-010-KILL-SWITCH-NO-TRADE-STATE-MODEL`
+
+`GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL`
+
+`TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL`
+
+GH-922 在 GH-921 fixed-point readiness policy 之后，把 kill switch / no-trade readiness 从 active-only evidence 扩展为显式状态模型。授权范围只覆盖本地 readiness state、freshness evidence、review evidence 和 approval-request eligibility 分类：
+
+- `V0110-010-UNKNOWN-STALE-UNAVAILABLE-FAIL-CLOSED`
+- `V0110-010-INACTIVE-FRESH-REVIEWED-APPROVAL-REQUEST-ELIGIBILITY`
+- `V0110-010-NO-PRODUCTION-CUTOVER-ORDER`
+
+Kill switch 和 no-trade readiness state 必须显式表达为 `active`、`inactive`、`unknown`、`stale` 或 `unavailable`。Evidence freshness 必须显式表达为 `fresh`、`unknown`、`stale` 或 `unavailable`。Review state 必须显式表达为 `reviewed`、`pending`、`unknown` 或 `unavailable`。
+
+Fail-closed rule 固定如下：
+
+- `active` 必须 blocked / fail closed。
+- `unknown` 必须 blocked / fail closed。
+- `stale` 必须 blocked / fail closed。
+- `unavailable` 必须 blocked / fail closed。
+- freshness 为 `unknown`、`stale` 或 `unavailable` 必须 blocked / fail closed。
+- review 为 `pending`、`unknown` 或 `unavailable` 必须 blocked / fail closed。
+- 只有 kill switch 与 no-trade 同时满足 `inactive + fresh + reviewed`，才可进入 `eligible-for-approval-request`。
+
+`eligible-for-approval-request` 只表示本地 readiness evidence 可进入后续人工审批请求，不等于 production cutover authorization。即便 eligibility 为 true，以下边界仍必须保持：
+
+- `productionCutoverBlocked=true`
+- `cutoverAuthorized=false`
+- `orderSubmissionEnabled=false`
+- `testnetOrderSubmissionEnabled=false`
+- `productionEndpointConnectionEnabled=false`
+- `productionBrokerConnectionEnabled=false`
+- `productionSecretValueRead=false`
+- `productionOMSRuntimeEnabled=false`
+- `tradingButtonEnabled=false`
+- `orderFormEnabled=false`
+- `liveCommandEnabled=false`
+
+GH-922 只强化本地 readiness evidence state model。它不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover，不实现 production OMS、trading button、order form、submit / cancel / replace 或 live command path。
+
 ## V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 
 `V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`

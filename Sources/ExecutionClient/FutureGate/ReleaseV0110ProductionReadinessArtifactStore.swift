@@ -99,6 +99,22 @@ public enum ProductionReadinessFixedPointCapitalExposurePolicyAnchors {
     ]
 }
 
+/// ProductionReadinessKillSwitchNoTradeStateModelAnchors 固定 GH-922 的状态模型验证锚点。
+///
+/// GH-922 只把 kill switch / no-trade readiness 从 active-only evidence 扩展为
+/// unknown / stale / unavailable / inactive 等显式 fail-closed 状态；它不授权 production
+/// cutover、不读取 secret、不连接 endpoint / broker、不提交订单，也不绕过人工审批。
+public enum ProductionReadinessKillSwitchNoTradeStateModelAnchors {
+    public static let validationAnchors = [
+        "GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL",
+        "TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL",
+        "V0110-010-KILL-SWITCH-NO-TRADE-STATE-MODEL",
+        "V0110-010-UNKNOWN-STALE-UNAVAILABLE-FAIL-CLOSED",
+        "V0110-010-INACTIVE-FRESH-REVIEWED-APPROVAL-REQUEST-ELIGIBILITY",
+        "V0110-010-NO-PRODUCTION-CUTOVER-ORDER"
+    ]
+}
+
 /// ProductionReadinessArtifactStoreError 描述 GH-914 本地 readiness artifact store 的失败类型。
 ///
 /// 这些错误只覆盖本地 evidence root、relative path、JSON payload 和 forbidden capability

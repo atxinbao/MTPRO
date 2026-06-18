@@ -44,6 +44,300 @@ public enum ReleaseV0100KillSwitchNoTradeForbiddenCapability: String, Codable, C
 /// 该 state 只作为 readiness evidence，不代表运行中 broker、OMS 或 production command 状态。
 public enum ReleaseV0100KillSwitchNoTradeReadinessState: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case active
+    case inactive
+    case unknown
+    case stale
+    case unavailable
+}
+
+/// ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState 表示 GH-922 本地 readiness evidence 的新鲜度。
+///
+/// 这些状态只用于本地 readiness 判断。`unknown`、`stale` 和 `unavailable` 必须 fail closed；
+/// 它们不会触发 endpoint connection、broker command 或任何 submit / cancel / replace。
+public enum ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case fresh
+    case unknown
+    case stale
+    case unavailable
+}
+
+/// ReleaseV0110KillSwitchNoTradeReviewState 表示 GH-922 operator review evidence 状态。
+///
+/// Review evidence 只能决定是否具备 approval-request eligibility；它不等于 production cutover
+/// approval，也不授权真实交易。
+public enum ReleaseV0110KillSwitchNoTradeReviewState: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case reviewed
+    case pending
+    case unknown
+    case unavailable
+}
+
+/// ReleaseV0110KillSwitchNoTradeApprovalRequestEligibility 是 GH-922 的本地 eligibility 分类。
+public enum ReleaseV0110KillSwitchNoTradeApprovalRequestEligibility: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case blocked
+    case eligibleForApprovalRequest = "eligible-for-approval-request"
+}
+
+/// ReleaseV0110KillSwitchNoTradeReadinessSnapshot 是 GH-922 对 kill switch 或 no-trade 的单项状态快照。
+///
+/// 只有 `inactive + fresh + reviewed` 可以进入 approval-request eligibility。任何 active、
+/// unknown、stale、unavailable 或未 reviewed 状态都必须 fail closed，并继续阻断订单命令。
+public struct ReleaseV0110KillSwitchNoTradeReadinessSnapshot: Codable, Equatable, Sendable {
+    public let name: String
+    public let state: ReleaseV0100KillSwitchNoTradeReadinessState
+    public let freshnessState: ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState
+    public let reviewState: ReleaseV0110KillSwitchNoTradeReviewState
+
+    public var approvalRequestEligible: Bool {
+        state == .inactive
+            && freshnessState == .fresh
+            && reviewState == .reviewed
+    }
+
+    public var failClosed: Bool {
+        approvalRequestEligible == false
+    }
+
+    public init(
+        name: String,
+        state: ReleaseV0100KillSwitchNoTradeReadinessState,
+        freshnessState: ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState,
+        reviewState: ReleaseV0110KillSwitchNoTradeReviewState
+    ) throws {
+        guard name.isEmpty == false else {
+            throw CoreError.liveTradingBoundaryContractMismatch(field: "readinessSnapshotName", expected: "non-empty", actual: name)
+        }
+
+        self.name = name
+        self.state = state
+        self.freshnessState = freshnessState
+        self.reviewState = reviewState
+    }
+}
+
+/// ReleaseV0110KillSwitchNoTradeReadinessStateModel 是 GH-922 的 v0.11.0 readiness state model。
+///
+/// Model 只描述本地 readiness artifact 能否进入 approval-request eligibility；即便 eligibility
+/// 为 true，也仍保持 production cutover blocked、order submission disabled、testnet order disabled、
+/// broker / endpoint / secret / OMS / Dashboard command 全部关闭。
+public struct ReleaseV0110KillSwitchNoTradeReadinessStateModel: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let killSwitchSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot
+    public let noTradeSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot
+    public let approvalRequestEligibility: ReleaseV0110KillSwitchNoTradeApprovalRequestEligibility
+    public let productionCutoverBlocked: Bool
+    public let cutoverAuthorized: Bool
+    public let orderSubmissionEnabled: Bool
+    public let testnetOrderSubmissionEnabled: Bool
+    public let productionEndpointConnectionEnabled: Bool
+    public let productionBrokerConnectionEnabled: Bool
+    public let productionSecretValueRead: Bool
+    public let productionOMSRuntimeEnabled: Bool
+    public let tradingButtonEnabled: Bool
+    public let orderFormEnabled: Bool
+    public let liveCommandEnabled: Bool
+    public let validationAnchors: [String]
+
+    public var approvalRequestEligible: Bool {
+        killSwitchSnapshot.approvalRequestEligible
+            && noTradeSnapshot.approvalRequestEligible
+            && approvalRequestEligibility == .eligibleForApprovalRequest
+            && productionCutoverBlocked
+            && productionCapabilitiesDisabled
+    }
+
+    public var failClosed: Bool {
+        approvalRequestEligible == false
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        cutoverAuthorized == false
+            && orderSubmissionEnabled == false
+            && testnetOrderSubmissionEnabled == false
+            && productionEndpointConnectionEnabled == false
+            && productionBrokerConnectionEnabled == false
+            && productionSecretValueRead == false
+            && productionOMSRuntimeEnabled == false
+            && tradingButtonEnabled == false
+            && orderFormEnabled == false
+            && liveCommandEnabled == false
+    }
+
+    public var stateModelHeld: Bool {
+        issueID.rawValue == "GH-922"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-913"]
+            && killSwitchSnapshot.name == "kill-switch"
+            && noTradeSnapshot.name == "no-trade"
+            && approvalRequestEligibility == Self.expectedEligibility(
+                killSwitchSnapshot: killSwitchSnapshot,
+                noTradeSnapshot: noTradeSnapshot
+            )
+            && productionCutoverBlocked
+            && productionCapabilitiesDisabled
+            && validationAnchors == Self.requiredValidationAnchors
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-922"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-913")],
+        killSwitchSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot,
+        noTradeSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot,
+        approvalRequestEligibility: ReleaseV0110KillSwitchNoTradeApprovalRequestEligibility? = nil,
+        productionCutoverBlocked: Bool = true,
+        cutoverAuthorized: Bool = false,
+        orderSubmissionEnabled: Bool = false,
+        testnetOrderSubmissionEnabled: Bool = false,
+        productionEndpointConnectionEnabled: Bool = false,
+        productionBrokerConnectionEnabled: Bool = false,
+        productionSecretValueRead: Bool = false,
+        productionOMSRuntimeEnabled: Bool = false,
+        tradingButtonEnabled: Bool = false,
+        orderFormEnabled: Bool = false,
+        liveCommandEnabled: Bool = false,
+        validationAnchors: [String] = Self.requiredValidationAnchors
+    ) throws {
+        let resolvedEligibility = approvalRequestEligibility ?? Self.expectedEligibility(
+            killSwitchSnapshot: killSwitchSnapshot,
+            noTradeSnapshot: noTradeSnapshot
+        )
+        let expectedEligibility = Self.expectedEligibility(
+            killSwitchSnapshot: killSwitchSnapshot,
+            noTradeSnapshot: noTradeSnapshot
+        )
+
+        guard resolvedEligibility == expectedEligibility else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "approvalRequestEligibility",
+                expected: expectedEligibility.rawValue,
+                actual: resolvedEligibility.rawValue
+            )
+        }
+        guard productionCutoverBlocked else {
+            throw CoreError.liveTradingBoundaryContractMismatch(field: "productionCutoverBlocked", expected: "true", actual: "false")
+        }
+        try Self.validateForbiddenFlags(
+            cutoverAuthorized: cutoverAuthorized,
+            orderSubmissionEnabled: orderSubmissionEnabled,
+            testnetOrderSubmissionEnabled: testnetOrderSubmissionEnabled,
+            productionEndpointConnectionEnabled: productionEndpointConnectionEnabled,
+            productionBrokerConnectionEnabled: productionBrokerConnectionEnabled,
+            productionSecretValueRead: productionSecretValueRead,
+            productionOMSRuntimeEnabled: productionOMSRuntimeEnabled,
+            tradingButtonEnabled: tradingButtonEnabled,
+            orderFormEnabled: orderFormEnabled,
+            liveCommandEnabled: liveCommandEnabled
+        )
+        guard validationAnchors == Self.requiredValidationAnchors else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "validationAnchors",
+                expected: Self.requiredValidationAnchors.joined(separator: ","),
+                actual: validationAnchors.joined(separator: ",")
+            )
+        }
+
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.killSwitchSnapshot = killSwitchSnapshot
+        self.noTradeSnapshot = noTradeSnapshot
+        self.approvalRequestEligibility = resolvedEligibility
+        self.productionCutoverBlocked = productionCutoverBlocked
+        self.cutoverAuthorized = cutoverAuthorized
+        self.orderSubmissionEnabled = orderSubmissionEnabled
+        self.testnetOrderSubmissionEnabled = testnetOrderSubmissionEnabled
+        self.productionEndpointConnectionEnabled = productionEndpointConnectionEnabled
+        self.productionBrokerConnectionEnabled = productionBrokerConnectionEnabled
+        self.productionSecretValueRead = productionSecretValueRead
+        self.productionOMSRuntimeEnabled = productionOMSRuntimeEnabled
+        self.tradingButtonEnabled = tradingButtonEnabled
+        self.orderFormEnabled = orderFormEnabled
+        self.liveCommandEnabled = liveCommandEnabled
+        self.validationAnchors = validationAnchors
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL",
+        "TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL",
+        "V0110-010-KILL-SWITCH-NO-TRADE-STATE-MODEL",
+        "V0110-010-UNKNOWN-STALE-UNAVAILABLE-FAIL-CLOSED",
+        "V0110-010-INACTIVE-FRESH-REVIEWED-APPROVAL-REQUEST-ELIGIBILITY",
+        "V0110-010-NO-PRODUCTION-CUTOVER-ORDER"
+    ]
+
+    public static func blockedFixture() throws -> ReleaseV0110KillSwitchNoTradeReadinessStateModel {
+        try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
+            killSwitchSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
+                name: "kill-switch",
+                state: .active,
+                freshnessState: .fresh,
+                reviewState: .reviewed
+            ),
+            noTradeSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
+                name: "no-trade",
+                state: .active,
+                freshnessState: .fresh,
+                reviewState: .reviewed
+            )
+        )
+    }
+
+    public static func approvalRequestEligibleFixture() throws -> ReleaseV0110KillSwitchNoTradeReadinessStateModel {
+        try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
+            killSwitchSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
+                name: "kill-switch",
+                state: .inactive,
+                freshnessState: .fresh,
+                reviewState: .reviewed
+            ),
+            noTradeSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
+                name: "no-trade",
+                state: .inactive,
+                freshnessState: .fresh,
+                reviewState: .reviewed
+            )
+        )
+    }
+
+    public static func expectedEligibility(
+        killSwitchSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot,
+        noTradeSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot
+    ) -> ReleaseV0110KillSwitchNoTradeApprovalRequestEligibility {
+        killSwitchSnapshot.approvalRequestEligible && noTradeSnapshot.approvalRequestEligible
+            ? .eligibleForApprovalRequest
+            : .blocked
+    }
+}
+
+private extension ReleaseV0110KillSwitchNoTradeReadinessStateModel {
+    static func validateForbiddenFlags(
+        cutoverAuthorized: Bool,
+        orderSubmissionEnabled: Bool,
+        testnetOrderSubmissionEnabled: Bool,
+        productionEndpointConnectionEnabled: Bool,
+        productionBrokerConnectionEnabled: Bool,
+        productionSecretValueRead: Bool,
+        productionOMSRuntimeEnabled: Bool,
+        tradingButtonEnabled: Bool,
+        orderFormEnabled: Bool,
+        liveCommandEnabled: Bool
+    ) throws {
+        let forbiddenFlags = [
+            ("cutoverAuthorized", cutoverAuthorized),
+            ("orderSubmissionEnabled", orderSubmissionEnabled),
+            ("testnetOrderSubmissionEnabled", testnetOrderSubmissionEnabled),
+            ("productionEndpointConnectionEnabled", productionEndpointConnectionEnabled),
+            ("productionBrokerConnectionEnabled", productionBrokerConnectionEnabled),
+            ("productionSecretValueRead", productionSecretValueRead),
+            ("productionOMSRuntimeEnabled", productionOMSRuntimeEnabled),
+            ("tradingButtonEnabled", tradingButtonEnabled),
+            ("orderFormEnabled", orderFormEnabled),
+            ("liveCommandEnabled", liveCommandEnabled)
+        ]
+
+        for (field, value) in forbiddenFlags where value {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(field)
+        }
+    }
 }
 
 /// ReleaseV0100KillSwitchNoTradeOperatorReview 记录人工复核与风险审批要求。

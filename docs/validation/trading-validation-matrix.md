@@ -6,6 +6,20 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL
+
+- TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL
+- GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL
+- V0110-010-KILL-SWITCH-NO-TRADE-STATE-MODEL
+- V0110-010-UNKNOWN-STALE-UNAVAILABLE-FAIL-CLOSED
+- V0110-010-INACTIVE-FRESH-REVIEWED-APPROVAL-REQUEST-ELIGIBILITY
+- V0110-010-NO-PRODUCTION-CUTOVER-ORDER
+- GH-922 Release v0.11.0 Kill Switch / No-trade State Model Validation
+- `bash checks/verify-v0.11.0.sh`
+- `swift test --filter TargetGraphTests/testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility`
+- Kill switch / no-trade state model evidence: `ReleaseV0110KillSwitchNoTradeReadinessStateModel`、`ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState`、`ReleaseV0110KillSwitchNoTradeReviewState`、`eligibleForApprovalRequest`、`case inactive`、`case unknown`、`case stale`、`case unavailable`、`productionCutoverBlocked` 和 `orderSubmissionEnabled`。
+- Boundary: v0.11.0 kill switch / no-trade state model 只强化本地 readiness evidence 的 fail-closed 状态分类；active、unknown、stale、unavailable 或未 reviewed 状态必须 fail closed；只有 inactive + fresh + reviewed 可进入 approval-request eligibility；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY
 
 - TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY

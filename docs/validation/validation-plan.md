@@ -6,6 +6,19 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-922 Release v0.11.0 Kill Switch / No-trade State Model Validation
+
+- `GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL`
+- `TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL`
+- `V0110-010-KILL-SWITCH-NO-TRADE-STATE-MODEL`
+- `V0110-010-UNKNOWN-STALE-UNAVAILABLE-FAIL-CLOSED`
+- `V0110-010-INACTIVE-FRESH-REVIEWED-APPROVAL-REQUEST-ELIGIBILITY`
+- `V0110-010-NO-PRODUCTION-CUTOVER-ORDER`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`。
+- Boundary: GH-922 只把 kill switch / no-trade readiness state 从 active-only evidence 扩展为 active、inactive、unknown、stale、unavailable，并绑定 freshness 与 review evidence。active、unknown、stale、unavailable 或未 reviewed 状态必须 fail closed；只有 inactive + fresh + reviewed 可进入 approval-request eligibility。该 eligibility 不等于 production cutover approval，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不启用 production OMS、trading button、order form 或 live command。
+
 ## GH-921 Release v0.11.0 Fixed-point Capital / Exposure Policy Validation
 
 - `GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY`
