@@ -41,6 +41,134 @@ public enum ReleaseV0100CapitalExposureLimitForbiddenCapability: String, Codable
     case riskPolicyHashMissing = "risk policy hash missing"
 }
 
+/// ReleaseV0110FixedPointPolicyUnit 固定 GH-921 readiness policy 允许的单位。
+///
+/// 单位必须显式进入 typed value，避免把 `"100000.00"` 这类 string-only evidence
+/// 当成可比较的金额或杠杆。该单位集合只用于本地 readiness evidence，不代表账户币种读取、
+/// broker balance response 或 production order capability。
+public enum ReleaseV0110FixedPointPolicyUnit: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
+    case usd = "USD"
+    case leverageMultiple = "x"
+}
+
+/// ReleaseV0110FixedPointPolicyValue 是 GH-921 的 fixed-point policy value。
+///
+/// Value 同时保存 minorUnits、scale、unit 和 canonical decimal string。比较必须先确认
+/// unit / scale 一致，再比较 minorUnits，避免用字符串排序或浮点数比较 readiness policy。
+public struct ReleaseV0110FixedPointPolicyValue: Codable, Equatable, Sendable {
+    public let minorUnits: Int64
+    public let scale: Int
+    public let unit: ReleaseV0110FixedPointPolicyUnit
+    public let decimalString: String
+
+    public var valueHeld: Bool {
+        minorUnits > 0
+            && scale >= 0
+            && scale <= 8
+            && decimalString == Self.format(minorUnits: minorUnits, scale: scale)
+    }
+
+    public init(
+        minorUnits: Int64,
+        scale: Int,
+        unit: ReleaseV0110FixedPointPolicyUnit,
+        decimalString: String? = nil
+    ) throws {
+        let formatted = Self.format(minorUnits: minorUnits, scale: scale)
+        if let decimalString, decimalString != formatted {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "fixedPointDecimalString",
+                expected: formatted,
+                actual: decimalString
+            )
+        }
+        self.minorUnits = minorUnits
+        self.scale = scale
+        self.unit = unit
+        self.decimalString = formatted
+
+        guard valueHeld else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "fixedPointPolicyValue",
+                expected: "positive minorUnits, supported scale, canonical decimal string",
+                actual: "\(minorUnits)@\(scale):\(unit.rawValue)"
+            )
+        }
+    }
+
+    public init(
+        decimalString: String,
+        scale: Int,
+        unit: ReleaseV0110FixedPointPolicyUnit
+    ) throws {
+        try self.init(
+            minorUnits: Self.parseMinorUnits(decimalString: decimalString, scale: scale),
+            scale: scale,
+            unit: unit,
+            decimalString: decimalString
+        )
+    }
+
+    public func comparableTo(_ other: ReleaseV0110FixedPointPolicyValue) -> Bool {
+        scale == other.scale && unit == other.unit
+    }
+
+    public func isGreaterThanOrEqualTo(_ other: ReleaseV0110FixedPointPolicyValue) -> Bool {
+        comparableTo(other) && minorUnits >= other.minorUnits
+    }
+
+    public func policyHashComponent(field: String) -> String {
+        "\(field)=\(minorUnits)@scale\(scale):\(unit.rawValue)"
+    }
+
+    private static func parseMinorUnits(decimalString: String, scale: Int) throws -> Int64 {
+        guard scale >= 0 && scale <= 8 else {
+            throw CoreError.liveTradingBoundaryContractMismatch(field: "fixedPointScale", expected: "0...8", actual: "\(scale)")
+        }
+        let parts = decimalString.split(separator: ".", omittingEmptySubsequences: false).map(String.init)
+        guard parts.count == 2 else {
+            throw CoreError.liveTradingBoundaryContractMismatch(field: "fixedPointDecimalString", expected: "whole.fraction", actual: decimalString)
+        }
+        let whole = parts[0]
+        let fraction = parts[1]
+        guard whole.isEmpty == false, whole.allSatisfy(\.isNumber), fraction.count == scale, fraction.allSatisfy(\.isNumber) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "fixedPointDecimalString",
+                expected: "canonical scale \(scale)",
+                actual: decimalString
+            )
+        }
+        let multiplier = try powerOfTen(scale)
+        guard let wholeUnits = Int64(whole), let fractionUnits = Int64(fraction) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(field: "fixedPointDecimalString", expected: "Int64-safe decimal", actual: decimalString)
+        }
+        guard wholeUnits <= (Int64.max - fractionUnits) / multiplier else {
+            throw CoreError.liveTradingBoundaryContractMismatch(field: "fixedPointDecimalString", expected: "Int64-safe decimal", actual: decimalString)
+        }
+        return wholeUnits * multiplier + fractionUnits
+    }
+
+    private static func format(minorUnits: Int64, scale: Int) -> String {
+        guard scale >= 0 else {
+            return "\(minorUnits)"
+        }
+        let multiplier = (try? powerOfTen(scale)) ?? 1
+        if scale == 0 {
+            return "\(minorUnits)"
+        }
+        let whole = minorUnits / multiplier
+        let fraction = minorUnits % multiplier
+        return "\(whole)." + String(format: "%0\(scale)lld", fraction)
+    }
+
+    private static func powerOfTen(_ scale: Int) throws -> Int64 {
+        guard scale >= 0 && scale <= 8 else {
+            throw CoreError.liveTradingBoundaryContractMismatch(field: "fixedPointScale", expected: "0...8", actual: "\(scale)")
+        }
+        return (0..<scale).reduce(Int64(1)) { value, _ in value * 10 }
+    }
+}
+
 /// ReleaseV0100CapitalExposureRiskPolicyIdentity 是 GH-883 的 risk policy identity binding。
 ///
 /// Identity 只记录 policy reference、version、hash algorithm 和 hash value。它不读取 secret、不连接
@@ -50,6 +178,7 @@ public struct ReleaseV0100CapitalExposureRiskPolicyIdentity: Codable, Equatable,
     public let policyVersion: String
     public let hashAlgorithm: String
     public let policyHash: String
+    public let policyHashInputs: [String]
     public let riskPolicyHashBound: Bool
 
     public var identityHeld: Bool {
@@ -57,6 +186,7 @@ public struct ReleaseV0100CapitalExposureRiskPolicyIdentity: Codable, Equatable,
             && policyVersion == ReleaseV0100CapitalExposureLimitReadinessGate.requiredRiskPolicyVersion
             && hashAlgorithm == ReleaseV0100CapitalExposureLimitReadinessGate.requiredRiskPolicyHashAlgorithm
             && policyHash == ReleaseV0100CapitalExposureLimitReadinessGate.requiredRiskPolicyHash
+            && policyHashInputs == ReleaseV0100CapitalExposureLimitReadinessGate.requiredPolicyHashInputs
             && riskPolicyHashBound
     }
 
@@ -65,6 +195,7 @@ public struct ReleaseV0100CapitalExposureRiskPolicyIdentity: Codable, Equatable,
         policyVersion: String = ReleaseV0100CapitalExposureLimitReadinessGate.requiredRiskPolicyVersion,
         hashAlgorithm: String = ReleaseV0100CapitalExposureLimitReadinessGate.requiredRiskPolicyHashAlgorithm,
         policyHash: String = ReleaseV0100CapitalExposureLimitReadinessGate.requiredRiskPolicyHash,
+        policyHashInputs: [String] = ReleaseV0100CapitalExposureLimitReadinessGate.requiredPolicyHashInputs,
         riskPolicyHashBound: Bool = true
     ) throws {
         guard policyID == ReleaseV0100CapitalExposureLimitReadinessGate.requiredRiskPolicyID else {
@@ -95,6 +226,13 @@ public struct ReleaseV0100CapitalExposureRiskPolicyIdentity: Codable, Equatable,
                 actual: policyHash
             )
         }
+        guard policyHashInputs == ReleaseV0100CapitalExposureLimitReadinessGate.requiredPolicyHashInputs else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "riskPolicyHashInputs",
+                expected: ReleaseV0100CapitalExposureLimitReadinessGate.requiredPolicyHashInputs.joined(separator: ","),
+                actual: policyHashInputs.joined(separator: ",")
+            )
+        }
         guard riskPolicyHashBound else {
             throw CoreError.liveTradingBoundaryForbiddenCapability("riskPolicyHashBound")
         }
@@ -103,6 +241,7 @@ public struct ReleaseV0100CapitalExposureRiskPolicyIdentity: Codable, Equatable,
         self.policyVersion = policyVersion
         self.hashAlgorithm = hashAlgorithm
         self.policyHash = policyHash
+        self.policyHashInputs = policyHashInputs
         self.riskPolicyHashBound = riskPolicyHashBound
     }
 }
@@ -112,61 +251,144 @@ public struct ReleaseV0100CapitalExposureRiskPolicyIdentity: Codable, Equatable,
 /// Profile 只保存人工复核前的 limit evidence：资本上限、名义金额上限、单笔上限、symbol / product
 /// 敞口、日亏损、未结订单数、杠杆和 allowlist。它不触发 submit / cancel / replace。
 public struct ReleaseV0100CapitalExposureLimitProfile: Codable, Equatable, Sendable {
-    public let maxCapital: String
-    public let maxNotional: String
-    public let maxSingleOrderNotional: String
-    public let maxSymbolExposure: String
-    public let maxProductExposure: String
-    public let maxDailyLoss: String
+    public let maxCapitalValue: ReleaseV0110FixedPointPolicyValue
+    public let maxNotionalValue: ReleaseV0110FixedPointPolicyValue
+    public let maxSingleOrderNotionalValue: ReleaseV0110FixedPointPolicyValue
+    public let maxSymbolExposureValue: ReleaseV0110FixedPointPolicyValue
+    public let maxProductExposureValue: ReleaseV0110FixedPointPolicyValue
+    public let maxDailyLossValue: ReleaseV0110FixedPointPolicyValue
     public let maxOpenOrders: Int
-    public let maxLeverage: String
+    public let maxLeverageValue: ReleaseV0110FixedPointPolicyValue
     public let allowedSymbols: [String]
     public let allowedProductTypes: [String]
     public let riskPolicyIdentity: ReleaseV0100CapitalExposureRiskPolicyIdentity
     public let operatorReviewRequired: Bool
     public let orderSubmissionEnabled: Bool
 
-    public var profileHeld: Bool {
-        maxCapital == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxCapital
-            && maxNotional == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxNotional
-            && maxSingleOrderNotional == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSingleOrderNotional
-            && maxSymbolExposure == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSymbolExposure
-            && maxProductExposure == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxProductExposure
-            && maxDailyLoss == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxDailyLoss
+    public var maxCapital: String { maxCapitalValue.decimalString }
+    public var maxNotional: String { maxNotionalValue.decimalString }
+    public var maxSingleOrderNotional: String { maxSingleOrderNotionalValue.decimalString }
+    public var maxSymbolExposure: String { maxSymbolExposureValue.decimalString }
+    public var maxProductExposure: String { maxProductExposureValue.decimalString }
+    public var maxDailyLoss: String { maxDailyLossValue.decimalString }
+    public var maxLeverage: String { maxLeverageValue.decimalString }
+
+    public var fixedPointPolicyHeld: Bool {
+        [
+            maxCapitalValue,
+            maxNotionalValue,
+            maxSingleOrderNotionalValue,
+            maxSymbolExposureValue,
+            maxProductExposureValue,
+            maxDailyLossValue
+        ].allSatisfy { value in
+            value.valueHeld
+                && value.unit == .usd
+                && value.scale == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMoneyScale
+        }
+            && maxLeverageValue.valueHeld
+            && maxLeverageValue.unit == .leverageMultiple
+            && maxLeverageValue.scale == ReleaseV0100CapitalExposureLimitReadinessGate.requiredLeverageScale
+    }
+
+    public var numericRelationshipHeld: Bool {
+        maxCapitalValue.isGreaterThanOrEqualTo(maxProductExposureValue)
+            && maxProductExposureValue.isGreaterThanOrEqualTo(maxNotionalValue)
+            && maxNotionalValue.isGreaterThanOrEqualTo(maxSymbolExposureValue)
+            && maxSymbolExposureValue.isGreaterThanOrEqualTo(maxSingleOrderNotionalValue)
+            && maxCapitalValue.isGreaterThanOrEqualTo(maxDailyLossValue)
             && maxOpenOrders == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxOpenOrders
-            && maxLeverage == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxLeverage
+    }
+
+    public var policyHashInputs: [String] {
+        [
+            maxCapitalValue.policyHashComponent(field: "maxCapital"),
+            maxNotionalValue.policyHashComponent(field: "maxNotional"),
+            maxSingleOrderNotionalValue.policyHashComponent(field: "maxSingleOrderNotional"),
+            maxSymbolExposureValue.policyHashComponent(field: "maxSymbolExposure"),
+            maxProductExposureValue.policyHashComponent(field: "maxProductExposure"),
+            maxDailyLossValue.policyHashComponent(field: "maxDailyLoss"),
+            maxLeverageValue.policyHashComponent(field: "maxLeverage")
+        ]
+    }
+
+    public var profileHeld: Bool {
+        maxCapitalValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxCapitalValue
+            && maxNotionalValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxNotionalValue
+            && maxSingleOrderNotionalValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSingleOrderNotionalValue
+            && maxSymbolExposureValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSymbolExposureValue
+            && maxProductExposureValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxProductExposureValue
+            && maxDailyLossValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxDailyLossValue
+            && maxOpenOrders == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxOpenOrders
+            && maxLeverageValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxLeverageValue
             && allowedSymbols == ReleaseV0100CapitalExposureLimitReadinessGate.requiredAllowedSymbols
             && allowedProductTypes == ReleaseV0100CapitalExposureLimitReadinessGate.requiredAllowedProductTypes
+            && fixedPointPolicyHeld
+            && numericRelationshipHeld
+            && policyHashInputs == ReleaseV0100CapitalExposureLimitReadinessGate.requiredPolicyHashInputs
             && riskPolicyIdentity.identityHeld
             && operatorReviewRequired
             && orderSubmissionEnabled == false
     }
 
     public init(
-        maxCapital: String = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxCapital,
-        maxNotional: String = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxNotional,
-        maxSingleOrderNotional: String = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSingleOrderNotional,
-        maxSymbolExposure: String = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSymbolExposure,
-        maxProductExposure: String = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxProductExposure,
-        maxDailyLoss: String = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxDailyLoss,
+        maxCapitalValue: ReleaseV0110FixedPointPolicyValue = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxCapitalValue,
+        maxNotionalValue: ReleaseV0110FixedPointPolicyValue = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxNotionalValue,
+        maxSingleOrderNotionalValue: ReleaseV0110FixedPointPolicyValue = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSingleOrderNotionalValue,
+        maxSymbolExposureValue: ReleaseV0110FixedPointPolicyValue = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSymbolExposureValue,
+        maxProductExposureValue: ReleaseV0110FixedPointPolicyValue = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxProductExposureValue,
+        maxDailyLossValue: ReleaseV0110FixedPointPolicyValue = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxDailyLossValue,
         maxOpenOrders: Int = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxOpenOrders,
-        maxLeverage: String = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxLeverage,
+        maxLeverageValue: ReleaseV0110FixedPointPolicyValue = ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxLeverageValue,
         allowedSymbols: [String] = ReleaseV0100CapitalExposureLimitReadinessGate.requiredAllowedSymbols,
         allowedProductTypes: [String] = ReleaseV0100CapitalExposureLimitReadinessGate.requiredAllowedProductTypes,
         riskPolicyIdentity: ReleaseV0100CapitalExposureRiskPolicyIdentity = ReleaseV0100CapitalExposureLimitReadinessGate.requiredRiskPolicyIdentity,
         operatorReviewRequired: Bool = true,
         orderSubmissionEnabled: Bool = false
     ) throws {
-        let exactStringChecks = [
-            ("maxCapital", maxCapital, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxCapital),
-            ("maxNotional", maxNotional, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxNotional),
-            ("maxSingleOrderNotional", maxSingleOrderNotional, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSingleOrderNotional),
-            ("maxSymbolExposure", maxSymbolExposure, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSymbolExposure),
-            ("maxProductExposure", maxProductExposure, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxProductExposure),
-            ("maxDailyLoss", maxDailyLoss, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxDailyLoss),
-            ("maxLeverage", maxLeverage, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxLeverage)
+        let moneyValues = [
+            maxCapitalValue,
+            maxNotionalValue,
+            maxSingleOrderNotionalValue,
+            maxSymbolExposureValue,
+            maxProductExposureValue,
+            maxDailyLossValue
         ]
-        for (field, actual, expected) in exactStringChecks where actual != expected {
+        guard moneyValues.allSatisfy({
+            $0.valueHeld
+                && $0.unit == .usd
+                && $0.scale == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMoneyScale
+        })
+            && maxLeverageValue.valueHeld
+            && maxLeverageValue.unit == .leverageMultiple
+            && maxLeverageValue.scale == ReleaseV0100CapitalExposureLimitReadinessGate.requiredLeverageScale else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "capitalExposurePolicyUnitsScale",
+                expected: "USD scale 2 money values and x scale 1 leverage",
+                actual: moneyValues.map { "\($0.decimalString)@\($0.scale):\($0.unit.rawValue)" }.joined(separator: ",")
+            )
+        }
+        guard maxCapitalValue.isGreaterThanOrEqualTo(maxProductExposureValue)
+            && maxProductExposureValue.isGreaterThanOrEqualTo(maxNotionalValue)
+            && maxNotionalValue.isGreaterThanOrEqualTo(maxSymbolExposureValue)
+            && maxSymbolExposureValue.isGreaterThanOrEqualTo(maxSingleOrderNotionalValue)
+            && maxCapitalValue.isGreaterThanOrEqualTo(maxDailyLossValue) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "capitalExposureNumericRelationship",
+                expected: "capital>=productExposure>=notional>=symbolExposure>=singleOrder and capital>=dailyLoss",
+                actual: moneyValues.map(\.decimalString).joined(separator: ",")
+            )
+        }
+        let typedValueChecks = [
+            ("maxCapitalValue", maxCapitalValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxCapitalValue, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxCapital, maxCapitalValue.decimalString),
+            ("maxNotionalValue", maxNotionalValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxNotionalValue, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxNotional, maxNotionalValue.decimalString),
+            ("maxSingleOrderNotionalValue", maxSingleOrderNotionalValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSingleOrderNotionalValue, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSingleOrderNotional, maxSingleOrderNotionalValue.decimalString),
+            ("maxSymbolExposureValue", maxSymbolExposureValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSymbolExposureValue, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxSymbolExposure, maxSymbolExposureValue.decimalString),
+            ("maxProductExposureValue", maxProductExposureValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxProductExposureValue, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxProductExposure, maxProductExposureValue.decimalString),
+            ("maxDailyLossValue", maxDailyLossValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxDailyLossValue, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxDailyLoss, maxDailyLossValue.decimalString),
+            ("maxLeverageValue", maxLeverageValue == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxLeverageValue, ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxLeverage, maxLeverageValue.decimalString)
+        ]
+        for (field, isValid, expected, actual) in typedValueChecks where isValid == false {
             throw CoreError.liveTradingBoundaryContractMismatch(field: field, expected: expected, actual: actual)
         }
         guard maxOpenOrders == ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxOpenOrders else {
@@ -174,6 +396,22 @@ public struct ReleaseV0100CapitalExposureLimitProfile: Codable, Equatable, Senda
                 field: "maxOpenOrders",
                 expected: "\(ReleaseV0100CapitalExposureLimitReadinessGate.requiredMaxOpenOrders)",
                 actual: "\(maxOpenOrders)"
+            )
+        }
+        let provisionalPolicyHashInputs = [
+            maxCapitalValue.policyHashComponent(field: "maxCapital"),
+            maxNotionalValue.policyHashComponent(field: "maxNotional"),
+            maxSingleOrderNotionalValue.policyHashComponent(field: "maxSingleOrderNotional"),
+            maxSymbolExposureValue.policyHashComponent(field: "maxSymbolExposure"),
+            maxProductExposureValue.policyHashComponent(field: "maxProductExposure"),
+            maxDailyLossValue.policyHashComponent(field: "maxDailyLoss"),
+            maxLeverageValue.policyHashComponent(field: "maxLeverage")
+        ]
+        guard provisionalPolicyHashInputs == ReleaseV0100CapitalExposureLimitReadinessGate.requiredPolicyHashInputs else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "capitalExposurePolicyHashInputs",
+                expected: ReleaseV0100CapitalExposureLimitReadinessGate.requiredPolicyHashInputs.joined(separator: ","),
+                actual: provisionalPolicyHashInputs.joined(separator: ",")
             )
         }
         guard allowedSymbols == ReleaseV0100CapitalExposureLimitReadinessGate.requiredAllowedSymbols else {
@@ -204,14 +442,14 @@ public struct ReleaseV0100CapitalExposureLimitProfile: Codable, Equatable, Senda
             throw CoreError.liveTradingBoundaryForbiddenCapability("orderSubmissionEnabled")
         }
 
-        self.maxCapital = maxCapital
-        self.maxNotional = maxNotional
-        self.maxSingleOrderNotional = maxSingleOrderNotional
-        self.maxSymbolExposure = maxSymbolExposure
-        self.maxProductExposure = maxProductExposure
-        self.maxDailyLoss = maxDailyLoss
+        self.maxCapitalValue = maxCapitalValue
+        self.maxNotionalValue = maxNotionalValue
+        self.maxSingleOrderNotionalValue = maxSingleOrderNotionalValue
+        self.maxSymbolExposureValue = maxSymbolExposureValue
+        self.maxProductExposureValue = maxProductExposureValue
+        self.maxDailyLossValue = maxDailyLossValue
         self.maxOpenOrders = maxOpenOrders
-        self.maxLeverage = maxLeverage
+        self.maxLeverageValue = maxLeverageValue
         self.allowedSymbols = allowedSymbols
         self.allowedProductTypes = allowedProductTypes
         self.riskPolicyIdentity = riskPolicyIdentity
@@ -436,6 +674,8 @@ public struct ReleaseV0100CapitalExposureLimitReadinessGate: Codable, Equatable,
     public static let requiredMaxDailyLoss = "2500.00"
     public static let requiredMaxOpenOrders = 10
     public static let requiredMaxLeverage = "3.0"
+    public static let requiredMoneyScale = 2
+    public static let requiredLeverageScale = 1
     public static let requiredAllowedSymbols = ["BTCUSDT", "ETHUSDT"]
     public static let requiredAllowedProductTypes = ["spot", "usdsPerpetual"]
     public static let requiredRiskPolicyID = Identifier.constant("v0.10.0-capital-exposure-risk-policy")
@@ -444,6 +684,18 @@ public struct ReleaseV0100CapitalExposureLimitReadinessGate: Codable, Equatable,
     public static let requiredRiskPolicyHash = "sha256:v0100-capital-exposure-risk-policy-reference"
     public static let requiredRequirements = ReleaseV0100CapitalExposureLimitReadinessRequirement.allCases
     public static let requiredForbiddenCapabilities = ReleaseV0100CapitalExposureLimitForbiddenCapability.allCases
+
+    public static var requiredPolicyHashInputs: [String] {
+        [
+            requiredMaxCapitalValue.policyHashComponent(field: "maxCapital"),
+            requiredMaxNotionalValue.policyHashComponent(field: "maxNotional"),
+            requiredMaxSingleOrderNotionalValue.policyHashComponent(field: "maxSingleOrderNotional"),
+            requiredMaxSymbolExposureValue.policyHashComponent(field: "maxSymbolExposure"),
+            requiredMaxProductExposureValue.policyHashComponent(field: "maxProductExposure"),
+            requiredMaxDailyLossValue.policyHashComponent(field: "maxDailyLoss"),
+            requiredMaxLeverageValue.policyHashComponent(field: "maxLeverage")
+        ]
+    }
 
     public static let requiredValidationAnchors = [
         "V0100-006-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE",
@@ -474,6 +726,63 @@ public struct ReleaseV0100CapitalExposureLimitReadinessGate: Codable, Equatable,
             return try ReleaseV0100CapitalExposureRiskPolicyIdentity()
         } catch {
             preconditionFailure("GH-883 risk policy identity must be valid: \(error)")
+        }
+    }()
+
+    // GH-921 固定点策略常量是 deterministic readiness evidence；这里的失败只表示源码内置夹具漂移。
+    public static let requiredMaxCapitalValue: ReleaseV0110FixedPointPolicyValue = {
+        do {
+            return try ReleaseV0110FixedPointPolicyValue(decimalString: requiredMaxCapital, scale: requiredMoneyScale, unit: .usd)
+        } catch {
+            preconditionFailure("GH-921 max capital fixed-point value must be valid: \(error)")
+        }
+    }()
+
+    public static let requiredMaxNotionalValue: ReleaseV0110FixedPointPolicyValue = {
+        do {
+            return try ReleaseV0110FixedPointPolicyValue(decimalString: requiredMaxNotional, scale: requiredMoneyScale, unit: .usd)
+        } catch {
+            preconditionFailure("GH-921 max notional fixed-point value must be valid: \(error)")
+        }
+    }()
+
+    public static let requiredMaxSingleOrderNotionalValue: ReleaseV0110FixedPointPolicyValue = {
+        do {
+            return try ReleaseV0110FixedPointPolicyValue(decimalString: requiredMaxSingleOrderNotional, scale: requiredMoneyScale, unit: .usd)
+        } catch {
+            preconditionFailure("GH-921 max single-order notional fixed-point value must be valid: \(error)")
+        }
+    }()
+
+    public static let requiredMaxSymbolExposureValue: ReleaseV0110FixedPointPolicyValue = {
+        do {
+            return try ReleaseV0110FixedPointPolicyValue(decimalString: requiredMaxSymbolExposure, scale: requiredMoneyScale, unit: .usd)
+        } catch {
+            preconditionFailure("GH-921 max symbol exposure fixed-point value must be valid: \(error)")
+        }
+    }()
+
+    public static let requiredMaxProductExposureValue: ReleaseV0110FixedPointPolicyValue = {
+        do {
+            return try ReleaseV0110FixedPointPolicyValue(decimalString: requiredMaxProductExposure, scale: requiredMoneyScale, unit: .usd)
+        } catch {
+            preconditionFailure("GH-921 max product exposure fixed-point value must be valid: \(error)")
+        }
+    }()
+
+    public static let requiredMaxDailyLossValue: ReleaseV0110FixedPointPolicyValue = {
+        do {
+            return try ReleaseV0110FixedPointPolicyValue(decimalString: requiredMaxDailyLoss, scale: requiredMoneyScale, unit: .usd)
+        } catch {
+            preconditionFailure("GH-921 max daily loss fixed-point value must be valid: \(error)")
+        }
+    }()
+
+    public static let requiredMaxLeverageValue: ReleaseV0110FixedPointPolicyValue = {
+        do {
+            return try ReleaseV0110FixedPointPolicyValue(decimalString: requiredMaxLeverage, scale: requiredLeverageScale, unit: .leverageMultiple)
+        } catch {
+            preconditionFailure("GH-921 max leverage fixed-point value must be valid: \(error)")
         }
     }()
 

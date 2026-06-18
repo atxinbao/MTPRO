@@ -176,6 +176,35 @@ GH-920 在 GH-914、GH-917 和 GH-919 之后，把 `mtpro readiness` 从 v0.10.1
 
 GH-920 允许 `MTPROCLI` 依赖 `ExecutionClient` 的唯一目的，是访问 `ExecutionClient/FutureGate` 中的本地 `ProductionReadinessArtifactStore` API。该例外不授权 CLI 直连 broker、OMS、ExecutionClient command path、signed endpoint、account endpoint、listenKey、private WebSocket、submit / cancel / replace、trading button、order form 或 live command surface。
 
+## V0110-009-FIXED-POINT-CAPITAL-EXPOSURE-POLICY
+
+`V0110-009-FIXED-POINT-CAPITAL-EXPOSURE-POLICY`
+
+`GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY`
+
+`TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY`
+
+GH-921 在 GH-920 本地 readiness CLI 之后，把 capital / exposure readiness policy 从 string-only exact evidence 升级为 typed fixed-point evidence。授权范围只覆盖本地 readiness policy value、relationship validation 和 hash input validation：
+
+- `V0110-009-POLICY-UNITS-SCALE`
+- `V0110-009-NUMERIC-RELATIONSHIP-VALIDATION`
+- `V0110-009-POLICY-HASH-INPUTS`
+- `V0110-009-NO-PRODUCTION-CUTOVER-ORDER`
+
+Policy value 必须使用 `ReleaseV0110FixedPointPolicyValue` 表达，包含 `minorUnits`、`scale`、`unit` 和 canonical decimal string。Money value 固定为 `USD`、scale 2；leverage value 固定为 `x`、scale 1。比较必须先确认 unit / scale 一致，再比较 minorUnits；不得使用字符串排序、浮点比较或 string-only exact checks。
+
+Capital / exposure relationship 必须 fail closed：
+
+- `maxCapital >= maxProductExposure`
+- `maxProductExposure >= maxNotional`
+- `maxNotional >= maxSymbolExposure`
+- `maxSymbolExposure >= maxSingleOrderNotional`
+- `maxCapital >= maxDailyLoss`
+
+Policy hash inputs 必须来自 typed fixed-point value 的 canonical `minorUnits@scale:unit` 组件，并与 risk policy identity 绑定。Invalid unit、scale、relationship 或 hash inputs 都必须返回 contract mismatch，不得降级为 readiness pass。
+
+GH-921 只强化本地 readiness evidence。它不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover，不实现 production OMS、trading button、order form、submit / cancel / replace 或 live command path。
+
 ## V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 
 `V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`

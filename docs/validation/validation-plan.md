@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-921 Release v0.11.0 Fixed-point Capital / Exposure Policy Validation
+
+- `GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY`
+- `TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY`
+- `V0110-009-FIXED-POINT-CAPITAL-EXPOSURE-POLICY`
+- `V0110-009-POLICY-UNITS-SCALE`
+- `V0110-009-NUMERIC-RELATIONSHIP-VALIDATION`
+- `V0110-009-POLICY-HASH-INPUTS`
+- `V0110-009-NO-PRODUCTION-CUTOVER-ORDER`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`。
+- Boundary: GH-921 只把 capital / exposure readiness policy 从 string-only exact checks 升级为 typed fixed-point values，固定 `minorUnits`、`scale`、`unit`、numeric relationship 和 policy hash inputs；invalid units、scale、relationship 或 hash inputs 必须 fail closed。不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-920 Release v0.11.0 Readiness CLI Local Artifact Commands Validation
 
 - `GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS`

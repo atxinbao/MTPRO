@@ -632,6 +632,34 @@ for v0110_readiness_cli_anchor in \
   require_contains "docs/validation/validation-plan.md" "$v0110_readiness_cli_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_readiness_cli_anchor"
 done
+require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 fixed-point capital / exposure policy anchor"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Fixed-point Capital / Exposure Policy Snapshot"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY"
+require_contains "docs/validation/validation-plan.md" "GH-921 Release v0.11.0 Fixed-point Capital / Exposure Policy Validation"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift" "ReleaseV0110FixedPointPolicyValue"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift" "fixedPointPolicyHeld"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift" "numericRelationshipHeld"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift" "capitalExposureNumericRelationship"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift" "policyHashInputs"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons"
+require_contains "checks/verify-v0.11.0.sh" "testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons"
+for v0110_fixed_point_policy_anchor in \
+  "GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY" \
+  "TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY" \
+  "V0110-009-FIXED-POINT-CAPITAL-EXPOSURE-POLICY" \
+  "V0110-009-POLICY-UNITS-SCALE" \
+  "V0110-009-NUMERIC-RELATIONSHIP-VALIDATION" \
+  "V0110-009-POLICY-HASH-INPUTS" \
+  "V0110-009-NO-PRODUCTION-CUTOVER-ORDER"; do
+  require_contains "checks/verify-v0.11.0.sh" "$v0110_fixed_point_policy_anchor"
+  require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_fixed_point_policy_anchor"
+  require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_fixed_point_policy_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0110_fixed_point_policy_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0110_fixed_point_policy_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_fixed_point_policy_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0110_fixed_point_policy_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_fixed_point_policy_anchor"
+done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands"

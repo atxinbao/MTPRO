@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY
+
+- TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY
+- GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY
+- V0110-009-FIXED-POINT-CAPITAL-EXPOSURE-POLICY
+- V0110-009-POLICY-UNITS-SCALE
+- V0110-009-NUMERIC-RELATIONSHIP-VALIDATION
+- V0110-009-POLICY-HASH-INPUTS
+- V0110-009-NO-PRODUCTION-CUTOVER-ORDER
+- GH-921 Release v0.11.0 Fixed-point Capital / Exposure Policy Validation
+- `bash checks/verify-v0.11.0.sh`
+- `swift test --filter TargetGraphTests/testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons`
+- fixed capital / exposure policy evidence: `ReleaseV0110FixedPointPolicyValue`、`minorUnits`、`scale`、`unit`、`fixedPointPolicyHeld`、`numericRelationshipHeld` 和 `policyHashInputs`。
+- Boundary: v0.11.0 fixed-point policy 只强化本地 readiness evidence 的金额、敞口和杠杆比较；invalid unit、scale、numeric relationship 或 policy hash inputs 必须 fail closed；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS
 
 - TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS

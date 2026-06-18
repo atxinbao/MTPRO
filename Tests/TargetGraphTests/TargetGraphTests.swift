@@ -9070,11 +9070,27 @@ final class TargetGraphTests: XCTestCase {
         func read(_ relativePath: String) throws -> String {
             try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
         }
+        func money(_ value: String) throws -> ReleaseV0110FixedPointPolicyValue {
+            try ReleaseV0110FixedPointPolicyValue(
+                decimalString: value,
+                scale: ReleaseV0100CapitalExposureLimitReadinessGate.requiredMoneyScale,
+                unit: .usd
+            )
+        }
+        func leverage(_ value: String) throws -> ReleaseV0110FixedPointPolicyValue {
+            try ReleaseV0110FixedPointPolicyValue(
+                decimalString: value,
+                scale: ReleaseV0100CapitalExposureLimitReadinessGate.requiredLeverageScale,
+                unit: .leverageMultiple
+            )
+        }
 
         let gate = try ReleaseV0100CapitalExposureLimitReadinessGate.deterministicFixture()
 
         XCTAssertTrue(gate.gateHeld)
         XCTAssertTrue(gate.limitProfile.profileHeld)
+        XCTAssertTrue(gate.limitProfile.fixedPointPolicyHeld)
+        XCTAssertTrue(gate.limitProfile.numericRelationshipHeld)
         XCTAssertTrue(gate.limitProfile.riskPolicyIdentity.identityHeld)
         XCTAssertTrue(gate.evidenceArtifact.evidenceBoundaryHeld)
         XCTAssertTrue(gate.productionCapabilitiesDisabled)
@@ -9091,12 +9107,20 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(gate.limitProfile.maxDailyLoss, "2500.00")
         XCTAssertEqual(gate.limitProfile.maxOpenOrders, 10)
         XCTAssertEqual(gate.limitProfile.maxLeverage, "3.0")
+        XCTAssertEqual(gate.limitProfile.maxCapitalValue.minorUnits, 10_000_000)
+        XCTAssertEqual(gate.limitProfile.maxCapitalValue.scale, 2)
+        XCTAssertEqual(gate.limitProfile.maxCapitalValue.unit, .usd)
+        XCTAssertEqual(gate.limitProfile.maxLeverageValue.minorUnits, 30)
+        XCTAssertEqual(gate.limitProfile.maxLeverageValue.scale, 1)
+        XCTAssertEqual(gate.limitProfile.maxLeverageValue.unit, .leverageMultiple)
+        XCTAssertEqual(gate.limitProfile.policyHashInputs, ReleaseV0100CapitalExposureLimitReadinessGate.requiredPolicyHashInputs)
         XCTAssertEqual(gate.limitProfile.allowedSymbols, ["BTCUSDT", "ETHUSDT"])
         XCTAssertEqual(gate.limitProfile.allowedProductTypes, ["spot", "usdsPerpetual"])
         XCTAssertEqual(gate.limitProfile.riskPolicyIdentity.policyID.rawValue, "v0.10.0-capital-exposure-risk-policy")
         XCTAssertEqual(gate.limitProfile.riskPolicyIdentity.policyVersion, "v0.10.0-production-readiness")
         XCTAssertEqual(gate.limitProfile.riskPolicyIdentity.hashAlgorithm, "sha256")
         XCTAssertEqual(gate.limitProfile.riskPolicyIdentity.policyHash, "sha256:v0100-capital-exposure-risk-policy-reference")
+        XCTAssertEqual(gate.limitProfile.riskPolicyIdentity.policyHashInputs, ReleaseV0100CapitalExposureLimitReadinessGate.requiredPolicyHashInputs)
         XCTAssertTrue(gate.limitProfile.riskPolicyIdentity.riskPolicyHashBound)
         XCTAssertEqual(gate.evidenceArtifact.fileName, "capital_exposure_limits.json")
         XCTAssertTrue(gate.evidenceArtifact.evidenceExists)
@@ -9116,17 +9140,18 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(gate.liveCommandEnabled)
         XCTAssertFalse(gate.capitalExposureLimitBypassEnabled)
 
-        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxCapital: "99999.00"))
-        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxNotional: "1.00"))
-        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxSingleOrderNotional: "1.00"))
-        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxSymbolExposure: "1.00"))
-        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxProductExposure: "1.00"))
-        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxDailyLoss: "1.00"))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxCapitalValue: money("99999.00")))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxNotionalValue: money("1.00")))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxSingleOrderNotionalValue: money("1.00")))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxSymbolExposureValue: money("1.00")))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxProductExposureValue: money("1.00")))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxDailyLossValue: money("1.00")))
         XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxOpenOrders: 11))
-        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxLeverage: "5.0"))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxLeverageValue: leverage("5.0")))
         XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(allowedSymbols: ["BTCUSDT"]))
         XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(allowedProductTypes: ["spot"]))
         XCTAssertThrowsError(try ReleaseV0100CapitalExposureRiskPolicyIdentity(policyHash: "sha256:wrong"))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureRiskPolicyIdentity(policyHashInputs: ["maxCapital=string-only"]))
         XCTAssertThrowsError(try ReleaseV0100CapitalExposureRiskPolicyIdentity(riskPolicyHashBound: false))
         XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(operatorReviewRequired: false))
         XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(orderSubmissionEnabled: true))
@@ -9247,6 +9272,115 @@ final class TargetGraphTests: XCTestCase {
             "fapi.binance.com"
         ] {
             XCTAssertFalse(contract.contains(forbiddenAuthorization))
+        }
+    }
+
+    func testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        func money(_ value: String) throws -> ReleaseV0110FixedPointPolicyValue {
+            try ReleaseV0110FixedPointPolicyValue(
+                decimalString: value,
+                scale: ReleaseV0100CapitalExposureLimitReadinessGate.requiredMoneyScale,
+                unit: .usd
+            )
+        }
+
+        let profile = try ReleaseV0100CapitalExposureLimitProfile()
+
+        XCTAssertTrue(profile.profileHeld)
+        XCTAssertTrue(profile.fixedPointPolicyHeld)
+        XCTAssertTrue(profile.numericRelationshipHeld)
+        XCTAssertEqual(profile.maxCapitalValue.minorUnits, 10_000_000)
+        XCTAssertEqual(profile.maxNotionalValue.minorUnits, 2_500_000)
+        XCTAssertEqual(profile.maxSingleOrderNotionalValue.minorUnits, 500_000)
+        XCTAssertEqual(profile.maxSymbolExposureValue.minorUnits, 1_500_000)
+        XCTAssertEqual(profile.maxProductExposureValue.minorUnits, 5_000_000)
+        XCTAssertEqual(profile.maxDailyLossValue.minorUnits, 250_000)
+        XCTAssertEqual(profile.maxLeverageValue.minorUnits, 30)
+        XCTAssertEqual(profile.maxCapitalValue.unit, .usd)
+        XCTAssertEqual(profile.maxCapitalValue.scale, 2)
+        XCTAssertEqual(profile.maxLeverageValue.unit, .leverageMultiple)
+        XCTAssertEqual(profile.maxLeverageValue.scale, 1)
+        XCTAssertTrue(profile.maxCapitalValue.isGreaterThanOrEqualTo(profile.maxProductExposureValue))
+        XCTAssertTrue(profile.maxProductExposureValue.isGreaterThanOrEqualTo(profile.maxNotionalValue))
+        XCTAssertTrue(profile.maxNotionalValue.isGreaterThanOrEqualTo(profile.maxSymbolExposureValue))
+        XCTAssertTrue(profile.maxSymbolExposureValue.isGreaterThanOrEqualTo(profile.maxSingleOrderNotionalValue))
+        XCTAssertEqual(profile.policyHashInputs, ReleaseV0100CapitalExposureLimitReadinessGate.requiredPolicyHashInputs)
+
+        XCTAssertThrowsError(try ReleaseV0110FixedPointPolicyValue(decimalString: "100000.0", scale: 2, unit: .usd))
+        XCTAssertThrowsError(try ReleaseV0110FixedPointPolicyValue(decimalString: "100000.00", scale: 1, unit: .usd))
+        XCTAssertThrowsError(try ReleaseV0110FixedPointPolicyValue(minorUnits: 0, scale: 2, unit: .usd))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(
+            maxCapitalValue: try ReleaseV0110FixedPointPolicyValue(decimalString: "100000.00", scale: 2, unit: .leverageMultiple)
+        ))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureLimitProfile(maxProductExposureValue: money("150000.00")))
+        XCTAssertThrowsError(try ReleaseV0100CapitalExposureRiskPolicyIdentity(policyHashInputs: ["maxCapital=100000.00"]))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift")
+        let artifactStoreSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift")
+        let contract = try read("docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md")
+        let verifier = try read("checks/verify-v0.11.0.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY",
+            "TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY",
+            "V0110-009-FIXED-POINT-CAPITAL-EXPOSURE-POLICY",
+            "V0110-009-POLICY-UNITS-SCALE",
+            "V0110-009-NUMERIC-RELATIONSHIP-VALIDATION",
+            "V0110-009-POLICY-HASH-INPUTS",
+            "V0110-009-NO-PRODUCTION-CUTOVER-ORDER"
+        ]
+        XCTAssertEqual(ProductionReadinessFixedPointCapitalExposurePolicyAnchors.validationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(artifactStoreSource.contains(anchor), "\(anchor) must stay in v0.11 anchor source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.11 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.11 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in readiness docs")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest summary")
+        }
+
+        for requiredSource in [
+            "ReleaseV0110FixedPointPolicyValue",
+            "minorUnits",
+            "scale",
+            "unit",
+            "fixedPointPolicyHeld",
+            "numericRelationshipHeld",
+            "capitalExposureNumericRelationship",
+            "policyHashInputs"
+        ] {
+            XCTAssertTrue(source.contains(requiredSource), "\(requiredSource) must stay in fixed-point policy source")
+        }
+        XCTAssertFalse(source.contains("let exactStringChecks"))
+        XCTAssertTrue(verifier.contains("testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons"))
+        XCTAssertTrue(readiness.contains("Release v0.11.0 fixed-point capital / exposure policy anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-921 Release v0.11.0 Fixed-point Capital / Exposure Policy Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY"))
+        XCTAssertTrue(latest.contains("Release v0.11.0 Fixed-point Capital / Exposure Policy Snapshot"))
+        XCTAssertTrue(latest.contains("#921"))
+
+        for forbiddenAuthorization in [
+            "productionCutoverAuthorized=true",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization))
+            XCTAssertFalse(latest.contains(forbiddenAuthorization))
         }
     }
 

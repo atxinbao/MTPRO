@@ -17,6 +17,8 @@ set -euo pipefail
 # TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE
 # GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS
 # TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS
+# GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY
+# TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -58,6 +60,7 @@ APP_TESTS="Tests/AppTests/AppTests.swift"
 ARTIFACT_STORE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift"
 DASHBOARD_READINESS_SOURCE="Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift"
 MTPRO_CLI_SOURCE="Sources/MTPROCLI/main.swift"
+CAPITAL_EXPOSURE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift"
 PACKAGE_SOURCE="Package.swift"
 
 for anchor in \
@@ -429,6 +432,41 @@ for output in "$BUILD_OUTPUT" "$STATUS_OUTPUT" "$VALIDATE_OUTPUT" "$EXPORT_OUTPU
   done
 done
 
+for anchor in \
+  "GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY" \
+  "TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY" \
+  "V0110-009-FIXED-POINT-CAPITAL-EXPOSURE-POLICY" \
+  "V0110-009-POLICY-UNITS-SCALE" \
+  "V0110-009-NUMERIC-RELATIONSHIP-VALIDATION" \
+  "V0110-009-POLICY-HASH-INPUTS" \
+  "V0110-009-NO-PRODUCTION-CUTOVER-ORDER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$ARTIFACT_STORE_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "$CAPITAL_EXPOSURE_SOURCE" "ReleaseV0110FixedPointPolicyValue"
+require_file_contains "$CAPITAL_EXPOSURE_SOURCE" "ReleaseV0110FixedPointPolicyUnit"
+require_file_contains "$CAPITAL_EXPOSURE_SOURCE" "minorUnits"
+require_file_contains "$CAPITAL_EXPOSURE_SOURCE" "scale"
+require_file_contains "$CAPITAL_EXPOSURE_SOURCE" "unit"
+require_file_contains "$CAPITAL_EXPOSURE_SOURCE" "fixedPointPolicyHeld"
+require_file_contains "$CAPITAL_EXPOSURE_SOURCE" "numericRelationshipHeld"
+require_file_contains "$CAPITAL_EXPOSURE_SOURCE" "capitalExposureNumericRelationship"
+require_file_contains "$CAPITAL_EXPOSURE_SOURCE" "policyHashInputs"
+reject_file_contains "$CAPITAL_EXPOSURE_SOURCE" "let exactStringChecks"
+require_file_contains "$READINESS" "Release v0.11.0 fixed-point capital / exposure policy anchor"
+require_file_contains "$PLAN" "GH-921 Release v0.11.0 Fixed-point Capital / Exposure Policy Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY"
+require_file_contains "$LATEST" "Release v0.11.0 Fixed-point Capital / Exposure Policy Snapshot"
+require_file_contains "$LATEST" "#921"
+require_file_contains "$TESTS" "testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons"
+
 for required in \
   "mtpro readiness build v0.11.0" \
   "mutationApplied=true" \
@@ -486,5 +524,6 @@ swift test --filter TargetGraphTests/testGH918ShadowDryRunParityRunnerBuildsArti
 swift test --filter AppTests/testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly
 swift test --filter TargetGraphTests/testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors
 swift test --filter TargetGraphTests/testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities
+swift test --filter TargetGraphTests/testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons
 
 echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."
