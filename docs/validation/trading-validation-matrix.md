@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO
+
+- TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO
+- GH-915-VERIFY-V0110-READINESS-MANIFEST-ATOMIC-IO
+- V0110-003-READINESS-MANIFEST-SCHEMA
+- V0110-003-ATOMIC-JSON-ARTIFACT-IO
+- V0110-003-MANIFEST-POLICY-VERSION
+- V0110-003-MANIFEST-ENTRY-STATE-VALIDATION
+- V0110-003-EVIDENCE-EXISTS-IS-NOT-SUFFICIENT
+- GH-915 Release v0.11.0 Readiness Manifest Atomic IO Validation
+- `bash checks/verify-v0.11.0.sh`
+- `swift test --filter TargetGraphTests/testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts`
+- fixed manifest evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`、`checks/verify-v0.11.0.sh` 和 TargetGraph focused test。
+- Boundary: v0.11.0 manifest 只校验本地 readiness artifact schema、policyVersion、state、size 和 deterministic checksum；`evidenceExists` 不能单独证明 artifact valid；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE
 
 - TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE

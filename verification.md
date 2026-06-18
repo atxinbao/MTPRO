@@ -17087,3 +17087,26 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `bash checks/automation-readiness.sh`: pass.
   - `bash checks/verify-v0.10.0.sh`: pass.
   - `bash checks/run.sh`: pass, 598 tests / 0 failures.
+
+## 2026-06-18 - GH-915 v0.11.0 Readiness Manifest Atomic IO
+
+- Executor: Codex.
+- Scope:
+  - Extended `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`.
+  - Added `ProductionReadinessManifestEntry`, `ProductionReadinessManifest`, `ProductionReadinessManifestReadResult`, manifest read/write/validate methods and deterministic local checksum support.
+  - Added atomic JSON manifest writing, policyVersion validation, manifest entry state validation and real artifact size/checksum/state revalidation.
+  - Added `GH-915-VERIFY-V0110-READINESS-MANIFEST-ATOMIC-IO` anchors to the v0.11.0 contract, automation readiness, validation plan, trading validation matrix, latest summary, verifier and TargetGraph focused test.
+- Boundary:
+  - Did not create a `v0.11.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement canonical JSON SHA256, Dashboard real artifact binding, CLI runtime, approval transition or shadow parity runner.
+  - Did not add production OMS, trading button, order form or live command path.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts`: pass.
+  - `bash checks/verify-v0.11.0.sh`: pass.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/verify-v0.10.0.sh`: pass.
+  - `bash checks/run.sh`: pass, 599 tests / 0 failures.

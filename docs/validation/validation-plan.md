@@ -20,6 +20,20 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`。
 - Boundary: GH-914 只实现本地 `ProductionReadinessArtifactStore`、approved local evidence root、safe relative path、missing / invalid / stale / valid 状态和 read / write primitives；不实现 manifest schema、atomic manifest write order、canonical JSON SHA256、Dashboard real artifact binding、CLI runtime、approval transition 或 shadow parity runner；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
 
+## GH-915 Release v0.11.0 Readiness Manifest Atomic IO Validation
+
+- `GH-915-VERIFY-V0110-READINESS-MANIFEST-ATOMIC-IO`
+- `TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO`
+- `V0110-003-READINESS-MANIFEST-SCHEMA`
+- `V0110-003-ATOMIC-JSON-ARTIFACT-IO`
+- `V0110-003-MANIFEST-POLICY-VERSION`
+- `V0110-003-MANIFEST-ENTRY-STATE-VALIDATION`
+- `V0110-003-EVIDENCE-EXISTS-IS-NOT-SUFFICIENT`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`。
+- Boundary: GH-915 只实现本地 readiness manifest schema、atomic JSON artifact IO、policyVersion 校验、manifest entry state validation 和 deterministic local checksum；不实现 canonical JSON SHA256、Dashboard real artifact binding、CLI runtime、approval transition 或 shadow parity runner；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-913 Release v0.11.0 Production Readiness Evidence Runtime Contract Validation
 
 - `GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`
