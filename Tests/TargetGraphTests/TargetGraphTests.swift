@@ -9164,6 +9164,182 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH884KillSwitchNoTradeReadinessGateBlocksCutoverAndOrders() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let gate = try ReleaseV0100KillSwitchNoTradeReadinessGate.deterministicFixture()
+
+        XCTAssertTrue(gate.gateHeld)
+        XCTAssertTrue(gate.operatorReview.reviewHeld)
+        XCTAssertTrue(gate.evidenceArtifacts.allSatisfy(\.artifactHeld))
+        XCTAssertTrue(gate.productionCapabilitiesDisabled)
+        XCTAssertEqual(gate.issueID.rawValue, "GH-884")
+        XCTAssertEqual(gate.upstreamIssueIDs.map(\.rawValue), ["GH-878", "GH-883"])
+        XCTAssertEqual(gate.downstreamIssueID.rawValue, "GH-885")
+        XCTAssertEqual(gate.canonicalQueueRange, "GH-878..GH-891")
+        XCTAssertEqual(gate.killSwitchState, .active)
+        XCTAssertEqual(gate.noTradeState, .active)
+        XCTAssertEqual(gate.operatorReview.lastOperatorReview, "manual-operator-review-required-before-production-cutover")
+        XCTAssertTrue(gate.operatorReview.riskApprovalRequired)
+        XCTAssertTrue(gate.cutoverBlockedIfKillSwitchActive)
+        XCTAssertTrue(gate.cutoverBlockedIfNoTradeActive)
+        XCTAssertTrue(gate.productionCutoverBlocked)
+        XCTAssertEqual(gate.evidenceArtifacts.map(\.fileName), ["kill_switch_readiness.json", "no_trade_readiness.json"])
+        XCTAssertFalse(gate.cutoverAuthorized)
+        XCTAssertFalse(gate.orderSubmissionEnabled)
+        XCTAssertFalse(gate.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(gate.productionEndpointConnectionEnabled)
+        XCTAssertFalse(gate.productionBrokerConnectionEnabled)
+        XCTAssertFalse(gate.productionSecretValueRead)
+        XCTAssertFalse(gate.productionOMSRuntimeEnabled)
+        XCTAssertFalse(gate.tradingButtonEnabled)
+        XCTAssertFalse(gate.orderFormEnabled)
+        XCTAssertFalse(gate.liveCommandEnabled)
+        XCTAssertFalse(gate.killSwitchBypassEnabled)
+        XCTAssertFalse(gate.noTradeBypassEnabled)
+
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeOperatorReview(lastOperatorReview: "approved"))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeOperatorReview(riskApprovalRequired: false))
+        XCTAssertThrowsError(
+            try ReleaseV0100KillSwitchNoTradeReadinessArtifact(
+                kind: .killSwitchReadiness,
+                fileName: "wrong.json"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0100KillSwitchNoTradeReadinessArtifact(
+                kind: .killSwitchReadiness,
+                evidenceExists: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0100KillSwitchNoTradeReadinessArtifact(
+                kind: .noTradeReadiness,
+                containsBrokerOrAccountResponse: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0100KillSwitchNoTradeReadinessArtifact(
+                kind: .noTradeReadiness,
+                producedByEndpointConnection: true
+            )
+        )
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(cutoverBlockedIfKillSwitchActive: false))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(cutoverBlockedIfNoTradeActive: false))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(productionCutoverBlocked: false))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(cutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(orderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(testnetOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(productionBrokerConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(productionOMSRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(tradingButtonEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(orderFormEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(liveCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(killSwitchBypassEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100KillSwitchNoTradeReadinessGate(noTradeBypassEnabled: true))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift")
+        let contract = try read("docs/contracts/release-v0.10.0-kill-switch-no-trade-readiness-gate-contract.md")
+        let verifier = try read("checks/verify-v0.10.0-kill-switch-no-trade-readiness-gate.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "V0100-007-KILL-SWITCH-NO-TRADE-READINESS-GATE",
+            "V0100-007-KILL-SWITCH-STATE",
+            "V0100-007-NO-TRADE-STATE",
+            "V0100-007-LAST-OPERATOR-REVIEW",
+            "V0100-007-RISK-APPROVAL-REQUIRED",
+            "V0100-007-CUTOVER-BLOCKED-IF-KILL-SWITCH-ACTIVE",
+            "V0100-007-CUTOVER-BLOCKED-IF-NO-TRADE-ACTIVE",
+            "V0100-007-KILL-SWITCH-READINESS-JSON",
+            "V0100-007-NO-TRADE-READINESS-JSON",
+            "V0100-007-PRODUCTION-CUTOVER-BLOCKED",
+            "V0100-007-PRODUCTION-CAPABILITIES-DISABLED",
+            "GH-884-VERIFY-V0100-KILL-SWITCH-NO-TRADE-READINESS-GATE",
+            "TVM-RELEASE-V0100-KILL-SWITCH-NO-TRADE-READINESS-GATE"
+        ]
+        XCTAssertEqual(ReleaseV0100KillSwitchNoTradeReadinessGate.requiredValidationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        for exactString in [
+            "kill_switch_readiness.json",
+            "no_trade_readiness.json",
+            "killSwitchState=active",
+            "noTradeState=active",
+            "lastOperatorReview=manual-operator-review-required-before-production-cutover",
+            "riskApprovalRequired=true",
+            "cutoverBlockedIfKillSwitchActive=true",
+            "cutoverBlockedIfNoTradeActive=true",
+            "production_cutover_blocked=true",
+            "productionCutoverBlocked=true",
+            "productionCutoverUnblocked=false",
+            "cutoverAuthorized=false",
+            "orderSubmissionEnabled=false",
+            "testnetOrderSubmissionEnabled=false",
+            "productionEndpointConnectionEnabled=false",
+            "productionBrokerConnectionEnabled=false",
+            "productionSecretValueRead=false",
+            "productionOMSRuntimeEnabled=false",
+            "tradingButtonEnabled=false",
+            "orderFormEnabled=false",
+            "liveCommandEnabled=false",
+            "killSwitchBypassEnabled=false",
+            "noTradeBypassEnabled=false"
+        ] {
+            XCTAssertTrue(contract.contains(exactString), "\(exactString) must stay fixed in #884 docs")
+        }
+
+        XCTAssertTrue(verifier.contains("MTPRO release v0.10.0 kill switch / no-trade readiness gate verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-kill-switch-no-trade-readiness-gate.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-kill-switch-no-trade-readiness-gate.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.10.0 kill switch / no-trade readiness gate anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-884 Release v0.10.0 Kill Switch / No-trade Readiness Gate Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-KILL-SWITCH-NO-TRADE-READINESS-GATE"))
+        XCTAssertTrue(latest.contains("`#884` 定义 KillSwitchNoTradeReadinessGate reference-only contract"))
+
+        for forbiddenAuthorization in [
+            "production_cutover_blocked=false",
+            "productionCutoverBlocked=false",
+            "productionCutoverUnblocked=true",
+            "riskApprovalRequired=false",
+            "cutoverBlockedIfKillSwitchActive=false",
+            "cutoverBlockedIfNoTradeActive=false",
+            "cutoverAuthorized=true",
+            "orderSubmissionEnabled=true",
+            "testnetOrderSubmissionEnabled=true",
+            "productionEndpointConnectionEnabled=true",
+            "productionBrokerConnectionEnabled=true",
+            "productionSecretValueRead=true",
+            "productionOMSRuntimeEnabled=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true",
+            "killSwitchBypassEnabled=true",
+            "noTradeBypassEnabled=true",
+            "containsBrokerOrAccountResponse=true",
+            "producedByEndpointConnection=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(
