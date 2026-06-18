@@ -30,8 +30,8 @@ private enum MTPROCLIParserError: Error, CustomStringConvertible, Equatable {
 
 /// MTPROStrictCLI 固定 GH-727 的严格命令路由。
 ///
-/// 新 v0.10.0 readiness contract shape 继续暴露 `help`、`run`、`status`、`stop`、`recover`、
-/// `monitor`、`verify` 和 `risk-policy` 等安全本地入口；历史
+/// 新 v0.10.1 readiness contract shape 继续暴露 `help`、`run`、`status`、`stop`、`recover`、
+/// `monitor`、`verify`、`risk-policy` 和 `readiness` 等安全本地入口；历史
 /// `rehearsal-status`、`unified-run-status`、`run-observer`、`run-detail-observer`、
 /// `testnet-readonly-probe`、`verify-fast`、`verify-release` 仍可被显式调用。
 /// 任何其他命令必须在这里失败，不得 fallback 到旧 release surface。
@@ -59,6 +59,16 @@ private enum MTPROStrictCLI {
         "V0101-004-NO-PRODUCTION-CUTOVER",
         "V0101-004-NO-ENDPOINT-READINESS-CLAIM",
         "V0101-004-NO-LIVE-ORDER-AUTHORIZATION"
+    ]
+    static let readinessCLIHelpVerificationAnchor = "GH-910-VERIFY-V0101-READINESS-CLI-HELP"
+    static let readinessCLIHelpValidationAnchor = "TVM-RELEASE-V0101-READINESS-CLI-HELP"
+    static let readinessCLIHelpRequiredAnchors = [
+        "V0101-005-READINESS-CLI-HELP-PLACEHOLDER",
+        "V0101-005-BUILD-STATUS-VALIDATE-EXPORT-APPROVAL-STATUS",
+        "V0101-005-NON-MUTATING-NO-ARTIFACT-WRITE",
+        "V0101-005-NO-PRODUCTION-CUTOVER",
+        "V0101-005-NO-PRODUCTION-SECRET-ENDPOINT-ORDER",
+        "V0101-005-NO-READINESS-ARTIFACT-RUNTIME"
     ]
     static let releaseV090OperatorUXRequiredAnchors = [
         "V090-013-DASHBOARD-CLI-OPERATOR-UX",
@@ -90,6 +100,14 @@ private enum MTPROStrictCLI {
         "risk-policy validate",
         "risk-policy diff"
     ]
+    static let readinessSupportedActionCommands = [
+        "readiness help",
+        "readiness build",
+        "readiness status",
+        "readiness validate",
+        "readiness export",
+        "readiness approval-status"
+    ]
     static let monitorSupportedActionCommands = [
         "monitor start",
         "monitor status",
@@ -104,6 +122,7 @@ private enum MTPROStrictCLI {
         "stop",
         "recover",
         "risk-policy",
+        "readiness",
         "monitor",
         "verify",
         ReleaseV030CLIRehearsalSurface.cliCommand,
@@ -134,6 +153,8 @@ private enum MTPROStrictCLI {
             return try recoverOutput(arguments: arguments)
         case "risk-policy":
             return try riskPolicyOutput(arguments: arguments)
+        case "readiness":
+            return try readinessOutput(arguments: arguments)
         case "monitor":
             return try monitorOutput(arguments: arguments)
         case "verify":
@@ -180,15 +201,69 @@ private enum MTPROStrictCLI {
             "runtimeSessionContract=v0.7.0",
             "persistentLocalSessionContract=v0.8.0",
             "riskPolicyProfileContract=v0.8.0",
+            "readinessPlaceholderContract=v0.10.1",
             "runtimeModes=local-dry-run,testnet-read-only-monitor,recovery-observe,production-blocked",
             "legacyRuntimeModes=testnet-read-only-probe",
             "localSessionActions=run,status,stop,recover",
             "riskPolicyActions=\(riskPolicySupportedActionCommands.joined(separator: ","))",
+            "readinessActions=\(readinessSupportedActionCommands.joined(separator: ","))",
             "monitorActions=\(monitorSupportedActionCommands.joined(separator: ","))",
+            "readinessPlaceholderOnly=true",
+            "readinessArtifactRuntimeImplemented=false",
             "testnetRequiresOperatorConfirmation=true",
             "productionTradingEnabledByDefault=false",
             "productionSecretRead=false",
             "productionEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "boundaryHeld=true"
+        ].joined(separator: "\n")
+    }
+
+    /// `mtpro readiness` 是 GH-910 的 v0.10.1 help-only placeholder。
+    ///
+    /// 它只暴露未来 v0.11 readiness runtime 的命令语义，不创建 readiness bundle、
+    /// 不写本地 artifact、不读取 secret、不连接 endpoint，也不授权任何 production cutover。
+    private static func readinessOutput(arguments: [String]) throws -> String {
+        guard arguments.count == 2 else {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.readiness.arguments",
+                expected: readinessSupportedActionCommands.joined(separator: ","),
+                actual: arguments.joined(separator: " ")
+            )
+        }
+
+        let action = arguments[1]
+        guard ["help", "build", "status", "validate", "export", "approval-status"].contains(action) else {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.readiness.action",
+                expected: "help,build,status,validate,export,approval-status",
+                actual: arguments.joined(separator: " ")
+            )
+        }
+
+        return [
+            "mtpro readiness \(action) v0.10.1",
+            "issue=GH-910",
+            "validationAnchor=\(readinessCLIHelpValidationAnchor)",
+            "verificationAnchor=\(readinessCLIHelpVerificationAnchor)",
+            "requiredAnchors=\(readinessCLIHelpRequiredAnchors.joined(separator: ","))",
+            "readinessPlaceholderContract=v0.10.1",
+            "futureReadinessRuntime=v0.11.0",
+            "action=\(action)",
+            "supportedActions=\(readinessSupportedActionCommands.joined(separator: ","))",
+            "placeholderOnly=true",
+            "noOp=true",
+            "mutationApplied=false",
+            "artifactWritten=false",
+            "readinessBundleWritten=false",
+            "readinessArtifactRuntimeImplemented=false",
+            "productionReadinessArtifactStoreImplemented=false",
+            "operatorApprovalStatus=not-requested",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
             "productionOrderSubmitted=false",
             "productionCutoverAuthorized=false",
             "boundaryHeld=true"

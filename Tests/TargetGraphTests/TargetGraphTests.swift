@@ -12811,7 +12811,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationReadiness.contains("Release v0.9.0 Dashboard / CLI operator UX anchor"))
         XCTAssertTrue(validationPlan.contains("GH-855 Release v0.9.0 Dashboard / CLI Operator UX Validation"))
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX"))
-        XCTAssertTrue(cliVerifier.contains("risk-policy,monitor,verify"))
+        XCTAssertTrue(cliVerifier.contains("risk-policy,readiness,monitor,verify"))
 
         for forbiddenAuthorization in [
             "productionTradingEnabledByDefault=true",
@@ -13944,6 +13944,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliSource.contains("run"))
         XCTAssertTrue(cliSource.contains("status"))
         XCTAssertTrue(cliSource.contains("risk-policy"))
+        XCTAssertTrue(cliSource.contains("readiness"))
         XCTAssertTrue(cliSource.contains("verify"))
         XCTAssertTrue(cliSource.contains("ReleaseV030CLIRehearsalSurface.commandLineOutput"))
         XCTAssertTrue(cliSource.contains("ReleaseV040UnifiedRunSurface.commandLineOutput"))
@@ -13967,7 +13968,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro help"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro run"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro status"))
-        XCTAssertTrue(cliVerificationScript.contains("risk-policy,monitor,verify"))
+        XCTAssertTrue(cliVerificationScript.contains("risk-policy,readiness,monitor,verify"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro verify"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro unified-run-status"))
         XCTAssertTrue(cliVerificationScript.contains("swift run mtpro rehearsal-status"))
@@ -28265,6 +28266,117 @@ final class TargetGraphTests: XCTestCase {
             "productionCutoverAuthorized=true"
         ] {
             XCTAssertFalse(cliSource.contains(forbiddenOutputLine), "\(forbiddenOutputLine) must stay out of mtpro verify output")
+        }
+    }
+
+    func testGH910ReadinessCLIHelpPlaceholderIsNonMutatingAndFailsClosed() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let readinessGuardScript = try read("checks/verify-v0.10.1-readiness-cli-help.sh")
+        let v0100Verifier = try read("checks/verify-v0.10.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-910-VERIFY-V0101-READINESS-CLI-HELP",
+            "TVM-RELEASE-V0101-READINESS-CLI-HELP",
+            "V0101-005-READINESS-CLI-HELP-PLACEHOLDER",
+            "V0101-005-BUILD-STATUS-VALIDATE-EXPORT-APPROVAL-STATUS",
+            "V0101-005-NON-MUTATING-NO-ARTIFACT-WRITE",
+            "V0101-005-NO-PRODUCTION-CUTOVER",
+            "V0101-005-NO-PRODUCTION-SECRET-ENDPOINT-ORDER",
+            "V0101-005-NO-READINESS-ARTIFACT-RUNTIME"
+        ] {
+            XCTAssertTrue(cliSource.contains(anchor), "\(anchor) must stay in CLI placeholder output")
+            XCTAssertTrue(readinessGuardScript.contains(anchor), "\(anchor) must be enforced by #910 guard")
+            XCTAssertTrue(readinessDoc.contains(anchor), "\(anchor) must be documented in automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+        }
+
+        for requiredOutputLine in [
+            "readinessPlaceholderContract=v0.10.1",
+            "futureReadinessRuntime=v0.11.0",
+            "supportedActions=\\(readinessSupportedActionCommands.joined(separator: \",\"))",
+            "placeholderOnly=true",
+            "noOp=true",
+            "mutationApplied=false",
+            "artifactWritten=false",
+            "readinessBundleWritten=false",
+            "readinessArtifactRuntimeImplemented=false",
+            "productionReadinessArtifactStoreImplemented=false",
+            "operatorApprovalStatus=not-requested",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "boundaryHeld=true"
+        ] {
+            XCTAssertTrue(cliSource.contains(requiredOutputLine), "\(requiredOutputLine) must stay in readiness CLI output")
+        }
+
+        for requiredScriptLine in [
+            "swift run mtpro readiness \"$action\"",
+            "require_command_fails_with \"mtpro.readiness.action\" swift run mtpro readiness write",
+            "require_command_fails_with \"mtpro.readiness.arguments\" swift run mtpro readiness build --write",
+            "require_command_fails_with \"mtpro.readiness.arguments\" swift run mtpro readiness export ./readiness.json",
+            "artifactWritten=false",
+            "readinessArtifactRuntimeImplemented=false",
+            "productionReadinessArtifactStoreImplemented=false",
+            "productionCutoverAuthorized=false"
+        ] {
+            XCTAssertTrue(readinessGuardScript.contains(requiredScriptLine), "\(requiredScriptLine) must be guarded")
+        }
+
+        XCTAssertTrue(cliSource.contains("\"readiness\""))
+        XCTAssertTrue(cliSource.contains("readinessSupportedActionCommands"))
+        XCTAssertTrue(cliSource.contains("case \"readiness\":"))
+        XCTAssertTrue(cliSource.contains("readiness help"))
+        XCTAssertTrue(cliSource.contains("readiness build"))
+        XCTAssertTrue(cliSource.contains("readiness status"))
+        XCTAssertTrue(cliSource.contains("readiness validate"))
+        XCTAssertTrue(cliSource.contains("readiness export"))
+        XCTAssertTrue(cliSource.contains("readiness approval-status"))
+        XCTAssertTrue(cliSource.contains("field: \"mtpro.readiness.action\""))
+        XCTAssertTrue(cliSource.contains("field: \"mtpro.readiness.arguments\""))
+        XCTAssertTrue(v0100Verifier.contains("bash checks/verify-v0.10.1-readiness-cli-help.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.1-readiness-cli-help.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.1-readiness-cli-help.sh"))
+        XCTAssertTrue(readinessScript.contains("testGH910ReadinessCLIHelpPlaceholderIsNonMutatingAndFailsClosed"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.10.1 readiness CLI help placeholder anchor"))
+        XCTAssertTrue(latest.contains("Readiness CLI help placeholder guard"))
+        XCTAssertTrue(validationPlan.contains("GH-910 Release v0.10.1 Readiness CLI Help Placeholder Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0101-READINESS-CLI-HELP"))
+
+        for forbiddenOutputLine in [
+            "mutationApplied=true",
+            "artifactWritten=true",
+            "readinessBundleWritten=true",
+            "readinessArtifactRuntimeImplemented=true",
+            "productionReadinessArtifactStoreImplemented=true",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "ProductionReadinessArtifactStore()",
+            "FileManager.default.createFile",
+            "swift run mtpro readiness submit",
+            "swift run mtpro readiness cancel",
+            "swift run mtpro readiness replace"
+        ] {
+            XCTAssertFalse(cliSource.contains(forbiddenOutputLine), "\(forbiddenOutputLine) must stay out of readiness CLI source")
         }
     }
 

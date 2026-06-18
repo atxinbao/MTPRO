@@ -23,6 +23,20 @@
 - Root docs refresh: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md` 只同步 v0.10.0 已完成 readiness evidence、Project Closure Count `44 / 44 (100%)`、stage audit path、release notes、operator runbook、validation command 和 no-default-production-trading boundary。
 - Boundary: GH-891 只收口 v0.10.0 final audit / docs / runbook 和 aggregate verifier；#891 construction closeout PR 本身未执行 tag / GitHub Release publication、不创建下一 Project / Issue、不推进下一 Todo、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order。v0.10.0 已在后续独立 publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；该 publication 仍不授权 production cutover。
 
+## GH-910 Release v0.10.1 Readiness CLI Help Placeholder Validation
+
+- `GH-910-VERIFY-V0101-READINESS-CLI-HELP`
+- `TVM-RELEASE-V0101-READINESS-CLI-HELP`
+- `V0101-005-READINESS-CLI-HELP-PLACEHOLDER`
+- `V0101-005-BUILD-STATUS-VALIDATE-EXPORT-APPROVAL-STATUS`
+- `V0101-005-NON-MUTATING-NO-ARTIFACT-WRITE`
+- `V0101-005-NO-PRODUCTION-CUTOVER`
+- `V0101-005-NO-PRODUCTION-SECRET-ENDPOINT-ORDER`
+- `V0101-005-NO-READINESS-ARTIFACT-RUNTIME`
+- Required command: `bash checks/verify-v0.10.1-readiness-cli-help.sh`
+- Focused test: `testGH910ReadinessCLIHelpPlaceholderIsNonMutatingAndFailsClosed`
+- Boundary: `mtpro readiness help/build/status/validate/export/approval-status` 只输出 help-only / no-op placeholder；不写 readiness artifact，不实现 `ProductionReadinessArtifactStore` 或 real readiness runtime，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-909 Release v0.10.1 CLI verify v0.10.0 Wording Validation
 
 - `GH-909-VERIFY-V0101-CLI-V0100-WORDING`

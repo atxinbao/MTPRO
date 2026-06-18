@@ -23,6 +23,22 @@
 - fixed release evidence: `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md`、`docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md`、`docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md`、Project Closure Count `44 / 44 (100%)` 和 aggregate verifier。
 - Boundary: v0.10.0 final closeout 只证明 production cutover readiness assessment、reference-only production profile、secret readiness、endpoint policy、capital / exposure limits、kill switch / no-trade、disabled command surface、shadow dry-run parity、readiness bundle、approval workflow、incident / rollback runbook 和 Dashboard readiness center 已闭环；不读取 production secret，不连接 production endpoint / broker，不显示 trading button / order form / live command，不提交 testnet 或 production order，不授权 production cutover。
 
+## TVM-RELEASE-V0101-READINESS-CLI-HELP
+
+- TVM-RELEASE-V0101-READINESS-CLI-HELP
+- GH-910-VERIFY-V0101-READINESS-CLI-HELP
+- V0101-005-READINESS-CLI-HELP-PLACEHOLDER
+- V0101-005-BUILD-STATUS-VALIDATE-EXPORT-APPROVAL-STATUS
+- V0101-005-NON-MUTATING-NO-ARTIFACT-WRITE
+- V0101-005-NO-PRODUCTION-CUTOVER
+- V0101-005-NO-PRODUCTION-SECRET-ENDPOINT-ORDER
+- V0101-005-NO-READINESS-ARTIFACT-RUNTIME
+- GH-910 Release v0.10.1 Readiness CLI Help Placeholder Validation
+- `bash checks/verify-v0.10.1-readiness-cli-help.sh`
+- `swift test --filter TargetGraphTests/testGH910ReadinessCLIHelpPlaceholderIsNonMutatingAndFailsClosed`
+- `mtpro readiness help/build/status/validate/export/approval-status` 输出 v0.10.1 help-only / no-op placeholder，并固定 `artifactWritten=false`、`readinessArtifactRuntimeImplemented=false`、`productionReadinessArtifactStoreImplemented=false` 和 `productionCutoverAuthorized=false`。
+- Boundary: Readiness CLI placeholder 不写 readiness artifact、不实现 real readiness runtime、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## TVM-RELEASE-V0101-CLI-V0100-WORDING
 
 - TVM-RELEASE-V0101-CLI-V0100-WORDING
