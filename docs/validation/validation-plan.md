@@ -23,6 +23,21 @@
 - Root docs refresh: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md` 只同步 v0.10.0 已完成 readiness evidence、Project Closure Count `44 / 44 (100%)`、stage audit path、release notes、operator runbook、validation command 和 no-default-production-trading boundary。
 - Boundary: GH-891 只收口 v0.10.0 final audit / docs / runbook 和 aggregate verifier；#891 construction closeout PR 本身未执行 tag / GitHub Release publication、不创建下一 Project / Issue、不推进下一 Todo、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order。v0.10.0 已在后续独立 publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；该 publication 仍不授权 production cutover。
 
+## GH-912 Release v0.10.1 Patch Audit / Release Notes Validation
+
+- `GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES`
+- `TVM-RELEASE-V0101-PATCH-AUDIT-RELEASE-NOTES`
+- `V0101-007-PATCH-AUDIT`
+- `V0101-007-RELEASE-NOTES`
+- `V0101-007-VALIDATION-SUMMARY`
+- `V0101-007-AGGREGATE-VERIFY`
+- `V0101-007-NO-PRODUCTION-CUTOVER`
+- `V0101-007-V0110-RUNTIME-OWNERSHIP`
+- Required command: `bash checks/verify-v0.10.1.sh`
+- Focused test: `testGH912ReleaseV0101PatchAuditReleaseNotesCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md`、`docs/validation/latest-verification-summary.md`。
+- Boundary: GH-912 只收口 #907 至 #911 的 v0.10.1 patch audit、release notes、aggregate verifier 和 latest summary；不实现 `ProductionReadinessArtifactStore`，不写 readiness artifact，不实现 real readiness artifact runtime，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。v0.11.0 owns real readiness artifact runtime + integrity hardening。
+
 ## GH-910 Release v0.10.1 Readiness CLI Help Placeholder Validation
 
 - `GH-910-VERIFY-V0101-READINESS-CLI-HELP`

@@ -18,9 +18,10 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | --- | --- |
 | Latest completed release construction scope | `MTPRO Release v0.10.0 Production Cutover Readiness Gate` |
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
-| Active queue | none after v0.10.0 closure；下一阶段必须由 Human + `@001 / PLN` 重新规划并写入新的 live queue source |
+| Active queue | none after v0.10.1 patch closeout；下一阶段必须由 Human + `@001 / PLN` 重新规划并写入新的 live queue source |
 | Stage Code Audit Report | `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md` |
 | Release publication | v0.10.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；target commit `7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`；publication timestamp `2026-06-18T05:19:46Z`；v0.9.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`；target commit `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`；v0.9.1 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`；tag peeled commit `d041f0dd304075562a85e494695697290972288f`；均不授权 production cutover |
+| v0.10.1 patch closeout | `GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES`；Stage Code Audit Report：`docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md`；release notes：`docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md`；aggregate verifier：`checks/verify-v0.10.1.sh`；#907 至 #911 均已 `CLOSED / done` 且 PR #926 至 #930 merged / checks SUCCESS；v0.11.0 owns real readiness artifact runtime + integrity hardening |
 | Release fact sync guard | `GH-907-VERIFY-V0101-RELEASE-FACT-STALE-WORDING-GUARD`；`checks/verify-v0.10.1-release-fact-sync.sh` 固定 v0.10.0 publication 后的四段 release fact flow：construction closeout、release publication、release fact sync、stale wording guard；guard 不授权 production cutover |
 | Readiness CLI help placeholder guard | `GH-910-VERIFY-V0101-READINESS-CLI-HELP`；`checks/verify-v0.10.1-readiness-cli-help.sh` 固定 `mtpro readiness help/build/status/validate/export/approval-status` 只输出 v0.10.1 help-only / no-op placeholder；不写 readiness artifact、不实现 `ProductionReadinessArtifactStore`、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order |
 | CLI verify v0.10.0 wording guard | `GH-909-VERIFY-V0101-CLI-V0100-WORDING`；`checks/verify-v0.10.1-cli-verify-v0100-wording.sh` 固定 `mtpro verify` 的 v0.10.0 输出为 Production Readiness Contract / Reference Evidence Model，并拒绝 operational production readiness、production cutover readiness、production endpoint readiness 和 live order authorization 语义 |
@@ -50,6 +51,38 @@ Production trading 仍默认关闭；不读取 production secret，不连接 pro
 ```bash
 git diff --check
 bash checks/automation-readiness.sh
+bash checks/verify-v0.10.0.sh
+bash checks/run.sh
+```
+
+## Release v0.10.1 Production Readiness Audit Hardening Patch Snapshot
+
+`GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES`
+
+`MTPRO Release v0.10.1 Production Readiness Audit Hardening Patch` 只收口 v0.10.0 stable release publication 后的 audit / wording / guard drift。#907 至 #911 均已 `CLOSED / done`：#907 PR #926、#908 PR #927、#909 PR #928、#910 PR #929 和 #911 PR #930 均已 merged，required `checks`、`linux-checks` 和 `dashboard-macos` 均为 SUCCESS。
+
+Patch evidence：
+
+- Stage Code Audit Report：`docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md`
+- Release notes：`docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md`
+- Aggregate verifier：`checks/verify-v0.10.1.sh`
+- Release fact sync guard：`checks/verify-v0.10.1-release-fact-sync.sh`
+- Dashboard macOS v0.10 guard：`checks/verify-v0.10.1-dashboard-macos-v0100-guards.sh`
+- CLI verify wording guard：`checks/verify-v0.10.1-cli-verify-v0100-wording.sh`
+- Readiness CLI help placeholder guard：`checks/verify-v0.10.1-readiness-cli-help.sh`
+
+Validation anchors：`TVM-RELEASE-V0101-PATCH-AUDIT-RELEASE-NOTES`、`V0101-007-PATCH-AUDIT`、`V0101-007-RELEASE-NOTES`、`V0101-007-VALIDATION-SUMMARY`、`V0101-007-AGGREGATE-VERIFY`、`V0101-007-NO-PRODUCTION-CUTOVER` 和 `V0101-007-V0110-RUNTIME-OWNERSHIP`。
+
+v0.10.1 不实现 real readiness artifact runtime，不实现 `ProductionReadinessArtifactStore`，不写 readiness artifact。v0.11.0 remains the target for Production Readiness Evidence Runtime + Integrity Hardening。
+
+Production trading 仍默认关闭；不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Project / Issue。
+
+本地验证入口：
+
+```bash
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/verify-v0.10.1.sh
 bash checks/verify-v0.10.0.sh
 bash checks/run.sh
 ```
