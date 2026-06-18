@@ -6,6 +6,22 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-924 Release v0.11.0 Final Audit / Release Docs Validation
+
+- `GH-924-VERIFY-V0110-FINAL-AUDIT-RELEASE-DOCS`
+- `TVM-RELEASE-V0110-FINAL-AUDIT-RELEASE-DOCS`
+- `V0110-012-STAGE-CODE-AUDIT`
+- `V0110-012-RELEASE-NOTES`
+- `V0110-012-VALIDATION-SUMMARY`
+- `V0110-012-AGGREGATE-VERIFY`
+- `V0110-012-ROOT-DOCS-REFRESH`
+- `V0110-012-NO-PRODUCTION-CUTOVER`
+- `V0110-012-NO-PUBLIC-RELEASE-PUBLICATION`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH924ReleaseV0110FinalAuditReleaseDocsCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md`、`docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md`、`docs/validation/trading-validation-matrix.md` 和 `checks/verify-v0.11.0.sh`。
+- Boundary: GH-924 只收口 v0.11.0 final validation suite、Stage Code Audit、release notes、root docs refresh 和 aggregate verifier guard；不创建 `v0.11.0` tag / GitHub Release，不推进下一 Project / Issue，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-923 Release v0.11.0 Auditable Approval Workflow Transitions Validation
 
 - `GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS`

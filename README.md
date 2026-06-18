@@ -2,12 +2,13 @@
 
 MTPRO 是 SwiftPM-first、local-first 的 macOS 原生专业交易工作台。它以 Research -> Backtest -> Report -> Paper -> guarded runtime evidence 的可追溯链路为基础，最终目标是专业版交易工作台：Live trading、实盘监控、实盘执行控制、实盘风险控制、实盘审计、事故回放和停机控制。
 
-Latest completed release construction scope: `MTPRO Release v0.10.0 Production Cutover Readiness Gate`。
+Latest completed release construction scope: `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening`。
 
+Historical guard retains previous Latest completed release construction scope: `MTPRO Release v0.10.0 Production Cutover Readiness Gate`。
 Historical guard retains previous Latest completed release construction scope: `MTPRO Release v0.9.0 Testnet No-order Observability`。
 Historical guard retains previous Latest completed release construction scope: `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring`。
 
-当前最新完成范围：`MTPRO Release v0.10.0 Production Cutover Readiness Gate`。它收口 production cutover readiness assessment、reference-only production environment profile、secret provider readiness、endpoint policy readiness、capital / exposure limits、kill switch / no-trade、disabled command surface、shadow dry-run parity、production readiness audit bundle、cutover approval workflow、incident / rollback runbook、Dashboard Production Readiness Center 和 final audit / docs / runbook closure。v0.10.0 construction closeout 已完成；随后通过独立 public release publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`，tag target commit：`7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`。该 publication 不授权 production cutover。
+当前最新完成范围：`MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening`。它收口本地 readiness artifact store、manifest atomic IO、canonical JSON SHA256、bundle validation、shadow dry-run parity、Dashboard real artifact state、readiness CLI local artifact commands、fixed-point capital / exposure policy、kill switch / no-trade state model、auditable approval workflow transitions 和 final audit / release docs closure。v0.11.0 construction closeout 不创建 public tag / GitHub Release；production cutover 仍未授权。v0.10.0 已通过独立 public release publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`，tag target commit：`7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`。该 publication 不授权 production cutover。
 
 Historical completed release construction scope：`MTPRO Release v0.9.0 Testnet No-order Observability`。它是 testnet read-only no-order observability、persistent monitor session、signed account snapshot freshness、private stream heartbeat / staleness、monitor recovery observe、Dashboard observability timeline、alert read-model、Portfolio reconciliation timeline、Risk policy application audit、run monitor export bundle、validation lanes split、Dashboard / CLI operator UX 和 final audit / docs / runbook closure。v0.7.0 和 v0.8.0 均已通过各自独立 release publication gate 发布 stable GitHub Release；v0.8.0 GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0`。v0.9.0 也已通过独立 release publication gate 发布 stable GitHub Release；v0.9.0 GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`，target commit：`4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`。v0.9.1 patch evidence 收口 v0.9.0 audit hardening：Dashboard macOS v0.9 focused guard、`mtpro verify v0.9.0` wording、monitor store binding 和 probe / monitor naming；v0.9.1 已通过独立 release publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`，tag peeled commit：`d041f0dd304075562a85e494695697290972288f`。v0.8.1 patch evidence 只收口 release publication docs alignment、Dashboard macOS guard、CLI wording、local session wording、status artifact role、private stream redaction 和 patch docs；v0.9.0 construction closeout、v0.9.0 / v0.9.1 public GitHub Release publication 和 production cutover 仍是独立 gate；已发布事实、patch evidence、v0.9.0 construction evidence 和 v0.10.0 readiness evidence 均不授权 production cutover。
 
@@ -21,14 +22,14 @@ MTPRO 借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapte
 
 | 项 | 当前事实 |
 | --- | --- |
-| Current maturity statement | `MTPRO Release v0.10.0 Production Cutover Readiness Gate complete with production trading disabled by default and production cutover not authorized` |
+| Current maturity statement | `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening complete with production trading disabled by default and production cutover not authorized` |
 | Active venue / products / strategies | `activeVenue == Binance`；`activeProductTypes == [spot, usdsPerpetual]`；`activeStrategies == [ema, rsi]` |
 | Runtime modes | `runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]` |
 | Production default | `productionTradingEnabledByDefault == false` |
 | Production capability | `productionCapabilityGatedNotMissing == true` |
 | Historical boundary | `oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true` |
 
-Production trading、production secret、production endpoint、production broker connection、testnet / production submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.10.0 授权。后续执行只能来自 Human 指定的唯一 live queue source，并且必须经过 Parent Codex queue preflight。
+Production trading、production secret、production endpoint、production broker connection、testnet / production submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.11.0 授权。后续执行只能来自 Human 指定的唯一 live queue source，并且必须经过 Parent Codex queue preflight。
 
 ## 必读入口
 
@@ -65,6 +66,7 @@ Production trading、production secret、production endpoint、production broker
 
 | 类别 | 锚点 / 文件 |
 | --- | --- |
+| v0.11.0 | `GH-924-VERIFY-V0110-FINAL-AUDIT-RELEASE-DOCS`；`docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md`；`docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md`；`checks/verify-v0.11.0.sh`；construction closeout 不创建 public tag / GitHub Release；不授权 production cutover |
 | v0.10.0 | `GH-891-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK`；`docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md`；`docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md`；`docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md`；`checks/verify-v0.10.0.sh`；stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；tag target commit：`7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`；construction closeout、public release publication 和 production cutover 仍是独立 gate；不授权 production cutover |
 | v0.9.1 patch release | `V091-006-VERIFY-PATCH-AUDIT-DOCS-RUNBOOK`；`docs/audit/mtpro-release-v0.9.1-v090-audit-hardening-stage-code-audit.md`；`docs/release/mtpro-release-v0.9.1-v090-audit-hardening-notes.md`；`checks/verify-v0.9.1.sh`；stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`；tag peeled commit：`d041f0dd304075562a85e494695697290972288f`；不授权 production cutover |
 | v0.9.0 | `GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK`；`docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md`；`docs/operators/release-v0.9.0-testnet-no-order-observability-runbook.md`；`docs/release/mtpro-release-v0.9.0-testnet-no-order-observability-notes.md`；`checks/verify-v0.9.0.sh` |
@@ -91,6 +93,7 @@ bash checks/run.sh
 轻量当前 release guard：
 
 ```bash
+bash checks/verify-v0.11.0.sh
 bash checks/verify-v0.10.0.sh
 bash checks/verify-v0.9.1.sh
 bash checks/verify-v0.9.0.sh

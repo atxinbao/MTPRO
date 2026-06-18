@@ -17305,3 +17305,27 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass.
   - `bash checks/run.sh`: pass, 608 tests / 0 failures.
+
+## 2026-06-19 - GH-924 v0.11.0 Final Audit / Release Docs Closeout
+
+- Executor: Codex.
+- Scope:
+  - Added `docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md`.
+  - Added `docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md`.
+  - Updated root docs and compressed validation entries for `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening`.
+  - Added `GH-924-VERIFY-V0110-FINAL-AUDIT-RELEASE-DOCS` anchors to automation readiness, validation plan, trading validation matrix, latest summary, verifier and TargetGraph focused test.
+  - Extended `checks/verify-v0.11.0.sh` to require #924 audit / release docs / root docs refresh evidence and run `testGH924ReleaseV0110FinalAuditReleaseDocsCloseout`.
+- Boundary:
+  - Did not create a `v0.11.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement new runtime, production OMS, trading button, order form or live command path.
+  - Approval workflow evidence remains local readiness evidence only; approved evidence does not convert into trading permission.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH924ReleaseV0110FinalAuditReleaseDocsCloseout`: pass.
+  - `bash checks/verify-v0.11.0.sh`: pass.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/verify-v0.10.0.sh`: pass; required because this PR refreshed root docs carrying v0.10.x historical guards.
+  - `bash checks/run.sh`: pass, 609 tests / 0 failures.

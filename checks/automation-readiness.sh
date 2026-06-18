@@ -723,6 +723,33 @@ for v0110_approval_workflow_anchor in \
   require_contains "docs/validation/validation-plan.md" "$v0110_approval_workflow_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_approval_workflow_anchor"
 done
+require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 final audit / release docs closeout anchor"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Final Audit / Release Docs Snapshot"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-FINAL-AUDIT-RELEASE-DOCS"
+require_contains "docs/validation/validation-plan.md" "GH-924 Release v0.11.0 Final Audit / Release Docs Validation"
+require_contains "docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md" "MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening Stage Code Audit"
+require_contains "docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md" "MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening Notes"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH924ReleaseV0110FinalAuditReleaseDocsCloseout"
+require_contains "checks/verify-v0.11.0.sh" "testGH924ReleaseV0110FinalAuditReleaseDocsCloseout"
+for v0110_final_closeout_anchor in \
+  "GH-924-VERIFY-V0110-FINAL-AUDIT-RELEASE-DOCS" \
+  "TVM-RELEASE-V0110-FINAL-AUDIT-RELEASE-DOCS" \
+  "V0110-012-STAGE-CODE-AUDIT" \
+  "V0110-012-RELEASE-NOTES" \
+  "V0110-012-VALIDATION-SUMMARY" \
+  "V0110-012-AGGREGATE-VERIFY" \
+  "V0110-012-ROOT-DOCS-REFRESH" \
+  "V0110-012-NO-PRODUCTION-CUTOVER" \
+  "V0110-012-NO-PUBLIC-RELEASE-PUBLICATION"; do
+  require_contains "checks/verify-v0.11.0.sh" "$v0110_final_closeout_anchor"
+  require_contains "docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md" "$v0110_final_closeout_anchor"
+  require_contains "docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md" "$v0110_final_closeout_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0110_final_closeout_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0110_final_closeout_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_final_closeout_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0110_final_closeout_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_final_closeout_anchor"
+done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands"
