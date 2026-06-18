@@ -29125,6 +29125,198 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(checksumMismatch.stateReason.contains("checksum mismatch"))
     }
 
+    func testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        XCTAssertEqual(ProductionReadinessShadowDryRunParityRunnerAnchors.validationAnchors, [
+            "GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER",
+            "TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER",
+            "V0110-006-SHADOW-DRY-RUN-PARITY-RUNNER",
+            "V0110-006-LOCAL-RUN-EVIDENCE",
+            "V0110-006-SHADOW-PARITY-ARTIFACT",
+            "V0110-006-MISSING-INCOMPLETE-BLOCKED",
+            "V0110-006-NO-PRODUCTION-ENDPOINT-SECRET-ORDER"
+        ])
+
+        let evidenceRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH918-ShadowDryRunParity-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: evidenceRoot)
+        }
+
+        let store = try ProductionReadinessArtifactStore(evidenceRootURL: evidenceRoot)
+        let runID = Identifier.constant("gh-918-local-run")
+        let policyVersion = "policy-v0.11.0-004"
+        let now = Date(timeIntervalSince1970: 1_800_040_000)
+        let inputs = try ProductionReadinessShadowDryRunParityEvidenceInput.defaultInputs(
+            runID: runID,
+            staleAfterSeconds: 120
+        )
+        let artifactDescriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-918-shadow-dry-run-parity"),
+            relativePath: "runs/\(runID.rawValue)/shadow_dry_run_parity.json",
+            artifactType: .jsonEvidence,
+            staleAfterSeconds: 120
+        )
+        let manifestDescriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-918-shadow-dry-run-parity-manifest"),
+            relativePath: "runs/\(runID.rawValue)/shadow_dry_run_parity_manifest.json",
+            artifactType: .jsonEvidence
+        )
+
+        func payload(for kind: ProductionReadinessShadowDryRunParityEvidenceKind) -> String {
+            """
+            {
+              "artifactID": "gh-918-\(kind.artifactIDComponent)",
+              "localRunEvidenceKind": "\(kind.rawValue)",
+              "runID": "\(runID.rawValue)",
+              "policyVersion": "\(policyVersion)",
+              "sequence": "\(kind.artifactIDComponent)",
+              "derivedFromLocalRunEvidence": true,
+              "productionTradingEnabledByDefault": false,
+              "productionCutoverAuthorized": false,
+              "productionSecretRead": false,
+              "productionEndpointConnected": false,
+              "brokerEndpointConnected": false,
+              "productionOrderSubmitted": false,
+              "testnetOrderSubmissionAllowed": false
+            }
+            """
+        }
+
+        for input in inputs {
+            _ = try store.writeStringArtifact(
+                descriptor: input.descriptor,
+                string: payload(for: input.kind),
+                modifiedAt: now
+            )
+        }
+        let expectedChecksums = try inputs.map { input in
+            try ProductionReadinessArtifactStore.canonicalJSONSHA256Checksum(for: Data(payload(for: input.kind).utf8))
+        }
+
+        let valid = try store.writeShadowDryRunParityArtifact(
+            runID: runID,
+            policyVersion: policyVersion,
+            evidenceInputs: inputs,
+            artifactDescriptor: artifactDescriptor,
+            manifestDescriptor: manifestDescriptor,
+            generatedAt: now.addingTimeInterval(10),
+            now: now.addingTimeInterval(10)
+        )
+        XCTAssertTrue(valid.resultHeld)
+        XCTAssertTrue(valid.artifact.artifactHeld)
+        XCTAssertEqual(valid.artifact.state, .valid)
+        XCTAssertEqual(valid.artifact.sourceEvidence.count, ProductionReadinessShadowDryRunParityEvidenceKind.allCases.count)
+        XCTAssertTrue(valid.bundleValidation.bundleValidHeld)
+        XCTAssertFalse(valid.artifact.productionCutoverAuthorized)
+        XCTAssertFalse(valid.artifact.productionSecretRead)
+        XCTAssertFalse(valid.artifact.productionEndpointConnected)
+        XCTAssertFalse(valid.artifact.brokerEndpointConnected)
+        XCTAssertFalse(valid.artifact.productionOrderSubmitted)
+        XCTAssertFalse(valid.artifact.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(valid.artifact.referenceOnlyStageConstantsUsed)
+
+        let output = try String(
+            contentsOf: store.artifactURL(for: artifactDescriptor),
+            encoding: .utf8
+        )
+        XCTAssertTrue(output.contains("\"derivedFromLocalRunEvidence\":true"))
+        XCTAssertTrue(output.contains("\"referenceOnlyStageConstantsUsed\":false"))
+        XCTAssertTrue(output.contains("\"state\":\"valid\""))
+        XCTAssertTrue(output.contains("events.jsonl"))
+        for checksum in expectedChecksums {
+            XCTAssertTrue(output.contains(checksum), "\(checksum) must be carried from source evidence")
+        }
+
+        try FileManager.default.removeItem(at: try store.artifactURL(for: inputs[0].descriptor))
+        let blocked = try store.writeShadowDryRunParityArtifact(
+            runID: runID,
+            policyVersion: policyVersion,
+            evidenceInputs: inputs,
+            artifactDescriptor: artifactDescriptor,
+            manifestDescriptor: manifestDescriptor,
+            generatedAt: now.addingTimeInterval(20),
+            now: now.addingTimeInterval(20)
+        )
+        XCTAssertTrue(blocked.resultHeld)
+        XCTAssertEqual(blocked.artifact.state, .blocked)
+        XCTAssertEqual(blocked.artifact.missingEvidenceKinds, [.eventsJSONL])
+        XCTAssertTrue(blocked.artifact.stateReason.contains("missing local run evidence"))
+
+        _ = try store.writeStringArtifact(
+            descriptor: inputs[0].descriptor,
+            string: #"{"artifactID":"gh-918-bad-marker","localRunEvidenceKind":"wrong","productionCutoverAuthorized":false}"#,
+            modifiedAt: now.addingTimeInterval(25)
+        )
+        let invalid = try store.writeShadowDryRunParityArtifact(
+            runID: runID,
+            policyVersion: policyVersion,
+            evidenceInputs: inputs,
+            artifactDescriptor: artifactDescriptor,
+            manifestDescriptor: manifestDescriptor,
+            generatedAt: now.addingTimeInterval(30),
+            now: now.addingTimeInterval(30)
+        )
+        XCTAssertTrue(invalid.resultHeld)
+        XCTAssertEqual(invalid.artifact.state, .invalid)
+        XCTAssertEqual(invalid.artifact.invalidEvidenceKinds, [.eventsJSONL])
+        XCTAssertTrue(invalid.artifact.stateReason.contains("invalid or incomplete local run evidence"))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift")
+        let contract = try read("docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md")
+        let verifier = try read("checks/verify-v0.11.0.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        for anchor in ProductionReadinessShadowDryRunParityRunnerAnchors.validationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.11.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.11.0 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+        }
+
+        XCTAssertTrue(verifier.contains("testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence"))
+        XCTAssertTrue(readiness.contains("Release v0.11.0 shadow dry-run parity runner anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-918 Release v0.11.0 Shadow Dry-run Parity Runner Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER"))
+        XCTAssertTrue(latest.contains("Release v0.11.0 Shadow Dry-run Parity Runner Snapshot"))
+        XCTAssertTrue(contract.contains("shadow_dry_run_parity.json"))
+        XCTAssertTrue(contract.contains("events.jsonl"))
+        XCTAssertTrue(contract.contains("derivedFromLocalRunEvidence=true"))
+        XCTAssertTrue(contract.contains("referenceOnlyStageConstantsUsed=false"))
+        XCTAssertTrue(contract.contains("productionEndpointConnected=false"))
+        XCTAssertTrue(contract.contains("productionSecretRead=false"))
+        XCTAssertTrue(contract.contains("productionOrderSubmitted=false"))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbidden), "\(forbidden) must stay out of #918 contract")
+            XCTAssertFalse(latest.contains(forbidden), "\(forbidden) must stay out of latest summary")
+        }
+    }
+
     func testGH838TopLevelCLIRunSeparatesLocalSessionCreatedFromBrokerSessionStarted() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

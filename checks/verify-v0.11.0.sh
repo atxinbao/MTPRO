@@ -11,6 +11,8 @@ set -euo pipefail
 # TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM
 # GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION
 # TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION
+# GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER
+# TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -274,6 +276,53 @@ require_file_contains "$TESTS" "ProductionReadinessBundleValidationState.allCase
 require_file_contains "$TESTS" "missingRequiredArtifactIDs"
 require_file_contains "$TESTS" "checksumMismatch.state"
 
+for anchor in \
+  "GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER" \
+  "TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER" \
+  "V0110-006-SHADOW-DRY-RUN-PARITY-RUNNER" \
+  "V0110-006-LOCAL-RUN-EVIDENCE" \
+  "V0110-006-SHADOW-PARITY-ARTIFACT" \
+  "V0110-006-MISSING-INCOMPLETE-BLOCKED" \
+  "V0110-006-NO-PRODUCTION-ENDPOINT-SECRET-ORDER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$ARTIFACT_STORE_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public enum ProductionReadinessShadowDryRunParityEvidenceKind"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public struct ProductionReadinessShadowDryRunParityEvidenceInput"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public struct ProductionReadinessShadowDryRunParityArtifact"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "public struct ProductionReadinessShadowDryRunParityRunResult"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "writeShadowDryRunParityArtifact("
+require_file_contains "$ARTIFACT_STORE_SOURCE" "shadow_dry_run_parity.json"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "events.jsonl"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "strategy_intents.json"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "risk_decisions.json"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "oms_dry_run_events.json"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "portfolio_projection.json"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "reconciliation_timeline.json"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "derivedFromLocalRunEvidence"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "referenceOnlyStageConstantsUsed"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "stateReason = \"missing local run evidence\""
+require_file_contains "$ARTIFACT_STORE_SOURCE" "stateReason = \"invalid or incomplete local run evidence\""
+require_file_contains "$ARTIFACT_STORE_SOURCE" "try Self.canonicalJSONSHA256Checksum(for: read.data)"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "writeReadinessManifest("
+require_file_contains "$ARTIFACT_STORE_SOURCE" "validateReadinessBundle("
+require_file_contains "$READINESS" "Release v0.11.0 shadow dry-run parity runner anchor"
+require_file_contains "$PLAN" "GH-918 Release v0.11.0 Shadow Dry-run Parity Runner Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER"
+require_file_contains "$LATEST" "Release v0.11.0 Shadow Dry-run Parity Runner Snapshot"
+require_file_contains "$TESTS" "testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence"
+require_file_contains "$TESTS" "derivedFromLocalRunEvidence"
+require_file_contains "$TESTS" "referenceOnlyStageConstantsUsed"
+require_file_contains "$TESTS" "missingEvidenceKinds"
+require_file_contains "$TESTS" "invalidEvidenceKinds"
+
 for forbidden in \
   "productionTradingEnabledByDefault=true" \
   "productionCutoverAuthorized=true" \
@@ -300,5 +349,6 @@ swift test --filter TargetGraphTests/testGH914ProductionReadinessArtifactStoreUs
 swift test --filter TargetGraphTests/testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts
 swift test --filter TargetGraphTests/testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums
 swift test --filter TargetGraphTests/testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum
+swift test --filter TargetGraphTests/testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence
 
 echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."
