@@ -18,7 +18,7 @@
 GH-666 输出两个 surface：
 
 - `Sources/Portfolio/ReleaseV030RehearsalSurface.swift`：共享 Dashboard read-model surface evidence。
-- `Sources/Database/ReleaseV030CLIRehearsalSurface.swift`：CLI-only `rehearsal-status` adapter evidence；该 v0.3.0 route 仍由 Database-owned adapter 暴露。GH-705 之后，当前 `MTPROCLI` 还可依赖 `Portfolio` 来暴露 v0.4.0 read-model-only `unified-run-status`，但仍不得依赖 Core、MessageBus、RiskEngine、ExecutionEngine、ExecutionClient、broker、OMS 或 live command surface。
+- `Sources/Database/ReleaseV030CLIRehearsalSurface.swift`：CLI-only `rehearsal-status` adapter evidence；该 v0.3.0 route 仍由 Database-owned adapter 暴露。GH-705 之后，当前 `MTPROCLI` 还可依赖 `Portfolio` 来暴露 v0.4.0 read-model-only `unified-run-status`。GH-920 之后，`MTPROCLI` 还可依赖 `ExecutionClient` 的本地 `ProductionReadinessArtifactStore` evidence API；但仍不得依赖 Core、MessageBus、RiskEngine、ExecutionEngine、broker、OMS、ExecutionClient command path 或 live command surface。
 - `Sources/Dashboard/Report/ReleaseV030DashboardRehearsalSurface.swift`：Dashboard read-model-only ViewModel。
 
 ## V030-10-RUN-STATUS-SURFACE

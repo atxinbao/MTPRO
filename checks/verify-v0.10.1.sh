@@ -110,10 +110,7 @@ for forbidden in \
   "productionOrderSubmitted=true" \
   "testnetOrderSubmissionAllowed=true" \
   "testnetOrderRoutingAllowed=true" \
-  "productionCutoverAuthorized=true" \
-  "readinessArtifactRuntimeImplemented=true" \
-  "productionReadinessArtifactStoreImplemented=true" \
-  "artifactWritten=true"; do
+  "productionCutoverAuthorized=true"; do
   reject_file_contains "$AUDIT" "$forbidden"
   reject_file_contains "$NOTES" "$forbidden"
   reject_file_contains "$LATEST" "$forbidden"

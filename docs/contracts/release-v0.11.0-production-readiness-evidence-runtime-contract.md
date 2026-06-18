@@ -157,6 +157,25 @@ Manifest / bundle validation JSON 中任一 production capability flag 为 true 
 
 GH-919 不实现 CLI build / status / validate / export / approval-status runtime、approval transition、production OMS、trading button、order form、submit / cancel / replace 或 live command path。
 
+## V0110-008-READINESS-CLI-LOCAL-ARTIFACTS
+
+`V0110-008-READINESS-CLI-LOCAL-ARTIFACTS`
+
+`GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS`
+
+`TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS`
+
+GH-920 在 GH-914、GH-917 和 GH-919 之后，把 `mtpro readiness` 从 v0.10.1 help-only placeholder 推进为本地 readiness artifact CLI。授权范围只覆盖本地 `ProductionReadinessArtifactStore` 读写、manifest / bundle validation 读取和只读 status / export / approval evidence 输出：
+
+- `V0110-008-BUILD-STATUS-VALIDATE-EXPORT-APPROVAL-STATUS`
+- `V0110-008-LOCAL-ARTIFACT-STORE-BUNDLE-VALIDATION`
+- `V0110-008-MISSING-INVALID-STALE-CHECKSUM-MISMATCH`
+- `V0110-008-NO-PRODUCTION-SECRET-ENDPOINT-ORDER`
+
+`mtpro readiness build` 只允许生成本地 JSON evidence artifacts 和 manifest；`status`、`validate`、`export`、`approval-status` 只能读取本地 artifact state 并输出 blocked / invalid / stale / checksum-mismatch / valid 等状态。`valid` 只表示本地 readiness artifact integrity pass，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order。
+
+GH-920 允许 `MTPROCLI` 依赖 `ExecutionClient` 的唯一目的，是访问 `ExecutionClient/FutureGate` 中的本地 `ProductionReadinessArtifactStore` API。该例外不授权 CLI 直连 broker、OMS、ExecutionClient command path、signed endpoint、account endpoint、listenKey、private WebSocket、submit / cancel / replace、trading button、order form 或 live command surface。
+
 ## V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 
 `V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`

@@ -17203,3 +17203,30 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass.
   - `bash checks/run.sh`: pass, 604 tests / 0 failures.
+
+## 2026-06-18 - GH-920 v0.11.0 Readiness CLI Local Artifact Commands
+
+- Executor: Codex.
+- Scope:
+  - Updated `Sources/MTPROCLI/main.swift`.
+  - Added `mtpro readiness build`, `status`, `validate`, `export` and `approval-status` runtime commands backed by the local `ProductionReadinessArtifactStore`.
+  - Added explicit local artifact states for build/status/validate/export output, including missing, invalid, stale, blocked and checksum mismatch handling.
+  - Retired the v0.10.1 readiness placeholder help contract in favor of the v0.11.0 local artifact command contract.
+  - Added a narrow `MTPROCLI -> ExecutionClient` dependency exception for the local readiness artifact store only; CLI remains outside broker, OMS, production endpoint and live command paths.
+  - Added `GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS` anchors to the v0.11.0 contract, automation readiness, validation plan, trading validation matrix, latest summary, verifier and TargetGraph focused test.
+- Boundary:
+  - Did not create a `v0.11.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement approval transition, production OMS, trading button, order form or live command path.
+  - `approval-status` reports approval evidence only; it does not convert approval evidence into trading permission.
+- Validation:
+  - `swift build --product mtpro`: pass.
+  - `swift test --filter TargetGraphTests/testGH910ReadinessCLIHelpPlaceholderIsNonMutatingAndFailsClosed`: pass.
+  - `swift test --filter TargetGraphTests/testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities`: pass.
+  - `bash checks/verify-v0.10.1-readiness-cli-help.sh`: pass.
+  - `bash checks/verify-v0.11.0.sh`: pass.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/run.sh`: pass, 605 tests / 0 failures.

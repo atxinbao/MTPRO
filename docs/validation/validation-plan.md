@@ -6,6 +6,19 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-920 Release v0.11.0 Readiness CLI Local Artifact Commands Validation
+
+- `GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS`
+- `TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS`
+- `V0110-008-READINESS-CLI-LOCAL-ARTIFACTS`
+- `V0110-008-BUILD-STATUS-VALIDATE-EXPORT-APPROVAL-STATUS`
+- `V0110-008-LOCAL-ARTIFACT-STORE-BUNDLE-VALIDATION`
+- `V0110-008-MISSING-INVALID-STALE-CHECKSUM-MISMATCH`
+- `V0110-008-NO-PRODUCTION-SECRET-ENDPOINT-ORDER`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities`
+- Boundary: `mtpro readiness build/status/validate/export/approval-status` 只读写本地 `ProductionReadinessArtifactStore` JSON artifacts、manifest 和 bundle validation evidence；`MTPROCLI -> ExecutionClient` 只允许访问本地 artifact store API，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover，不暴露 OMS、broker、order command、trading button、order form 或 live command path。
+
 ## GH-919 Release v0.11.0 Dashboard Real Artifact State Validation
 
 - `GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE`
@@ -142,7 +155,7 @@
 - Evidence files: `docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md`、`docs/validation/latest-verification-summary.md`。
 - Boundary: GH-912 只收口 #907 至 #911 的 v0.10.1 patch audit、release notes、aggregate verifier 和 latest summary；不实现 `ProductionReadinessArtifactStore`，不写 readiness artifact，不实现 real readiness artifact runtime，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。v0.11.0 owns real readiness artifact runtime + integrity hardening。
 
-## GH-910 Release v0.10.1 Readiness CLI Help Placeholder Validation
+## GH-910 Release v0.10.1 Readiness CLI Help Placeholder Retirement Validation
 
 - `GH-910-VERIFY-V0101-READINESS-CLI-HELP`
 - `TVM-RELEASE-V0101-READINESS-CLI-HELP`
@@ -154,7 +167,7 @@
 - `V0101-005-NO-READINESS-ARTIFACT-RUNTIME`
 - Required command: `bash checks/verify-v0.10.1-readiness-cli-help.sh`
 - Focused test: `testGH910ReadinessCLIHelpPlaceholderIsNonMutatingAndFailsClosed`
-- Boundary: `mtpro readiness help/build/status/validate/export/approval-status` 只输出 help-only / no-op placeholder；不写 readiness artifact，不实现 `ProductionReadinessArtifactStore` 或 real readiness runtime，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+- Boundary: v0.10.1 `mtpro readiness help/build/status/validate/export/approval-status` placeholder 合同已由 GH-920 退休；当前 guard 验证 `readinessPlaceholderContract=retired-by-v0.11.0`、本地 artifact runtime 输出和生产能力仍关闭。不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
 
 ## GH-909 Release v0.10.1 CLI verify v0.10.0 Wording Validation
 

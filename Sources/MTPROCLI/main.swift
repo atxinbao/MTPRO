@@ -1,6 +1,7 @@
 import Database
 import DataClient
 import DomainModel
+import ExecutionClient
 import Foundation
 import Portfolio
 
@@ -69,6 +70,17 @@ private enum MTPROStrictCLI {
         "V0101-005-NO-PRODUCTION-CUTOVER",
         "V0101-005-NO-PRODUCTION-SECRET-ENDPOINT-ORDER",
         "V0101-005-NO-READINESS-ARTIFACT-RUNTIME"
+    ]
+    static let readinessCLILocalArtifactsVerificationAnchor =
+        "GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS"
+    static let readinessCLILocalArtifactsValidationAnchor =
+        "TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS"
+    static let readinessCLILocalArtifactsRequiredAnchors = [
+        "V0110-008-READINESS-CLI-LOCAL-ARTIFACTS",
+        "V0110-008-BUILD-STATUS-VALIDATE-EXPORT-APPROVAL-STATUS",
+        "V0110-008-LOCAL-ARTIFACT-STORE-BUNDLE-VALIDATION",
+        "V0110-008-MISSING-INVALID-STALE-CHECKSUM-MISMATCH",
+        "V0110-008-NO-PRODUCTION-SECRET-ENDPOINT-ORDER"
     ]
     static let releaseV090OperatorUXRequiredAnchors = [
         "V090-013-DASHBOARD-CLI-OPERATOR-UX",
@@ -201,29 +213,31 @@ private enum MTPROStrictCLI {
             "runtimeSessionContract=v0.7.0",
             "persistentLocalSessionContract=v0.8.0",
             "riskPolicyProfileContract=v0.8.0",
-            "readinessPlaceholderContract=v0.10.1",
+            "readinessContract=v0.11.0",
             "runtimeModes=local-dry-run,testnet-read-only-monitor,recovery-observe,production-blocked",
             "legacyRuntimeModes=testnet-read-only-probe",
             "localSessionActions=run,status,stop,recover",
             "riskPolicyActions=\(riskPolicySupportedActionCommands.joined(separator: ","))",
             "readinessActions=\(readinessSupportedActionCommands.joined(separator: ","))",
             "monitorActions=\(monitorSupportedActionCommands.joined(separator: ","))",
-            "readinessPlaceholderOnly=true",
-            "readinessArtifactRuntimeImplemented=false",
+            "readinessPlaceholderOnly=false",
+            "readinessArtifactRuntimeImplemented=true",
+            "productionReadinessArtifactStoreImplemented=true",
             "testnetRequiresOperatorConfirmation=true",
             "productionTradingEnabledByDefault=false",
             "productionSecretRead=false",
             "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
             "productionOrderSubmitted=false",
             "productionCutoverAuthorized=false",
             "boundaryHeld=true"
         ].joined(separator: "\n")
     }
 
-    /// `mtpro readiness` 是 GH-910 的 v0.10.1 help-only placeholder。
+    /// `mtpro readiness` 是 GH-920 的 v0.11.0 本地 readiness artifact CLI。
     ///
-    /// 它只暴露未来 v0.11 readiness runtime 的命令语义，不创建 readiness bundle、
-    /// 不写本地 artifact、不读取 secret、不连接 endpoint，也不授权任何 production cutover。
+    /// 它只读写 `ProductionReadinessArtifactStore` 的本地 evidence root，所有 action 都保持
+    /// production secret / endpoint / broker / order / cutover capability 为 false。
     private static func readinessOutput(arguments: [String]) throws -> String {
         guard arguments.count == 2 else {
             throw MTPROCLIParserError.invalidArguments(
@@ -242,32 +256,7 @@ private enum MTPROStrictCLI {
             )
         }
 
-        return [
-            "mtpro readiness \(action) v0.10.1",
-            "issue=GH-910",
-            "validationAnchor=\(readinessCLIHelpValidationAnchor)",
-            "verificationAnchor=\(readinessCLIHelpVerificationAnchor)",
-            "requiredAnchors=\(readinessCLIHelpRequiredAnchors.joined(separator: ","))",
-            "readinessPlaceholderContract=v0.10.1",
-            "futureReadinessRuntime=v0.11.0",
-            "action=\(action)",
-            "supportedActions=\(readinessSupportedActionCommands.joined(separator: ","))",
-            "placeholderOnly=true",
-            "noOp=true",
-            "mutationApplied=false",
-            "artifactWritten=false",
-            "readinessBundleWritten=false",
-            "readinessArtifactRuntimeImplemented=false",
-            "productionReadinessArtifactStoreImplemented=false",
-            "operatorApprovalStatus=not-requested",
-            "productionTradingEnabledByDefault=false",
-            "productionSecretRead=false",
-            "productionEndpointConnected=false",
-            "brokerEndpointConnected=false",
-            "productionOrderSubmitted=false",
-            "productionCutoverAuthorized=false",
-            "boundaryHeld=true"
-        ].joined(separator: "\n")
+        return try ReleaseV0110ReadinessCLI(action: action).output()
     }
 
     private static func monitorOutput(arguments: [String]) throws -> String {
@@ -1447,5 +1436,338 @@ private struct ReleaseV080CLILocalSessionArtifactMetadata: Codable {
         self.sha256 = sha256
         self.bytes = bytes
         self.required = required
+    }
+}
+
+/// ReleaseV0110ReadinessCLI 是 GH-920 的本地 readiness artifact CLI binder。
+///
+/// 该 binder 只使用 `ProductionReadinessArtifactStore` 的 file URL root、JSON artifact、
+/// manifest 和 bundle validation API。它不读取 production secret，不连接 endpoint / broker，
+/// 不创建 testnet 或 production order，也不把 approval status 转成 production cutover permission。
+private struct ReleaseV0110ReadinessCLI {
+    private struct ArtifactSpec {
+        let idComponent: String
+        let fileName: String
+        let title: String
+    }
+
+    private static let policyVersion = "policy-v0.11.0-readiness-cli-local"
+    private static let manifestRelativePath = "manifest/readiness-manifest.json"
+    private static let staleAfterSeconds: TimeInterval = 86_400
+    private static let artifacts: [ArtifactSpec] = [
+        ArtifactSpec(
+            idComponent: "readiness-overview",
+            fileName: "production-readiness-overview.json",
+            title: "Production readiness overview"
+        ),
+        ArtifactSpec(
+            idComponent: "environment-profile",
+            fileName: "production-environment-profile.json",
+            title: "Production environment profile"
+        ),
+        ArtifactSpec(
+            idComponent: "secret-readiness",
+            fileName: "secret-readiness.json",
+            title: "Secret provider readiness reference"
+        ),
+        ArtifactSpec(
+            idComponent: "endpoint-policy",
+            fileName: "endpoint-policy-readiness.json",
+            title: "Endpoint policy readiness reference"
+        ),
+        ArtifactSpec(
+            idComponent: "risk-capital-limits",
+            fileName: "risk-capital-limits.json",
+            title: "Risk capital limit reference"
+        ),
+        ArtifactSpec(
+            idComponent: "kill-switch-no-trade",
+            fileName: "kill-switch-no-trade-readiness.json",
+            title: "Kill switch no-trade reference"
+        ),
+        ArtifactSpec(
+            idComponent: "command-surface-disabled",
+            fileName: "command-surface-disabled.json",
+            title: "Production command surface disabled proof"
+        ),
+        ArtifactSpec(
+            idComponent: "shadow-dry-run-parity",
+            fileName: "shadow-dry-run-parity.json",
+            title: "Shadow dry-run parity reference"
+        ),
+        ArtifactSpec(
+            idComponent: "approval-workflow",
+            fileName: "approval-workflow.json",
+            title: "Manual approval workflow reference"
+        ),
+        ArtifactSpec(
+            idComponent: "readiness-bundle",
+            fileName: "production-readiness-bundle.json",
+            title: "Readiness bundle validation reference"
+        )
+    ]
+
+    let action: String
+    private let store: ProductionReadinessArtifactStore
+
+    init(action: String) throws {
+        self.action = action
+        self.store = try ProductionReadinessArtifactStore()
+    }
+
+    func output() throws -> String {
+        switch action {
+        case "help":
+            return helpOutput()
+        case "build":
+            return try buildOutput()
+        case "status":
+            return try statusOutput()
+        case "validate":
+            return try validateOutput()
+        case "export":
+            return try exportOutput()
+        case "approval-status":
+            return try approvalStatusOutput()
+        default:
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.readiness.action",
+                expected: "help,build,status,validate,export,approval-status",
+                actual: "readiness \(action)"
+            )
+        }
+    }
+
+    private func helpOutput() -> String {
+        (baseOutput(action: action, mutationApplied: false, artifactWritten: false, readinessBundleWritten: false) + [
+            "supportedActions=\(MTPROStrictCLI.readinessSupportedActionCommands.joined(separator: ","))",
+            "localArtifactRoot=\(store.evidenceRootURL.path)",
+            "manifestRelativePath=\(Self.manifestRelativePath)",
+            "requiredArtifactCount=\(Self.artifacts.count)",
+            "readinessState=not-evaluated",
+            "operatorApprovalStatus=not-authorized",
+            "approvalCanAuthorizeProductionCutover=false",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func buildOutput() throws -> String {
+        let now = Self.buildTimestamp()
+        let descriptors = try Self.requiredDescriptors()
+        for (index, descriptor) in descriptors.enumerated() {
+            _ = try store.writeStringArtifact(
+                descriptor: descriptor,
+                string: try Self.payload(for: Self.artifacts[index]),
+                modifiedAt: now
+            )
+        }
+        let manifestDescriptor = try Self.manifestDescriptor()
+        let manifest = try store.writeReadinessManifest(
+            manifestID: manifestDescriptor.artifactID,
+            manifestRelativePath: manifestDescriptor.relativePath,
+            descriptors: descriptors,
+            policyVersion: Self.policyVersion,
+            generatedAt: now.addingTimeInterval(1),
+            now: now
+        )
+        let validation = try store.validateReadinessBundle(
+            manifestDescriptor: manifestDescriptor,
+            requiredPolicyVersion: Self.policyVersion,
+            requiredArtifactIDs: descriptors.map(\.artifactID),
+            now: now.addingTimeInterval(2)
+        )
+        return (baseOutput(action: action, mutationApplied: true, artifactWritten: true, readinessBundleWritten: true) + [
+            "localArtifactRoot=\(store.evidenceRootURL.path)",
+            "manifestRelativePath=\(manifestDescriptor.relativePath)",
+            "manifestArtifactID=\(manifest.manifest.manifestID.rawValue)",
+            "requiredArtifactCount=\(descriptors.count)",
+            "manifestEntryCount=\(manifest.manifest.entries.count)",
+            "readinessState=\(validation.state.rawValue)",
+            "readinessStateReason=\(validation.stateReason)",
+            "bundleValidationHeld=\(validation.resultHeld)",
+            "blockedState=\(validation.state != .valid)",
+            "operatorApprovalStatus=not-authorized",
+            "approvalCanAuthorizeProductionCutover=false",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func statusOutput() throws -> String {
+        let descriptors = try Self.requiredDescriptors()
+        let snapshot = try store.inspectArtifacts(descriptors, now: Date())
+        let validation = try currentValidation(requiredArtifactIDs: descriptors.map(\.artifactID))
+        return (baseOutput(action: action, mutationApplied: false, artifactWritten: false, readinessBundleWritten: false) + [
+            "localArtifactRoot=\(store.evidenceRootURL.path)",
+            "manifestRelativePath=\(Self.manifestRelativePath)",
+            "readinessState=\(validation.state.rawValue)",
+            "readinessStateReason=\(validation.stateReason)",
+            "missingCount=\(snapshot.missingCount)",
+            "invalidCount=\(snapshot.invalidCount)",
+            "staleCount=\(snapshot.staleCount)",
+            "validCount=\(snapshot.validCount)",
+            "blockedState=\(validation.state != .valid)",
+            "operatorApprovalStatus=not-authorized",
+            "approvalCanAuthorizeProductionCutover=false",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func validateOutput() throws -> String {
+        let descriptors = try Self.requiredDescriptors()
+        let validation = try currentValidation(requiredArtifactIDs: descriptors.map(\.artifactID))
+        return (baseOutput(action: action, mutationApplied: false, artifactWritten: false, readinessBundleWritten: false) + [
+            "manifestRelativePath=\(Self.manifestRelativePath)",
+            "readinessState=\(validation.state.rawValue)",
+            "readinessStateReason=\(validation.stateReason)",
+            "requiredArtifactIDs=\(validation.requiredArtifactIDs.map(\.rawValue).joined(separator: ","))",
+            "manifestArtifactIDs=\(validation.manifestArtifactIDs.map(\.rawValue).joined(separator: ","))",
+            "missingRequiredArtifactIDs=\(validation.missingRequiredArtifactIDs.map(\.rawValue).joined(separator: ","))",
+            "unexpectedArtifactIDs=\(validation.unexpectedArtifactIDs.map(\.rawValue).joined(separator: ","))",
+            "missingInvalidStaleChecksumMismatchStates=missing,invalid,stale,checksum-mismatch",
+            "blockedState=\(validation.state != .valid)",
+            "operatorApprovalStatus=not-authorized",
+            "approvalCanAuthorizeProductionCutover=false",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func exportOutput() throws -> String {
+        let descriptors = try Self.requiredDescriptors()
+        let validation = try currentValidation(requiredArtifactIDs: descriptors.map(\.artifactID))
+        let manifestDescriptor = try Self.manifestDescriptor()
+        let manifestExists = (try? store.inspectArtifact(manifestDescriptor, now: Date()).state) == .valid
+        return (baseOutput(action: action, mutationApplied: false, artifactWritten: false, readinessBundleWritten: false) + [
+            "exportFormat=local-readiness-summary",
+            "exportSnapshotOnly=true",
+            "exportAvailable=\(manifestExists)",
+            "localArtifactRoot=\(store.evidenceRootURL.path)",
+            "manifestRelativePath=\(manifestDescriptor.relativePath)",
+            "requiredArtifactFiles=\(Self.artifacts.map(\.fileName).joined(separator: ","))",
+            "readinessState=\(validation.state.rawValue)",
+            "readinessStateReason=\(validation.stateReason)",
+            "operatorApprovalStatus=not-authorized",
+            "approvalCanAuthorizeProductionCutover=false",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func approvalStatusOutput() throws -> String {
+        let descriptors = try Self.requiredDescriptors()
+        let validation = try currentValidation(requiredArtifactIDs: descriptors.map(\.artifactID))
+        return (baseOutput(action: action, mutationApplied: false, artifactWritten: false, readinessBundleWritten: false) + [
+            "readinessState=\(validation.state.rawValue)",
+            "readinessStateReason=\(validation.stateReason)",
+            "operatorApprovalStatus=not-authorized",
+            "manualApprovalEvidenceLocalOnly=true",
+            "approvalConvertedToTradingPermission=false",
+            "approvalCanAuthorizeProductionCutover=false",
+            "productionCutoverRemainsSeparatelyGated=true",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func currentValidation(
+        requiredArtifactIDs: [Identifier]
+    ) throws -> ProductionReadinessBundleValidationResult {
+        try store.validateReadinessBundle(
+            manifestDescriptor: Self.manifestDescriptor(),
+            requiredPolicyVersion: Self.policyVersion,
+            requiredArtifactIDs: requiredArtifactIDs,
+            now: Date()
+        )
+    }
+
+    private func baseOutput(
+        action: String,
+        mutationApplied: Bool,
+        artifactWritten: Bool,
+        readinessBundleWritten: Bool
+    ) -> [String] {
+        [
+            "mtpro readiness \(action) v0.11.0",
+            "issue=GH-920",
+            "validationAnchor=\(MTPROStrictCLI.readinessCLILocalArtifactsValidationAnchor)",
+            "verificationAnchor=\(MTPROStrictCLI.readinessCLILocalArtifactsVerificationAnchor)",
+            "requiredAnchors=\(MTPROStrictCLI.readinessCLILocalArtifactsRequiredAnchors.joined(separator: ","))",
+            "readinessPlaceholderContract=retired-by-v0.11.0",
+            "readinessArtifactRuntimeImplemented=true",
+            "productionReadinessArtifactStoreImplemented=true",
+            "readinessCLIAllowed=true",
+            "action=\(action)",
+            "policyVersion=\(Self.policyVersion)",
+            "mutationApplied=\(mutationApplied)",
+            "artifactWritten=\(artifactWritten)",
+            "readinessBundleWritten=\(readinessBundleWritten)",
+            "noSecretValue=true",
+            "noOrderPayload=true",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "testnetOrderSubmissionAllowed=false",
+            "productionCutoverAuthorized=false"
+        ]
+    }
+
+    private static func buildTimestamp() -> Date {
+        Date(timeIntervalSince1970: floor(Date().timeIntervalSince1970))
+    }
+
+    private static func requiredDescriptors() throws -> [ProductionReadinessArtifactDescriptor] {
+        try artifacts.map { spec in
+            try ProductionReadinessArtifactDescriptor(
+                artifactID: Identifier.constant("gh-920-\(spec.idComponent)"),
+                relativePath: "artifacts/\(spec.fileName)",
+                artifactType: .jsonEvidence,
+                staleAfterSeconds: staleAfterSeconds
+            )
+        }
+    }
+
+    private static func manifestDescriptor() throws -> ProductionReadinessArtifactDescriptor {
+        try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-920-readiness-manifest"),
+            relativePath: manifestRelativePath,
+            artifactType: .jsonEvidence
+        )
+    }
+
+    private static func payload(for spec: ArtifactSpec) throws -> String {
+        let object: [String: Any] = [
+            "artifactID": "gh-920-\(spec.idComponent)",
+            "releaseVersion": "v0.11.0",
+            "sourceIssueID": "GH-920",
+            "title": spec.title,
+            "policyVersion": policyVersion,
+            "validationState": "valid",
+            "evidenceExists": true,
+            "stateReason": "local readiness artifact generated",
+            "localFileURLOnly": true,
+            "redactionProof": true,
+            "noSecretValue": true,
+            "noOrderPayload": true,
+            "productionTradingEnabledByDefault": false,
+            "productionCutoverAuthorized": false,
+            "productionSecretRead": false,
+            "productionEndpointConnected": false,
+            "brokerEndpointConnected": false,
+            "productionOrderSubmitted": false,
+            "testnetOrderSubmissionAllowed": false,
+            "operatorApprovalStatus": "not-authorized",
+            "approvalConvertedToTradingPermission": false
+        ]
+        let data = try JSONSerialization.data(
+            withJSONObject: object,
+            options: [.sortedKeys, .withoutEscapingSlashes]
+        )
+        guard let payload = String(data: data, encoding: .utf8) else {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.readiness.payload",
+                expected: "UTF-8 JSON",
+                actual: spec.fileName
+            )
+        }
+        return payload
     }
 }
