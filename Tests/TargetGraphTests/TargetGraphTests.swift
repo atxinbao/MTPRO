@@ -9714,6 +9714,262 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let evaluatedAt = Date(timeIntervalSince1970: 1_800_000_000)
+
+        let approved = try ReleaseV0110AuditableApprovalWorkflowStateModel.approvedEvidenceFixture(evaluatedAt: evaluatedAt)
+        XCTAssertTrue(approved.stateModelHeld)
+        XCTAssertTrue(approved.approvalEvidenceComplete)
+        XCTAssertFalse(approved.failClosed)
+        XCTAssertTrue(approved.quorumSatisfied)
+        XCTAssertFalse(approved.isExpired)
+        XCTAssertFalse(approved.isRevoked)
+        XCTAssertEqual(approved.currentState, .approved)
+        XCTAssertEqual(approved.transitionHistory.map(\.toState), [.requested, .reviewing, .approved])
+        XCTAssertEqual(approved.artifactDescriptor.relativePath, "approval/approval_workflow_transitions.json")
+        XCTAssertTrue(approved.productionCutoverBlocked)
+        XCTAssertTrue(approved.productionCapabilitiesDisabled)
+        XCTAssertFalse(approved.productionCutoverAuthorized)
+        XCTAssertFalse(approved.orderSubmissionEnabled)
+        XCTAssertFalse(approved.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(approved.productionTradingEnabledByDefault)
+        XCTAssertFalse(approved.productionSecretRead)
+        XCTAssertFalse(approved.productionEndpointConnected)
+        XCTAssertFalse(approved.brokerEndpointConnected)
+        XCTAssertFalse(approved.orderPayloadCreated)
+        XCTAssertFalse(approved.brokerCommandCreated)
+        XCTAssertFalse(approved.productionOMSRuntimeEnabled)
+        XCTAssertFalse(approved.tradingButtonEnabled)
+        XCTAssertFalse(approved.orderFormEnabled)
+        XCTAssertFalse(approved.liveCommandEnabled)
+        XCTAssertFalse(approved.readinessApprovalConvertedToTradingPermission)
+        XCTAssertFalse(approved.approvalWorkflowBypassEnabled)
+
+        let tempRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("gh923-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: tempRoot) }
+        let store = try ProductionReadinessArtifactStore(evidenceRootURL: tempRoot)
+        let record = try approved.writeEvidence(to: store, modifiedAt: evaluatedAt)
+        XCTAssertTrue(record.recordHeld)
+        XCTAssertEqual(record.state, .valid)
+        let readResult = try store.readArtifact(descriptor: approved.artifactDescriptor, now: evaluatedAt)
+        let payload = try XCTUnwrap(String(data: readResult.data, encoding: .utf8))
+        XCTAssertTrue(payload.contains("approval_workflow_transitions.json"))
+        XCTAssertTrue(payload.contains("\"currentState\":\"approved\""))
+        XCTAssertFalse(payload.contains("productionCutoverAuthorized=true"))
+        XCTAssertFalse(payload.contains("orderSubmissionEnabled=true"))
+
+        let missingQuorum = try ReleaseV0110AuditableApprovalWorkflowStateModel.missingQuorumFixture(evaluatedAt: evaluatedAt)
+        XCTAssertTrue(missingQuorum.stateModelHeld)
+        XCTAssertFalse(missingQuorum.quorumSatisfied)
+        XCTAssertFalse(missingQuorum.approvalEvidenceComplete)
+        XCTAssertTrue(missingQuorum.failClosed)
+
+        let expired = try ReleaseV0110AuditableApprovalWorkflowStateModel(
+            currentState: approved.currentState,
+            requestedBy: approved.requestedBy,
+            reviewedBy: approved.reviewedBy,
+            approvedBy: approved.approvedBy,
+            requestedAt: approved.requestedAt,
+            reviewedAt: approved.reviewedAt,
+            approvedAt: approved.approvedAt,
+            expiresAt: evaluatedAt.addingTimeInterval(-1),
+            transitionHistory: approved.transitionHistory,
+            quorumRequired: 2,
+            evaluatedAt: evaluatedAt
+        )
+        XCTAssertTrue(expired.stateModelHeld)
+        XCTAssertTrue(expired.isExpired)
+        XCTAssertTrue(expired.failClosed)
+
+        let revoked = try ReleaseV0110AuditableApprovalWorkflowStateModel.revokedFixture(evaluatedAt: evaluatedAt)
+        XCTAssertTrue(revoked.stateModelHeld)
+        XCTAssertTrue(revoked.isRevoked)
+        XCTAssertTrue(revoked.failClosed)
+        XCTAssertEqual(revoked.currentState, .revoked)
+
+        let requester = try ReleaseV0110ApprovalWorkflowActorReference("operator/requester")
+        let reviewer = try ReleaseV0110ApprovalWorkflowActorReference("operator/reviewer")
+        let requestedAt = evaluatedAt.addingTimeInterval(-600)
+        let reviewingAt = evaluatedAt.addingTimeInterval(-300)
+        let reviewing = try ReleaseV0110AuditableApprovalWorkflowStateModel(
+            currentState: .reviewing,
+            requestedBy: requester,
+            reviewedBy: [reviewer],
+            approvedBy: nil,
+            requestedAt: requestedAt,
+            reviewedAt: reviewingAt,
+            approvedAt: nil,
+            expiresAt: evaluatedAt.addingTimeInterval(600),
+            transitionHistory: [
+                try ReleaseV0110ApprovalWorkflowTransition(
+                    fromState: .notRequested,
+                    toState: .requested,
+                    actor: requester,
+                    timestamp: requestedAt,
+                    reason: "operator requested review"
+                ),
+                try ReleaseV0110ApprovalWorkflowTransition(
+                    fromState: .requested,
+                    toState: .reviewing,
+                    actor: reviewer,
+                    timestamp: reviewingAt,
+                    reason: "review started"
+                )
+            ],
+            quorumRequired: 2,
+            evaluatedAt: evaluatedAt
+        )
+        XCTAssertTrue(reviewing.stateModelHeld)
+        XCTAssertFalse(reviewing.approvalEvidenceComplete)
+        XCTAssertTrue(reviewing.failClosed)
+
+        XCTAssertThrowsError(
+            try ReleaseV0110ApprovalWorkflowTransition(
+                fromState: .notRequested,
+                toState: .approved,
+                actor: requester,
+                timestamp: requestedAt,
+                reason: "invalid jump"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0110AuditableApprovalWorkflowStateModel(
+                currentState: .approved,
+                requestedBy: requester,
+                reviewedBy: [reviewer],
+                approvedBy: reviewer,
+                requestedAt: requestedAt,
+                reviewedAt: reviewingAt,
+                approvedAt: evaluatedAt,
+                expiresAt: evaluatedAt.addingTimeInterval(600),
+                transitionHistory: [
+                    try ReleaseV0110ApprovalWorkflowTransition(
+                        fromState: .notRequested,
+                        toState: .requested,
+                        actor: requester,
+                        timestamp: requestedAt,
+                        reason: "operator requested review"
+                    ),
+                    try ReleaseV0110ApprovalWorkflowTransition(
+                        fromState: .reviewing,
+                        toState: .approved,
+                        actor: reviewer,
+                        timestamp: evaluatedAt,
+                        reason: "non-contiguous transition"
+                    )
+                ],
+                quorumRequired: 1,
+                evaluatedAt: evaluatedAt
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0110AuditableApprovalWorkflowStateModel(
+                currentState: approved.currentState,
+                requestedBy: approved.requestedBy,
+                reviewedBy: approved.reviewedBy,
+                approvedBy: approved.approvedBy,
+                requestedAt: approved.requestedAt,
+                reviewedAt: approved.reviewedAt,
+                approvedAt: approved.approvedAt,
+                expiresAt: approved.expiresAt,
+                transitionHistory: [
+                    try ReleaseV0110ApprovalWorkflowTransition(
+                        fromState: .notRequested,
+                        toState: .requested,
+                        actor: requester,
+                        timestamp: evaluatedAt,
+                        reason: "operator requested review"
+                    ),
+                    try ReleaseV0110ApprovalWorkflowTransition(
+                        fromState: .requested,
+                        toState: .reviewing,
+                        actor: reviewer,
+                        timestamp: evaluatedAt.addingTimeInterval(-1),
+                        reason: "timestamp regressed"
+                    ),
+                    try ReleaseV0110ApprovalWorkflowTransition(
+                        fromState: .reviewing,
+                        toState: .approved,
+                        actor: reviewer,
+                        timestamp: evaluatedAt,
+                        reason: "local approval evidence"
+                    )
+                ],
+                quorumRequired: 1,
+                evaluatedAt: evaluatedAt
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0110AuditableApprovalWorkflowStateModel(
+                currentState: approved.currentState,
+                requestedBy: approved.requestedBy,
+                reviewedBy: approved.reviewedBy,
+                approvedBy: approved.approvedBy,
+                requestedAt: approved.requestedAt,
+                reviewedAt: approved.reviewedAt,
+                approvedAt: approved.approvedAt,
+                expiresAt: approved.expiresAt,
+                transitionHistory: approved.transitionHistory,
+                quorumRequired: 2,
+                evaluatedAt: evaluatedAt,
+                productionCutoverAuthorized: true
+            )
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift")
+        let contract = try read("docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md")
+        let verifier = try read("checks/verify-v0.11.0.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS",
+            "TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS",
+            "V0110-011-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS",
+            "V0110-011-REQUEST-REVIEW-APPROVE-REVOKE-EXPIRE",
+            "V0110-011-QUORUM-EXPIRY-REVOCATION-FAIL-CLOSED",
+            "V0110-011-LOCAL-APPROVAL-EVIDENCE-ARTIFACT",
+            "V0110-011-NO-PRODUCTION-CUTOVER-ORDER"
+        ]
+        XCTAssertEqual(ReleaseV0110AuditableApprovalWorkflowStateModel.requiredValidationAnchors, expectedAnchors)
+        XCTAssertEqual(ReleaseV0110AuditableApprovalWorkflowAnchors.validationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-923 source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.11.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.11.0 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in readiness docs")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest summary")
+        }
+
+        for expected in [
+            "ReleaseV0110AuditableApprovalWorkflowStateModel",
+            "ReleaseV0110ApprovalWorkflowTransition",
+            "requestedBy",
+            "reviewedBy",
+            "approvedBy",
+            "quorumRequired",
+            "expiresAt",
+            "revokedReason",
+            "approval_workflow_transitions.json",
+            "productionCutoverBlocked",
+            "productionCutoverAuthorized == false"
+        ] {
+            XCTAssertTrue(source.contains(expected), "\(expected) must stay represented in GH-923 source")
+        }
+    }
+
     func testGH885ProductionCommandSurfaceDisabledProofKeepsDashboardAndCLIReadOnly() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

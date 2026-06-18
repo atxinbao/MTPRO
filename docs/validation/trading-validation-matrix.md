@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS
+
+- TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS
+- GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS
+- V0110-011-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS
+- V0110-011-REQUEST-REVIEW-APPROVE-REVOKE-EXPIRE
+- V0110-011-QUORUM-EXPIRY-REVOCATION-FAIL-CLOSED
+- V0110-011-LOCAL-APPROVAL-EVIDENCE-ARTIFACT
+- V0110-011-NO-PRODUCTION-CUTOVER-ORDER
+- GH-923 Release v0.11.0 Auditable Approval Workflow Transitions Validation
+- `bash checks/verify-v0.11.0.sh`
+- `swift test --filter TargetGraphTests/testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence`
+- Approval workflow evidence: `ReleaseV0110AuditableApprovalWorkflowStateModel`、`ReleaseV0110ApprovalWorkflowTransition`、`requestedBy`、`reviewedBy`、`approvedBy`、`quorumRequired`、`expiresAt`、`revokedReason` 和 `approval_workflow_transitions.json`。
+- Boundary: v0.11.0 approval workflow transition model 只强化本地 readiness evidence；missing quorum、expired、revoked 或 incomplete review state 必须 fail closed；approved evidence 仍不授权 production cutover，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order。
+
 ## TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL
 
 - TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL

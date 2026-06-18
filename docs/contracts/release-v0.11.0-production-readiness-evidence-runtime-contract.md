@@ -247,6 +247,54 @@ Fail-closed rule 固定如下：
 
 GH-922 只强化本地 readiness evidence state model。它不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover，不实现 production OMS、trading button、order form、submit / cancel / replace 或 live command path。
 
+## V0110-011-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS
+
+`V0110-011-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS`
+
+`GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS`
+
+`TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS`
+
+GH-923 在 GH-922 kill switch / no-trade approval-request eligibility 之后，增加本地 auditable approval workflow transition state model。授权范围只覆盖本地 approval evidence，不授权 production cutover：
+
+- `V0110-011-REQUEST-REVIEW-APPROVE-REVOKE-EXPIRE`
+- `V0110-011-QUORUM-EXPIRY-REVOCATION-FAIL-CLOSED`
+- `V0110-011-LOCAL-APPROVAL-EVIDENCE-ARTIFACT`
+- `V0110-011-NO-PRODUCTION-CUTOVER-ORDER`
+
+Approval workflow 必须显式记录 current state、transition history、requestedBy、reviewedBy、approvedBy、requestedAt、reviewedAt、approvedAt、expiresAt、quorumRequired 和 revokedReason。允许状态固定为 `not-requested`、`requested`、`reviewing`、`approved`、`rejected`、`expired` 和 `revoked`。允许 transition 固定为 request、review、approve、reject、expire 和 revoke 的顺序推进；非法跳转、非连续 transition 或 timestamp 回退必须被拒绝。
+
+Fail-closed rule 固定如下：
+
+- missing quorum 必须 fail closed。
+- expired approval evidence 必须 fail closed。
+- revoked approval evidence 必须 fail closed，并要求非空 revokedReason。
+- reviewing / requested 等 incomplete review state 必须 fail closed。
+- approved state 只有在 requestedBy、reviewedBy、approvedBy、timestamp、quorum 和 expiry 全部满足时，才代表 `approvalEvidenceComplete=true`。
+
+`approval_workflow_transitions.json` 是 GH-923 的本地 evidence artifact。它必须通过 `ProductionReadinessArtifactStore` 的 safe relative path、canonical JSON 和 local file evidence root 输出；该 artifact 不能包含 secret value、broker / account response、endpoint response 或 order payload。
+
+即便 `approvalEvidenceComplete=true`，以下边界仍必须保持：
+
+- `productionCutoverBlocked=true`
+- `productionCutoverAuthorized=false`
+- `orderSubmissionEnabled=false`
+- `testnetOrderSubmissionAllowed=false`
+- `productionTradingEnabledByDefault=false`
+- `productionSecretRead=false`
+- `productionEndpointConnected=false`
+- `brokerEndpointConnected=false`
+- `orderPayloadCreated=false`
+- `brokerCommandCreated=false`
+- `productionOMSRuntimeEnabled=false`
+- `tradingButtonEnabled=false`
+- `orderFormEnabled=false`
+- `liveCommandEnabled=false`
+- `readinessApprovalConvertedToTradingPermission=false`
+- `approvalWorkflowBypassEnabled=false`
+
+GH-923 只强化本地 approval workflow evidence runtime。它不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover，不实现 production OMS、trading button、order form、submit / cancel / replace 或 live command path。
+
 ## V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 
 `V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`

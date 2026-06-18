@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-923 Release v0.11.0 Auditable Approval Workflow Transitions Validation
+
+- `GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS`
+- `TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS`
+- `V0110-011-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS`
+- `V0110-011-REQUEST-REVIEW-APPROVE-REVOKE-EXPIRE`
+- `V0110-011-QUORUM-EXPIRY-REVOCATION-FAIL-CLOSED`
+- `V0110-011-LOCAL-APPROVAL-EVIDENCE-ARTIFACT`
+- `V0110-011-NO-PRODUCTION-CUTOVER-ORDER`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`。
+- Boundary: GH-923 只把 approval workflow 从 reference-only state list 升级为本地 auditable transition state model，记录 requestedBy、reviewedBy、approvedBy、timestamp、quorum、expiry 和 revocation reason。非法 transition 必须被拒绝；missing quorum、expired、revoked 或 incomplete review state 必须 fail closed。`approval_workflow_transitions.json` 只通过本地 artifact store 输出，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-922 Release v0.11.0 Kill Switch / No-trade State Model Validation
 
 - `GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL`
