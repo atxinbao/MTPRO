@@ -6,6 +6,26 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-889 Release v0.10.0 Incident / Rollback Readiness Runbook Validation
+
+- `GH-889-VERIFY-V0100-INCIDENT-ROLLBACK-RUNBOOK`
+- `TVM-RELEASE-V0100-INCIDENT-ROLLBACK-RUNBOOK`
+- `V0100-012-INCIDENT-ROLLBACK-READINESS-RUNBOOK`
+- `V0100-012-PRODUCTION-READINESS-RUNBOOK-MD`
+- `V0100-012-INCIDENT-ROLLBACK-READINESS-JSON`
+- `V0100-012-INCIDENT-CLASSIFICATION`
+- `V0100-012-STOP-PROCEDURE`
+- `V0100-012-ROLLBACK-PROCEDURE`
+- `V0100-012-OPERATOR-CHAIN`
+- `V0100-012-EVIDENCE-EXPORT`
+- `V0100-012-POST-INCIDENT-AUDIT`
+- `V0100-012-KILL-SWITCH-CHECKLIST`
+- `V0100-012-NO-TRADE-CHECKLIST`
+- `V0100-012-PRODUCTION-CAPABILITIES-DISABLED`
+- Required command: `bash checks/verify-v0.10.0-incident-rollback-runbook.sh`
+- Focused test: `testGH889IncidentRollbackReadinessRunbookKeepsProductionCutoverDisabled`
+- Boundary: IncidentRollbackReadinessRunbook 只定义 `docs/operators/release-v0.10.0-production-readiness-runbook.md` 和 `incident_rollback_readiness.json` reference-only evidence，覆盖 incident classification、stop procedure、rollback procedure、operator chain、evidence export、post-incident audit、kill switch checklist 和 no-trade checklist；不连接 production endpoint / broker，不读取 production secret，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## GH-888 Release v0.10.0 Cutover Approval Workflow Validation
 
 - `GH-888-VERIFY-V0100-CUTOVER-APPROVAL-WORKFLOW`
