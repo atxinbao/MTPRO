@@ -242,6 +242,16 @@
 - Focused test: `testGH879ReleaseV0100V091PublicationPolicyRecordsPublishedTagAndCutoverSeparation`
 - Boundary: v0.9.1 stable GitHub Release fact is recorded without describing it as tagless; v0.10.0 construction / readiness closeout、public release publication 和 production cutover 保持三个独立 gate；不授权 production trading、production cutover、production secret read、production endpoint / broker connection、testnet order routing、testnet order submission、real order submission、production OMS、trading button、order form 或 live command。
 
+## GH-907 Release v0.10.1 Release Fact Sync / Stale Wording Guard Validation
+
+- `GH-907-VERIFY-V0101-RELEASE-FACT-STALE-WORDING-GUARD`
+- `V0101-002-RELEASE-FACT-SYNC-GUARD`
+- `V0101-002-FOUR-GATE-RELEASE-FLOW`
+- `TVM-RELEASE-V0101-RELEASE-FACT-SYNC-GUARD`
+- Required command: `bash checks/verify-v0.10.1-release-fact-sync.sh`
+- Focused test: `testGH907ReleaseFactSyncGuardRejectsV0100StalePublicationWording`
+- Boundary: v0.10.1 只新增 release fact sync / stale wording guard；四段 release fact flow 为 construction closeout、release publication、release fact sync、stale wording guard。Production cutover 保持独立 non-release gate；不授权 production trading、production cutover、production secret read、production endpoint / broker connection、testnet order routing、testnet order submission、real order submission、production OMS、trading button、order form 或 live command。
+
 ## GH-878 Release v0.10.0 Production Readiness No-authorization Contract Validation
 
 - `GH-878-VERIFY-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT`

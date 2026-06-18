@@ -269,6 +269,19 @@
 - release gate split: construction / readiness closeout、public GitHub Release publication 和 production cutover 是三个独立 gate。
 - forbidden scope: no tag rewrite, no production cutover, no production trading, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order, no production OMS, no trading button, no order form, no live command.
 
+## TVM-RELEASE-V0101-RELEASE-FACT-SYNC-GUARD
+
+- TVM-RELEASE-V0101-RELEASE-FACT-SYNC-GUARD
+- GH-907-VERIFY-V0101-RELEASE-FACT-STALE-WORDING-GUARD
+- V0101-002-RELEASE-FACT-SYNC-GUARD
+- V0101-002-FOUR-GATE-RELEASE-FLOW
+- GH-907 Release v0.10.1 Release Fact Sync / Stale Wording Guard Validation
+- testGH907ReleaseFactSyncGuardRejectsV0100StalePublicationWording
+- `bash checks/verify-v0.10.1-release-fact-sync.sh`
+- release fact flow: construction closeout、release publication、release fact sync、stale wording guard。
+- v0.10.0 stable GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；tag target commit `7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`。
+- forbidden scope: no tag rewrite, no release rewrite, no production cutover, no production trading, no production secret read, no production endpoint / broker connection, no testnet or production submit / cancel / replace order, no production OMS, no trading button, no order form, no live command.
+
 ## TVM-RELEASE-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT
 
 - TVM-RELEASE-V0100-PRODUCTION-READINESS-NO-AUTHORIZATION-CONTRACT
