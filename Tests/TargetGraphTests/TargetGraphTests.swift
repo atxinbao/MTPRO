@@ -9522,6 +9522,195 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH886ShadowDryRunParityAssessmentAuditsNearProductionPathWithoutOrders() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let assessment = try ReleaseV0100ShadowDryRunParityAssessment.deterministicFixture()
+
+        XCTAssertTrue(assessment.assessmentHeld)
+        XCTAssertTrue(assessment.evidenceArtifact.artifactHeld)
+        XCTAssertTrue(assessment.stageEvidence.allSatisfy(\.stageHeld))
+        XCTAssertTrue(assessment.productionCapabilitiesDisabled)
+        XCTAssertEqual(assessment.issueID.rawValue, "GH-886")
+        XCTAssertEqual(assessment.upstreamIssueIDs.map(\.rawValue), ["GH-883", "GH-884", "GH-885"])
+        XCTAssertEqual(assessment.downstreamIssueID.rawValue, "GH-887")
+        XCTAssertEqual(assessment.canonicalQueueRange, "GH-878..GH-891")
+        XCTAssertEqual(assessment.evidenceArtifact.fileName, "shadow_dry_run_parity.json")
+        XCTAssertEqual(
+            assessment.stageEvidence.map(\.stage),
+            [
+                .marketReadOnlyObservation,
+                .strategyIntent,
+                .riskDecision,
+                .omsDryRunLifecycle,
+                .portfolioProjection,
+                .reconciliationTimeline,
+                .readinessDiff
+            ]
+        )
+        XCTAssertTrue(assessment.riskDecisionAudited)
+        XCTAssertTrue(assessment.portfolioProjectionAudited)
+        XCTAssertTrue(assessment.reconciliationTimelineAudited)
+        XCTAssertTrue(assessment.readinessDiffAudited)
+        XCTAssertTrue(assessment.productionCutoverBlocked)
+        XCTAssertFalse(assessment.cutoverAuthorized)
+        XCTAssertFalse(assessment.productionCutoverUnblocked)
+        XCTAssertFalse(assessment.productionEndpointConnectionEnabled)
+        XCTAssertFalse(assessment.productionBrokerConnectionEnabled)
+        XCTAssertFalse(assessment.productionSecretValueRead)
+        XCTAssertFalse(assessment.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(assessment.productionOrderSubmissionEnabled)
+        XCTAssertFalse(assessment.ordersSubmitted)
+        XCTAssertFalse(assessment.brokerCommandCreated)
+        XCTAssertFalse(assessment.productionOMSRuntimeEnabled)
+        XCTAssertFalse(assessment.tradingButtonVisible)
+        XCTAssertFalse(assessment.orderFormVisible)
+        XCTAssertFalse(assessment.liveCommandEnabled)
+        XCTAssertFalse(assessment.productionCommandEnabled)
+        XCTAssertFalse(assessment.shadowDryRunBypassEnabled)
+
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityArtifact(fileName: "wrong.json"))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityArtifact(evidenceExists: false))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityArtifact(containsBrokerOrAccountResponse: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityArtifact(producedByEndpointConnection: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityArtifact(containsOrderPayload: true))
+        XCTAssertThrowsError(
+            try ReleaseV0100ShadowDryRunParityStageEvidence(
+                stage: .riskDecision,
+                evidenceReference: "wrong"
+            )
+        )
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityStageEvidence(stage: .riskDecision, audited: false))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityStageEvidence(stage: .riskDecision, createsOrderPayload: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityStageEvidence(stage: .riskDecision, createsBrokerCommand: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(previousCapitalExposureReadinessHeld: false))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(previousKillSwitchNoTradeReadinessHeld: false))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(previousCommandSurfaceDisabledProofHeld: false))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(riskDecisionAudited: false))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(portfolioProjectionAudited: false))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(reconciliationTimelineAudited: false))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(readinessDiffAudited: false))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(productionCutoverBlocked: false))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(cutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(productionCutoverUnblocked: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(productionBrokerConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(testnetOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(productionOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(ordersSubmitted: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(brokerCommandCreated: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(productionOMSRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(tradingButtonVisible: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(orderFormVisible: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(liveCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(productionCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ShadowDryRunParityAssessment(shadowDryRunBypassEnabled: true))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100ShadowDryRunParityAssessment.swift")
+        let contract = try read("docs/contracts/release-v0.10.0-shadow-dry-run-parity-assessment-contract.md")
+        let verifier = try read("checks/verify-v0.10.0-shadow-dry-run-parity.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "V0100-009-SHADOW-DRY-RUN-PARITY-ASSESSMENT",
+            "V0100-009-SHADOW-DRY-RUN-PARITY-JSON",
+            "V0100-009-MARKET-READONLY-OBSERVATION",
+            "V0100-009-STRATEGY-INTENT",
+            "V0100-009-RISK-DECISION-AUDITED",
+            "V0100-009-OMS-DRY-RUN-LIFECYCLE",
+            "V0100-009-PORTFOLIO-PROJECTION-AUDITED",
+            "V0100-009-RECONCILIATION-TIMELINE-AUDITED",
+            "V0100-009-READINESS-DIFF-AUDITED",
+            "V0100-009-ORDERS-SUBMITTED-FALSE",
+            "V0100-009-BROKER-COMMAND-CREATED-FALSE",
+            "V0100-009-PRODUCTION-CAPABILITIES-DISABLED",
+            "GH-886-VERIFY-V0100-SHADOW-DRY-RUN-PARITY",
+            "TVM-RELEASE-V0100-SHADOW-DRY-RUN-PARITY"
+        ]
+        XCTAssertEqual(ReleaseV0100ShadowDryRunParityAssessment.requiredValidationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        for exactString in [
+            "shadow_dry_run_parity.json",
+            "marketReadOnlyObservationAudited=true",
+            "strategyIntentAudited=true",
+            "riskDecisionAudited=true",
+            "portfolioProjectionAudited=true",
+            "reconciliationTimelineAudited=true",
+            "readinessDiffAudited=true",
+            "ordersSubmitted=false",
+            "brokerCommandCreated=false",
+            "production_cutover_blocked=true",
+            "productionCutoverBlocked=true",
+            "productionCutoverUnblocked=false",
+            "cutoverAuthorized=false",
+            "productionEndpointConnectionEnabled=false",
+            "productionBrokerConnectionEnabled=false",
+            "productionSecretValueRead=false",
+            "testnetOrderSubmissionEnabled=false",
+            "productionOrderSubmissionEnabled=false",
+            "productionOMSRuntimeEnabled=false",
+            "tradingButtonVisible=false",
+            "orderFormVisible=false",
+            "liveCommandEnabled=false",
+            "productionCommandEnabled=false",
+            "shadowDryRunBypassEnabled=false"
+        ] {
+            XCTAssertTrue(contract.contains(exactString), "\(exactString) must stay fixed in #886 docs")
+        }
+
+        XCTAssertTrue(verifier.contains("MTPRO release v0.10.0 shadow dry-run parity assessment verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-shadow-dry-run-parity.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-shadow-dry-run-parity.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.10.0 shadow dry-run parity assessment anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-886 Release v0.10.0 Shadow Dry-run Parity Assessment Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-SHADOW-DRY-RUN-PARITY"))
+        XCTAssertTrue(latest.contains("`#886` 定义 ShadowDryRunParityAssessment reference-only contract"))
+
+        for forbiddenAuthorization in [
+            "production_cutover_blocked=false",
+            "productionCutoverBlocked=false",
+            "productionCutoverUnblocked=true",
+            "cutoverAuthorized=true",
+            "ordersSubmitted=true",
+            "brokerCommandCreated=true",
+            "testnetOrderSubmissionEnabled=true",
+            "productionOrderSubmissionEnabled=true",
+            "productionEndpointConnectionEnabled=true",
+            "productionBrokerConnectionEnabled=true",
+            "productionSecretValueRead=true",
+            "productionOMSRuntimeEnabled=true",
+            "tradingButtonVisible=true",
+            "orderFormVisible=true",
+            "liveCommandEnabled=true",
+            "productionCommandEnabled=true",
+            "shadowDryRunBypassEnabled=true",
+            "createsOrderPayload=true",
+            "createsBrokerCommand=true",
+            "containsBrokerOrAccountResponse=true",
+            "producedByEndpointConnection=true",
+            "containsOrderPayload=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(
