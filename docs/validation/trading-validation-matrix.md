@@ -6,6 +6,26 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0100-CUTOVER-APPROVAL-WORKFLOW
+
+- TVM-RELEASE-V0100-CUTOVER-APPROVAL-WORKFLOW
+- GH-888-VERIFY-V0100-CUTOVER-APPROVAL-WORKFLOW
+- V0100-011-CUTOVER-APPROVAL-WORKFLOW
+- V0100-011-CUTOVER-APPROVAL-WORKFLOW-JSON
+- V0100-011-APPROVAL-STATES-REPRESENTED
+- V0100-011-APPROVED-NOT-CUTOVER-AUTHORIZED
+- V0100-011-APPROVED-NOT-ORDER-SUBMISSION-ENABLED
+- V0100-011-APPROVED-NOT-PRODUCTION-TRADING-ENABLED
+- V0100-011-PRODUCTION-CUTOVER-AUTHORIZED-FALSE
+- V0100-011-ORDER-SUBMISSION-ENABLED-FALSE
+- V0100-011-PRODUCTION-TRADING-ENABLED-FALSE
+- V0100-011-PRODUCTION-CAPABILITIES-DISABLED
+- GH-888 Release v0.10.0 Cutover Approval Workflow Validation
+- `bash checks/verify-v0.10.0-cutover-approval-workflow.sh`
+- `swift test --filter TargetGraphTests/testGH888CutoverApprovalWorkflowRepresentsApprovalWithoutTradingPermission`
+- fixed approval workflow schema: `cutover_approval_workflow.json`、requested / reviewing / approved / rejected / expired / revoked、`approvedStateIsReviewEvidenceOnly=true`、`productionCutoverAuthorized=false`、`orderSubmissionEnabled=false`、`productionTradingEnabled=false`、`production_cutover_blocked=true`。
+- Boundary: approval workflow evidence 只记录 review 状态，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不生成 order payload，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## TVM-RELEASE-V0100-PRODUCTION-READINESS-BUNDLE
 
 - TVM-RELEASE-V0100-PRODUCTION-READINESS-BUNDLE
