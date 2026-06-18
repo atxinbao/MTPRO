@@ -99,6 +99,16 @@ v0.10.0 版本策略固定为三段 gate：
 2. public release publication gate：只有在 construction / readiness closeout 完成后，才能通过显式发布指令创建或核对 tag / GitHub Release。
 3. production cutover gate：必须保持独立，不能由 construction closeout 或 public GitHub Release publication 自动触发。
 
+v0.10.0 当前存在 stable GitHub Release：
+
+- release URL：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`
+- tag target commit：`7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`
+- release title：`MTPRO v0.10.0 Production Cutover Readiness Gate`
+- publication timestamp：`2026-06-18T05:19:46Z`
+- release type：stable；非 draft；非 prerelease
+
+v0.10.0 的 construction / readiness closeout 已通过 `GH-878..GH-891` 完成，public GitHub Release publication 已通过独立 gate 完成。文档不得再把 v0.10.0 描述成 publication 尚未完成、release artifact 缺失或仍需创建 release；也不得把 GitHub Release publication 当作 production cutover authorization。
+
 v0.10.0 readiness evidence 允许记录 approval workflow、manual confirmation checklist、operator runbook、Dashboard readiness center 和 audit bundle；这些 evidence 仍不授权 production trading，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order。
 
 ## V080-002-V080-CONSTRUCTION-VS-PUBLICATION

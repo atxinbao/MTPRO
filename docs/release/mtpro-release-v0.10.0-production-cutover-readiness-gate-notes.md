@@ -10,9 +10,9 @@
 
 v0.10.0 是 `Production Cutover Readiness Gate` construction closure docs。它收口 GitHub fallback queue `GH-878..GH-891` 的 production readiness no-authorization contract、v0.9.1 publication policy alignment、ProductionEnvironmentProfile、SecretProviderReadinessGate、EndpointPolicyReadinessGate、capital / exposure limit readiness、kill switch / no-trade readiness、production command surface disabled proof、shadow dry-run parity assessment、production readiness audit bundle、cutover approval workflow、incident / rollback readiness runbook、Dashboard Production Readiness Center、Stage Code Audit 和 root docs refresh。
 
-本文档是 v0.10.0 construction closeout 的 release notes evidence。construction closeout 本身不创建 Git tag、不创建 GitHub Release、不移动已有 release、不授权 production cutover、不创建下一 Project / Issue。
+本文档是 v0.10.0 construction closeout 的 release notes evidence。construction closeout 完成后，v0.10.0 已通过独立 public release publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`，tag target commit：`7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`，publication timestamp：`2026-06-18T05:19:46Z`。
 
-后续 public GitHub Release publication 必须使用独立 release publication gate；即使发布 `v0.10.0` tag，也仍不授权 production cutover。
+v0.10.0 construction closeout、public GitHub Release publication 和 production cutover 是三个独立 gate；已发布 release 仍不授权 production cutover，不授权 production trading，也不创建下一 Project / Issue。
 
 ## Scope
 
@@ -89,4 +89,4 @@ v0.10.0 closes the production cutover readiness gate:
 
 ## Non-Authorization
 
-本 release notes 不创建 tag，不创建 GitHub Release，不创建下一 Project / Issue，不推进 Todo，不启动 Linear / Symphony / Graphify / code-index / Figma，不授权 production cutover，不读取 secret，不连接 production endpoint，不连接 broker endpoint，不发送 testnet 或 production order。
+本 release notes 记录已发生的 v0.10.0 stable GitHub Release publication fact，但不创建下一 Project / Issue，不推进 Todo，不启动 Linear / Symphony / Graphify / code-index / Figma，不授权 production cutover，不读取 secret，不连接 production endpoint，不连接 broker endpoint，不发送 testnet 或 production order。

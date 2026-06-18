@@ -28,7 +28,7 @@
 
 本文档是 `MTPRO Release v0.10.0 Production Cutover Readiness Gate` 的 final operator runbook。它说明如何复现 production readiness no-authorization contract、environment profile、secret readiness、endpoint policy、capital / exposure limits、kill switch / no-trade、command surface disabled proof、shadow dry-run parity、production readiness bundle、cutover approval workflow、incident / rollback runbook、Dashboard Production Readiness Center 和 production-disabled validation。
 
-本文档不发布 GitHub Release tag，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover，不读取 production secret，不连接 production endpoint 或 broker endpoint，不提交、取消或替换 testnet 或 production 订单。
+v0.10.0 已通过独立 publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`，tag target commit：`7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`。本文档只说明 operator 如何复现已发布 release 的 readiness evidence；不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover，不读取 production secret，不连接 production endpoint 或 broker endpoint，不提交、取消或替换 testnet 或 production 订单。
 
 ## Release Scope
 
