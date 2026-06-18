@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-917 Release v0.11.0 Readiness Bundle Validation
+
+- `GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION`
+- `TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION`
+- `V0110-005-READINESS-BUNDLE-VALIDATION`
+- `V0110-005-REQUIRED-ARTIFACT-SET`
+- `V0110-005-BUNDLE-VALIDATION-STATES`
+- `V0110-005-POLICY-VERSION-BLOCKED`
+- `V0110-005-CHECKSUM-MISMATCH-STATE`
+- `V0110-005-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`。
+- Boundary: GH-917 只实现本地 readiness bundle validation，重新校验 manifest schema、required artifact set、artifact existence、checksum、size、timestamp 和 policyVersion；validation state 只证明本地 bundle integrity，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-916 Release v0.11.0 Canonical JSON SHA256 Checksum Validation
 
 - `GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM`

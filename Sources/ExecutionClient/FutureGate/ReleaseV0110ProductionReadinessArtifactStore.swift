@@ -49,6 +49,23 @@ public enum ProductionReadinessCanonicalChecksumAnchors {
     ]
 }
 
+/// ProductionReadinessBundleValidationAnchors 固定 GH-917 的 bundle validation 验证锚点。
+///
+/// GH-917 只读取本地 manifest 与本地 artifact，归类 bundle integrity state；它不读取
+/// production secret、不连接 endpoint / broker、不提交订单，也不把 valid bundle 转换成 cutover 授权。
+public enum ProductionReadinessBundleValidationAnchors {
+    public static let validationAnchors = [
+        "GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION",
+        "TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION",
+        "V0110-005-READINESS-BUNDLE-VALIDATION",
+        "V0110-005-REQUIRED-ARTIFACT-SET",
+        "V0110-005-BUNDLE-VALIDATION-STATES",
+        "V0110-005-POLICY-VERSION-BLOCKED",
+        "V0110-005-CHECKSUM-MISMATCH-STATE",
+        "V0110-005-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
 /// ProductionReadinessArtifactStoreError 描述 GH-914 本地 readiness artifact store 的失败类型。
 ///
 /// 这些错误只覆盖本地 evidence root、relative path、JSON payload 和 forbidden capability
@@ -468,6 +485,123 @@ public struct ProductionReadinessManifestReadResult: Equatable, Sendable {
     }
 }
 
+/// ProductionReadinessBundleValidationState 是 GH-917 的 bundle-level readiness 结果。
+///
+/// 这些状态只描述本地 evidence bundle 是否可审计。`valid` 也不代表 production cutover、
+/// endpoint readiness、secret readiness 或订单授权。
+public enum ProductionReadinessBundleValidationState: String, Codable, CaseIterable, Equatable, Sendable {
+    case notEvaluated = "not-evaluated"
+    case valid
+    case blocked
+    case stale
+    case missing
+    case invalid
+    case checksumMismatch = "checksum-mismatch"
+}
+
+/// ProductionReadinessBundleValidationResult 汇总 GH-917 bundle validation 的只读证据。
+///
+/// Result 固定 production capability flags 为 false，并记录 required artifact set 与实际
+/// manifest entries。它只由本地 artifact / manifest / checksum 推导，不访问任何外部生产系统。
+public struct ProductionReadinessBundleValidationResult: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let releaseVersion: String
+    public let policyVersion: String
+    public let state: ProductionReadinessBundleValidationState
+    public let requiredArtifactIDs: [Identifier]
+    public let manifestArtifactIDs: [Identifier]
+    public let missingRequiredArtifactIDs: [Identifier]
+    public let unexpectedArtifactIDs: [Identifier]
+    public let validatedAt: Date
+    public let stateReason: String
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var resultHeld: Bool {
+        issueID.rawValue == "GH-917"
+            && releaseVersion == "v0.11.0"
+            && policyVersion.isEmpty == false
+            && requiredArtifactIDs.isEmpty == false
+            && requiredArtifactIDs.allSatisfy { $0.rawValue.isEmpty == false }
+            && manifestArtifactIDs.allSatisfy { $0.rawValue.isEmpty == false }
+            && stateReason.isEmpty == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+            && validStateHeld
+    }
+
+    public var bundleValidHeld: Bool {
+        resultHeld
+            && state == .valid
+            && missingRequiredArtifactIDs.isEmpty
+            && unexpectedArtifactIDs.isEmpty
+            && Set(requiredArtifactIDs.map(\.rawValue)) == Set(manifestArtifactIDs.map(\.rawValue))
+    }
+
+    private var validStateHeld: Bool {
+        switch state {
+        case .valid:
+            missingRequiredArtifactIDs.isEmpty && unexpectedArtifactIDs.isEmpty
+        case .missing:
+            missingRequiredArtifactIDs.isEmpty == false || stateReason.contains("missing")
+        case .notEvaluated, .blocked, .stale, .invalid, .checksumMismatch:
+            true
+        }
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-917"),
+        releaseVersion: String = "v0.11.0",
+        policyVersion: String,
+        state: ProductionReadinessBundleValidationState,
+        requiredArtifactIDs: [Identifier],
+        manifestArtifactIDs: [Identifier] = [],
+        missingRequiredArtifactIDs: [Identifier] = [],
+        unexpectedArtifactIDs: [Identifier] = [],
+        validatedAt: Date,
+        stateReason: String,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.releaseVersion = releaseVersion
+        self.policyVersion = policyVersion
+        self.state = state
+        self.requiredArtifactIDs = requiredArtifactIDs
+        self.manifestArtifactIDs = manifestArtifactIDs
+        self.missingRequiredArtifactIDs = missingRequiredArtifactIDs
+        self.unexpectedArtifactIDs = unexpectedArtifactIDs
+        self.validatedAt = validatedAt
+        self.stateReason = stateReason
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard resultHeld else {
+            throw ProductionReadinessArtifactStoreError.forbiddenCapability("bundleValidationResultHeld=false")
+        }
+    }
+}
+
 /// ProductionReadinessArtifactStoreSnapshot 是 GH-914 多 artifact inspect 的只读快照。
 public struct ProductionReadinessArtifactStoreSnapshot: Codable, Equatable, Sendable {
     public let issueID: Identifier
@@ -866,6 +1000,292 @@ public struct ProductionReadinessArtifactStore {
         return result
     }
 
+    /// notEvaluatedReadinessBundleValidation 为 GH-917 提供显式未评估状态。
+    ///
+    /// 该状态只说明 bundle validator 尚未读取本地 manifest，不代表 readiness 通过，也不授权
+    /// production cutover、secret read、endpoint connection、broker connection 或订单命令。
+    public static func notEvaluatedReadinessBundleValidation(
+        requiredPolicyVersion: String,
+        requiredArtifactIDs: [Identifier],
+        evaluatedAt: Date
+    ) throws -> ProductionReadinessBundleValidationResult {
+        try ProductionReadinessBundleValidationResult(
+            policyVersion: requiredPolicyVersion,
+            state: .notEvaluated,
+            requiredArtifactIDs: requiredArtifactIDs,
+            validatedAt: evaluatedAt,
+            stateReason: "bundle validation not evaluated"
+        )
+    }
+
+    /// validateReadinessBundle 执行 GH-917 的本地 bundle-level validation。
+    ///
+    /// Validator 只读取本地 manifest descriptor 和 manifest 内声明的本地 artifact；它重新校验
+    /// schema、artifact existence、checksum、size、timestamp、policyVersion 与 required artifact set。
+    /// 返回 `valid` 也只证明本地 evidence bundle integrity pass，不会转换成 production cutover 授权。
+    public func validateReadinessBundle(
+        manifestDescriptor: ProductionReadinessArtifactDescriptor,
+        requiredPolicyVersion: String,
+        requiredArtifactIDs: [Identifier],
+        now: Date
+    ) throws -> ProductionReadinessBundleValidationResult {
+        guard requiredPolicyVersion.isEmpty == false else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("empty requiredPolicyVersion")
+        }
+        guard requiredArtifactIDs.isEmpty == false else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("empty requiredArtifactIDs")
+        }
+
+        let manifestRecord = try inspectArtifact(manifestDescriptor, now: now)
+        switch manifestRecord.state {
+        case .missing:
+            return try bundleValidationResult(
+                state: .missing,
+                requiredPolicyVersion: requiredPolicyVersion,
+                requiredArtifactIDs: requiredArtifactIDs,
+                missingRequiredArtifactIDs: requiredArtifactIDs,
+                validatedAt: now,
+                stateReason: "missing readiness manifest"
+            )
+        case .stale:
+            return try bundleValidationResult(
+                state: .stale,
+                requiredPolicyVersion: requiredPolicyVersion,
+                requiredArtifactIDs: requiredArtifactIDs,
+                validatedAt: now,
+                stateReason: "stale readiness manifest"
+            )
+        case .invalid:
+            return try bundleValidationResult(
+                state: .invalid,
+                requiredPolicyVersion: requiredPolicyVersion,
+                requiredArtifactIDs: requiredArtifactIDs,
+                validatedAt: now,
+                stateReason: "invalid readiness manifest artifact"
+            )
+        case .valid:
+            break
+        }
+
+        let manifestData: Data
+        do {
+            manifestData = try Data(contentsOf: try artifactURL(for: manifestDescriptor))
+        } catch {
+            return try bundleValidationResult(
+                state: .missing,
+                requiredPolicyVersion: requiredPolicyVersion,
+                requiredArtifactIDs: requiredArtifactIDs,
+                missingRequiredArtifactIDs: requiredArtifactIDs,
+                validatedAt: now,
+                stateReason: "missing readiness manifest data"
+            )
+        }
+
+        let manifest: ProductionReadinessManifest
+        do {
+            manifest = try manifestDecoder().decode(ProductionReadinessManifest.self, from: manifestData)
+        } catch {
+            return try bundleValidationResult(
+                state: .invalid,
+                requiredPolicyVersion: requiredPolicyVersion,
+                requiredArtifactIDs: requiredArtifactIDs,
+                validatedAt: now,
+                stateReason: "malformed readiness manifest schema"
+            )
+        }
+
+        let manifestArtifactIDs = manifest.entries.map(\.artifactID)
+        let requiredSet = Set(requiredArtifactIDs.map(\.rawValue))
+        let manifestSet = Set(manifestArtifactIDs.map(\.rawValue))
+        let missingRequiredArtifactIDs = requiredArtifactIDs.filter { manifestSet.contains($0.rawValue) == false }
+        let unexpectedArtifactIDs = manifestArtifactIDs.filter { requiredSet.contains($0.rawValue) == false }
+
+        guard manifest.issueID.rawValue == "GH-915",
+              manifest.releaseVersion == "v0.11.0",
+              manifest.manifestID.rawValue.isEmpty == false,
+              manifest.entries.isEmpty == false,
+              manifest.atomicWriteRequired,
+              manifest.productionTradingEnabledByDefault == false,
+              manifest.productionSecretRead == false,
+              manifest.productionEndpointConnected == false,
+              manifest.brokerEndpointConnected == false,
+              manifest.productionOrderSubmitted == false,
+              manifest.testnetOrderSubmissionAllowed == false,
+              manifest.productionCutoverAuthorized == false else {
+            return try bundleValidationResult(
+                state: .invalid,
+                requiredPolicyVersion: requiredPolicyVersion,
+                requiredArtifactIDs: requiredArtifactIDs,
+                manifestArtifactIDs: manifestArtifactIDs,
+                missingRequiredArtifactIDs: missingRequiredArtifactIDs,
+                unexpectedArtifactIDs: unexpectedArtifactIDs,
+                validatedAt: now,
+                stateReason: "invalid readiness manifest header"
+            )
+        }
+
+        guard missingRequiredArtifactIDs.isEmpty else {
+            return try bundleValidationResult(
+                state: .missing,
+                requiredPolicyVersion: requiredPolicyVersion,
+                requiredArtifactIDs: requiredArtifactIDs,
+                manifestArtifactIDs: manifestArtifactIDs,
+                missingRequiredArtifactIDs: missingRequiredArtifactIDs,
+                unexpectedArtifactIDs: unexpectedArtifactIDs,
+                validatedAt: now,
+                stateReason: "missing required artifact set"
+            )
+        }
+
+        guard unexpectedArtifactIDs.isEmpty else {
+            return try bundleValidationResult(
+                state: .invalid,
+                requiredPolicyVersion: requiredPolicyVersion,
+                requiredArtifactIDs: requiredArtifactIDs,
+                manifestArtifactIDs: manifestArtifactIDs,
+                unexpectedArtifactIDs: unexpectedArtifactIDs,
+                validatedAt: now,
+                stateReason: "unexpected readiness artifact entry"
+            )
+        }
+
+        guard manifest.policyVersion == requiredPolicyVersion else {
+            return try bundleValidationResult(
+                state: .blocked,
+                requiredPolicyVersion: requiredPolicyVersion,
+                requiredArtifactIDs: requiredArtifactIDs,
+                manifestArtifactIDs: manifestArtifactIDs,
+                validatedAt: now,
+                stateReason: "policy version mismatch"
+            )
+        }
+
+        for entry in manifest.entries {
+            guard entry.policyVersion == requiredPolicyVersion else {
+                return try bundleValidationResult(
+                    state: .blocked,
+                    requiredPolicyVersion: requiredPolicyVersion,
+                    requiredArtifactIDs: requiredArtifactIDs,
+                    manifestArtifactIDs: manifestArtifactIDs,
+                    validatedAt: now,
+                    stateReason: "entry policy version mismatch"
+                )
+            }
+            guard entry.evidenceExists,
+                  entry.validationState == .valid,
+                  ProductionReadinessArtifactDescriptor.isSafeRelativePath(entry.relativePath),
+                  ProductionReadinessArtifactStore.isValidSHA256Checksum(entry.checksum) else {
+                return try bundleValidationResult(
+                    state: .invalid,
+                    requiredPolicyVersion: requiredPolicyVersion,
+                    requiredArtifactIDs: requiredArtifactIDs,
+                    manifestArtifactIDs: manifestArtifactIDs,
+                    validatedAt: now,
+                    stateReason: "invalid readiness manifest entry"
+                )
+            }
+
+            let descriptor: ProductionReadinessArtifactDescriptor
+            do {
+                descriptor = try ProductionReadinessArtifactDescriptor(
+                    artifactID: entry.artifactID,
+                    relativePath: entry.relativePath,
+                    artifactType: entry.artifactType,
+                    staleAfterSeconds: entry.staleAfterSeconds
+                )
+            } catch {
+                return try bundleValidationResult(
+                    state: .invalid,
+                    requiredPolicyVersion: requiredPolicyVersion,
+                    requiredArtifactIDs: requiredArtifactIDs,
+                    manifestArtifactIDs: manifestArtifactIDs,
+                    validatedAt: now,
+                    stateReason: "unsafe readiness artifact descriptor"
+                )
+            }
+
+            let record = try inspectArtifact(descriptor, now: now)
+            switch record.state {
+            case .missing:
+                return try bundleValidationResult(
+                    state: .missing,
+                    requiredPolicyVersion: requiredPolicyVersion,
+                    requiredArtifactIDs: requiredArtifactIDs,
+                    manifestArtifactIDs: manifestArtifactIDs,
+                    missingRequiredArtifactIDs: [entry.artifactID],
+                    validatedAt: now,
+                    stateReason: "missing readiness artifact"
+                )
+            case .stale:
+                return try bundleValidationResult(
+                    state: .stale,
+                    requiredPolicyVersion: requiredPolicyVersion,
+                    requiredArtifactIDs: requiredArtifactIDs,
+                    manifestArtifactIDs: manifestArtifactIDs,
+                    validatedAt: now,
+                    stateReason: "stale readiness artifact"
+                )
+            case .invalid:
+                return try bundleValidationResult(
+                    state: .invalid,
+                    requiredPolicyVersion: requiredPolicyVersion,
+                    requiredArtifactIDs: requiredArtifactIDs,
+                    manifestArtifactIDs: manifestArtifactIDs,
+                    validatedAt: now,
+                    stateReason: "invalid readiness artifact"
+                )
+            case .valid:
+                break
+            }
+
+            let data: Data
+            do {
+                data = try Data(contentsOf: try artifactURL(for: descriptor))
+            } catch {
+                return try bundleValidationResult(
+                    state: .missing,
+                    requiredPolicyVersion: requiredPolicyVersion,
+                    requiredArtifactIDs: requiredArtifactIDs,
+                    manifestArtifactIDs: manifestArtifactIDs,
+                    missingRequiredArtifactIDs: [entry.artifactID],
+                    validatedAt: now,
+                    stateReason: "missing readiness artifact data"
+                )
+            }
+            guard data.count == entry.size,
+                  entry.validationState == record.state,
+                  Self.timestampsMatch(entry.createdAt, record.modifiedAt) else {
+                return try bundleValidationResult(
+                    state: .invalid,
+                    requiredPolicyVersion: requiredPolicyVersion,
+                    requiredArtifactIDs: requiredArtifactIDs,
+                    manifestArtifactIDs: manifestArtifactIDs,
+                    validatedAt: now,
+                    stateReason: "readiness artifact size state or timestamp mismatch"
+                )
+            }
+            guard try Self.canonicalJSONSHA256Checksum(for: data) == entry.checksum else {
+                return try bundleValidationResult(
+                    state: .checksumMismatch,
+                    requiredPolicyVersion: requiredPolicyVersion,
+                    requiredArtifactIDs: requiredArtifactIDs,
+                    manifestArtifactIDs: manifestArtifactIDs,
+                    validatedAt: now,
+                    stateReason: "readiness artifact checksum mismatch"
+                )
+            }
+        }
+
+        return try bundleValidationResult(
+            state: .valid,
+            requiredPolicyVersion: requiredPolicyVersion,
+            requiredArtifactIDs: requiredArtifactIDs,
+            manifestArtifactIDs: manifestArtifactIDs,
+            validatedAt: now,
+            stateReason: "readiness bundle valid"
+        )
+    }
+
     public func validateReadinessManifest(
         _ manifest: ProductionReadinessManifest,
         requiredPolicyVersion: String,
@@ -943,6 +1363,35 @@ public struct ProductionReadinessArtifactStore {
                 )
             }
         }
+    }
+
+    private func bundleValidationResult(
+        state: ProductionReadinessBundleValidationState,
+        requiredPolicyVersion: String,
+        requiredArtifactIDs: [Identifier],
+        manifestArtifactIDs: [Identifier] = [],
+        missingRequiredArtifactIDs: [Identifier] = [],
+        unexpectedArtifactIDs: [Identifier] = [],
+        validatedAt: Date,
+        stateReason: String
+    ) throws -> ProductionReadinessBundleValidationResult {
+        try ProductionReadinessBundleValidationResult(
+            policyVersion: requiredPolicyVersion,
+            state: state,
+            requiredArtifactIDs: requiredArtifactIDs.sorted { $0.rawValue < $1.rawValue },
+            manifestArtifactIDs: manifestArtifactIDs.sorted { $0.rawValue < $1.rawValue },
+            missingRequiredArtifactIDs: missingRequiredArtifactIDs.sorted { $0.rawValue < $1.rawValue },
+            unexpectedArtifactIDs: unexpectedArtifactIDs.sorted { $0.rawValue < $1.rawValue },
+            validatedAt: validatedAt,
+            stateReason: stateReason
+        )
+    }
+
+    private static func timestampsMatch(_ expected: Date, _ actual: Date?) -> Bool {
+        guard let actual else {
+            return false
+        }
+        return abs(expected.timeIntervalSince(actual)) < 0.001
     }
 
     private func validateForbiddenInputs(

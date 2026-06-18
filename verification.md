@@ -17135,3 +17135,26 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `bash checks/automation-readiness.sh`: pass.
   - `bash checks/verify-v0.10.0.sh`: pass.
   - `bash checks/run.sh`: pass, 600 tests / 0 failures.
+
+## 2026-06-18 - GH-917 v0.11.0 Readiness Bundle Validation
+
+- Executor: Codex.
+- Scope:
+  - Updated `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`.
+  - Added `ProductionReadinessBundleValidationAnchors`, `ProductionReadinessBundleValidationState`, `ProductionReadinessBundleValidationResult`, explicit not-evaluated state and local `validateReadinessBundle(...)`.
+  - Bundle validation now rechecks manifest schema, required artifact set, artifact existence, canonical JSON SHA256 checksum, size, timestamp and policyVersion.
+  - Added `GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION` anchors to the v0.11.0 contract, automation readiness, validation plan, trading validation matrix, latest summary, verifier and TargetGraph focused test.
+- Boundary:
+  - Did not create a `v0.11.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement Dashboard real artifact binding, CLI runtime, approval transition or shadow parity runner.
+  - Did not add production OMS, trading button, order form or live command path.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum`: pass.
+  - `bash checks/verify-v0.11.0.sh`: pass.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/verify-v0.10.0.sh`: pass.
+  - `bash checks/run.sh`: pass, 601 tests / 0 failures.

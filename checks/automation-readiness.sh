@@ -516,9 +516,34 @@ for v0110_checksum_anchor in \
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_checksum_anchor"
   require_contains "docs/validation/latest-verification-summary.md" "$v0110_checksum_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_checksum_anchor"
-  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_checksum_anchor"
-  require_contains "docs/validation/validation-plan.md" "$v0110_checksum_anchor"
-  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_checksum_anchor"
+	require_contains "docs/validation/trading-validation-matrix.md" "$v0110_checksum_anchor"
+	require_contains "docs/validation/validation-plan.md" "$v0110_checksum_anchor"
+	require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_checksum_anchor"
+done
+require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 readiness bundle validation anchor"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "ProductionReadinessBundleValidationState"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "validateReadinessBundle("
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Readiness Bundle Validation Snapshot"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION"
+require_contains "docs/validation/validation-plan.md" "GH-917 Release v0.11.0 Readiness Bundle Validation"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum"
+for v0110_bundle_anchor in \
+  "GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION" \
+  "TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION" \
+  "V0110-005-READINESS-BUNDLE-VALIDATION" \
+  "V0110-005-REQUIRED-ARTIFACT-SET" \
+  "V0110-005-BUNDLE-VALIDATION-STATES" \
+  "V0110-005-POLICY-VERSION-BLOCKED" \
+  "V0110-005-CHECKSUM-MISMATCH-STATE" \
+  "V0110-005-NO-PRODUCTION-CUTOVER"; do
+  require_contains "checks/verify-v0.11.0.sh" "$v0110_bundle_anchor"
+  require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_bundle_anchor"
+  require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_bundle_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0110_bundle_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0110_bundle_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_bundle_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0110_bundle_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_bundle_anchor"
 done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
