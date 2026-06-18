@@ -121,6 +121,7 @@ bash checks/verify-v0.10.0-secret-provider-readiness-gate.sh
 bash checks/verify-v0.10.0-endpoint-policy-readiness-gate.sh
 bash checks/verify-v0.10.0-capital-exposure-limit-readiness-gate.sh
 bash checks/verify-v0.10.0-kill-switch-no-trade-readiness-gate.sh
+bash checks/verify-v0.10.0-command-surface-disabled.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

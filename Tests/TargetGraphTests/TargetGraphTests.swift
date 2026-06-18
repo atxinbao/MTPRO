@@ -9340,6 +9340,188 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH885ProductionCommandSurfaceDisabledProofKeepsDashboardAndCLIReadOnly() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let proof = try ReleaseV0100ProductionCommandSurfaceDisabledProof.deterministicFixture()
+
+        XCTAssertTrue(proof.proofHeld)
+        XCTAssertTrue(proof.evidenceArtifacts.allSatisfy(\.artifactHeld))
+        XCTAssertTrue(proof.productionCommandSurfaceDisabled)
+        XCTAssertEqual(proof.issueID.rawValue, "GH-885")
+        XCTAssertEqual(proof.upstreamIssueIDs.map(\.rawValue), ["GH-878", "GH-879"])
+        XCTAssertEqual(proof.downstreamIssueID.rawValue, "GH-886")
+        XCTAssertEqual(proof.canonicalQueueRange, "GH-878..GH-891")
+        XCTAssertTrue(proof.dashboardProductionSurfaceDisabled)
+        XCTAssertTrue(proof.cliProductionSurfaceDisabled)
+        XCTAssertTrue(proof.productionCutoverBlocked)
+        XCTAssertEqual(proof.evidenceArtifacts.map(\.fileName), ["dashboard_production_surface_disabled.json", "cli_production_surface_disabled.json"])
+        XCTAssertFalse(proof.cutoverAuthorized)
+        XCTAssertFalse(proof.productionCutoverUnblocked)
+        XCTAssertFalse(proof.productionEndpointConnectionEnabled)
+        XCTAssertFalse(proof.productionBrokerConnectionEnabled)
+        XCTAssertFalse(proof.productionSecretValueRead)
+        XCTAssertFalse(proof.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(proof.productionOrderSubmissionEnabled)
+        XCTAssertFalse(proof.productionOMSRuntimeEnabled)
+        XCTAssertFalse(proof.tradingButtonVisible)
+        XCTAssertFalse(proof.orderFormVisible)
+        XCTAssertFalse(proof.liveCommandEnabled)
+        XCTAssertFalse(proof.submitCommandEnabled)
+        XCTAssertFalse(proof.cancelCommandEnabled)
+        XCTAssertFalse(proof.replaceCommandEnabled)
+        XCTAssertFalse(proof.productionCommandEnabled)
+        XCTAssertFalse(proof.commandBypassEnabled)
+
+        XCTAssertThrowsError(
+            try ReleaseV0100ProductionCommandSurfaceDisabledArtifact(
+                kind: .dashboardProductionSurfaceDisabled,
+                fileName: "wrong.json"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0100ProductionCommandSurfaceDisabledArtifact(
+                kind: .dashboardProductionSurfaceDisabled,
+                evidenceExists: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0100ProductionCommandSurfaceDisabledArtifact(
+                kind: .cliProductionSurfaceDisabled,
+                containsBrokerOrAccountResponse: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0100ProductionCommandSurfaceDisabledArtifact(
+                kind: .cliProductionSurfaceDisabled,
+                producedByEndpointConnection: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0100ProductionCommandSurfaceDisabledArtifact(
+                kind: .cliProductionSurfaceDisabled,
+                containsOrderPayload: true
+            )
+        )
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(dashboardProductionSurfaceDisabled: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(cliProductionSurfaceDisabled: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(productionCutoverBlocked: false))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(cutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(productionCutoverUnblocked: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(productionBrokerConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(testnetOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(productionOrderSubmissionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(productionOMSRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(tradingButtonVisible: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(orderFormVisible: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(liveCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(submitCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(cancelCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(replaceCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(productionCommandEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0100ProductionCommandSurfaceDisabledProof(commandBypassEnabled: true))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100ProductionCommandSurfaceDisabledProof.swift")
+        let contract = try read("docs/contracts/release-v0.10.0-command-surface-disabled-proof-contract.md")
+        let verifier = try read("checks/verify-v0.10.0-command-surface-disabled.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "V0100-008-PRODUCTION-COMMAND-SURFACE-DISABLED-PROOF",
+            "V0100-008-DASHBOARD-PRODUCTION-SURFACE-DISABLED-JSON",
+            "V0100-008-CLI-PRODUCTION-SURFACE-DISABLED-JSON",
+            "V0100-008-TRADING-BUTTON-VISIBLE-FALSE",
+            "V0100-008-ORDER-FORM-VISIBLE-FALSE",
+            "V0100-008-LIVE-COMMAND-ENABLED-FALSE",
+            "V0100-008-SUBMIT-CANCEL-REPLACE-COMMANDS-DISABLED",
+            "V0100-008-PRODUCTION-COMMAND-ENABLED-FALSE",
+            "V0100-008-PRODUCTION-CUTOVER-BLOCKED",
+            "V0100-008-PRODUCTION-CAPABILITIES-DISABLED",
+            "GH-885-VERIFY-V0100-COMMAND-SURFACE-DISABLED",
+            "TVM-RELEASE-V0100-COMMAND-SURFACE-DISABLED"
+        ]
+        XCTAssertEqual(ReleaseV0100ProductionCommandSurfaceDisabledProof.requiredValidationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift contract")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+        }
+
+        for exactString in [
+            "dashboard_production_surface_disabled.json",
+            "cli_production_surface_disabled.json",
+            "dashboardProductionSurfaceDisabled=true",
+            "cliProductionSurfaceDisabled=true",
+            "tradingButtonVisible=false",
+            "orderFormVisible=false",
+            "liveCommandEnabled=false",
+            "submitCommandEnabled=false",
+            "cancelCommandEnabled=false",
+            "replaceCommandEnabled=false",
+            "productionCommandEnabled=false",
+            "testnetOrderSubmissionEnabled=false",
+            "productionOrderSubmissionEnabled=false",
+            "production_cutover_blocked=true",
+            "productionCutoverBlocked=true",
+            "productionCutoverUnblocked=false",
+            "cutoverAuthorized=false",
+            "productionEndpointConnectionEnabled=false",
+            "productionBrokerConnectionEnabled=false",
+            "productionSecretValueRead=false",
+            "productionOMSRuntimeEnabled=false",
+            "commandBypassEnabled=false"
+        ] {
+            XCTAssertTrue(contract.contains(exactString), "\(exactString) must stay fixed in #885 docs")
+        }
+
+        XCTAssertTrue(verifier.contains("MTPRO release v0.10.0 command surface disabled proof verification passed."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.0-command-surface-disabled.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.0-command-surface-disabled.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.10.0 production command surface disabled proof anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-885 Release v0.10.0 Production Command Surface Disabled Proof Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0100-COMMAND-SURFACE-DISABLED"))
+        XCTAssertTrue(latest.contains("`#885` 定义 ProductionCommandSurfaceDisabledProof reference-only contract"))
+
+        for forbiddenAuthorization in [
+            "production_cutover_blocked=false",
+            "productionCutoverBlocked=false",
+            "productionCutoverUnblocked=true",
+            "cutoverAuthorized=true",
+            "tradingButtonVisible=true",
+            "orderFormVisible=true",
+            "liveCommandEnabled=true",
+            "submitCommandEnabled=true",
+            "cancelCommandEnabled=true",
+            "replaceCommandEnabled=true",
+            "productionCommandEnabled=true",
+            "testnetOrderSubmissionEnabled=true",
+            "productionOrderSubmissionEnabled=true",
+            "productionEndpointConnectionEnabled=true",
+            "productionBrokerConnectionEnabled=true",
+            "productionSecretValueRead=true",
+            "productionOMSRuntimeEnabled=true",
+            "commandBypassEnabled=true",
+            "containsBrokerOrAccountResponse=true",
+            "producedByEndpointConnection=true",
+            "containsOrderPayload=true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH844ReleaseV090CarriesForwardV080PublicationAlignmentWithoutCutover() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let contract = try String(

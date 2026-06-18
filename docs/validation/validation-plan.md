@@ -6,6 +6,24 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-885 Release v0.10.0 Production Command Surface Disabled Proof Validation
+
+- `GH-885-VERIFY-V0100-COMMAND-SURFACE-DISABLED`
+- `TVM-RELEASE-V0100-COMMAND-SURFACE-DISABLED`
+- `V0100-008-PRODUCTION-COMMAND-SURFACE-DISABLED-PROOF`
+- `V0100-008-DASHBOARD-PRODUCTION-SURFACE-DISABLED-JSON`
+- `V0100-008-CLI-PRODUCTION-SURFACE-DISABLED-JSON`
+- `V0100-008-TRADING-BUTTON-VISIBLE-FALSE`
+- `V0100-008-ORDER-FORM-VISIBLE-FALSE`
+- `V0100-008-LIVE-COMMAND-ENABLED-FALSE`
+- `V0100-008-SUBMIT-CANCEL-REPLACE-COMMANDS-DISABLED`
+- `V0100-008-PRODUCTION-COMMAND-ENABLED-FALSE`
+- `V0100-008-PRODUCTION-CUTOVER-BLOCKED`
+- `V0100-008-PRODUCTION-CAPABILITIES-DISABLED`
+- Required command: `bash checks/verify-v0.10.0-command-surface-disabled.sh`
+- Focused test: `testGH885ProductionCommandSurfaceDisabledProofKeepsDashboardAndCLIReadOnly`
+- Boundary: ProductionCommandSurfaceDisabledProof 只持久化 Dashboard / CLI production command surface disabled evidence 文件名，固定 `dashboard_production_surface_disabled.json`、`cli_production_surface_disabled.json`、`tradingButtonVisible=false`、`orderFormVisible=false`、`liveCommandEnabled=false`、`submitCommandEnabled=false`、`cancelCommandEnabled=false`、`replaceCommandEnabled=false`、`productionCommandEnabled=false` 和 `production_cutover_blocked=true`；不连接 production endpoint / broker，不读取 production secret，不提交 testnet 或 production order，不授权 production cutover、production OMS、trading button、order form 或 live command。
+
 ## GH-884 Release v0.10.0 Kill Switch / No-trade Readiness Gate Validation
 
 - `GH-884-VERIFY-V0100-KILL-SWITCH-NO-TRADE-READINESS-GATE`
