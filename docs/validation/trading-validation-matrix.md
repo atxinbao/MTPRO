@@ -23,6 +23,19 @@
 - fixed release evidence: `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md`、`docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md`、`docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md`、Project Closure Count `44 / 44 (100%)` 和 aggregate verifier。
 - Boundary: v0.10.0 final closeout 只证明 production cutover readiness assessment、reference-only production profile、secret readiness、endpoint policy、capital / exposure limits、kill switch / no-trade、disabled command surface、shadow dry-run parity、readiness bundle、approval workflow、incident / rollback runbook 和 Dashboard readiness center 已闭环；不读取 production secret，不连接 production endpoint / broker，不显示 trading button / order form / live command，不提交 testnet 或 production order，不授权 production cutover。
 
+## TVM-RELEASE-V0101-DASHBOARD-MACOS-V0100-GUARDS
+
+- TVM-RELEASE-V0101-DASHBOARD-MACOS-V0100-GUARDS
+- GH-908-VERIFY-V0101-DASHBOARD-MACOS-V0100-GUARDS
+- V0101-003-DASHBOARD-MACOS-V0100-GUARDS
+- V0101-003-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+- V0101-003-NO-PRODUCTION-CUTOVER
+- GH-908 Release v0.10.1 Dashboard macOS v0.10 Focused Guard Validation
+- `bash checks/verify-v0.10.1-dashboard-macos-v0100-guards.sh`
+- `swift test --filter TargetGraphTests/testGH908DashboardMacOSV0100GuardRunsReadinessCenterBeforeBuildAndSmoke`
+- required `dashboard-macos` job runs v0.10 Production Readiness Center focused guard before Dashboard build / smoke.
+- Boundary: guard 只证明 Dashboard Production Readiness Center remains read-model-only / readiness-only；不显示 trading button / order form / live command，不生成 submit / cancel / replace command，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER
 
 - TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER

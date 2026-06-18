@@ -23,6 +23,17 @@
 - Root docs refresh: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md` 只同步 v0.10.0 已完成 readiness evidence、Project Closure Count `44 / 44 (100%)`、stage audit path、release notes、operator runbook、validation command 和 no-default-production-trading boundary。
 - Boundary: GH-891 只收口 v0.10.0 final audit / docs / runbook 和 aggregate verifier；#891 construction closeout PR 本身未执行 tag / GitHub Release publication、不创建下一 Project / Issue、不推进下一 Todo、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order。v0.10.0 已在后续独立 publication gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；该 publication 仍不授权 production cutover。
 
+## GH-908 Release v0.10.1 Dashboard macOS v0.10 Focused Guard Validation
+
+- `GH-908-VERIFY-V0101-DASHBOARD-MACOS-V0100-GUARDS`
+- `TVM-RELEASE-V0101-DASHBOARD-MACOS-V0100-GUARDS`
+- `V0101-003-DASHBOARD-MACOS-V0100-GUARDS`
+- `V0101-003-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND`
+- `V0101-003-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.10.1-dashboard-macos-v0100-guards.sh`
+- Focused test: `testGH908DashboardMacOSV0100GuardRunsReadinessCenterBeforeBuildAndSmoke`
+- Boundary: required `dashboard-macos` job 必须在 Dashboard build / smoke 前执行 v0.10 Production Readiness Center focused guard；guard 只验证 read-model-only readiness surface、disabled command surface 和 Dashboard smoke，不新增 trading button、order form、live command、submit / cancel / replace、production endpoint / broker、production secret read、testnet order routing 或 production cutover。
+
 ## GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation
 
 - `GH-890-VERIFY-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER`

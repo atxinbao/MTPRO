@@ -167,6 +167,64 @@ PR：#905 `Close v0.10.0 final audit docs runbook` 已 merged
 | `bash checks/verify-v0.10.0.sh` | pass | v0.10.0 aggregate verifier 已调用 v0.10.1 release fact sync guard |
 | `bash checks/run.sh` | pass | 全量本地验证，592 tests / 0 failures |
 
+## GH-908 v0.10.1 Dashboard macOS v0.10 focused guard
+
+日期：2026-06-18
+
+执行者：Codex
+
+目的：
+
+- 新增 v0.10 Dashboard macOS focused guard，确保 required `dashboard-macos` job 在 Dashboard build / smoke 前执行 v0.10 Production Readiness Center guard。
+- 复用 `checks/verify-v0.10.0-dashboard-production-readiness-center.sh`，并在 macOS 本地执行 `DASHBOARD_SMOKE=1 swift run Dashboard`。
+- 固定 Dashboard 仍为 read-model-only / readiness-only surface，不开放 production command surface。
+- 保持 production cutover 未授权、production trading 默认关闭。
+
+文件范围：
+
+- 新增：
+  - `checks/verify-v0.10.1-dashboard-macos-v0100-guards.sh`
+- 更新：
+  - `.github/workflows/checks.yml`
+  - `checks/verify-v0.10.0.sh`
+  - `checks/run.sh`
+  - `checks/automation-readiness.sh`
+  - `docs/automation/automation-readiness.md`
+  - `docs/validation/validation-plan.md`
+  - `docs/validation/trading-validation-matrix.md`
+  - `docs/validation/latest-verification-summary.md`
+  - `Tests/TargetGraphTests/TargetGraphTests.swift`
+  - `verification.md`
+
+边界确认：
+
+- 未修改 runtime / OMS / broker gateway / Live PRO Console command。
+- 未移动既有 release tag。
+- 未重写 GitHub Release。
+- 未创建下一 Project / Issue。
+- 未推进下一 Todo。
+- 未启动 Linear。
+- 未启动 Symphony / `symphony-issue`。
+- 未运行 Graphify / code-index。
+- 未修改 Figma。
+- 未授权 production cutover / production trading。
+- 未读取 production secret。
+- 未连接 production endpoint / broker endpoint。
+- 未提交 testnet 或 production order。
+- 未显示 trading button、order form、live command、submit / cancel / replace。
+- 未提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+验证计划：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `bash checks/verify-v0.10.1-dashboard-macos-v0100-guards.sh` | pass | focused Dashboard macOS v0.10 guard，包含 readiness center verifier 与 Dashboard smoke |
+| `swift test --filter TargetGraphTests/testGH908DashboardMacOSV0100GuardRunsReadinessCenterBeforeBuildAndSmoke` | pass | 1 test / 0 failures |
+| `git diff --check` | pass | whitespace 检查 |
+| `bash checks/automation-readiness.sh` | pass | automation readiness guard |
+| `bash checks/verify-v0.10.0.sh` | pass | v0.10.0 aggregate verifier 已调用 v0.10.1 Dashboard macOS v0.10 focused guard |
+| `bash checks/run.sh` | pass | 全量本地验证，593 tests / 0 failures |
+
 ## MTPRO Release v0.7.0 final audit / docs / runbook closure
 
 日期：2026-06-15
