@@ -216,7 +216,11 @@ let package = Package(
         ),
         .target(
             name: "ExecutionClient",
-            dependencies: ["DomainModel", "MessageBus"],
+            dependencies: [
+                "DomainModel",
+                "MessageBus",
+                .product(name: "Crypto", package: "swift-crypto")
+            ],
             path: "Sources/ExecutionClient",
             sources: [
                 "BrokerCapabilityMatrix",

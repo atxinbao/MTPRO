@@ -6,6 +6,20 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM
+
+- TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM
+- GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM
+- V0110-004-CANONICAL-JSON-SHA256
+- V0110-004-CHECKSUM-FORMAT-VALIDATION
+- V0110-004-CHECKSUM-MISMATCH-FAILS-CLOSED
+- V0110-004-NO-PLACEHOLDER-CHECKSUMS
+- GH-916 Release v0.11.0 Canonical JSON SHA256 Checksum Validation
+- `bash checks/verify-v0.11.0.sh`
+- `swift test --filter TargetGraphTests/testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums`
+- fixed checksum evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`Package.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`、`checks/verify-v0.11.0.sh` 和 TargetGraph focused test。
+- Boundary: v0.11.0 checksum policy 只计算本地 canonical JSON SHA256，格式固定为 `sha256:<64 hex>`；placeholder checksum 和 checksum mismatch 必须 fail closed；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO
 
 - TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO
@@ -19,7 +33,7 @@
 - `bash checks/verify-v0.11.0.sh`
 - `swift test --filter TargetGraphTests/testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts`
 - fixed manifest evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`、`checks/verify-v0.11.0.sh` 和 TargetGraph focused test。
-- Boundary: v0.11.0 manifest 只校验本地 readiness artifact schema、policyVersion、state、size 和 deterministic checksum；`evidenceExists` 不能单独证明 artifact valid；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+- Boundary: v0.11.0 manifest 只校验本地 readiness artifact schema、policyVersion、state、size 和 checksum 重新计算；`evidenceExists` 不能单独证明 artifact valid；最终 checksum policy 已由 GH-916 固定为 canonical JSON SHA256；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
 
 ## TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE
 

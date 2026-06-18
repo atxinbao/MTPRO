@@ -7,6 +7,8 @@ set -euo pipefail
 # TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE
 # GH-915-VERIFY-V0110-READINESS-MANIFEST-ATOMIC-IO
 # TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO
+# GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM
+# TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -175,7 +177,7 @@ require_file_contains "$ARTIFACT_STORE_SOURCE" "public struct ProductionReadines
 require_file_contains "$ARTIFACT_STORE_SOURCE" "writeReadinessManifest("
 require_file_contains "$ARTIFACT_STORE_SOURCE" "readReadinessManifest("
 require_file_contains "$ARTIFACT_STORE_SOURCE" "validateReadinessManifest("
-require_file_contains "$ARTIFACT_STORE_SOURCE" "deterministicChecksum(for data: Data)"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "canonicalJSONSHA256Checksum(for data: Data)"
 require_file_contains "$ARTIFACT_STORE_SOURCE" "manifestPolicyMismatch"
 require_file_contains "$ARTIFACT_STORE_SOURCE" "manifestEntryRejected"
 require_file_contains "$ARTIFACT_STORE_SOURCE" "checksumMismatch"
@@ -184,12 +186,46 @@ require_file_contains "$ARTIFACT_STORE_SOURCE" "atomicWriteRequired"
 require_file_contains "$ARTIFACT_STORE_SOURCE" "entry.policyVersion == requiredPolicyVersion"
 require_file_contains "$ARTIFACT_STORE_SOURCE" "record.state == .valid"
 require_file_contains "$ARTIFACT_STORE_SOURCE" "data.count == entry.size"
-require_file_contains "$ARTIFACT_STORE_SOURCE" "Self.deterministicChecksum(for: data) == entry.checksum"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "try Self.canonicalJSONSHA256Checksum(for: data) == entry.checksum"
 require_file_contains "$READINESS" "Release v0.11.0 readiness manifest atomic IO anchor"
 require_file_contains "$PLAN" "GH-915 Release v0.11.0 Readiness Manifest Atomic IO Validation"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO"
 require_file_contains "$LATEST" "Release v0.11.0 Readiness Manifest Atomic IO Snapshot"
 require_file_contains "$TESTS" "testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts"
+
+for anchor in \
+  "GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM" \
+  "TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM" \
+  "V0110-004-CANONICAL-JSON-SHA256" \
+  "V0110-004-CHECKSUM-FORMAT-VALIDATION" \
+  "V0110-004-CHECKSUM-MISMATCH-FAILS-CLOSED" \
+  "V0110-004-NO-PLACEHOLDER-CHECKSUMS"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$ARTIFACT_STORE_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "Package.swift" ".product(name: \"Crypto\", package: \"swift-crypto\")"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "import Crypto"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "SHA256.hash"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "canonicalJSONData(for data: Data)"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "isValidSHA256Checksum"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "invalidChecksumFormat"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "sha256:<64 hex>"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "Self.isValidSHA256Checksum(entry.checksum)"
+require_file_contains "$ARTIFACT_STORE_SOURCE" "try Self.canonicalJSONSHA256Checksum(for: data) == entry.checksum"
+require_file_contains "$READINESS" "Release v0.11.0 canonical JSON SHA256 checksum anchor"
+require_file_contains "$PLAN" "GH-916 Release v0.11.0 Canonical JSON SHA256 Checksum Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM"
+require_file_contains "$LATEST" "Release v0.11.0 Canonical JSON SHA256 Checksum Snapshot"
+require_file_contains "$TESTS" "testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums"
+require_file_contains "$TESTS" "sha256:gh890-secret-readiness"
+require_file_contains "$TESTS" "checksumMismatch"
 
 for forbidden in \
   "productionTradingEnabledByDefault=true" \
@@ -215,5 +251,6 @@ done
 swift test --filter TargetGraphTests/testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract
 swift test --filter TargetGraphTests/testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates
 swift test --filter TargetGraphTests/testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts
+swift test --filter TargetGraphTests/testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums
 
 echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."

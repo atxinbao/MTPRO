@@ -906,7 +906,9 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(traderTarget.contains("\"ExecutionEngine\""))
         XCTAssertFalse(traderTarget.contains("\"ExecutionClient\""))
         XCTAssertTrue(executionEngineTarget.contains("dependencies: [\"DomainModel\", \"MessageBus\", \"Cache\", \"Portfolio\", \"RiskEngine\", \"ExecutionClient\"]"))
-        XCTAssertTrue(executionClientTarget.contains("dependencies: [\"DomainModel\", \"MessageBus\"]"))
+        XCTAssertTrue(executionClientTarget.contains("\"DomainModel\""))
+        XCTAssertTrue(executionClientTarget.contains("\"MessageBus\""))
+        XCTAssertTrue(executionClientTarget.contains(".product(name: \"Crypto\", package: \"swift-crypto\")"))
     }
 
     func testGH452L4LiveProductionCommandContractDefinesDisabledProductionMatrix() throws {
@@ -4905,7 +4907,9 @@ final class TargetGraphTests: XCTestCase {
                 "GH-634-EXECUTION-PARITY-OWNERSHIP-CONTRACT"
             )
         )
-        XCTAssertTrue(executionClientTarget.contains("dependencies: [\"DomainModel\", \"MessageBus\"]"))
+        XCTAssertTrue(executionClientTarget.contains("\"DomainModel\""))
+        XCTAssertTrue(executionClientTarget.contains("\"MessageBus\""))
+        XCTAssertTrue(executionClientTarget.contains(".product(name: \"Crypto\", package: \"swift-crypto\")"))
 
         for forbiddenDefault in [
             "productionTradingEnabledByDefault == false",
@@ -28752,14 +28756,15 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(entry.artifactType, .jsonEvidence)
         XCTAssertEqual(entry.staleAfterSeconds, 60)
         XCTAssertEqual(entry.size, Data(payload.utf8).count)
-        XCTAssertEqual(entry.checksum, ProductionReadinessArtifactStore.deterministicChecksum(for: Data(payload.utf8)))
+        XCTAssertEqual(entry.checksum, try ProductionReadinessArtifactStore.canonicalJSONSHA256Checksum(for: Data(payload.utf8)))
+        XCTAssertTrue(ProductionReadinessArtifactStore.isValidSHA256Checksum(entry.checksum))
         XCTAssertEqual(entry.validationState, .valid)
         XCTAssertTrue(entry.evidenceExists)
         XCTAssertTrue(entry.entryHeld)
 
         let manifestText = String(decoding: manifest.data, as: UTF8.self)
-        XCTAssertTrue(manifestText.contains("\"atomicWriteRequired\" : true"))
-        XCTAssertTrue(manifestText.contains("\"policyVersion\" : \"\(policyVersion)\""))
+        XCTAssertTrue(manifestText.contains("\"atomicWriteRequired\":true"))
+        XCTAssertTrue(manifestText.contains("\"policyVersion\":\"\(policyVersion)\""))
 
         let readManifest = try store.readReadinessManifest(
             descriptor: manifestDescriptor,
@@ -28836,6 +28841,123 @@ final class TargetGraphTests: XCTestCase {
         ) { error in
             guard case ProductionReadinessArtifactStoreError.manifestEntryRejected = error else {
                 return XCTFail("expected manifestEntryRejected for missing artifact despite evidenceExists=true, got \(error)")
+            }
+        }
+    }
+
+    func testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums() throws {
+        XCTAssertEqual(ProductionReadinessCanonicalChecksumAnchors.validationAnchors, [
+            "GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM",
+            "TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM",
+            "V0110-004-CANONICAL-JSON-SHA256",
+            "V0110-004-CHECKSUM-FORMAT-VALIDATION",
+            "V0110-004-CHECKSUM-MISMATCH-FAILS-CLOSED",
+            "V0110-004-NO-PLACEHOLDER-CHECKSUMS"
+        ])
+
+        let sameObjectA = #"{"b":2,"a":1,"productionCutoverAuthorized":false}"#
+        let sameObjectB = """
+        {
+          "productionCutoverAuthorized": false,
+          "a": 1,
+          "b": 2
+        }
+        """
+        let canonicalA = try ProductionReadinessArtifactStore.canonicalJSONData(for: Data(sameObjectA.utf8))
+        let canonicalB = try ProductionReadinessArtifactStore.canonicalJSONData(for: Data(sameObjectB.utf8))
+        XCTAssertEqual(canonicalA, canonicalB)
+        let checksum = try ProductionReadinessArtifactStore.canonicalJSONSHA256Checksum(for: Data(sameObjectA.utf8))
+        XCTAssertEqual(checksum, try ProductionReadinessArtifactStore.canonicalJSONSHA256Checksum(for: Data(sameObjectB.utf8)))
+        XCTAssertTrue(ProductionReadinessArtifactStore.isValidSHA256Checksum(checksum))
+        XCTAssertEqual(checksum.count, "sha256:".count + 64)
+        XCTAssertFalse(ProductionReadinessArtifactStore.isValidSHA256Checksum("sha256:gh890-secret-readiness"))
+        XCTAssertFalse(ProductionReadinessArtifactStore.isValidSHA256Checksum("fnv1a64-0000000000000000"))
+
+        let evidenceRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH916-CanonicalSHA256-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: evidenceRoot)
+        }
+
+        let store = try ProductionReadinessArtifactStore(evidenceRootURL: evidenceRoot)
+        let artifactDescriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-916-readiness-artifact"),
+            relativePath: "artifacts/readiness.json",
+            artifactType: .jsonEvidence,
+            staleAfterSeconds: 120
+        )
+        let manifestDescriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-916-readiness-manifest"),
+            relativePath: "manifest/readiness-manifest.json",
+            artifactType: .jsonEvidence
+        )
+        let now = Date(timeIntervalSince1970: 1_800_020_000)
+        let policyVersion = "policy-v0.11.0-002"
+        let artifactPayload = #"{"artifactID":"gh-916-risk","policyVersion":"policy-v0.11.0-002","productionCutoverAuthorized":false,"productionTradingEnabledByDefault":false}"#
+        _ = try store.writeStringArtifact(
+            descriptor: artifactDescriptor,
+            string: artifactPayload,
+            modifiedAt: now
+        )
+        let manifest = try store.writeReadinessManifest(
+            manifestID: manifestDescriptor.artifactID,
+            manifestRelativePath: manifestDescriptor.relativePath,
+            descriptors: [artifactDescriptor],
+            policyVersion: policyVersion,
+            generatedAt: now.addingTimeInterval(1),
+            now: now
+        )
+        let entry = try XCTUnwrap(manifest.manifest.entries.first)
+        XCTAssertEqual(
+            entry.checksum,
+            try ProductionReadinessArtifactStore.canonicalJSONSHA256Checksum(for: Data(artifactPayload.utf8))
+        )
+        XCTAssertTrue(entry.checksum.hasPrefix("sha256:"))
+        XCTAssertTrue(entry.entryHeld)
+
+        let invalidChecksumManifest = String(decoding: manifest.data, as: UTF8.self)
+            .replacingOccurrences(of: entry.checksum, with: "sha256:gh890-secret-readiness")
+        let manifestURL = try store.artifactURL(for: manifestDescriptor)
+        try Data(invalidChecksumManifest.utf8).write(to: manifestURL, options: .atomic)
+        try FileManager.default.setAttributes([.modificationDate: now], ofItemAtPath: manifestURL.path)
+        XCTAssertThrowsError(
+            try store.readReadinessManifest(
+                descriptor: manifestDescriptor,
+                requiredPolicyVersion: policyVersion,
+                now: now.addingTimeInterval(10)
+            )
+        ) { error in
+            guard case ProductionReadinessArtifactStoreError.invalidChecksumFormat = error else {
+                return XCTFail("expected invalidChecksumFormat for placeholder checksum, got \(error)")
+            }
+        }
+
+        _ = try store.writeReadinessManifest(
+            manifestID: manifestDescriptor.artifactID,
+            manifestRelativePath: manifestDescriptor.relativePath,
+            descriptors: [artifactDescriptor],
+            policyVersion: policyVersion,
+            generatedAt: now.addingTimeInterval(1),
+            now: now
+        )
+        let driftedPayload = #"{"artifactID":"gh-916-fail","policyVersion":"policy-v0.11.0-002","productionCutoverAuthorized":false,"productionTradingEnabledByDefault":false}"#
+        XCTAssertEqual(Data(driftedPayload.utf8).count, Data(artifactPayload.utf8).count)
+        _ = try store.writeStringArtifact(
+            descriptor: artifactDescriptor,
+            string: driftedPayload,
+            modifiedAt: now.addingTimeInterval(2)
+        )
+        XCTAssertThrowsError(
+            try store.readReadinessManifest(
+                descriptor: manifestDescriptor,
+                requiredPolicyVersion: policyVersion,
+                now: now.addingTimeInterval(10)
+            )
+        ) { error in
+            guard case ProductionReadinessArtifactStoreError.checksumMismatch = error else {
+                return XCTFail("expected checksumMismatch for canonical JSON drift, got \(error)")
             }
         }
     }

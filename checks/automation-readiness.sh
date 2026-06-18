@@ -498,6 +498,28 @@ for v0110_manifest_anchor in \
   require_contains "docs/validation/validation-plan.md" "$v0110_manifest_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_manifest_anchor"
 done
+require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 canonical JSON SHA256 checksum anchor"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "canonicalJSONSHA256Checksum(for data: Data)"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Canonical JSON SHA256 Checksum Snapshot"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM"
+require_contains "docs/validation/validation-plan.md" "GH-916 Release v0.11.0 Canonical JSON SHA256 Checksum Validation"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums"
+for v0110_checksum_anchor in \
+  "GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM" \
+  "TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM" \
+  "V0110-004-CANONICAL-JSON-SHA256" \
+  "V0110-004-CHECKSUM-FORMAT-VALIDATION" \
+  "V0110-004-CHECKSUM-MISMATCH-FAILS-CLOSED" \
+  "V0110-004-NO-PLACEHOLDER-CHECKSUMS"; do
+  require_contains "checks/verify-v0.11.0.sh" "$v0110_checksum_anchor"
+  require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_checksum_anchor"
+  require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_checksum_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0110_checksum_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0110_checksum_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_checksum_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0110_checksum_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_checksum_anchor"
+done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands"

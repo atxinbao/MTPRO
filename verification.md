@@ -17110,3 +17110,28 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `bash checks/automation-readiness.sh`: pass.
   - `bash checks/verify-v0.10.0.sh`: pass.
   - `bash checks/run.sh`: pass, 599 tests / 0 failures.
+
+## 2026-06-18 - GH-916 v0.11.0 Canonical JSON SHA256 Checksum
+
+- Executor: Codex.
+- Scope:
+  - Updated `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`.
+  - Added `ProductionReadinessCanonicalChecksumAnchors`, canonical JSON byte normalization, `sha256:<64 hex>` checksum generation and checksum format validation.
+  - Replaced manifest entry checksum generation and validation with canonical JSON SHA256 and fail-closed invalid checksum / mismatch states.
+  - Added `swift-crypto` to the `ExecutionClient` target for SHA256 hashing.
+  - Added `GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM` anchors to the v0.11.0 contract, automation readiness, validation plan, trading validation matrix, latest summary, verifier and TargetGraph focused test.
+- Boundary:
+  - Did not create a `v0.11.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement readiness bundle validation, Dashboard real artifact binding, CLI runtime, approval transition or shadow parity runner.
+  - Did not add production OMS, trading button, order form or live command path.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums`: pass.
+  - `swift test`: pass, 600 tests / 0 failures.
+  - `bash checks/verify-v0.11.0.sh`: pass.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/verify-v0.10.0.sh`: pass.
+  - `bash checks/run.sh`: pass, 600 tests / 0 failures.
