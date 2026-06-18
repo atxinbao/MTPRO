@@ -28380,6 +28380,90 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH912ReleaseV0101PatchAuditReleaseNotesCloseout() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let audit = try read("docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md")
+        let verifier = try read("checks/verify-v0.10.1.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES",
+            "TVM-RELEASE-V0101-PATCH-AUDIT-RELEASE-NOTES",
+            "V0101-007-PATCH-AUDIT",
+            "V0101-007-RELEASE-NOTES",
+            "V0101-007-VALIDATION-SUMMARY",
+            "V0101-007-AGGREGATE-VERIFY",
+            "V0101-007-NO-PRODUCTION-CUTOVER",
+            "V0101-007-V0110-RUNTIME-OWNERSHIP"
+        ] {
+            XCTAssertTrue(audit.contains(anchor), "\(anchor) must stay in v0.10.1 patch audit")
+            XCTAssertTrue(notes.contains(anchor), "\(anchor) must stay in v0.10.1 patch release notes")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be enforced by v0.10.1 aggregate verifier")
+            XCTAssertTrue(readinessDoc.contains(anchor), "\(anchor) must be documented in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be documented in latest verification summary")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+        }
+
+        for script in [
+            "bash checks/verify-v0.10.1-release-fact-sync.sh",
+            "bash checks/verify-v0.10.1-dashboard-macos-v0100-guards.sh",
+            "bash checks/verify-v0.10.1-cli-verify-v0100-wording.sh",
+            "bash checks/verify-v0.10.1-readiness-cli-help.sh",
+            "swift test --filter TargetGraphTests/testGH912ReleaseV0101PatchAuditReleaseNotesCloseout"
+        ] {
+            XCTAssertTrue(verifier.contains(script), "\(script) must be part of v0.10.1 aggregate verifier")
+        }
+
+        for evidence in [
+            "PR `#926`",
+            "PR `#927`",
+            "PR `#928`",
+            "PR `#929`",
+            "PR `#930`",
+            "checks`, `linux-checks`, `dashboard-macos` SUCCESS",
+            "v0.11.0 remains the target for Production Readiness Evidence Runtime + Integrity Hardening",
+            "v0.11.0 才拥有 Production Readiness Evidence Runtime + Integrity Hardening"
+        ] {
+            XCTAssertTrue([audit, notes, latest].contains { $0.contains(evidence) }, "\(evidence) must be carried by closeout docs")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.10.1.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.10.1.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.10.1 patch audit / release notes closeout anchor"))
+        XCTAssertTrue(latest.contains("Release v0.10.1 Production Readiness Audit Hardening Patch Snapshot"))
+        XCTAssertTrue(validationPlan.contains("GH-912 Release v0.10.1 Patch Audit / Release Notes Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0101-PATCH-AUDIT-RELEASE-NOTES"))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "productionCutoverAuthorized=true",
+            "readinessArtifactRuntimeImplemented=true",
+            "productionReadinessArtifactStoreImplemented=true",
+            "artifactWritten=true"
+        ] {
+            XCTAssertFalse(audit.contains(forbidden), "\(forbidden) must stay out of v0.10.1 patch audit")
+            XCTAssertFalse(notes.contains(forbidden), "\(forbidden) must stay out of v0.10.1 patch notes")
+            XCTAssertFalse(latest.contains(forbidden), "\(forbidden) must stay out of latest summary")
+        }
+    }
+
     func testGH838TopLevelCLIRunSeparatesLocalSessionCreatedFromBrokerSessionStarted() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

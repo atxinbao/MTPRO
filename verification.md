@@ -17016,3 +17016,27 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: required whitespace validation.
   - `bash checks/automation-readiness.sh`: required readiness validation.
   - `bash checks/run.sh`: required full local validation.
+
+## 2026-06-18 - v0.10.1 Production Readiness Audit Hardening Patch Closeout
+
+- Executor: Codex.
+- Scope:
+  - Closed the #912 patch audit, release notes and aggregate verification contract for `v0.10.1`.
+  - Added `docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md`.
+  - Added `docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md`.
+  - Added `checks/verify-v0.10.1.sh` and wired it into `checks/run.sh`.
+  - Added the focused guard `TargetGraphTests/testGH912ReleaseV0101PatchAuditReleaseNotesCloseout`.
+  - Carried #907 through #911 completion evidence and PR #926 through PR #930 checks / merge evidence into the v0.10.1 audit trail.
+  - Recorded that v0.11.0 owns real readiness artifact runtime and integrity hardening.
+- Boundary:
+  - Did not create a `v0.10.1` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement `ProductionReadinessArtifactStore`, readiness artifact write runtime, signed endpoint runtime, OMS runtime, broker adapter, trading button, order form, or live command path.
+- Validation:
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/verify-v0.10.0.sh`: pass.
+  - `bash checks/verify-v0.10.1.sh`: pass.
+  - `bash checks/run.sh`: pass, 596 tests / 0 failures.

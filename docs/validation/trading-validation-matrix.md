@@ -23,6 +23,22 @@
 - fixed release evidence: `docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md`、`docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md`、`docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md`、Project Closure Count `44 / 44 (100%)` 和 aggregate verifier。
 - Boundary: v0.10.0 final closeout 只证明 production cutover readiness assessment、reference-only production profile、secret readiness、endpoint policy、capital / exposure limits、kill switch / no-trade、disabled command surface、shadow dry-run parity、readiness bundle、approval workflow、incident / rollback runbook 和 Dashboard readiness center 已闭环；不读取 production secret，不连接 production endpoint / broker，不显示 trading button / order form / live command，不提交 testnet 或 production order，不授权 production cutover。
 
+## TVM-RELEASE-V0101-PATCH-AUDIT-RELEASE-NOTES
+
+- TVM-RELEASE-V0101-PATCH-AUDIT-RELEASE-NOTES
+- GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES
+- V0101-007-PATCH-AUDIT
+- V0101-007-RELEASE-NOTES
+- V0101-007-VALIDATION-SUMMARY
+- V0101-007-AGGREGATE-VERIFY
+- V0101-007-NO-PRODUCTION-CUTOVER
+- V0101-007-V0110-RUNTIME-OWNERSHIP
+- GH-912 Release v0.10.1 Patch Audit / Release Notes Validation
+- `bash checks/verify-v0.10.1.sh`
+- `swift test --filter TargetGraphTests/testGH912ReleaseV0101PatchAuditReleaseNotesCloseout`
+- fixed patch evidence: `docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md`、`checks/verify-v0.10.1.sh` 和 latest summary closeout。
+- Boundary: v0.10.1 patch closeout 只证明 release fact sync、Dashboard macOS v0.10 guard、CLI verify wording、readiness CLI placeholder 和 v0.10.0 release body refresh 已闭环；不实现 readiness artifact runtime、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。v0.11.0 owns real readiness artifact runtime + integrity hardening。
+
 ## TVM-RELEASE-V0101-READINESS-CLI-HELP
 
 - TVM-RELEASE-V0101-READINESS-CLI-HELP

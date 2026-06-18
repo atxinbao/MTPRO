@@ -208,9 +208,12 @@ require_file "checks/verify-v0.10.0-cutover-approval-workflow.sh"
 require_file "checks/verify-v0.10.0-incident-rollback-runbook.sh"
 require_file "checks/verify-v0.10.0-dashboard-production-readiness-center.sh"
 require_file "checks/verify-v0.10.0.sh"
+require_file "checks/verify-v0.10.1.sh"
 require_file "docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md"
 require_file "docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md"
+require_file "docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md"
 require_file "checks/verify-v0.9.0-v080-publication-alignment.sh"
 require_file "checks/verify-v0.9.0-monitor-session-store.sh"
 require_file "checks/verify-v0.9.0-snapshot-freshness-monitor.sh"
@@ -391,6 +394,33 @@ require_contains "docs/automation/automation-readiness.md" "Release v0.10.1 read
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0101-READINESS-CLI-HELP"
 require_contains "docs/validation/validation-plan.md" "GH-910 Release v0.10.1 Readiness CLI Help Placeholder Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH910ReadinessCLIHelpPlaceholderIsNonMutatingAndFailsClosed"
+require_contains "docs/automation/automation-readiness.md" "Release v0.10.1 patch audit / release notes closeout anchor"
+require_contains "checks/verify-v0.10.1.sh" "GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "checks/run.sh" "bash checks/verify-v0.10.1.sh"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0101-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "docs/validation/validation-plan.md" "GH-912 Release v0.10.1 Patch Audit / Release Notes Validation"
+require_contains "docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md" "V0101-007-PATCH-AUDIT"
+require_contains "docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md" "V0101-007-RELEASE-NOTES"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.10.1 Production Readiness Audit Hardening Patch Snapshot"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH912ReleaseV0101PatchAuditReleaseNotesCloseout"
+for v0101_patch_closeout_anchor in \
+  "GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES" \
+  "TVM-RELEASE-V0101-PATCH-AUDIT-RELEASE-NOTES" \
+  "V0101-007-PATCH-AUDIT" \
+  "V0101-007-RELEASE-NOTES" \
+  "V0101-007-VALIDATION-SUMMARY" \
+  "V0101-007-AGGREGATE-VERIFY" \
+  "V0101-007-NO-PRODUCTION-CUTOVER" \
+  "V0101-007-V0110-RUNTIME-OWNERSHIP"; do
+  require_contains "checks/verify-v0.10.1.sh" "$v0101_patch_closeout_anchor"
+  require_contains "docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md" "$v0101_patch_closeout_anchor"
+  require_contains "docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md" "$v0101_patch_closeout_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0101_patch_closeout_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0101_patch_closeout_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0101_patch_closeout_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0101_patch_closeout_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0101_patch_closeout_anchor"
+done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands"
