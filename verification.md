@@ -354,6 +354,57 @@ PR：#905 `Close v0.10.0 final audit docs runbook` 已 merged
 | `bash checks/verify-v0.10.0.sh` | pass | v0.10.0 aggregate verifier 已调用 v0.10.1 readiness CLI help placeholder guard |
 | `bash checks/run.sh` | pass | 全量本地验证，595 tests / 0 failures |
 
+## GH-911 v0.10.0 GitHub Release notes stale wording refresh
+
+日期：2026-06-18
+
+执行者：Codex
+
+目的：
+
+- 只读检查 `v0.10.0` GitHub Release body 后，确认其仍包含 construction closeout 阶段遗留的未发布旧口径。
+- 仅更新 `v0.10.0` GitHub Release body 文本，改为 stable GitHub Release 已发布事实。
+- 确认 `v0.10.0` tag target commit 未变：`7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`。
+- 明确 release publication、release fact sync 和 production cutover 仍是独立 gate；v0.10.0 publication 不授权 production cutover。
+
+文件范围：
+
+- GitHub Release body 外部更新：
+  - `https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`
+- 仓库证据更新：
+  - `verification.md`
+
+边界确认：
+
+- 未移动、删除、重建、覆盖或 retarget `v0.10.0` tag。
+- 未移动、删除或重建 GitHub Release。
+- 未修改业务代码。
+- 未实现 readiness artifact runtime。
+- 未实现 `ProductionReadinessArtifactStore`。
+- 未创建下一 Project / Issue。
+- 未推进下一 Todo。
+- 未启动 Linear。
+- 未启动 Symphony / `symphony-issue`。
+- 未运行 Graphify / code-index。
+- 未修改 Figma。
+- 未授权 production cutover / production trading。
+- 未读取 production secret。
+- 未连接 production endpoint / broker endpoint。
+- 未提交 testnet 或 production order。
+- 未显示 trading button、order form、live command、submit / cancel / replace。
+- 未提交 `.codex/*`、`.build/*` 或 `graphify-out/*`。
+
+验证计划：
+
+| 命令 | 结果 | 说明 |
+| --- | --- | --- |
+| `stale publication wording scan over v0.10.0 release body` | pass | checked stale publication phrases; scan 无命中 |
+| `git rev-list -n 1 v0.10.0` | pass | tag target commit 仍为 `7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4` |
+| `gh release view v0.10.0 --json tagName,isDraft,isPrerelease,url,targetCommitish` | pass | stable release，非 draft，非 prerelease，URL 可读 |
+| `git diff --check` | pass | whitespace 检查 |
+| `bash checks/automation-readiness.sh` | pass | automation readiness guard |
+| `bash checks/verify-v0.10.0.sh` | pass | v0.10.0 aggregate verifier；本 PR 仅追加 external release body refresh evidence，未改代码 |
+
 ## MTPRO Release v0.7.0 final audit / docs / runbook closure
 
 日期：2026-06-15
