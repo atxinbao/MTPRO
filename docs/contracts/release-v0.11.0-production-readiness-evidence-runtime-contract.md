@@ -52,9 +52,29 @@ GH-915 在 GH-914 的 local artifact store 之上增加 readiness manifest schem
 
 Manifest entry 必须包含 artifact path、artifact type、size、checksum、createdAt、policy version 和 validation state。`evidenceExists` 只能作为审计字段，不能单独证明 artifact valid；manifest 读取时必须重新 inspect/read 本地 artifact，并拒绝 malformed、missing、stale、policy-mismatched、size-mismatched 或 checksum-mismatched entry。
 
-Atomic JSON IO 固定为本地 file artifact write，不连接 endpoint，不读取 secret，不产生 broker session，不提交 testnet 或 production order。GH-915 使用 deterministic local checksum 验证 manifest 与真实 artifact payload 一致；canonical JSON SHA256 仍保留给 GH-916。
+Atomic JSON IO 固定为本地 file artifact write，不连接 endpoint，不读取 secret，不产生 broker session，不提交 testnet 或 production order。GH-915 建立 manifest 与真实 artifact payload 的重新验证路径；GH-916 接管最终 checksum policy，把 manifest entry checksum 固定为 canonical JSON SHA256。
 
 GH-915 不实现 Dashboard real artifact binding、CLI build / status / validate / export / approval-status runtime、approval transition、shadow parity runner、production cutover、production OMS、trading button、order form 或 live command path。
+
+## V0110-004-CANONICAL-JSON-SHA256
+
+`V0110-004-CANONICAL-JSON-SHA256`
+
+`GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM`
+
+`TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM`
+
+GH-916 在 GH-915 manifest schema 之上替换 readiness checksum policy。授权范围只覆盖本地 canonical JSON bytes 和 `sha256:<64 hex>` checksum：
+
+- `V0110-004-CHECKSUM-FORMAT-VALIDATION`
+- `V0110-004-CHECKSUM-MISMATCH-FAILS-CLOSED`
+- `V0110-004-NO-PLACEHOLDER-CHECKSUMS`
+
+Canonical JSON 固定为 sorted key、无 pretty whitespace、不转义 slash 的本地 JSON bytes。Manifest entry checksum 必须使用真实 canonical JSON SHA256，格式必须是 `sha256:` 加 64 位小写十六进制 digest。`sha256:gh890-secret-readiness`、`fnv1a64-*` 或其他占位 / 非 SHA256 checksum 必须 fail closed。
+
+Manifest read 必须重新读取真实 artifact，重新计算 canonical JSON SHA256，并在 checksum mismatch 时拒绝该 readiness evidence。该校验不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
+GH-916 不实现 readiness bundle validation、Dashboard real artifact binding、CLI build / status / validate / export / approval-status runtime、approval transition、shadow parity runner、production OMS、trading button、order form 或 live command path。
 
 ## V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 

@@ -1,4 +1,5 @@
 import DomainModel
+import Crypto
 import Foundation
 
 /// ProductionReadinessArtifactStoreAnchors 固定 GH-914 的源码级验证锚点。
@@ -33,6 +34,21 @@ public enum ProductionReadinessManifestAnchors {
     ]
 }
 
+/// ProductionReadinessCanonicalChecksumAnchors 固定 GH-916 的 canonical JSON SHA256 验证锚点。
+///
+/// GH-916 只替换本地 readiness artifact / manifest 的完整性 checksum policy，不新增
+/// endpoint、secret、broker、OMS 或任何 submit / cancel / replace 命令路径。
+public enum ProductionReadinessCanonicalChecksumAnchors {
+    public static let validationAnchors = [
+        "GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM",
+        "TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM",
+        "V0110-004-CANONICAL-JSON-SHA256",
+        "V0110-004-CHECKSUM-FORMAT-VALIDATION",
+        "V0110-004-CHECKSUM-MISMATCH-FAILS-CLOSED",
+        "V0110-004-NO-PLACEHOLDER-CHECKSUMS"
+    ]
+}
+
 /// ProductionReadinessArtifactStoreError 描述 GH-914 本地 readiness artifact store 的失败类型。
 ///
 /// 这些错误只覆盖本地 evidence root、relative path、JSON payload 和 forbidden capability
@@ -48,6 +64,7 @@ public enum ProductionReadinessArtifactStoreError: Error, Equatable, Sendable, C
     case invalidManifest(String)
     case manifestPolicyMismatch(expected: String, actual: String)
     case manifestEntryRejected(String)
+    case invalidChecksumFormat(String)
     case checksumMismatch(String)
 
     public var description: String {
@@ -72,8 +89,10 @@ public enum ProductionReadinessArtifactStoreError: Error, Equatable, Sendable, C
             "GH-915 ProductionReadinessManifest expected policy \(expected), got \(actual)"
         case let .manifestEntryRejected(reason):
             "GH-915 ProductionReadinessManifest rejects entry: \(reason)"
+        case let .invalidChecksumFormat(checksum):
+            "GH-916 ProductionReadinessManifest rejects invalid checksum format \(checksum)"
         case let .checksumMismatch(path):
-            "GH-915 ProductionReadinessManifest checksum mismatch for \(path)"
+            "GH-916 ProductionReadinessManifest checksum mismatch for \(path)"
         }
     }
 }
@@ -301,7 +320,7 @@ public struct ProductionReadinessManifestEntry: Codable, Equatable, Sendable {
             && ProductionReadinessArtifactDescriptor.isSafeRelativePath(relativePath)
             && (staleAfterSeconds == nil || staleAfterSeconds ?? 0 > 0)
             && size > 0
-            && checksum.isEmpty == false
+            && ProductionReadinessArtifactStore.isValidSHA256Checksum(checksum)
             && policyVersion.isEmpty == false
             && validationState == .valid
             && evidenceExists
@@ -350,7 +369,7 @@ public struct ProductionReadinessManifestEntry: Codable, Equatable, Sendable {
             artifactType: record.descriptor.artifactType,
             staleAfterSeconds: record.descriptor.staleAfterSeconds,
             size: data.count,
-            checksum: ProductionReadinessArtifactStore.deterministicChecksum(for: data),
+            checksum: try ProductionReadinessArtifactStore.canonicalJSONSHA256Checksum(for: data),
             createdAt: createdAt,
             policyVersion: policyVersion,
             validationState: record.state,
@@ -710,17 +729,49 @@ public struct ProductionReadinessArtifactStore {
         )
     }
 
-    /// deterministicChecksum 是 GH-915 的本地 manifest 完整性校验值。
+    /// canonicalJSONData 固定 GH-916 readiness JSON 的 canonical byte policy。
     ///
-    /// 当前 issue 只要求 deterministic local checksum；canonical JSON SHA256 由后续 GH-916
-    /// 接管，避免在 GH-915 越权定义最终 hash policy。
-    public static func deterministicChecksum(for data: Data) -> String {
-        var hash: UInt64 = 0xcbf29ce484222325
-        for byte in data {
-            hash ^= UInt64(byte)
-            hash = hash &* 0x100000001b3
+    /// 当前 policy 只接受 object / array JSON payload，按 sorted key、无 pretty whitespace、
+    /// 不转义 slash 的方式重新编码。这样 artifact 原始缩进或字段顺序变化不会改变 checksum。
+    public static func canonicalJSONData(for data: Data) throws -> Data {
+        let object: Any
+        do {
+            object = try JSONSerialization.jsonObject(with: data)
+        } catch {
+            throw ProductionReadinessArtifactStoreError.invalidJSON("canonical JSON payload")
         }
-        return String(format: "fnv1a64-%016llx", hash)
+        guard JSONSerialization.isValidJSONObject(object) else {
+            throw ProductionReadinessArtifactStoreError.invalidJSON("canonical JSON payload")
+        }
+        do {
+            return try JSONSerialization.data(
+                withJSONObject: object,
+                options: [.sortedKeys, .withoutEscapingSlashes]
+            )
+        } catch {
+            throw ProductionReadinessArtifactStoreError.invalidJSON("canonical JSON payload")
+        }
+    }
+
+    /// canonicalJSONSHA256Checksum 为 readiness artifact 输出 `sha256:<64 hex>`。
+    ///
+    /// 该 checksum 只基于本地 canonical JSON bytes，不读取 secret、不访问 endpoint、不连接 broker。
+    public static func canonicalJSONSHA256Checksum(for data: Data) throws -> String {
+        try sha256Checksum(for: canonicalJSONData(for: data))
+    }
+
+    public static func isValidSHA256Checksum(_ checksum: String) -> Bool {
+        let prefix = "sha256:"
+        guard checksum.hasPrefix(prefix) else {
+            return false
+        }
+        let digest = checksum.dropFirst(prefix.count)
+        guard digest.count == 64 else {
+            return false
+        }
+        return digest.unicodeScalars.allSatisfy { scalar in
+            ("0"..."9").contains(String(scalar)) || ("a"..."f").contains(String(scalar))
+        }
     }
 
     @discardableResult
@@ -820,6 +871,26 @@ public struct ProductionReadinessArtifactStore {
         requiredPolicyVersion: String,
         now: Date
     ) throws {
+        guard manifest.issueID.rawValue == "GH-915",
+              manifest.releaseVersion == "v0.11.0",
+              manifest.manifestID.rawValue.isEmpty == false,
+              manifest.policyVersion.isEmpty == false,
+              manifest.entries.isEmpty == false,
+              manifest.atomicWriteRequired,
+              manifest.productionTradingEnabledByDefault == false,
+              manifest.productionSecretRead == false,
+              manifest.productionEndpointConnected == false,
+              manifest.brokerEndpointConnected == false,
+              manifest.productionOrderSubmitted == false,
+              manifest.testnetOrderSubmissionAllowed == false,
+              manifest.productionCutoverAuthorized == false else {
+            throw ProductionReadinessArtifactStoreError.invalidManifest("manifest header invalid")
+        }
+        for entry in manifest.entries {
+            guard Self.isValidSHA256Checksum(entry.checksum) else {
+                throw ProductionReadinessArtifactStoreError.invalidChecksumFormat(entry.checksum)
+            }
+        }
         guard manifest.manifestHeld else {
             throw ProductionReadinessArtifactStoreError.invalidManifest("manifestHeld=false")
         }
@@ -860,7 +931,10 @@ public struct ProductionReadinessArtifactStore {
                     "\(entry.relativePath) size mismatch"
                 )
             }
-            guard Self.deterministicChecksum(for: data) == entry.checksum else {
+            guard Self.isValidSHA256Checksum(entry.checksum) else {
+                throw ProductionReadinessArtifactStoreError.invalidChecksumFormat(entry.checksum)
+            }
+            guard try Self.canonicalJSONSHA256Checksum(for: data) == entry.checksum else {
                 throw ProductionReadinessArtifactStoreError.checksumMismatch(entry.relativePath)
             }
             guard entry.validationState == record.state else {
@@ -906,7 +980,7 @@ public struct ProductionReadinessArtifactStore {
 
     private func encodeManifest(_ manifest: ProductionReadinessManifest) throws -> Data {
         do {
-            return try manifestEncoder().encode(manifest)
+            return try Self.canonicalJSONData(for: manifestEncoder().encode(manifest))
         } catch {
             throw ProductionReadinessArtifactStoreError.invalidManifest("encoding failed")
         }
@@ -915,8 +989,13 @@ public struct ProductionReadinessArtifactStore {
     private func manifestEncoder() -> JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
         return encoder
+    }
+
+    private static func sha256Checksum(for data: Data) -> String {
+        let digest = SHA256.hash(data: data)
+        return "sha256:" + digest.map { String(format: "%02x", $0) }.joined()
     }
 
     private func manifestDecoder() -> JSONDecoder {

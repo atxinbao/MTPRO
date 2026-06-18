@@ -6,6 +6,19 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-916 Release v0.11.0 Canonical JSON SHA256 Checksum Validation
+
+- `GH-916-VERIFY-V0110-CANONICAL-JSON-SHA256-CHECKSUM`
+- `TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM`
+- `V0110-004-CANONICAL-JSON-SHA256`
+- `V0110-004-CHECKSUM-FORMAT-VALIDATION`
+- `V0110-004-CHECKSUM-MISMATCH-FAILS-CLOSED`
+- `V0110-004-NO-PLACEHOLDER-CHECKSUMS`
+- Required command: `bash checks/verify-v0.11.0.sh`
+- Focused test: `testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`Package.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`。
+- Boundary: GH-916 只把 readiness artifact / manifest checksum policy 固定为 canonical JSON SHA256 和 `sha256:<64 hex>` 格式；invalid checksum format 与 checksum mismatch 必须 fail closed；不实现 readiness bundle validation、Dashboard real artifact binding、CLI runtime、approval transition 或 shadow parity runner；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-914 Release v0.11.0 Production Readiness Artifact Store Validation
 
 - `GH-914-VERIFY-V0110-PRODUCTION-READINESS-ARTIFACT-STORE`
@@ -32,7 +45,7 @@
 - Required command: `bash checks/verify-v0.11.0.sh`
 - Focused test: `testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts`
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md`。
-- Boundary: GH-915 只实现本地 readiness manifest schema、atomic JSON artifact IO、policyVersion 校验、manifest entry state validation 和 deterministic local checksum；不实现 canonical JSON SHA256、Dashboard real artifact binding、CLI runtime、approval transition 或 shadow parity runner；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+- Boundary: GH-915 只实现本地 readiness manifest schema、atomic JSON artifact IO、policyVersion 校验、manifest entry state validation 和真实 artifact 重新验证入口；最终 checksum policy 由 GH-916 固定为 canonical JSON SHA256；不实现 Dashboard real artifact binding、CLI runtime、approval transition 或 shadow parity runner；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
 
 ## GH-913 Release v0.11.0 Production Readiness Evidence Runtime Contract Validation
 
