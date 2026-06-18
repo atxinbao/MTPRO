@@ -13,6 +13,8 @@ set -euo pipefail
 # TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION
 # GH-918-VERIFY-V0110-SHADOW-DRY-RUN-PARITY-RUNNER
 # TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER
+# GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE
+# TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -50,7 +52,9 @@ LATEST="docs/validation/latest-verification-summary.md"
 AUTOMATION_SCRIPT="checks/automation-readiness.sh"
 RUN_SCRIPT="checks/run.sh"
 TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
+APP_TESTS="Tests/AppTests/AppTests.swift"
 ARTIFACT_STORE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift"
+DASHBOARD_READINESS_SOURCE="Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift"
 
 for anchor in \
   "GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT" \
@@ -323,6 +327,40 @@ require_file_contains "$TESTS" "referenceOnlyStageConstantsUsed"
 require_file_contains "$TESTS" "missingEvidenceKinds"
 require_file_contains "$TESTS" "invalidEvidenceKinds"
 
+for anchor in \
+  "GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE" \
+  "TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE" \
+  "V0110-007-DASHBOARD-REAL-ARTIFACT-STATE" \
+  "V0110-007-LOCAL-MANIFEST-BUNDLE-STATE" \
+  "V0110-007-MISSING-CORRUPT-STALE-CHECKSUM-MISMATCH" \
+  "V0110-007-NO-STATIC-EVIDENCE-EXISTS" \
+  "V0110-007-READ-ONLY-NO-PRODUCTION-CUTOVER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$DASHBOARD_READINESS_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$APP_TESTS" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "$DASHBOARD_READINESS_SOURCE" "ReleaseV0110DashboardReadinessArtifactState"
+require_file_contains "$DASHBOARD_READINESS_SOURCE" "ReleaseV0110DashboardReadinessArtifactStateInput"
+require_file_contains "$DASHBOARD_READINESS_SOURCE" "ReleaseV0110DashboardReadinessBundleStateInput"
+require_file_contains "$DASHBOARD_READINESS_SOURCE" "artifactStates(fromReadinessManifestJSON data: Data)"
+require_file_contains "$DASHBOARD_READINESS_SOURCE" "bundleState(fromBundleValidationJSON data: Data)"
+require_file_contains "$DASHBOARD_READINESS_SOURCE" "localArtifactStateFixture("
+require_file_contains "$DASHBOARD_READINESS_SOURCE" "checksum-mismatch"
+require_file_contains "$DASHBOARD_READINESS_SOURCE" "local-artifact-state-not-evaluated"
+require_file_contains "$APP_TESTS" "testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly"
+require_file_contains "$TESTS" "testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors"
+require_file_contains "$READINESS" "Release v0.11.0 Dashboard real artifact state anchor"
+require_file_contains "$PLAN" "GH-919 Release v0.11.0 Dashboard Real Artifact State Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE"
+require_file_contains "$LATEST" "Release v0.11.0 Dashboard Real Artifact State Snapshot"
+
 for forbidden in \
   "productionTradingEnabledByDefault=true" \
   "productionCutoverAuthorized=true" \
@@ -350,5 +388,7 @@ swift test --filter TargetGraphTests/testGH915ReadinessManifestSchemaAndAtomicIO
 swift test --filter TargetGraphTests/testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums
 swift test --filter TargetGraphTests/testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum
 swift test --filter TargetGraphTests/testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence
+swift test --filter AppTests/testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly
+swift test --filter TargetGraphTests/testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors
 
 echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."

@@ -24,6 +24,186 @@ public enum ReleaseV0100DashboardProductionReadinessCenterPanel:
     case readinessBundle = "readiness-bundle"
 }
 
+/// ReleaseV0110DashboardReadinessArtifactState 是 Dashboard 对 v0.11 本地 readiness artifact 的只读展示状态。
+///
+/// 状态只来自本地 manifest / bundle validation 结果；即使状态为 `valid`，也只代表本地 evidence
+/// integrity 通过，不代表 production cutover、endpoint connection、secret read 或真实订单授权。
+public enum ReleaseV0110DashboardReadinessArtifactState:
+    String,
+    Codable,
+    CaseIterable,
+    Equatable,
+    Sendable
+{
+    case notEvaluated = "not-evaluated"
+    case valid
+    case blocked
+    case stale
+    case missing
+    case invalid
+    case checksumMismatch = "checksum-mismatch"
+
+    public var dashboardStatusLabel: String {
+        "readiness-\(rawValue)"
+    }
+}
+
+/// ReleaseV0110DashboardProductionReadinessCenterArtifactStateAnchors 固定 GH-919 的验证锚点。
+///
+/// GH-919 只把本地 manifest / bundle validation JSON 映射到 Dashboard read model；
+/// 不新增 trading button、order form、live command、endpoint connection 或 production cutover。
+public enum ReleaseV0110DashboardProductionReadinessCenterArtifactStateAnchors {
+    public static let validationAnchors = [
+        "GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE",
+        "TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE",
+        "V0110-007-DASHBOARD-REAL-ARTIFACT-STATE",
+        "V0110-007-LOCAL-MANIFEST-BUNDLE-STATE",
+        "V0110-007-MISSING-CORRUPT-STALE-CHECKSUM-MISMATCH",
+        "V0110-007-NO-STATIC-EVIDENCE-EXISTS",
+        "V0110-007-READ-ONLY-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
+/// ReleaseV0110DashboardReadinessArtifactStateInput 是 Dashboard 可消费的本地 artifact 状态行。
+///
+/// 该类型故意保留在 Dashboard target 内，避免 Dashboard 直接依赖 ExecutionClient / FutureGate。
+/// 调用方可以从 v0.11 manifest JSON 或 bundle validation JSON 解码出这些只读字段，再映射到卡片。
+public struct ReleaseV0110DashboardReadinessArtifactStateInput:
+    Codable,
+    Equatable,
+    Sendable
+{
+    public let artifactID: String
+    public let relativePath: String
+    public let state: ReleaseV0110DashboardReadinessArtifactState
+    public let evidenceExists: Bool
+    public let checksumReference: String
+    public let checksumMatches: Bool
+    public let stateReason: String
+
+    public var fileName: String {
+        relativePath.split(separator: "/").last.map(String.init) ?? relativePath
+    }
+
+    public var inputHeld: Bool {
+        artifactID.isEmpty == false
+            && Self.isSafeRelativePath(relativePath)
+            && stateReason.isEmpty == false
+            && checksumReference.hasPrefix("sha256:")
+            && stateEvidenceHeld
+    }
+
+    public init(
+        artifactID: String,
+        relativePath: String,
+        state: ReleaseV0110DashboardReadinessArtifactState,
+        evidenceExists: Bool,
+        checksumReference: String,
+        checksumMatches: Bool,
+        stateReason: String
+    ) {
+        self.artifactID = artifactID
+        self.relativePath = relativePath
+        self.state = state
+        self.evidenceExists = evidenceExists
+        self.checksumReference = checksumReference
+        self.checksumMatches = checksumMatches
+        self.stateReason = stateReason
+    }
+
+    private var stateEvidenceHeld: Bool {
+        switch state {
+        case .valid:
+            evidenceExists && checksumMatches
+        case .checksumMismatch:
+            evidenceExists && checksumMatches == false
+        case .missing, .notEvaluated:
+            evidenceExists == false && checksumMatches == false
+        case .blocked, .stale, .invalid:
+            true
+        }
+    }
+
+    private static func isSafeRelativePath(_ path: String) -> Bool {
+        path.isEmpty == false
+            && path.hasPrefix("/") == false
+            && path.contains("..") == false
+    }
+}
+
+/// ReleaseV0110DashboardReadinessBundleStateInput 是 Dashboard 对 bundle validation 的只读摘要。
+///
+/// 它只记录本地 validation state、required / manifest artifact set 和生产能力禁用证据。
+public struct ReleaseV0110DashboardReadinessBundleStateInput:
+    Codable,
+    Equatable,
+    Sendable
+{
+    public let state: ReleaseV0110DashboardReadinessArtifactState
+    public let policyVersion: String
+    public let stateReason: String
+    public let requiredArtifactIDs: [String]
+    public let manifestArtifactIDs: [String]
+    public let missingRequiredArtifactIDs: [String]
+    public let unexpectedArtifactIDs: [String]
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var inputHeld: Bool {
+        policyVersion.isEmpty == false
+            && stateReason.isEmpty == false
+            && requiredArtifactIDs.isEmpty == false
+            && requiredArtifactIDs.allSatisfy { $0.isEmpty == false }
+            && manifestArtifactIDs.allSatisfy { $0.isEmpty == false }
+            && missingRequiredArtifactIDs.allSatisfy { $0.isEmpty == false }
+            && unexpectedArtifactIDs.allSatisfy { $0.isEmpty == false }
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        state: ReleaseV0110DashboardReadinessArtifactState,
+        policyVersion: String,
+        stateReason: String,
+        requiredArtifactIDs: [String],
+        manifestArtifactIDs: [String] = [],
+        missingRequiredArtifactIDs: [String] = [],
+        unexpectedArtifactIDs: [String] = [],
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) {
+        self.state = state
+        self.policyVersion = policyVersion
+        self.stateReason = stateReason
+        self.requiredArtifactIDs = requiredArtifactIDs
+        self.manifestArtifactIDs = manifestArtifactIDs
+        self.missingRequiredArtifactIDs = missingRequiredArtifactIDs
+        self.unexpectedArtifactIDs = unexpectedArtifactIDs
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+    }
+}
+
 /// ReleaseV0100DashboardProductionReadinessCenterCard 是单个 Dashboard readiness 卡片。
 ///
 /// Card 只保存 source issue、artifact 名称、redacted checksum reference 和展示状态。
@@ -40,6 +220,11 @@ public struct ReleaseV0100DashboardProductionReadinessCenterCard:
     public let statusLabel: String
     public let evidenceArtifact: String
     public let checksumReference: String
+    public let artifactValidationState: ReleaseV0110DashboardReadinessArtifactState
+    public let artifactStateReason: String
+    public let artifactEvidenceExists: Bool
+    public let artifactChecksumMatches: Bool
+    public let localArtifactStateBound: Bool
     public let dashboardVisible: Bool
     public let readModelOnly: Bool
     public let redactionHeld: Bool
@@ -61,9 +246,12 @@ public struct ReleaseV0100DashboardProductionReadinessCenterCard:
         Self.requiredPanels.contains(panel)
             && Self.requiredIssueIDs.contains(sourceIssueID)
             && title.isEmpty == false
-            && statusLabel == "readiness-blocked"
+            && statusLabel == artifactValidationState.dashboardStatusLabel
             && Self.allowedArtifactNames.contains(evidenceArtifact)
             && checksumReference.hasPrefix("sha256:")
+            && artifactStateReason.isEmpty == false
+            && localArtifactStateBound
+            && artifactEvidenceStateHeld
             && dashboardVisible
             && readModelOnly
             && redactionHeld
@@ -88,7 +276,12 @@ public struct ReleaseV0100DashboardProductionReadinessCenterCard:
         title: String,
         evidenceArtifact: String,
         checksumReference: String,
-        statusLabel: String = "readiness-blocked",
+        artifactValidationState: ReleaseV0110DashboardReadinessArtifactState = .notEvaluated,
+        artifactStateReason: String = "local readiness artifact state not evaluated",
+        artifactEvidenceExists: Bool = false,
+        artifactChecksumMatches: Bool = false,
+        localArtifactStateBound: Bool = true,
+        statusLabel: String? = nil,
         dashboardVisible: Bool = true,
         readModelOnly: Bool = true,
         redactionHeld: Bool = true,
@@ -109,9 +302,14 @@ public struct ReleaseV0100DashboardProductionReadinessCenterCard:
         self.panel = panel
         self.sourceIssueID = sourceIssueID
         self.title = title
-        self.statusLabel = statusLabel
+        self.statusLabel = statusLabel ?? artifactValidationState.dashboardStatusLabel
         self.evidenceArtifact = evidenceArtifact
         self.checksumReference = checksumReference
+        self.artifactValidationState = artifactValidationState
+        self.artifactStateReason = artifactStateReason
+        self.artifactEvidenceExists = artifactEvidenceExists
+        self.artifactChecksumMatches = artifactChecksumMatches
+        self.localArtifactStateBound = localArtifactStateBound
         self.dashboardVisible = dashboardVisible
         self.readModelOnly = readModelOnly
         self.redactionHeld = redactionHeld
@@ -128,6 +326,52 @@ public struct ReleaseV0100DashboardProductionReadinessCenterCard:
         self.brokerCommandCreated = brokerCommandCreated
         self.testnetOrderSubmissionEnabled = testnetOrderSubmissionEnabled
         self.productionOrderSubmissionEnabled = productionOrderSubmissionEnabled
+    }
+
+    public func applying(
+        localArtifactState state: ReleaseV0110DashboardReadinessArtifactStateInput
+    ) -> ReleaseV0100DashboardProductionReadinessCenterCard {
+        ReleaseV0100DashboardProductionReadinessCenterCard(
+            panel: panel,
+            sourceIssueID: sourceIssueID,
+            title: title,
+            evidenceArtifact: evidenceArtifact,
+            checksumReference: state.checksumReference,
+            artifactValidationState: state.state,
+            artifactStateReason: state.stateReason,
+            artifactEvidenceExists: state.evidenceExists,
+            artifactChecksumMatches: state.checksumMatches,
+            localArtifactStateBound: state.inputHeld,
+            dashboardVisible: dashboardVisible,
+            readModelOnly: readModelOnly,
+            redactionHeld: redactionHeld,
+            dependencyEvidenceSatisfied: dependencyEvidenceSatisfied,
+            productionCutoverAuthorized: productionCutoverAuthorized,
+            productionTradingEnabledByDefault: productionTradingEnabledByDefault,
+            productionSecretRead: productionSecretRead,
+            productionEndpointConnected: productionEndpointConnected,
+            brokerEndpointConnected: brokerEndpointConnected,
+            tradingButtonVisible: tradingButtonVisible,
+            orderFormVisible: orderFormVisible,
+            liveCommandVisible: liveCommandVisible,
+            submitCancelReplaceVisible: submitCancelReplaceVisible,
+            brokerCommandCreated: brokerCommandCreated,
+            testnetOrderSubmissionEnabled: testnetOrderSubmissionEnabled,
+            productionOrderSubmissionEnabled: productionOrderSubmissionEnabled
+        )
+    }
+
+    private var artifactEvidenceStateHeld: Bool {
+        switch artifactValidationState {
+        case .valid:
+            artifactEvidenceExists && artifactChecksumMatches
+        case .checksumMismatch:
+            artifactEvidenceExists && artifactChecksumMatches == false
+        case .missing, .notEvaluated:
+            artifactEvidenceExists == false && artifactChecksumMatches == false
+        case .blocked, .stale, .invalid:
+            true
+        }
     }
 
     public static let requiredPanels = ReleaseV0100DashboardProductionReadinessCenterPanel.allCases
@@ -178,6 +422,10 @@ public struct ReleaseV0100DashboardProductionReadinessCenterViewModel:
     public let validationAnchors: [String]
     public let requiredValidationCommands: [String]
     public let readinessCards: [ReleaseV0100DashboardProductionReadinessCenterCard]
+    public let localArtifactStateSource: String
+    public let bundleValidationState: ReleaseV0110DashboardReadinessArtifactState
+    public let bundleValidationReason: String
+    public let localArtifactStateBound: Bool
     public let readinessOverviewVisible: Bool
     public let environmentProfileVisible: Bool
     public let secretReadinessVisible: Bool
@@ -223,7 +471,9 @@ public struct ReleaseV0100DashboardProductionReadinessCenterViewModel:
         [
             DashboardShellMetric(label: "v0.10 readiness center cards", value: "\(readinessCards.count)"),
             DashboardShellMetric(label: "Readiness center panels", value: panelNames.joined(separator: ",")),
-            DashboardShellMetric(label: "Readiness evidence", value: "bundle+runbook"),
+            DashboardShellMetric(label: "Readiness evidence", value: localArtifactStateSource),
+            DashboardShellMetric(label: "Readiness artifact states", value: artifactStateSummary),
+            DashboardShellMetric(label: "Readiness bundle state", value: bundleValidationState.rawValue),
             DashboardShellMetric(label: "Production command", value: productionCommandEnabled ? "enabled" : "disabled"),
             DashboardShellMetric(label: "Boundary", value: boundaryHeld ? "confirmed" : "breached")
         ]
@@ -234,6 +484,9 @@ public struct ReleaseV0100DashboardProductionReadinessCenterViewModel:
             "Readiness panels: \(panelNames.joined(separator: ", "))",
             "Source issues: \(readinessCards.map(\.sourceIssueID).joined(separator: ", "))",
             "Evidence artifacts: \(evidenceArtifactNames.joined(separator: ", "))",
+            "Local artifact states: \(artifactStateSummary)",
+            "Bundle validation state: \(bundleValidationState.rawValue)",
+            "Bundle validation reason: \(bundleValidationReason)",
             "Incident rollback evidence: incident_rollback_readiness.json",
             "Dashboard smoke: required",
             "Credential values: none",
@@ -261,6 +514,10 @@ public struct ReleaseV0100DashboardProductionReadinessCenterViewModel:
         validationAnchors: [String] = Self.requiredValidationAnchors,
         requiredValidationCommands: [String] = Self.requiredValidationCommands,
         readinessCards: [ReleaseV0100DashboardProductionReadinessCenterCard] = Self.defaultReadinessCards,
+        localArtifactStateSource: String = "local-artifact-state-not-evaluated",
+        bundleValidationState: ReleaseV0110DashboardReadinessArtifactState = .notEvaluated,
+        bundleValidationReason: String = "bundle validation not evaluated",
+        localArtifactStateBound: Bool = true,
         readinessOverviewVisible: Bool = true,
         environmentProfileVisible: Bool = true,
         secretReadinessVisible: Bool = true,
@@ -302,6 +559,10 @@ public struct ReleaseV0100DashboardProductionReadinessCenterViewModel:
         self.validationAnchors = validationAnchors
         self.requiredValidationCommands = requiredValidationCommands
         self.readinessCards = readinessCards
+        self.localArtifactStateSource = localArtifactStateSource
+        self.bundleValidationState = bundleValidationState
+        self.bundleValidationReason = bundleValidationReason
+        self.localArtifactStateBound = localArtifactStateBound
         self.readinessOverviewVisible = readinessOverviewVisible
         self.environmentProfileVisible = environmentProfileVisible
         self.secretReadinessVisible = secretReadinessVisible
@@ -344,6 +605,9 @@ public struct ReleaseV0100DashboardProductionReadinessCenterViewModel:
             && requiredValidationCommands == Self.requiredValidationCommands
             && readinessCards.map(\.panel) == ReleaseV0100DashboardProductionReadinessCenterPanel.allCases
             && readinessCards.allSatisfy(\.cardHeld)
+            && localArtifactStateSource.isEmpty == false
+            && bundleValidationReason.isEmpty == false
+            && localArtifactStateBound
             && readinessOverviewVisible
             && environmentProfileVisible
             && secretReadinessVisible
@@ -379,6 +643,141 @@ public struct ReleaseV0100DashboardProductionReadinessCenterViewModel:
 
     public static var deterministicFixture: ReleaseV0100DashboardProductionReadinessCenterViewModel {
         ReleaseV0100DashboardProductionReadinessCenterViewModel()
+    }
+
+    public static func localArtifactStateFixture(
+        artifactStates: [ReleaseV0110DashboardReadinessArtifactStateInput],
+        bundleState: ReleaseV0110DashboardReadinessBundleStateInput,
+        source: String = "local-readiness-artifacts"
+    ) -> ReleaseV0100DashboardProductionReadinessCenterViewModel {
+        let statesByFileName = Dictionary(uniqueKeysWithValues: artifactStates.map { ($0.fileName, $0) })
+        let cards = defaultReadinessCards.map { card -> ReleaseV0100DashboardProductionReadinessCenterCard in
+            guard let state = statesByFileName[card.evidenceArtifact] else {
+                return card.applying(
+                    localArtifactState: ReleaseV0110DashboardReadinessArtifactStateInput(
+                        artifactID: "missing-\(card.evidenceArtifact)",
+                        relativePath: card.evidenceArtifact,
+                        state: .missing,
+                        evidenceExists: false,
+                        checksumReference: card.checksumReference,
+                        checksumMatches: false,
+                        stateReason: "missing local readiness artifact"
+                    )
+                )
+            }
+            return card.applying(localArtifactState: state)
+        }
+        return ReleaseV0100DashboardProductionReadinessCenterViewModel(
+            readinessCards: cards,
+            localArtifactStateSource: source,
+            bundleValidationState: bundleState.state,
+            bundleValidationReason: bundleState.stateReason,
+            localArtifactStateBound: bundleState.inputHeld && cards.allSatisfy(\.cardHeld)
+        )
+    }
+
+    public static func artifactStates(fromReadinessManifestJSON data: Data)
+        throws -> [ReleaseV0110DashboardReadinessArtifactStateInput]
+    {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let manifest = try decoder.decode(ReadinessManifestDTO.self, from: data)
+        guard manifest.productionCapabilitiesDisabled else {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: [],
+                    debugDescription: "Dashboard refuses manifest with production capability enabled"
+                )
+            )
+        }
+        return manifest.entries.map { entry in
+            ReleaseV0110DashboardReadinessArtifactStateInput(
+                artifactID: entry.artifactID,
+                relativePath: entry.relativePath,
+                state: ReleaseV0110DashboardReadinessArtifactState(rawValue: entry.validationState) ?? .invalid,
+                evidenceExists: entry.evidenceExists,
+                checksumReference: entry.checksum,
+                checksumMatches: entry.validationState == ReleaseV0110DashboardReadinessArtifactState.valid.rawValue,
+                stateReason: entry.stateReason
+            )
+        }
+    }
+
+    public static func bundleState(fromBundleValidationJSON data: Data)
+        throws -> ReleaseV0110DashboardReadinessBundleStateInput
+    {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let result = try decoder.decode(BundleValidationDTO.self, from: data)
+        return ReleaseV0110DashboardReadinessBundleStateInput(
+            state: ReleaseV0110DashboardReadinessArtifactState(rawValue: result.state) ?? .invalid,
+            policyVersion: result.policyVersion,
+            stateReason: result.stateReason,
+            requiredArtifactIDs: result.requiredArtifactIDs,
+            manifestArtifactIDs: result.manifestArtifactIDs,
+            missingRequiredArtifactIDs: result.missingRequiredArtifactIDs,
+            unexpectedArtifactIDs: result.unexpectedArtifactIDs,
+            productionTradingEnabledByDefault: result.productionTradingEnabledByDefault,
+            productionSecretRead: result.productionSecretRead,
+            productionEndpointConnected: result.productionEndpointConnected,
+            brokerEndpointConnected: result.brokerEndpointConnected,
+            productionOrderSubmitted: result.productionOrderSubmitted,
+            testnetOrderSubmissionAllowed: result.testnetOrderSubmissionAllowed,
+            productionCutoverAuthorized: result.productionCutoverAuthorized
+        )
+    }
+
+    private var artifactStateSummary: String {
+        readinessCards
+            .map { "\($0.evidenceArtifact)=\($0.artifactValidationState.rawValue)" }
+            .joined(separator: ",")
+    }
+
+    private struct ReadinessManifestDTO: Decodable {
+        let entries: [Entry]
+        let productionTradingEnabledByDefault: Bool
+        let productionSecretRead: Bool
+        let productionEndpointConnected: Bool
+        let brokerEndpointConnected: Bool
+        let productionOrderSubmitted: Bool
+        let testnetOrderSubmissionAllowed: Bool
+        let productionCutoverAuthorized: Bool
+
+        var productionCapabilitiesDisabled: Bool {
+            productionTradingEnabledByDefault == false
+                && productionSecretRead == false
+                && productionEndpointConnected == false
+                && brokerEndpointConnected == false
+                && productionOrderSubmitted == false
+                && testnetOrderSubmissionAllowed == false
+                && productionCutoverAuthorized == false
+        }
+
+        struct Entry: Decodable {
+            let artifactID: String
+            let relativePath: String
+            let checksum: String
+            let validationState: String
+            let evidenceExists: Bool
+            let stateReason: String
+        }
+    }
+
+    private struct BundleValidationDTO: Decodable {
+        let policyVersion: String
+        let state: String
+        let requiredArtifactIDs: [String]
+        let manifestArtifactIDs: [String]
+        let missingRequiredArtifactIDs: [String]
+        let unexpectedArtifactIDs: [String]
+        let stateReason: String
+        let productionTradingEnabledByDefault: Bool
+        let productionSecretRead: Bool
+        let productionEndpointConnected: Bool
+        let brokerEndpointConnected: Bool
+        let productionOrderSubmitted: Bool
+        let testnetOrderSubmissionAllowed: Bool
+        let productionCutoverAuthorized: Bool
     }
 
     public static let requiredValidationAnchors = [

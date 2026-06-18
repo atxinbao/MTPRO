@@ -136,6 +136,27 @@ Runner 必须从本地 run evidence 推导 output，不能复用 v0.10.0 referen
 
 GH-918 不实现 Dashboard real artifact binding、CLI build / status / validate / export / approval-status runtime、approval transition、production OMS、trading button、order form 或 live command path。
 
+## V0110-007-DASHBOARD-REAL-ARTIFACT-STATE
+
+`V0110-007-DASHBOARD-REAL-ARTIFACT-STATE`
+
+`GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE`
+
+`TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE`
+
+GH-919 在 GH-918 本地 shadow dry-run parity runner 之后，把 Dashboard Production Readiness Center 从 v0.10.0 deterministic fixture-only evidence 推进到本地 artifact state read model。授权范围只覆盖本地 manifest / bundle validation JSON 到 Dashboard read-model-only card 的映射：
+
+- `V0110-007-LOCAL-MANIFEST-BUNDLE-STATE`
+- `V0110-007-MISSING-CORRUPT-STALE-CHECKSUM-MISMATCH`
+- `V0110-007-NO-STATIC-EVIDENCE-EXISTS`
+- `V0110-007-READ-ONLY-NO-PRODUCTION-CUTOVER`
+
+Dashboard 必须展示本地 evidence 状态：`not-evaluated`、`valid`、`blocked`、`stale`、`missing`、`invalid` 和 `checksum-mismatch`。默认 fixture 只能表示 `not-evaluated`，不能继续暗示静态 `evidenceExists=true` readiness。
+
+Manifest / bundle validation JSON 中任一 production capability flag 为 true 时，Dashboard 必须拒绝把该 evidence 当作 readiness card 输入。`valid` 只表示本地 artifact integrity pass，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order。
+
+GH-919 不实现 CLI build / status / validate / export / approval-status runtime、approval transition、production OMS、trading button、order form、submit / cancel / replace 或 live command path。
+
 ## V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT
 
 `V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT`
