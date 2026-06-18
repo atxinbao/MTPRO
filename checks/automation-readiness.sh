@@ -660,6 +660,37 @@ for v0110_fixed_point_policy_anchor in \
   require_contains "docs/validation/validation-plan.md" "$v0110_fixed_point_policy_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_fixed_point_policy_anchor"
 done
+require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 kill switch / no-trade state model anchor"
+require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Kill Switch / No-trade State Model Snapshot"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL"
+require_contains "docs/validation/validation-plan.md" "GH-922 Release v0.11.0 Kill Switch / No-trade State Model Validation"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift" "ReleaseV0110KillSwitchNoTradeReadinessStateModel"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift" "ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift" "ReleaseV0110KillSwitchNoTradeReviewState"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift" "eligibleForApprovalRequest"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift" "case inactive"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift" "case unknown"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift" "case stale"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift" "case unavailable"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility"
+require_contains "checks/verify-v0.11.0.sh" "testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility"
+for v0110_kill_switch_no_trade_state_model_anchor in \
+  "GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL" \
+  "TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL" \
+  "V0110-010-KILL-SWITCH-NO-TRADE-STATE-MODEL" \
+  "V0110-010-UNKNOWN-STALE-UNAVAILABLE-FAIL-CLOSED" \
+  "V0110-010-INACTIVE-FRESH-REVIEWED-APPROVAL-REQUEST-ELIGIBILITY" \
+  "V0110-010-NO-PRODUCTION-CUTOVER-ORDER"; do
+  require_contains "checks/verify-v0.11.0.sh" "$v0110_kill_switch_no_trade_state_model_anchor"
+  require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_kill_switch_no_trade_state_model_anchor"
+  require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_kill_switch_no_trade_state_model_anchor"
+  require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift" "$v0110_kill_switch_no_trade_state_model_anchor"
+  require_contains "docs/validation/latest-verification-summary.md" "$v0110_kill_switch_no_trade_state_model_anchor"
+  require_contains "docs/automation/automation-readiness.md" "$v0110_kill_switch_no_trade_state_model_anchor"
+  require_contains "docs/validation/trading-validation-matrix.md" "$v0110_kill_switch_no_trade_state_model_anchor"
+  require_contains "docs/validation/validation-plan.md" "$v0110_kill_switch_no_trade_state_model_anchor"
+  require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_kill_switch_no_trade_state_model_anchor"
+done
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER"
 require_contains "docs/validation/validation-plan.md" "GH-890 Release v0.10.0 Dashboard Production Readiness Center Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands"

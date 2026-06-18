@@ -17256,3 +17256,28 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass.
   - `bash checks/run.sh`: pass, 606 tests / 0 failures.
+
+## 2026-06-19 - GH-922 v0.11.0 Kill Switch / No-trade State Model
+
+- Executor: Codex.
+- Scope:
+  - Updated `Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift`.
+  - Expanded kill switch / no-trade readiness state from active-only evidence to explicit `active`, `inactive`, `unknown`, `stale` and `unavailable` states.
+  - Added freshness and review evidence states so `unknown`, `stale`, `unavailable`, non-fresh or non-reviewed evidence fails closed.
+  - Added `ReleaseV0110KillSwitchNoTradeReadinessStateModel` and fixtures proving that only inactive + fresh + reviewed can enter approval-request eligibility.
+  - Added `GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL` anchors to the v0.11.0 contract, automation readiness, validation plan, trading validation matrix, latest summary, verifier, artifact anchor store and TargetGraph focused test.
+- Boundary:
+  - Did not create a `v0.11.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement approval transition, production OMS, trading button, order form or live command path.
+  - Approval-request eligibility remains local readiness evidence only; it does not grant production trading permission.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility`: pass.
+  - `swift test --filter TargetGraphTests/testGH884KillSwitchNoTradeReadinessGateBlocksCutoverAndOrders`: pass.
+  - `bash checks/verify-v0.11.0.sh`: pass.
+  - `bash checks/verify-v0.10.0.sh`: pass.
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/run.sh`: pass, 607 tests / 0 failures.

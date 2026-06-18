@@ -19,6 +19,8 @@ set -euo pipefail
 # TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS
 # GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY
 # TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY
+# GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL
+# TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -61,6 +63,7 @@ ARTIFACT_STORE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110Production
 DASHBOARD_READINESS_SOURCE="Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift"
 MTPRO_CLI_SOURCE="Sources/MTPROCLI/main.swift"
 CAPITAL_EXPOSURE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift"
+KILL_SWITCH_NO_TRADE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift"
 PACKAGE_SOURCE="Package.swift"
 
 for anchor in \
@@ -467,6 +470,41 @@ require_file_contains "$LATEST" "Release v0.11.0 Fixed-point Capital / Exposure 
 require_file_contains "$LATEST" "#921"
 require_file_contains "$TESTS" "testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons"
 
+for anchor in \
+  "GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL" \
+  "TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL" \
+  "V0110-010-KILL-SWITCH-NO-TRADE-STATE-MODEL" \
+  "V0110-010-UNKNOWN-STALE-UNAVAILABLE-FAIL-CLOSED" \
+  "V0110-010-INACTIVE-FRESH-REVIEWED-APPROVAL-REQUEST-ELIGIBILITY" \
+  "V0110-010-NO-PRODUCTION-CUTOVER-ORDER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$ARTIFACT_STORE_SOURCE" "$anchor"
+  require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "ReleaseV0110KillSwitchNoTradeReadinessStateModel"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "ReleaseV0110KillSwitchNoTradeReviewState"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "eligibleForApprovalRequest"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "case inactive"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "case unknown"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "case stale"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "case unavailable"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "productionCutoverBlocked"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "orderSubmissionEnabled"
+require_file_contains "$READINESS" "Release v0.11.0 kill switch / no-trade state model anchor"
+require_file_contains "$PLAN" "GH-922 Release v0.11.0 Kill Switch / No-trade State Model Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL"
+require_file_contains "$LATEST" "Release v0.11.0 Kill Switch / No-trade State Model Snapshot"
+require_file_contains "$LATEST" "#922"
+require_file_contains "$TESTS" "testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility"
+
 for required in \
   "mtpro readiness build v0.11.0" \
   "mutationApplied=true" \
@@ -525,5 +563,6 @@ swift test --filter AppTests/testGH919DashboardProductionReadinessCenterBindsRea
 swift test --filter TargetGraphTests/testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors
 swift test --filter TargetGraphTests/testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities
 swift test --filter TargetGraphTests/testGH921CapitalExposureReadinessUsesFixedPointPolicyValuesAndSafeComparisons
+swift test --filter TargetGraphTests/testGH922KillSwitchNoTradeStateModelFailsClosedAndOnlyAllowsApprovalRequestEligibility
 
 echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."
