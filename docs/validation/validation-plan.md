@@ -4614,3 +4614,21 @@ swift test
 - full gate: `bash checks/run.sh`
 - allowed scope: local readiness assessment session, evidence provenance, multi-assessment history, redacted export and derived read-model evidence
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no real order, no tag / release movement, no v0.12.0 downstream issue promotion before #952 closes done
+
+## GH-953 Release v0.12.0 v0.11.x Publication / Patch Fact Baseline Validation
+
+- GH-953-VERIFY-V0120-V011X-RELEASE-PATCH-FACTS
+- TVM-RELEASE-V0120-V011X-RELEASE-PATCH-FACTS
+- V0120-002-V0110-PUBLICATION-FACT
+- V0120-002-V0111-PATCH-FACT
+- V0120-002-CONSTRUCTION-PUBLICATION-CUTOVER-SEPARATION
+- V0120-002-NO-PRODUCTION-CUTOVER
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- release policy: `docs/release/release-publication-policy.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- baseline facts: v0.11.0 public GitHub Release URL `https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`, tag peeled commit `13f592d0710de91351286e5c5490bfacb63c19b0`, publication timestamp `2026-06-19T01:20:58Z`
+- patch facts: v0.11.1 patch closeout covers #945..#951, does not create a `v0.11.1` tag / GitHub Release, does not move `v0.11.0`, and does not advance v0.12.0 by itself
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no real order, no tag / release movement
