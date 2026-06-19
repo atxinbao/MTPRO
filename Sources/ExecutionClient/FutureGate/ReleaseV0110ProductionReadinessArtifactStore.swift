@@ -64,6 +64,21 @@ public enum ProductionReadinessArtifactSymlinkRootAnchors {
     ]
 }
 
+/// ProductionReadinessArtifactPermissionAnchors 固定 GH-949 的本地 artifact 权限验证锚点。
+///
+/// GH-949 只约束 readiness artifact 的本地目录 / 文件 permission；它不读取 production
+/// secret、不连接 endpoint / broker、不提交订单，也不授权 production cutover。
+public enum ProductionReadinessArtifactPermissionAnchors {
+    public static let validationAnchors = [
+        "GH-949-VERIFY-V0111-READINESS-ARTIFACT-PERMISSIONS",
+        "TVM-RELEASE-V0111-READINESS-ARTIFACT-PERMISSIONS",
+        "V0111-005-OWNER-ONLY-DIRECTORIES",
+        "V0111-005-OWNER-ONLY-FILES",
+        "V0111-005-PERMISSION-REPAIR",
+        "V0111-005-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
 /// ProductionReadinessBundleValidationAnchors 固定 GH-917 的 bundle validation 验证锚点。
 ///
 /// GH-917 只读取本地 manifest 与本地 artifact，归类 bundle integrity state；它不读取
@@ -999,6 +1014,8 @@ public struct ProductionReadinessArtifactStoreSnapshot: Codable, Equatable, Send
 /// adapter、OMS runtime 或 submit / cancel / replace command surface。
 public struct ProductionReadinessArtifactStore {
     public static let defaultRelativeRoot = ".local/mtpro/readiness/v0.11.0"
+    public static let ownerOnlyDirectoryPermissions = 0o700
+    public static let ownerOnlyFilePermissions = 0o600
 
     public let evidenceRootURL: URL
     private let fileManager: FileManager
@@ -1084,6 +1101,55 @@ public struct ProductionReadinessArtifactStore {
         path == directory || path.hasPrefix(directory + "/")
     }
 
+    /// enforceOwnerOnlyDirectoryPermissions 固定 GH-949 的 directory permission policy。
+    /// 它只修正 approved root 到 artifact parent 的本地目录权限为 owner-only，不扩大为
+    /// secret read、endpoint connect 或 order command 能力。
+    private func enforceOwnerOnlyDirectoryPermissions(upTo directoryURL: URL) throws {
+        let root = evidenceRootURL.standardizedFileURL
+        let target = directoryURL.standardizedFileURL
+        guard Self.path(target.path, isInsideDirectory: root.path) else {
+            throw ProductionReadinessArtifactStoreError.unsafeRelativePath(target.path)
+        }
+
+        try Self.setOwnerOnlyDirectoryPermissions(root, fileManager: fileManager)
+        let relativeSuffix = target.path.dropFirst(root.path.count)
+        let components = relativeSuffix
+            .split(separator: "/", omittingEmptySubsequences: true)
+            .map(String.init)
+        var current = root
+        for component in components {
+            current.appendPathComponent(component, isDirectory: true)
+            try Self.setOwnerOnlyDirectoryPermissions(current, fileManager: fileManager)
+        }
+    }
+
+    private static func setOwnerOnlyDirectoryPermissions(
+        _ directoryURL: URL,
+        fileManager: FileManager
+    ) throws {
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: directoryURL.path, isDirectory: &isDirectory),
+              isDirectory.boolValue else {
+            throw ProductionReadinessArtifactStoreError.unsafeRelativePath(directoryURL.path)
+        }
+        try fileManager.setAttributes(
+            [.posixPermissions: ownerOnlyDirectoryPermissions],
+            ofItemAtPath: directoryURL.path
+        )
+    }
+
+    /// enforceOwnerOnlyFilePermissions 固定 GH-949 的 file permission policy。
+    /// artifact 写入后必须降到 owner-only，并保留调用方传入的 modifiedAt evidence。
+    private func enforceOwnerOnlyFilePermissions(_ fileURL: URL, modifiedAt: Date) throws {
+        try fileManager.setAttributes(
+            [
+                .posixPermissions: Self.ownerOnlyFilePermissions,
+                .modificationDate: modifiedAt
+            ],
+            ofItemAtPath: fileURL.path
+        )
+    }
+
     public func artifactURL(for descriptor: ProductionReadinessArtifactDescriptor) throws -> URL {
         guard descriptor.descriptorHeld else {
             throw ProductionReadinessArtifactStoreError.unsafeRelativePath(descriptor.relativePath)
@@ -1124,11 +1190,13 @@ public struct ProductionReadinessArtifactStore {
         )
         try fileManager.createDirectory(
             at: url.deletingLastPathComponent(),
-            withIntermediateDirectories: true
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: Self.ownerOnlyDirectoryPermissions]
         )
         try validateArtifactPath(url, descriptor: descriptor, includeFinalComponent: false)
+        try enforceOwnerOnlyDirectoryPermissions(upTo: url.deletingLastPathComponent())
         try data.write(to: url, options: .atomic)
-        try fileManager.setAttributes([.modificationDate: modifiedAt], ofItemAtPath: url.path)
+        try enforceOwnerOnlyFilePermissions(url, modifiedAt: modifiedAt)
         return try inspectArtifact(descriptor, now: modifiedAt)
     }
 

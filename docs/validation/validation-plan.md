@@ -6,6 +6,19 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-949 Release v0.11.1 Readiness Artifact Permission Validation
+
+- `GH-949-VERIFY-V0111-READINESS-ARTIFACT-PERMISSIONS`
+- `TVM-RELEASE-V0111-READINESS-ARTIFACT-PERMISSIONS`
+- `V0111-005-OWNER-ONLY-DIRECTORIES`
+- `V0111-005-OWNER-ONLY-FILES`
+- `V0111-005-PERMISSION-REPAIR`
+- `V0111-005-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.11.1-readiness-artifact-permissions.sh`
+- Focused tests: `testGH949ProductionReadinessArtifactStoreEnforcesOwnerOnlyPermissions` 和 `testGH949ReadinessArtifactPermissionGuardAnchors`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`checks/verify-v0.11.1-readiness-artifact-permissions.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/trading-validation-matrix.md`。
+- Boundary: GH-949 只收紧本地 readiness artifact store 的 filesystem permission invariant，要求 approved root 到 artifact parent directories 为 owner-only `0700`，artifact file 为 owner-only `0600`，并可修正已存在的宽权限本地目录；不新增 trading button、order form、live command、submit / cancel / replace、production endpoint / broker、production secret read、testnet order routing 或 production cutover。
+
 ## GH-948 Release v0.11.1 Readiness Artifact Symlink Root Validation
 
 - `GH-948-VERIFY-V0111-READINESS-ARTIFACT-SYMLINK-ROOT`

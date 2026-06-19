@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0111-READINESS-ARTIFACT-PERMISSIONS
+
+- TVM-RELEASE-V0111-READINESS-ARTIFACT-PERMISSIONS
+- GH-949-VERIFY-V0111-READINESS-ARTIFACT-PERMISSIONS
+- V0111-005-OWNER-ONLY-DIRECTORIES
+- V0111-005-OWNER-ONLY-FILES
+- V0111-005-PERMISSION-REPAIR
+- V0111-005-NO-PRODUCTION-CUTOVER
+- GH-949 Release v0.11.1 Readiness Artifact Permission Validation
+- `bash checks/verify-v0.11.1-readiness-artifact-permissions.sh`
+- `swift test --filter TargetGraphTests/testGH949ProductionReadinessArtifactStoreEnforcesOwnerOnlyPermissions`
+- `swift test --filter TargetGraphTests/testGH949ReadinessArtifactPermissionGuardAnchors`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`checks/verify-v0.11.1-readiness-artifact-permissions.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-949 只固定本地 readiness artifact directory / file permission guard；approved root 到 artifact parent directories 必须 owner-only `0700`，artifact file 必须 owner-only `0600`。该 guard 不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0111-READINESS-ARTIFACT-SYMLINK-ROOT
 
 - TVM-RELEASE-V0111-READINESS-ARTIFACT-SYMLINK-ROOT
