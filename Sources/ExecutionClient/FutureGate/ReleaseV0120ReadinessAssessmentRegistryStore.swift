@@ -16,7 +16,15 @@ public enum ReadinessAssessmentRegistryStoreAnchors {
         "V0120-003-ASSESSMENT-DIRECTORY-PATH",
         "V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER",
         "V0120-003-COMPARE-READY-METADATA",
-        "V0120-003-NO-PRODUCTION-CUTOVER"
+        "V0120-003-NO-PRODUCTION-CUTOVER",
+        "GH-955-VERIFY-V0120-ASSESSMENT-TRANSACTION-LOCK",
+        "TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK",
+        "V0120-004-ASSESSMENT-TRANSACTION-LOCK",
+        "V0120-004-TRANSACTION-ID-GENERATION-ID",
+        "V0120-004-STAGING-DIRECTORY-COMMIT-MARKER",
+        "V0120-004-COMPARE-AND-SWAP-MANIFEST",
+        "V0120-004-CRASH-RECOVERY-SEMANTICS",
+        "V0120-004-NO-PRODUCTION-CUTOVER"
     ]
 }
 
@@ -34,6 +42,9 @@ public enum ReadinessAssessmentRegistryStoreError: Error, Equatable, Sendable, C
     case checksumMismatch(expected: String, actual: String)
     case cannotMutateArchivedAssessment(String)
     case lockUnavailable(String)
+    case transactionAlreadyExists(String)
+    case generationMismatch(expected: String, actual: String)
+    case concurrentModification(expected: String, actual: String)
     case boundaryDrift(String)
 
     public var description: String {
@@ -56,6 +67,12 @@ public enum ReadinessAssessmentRegistryStoreError: Error, Equatable, Sendable, C
             "GH-954 ReadinessAssessmentRegistryStore rejects archived assessment mutation for \(assessmentID)"
         case let .lockUnavailable(path):
             "GH-954 ReadinessAssessmentRegistryStore lock is unavailable at \(path)"
+        case let .transactionAlreadyExists(transactionID):
+            "GH-955 ReadinessAssessmentRegistryStore transaction already exists: \(transactionID)"
+        case let .generationMismatch(expected, actual):
+            "GH-955 ReadinessAssessmentRegistryStore generation mismatch: expected \(expected), actual \(actual)"
+        case let .concurrentModification(expected, actual):
+            "GH-955 ReadinessAssessmentRegistryStore concurrent modification: expected \(expected), actual \(actual)"
         case let .boundaryDrift(field):
             "GH-954 ReadinessAssessmentRegistryStore boundary drift: \(field)"
         }
@@ -638,6 +655,422 @@ public struct ReadinessAssessmentRegistryDocument: Codable, Equatable, Sendable 
     }
 }
 
+/// ReadinessAssessmentTransactionControl 固定 GH-955 assessment 写入交易的控制面。
+///
+/// 它只描述本地 transactionID / generationID、staging directory、commit marker 和
+/// compare-and-swap manifest 路径；这些字段不能被解释成 production cutover 或订单授权。
+public struct ReadinessAssessmentTransactionControl: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let assessmentID: Identifier
+    public let transactionID: Identifier
+    public let generationID: Identifier
+    public let expectedPreviousGenerationID: Identifier?
+    public let assessmentLockPath: String
+    public let stagingDirectoryPath: String
+    public let transactionManifestPath: String
+    public let commitMarkerPath: String
+    public let compareAndSwapManifestPath: String
+    public let startedAt: Date
+    public let assessmentSessionLocalOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let realOrderSubmissionEnabled: Bool
+
+    public var controlHeld: Bool {
+        issueID.rawValue == "GH-955"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-951", "GH-954"]
+            && releaseVersion == "v0.12.0"
+            && assessmentID.rawValue.isEmpty == false
+            && transactionID.rawValue.isEmpty == false
+            && generationID.rawValue.isEmpty == false
+            && assessmentLockPath == ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/assessment.lock"
+            && stagingDirectoryPath == ".local/mtpro/readiness/staging/\(assessmentID.rawValue)/\(transactionID.rawValue)"
+            && transactionManifestPath == "\(stagingDirectoryPath)/transaction-manifest.json"
+            && commitMarkerPath == ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/commit-marker.json"
+            && compareAndSwapManifestPath == ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/compare-and-swap-manifest.json"
+            && assessmentSessionLocalOnly
+            && productionTradingEnabledByDefault == false
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && realOrderSubmissionEnabled == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-955"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-951"), Identifier.constant("GH-954")],
+        releaseVersion: String = "v0.12.0",
+        assessmentID: Identifier,
+        transactionID: Identifier,
+        generationID: Identifier,
+        expectedPreviousGenerationID: Identifier?,
+        startedAt: Date,
+        assessmentSessionLocalOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        realOrderSubmissionEnabled: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(assessmentID)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(transactionID)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(generationID)
+        if let expectedPreviousGenerationID {
+            try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(expectedPreviousGenerationID)
+        }
+
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.assessmentID = assessmentID
+        self.transactionID = transactionID
+        self.generationID = generationID
+        self.expectedPreviousGenerationID = expectedPreviousGenerationID
+        self.assessmentLockPath = ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/assessment.lock"
+        self.stagingDirectoryPath = ".local/mtpro/readiness/staging/\(assessmentID.rawValue)/\(transactionID.rawValue)"
+        self.transactionManifestPath = "\(stagingDirectoryPath)/transaction-manifest.json"
+        self.commitMarkerPath = ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/commit-marker.json"
+        self.compareAndSwapManifestPath = ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/compare-and-swap-manifest.json"
+        self.startedAt = startedAt
+        self.assessmentSessionLocalOnly = assessmentSessionLocalOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.realOrderSubmissionEnabled = realOrderSubmissionEnabled
+
+        guard controlHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("transactionControl")
+        }
+    }
+}
+
+/// ReadinessAssessmentCompareAndSwapManifest 是 GH-955 的 generation compare-and-swap 记录。
+public struct ReadinessAssessmentCompareAndSwapManifest: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let assessmentID: Identifier
+    public let transactionID: Identifier
+    public let currentGenerationID: Identifier
+    public let previousGenerationID: Identifier?
+    public let committedAt: Date
+    public let manifestChecksum: String
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+
+    public var manifestHeld: Bool {
+        issueID.rawValue == "GH-955"
+            && assessmentID.rawValue.isEmpty == false
+            && transactionID.rawValue.isEmpty == false
+            && currentGenerationID.rawValue.isEmpty == false
+            && previousGenerationID?.rawValue != currentGenerationID.rawValue
+            && manifestChecksum == Self.stableManifestChecksum(
+                assessmentID: assessmentID,
+                transactionID: transactionID,
+                currentGenerationID: currentGenerationID,
+                previousGenerationID: previousGenerationID,
+                committedAt: committedAt
+            )
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-955"),
+        assessmentID: Identifier,
+        transactionID: Identifier,
+        currentGenerationID: Identifier,
+        previousGenerationID: Identifier?,
+        committedAt: Date,
+        manifestChecksum: String? = nil,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(assessmentID)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(transactionID)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(currentGenerationID)
+        if let previousGenerationID {
+            try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(previousGenerationID)
+        }
+        self.issueID = issueID
+        self.assessmentID = assessmentID
+        self.transactionID = transactionID
+        self.currentGenerationID = currentGenerationID
+        self.previousGenerationID = previousGenerationID
+        self.committedAt = committedAt
+        self.manifestChecksum = manifestChecksum ?? Self.stableManifestChecksum(
+            assessmentID: assessmentID,
+            transactionID: transactionID,
+            currentGenerationID: currentGenerationID,
+            previousGenerationID: previousGenerationID,
+            committedAt: committedAt
+        )
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+
+        guard manifestHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("compareAndSwapManifest")
+        }
+    }
+
+    public static func stableManifestChecksum(
+        assessmentID: Identifier,
+        transactionID: Identifier,
+        currentGenerationID: Identifier,
+        previousGenerationID: Identifier?,
+        committedAt: Date
+    ) -> String {
+        stableSHA256([
+            "GH-955",
+            "v0.12.0",
+            assessmentID.rawValue,
+            transactionID.rawValue,
+            currentGenerationID.rawValue,
+            previousGenerationID?.rawValue ?? "",
+            String(committedAt.timeIntervalSince1970),
+            "productionCutoverAuthorized=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReadinessAssessmentCommitMarker 固定 transaction 成功提交后的本地 marker。
+public struct ReadinessAssessmentCommitMarker: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let assessmentID: Identifier
+    public let transactionID: Identifier
+    public let generationID: Identifier
+    public let committedAt: Date
+    public let manifestChecksum: String
+    public let markerChecksum: String
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+
+    public var markerHeld: Bool {
+        issueID.rawValue == "GH-955"
+            && assessmentID.rawValue.isEmpty == false
+            && transactionID.rawValue.isEmpty == false
+            && generationID.rawValue.isEmpty == false
+            && manifestChecksum.hasPrefix("sha256:")
+            && markerChecksum == Self.stableMarkerChecksum(
+                assessmentID: assessmentID,
+                transactionID: transactionID,
+                generationID: generationID,
+                committedAt: committedAt,
+                manifestChecksum: manifestChecksum
+            )
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-955"),
+        assessmentID: Identifier,
+        transactionID: Identifier,
+        generationID: Identifier,
+        committedAt: Date,
+        manifestChecksum: String,
+        markerChecksum: String? = nil,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(assessmentID)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(transactionID)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(generationID)
+        self.issueID = issueID
+        self.assessmentID = assessmentID
+        self.transactionID = transactionID
+        self.generationID = generationID
+        self.committedAt = committedAt
+        self.manifestChecksum = manifestChecksum
+        self.markerChecksum = markerChecksum ?? Self.stableMarkerChecksum(
+            assessmentID: assessmentID,
+            transactionID: transactionID,
+            generationID: generationID,
+            committedAt: committedAt,
+            manifestChecksum: manifestChecksum
+        )
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+
+        guard markerHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("commitMarker")
+        }
+    }
+
+    public static func stableMarkerChecksum(
+        assessmentID: Identifier,
+        transactionID: Identifier,
+        generationID: Identifier,
+        committedAt: Date,
+        manifestChecksum: String
+    ) -> String {
+        stableSHA256([
+            "GH-955",
+            "v0.12.0",
+            assessmentID.rawValue,
+            transactionID.rawValue,
+            generationID.rawValue,
+            String(committedAt.timeIntervalSince1970),
+            manifestChecksum,
+            "productionCutoverAuthorized=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReadinessAssessmentTransactionAbortMarker 记录本地 transaction abort 证据。
+public struct ReadinessAssessmentTransactionAbortMarker: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let assessmentID: Identifier
+    public let transactionID: Identifier
+    public let reason: String
+    public let abortedAt: Date
+    public let abortMarkerPath: String
+    public let stagingRemoved: Bool
+    public let assessmentLockReleased: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var abortHeld: Bool {
+        issueID.rawValue == "GH-955"
+            && assessmentID.rawValue.isEmpty == false
+            && transactionID.rawValue.isEmpty == false
+            && reason.isEmpty == false
+            && abortMarkerPath == ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/abort-marker-\(transactionID.rawValue).json"
+            && stagingRemoved
+            && assessmentLockReleased
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-955"),
+        assessmentID: Identifier,
+        transactionID: Identifier,
+        reason: String,
+        abortedAt: Date,
+        stagingRemoved: Bool,
+        assessmentLockReleased: Bool,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(assessmentID)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(transactionID)
+        self.issueID = issueID
+        self.assessmentID = assessmentID
+        self.transactionID = transactionID
+        self.reason = reason
+        self.abortedAt = abortedAt
+        self.abortMarkerPath = ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/abort-marker-\(transactionID.rawValue).json"
+        self.stagingRemoved = stagingRemoved
+        self.assessmentLockReleased = assessmentLockReleased
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard abortHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("transactionAbortMarker")
+        }
+    }
+}
+
+/// ReadinessAssessmentTransactionRecoveryReport 是 GH-955 crash recovery 的本地清理报告。
+public struct ReadinessAssessmentTransactionRecoveryReport: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let recoveredAt: Date
+    public let recoveredStagingDirectoryPaths: [String]
+    public let recoveredAssessmentLockPaths: [String]
+    public let productionCutoverAuthorized: Bool
+    public let productionOrderSubmitted: Bool
+
+    public var recoveryHeld: Bool {
+        issueID.rawValue == "GH-955"
+            && recoveredStagingDirectoryPaths == recoveredStagingDirectoryPaths.sorted()
+            && recoveredAssessmentLockPaths == recoveredAssessmentLockPaths.sorted()
+            && productionCutoverAuthorized == false
+            && productionOrderSubmitted == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-955"),
+        recoveredAt: Date,
+        recoveredStagingDirectoryPaths: [String],
+        recoveredAssessmentLockPaths: [String],
+        productionCutoverAuthorized: Bool = false,
+        productionOrderSubmitted: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.recoveredAt = recoveredAt
+        self.recoveredStagingDirectoryPaths = recoveredStagingDirectoryPaths.sorted()
+        self.recoveredAssessmentLockPaths = recoveredAssessmentLockPaths.sorted()
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionOrderSubmitted = productionOrderSubmitted
+
+        guard recoveryHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("transactionRecoveryReport")
+        }
+    }
+}
+
+/// ReadinessAssessmentRegistryTransactionResult 汇总一次 transaction-backed assessment write。
+public struct ReadinessAssessmentRegistryTransactionResult: Equatable, Sendable {
+    public let document: ReadinessAssessmentRegistryDocument
+    public let control: ReadinessAssessmentTransactionControl
+    public let manifest: ReadinessAssessmentCompareAndSwapManifest
+    public let commitMarker: ReadinessAssessmentCommitMarker
+}
+
 /// ReadinessAssessmentRegistryStore 提供 GH-954 的本地 assessment history 持久化入口。
 ///
 /// Store 只操作 `.local/mtpro/readiness/registry.json`、`registry.lock` 和
@@ -661,6 +1094,10 @@ public struct ReadinessAssessmentRegistryStore {
 
     public var lockURL: URL {
         storageRootURL.appendingPathComponent("registry.lock", isDirectory: true)
+    }
+
+    public var stagingRootURL: URL {
+        storageRootURL.appendingPathComponent("staging", isDirectory: true)
     }
 
     public init(
@@ -704,6 +1141,170 @@ public struct ReadinessAssessmentRegistryStore {
             try writeUnlocked(next)
             return next
         }
+    }
+
+    @discardableResult
+    public func createWithTransaction(
+        assessmentID: Identifier,
+        transactionID: Identifier,
+        generationID: Identifier,
+        expectedPreviousGenerationID: Identifier?,
+        state: ReadinessAssessmentRegistryState,
+        sourceReleaseVersion: String,
+        sourcePatchVersion: String? = nil,
+        comparisonBaseAssessmentID: Identifier? = nil,
+        assessedBy: String,
+        reason: String,
+        createdAt: Date,
+        updatedAt: Date
+    ) throws -> ReadinessAssessmentRegistryTransactionResult {
+        let control = try ReadinessAssessmentTransactionControl(
+            assessmentID: assessmentID,
+            transactionID: transactionID,
+            generationID: generationID,
+            expectedPreviousGenerationID: expectedPreviousGenerationID,
+            startedAt: createdAt
+        )
+
+        return try withRegistryLock {
+            let current = try loadIfPresent(createdAt: createdAt)
+            try createAssessmentDirectory(for: assessmentID)
+            return try withAssessmentLock(assessmentID: assessmentID) {
+                try createStagingDirectory(for: control)
+                let manifestBeforeWrite = try loadCompareAndSwapManifestIfPresent(assessmentID: assessmentID)
+                try validateGenerationTransition(
+                    expectedPreviousGenerationID: expectedPreviousGenerationID,
+                    actualGenerationID: manifestBeforeWrite?.currentGenerationID,
+                    nextGenerationID: generationID
+                )
+                let entry = try ReadinessAssessmentRegistryEntry(
+                    assessmentID: assessmentID,
+                    state: state,
+                    sourceReleaseVersion: sourceReleaseVersion,
+                    sourcePatchVersion: sourcePatchVersion,
+                    comparisonBaseAssessmentID: comparisonBaseAssessmentID,
+                    assessedBy: assessedBy,
+                    reason: reason,
+                    createdAt: createdAt,
+                    updatedAt: updatedAt
+                )
+                let next = try current.appending(entry: entry, updatedAt: updatedAt)
+                let manifest = try ReadinessAssessmentCompareAndSwapManifest(
+                    assessmentID: assessmentID,
+                    transactionID: transactionID,
+                    currentGenerationID: generationID,
+                    previousGenerationID: expectedPreviousGenerationID,
+                    committedAt: updatedAt
+                )
+                let commitMarker = try ReadinessAssessmentCommitMarker(
+                    assessmentID: assessmentID,
+                    transactionID: transactionID,
+                    generationID: generationID,
+                    committedAt: updatedAt,
+                    manifestChecksum: manifest.manifestChecksum
+                )
+                try writeJSON(control, to: transactionManifestURL(for: control))
+                try writeJSON(commitMarker, to: stagingCommitMarkerURL(for: control))
+                try writeUnlocked(next)
+                try writeJSON(manifest, to: compareAndSwapManifestURL(for: assessmentID))
+                try writeJSON(commitMarker, to: commitMarkerURL(for: assessmentID))
+                try fileManager.removeItem(at: stagingDirectoryURL(for: control))
+                return ReadinessAssessmentRegistryTransactionResult(
+                    document: next,
+                    control: control,
+                    manifest: manifest,
+                    commitMarker: commitMarker
+                )
+            }
+        }
+    }
+
+    @discardableResult
+    public func stageAssessmentTransaction(
+        assessmentID: Identifier,
+        transactionID: Identifier,
+        generationID: Identifier,
+        expectedPreviousGenerationID: Identifier?,
+        startedAt: Date
+    ) throws -> ReadinessAssessmentTransactionControl {
+        let control = try ReadinessAssessmentTransactionControl(
+            assessmentID: assessmentID,
+            transactionID: transactionID,
+            generationID: generationID,
+            expectedPreviousGenerationID: expectedPreviousGenerationID,
+            startedAt: startedAt
+        )
+        try ensureStoreDirectories()
+        try createAssessmentDirectory(for: assessmentID)
+        try createAssessmentLock(assessmentID: assessmentID)
+        try createStagingDirectory(for: control)
+        try writeJSON(control, to: transactionManifestURL(for: control))
+        return control
+    }
+
+    @discardableResult
+    public func abortAssessmentTransaction(
+        control: ReadinessAssessmentTransactionControl,
+        reason: String,
+        abortedAt: Date
+    ) throws -> ReadinessAssessmentTransactionAbortMarker {
+        let stagingURL = stagingDirectoryURL(for: control)
+        let lockURL = assessmentLockURL(for: control.assessmentID)
+        let stagingRemoved = removeIfExists(stagingURL)
+        let assessmentLockReleased = removeIfExists(lockURL)
+        let marker = try ReadinessAssessmentTransactionAbortMarker(
+            assessmentID: control.assessmentID,
+            transactionID: control.transactionID,
+            reason: reason,
+            abortedAt: abortedAt,
+            stagingRemoved: stagingRemoved,
+            assessmentLockReleased: assessmentLockReleased
+        )
+        try writeJSON(marker, to: abortMarkerURL(for: control))
+        return marker
+    }
+
+    @discardableResult
+    public func recoverInterruptedTransactions(recoveredAt: Date) throws -> ReadinessAssessmentTransactionRecoveryReport {
+        var recoveredStagingPaths: [String] = []
+        var recoveredLockPaths: [String] = []
+
+        if fileManager.fileExists(atPath: stagingRootURL.path) {
+            let stagingChildren = try fileManager.contentsOfDirectory(
+                at: stagingRootURL,
+                includingPropertiesForKeys: nil
+            )
+            for assessmentStagingURL in stagingChildren {
+                let transactionURLs = try fileManager.contentsOfDirectory(
+                    at: assessmentStagingURL,
+                    includingPropertiesForKeys: nil
+                )
+                for transactionURL in transactionURLs {
+                    recoveredStagingPaths.append(relativeReadinessPath(for: transactionURL))
+                }
+            }
+            try fileManager.removeItem(at: stagingRootURL)
+        }
+
+        if fileManager.fileExists(atPath: assessmentsRootURL.path) {
+            let assessmentURLs = try fileManager.contentsOfDirectory(
+                at: assessmentsRootURL,
+                includingPropertiesForKeys: nil
+            )
+            for assessmentURL in assessmentURLs {
+                let lockURL = assessmentURL.appendingPathComponent("assessment.lock", isDirectory: true)
+                if fileManager.fileExists(atPath: lockURL.path) {
+                    recoveredLockPaths.append(relativeReadinessPath(for: lockURL))
+                    try fileManager.removeItem(at: lockURL)
+                }
+            }
+        }
+
+        return try ReadinessAssessmentTransactionRecoveryReport(
+            recoveredAt: recoveredAt,
+            recoveredStagingDirectoryPaths: recoveredStagingPaths,
+            recoveredAssessmentLockPaths: recoveredLockPaths
+        )
     }
 
     public func load() throws -> ReadinessAssessmentRegistryDocument {
@@ -870,12 +1471,16 @@ public struct ReadinessAssessmentRegistryStore {
     }
 
     private func createAssessmentDirectory(for entry: ReadinessAssessmentRegistryEntry) throws {
+        try createAssessmentDirectory(for: entry.assessmentID)
+    }
+
+    private func createAssessmentDirectory(for assessmentID: Identifier) throws {
         let directoryURL = storageRootURL
             .appendingPathComponent("assessments", isDirectory: true)
-            .appendingPathComponent(entry.assessmentID.rawValue, isDirectory: true)
+            .appendingPathComponent(assessmentID.rawValue, isDirectory: true)
             .standardizedFileURL
         guard directoryURL.path.hasPrefix(assessmentsRootURL.standardizedFileURL.path + "/") else {
-            throw ReadinessAssessmentRegistryStoreError.unsafeAssessmentID(entry.assessmentID.rawValue)
+            throw ReadinessAssessmentRegistryStoreError.unsafeAssessmentID(assessmentID.rawValue)
         }
         try fileManager.createDirectory(
             at: directoryURL,
@@ -886,6 +1491,178 @@ public struct ReadinessAssessmentRegistryStore {
             [.posixPermissions: Self.ownerOnlyDirectoryPermissions],
             ofItemAtPath: directoryURL.path
         )
+    }
+
+    private func ensureStoreDirectories() throws {
+        try fileManager.createDirectory(
+            at: storageRootURL,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: Self.ownerOnlyDirectoryPermissions]
+        )
+        try fileManager.setAttributes(
+            [.posixPermissions: Self.ownerOnlyDirectoryPermissions],
+            ofItemAtPath: storageRootURL.path
+        )
+        try fileManager.createDirectory(
+            at: assessmentsRootURL,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: Self.ownerOnlyDirectoryPermissions]
+        )
+        try fileManager.setAttributes(
+            [.posixPermissions: Self.ownerOnlyDirectoryPermissions],
+            ofItemAtPath: assessmentsRootURL.path
+        )
+    }
+
+    private func withAssessmentLock<T>(
+        assessmentID: Identifier,
+        operation: () throws -> T
+    ) throws -> T {
+        try createAssessmentLock(assessmentID: assessmentID)
+        defer {
+            try? fileManager.removeItem(at: assessmentLockURL(for: assessmentID))
+        }
+        return try operation()
+    }
+
+    private func createAssessmentLock(assessmentID: Identifier) throws {
+        let lockURL = assessmentLockURL(for: assessmentID)
+        do {
+            try fileManager.createDirectory(
+                at: lockURL,
+                withIntermediateDirectories: false,
+                attributes: [.posixPermissions: Self.ownerOnlyDirectoryPermissions]
+            )
+        } catch {
+            throw ReadinessAssessmentRegistryStoreError.lockUnavailable(relativeReadinessPath(for: lockURL))
+        }
+    }
+
+    private func createStagingDirectory(for control: ReadinessAssessmentTransactionControl) throws {
+        let stagingURL = stagingDirectoryURL(for: control)
+        guard fileManager.fileExists(atPath: stagingURL.path) == false else {
+            throw ReadinessAssessmentRegistryStoreError.transactionAlreadyExists(control.transactionID.rawValue)
+        }
+        try fileManager.createDirectory(
+            at: stagingURL,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: Self.ownerOnlyDirectoryPermissions]
+        )
+        try fileManager.setAttributes(
+            [.posixPermissions: Self.ownerOnlyDirectoryPermissions],
+            ofItemAtPath: stagingURL.path
+        )
+    }
+
+    private func loadCompareAndSwapManifestIfPresent(
+        assessmentID: Identifier
+    ) throws -> ReadinessAssessmentCompareAndSwapManifest? {
+        let manifestURL = compareAndSwapManifestURL(for: assessmentID)
+        guard fileManager.fileExists(atPath: manifestURL.path) else {
+            return nil
+        }
+        let data = try Data(contentsOf: manifestURL)
+        let manifest = try Self.decoder.decode(ReadinessAssessmentCompareAndSwapManifest.self, from: data)
+        guard manifest.manifestHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("decodedCompareAndSwapManifest")
+        }
+        return manifest
+    }
+
+    private func validateGenerationTransition(
+        expectedPreviousGenerationID: Identifier?,
+        actualGenerationID: Identifier?,
+        nextGenerationID: Identifier
+    ) throws {
+        guard expectedPreviousGenerationID?.rawValue == actualGenerationID?.rawValue else {
+            throw ReadinessAssessmentRegistryStoreError.concurrentModification(
+                expected: expectedPreviousGenerationID?.rawValue ?? "<none>",
+                actual: actualGenerationID?.rawValue ?? "<none>"
+            )
+        }
+        guard expectedPreviousGenerationID?.rawValue != nextGenerationID.rawValue else {
+            throw ReadinessAssessmentRegistryStoreError.generationMismatch(
+                expected: "new generation different from \(expectedPreviousGenerationID?.rawValue ?? "<none>")",
+                actual: nextGenerationID.rawValue
+            )
+        }
+    }
+
+    private func assessmentDirectoryURL(for assessmentID: Identifier) -> URL {
+        assessmentsRootURL.appendingPathComponent(assessmentID.rawValue, isDirectory: true)
+    }
+
+    private func assessmentLockURL(for assessmentID: Identifier) -> URL {
+        assessmentDirectoryURL(for: assessmentID).appendingPathComponent("assessment.lock", isDirectory: true)
+    }
+
+    private func stagingDirectoryURL(for control: ReadinessAssessmentTransactionControl) -> URL {
+        stagingRootURL
+            .appendingPathComponent(control.assessmentID.rawValue, isDirectory: true)
+            .appendingPathComponent(control.transactionID.rawValue, isDirectory: true)
+    }
+
+    private func transactionManifestURL(for control: ReadinessAssessmentTransactionControl) -> URL {
+        stagingDirectoryURL(for: control).appendingPathComponent("transaction-manifest.json", isDirectory: false)
+    }
+
+    private func stagingCommitMarkerURL(for control: ReadinessAssessmentTransactionControl) -> URL {
+        stagingDirectoryURL(for: control).appendingPathComponent("commit-marker.json", isDirectory: false)
+    }
+
+    private func compareAndSwapManifestURL(for assessmentID: Identifier) -> URL {
+        assessmentDirectoryURL(for: assessmentID).appendingPathComponent(
+            "compare-and-swap-manifest.json",
+            isDirectory: false
+        )
+    }
+
+    private func commitMarkerURL(for assessmentID: Identifier) -> URL {
+        assessmentDirectoryURL(for: assessmentID).appendingPathComponent("commit-marker.json", isDirectory: false)
+    }
+
+    private func abortMarkerURL(for control: ReadinessAssessmentTransactionControl) -> URL {
+        assessmentDirectoryURL(for: control.assessmentID).appendingPathComponent(
+            "abort-marker-\(control.transactionID.rawValue).json",
+            isDirectory: false
+        )
+    }
+
+    private func writeJSON<T: Encodable>(_ value: T, to url: URL) throws {
+        let parentURL = url.deletingLastPathComponent()
+        try fileManager.createDirectory(
+            at: parentURL,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: Self.ownerOnlyDirectoryPermissions]
+        )
+        let data = try Self.encoder.encode(value)
+        try data.write(to: url, options: .atomic)
+        try fileManager.setAttributes(
+            [.posixPermissions: Self.ownerOnlyFilePermissions],
+            ofItemAtPath: url.path
+        )
+    }
+
+    private func removeIfExists(_ url: URL) -> Bool {
+        guard fileManager.fileExists(atPath: url.path) else {
+            return true
+        }
+        do {
+            try fileManager.removeItem(at: url)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    private func relativeReadinessPath(for url: URL) -> String {
+        let rootPath = storageRootURL.standardizedFileURL.path
+        let path = url.standardizedFileURL.path
+        guard path.hasPrefix(rootPath) else {
+            return path
+        }
+        let suffix = String(path.dropFirst(rootPath.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return suffix.isEmpty ? Self.defaultRelativeRoot : "\(Self.defaultRelativeRoot)/\(suffix)"
     }
 
     private func writeUnlocked(_ document: ReadinessAssessmentRegistryDocument) throws {

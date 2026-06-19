@@ -1783,3 +1783,22 @@ bash checks/run.sh
 - #954 adds the local readiness assessment registry store path `.local/mtpro/readiness/registry.json` and local assessment metadata directory path `.local/mtpro/readiness/assessments/<assessmentID>/`.
 - #954 covers create / list / inspect / archive / recover metadata transitions, compare-ready metadata state, checksum validation and fail-closed corrupted registry handling.
 - #954 does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
+
+## Release v0.12.0 Assessment Transaction Lock / Generation Control Snapshot
+
+- GH-955-VERIFY-V0120-ASSESSMENT-TRANSACTION-LOCK
+- TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK
+- V0120-004-ASSESSMENT-TRANSACTION-LOCK
+- V0120-004-TRANSACTION-ID-GENERATION-ID
+- V0120-004-STAGING-DIRECTORY-COMMIT-MARKER
+- V0120-004-COMPARE-AND-SWAP-MANIFEST
+- V0120-004-CRASH-RECOVERY-SEMANTICS
+- V0120-004-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- Contract source: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- Validation source: `checks/verify-v0.12.0.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery`
+- #955 adds assessment-local transaction lock evidence at `.local/mtpro/readiness/assessments/<assessmentID>/assessment.lock`.
+- #955 adds local `transactionID` / `generationID` compare-and-swap metadata, staging directory evidence at `.local/mtpro/readiness/staging/<assessmentID>/<transactionID>/`, and committed `compare-and-swap-manifest.json` / `commit-marker.json` artifacts.
+- #955 covers lock unavailable, concurrent modification, generation mismatch, transaction abort and crash recovery cleanup semantics.
+- #955 does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
