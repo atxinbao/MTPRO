@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0111-DASHBOARD-SHA256-STATE-INVARIANTS
+
+- TVM-RELEASE-V0111-DASHBOARD-SHA256-STATE-INVARIANTS
+- GH-947-VERIFY-V0111-DASHBOARD-SHA256-STATE-INVARIANTS
+- V0111-003-DASHBOARD-SHA256-STATE-INVARIANTS
+- V0111-003-STRICT-SHA256-LOWERCASE-HEX
+- V0111-003-VALID-STALE-INVALID-CHECKSUM-MAPPING
+- V0111-003-MISSING-BLOCKED-CHECKSUM-MISMATCH-FAIL-CLOSED
+- V0111-003-NO-PRODUCTION-CUTOVER
+- GH-947 Release v0.11.1 Dashboard SHA-256 State Invariant Validation
+- `bash checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh`
+- `swift test --filter AppTests/testGH947DashboardReadinessArtifactStateInvariantsRequireStrictSHA256AndExplicitStateMapping`
+- `swift test --filter TargetGraphTests/testGH947DashboardSHA256AndReadinessStateInvariantsAreGuarded`
+- Evidence files: `Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift`、`Tests/AppTests/AppTests.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-947 只固定 Dashboard 本地 readiness artifact SHA-256 reference 与 state invariant；`valid`、`stale`、`invalid` 必须有 evidence 且 checksum matches，`checksum-mismatch` 必须有 evidence 且 checksum 不匹配，`missing`、`blocked`、`not-evaluated` 必须 fail closed 且不声明 evidence。该 guard 不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0111-DASHBOARD-MACOS-V0110-GUARDS
 
 - TVM-RELEASE-V0111-DASHBOARD-MACOS-V0110-GUARDS
