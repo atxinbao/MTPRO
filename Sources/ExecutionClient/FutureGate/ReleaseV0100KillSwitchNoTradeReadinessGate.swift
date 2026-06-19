@@ -78,13 +78,40 @@ public enum ReleaseV0110KillSwitchNoTradeApprovalRequestEligibility: String, Cod
     case eligibleForApprovalRequest = "eligible-for-approval-request"
 }
 
+/// ReleaseV0120KillSwitchNoTradeTrustworthyObservationAnchors 固定 GH-959 的可信观测验证锚点。
+///
+/// GH-959 只把 kill switch / no-trade state 的 freshness / review 判断改为从本地
+/// source artifact evidence 推导；它不授权 production cutover、不连接 endpoint / broker、
+/// 不读取 secret，也不提交 testnet 或 production order。
+public enum ReleaseV0120KillSwitchNoTradeTrustworthyObservationAnchors {
+    public static let validationAnchors = [
+        "GH-959-VERIFY-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS",
+        "TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS",
+        "V0120-008-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS",
+        "V0120-008-OBSERVED-EXPIRES-REVIEWED-SOURCE-EVIDENCE",
+        "V0120-008-DERIVED-FRESHNESS-AND-REVIEW-STATE",
+        "V0120-008-STALE-UNREVIEWED-MISMATCH-FAIL-CLOSED",
+        "V0120-008-APPROVAL-REQUEST-ONLY-NO-CUTOVER",
+        "V0120-008-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
 /// ReleaseV0110KillSwitchNoTradeReadinessSnapshot 是 GH-922 对 kill switch 或 no-trade 的单项状态快照。
 ///
 /// 只有 `inactive + fresh + reviewed` 可以进入 approval-request eligibility。任何 active、
 /// unknown、stale、unavailable 或未 reviewed 状态都必须 fail closed，并继续阻断订单命令。
+/// GH-959 起，freshness / review state 必须由观测时间和本地 source artifact evidence 推导，
+/// 不能由 caller 直接声明为 fresh / reviewed。
 public struct ReleaseV0110KillSwitchNoTradeReadinessSnapshot: Codable, Equatable, Sendable {
     public let name: String
     public let state: ReleaseV0100KillSwitchNoTradeReadinessState
+    public let observedAt: Date
+    public let expiresAt: Date
+    public let reviewedAt: Date?
+    public let reviewedBy: String?
+    public let sourceArtifact: String
+    public let sourceChecksum: String
+    public let sourceRunID: Identifier
     public let freshnessState: ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState
     public let reviewState: ReleaseV0110KillSwitchNoTradeReviewState
 
@@ -101,17 +128,112 @@ public struct ReleaseV0110KillSwitchNoTradeReadinessSnapshot: Codable, Equatable
     public init(
         name: String,
         state: ReleaseV0100KillSwitchNoTradeReadinessState,
-        freshnessState: ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState,
-        reviewState: ReleaseV0110KillSwitchNoTradeReviewState
+        observedAt: Date,
+        expiresAt: Date,
+        reviewedAt: Date?,
+        reviewedBy: String?,
+        sourceArtifact: String,
+        sourceChecksum: String,
+        sourceRunID: Identifier,
+        expectedSourceArtifact: String? = nil,
+        expectedSourceChecksum: String? = nil,
+        expectedSourceRunID: Identifier? = nil,
+        evaluatedAt: Date
     ) throws {
         guard name.isEmpty == false else {
             throw CoreError.liveTradingBoundaryContractMismatch(field: "readinessSnapshotName", expected: "non-empty", actual: name)
         }
+        guard ProductionReadinessArtifactDescriptor.isSafeRelativePath(sourceArtifact) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceArtifact",
+                expected: "safe relative readiness artifact path",
+                actual: sourceArtifact
+            )
+        }
+        guard ReadinessAssessmentManifestV2.isValidSHA256Checksum(sourceChecksum) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceChecksum",
+                expected: "sha256:<64 lowercase hex>",
+                actual: sourceChecksum
+            )
+        }
+        guard sourceRunID.rawValue.isEmpty == false else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "sourceRunID",
+                expected: "non-empty",
+                actual: sourceRunID.rawValue
+            )
+        }
 
         self.name = name
         self.state = state
-        self.freshnessState = freshnessState
-        self.reviewState = reviewState
+        self.observedAt = observedAt
+        self.expiresAt = expiresAt
+        self.reviewedAt = reviewedAt
+        self.reviewedBy = reviewedBy
+        self.sourceArtifact = sourceArtifact
+        self.sourceChecksum = sourceChecksum
+        self.sourceRunID = sourceRunID
+
+        let sourceEvidenceMatches =
+            sourceArtifact == (expectedSourceArtifact ?? sourceArtifact)
+                && sourceChecksum == (expectedSourceChecksum ?? sourceChecksum)
+                && sourceRunID == (expectedSourceRunID ?? sourceRunID)
+
+        self.freshnessState = Self.deriveFreshnessState(
+            observedAt: observedAt,
+            expiresAt: expiresAt,
+            evaluatedAt: evaluatedAt,
+            sourceEvidenceMatches: sourceEvidenceMatches
+        )
+        self.reviewState = Self.deriveReviewState(
+            observedAt: observedAt,
+            expiresAt: expiresAt,
+            reviewedAt: reviewedAt,
+            reviewedBy: reviewedBy,
+            evaluatedAt: evaluatedAt,
+            sourceEvidenceMatches: sourceEvidenceMatches
+        )
+    }
+}
+
+private extension ReleaseV0110KillSwitchNoTradeReadinessSnapshot {
+    static func deriveFreshnessState(
+        observedAt: Date,
+        expiresAt: Date,
+        evaluatedAt: Date,
+        sourceEvidenceMatches: Bool
+    ) -> ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState {
+        guard sourceEvidenceMatches else {
+            return .unavailable
+        }
+        guard observedAt <= evaluatedAt else {
+            return .unknown
+        }
+        guard expiresAt > observedAt, expiresAt > evaluatedAt else {
+            return .stale
+        }
+        return .fresh
+    }
+
+    static func deriveReviewState(
+        observedAt: Date,
+        expiresAt: Date,
+        reviewedAt: Date?,
+        reviewedBy: String?,
+        evaluatedAt: Date,
+        sourceEvidenceMatches: Bool
+    ) -> ReleaseV0110KillSwitchNoTradeReviewState {
+        guard sourceEvidenceMatches else {
+            return .unavailable
+        }
+        guard let reviewedAt, let reviewedBy, reviewedBy.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            return .pending
+        }
+        guard reviewedAt >= observedAt, reviewedAt <= evaluatedAt, reviewedAt < expiresAt else {
+            return .unknown
+        }
+        return .reviewed
     }
 }
 
@@ -265,35 +387,61 @@ public struct ReleaseV0110KillSwitchNoTradeReadinessStateModel: Codable, Equatab
     ]
 
     public static func blockedFixture() throws -> ReleaseV0110KillSwitchNoTradeReadinessStateModel {
-        try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
+        let evaluatedAt = Date(timeIntervalSince1970: 1_812_500_000)
+        return try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
             killSwitchSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
                 name: "kill-switch",
                 state: .active,
-                freshnessState: .fresh,
-                reviewState: .reviewed
+                observedAt: evaluatedAt.addingTimeInterval(-60),
+                expiresAt: evaluatedAt.addingTimeInterval(300),
+                reviewedAt: evaluatedAt.addingTimeInterval(-30),
+                reviewedBy: "Codex",
+                sourceArtifact: ".local/mtpro/readiness/assessments/gh-959/kill-switch.json",
+                sourceChecksum: "sha256:\(String(repeating: "a", count: 64))",
+                sourceRunID: Identifier.constant("gh-959-kill-switch-run"),
+                evaluatedAt: evaluatedAt
             ),
             noTradeSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
                 name: "no-trade",
                 state: .active,
-                freshnessState: .fresh,
-                reviewState: .reviewed
+                observedAt: evaluatedAt.addingTimeInterval(-60),
+                expiresAt: evaluatedAt.addingTimeInterval(300),
+                reviewedAt: evaluatedAt.addingTimeInterval(-30),
+                reviewedBy: "Codex",
+                sourceArtifact: ".local/mtpro/readiness/assessments/gh-959/no-trade.json",
+                sourceChecksum: "sha256:\(String(repeating: "b", count: 64))",
+                sourceRunID: Identifier.constant("gh-959-no-trade-run"),
+                evaluatedAt: evaluatedAt
             )
         )
     }
 
     public static func approvalRequestEligibleFixture() throws -> ReleaseV0110KillSwitchNoTradeReadinessStateModel {
-        try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
+        let evaluatedAt = Date(timeIntervalSince1970: 1_812_500_000)
+        return try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
             killSwitchSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
                 name: "kill-switch",
                 state: .inactive,
-                freshnessState: .fresh,
-                reviewState: .reviewed
+                observedAt: evaluatedAt.addingTimeInterval(-60),
+                expiresAt: evaluatedAt.addingTimeInterval(300),
+                reviewedAt: evaluatedAt.addingTimeInterval(-30),
+                reviewedBy: "Codex",
+                sourceArtifact: ".local/mtpro/readiness/assessments/gh-959/kill-switch.json",
+                sourceChecksum: "sha256:\(String(repeating: "a", count: 64))",
+                sourceRunID: Identifier.constant("gh-959-kill-switch-run"),
+                evaluatedAt: evaluatedAt
             ),
             noTradeSnapshot: ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
                 name: "no-trade",
                 state: .inactive,
-                freshnessState: .fresh,
-                reviewState: .reviewed
+                observedAt: evaluatedAt.addingTimeInterval(-60),
+                expiresAt: evaluatedAt.addingTimeInterval(300),
+                reviewedAt: evaluatedAt.addingTimeInterval(-30),
+                reviewedBy: "Codex",
+                sourceArtifact: ".local/mtpro/readiness/assessments/gh-959/no-trade.json",
+                sourceChecksum: "sha256:\(String(repeating: "b", count: 64))",
+                sourceRunID: Identifier.constant("gh-959-no-trade-run"),
+                evaluatedAt: evaluatedAt
             )
         )
     }

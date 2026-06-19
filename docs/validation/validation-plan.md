@@ -4741,3 +4741,25 @@ swift test
 - manifest fields: `bundleChecksum`, `bundleJSONSHA256`, `bundleBytes`, `schemaVersion`, `canonicalizationAlgorithm` and `manifestChecksum`
 - fail-closed coverage: same-generation in-review rewrite, changed inputs without new generation, draft review snapshot write and production cutover flag drift
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
+
+## GH-959 Release v0.12.0 Kill Switch / No-trade Trustworthy Observations Validation
+
+- GH-959-VERIFY-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+- TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+- V0120-008-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+- V0120-008-OBSERVED-EXPIRES-REVIEWED-SOURCE-EVIDENCE
+- V0120-008-DERIVED-FRESHNESS-AND-REVIEW-STATE
+- V0120-008-STALE-UNREVIEWED-MISMATCH-FAIL-CLOSED
+- V0120-008-APPROVAL-REQUEST-ONLY-NO-CUTOVER
+- V0120-008-NO-PRODUCTION-CUTOVER
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift`
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH959KillSwitchNoTradeTrustworthyObservationsFailClosed`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- observation fields: `observedAt`, `expiresAt`, `reviewedAt`, `reviewedBy`, `sourceArtifact`, `sourceChecksum` and `sourceRunID`
+- derived state rules: freshness and review state are derived from observation timestamps and expected source artifact / checksum / runID evidence, not from caller-provided flags
+- fail-closed coverage: expired / stale evidence, future observation time, unreviewed evidence, mismatched artifact path, mismatched checksum and mismatched source run ID
+- approval boundary: inactive + fresh + reviewed only reaches approval-request eligibility; it does not authorize production cutover, order submission, endpoint connection, broker connection, secret read or OMS / UI command enablement
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
