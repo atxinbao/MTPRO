@@ -210,6 +210,34 @@ Artifact content-policy 必须 fail closed 拒绝 raw secret、raw listenKey、p
 
 Artifact content-policy / redaction validator 只验证本地 readiness artifact 内容是否符合 allowlist 和 redaction policy。它不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不创建下一 Project / Issue，不移动 tag / Release。
 
+## V0120-007-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+
+`GH-958-VERIFY-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT`
+
+`TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT`
+
+`V0120-007-READINESS-BUNDLE-V2-JSON`
+
+`V0120-007-READINESS-BUNDLE-V2-MANIFEST-JSON`
+
+`V0120-007-REVIEW-SNAPSHOT-IMMUTABLE`
+
+`V0120-007-NEW-GENERATION-ON-CHANGE`
+
+`V0120-007-BUNDLE-MANIFEST-CHECKSUM`
+
+v0.12.0 readiness bundle snapshot 固定为 assessment generation scoped 本地 review evidence。每个进入 review 的 generation 必须输出 `readiness-bundle-v2.json` 和 `readiness-bundle-v2.manifest.json`，路径固定为 `.local/mtpro/readiness/assessments/<assessmentID>/generations/<generationID>/readiness-bundle-v2.json` 和 `.local/mtpro/readiness/assessments/<assessmentID>/generations/<generationID>/readiness-bundle-v2.manifest.json`。
+
+`readiness-bundle-v2.json` 必须记录 `assessmentID`、`generationID`、`reviewState=in-review`、`sourceRunIDs`、`sourceCommit`、`artifactSnapshots`、`bundleChecksum`、`immutableAfterReview=true` 和 `changeRequiresNewGeneration=true`。Artifact snapshot 只允许引用 Manifest V2 / content-policy validation checksum、redacted local artifact path 和 no-secret / no-order proof；不得保存 raw secret、raw listenKey、endpoint response、broker payload 或 order payload。
+
+`readiness-bundle-v2.manifest.json` 必须记录 bundle JSON 的 `bundleChecksum`、实际 `bundleJSONSHA256`、`bundleBytes`、`schemaVersion=v0.12.0.readiness-bundle-manifest.v2`、`canonicalizationAlgorithm=canonical-json-sha256` 和 `manifestChecksum`。`bundleChecksum` 与 `manifestChecksum` 必须稳定可复算。
+
+一旦同一 generation 的 bundle 进入 `in-review`，store 必须 fail closed 拒绝同 generation 原地修改。任何 artifact snapshot、source run、source commit、producer version 或 generated content 变化都必须创建新的 `generationID`，并写入新的 generation directory。该规则只保证 review snapshot immutability，不等于 approval、production cutover 或 trading permission。
+
+`V0120-007-NO-PRODUCTION-CUTOVER`
+
+Immutable readiness bundle snapshot 只强化本地 review evidence 的 generation immutability。它不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不创建下一 Project / Issue，不移动 tag / Release。
+
 ## V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT
 
 允许的 assessment session 固定为本地、显式、可审计的 no-authorization session：

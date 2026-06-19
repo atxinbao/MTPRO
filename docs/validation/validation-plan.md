@@ -4718,3 +4718,26 @@ swift test
 - validation result fields: `artifactSHA256`, `observedTopLevelJSONFields`, `missingRequiredJSONFields`, `unexpectedJSONFields`, `forbiddenJSONFields`, `forbiddenRawMarkers`, `validationState` and `contentValidationChecksum`
 - fail-closed coverage: raw secret, raw listenKey, private payload, order payload, production endpoint response, unexpected top-level field, missing required field and artifact SHA256 mismatch
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
+
+## GH-958 Release v0.12.0 Immutable Readiness Bundle Snapshot Validation
+
+- GH-958-VERIFY-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+- TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+- V0120-007-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+- V0120-007-READINESS-BUNDLE-V2-JSON
+- V0120-007-READINESS-BUNDLE-V2-MANIFEST-JSON
+- V0120-007-REVIEW-SNAPSHOT-IMMUTABLE
+- V0120-007-NEW-GENERATION-ON-CHANGE
+- V0120-007-BUNDLE-MANIFEST-CHECKSUM
+- V0120-007-NO-PRODUCTION-CUTOVER
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH958ImmutableReadinessBundleSnapshotRequiresNewGenerationOnChange`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- bundle paths: `.local/mtpro/readiness/assessments/<assessmentID>/generations/<generationID>/readiness-bundle-v2.json` and `.local/mtpro/readiness/assessments/<assessmentID>/generations/<generationID>/readiness-bundle-v2.manifest.json`
+- bundle fields: `assessmentID`, `generationID`, `reviewState=in-review`, `sourceRunIDs`, `sourceCommit`, `artifactSnapshots`, `bundleChecksum`, `immutableAfterReview=true` and `changeRequiresNewGeneration=true`
+- manifest fields: `bundleChecksum`, `bundleJSONSHA256`, `bundleBytes`, `schemaVersion`, `canonicalizationAlgorithm` and `manifestChecksum`
+- fail-closed coverage: same-generation in-review rewrite, changed inputs without new generation, draft review snapshot write and production cutover flag drift
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
