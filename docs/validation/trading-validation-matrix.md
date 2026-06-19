@@ -2712,3 +2712,19 @@
 - focused test: `testGH792ReleaseV070FinalAuditDocsAndRunbookCloseCompletedFactsOnly`
 - root docs refresh: latest completed release construction scope must be v0.7.0 and Project Closure Count must be `41 / 41 (100%)`
 - forbidden scope: GH-792 construction closeout did not publish a tag; later v0.7.0 release publication is a separate gate. no next Project / Issue, no production cutover, no production secret read, no production endpoint / broker connection, no real submit / cancel / replace order
+
+## TVM-RELEASE-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT
+
+- GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT
+- TVM-RELEASE-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT
+- V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT
+- V0120-001-EVIDENCE-PROVENANCE-MODEL
+- V0120-001-MULTI-ASSESSMENT-HISTORY
+- V0120-001-FORBIDDEN-PRODUCTION-CAPABILITIES
+- V0120-001-NO-PRODUCTION-CUTOVER
+- GH-952 Release v0.12.0 Readiness Assessment Session No-authorization Contract Validation
+- testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract
+- assessment model: assessment sessions are local-only, explicit-input, no-authorization evidence sessions
+- provenance model: source release / patch, issue / PR / checks evidence, local artifact path, checksum / hash, validation command and fail-closed classification must be retained
+- history model: baseline / follow-up / superseded / blocked / invalid assessments are allowed as append-only evidence lineage
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
