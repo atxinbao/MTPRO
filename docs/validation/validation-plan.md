@@ -6,6 +6,19 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-948 Release v0.11.1 Readiness Artifact Symlink Root Validation
+
+- `GH-948-VERIFY-V0111-READINESS-ARTIFACT-SYMLINK-ROOT`
+- `TVM-RELEASE-V0111-READINESS-ARTIFACT-SYMLINK-ROOT`
+- `V0111-004-CANONICAL-EVIDENCE-ROOT`
+- `V0111-004-NO-SYMLINK-PATH-COMPONENTS`
+- `V0111-004-RESOLVED-TARGET-STAYS-IN-ROOT`
+- `V0111-004-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.11.1-readiness-artifact-symlink-root.sh`
+- Focused tests: `testGH948ProductionReadinessArtifactStoreRejectsSymlinkEscapes` 和 `testGH948ReadinessArtifactSymlinkRootGuardAnchors`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`checks/verify-v0.11.1-readiness-artifact-symlink-root.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/trading-validation-matrix.md`。
+- Boundary: GH-948 只收紧本地 readiness artifact store 的 filesystem invariant，要求 approved evidence root 不能是 symlink，relative path 组件不能通过 symlink 逃逸，最终 artifact target 解析后必须仍在 canonical evidence root 内；不新增 trading button、order form、live command、submit / cancel / replace、production endpoint / broker、production secret read、testnet order routing 或 production cutover。
+
 ## GH-947 Release v0.11.1 Dashboard SHA-256 State Invariant Validation
 
 - `GH-947-VERIFY-V0111-DASHBOARD-SHA256-STATE-INVARIANTS`
