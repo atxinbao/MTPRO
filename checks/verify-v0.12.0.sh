@@ -38,6 +38,15 @@ set -euo pipefail
 # V0120-005-CANONICAL-ARTIFACT-METADATA
 # V0120-005-PRODUCER-VERSION-SCHEMA
 # V0120-005-NO-PRODUCTION-CUTOVER
+# GH-957-VERIFY-V0120-ARTIFACT-CONTENT-POLICY-REDACTION
+# TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION
+# V0120-006-ARTIFACT-CONTENT-POLICY
+# V0120-006-JSON-SCHEMA-ALLOWLIST
+# V0120-006-FORBIDDEN-FIELD-REJECTION
+# V0120-006-RAW-SECRET-LISTENKEY-REJECTION
+# V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION
+# V0120-006-CONTENT-VALIDATION-CHECKSUM
+# V0120-006-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -84,6 +93,7 @@ swift test --filter TargetGraphTests/testGH953ReleaseV0120CarriesForwardV011XPub
 swift test --filter TargetGraphTests/testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata
 swift test --filter TargetGraphTests/testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery
 swift test --filter TargetGraphTests/testGH956ReadinessManifestV2RecordsAssessmentGenerationAndProvenance
+swift test --filter TargetGraphTests/testGH957ArtifactContentPolicyRejectsSecretsListenKeysOrdersAndEndpointResponses
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -122,7 +132,16 @@ for anchor in \
   "V0120-005-SOURCE-RUN-COMMIT-PROVENANCE" \
   "V0120-005-CANONICAL-ARTIFACT-METADATA" \
   "V0120-005-PRODUCER-VERSION-SCHEMA" \
-  "V0120-005-NO-PRODUCTION-CUTOVER"; do
+  "V0120-005-NO-PRODUCTION-CUTOVER" \
+  "GH-957-VERIFY-V0120-ARTIFACT-CONTENT-POLICY-REDACTION" \
+  "TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION" \
+  "V0120-006-ARTIFACT-CONTENT-POLICY" \
+  "V0120-006-JSON-SCHEMA-ALLOWLIST" \
+  "V0120-006-FORBIDDEN-FIELD-REJECTION" \
+  "V0120-006-RAW-SECRET-LISTENKEY-REJECTION" \
+  "V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION" \
+  "V0120-006-CONTENT-VALIDATION-CHECKSUM" \
+  "V0120-006-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -130,7 +149,7 @@ for anchor in \
   require_file_contains "$LATEST" "$anchor"
   require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
   require_file_contains "$TESTS" "$anchor"
-  if [[ "$anchor" == GH-954-* || "$anchor" == GH-955-* || "$anchor" == GH-956-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK || "$anchor" == TVM-RELEASE-V0120-READINESS-MANIFEST-V2 || "$anchor" == V0120-003-* || "$anchor" == V0120-004-* || "$anchor" == V0120-005-* ]]; then
+  if [[ "$anchor" == GH-954-* || "$anchor" == GH-955-* || "$anchor" == GH-956-* || "$anchor" == GH-957-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK || "$anchor" == TVM-RELEASE-V0120-READINESS-MANIFEST-V2 || "$anchor" == TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION || "$anchor" == V0120-003-* || "$anchor" == V0120-004-* || "$anchor" == V0120-005-* || "$anchor" == V0120-006-* ]]; then
     require_file_contains "$REGISTRY_SOURCE" "$anchor"
   fi
 done
@@ -203,7 +222,33 @@ require_file_contains "$REGISTRY_SOURCE" "artifactContentType"
 require_file_contains "$REGISTRY_SOURCE" "artifactSHA256"
 require_file_contains "$REGISTRY_SOURCE" "artifactBytes"
 require_file_contains "$REGISTRY_SOURCE" "producerVersion"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentArtifactContentPolicy"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentArtifactContentValidationResult"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentArtifactContentValidationState"
+require_file_contains "$REGISTRY_SOURCE" "v0.12.0.artifact-content-policy.v1"
+require_file_contains "$REGISTRY_SOURCE" "allowedJSONFields"
+require_file_contains "$REGISTRY_SOURCE" "requiredJSONFields"
+require_file_contains "$REGISTRY_SOURCE" "forbiddenJSONFields"
+require_file_contains "$REGISTRY_SOURCE" "forbiddenRawMarkers"
+require_file_contains "$REGISTRY_SOURCE" "validateArtifactContent"
+require_file_contains "$REGISTRY_SOURCE" "contentValidationChecksum"
+require_file_contains "$REGISTRY_SOURCE" "raw-secret"
+require_file_contains "$REGISTRY_SOURCE" "raw-listen-key"
+require_file_contains "$REGISTRY_SOURCE" "/api/v3/order"
+require_file_contains "$REGISTRY_SOURCE" "api.binance.com"
+require_file_contains "$REGISTRY_SOURCE" "artifactContentPolicy:rejectedContent"
 require_file_contains "$REGISTRY_SOURCE" "productionCutoverAuthorized == false"
+require_file_contains "$CONTRACT" "V0120-006-ARTIFACT-CONTENT-POLICY"
+require_file_contains "$CONTRACT" "allowedJSONFields"
+require_file_contains "$CONTRACT" "forbiddenJSONFields"
+require_file_contains "$CONTRACT" "forbiddenRawMarkers"
+require_file_contains "$CONTRACT" "raw secret"
+require_file_contains "$CONTRACT" "raw listenKey"
+require_file_contains "$READINESS" "Release v0.12.0 artifact content-policy / redaction validator anchor"
+require_file_contains "$PLAN" "GH-957 Release v0.12.0 Artifact Content-policy / Redaction Validator Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION"
+require_file_contains "$LATEST" "Release v0.12.0 Artifact Content-policy / Redaction Validator Snapshot"
+require_file_contains "$TESTS" "testGH957ArtifactContentPolicyRejectsSecretsListenKeysOrdersAndEndpointResponses"
 require_file_contains "$RELEASE_POLICY" "V0120-002-V011X-RELEASE-PATCH-FACT-BASELINE"
 require_file_contains "$RELEASE_POLICY" "v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public Release 后的 guard hardening closeout"
 require_file_contains "$README" "v0.11.1 patch closeout 不创建"

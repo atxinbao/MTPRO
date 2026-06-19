@@ -69,6 +69,24 @@
 
 `V0120-005-NO-PRODUCTION-CUTOVER`
 
+`GH-957-VERIFY-V0120-ARTIFACT-CONTENT-POLICY-REDACTION`
+
+`TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION`
+
+`V0120-006-ARTIFACT-CONTENT-POLICY`
+
+`V0120-006-JSON-SCHEMA-ALLOWLIST`
+
+`V0120-006-FORBIDDEN-FIELD-REJECTION`
+
+`V0120-006-RAW-SECRET-LISTENKEY-REJECTION`
+
+`V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION`
+
+`V0120-006-CONTENT-VALIDATION-CHECKSUM`
+
+`V0120-006-NO-PRODUCTION-CUTOVER`
+
 ## Contract Scope
 
 `v0.12.0` 定义 readiness assessment session / 就绪度评估会话。该会话只允许整理、校验、比较和展示本地 readiness evidence，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order。
@@ -169,6 +187,28 @@ Manifest V2 的本地路径固定为 `.local/mtpro/readiness/assessments/<assess
 `V0120-005-NO-PRODUCTION-CUTOVER`
 
 Manifest V2 只强化本地 readiness assessment provenance。它不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不创建下一 Project / Issue，不移动 tag / Release。
+
+## V0120-006-ARTIFACT-CONTENT-POLICY
+
+`V0120-006-JSON-SCHEMA-ALLOWLIST`
+
+`V0120-006-FORBIDDEN-FIELD-REJECTION`
+
+`V0120-006-RAW-SECRET-LISTENKEY-REJECTION`
+
+`V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION`
+
+`V0120-006-CONTENT-VALIDATION-CHECKSUM`
+
+v0.12.0 artifact content-policy 固定为 assessment artifact 的本地 JSON evidence redaction validator。每个 policy 必须记录 `policyVersion`、`artifactID`、`artifactContentType`、`allowedJSONFields`、`requiredJSONFields`、`forbiddenJSONFields`、`forbiddenRawMarkers` 和 `policyChecksum`。`schemaVersion` 固定为 `v0.12.0.artifact-content-policy.v1`，`checksumAlgorithm` 固定为 `canonical-json-sha256`。
+
+Artifact content validation 只接受 Manifest V2 声明的 `jsonEvidence` artifact。validator 必须重新 canonicalize artifact JSON、重新计算 `artifactSHA256`，并确认 artifact top-level JSON fields 只出现在 `allowedJSONFields` 内，所有 `requiredJSONFields` 都存在，递归 JSON field name 没有命中 `forbiddenJSONFields`，raw payload 没有命中 `forbiddenRawMarkers`。验证成功时必须输出 `contentValidationChecksum`，并把 validation state 固定为 `valid`。
+
+Artifact content-policy 必须 fail closed 拒绝 raw secret、raw listenKey、private payload、order payload、production endpoint response、unexpected top-level field、missing required field 和 artifact SHA256 mismatch。禁止字段和 marker 至少覆盖 `secret`、`signature`、`listenKey`、`privatePayload`、`orderId`、`clientOrderId`、`quantity`、`price`、`side`、`type`、`serverTime`、`balances`、`/api/v3/account`、`/api/v3/order`、`/api/v3/userDataStream`、`X-MBX-APIKEY`、`api.binance.com`、`listenKey=`、`raw-secret` 和 `raw-listen-key`。
+
+`V0120-006-NO-PRODUCTION-CUTOVER`
+
+Artifact content-policy / redaction validator 只验证本地 readiness artifact 内容是否符合 allowlist 和 redaction policy。它不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不创建下一 Project / Issue，不移动 tag / Release。
 
 ## V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT
 

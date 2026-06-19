@@ -1821,3 +1821,22 @@ bash checks/run.sh
 - #956 records `assessmentID`, `generationID`, `sourceRunIDs`, `sourceCommit`, `schemaVersion`, `canonicalizationAlgorithm`, `artifactContentType`, `artifactSHA256`, `artifactBytes`, `createdAt` and `producerVersion` as required local provenance fields.
 - #956 covers invalid source commit, empty source run IDs, invalid SHA256 checksum and non-positive artifact byte count fail-closed behavior.
 - #956 does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
+
+## Release v0.12.0 Artifact Content-policy / Redaction Validator Snapshot
+
+- GH-957-VERIFY-V0120-ARTIFACT-CONTENT-POLICY-REDACTION
+- TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION
+- V0120-006-ARTIFACT-CONTENT-POLICY
+- V0120-006-JSON-SCHEMA-ALLOWLIST
+- V0120-006-FORBIDDEN-FIELD-REJECTION
+- V0120-006-RAW-SECRET-LISTENKEY-REJECTION
+- V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION
+- V0120-006-CONTENT-VALIDATION-CHECKSUM
+- V0120-006-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- Contract source: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- Validation source: `checks/verify-v0.12.0.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH957ArtifactContentPolicyRejectsSecretsListenKeysOrdersAndEndpointResponses`
+- #957 adds assessment artifact JSON content-policy validation for `allowedJSONFields`, `requiredJSONFields`, `forbiddenJSONFields`, `forbiddenRawMarkers`, `policyChecksum`, `artifactSHA256` and `contentValidationChecksum`.
+- #957 rejects raw secret, raw listenKey, private payload, order payload, production endpoint response, unexpected top-level field, missing required field and artifact SHA256 mismatch.
+- #957 does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.

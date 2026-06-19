@@ -4696,3 +4696,25 @@ swift test
 - required provenance fields: `assessmentID`, `generationID`, `sourceRunIDs`, `sourceCommit`, `schemaVersion`, `canonicalizationAlgorithm`, `artifactContentType`, `artifactSHA256`, `artifactBytes`, `createdAt` and `producerVersion`
 - fail-closed coverage: invalid source commit, empty source run IDs, invalid SHA256 checksum and non-positive artifact byte count
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
+
+## GH-957 Release v0.12.0 Artifact Content-policy / Redaction Validator Validation
+
+- GH-957-VERIFY-V0120-ARTIFACT-CONTENT-POLICY-REDACTION
+- TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION
+- V0120-006-ARTIFACT-CONTENT-POLICY
+- V0120-006-JSON-SCHEMA-ALLOWLIST
+- V0120-006-FORBIDDEN-FIELD-REJECTION
+- V0120-006-RAW-SECRET-LISTENKEY-REJECTION
+- V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION
+- V0120-006-CONTENT-VALIDATION-CHECKSUM
+- V0120-006-NO-PRODUCTION-CUTOVER
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH957ArtifactContentPolicyRejectsSecretsListenKeysOrdersAndEndpointResponses`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- policy fields: `policyVersion`, `artifactID`, `artifactContentType`, `allowedJSONFields`, `requiredJSONFields`, `forbiddenJSONFields`, `forbiddenRawMarkers` and `policyChecksum`
+- validation result fields: `artifactSHA256`, `observedTopLevelJSONFields`, `missingRequiredJSONFields`, `unexpectedJSONFields`, `forbiddenJSONFields`, `forbiddenRawMarkers`, `validationState` and `contentValidationChecksum`
+- fail-closed coverage: raw secret, raw listenKey, private payload, order payload, production endpoint response, unexpected top-level field, missing required field and artifact SHA256 mismatch
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement

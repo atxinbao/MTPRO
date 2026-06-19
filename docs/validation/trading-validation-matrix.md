@@ -2797,3 +2797,23 @@
 - source provenance: `sourceRunIDs` and `sourceCommit` preserve source run lineage and source commit identity
 - canonical artifact metadata: `schemaVersion`, `canonicalizationAlgorithm`, `artifactContentType`, `artifactSHA256`, `artifactBytes`, `createdAt` and `producerVersion` must be present and fail closed on invalid source commit, checksum or byte count
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION
+
+- GH-957-VERIFY-V0120-ARTIFACT-CONTENT-POLICY-REDACTION
+- TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION
+- V0120-006-ARTIFACT-CONTENT-POLICY
+- V0120-006-JSON-SCHEMA-ALLOWLIST
+- V0120-006-FORBIDDEN-FIELD-REJECTION
+- V0120-006-RAW-SECRET-LISTENKEY-REJECTION
+- V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION
+- V0120-006-CONTENT-VALIDATION-CHECKSUM
+- V0120-006-NO-PRODUCTION-CUTOVER
+- GH-957 Release v0.12.0 Artifact Content-policy / Redaction Validator Validation
+- testGH957ArtifactContentPolicyRejectsSecretsListenKeysOrdersAndEndpointResponses
+- artifact policy schema: `v0.12.0.artifact-content-policy.v1`
+- JSON schema allowlist: top-level fields must be within `allowedJSONFields` and all `requiredJSONFields` must be present
+- forbidden field rejection: recursive JSON field names must not contain `secret`, `signature`, `listenKey`, `privatePayload`, order payload fields or endpoint response fields
+- raw marker rejection: raw artifact bytes must not contain raw secret markers, raw listenKey markers, signed account endpoint paths, order endpoint paths, user data stream endpoint paths, exchange API key headers, production exchange hosts or listenKey query markers
+- content validation checksum: accepted artifact content records `contentValidationChecksum` after Manifest V2 `artifactSHA256` is recomputed and matched
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
