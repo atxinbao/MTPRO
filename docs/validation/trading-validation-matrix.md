@@ -2728,3 +2728,18 @@
 - provenance model: source release / patch, issue / PR / checks evidence, local artifact path, checksum / hash, validation command and fail-closed classification must be retained
 - history model: baseline / follow-up / superseded / blocked / invalid assessments are allowed as append-only evidence lineage
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-V011X-RELEASE-PATCH-FACTS
+
+- GH-953-VERIFY-V0120-V011X-RELEASE-PATCH-FACTS
+- TVM-RELEASE-V0120-V011X-RELEASE-PATCH-FACTS
+- V0120-002-V0110-PUBLICATION-FACT
+- V0120-002-V0111-PATCH-FACT
+- V0120-002-CONSTRUCTION-PUBLICATION-CUTOVER-SEPARATION
+- V0120-002-NO-PRODUCTION-CUTOVER
+- GH-953 Release v0.12.0 v0.11.x Publication / Patch Fact Baseline Validation
+- testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts
+- v0.11.0 fact: public GitHub Release URL, tag peeled commit and publication timestamp are fixed baseline evidence
+- v0.11.1 patch fact: patch closeout covers #945..#951 and does not create or move any tag / GitHub Release
+- gate separation: construction closeout, public release publication, release fact sync / stale wording guard, patch closeout and production cutover remain independent gates
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

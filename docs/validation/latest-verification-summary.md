@@ -1749,3 +1749,19 @@ bash checks/run.sh
 - Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract`
 - #952 defines the v0.12.0 readiness assessment session no-authorization contract. The allowed scope is local readiness evidence assessment, provenance tracking, append-only multi-assessment history, redacted evidence export and comparison-ready read-model evidence.
 - #952 does not create or move a tag / GitHub Release, does not promote #953 or later issues, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
+
+## Release v0.12.0 v0.11.x Publication / Patch Fact Baseline Snapshot
+
+- GH-953-VERIFY-V0120-V011X-RELEASE-PATCH-FACTS
+- TVM-RELEASE-V0120-V011X-RELEASE-PATCH-FACTS
+- V0120-002-V0110-PUBLICATION-FACT
+- V0120-002-V0111-PATCH-FACT
+- V0120-002-CONSTRUCTION-PUBLICATION-CUTOVER-SEPARATION
+- V0120-002-NO-PRODUCTION-CUTOVER
+- Contract source: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- Release policy source: `docs/release/release-publication-policy.md`
+- Validation source: `checks/verify-v0.12.0.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts`
+- v0.11.0 public GitHub Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`, tag peeled commit `13f592d0710de91351286e5c5490bfacb63c19b0`, publication timestamp `2026-06-19T01:20:58Z`.
+- v0.11.1 patch closeout fact: #945..#951 closed the readiness runtime guard patch, did not create `v0.11.1` tag / GitHub Release, did not move `v0.11.0`, and did not authorize production cutover.
+- #953 only carries these facts into v0.12.0 baseline assessment provenance. It does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.

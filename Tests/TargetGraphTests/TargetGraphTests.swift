@@ -30318,6 +30318,91 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts() throws {
+        // 测试场景：GH-953 只把 v0.11.x 已发生发布 / patch 事实作为 v0.12.0 assessment baseline；
+        // 这些事实不能被解释成 production cutover 或新的 tag / release 授权。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let contract = try read("docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let readme = try read("README.md")
+        let verifier = try read("checks/verify-v0.12.0.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+
+        let evidenceFiles = [
+            contract,
+            releasePolicy,
+            verifier,
+            readiness,
+            readinessScript,
+            validationPlan,
+            tradingMatrix,
+            latest,
+            tests
+        ]
+
+        for anchor in [
+            "GH-953-VERIFY-V0120-V011X-RELEASE-PATCH-FACTS",
+            "TVM-RELEASE-V0120-V011X-RELEASE-PATCH-FACTS",
+            "V0120-002-V0110-PUBLICATION-FACT",
+            "V0120-002-V0111-PATCH-FACT",
+            "V0120-002-CONSTRUCTION-PUBLICATION-CUTOVER-SEPARATION",
+            "V0120-002-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(evidenceFiles.allSatisfy { $0.contains(anchor) }, "\(anchor) must stay in the GH-953 evidence chain")
+        }
+
+        for required in [
+            "https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0",
+            "13f592d0710de91351286e5c5490bfacb63c19b0",
+            "2026-06-19T01:20:58Z",
+            "#924 remains the v0.11.0 construction closeout, not the publication gate",
+            "v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public Release 后的 guard hardening closeout",
+            "v0.11.1 patch closeout does not create a `v0.11.1` tag or GitHub Release",
+            "construction closeout、public release publication、release fact sync / stale wording guard、v0.11.1 patch closeout 和 production cutover 必须继续保持独立 gate"
+        ] {
+            XCTAssertTrue(contract.contains(required) || releasePolicy.contains(required), "\(required) must stay in v0.12.0 baseline docs")
+        }
+
+        XCTAssertTrue(readme.contains("v0.11.1 patch closeout 不创建 `v0.11.1` tag / GitHub Release"))
+        XCTAssertTrue(readme.contains("GH-953-VERIFY-V0120-V011X-RELEASE-PATCH-FACTS"))
+        XCTAssertTrue(verifier.contains("Release v0.12.0 v0.11.x Publication / Patch Fact Baseline Snapshot"))
+        XCTAssertTrue(validationPlan.contains("GH-953 Release v0.12.0 v0.11.x Publication / Patch Fact Baseline Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0120-V011X-RELEASE-PATCH-FACTS"))
+        XCTAssertTrue(latest.contains("Release v0.12.0 v0.11.x Publication / Patch Fact Baseline Snapshot"))
+        XCTAssertTrue(tests.contains("testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts"))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "productionOMSImplemented=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true"
+        ] {
+            XCTAssertFalse(contract.contains(forbidden), "\(forbidden) must stay out of v0.12.0 contract")
+            XCTAssertFalse(releasePolicy.contains(forbidden), "\(forbidden) must stay out of release publication policy")
+            XCTAssertFalse(readiness.contains(forbidden), "\(forbidden) must stay out of automation readiness")
+            XCTAssertFalse(validationPlan.contains(forbidden), "\(forbidden) must stay out of validation plan")
+            XCTAssertFalse(tradingMatrix.contains(forbidden), "\(forbidden) must stay out of trading validation matrix")
+            XCTAssertFalse(latest.contains(forbidden), "\(forbidden) must stay out of latest verification summary")
+        }
+    }
+
     func testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum() throws {
         XCTAssertEqual(ProductionReadinessBundleValidationAnchors.validationAnchors, [
             "GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION",

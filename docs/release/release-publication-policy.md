@@ -10,6 +10,7 @@
 
 - `GH-879 V0100-002 Align v0.9.1 / v0.10.0 release publication docs and version policy`
 - `v0.11.0 Release Publication Gate fact sync`
+- `GH-953 V0120-002 Align v0.11.x release publication and patch facts`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -171,6 +172,31 @@ GH-951 不是 release publication gate：
 - 不授权 production cutover。
 
 v0.11.0 public GitHub Release 仍保持为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`，tag peeled commit `13f592d0710de91351286e5c5490bfacb63c19b0`，publication timestamp `2026-06-19T01:20:58Z`。v0.11.1 patch closeout 不改变该 release identity。
+
+## V0120-002-V011X-RELEASE-PATCH-FACT-BASELINE
+
+`GH-953-VERIFY-V0120-V011X-RELEASE-PATCH-FACTS`
+
+`TVM-RELEASE-V0120-V011X-RELEASE-PATCH-FACTS`
+
+`V0120-002-V0110-PUBLICATION-FACT`
+
+`V0120-002-V0111-PATCH-FACT`
+
+`V0120-002-CONSTRUCTION-PUBLICATION-CUTOVER-SEPARATION`
+
+`V0120-002-NO-PRODUCTION-CUTOVER`
+
+v0.12.0 readiness assessment sessions must inherit these v0.11.x publication / patch facts as baseline evidence:
+
+- v0.11.0 public GitHub Release exists at `https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`.
+- v0.11.0 tag peeled commit remains `13f592d0710de91351286e5c5490bfacb63c19b0`.
+- v0.11.0 publication timestamp remains `2026-06-19T01:20:58Z`.
+- #924 remains the v0.11.0 construction closeout, not the publication gate.
+- v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public Release 后的 guard hardening closeout，覆盖 #945..#951。
+- v0.11.1 patch closeout does not create a `v0.11.1` tag or GitHub Release, and it does not move, rewrite or replace the `v0.11.0` tag / GitHub Release.
+
+This baseline only supports local readiness assessment provenance. It does not authorize production cutover, production trading, production secret reads, production endpoint / broker endpoint connections, testnet orders or production orders.
 
 ## V080-002-V080-CONSTRUCTION-VS-PUBLICATION
 

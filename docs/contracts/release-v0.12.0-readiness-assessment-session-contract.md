@@ -9,11 +9,46 @@
 
 `V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT`
 
+`GH-953-VERIFY-V0120-V011X-RELEASE-PATCH-FACTS`
+
+`TVM-RELEASE-V0120-V011X-RELEASE-PATCH-FACTS`
+
+`V0120-002-V0110-PUBLICATION-FACT`
+
+`V0120-002-V0111-PATCH-FACT`
+
+`V0120-002-CONSTRUCTION-PUBLICATION-CUTOVER-SEPARATION`
+
+`V0120-002-NO-PRODUCTION-CUTOVER`
+
 ## Contract Scope
 
 `v0.12.0` 定义 readiness assessment session / 就绪度评估会话。该会话只允许整理、校验、比较和展示本地 readiness evidence，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order。
 
 本 contract 是 `MTPRO Release v0.12.0 readiness assessment sessions` queue 的第一个 gate。它继承 `v0.11.0` readiness evidence runtime 和 `v0.11.1` readiness runtime guard patch 的完成事实，但不移动、重写、覆盖或重新发布任何既有 tag / GitHub Release。
+
+## V0120-002-V011X-RELEASE-PATCH-FACT-BASELINE
+
+`V0120-002-V0110-PUBLICATION-FACT`
+
+`V0120-002-V0111-PATCH-FACT`
+
+`V0120-002-CONSTRUCTION-PUBLICATION-CUTOVER-SEPARATION`
+
+v0.12.0 readiness assessment session 必须把 v0.11.x 已发生事实作为 baseline evidence，而不是重新解释、重新发布或扩大授权：
+
+- v0.11.0 public GitHub Release 已通过独立 Release Publication Gate 完成：`https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`。
+- v0.11.0 tag peeled commit 固定为 `13f592d0710de91351286e5c5490bfacb63c19b0`。
+- v0.11.0 publication timestamp 固定为 `2026-06-19T01:20:58Z`。
+- #924 是 v0.11.0 construction closeout，负责 Stage Code Audit、release notes、root docs refresh、aggregate verifier guard 和 focused closeout test；#924 本身不创建 tag / GitHub Release。
+- v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public GitHub Release 之后的 guard hardening closeout，覆盖 #945..#951。
+- v0.11.1 patch closeout 不创建 `v0.11.1` tag，不创建 `v0.11.1` GitHub Release，不移动、不覆盖、不重写 `v0.11.0` tag 或 GitHub Release。
+- v0.11.1 patch closeout 不推进 v0.12.0；只有 Parent Codex queue preflight 在 #951 / #952 merged、checks success、closed done、main fast-forward 后才能推进本 queue。
+- construction closeout、public release publication、release fact sync / stale wording guard、v0.11.1 patch closeout 和 production cutover 必须继续保持独立 gate。
+
+`V0120-002-NO-PRODUCTION-CUTOVER`
+
+以上 baseline facts 只提供 assessment provenance。它们不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，也不创建下一 Project / Issue。
 
 ## V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT
 
