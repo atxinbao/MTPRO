@@ -30231,6 +30231,93 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let contract = try read("docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md")
+        let verifier = try read("checks/verify-v0.12.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+
+        for anchor in [
+            "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT",
+            "TVM-RELEASE-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT",
+            "V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT",
+            "V0120-001-EVIDENCE-PROVENANCE-MODEL",
+            "V0120-001-MULTI-ASSESSMENT-HISTORY",
+            "V0120-001-FORBIDDEN-PRODUCTION-CAPABILITIES",
+            "V0120-001-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.12.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.12.0 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+        }
+
+        for required in [
+            "assessmentSessionAllowed=true",
+            "assessmentSessionLocalOnly=true",
+            "assessmentSessionRequiresExplicitInput=true",
+            "assessmentSessionMayReadLocalReadinessArtifacts=true",
+            "assessmentSessionMayBuildDerivedReadModels=true",
+            "assessmentSessionMayRecordHistory=true",
+            "assessmentSessionMayComparePreviousAssessments=true",
+            "assessmentSessionMayExportRedactedEvidence=true",
+            "source issue / PR / check evidence reference",
+            "canonical checksum / content hash reference",
+            "baseline assessment",
+            "follow-up assessment",
+            "superseded assessment",
+            "blocked assessment",
+            "invalid assessment",
+            "Production cutover 仍是独立 human-approved gate",
+            "GH-952 V0120-001 Define v0.12.0 readiness assessment session no-authorization contract",
+            "GH-965 V0120-014 Close v0.12.0 final audit docs and runbook"
+        ] {
+            XCTAssertTrue(contract.contains(required), "\(required) must stay in v0.12.0 contract")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.12.0.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.12.0 readiness assessment session no-authorization contract anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-952 Release v0.12.0 Readiness Assessment Session No-authorization Contract Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT"))
+        XCTAssertTrue(latest.contains("Release v0.12.0 Readiness Assessment Session Contract Snapshot"))
+        XCTAssertTrue(tests.contains("testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract"))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "realOrderSubmissionEnabled=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "productionOMSImplemented=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true"
+        ] {
+            XCTAssertFalse(contract.contains(forbidden), "\(forbidden) must stay out of v0.12.0 contract")
+            XCTAssertFalse(readiness.contains(forbidden), "\(forbidden) must stay out of automation readiness")
+            XCTAssertFalse(validationPlan.contains(forbidden), "\(forbidden) must stay out of validation plan")
+            XCTAssertFalse(tradingMatrix.contains(forbidden), "\(forbidden) must stay out of trading validation matrix")
+        }
+    }
+
     func testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum() throws {
         XCTAssertEqual(ProductionReadinessBundleValidationAnchors.validationAnchors, [
             "GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION",

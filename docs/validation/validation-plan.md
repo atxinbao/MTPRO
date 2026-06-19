@@ -4597,3 +4597,20 @@ swift test
 - PCHR-07-AUTOMATION-READINESS-CLOSEOUT
 - PCHR-07-NO-PRODUCTION-CUTOVER-AUTHORIZATION
 - PCHR-07-STAGE-CODE-AUDIT-HANDOFF
+
+## GH-952 Release v0.12.0 Readiness Assessment Session No-authorization Contract Validation
+
+- GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT
+- TVM-RELEASE-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT
+- V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT
+- V0120-001-EVIDENCE-PROVENANCE-MODEL
+- V0120-001-MULTI-ASSESSMENT-HISTORY
+- V0120-001-FORBIDDEN-PRODUCTION-CAPABILITIES
+- V0120-001-NO-PRODUCTION-CUTOVER
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- allowed scope: local readiness assessment session, evidence provenance, multi-assessment history, redacted export and derived read-model evidence
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no real order, no tag / release movement, no v0.12.0 downstream issue promotion before #952 closes done

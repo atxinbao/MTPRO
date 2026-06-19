@@ -1734,3 +1734,18 @@ bash checks/run.sh
 ## Release v0.3.x Hardening Anchor
 
 - `v0.3.x` 不表示 real testnet / shadow runtime runner 已存在
+
+## Release v0.12.0 Readiness Assessment Session Contract Snapshot
+
+- GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT
+- TVM-RELEASE-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT
+- V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT
+- V0120-001-EVIDENCE-PROVENANCE-MODEL
+- V0120-001-MULTI-ASSESSMENT-HISTORY
+- V0120-001-FORBIDDEN-PRODUCTION-CAPABILITIES
+- V0120-001-NO-PRODUCTION-CUTOVER
+- Contract source: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- Validation source: `checks/verify-v0.12.0.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract`
+- #952 defines the v0.12.0 readiness assessment session no-authorization contract. The allowed scope is local readiness evidence assessment, provenance tracking, append-only multi-assessment history, redacted evidence export and comparison-ready read-model evidence.
+- #952 does not create or move a tag / GitHub Release, does not promote #953 or later issues, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
