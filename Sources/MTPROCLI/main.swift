@@ -82,6 +82,18 @@ private enum MTPROStrictCLI {
         "V0110-008-MISSING-INVALID-STALE-CHECKSUM-MISMATCH",
         "V0110-008-NO-PRODUCTION-SECRET-ENDPOINT-ORDER"
     ]
+    static let readinessAssessmentCLILifecycleVerificationAnchor =
+        "GH-963-VERIFY-V0120-ASSESSMENT-CLI-LIFECYCLE"
+    static let readinessAssessmentCLILifecycleValidationAnchor =
+        "TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE"
+    static let readinessAssessmentCLILifecycleRequiredAnchors = [
+        "V0120-012-ASSESSMENT-SCOPED-CLI-LIFECYCLE",
+        "V0120-012-CREATE-BUILD-STATUS-VALIDATE-EXPORT-ARCHIVE",
+        "V0120-012-COMPARE-LOCAL-ASSESSMENTS",
+        "V0120-012-INVALID-ASSESSMENT-ID-FAIL-CLOSED",
+        "V0120-012-LOCAL-REGISTRY-STORE-ONLY",
+        "V0120-012-NO-PRODUCTION-CUTOVER"
+    ]
     static let releaseV090OperatorUXRequiredAnchors = [
         "V090-013-DASHBOARD-CLI-OPERATOR-UX",
         "V090-013-MONITOR-START-STATUS-STOP-RECOVER-EXPORT",
@@ -119,6 +131,15 @@ private enum MTPROStrictCLI {
         "readiness validate",
         "readiness export",
         "readiness approval-status"
+    ]
+    static let readinessAssessmentSupportedActionCommands = [
+        "readiness create [assessmentID]",
+        "readiness build <assessmentID>",
+        "readiness status <assessmentID>",
+        "readiness validate <assessmentID>",
+        "readiness export <assessmentID>",
+        "readiness archive <assessmentID>",
+        "readiness compare <baselineAssessmentID> <followUpAssessmentID>"
     ]
     static let monitorSupportedActionCommands = [
         "monitor start",
@@ -219,6 +240,8 @@ private enum MTPROStrictCLI {
             "localSessionActions=run,status,stop,recover",
             "riskPolicyActions=\(riskPolicySupportedActionCommands.joined(separator: ","))",
             "readinessActions=\(readinessSupportedActionCommands.joined(separator: ","))",
+            "readinessAssessmentSessionContract=v0.12.0",
+            "readinessAssessmentActions=\(readinessAssessmentSupportedActionCommands.joined(separator: ","))",
             "monitorActions=\(monitorSupportedActionCommands.joined(separator: ","))",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
@@ -239,24 +262,97 @@ private enum MTPROStrictCLI {
     /// 它只读写 `ProductionReadinessArtifactStore` 的本地 evidence root，所有 action 都保持
     /// production secret / endpoint / broker / order / cutover capability 为 false。
     private static func readinessOutput(arguments: [String]) throws -> String {
-        guard arguments.count == 2 else {
+        guard arguments.count >= 2 else {
             throw MTPROCLIParserError.invalidArguments(
                 field: "mtpro.readiness.arguments",
-                expected: readinessSupportedActionCommands.joined(separator: ","),
+                expected: (readinessSupportedActionCommands + readinessAssessmentSupportedActionCommands)
+                    .joined(separator: ","),
                 actual: arguments.joined(separator: " ")
             )
         }
 
         let action = arguments[1]
+        if ["help", "build", "status", "validate", "export", "approval-status"].contains(action),
+           arguments.count == 2 {
+            return try ReleaseV0110ReadinessCLI(action: action).output()
+        }
+
+        if action == "create" {
+            guard arguments.count == 2 || arguments.count == 3 else {
+                throw MTPROCLIParserError.invalidArguments(
+                    field: "mtpro.readiness.arguments",
+                    expected: "readiness create [assessmentID]",
+                    actual: arguments.joined(separator: " ")
+                )
+            }
+            let assessmentID = arguments.count == 3 ? try readinessAssessmentID(arguments[2]) : nil
+            return try ReleaseV0120ReadinessAssessmentCLI(
+                action: action,
+                assessmentID: assessmentID,
+                comparisonAssessmentID: nil
+            ).output()
+        }
+
+        if ["build", "status", "validate", "export", "archive"].contains(action) {
+            guard arguments.count == 3 else {
+                throw MTPROCLIParserError.invalidArguments(
+                    field: "mtpro.readiness.arguments",
+                    expected: "readiness \(action) <assessmentID>",
+                    actual: arguments.joined(separator: " ")
+                )
+            }
+            return try ReleaseV0120ReadinessAssessmentCLI(
+                action: action,
+                assessmentID: try readinessAssessmentID(arguments[2]),
+                comparisonAssessmentID: nil
+            ).output()
+        }
+
+        if action == "compare" {
+            guard arguments.count == 4 else {
+                throw MTPROCLIParserError.invalidArguments(
+                    field: "mtpro.readiness.arguments",
+                    expected: "readiness compare <baselineAssessmentID> <followUpAssessmentID>",
+                    actual: arguments.joined(separator: " ")
+                )
+            }
+            return try ReleaseV0120ReadinessAssessmentCLI(
+                action: action,
+                assessmentID: try readinessAssessmentID(arguments[2]),
+                comparisonAssessmentID: try readinessAssessmentID(arguments[3])
+            ).output()
+        }
+
         guard ["help", "build", "status", "validate", "export", "approval-status"].contains(action) else {
             throw MTPROCLIParserError.invalidArguments(
                 field: "mtpro.readiness.action",
-                expected: "help,build,status,validate,export,approval-status",
+                expected: "help,build,status,validate,export,approval-status,create,archive,compare",
                 actual: arguments.joined(separator: " ")
             )
         }
 
-        return try ReleaseV0110ReadinessCLI(action: action).output()
+        throw MTPROCLIParserError.invalidArguments(
+            field: "mtpro.readiness.arguments",
+            expected: "readiness \(action) or readiness \(action) <assessmentID>",
+            actual: arguments.joined(separator: " ")
+        )
+    }
+
+    private static func readinessAssessmentID(_ rawValue: String) throws -> Identifier {
+        guard rawValue.isEmpty == false,
+              rawValue.hasPrefix("-") == false,
+              rawValue != ".",
+              rawValue != "..",
+              rawValue.hasPrefix("~") == false,
+              rawValue.contains("/") == false,
+              rawValue.contains("\\") == false else {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.readiness.arguments",
+                expected: "safe assessmentID path component",
+                actual: rawValue
+            )
+        }
+        return Identifier.constant(rawValue)
     }
 
     private static func monitorOutput(arguments: [String]) throws -> String {
@@ -1769,5 +1865,324 @@ private struct ReleaseV0110ReadinessCLI {
             )
         }
         return payload
+    }
+}
+
+/// ReleaseV0120ReadinessAssessmentCLI 是 GH-963 的 assessment-scoped readiness CLI binder。
+///
+/// 该 binder 只读写 v0.12.0 本地 readiness registry / assessment artifact root，并通过
+/// `ReadinessAssessmentRegistryStore` 生成 assessment metadata、manifest、bundle 和 compare
+/// report evidence。它不读取 secret、不连接 production endpoint / broker，不提交 / 取消 /
+/// 替换订单，也不把任何 readiness result 升级为 production cutover authorization。
+private struct ReleaseV0120ReadinessAssessmentCLI {
+    private static let readinessRootEnvironmentKey = "MTPRO_READINESS_ROOT"
+    private static let sourceCommit = "0123456789abcdef0123456789abcdef01234567"
+    private static let producerVersion = "mtpro-cli-v0.12.0"
+
+    let action: String
+    let assessmentID: Identifier?
+    let comparisonAssessmentID: Identifier?
+    let store: ReadinessAssessmentRegistryStore
+
+    init(
+        action: String,
+        assessmentID: Identifier?,
+        comparisonAssessmentID: Identifier?,
+        storageRootURL: URL? = nil,
+        fileManager: FileManager = .default
+    ) {
+        self.action = action
+        self.assessmentID = assessmentID
+        self.comparisonAssessmentID = comparisonAssessmentID
+        if let storageRootURL {
+            self.store = ReadinessAssessmentRegistryStore(storageRootURL: storageRootURL, fileManager: fileManager)
+        } else if let override = ProcessInfo.processInfo.environment[Self.readinessRootEnvironmentKey],
+                  override.isEmpty == false {
+            self.store = ReadinessAssessmentRegistryStore(
+                storageRootURL: URL(fileURLWithPath: override, isDirectory: true),
+                fileManager: fileManager
+            )
+        } else {
+            self.store = ReadinessAssessmentRegistryStore(
+                storageRootURL: URL(
+                    fileURLWithPath: ReadinessAssessmentRegistryStore.defaultRelativeRoot,
+                    isDirectory: true
+                ),
+                fileManager: fileManager
+            )
+        }
+    }
+
+    func output() throws -> String {
+        switch action {
+        case "create":
+            return try createOutput()
+        case "build":
+            return try buildOutput()
+        case "status":
+            return try statusOutput()
+        case "validate":
+            return try validateOutput()
+        case "export":
+            return try exportOutput()
+        case "archive":
+            return try archiveOutput()
+        case "compare":
+            return try compareOutput()
+        default:
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.readiness.action",
+                expected: "create,build,status,validate,export,archive,compare",
+                actual: "readiness \(action)"
+            )
+        }
+    }
+
+    private func createOutput() throws -> String {
+        let now = Self.canonicalNow()
+        let resolvedAssessmentID = assessmentID
+            ?? Identifier.constant("gh-963-assessment-\(UUID().uuidString.lowercased())")
+        let document = try store.create(
+            assessmentID: resolvedAssessmentID,
+            state: .baseline,
+            sourceReleaseVersion: "v0.12.0",
+            sourcePatchVersion: "v0.11.1",
+            assessedBy: "Codex",
+            reason: "assessment-scoped CLI lifecycle create",
+            createdAt: now,
+            updatedAt: now
+        )
+        let entry = try document.inspect(assessmentID: resolvedAssessmentID)
+        return (baseOutput(action: action, entry: entry, mutationApplied: true) + [
+            "created=true",
+            "registryEntryCount=\(document.entries.count)",
+            "assessmentDirectoryPath=\(entry.artifactPaths.assessmentDirectoryPath)",
+            "metadataJSONPath=\(entry.artifactPaths.metadataJSONPath)",
+            "localRegistryStoreOnly=true",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func buildOutput() throws -> String {
+        let entry = try requiredEntry()
+        let now = Self.canonicalNow()
+        let generationID = Identifier.constant("\(entry.assessmentID.rawValue)-generation-\(Int(now.timeIntervalSince1970))")
+        let artifactSHA256 = Self.stableChecksum("artifact-\(entry.assessmentID.rawValue)")
+        let manifest = try ReadinessAssessmentManifestV2(
+            assessmentID: entry.assessmentID,
+            generationID: generationID,
+            sourceRunIDs: [Identifier.constant("gh-963-source-run")],
+            sourceCommit: Self.sourceCommit,
+            artifactContentType: .jsonEvidence,
+            artifactSHA256: artifactSHA256,
+            artifactBytes: 512,
+            createdAt: now,
+            producerVersion: Self.producerVersion
+        )
+        _ = try store.writeManifestV2(manifest)
+
+        let artifactSnapshot = try ReadinessAssessmentBundleV2ArtifactSnapshot(
+            artifactID: Identifier.constant("\(entry.assessmentID.rawValue)-readiness-summary"),
+            manifestChecksum: manifest.manifestChecksum,
+            artifactSHA256: artifactSHA256,
+            contentValidationChecksum: Self.stableChecksum("content-\(entry.assessmentID.rawValue)"),
+            artifactPath: "\(entry.artifactPaths.assessmentDirectoryPath)/artifacts/readiness-summary.json"
+        )
+        let bundle = try ReadinessAssessmentBundleV2(
+            assessmentID: entry.assessmentID,
+            generationID: generationID,
+            reviewState: .inReview,
+            sourceRunIDs: manifest.sourceRunIDs,
+            sourceCommit: manifest.sourceCommit,
+            artifactSnapshots: [artifactSnapshot],
+            createdAt: now.addingTimeInterval(1),
+            producerVersion: Self.producerVersion
+        )
+        let writeResult = try store.writeReadinessBundleV2ReviewSnapshot(bundle)
+        return (baseOutput(action: action, entry: entry, mutationApplied: true) + [
+            "generationID=\(generationID.rawValue)",
+            "manifestV2Path=\(manifest.manifestV2Path)",
+            "manifestChecksum=\(manifest.manifestChecksum)",
+            "readinessBundlePath=\(writeResult.bundle.bundlePath)",
+            "readinessBundleChecksum=\(writeResult.bundle.bundleChecksum)",
+            "readinessBundleManifestPath=\(writeResult.manifest.manifestPath)",
+            "artifactWritten=true",
+            "readinessBundleWritten=true",
+            "readinessState=in-review",
+            "localRegistryStoreOnly=true",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func statusOutput() throws -> String {
+        let entry = try requiredEntry()
+        let manifest = try? store.readManifestV2(assessmentID: entry.assessmentID)
+        return (baseOutput(action: action, entry: entry, mutationApplied: false) + [
+            "registryState=\(entry.state.rawValue)",
+            "registryLifecycle=\(entry.lifecycle.rawValue)",
+            "manifestV2Present=\(manifest != nil)",
+            "generationID=\(manifest?.generationID.rawValue ?? "not-built")",
+            "manifestChecksum=\(manifest?.manifestChecksum ?? "not-built")",
+            "readinessState=\(manifest == nil ? "not-built" : "in-review")",
+            "localRegistryStoreOnly=true",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func validateOutput() throws -> String {
+        let entry = try requiredEntry()
+        let manifest = try? store.readManifestV2(assessmentID: entry.assessmentID)
+        return (baseOutput(action: action, entry: entry, mutationApplied: false) + [
+            "assessmentIDValid=true",
+            "registryEntryHeld=\(entry.entryHeld)",
+            "manifestV2Present=\(manifest != nil)",
+            "manifestHeld=\(manifest?.manifestHeld ?? false)",
+            "productionCapabilitiesDisabled=\(entry.productionCapabilitiesDisabled)",
+            "validationState=\(manifest == nil ? "blocked" : "valid")",
+            "invalidAssessmentIDsFailClosed=true",
+            "localRegistryStoreOnly=true",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func exportOutput() throws -> String {
+        let entry = try requiredEntry()
+        let manifest = try? store.readManifestV2(assessmentID: entry.assessmentID)
+        return (baseOutput(action: action, entry: entry, mutationApplied: false) + [
+            "exportFormat=redacted-readiness-assessment-summary",
+            "exportSnapshotOnly=true",
+            "exportDirectoryPath=\(entry.artifactPaths.redactedExportDirectoryPath)",
+            "manifestV2Present=\(manifest != nil)",
+            "redactedEvidenceOnly=true",
+            "noSecretValue=true",
+            "noOrderPayload=true",
+            "localRegistryStoreOnly=true",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func archiveOutput() throws -> String {
+        let entry = try requiredEntry()
+        let now = Self.canonicalNow()
+        let document = try store.archive(assessmentID: entry.assessmentID, updatedAt: now)
+        let archivedEntry = try document.inspect(assessmentID: entry.assessmentID)
+        return (baseOutput(action: action, entry: archivedEntry, mutationApplied: true) + [
+            "archived=true",
+            "registryState=\(archivedEntry.state.rawValue)",
+            "registryLifecycle=\(archivedEntry.lifecycle.rawValue)",
+            "localRegistryStoreOnly=true",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func compareOutput() throws -> String {
+        let baselineEntry = try requiredEntry()
+        guard let comparisonAssessmentID else {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.readiness.arguments",
+                expected: "readiness compare <baselineAssessmentID> <followUpAssessmentID>",
+                actual: "readiness compare \(baselineEntry.assessmentID.rawValue)"
+            )
+        }
+        let followUpEntry = try store.inspect(assessmentID: comparisonAssessmentID)
+        let report = try store.compareAssessments(
+            baselineSnapshot: try comparisonSnapshot(for: baselineEntry),
+            followUpSnapshot: try comparisonSnapshot(for: followUpEntry),
+            comparedAt: Self.canonicalNow()
+        )
+        return (baseOutput(action: action, entry: baselineEntry, mutationApplied: false) + [
+            "baselineAssessmentID=\(report.baselineAssessmentID.rawValue)",
+            "followUpAssessmentID=\(report.followUpAssessmentID.rawValue)",
+            "comparedSections=\(report.comparedSections.map(\.rawValue).joined(separator: ","))",
+            "changedSections=\(report.changedSections.map(\.rawValue).joined(separator: ","))",
+            "unchangedSections=\(report.unchangedSections.map(\.rawValue).joined(separator: ","))",
+            "hasDifferences=\(report.hasDifferences)",
+            "reportChecksum=\(report.reportChecksum)",
+            "compareDoesNotMutateAssessments=\(report.compareDoesNotMutateAssessments)",
+            "operatorReviewOnly=\(report.operatorReviewOnly)",
+            "localRegistryStoreOnly=true",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func requiredEntry() throws -> ReadinessAssessmentRegistryEntry {
+        guard let assessmentID else {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.readiness.arguments",
+                expected: "assessmentID",
+                actual: "readiness \(action)"
+            )
+        }
+        return try store.inspect(assessmentID: assessmentID)
+    }
+
+    private func comparisonSnapshot(
+        for entry: ReadinessAssessmentRegistryEntry
+    ) throws -> ReadinessAssessmentComparisonSnapshot {
+        let manifest = try? store.readManifestV2(assessmentID: entry.assessmentID)
+        let generationID = manifest?.generationID
+            ?? Identifier.constant("\(entry.assessmentID.rawValue)-generation-not-built")
+        let sourceRunSnapshot = try ReleaseV0120ShadowParitySourceRunSnapshot(
+            runID: Identifier.constant("\(entry.assessmentID.rawValue)-source-run"),
+            sourceRunManifestChecksum: Self.stableChecksum("source-run-manifest-\(entry.assessmentID.rawValue)"),
+            eventIDs: [Identifier.constant("\(entry.assessmentID.rawValue)-event")],
+            riskDecisionIDs: [Identifier.constant("\(entry.assessmentID.rawValue)-risk")],
+            omsDryRunLifecycleIDs: [Identifier.constant("\(entry.assessmentID.rawValue)-oms")],
+            portfolioProjectionChecksum: Self.stableChecksum("portfolio-\(entry.assessmentID.rawValue)"),
+            reconciliationChecksum: Self.stableChecksum("reconciliation-\(entry.assessmentID.rawValue)")
+        )
+        return try ReadinessAssessmentComparisonSnapshot(
+            assessmentID: entry.assessmentID,
+            generationID: generationID,
+            policyChecksum: Self.stableChecksum("policy-v0.12.0"),
+            artifactBundleChecksum: manifest?.manifestChecksum ?? entry.entryChecksum,
+            riskLimitChecksum: Self.stableChecksum("risk-limits-v0.12.0"),
+            killSwitchStateChecksum: Self.stableChecksum("kill-switch-\(entry.assessmentID.rawValue)"),
+            approvalStateChecksum: Self.stableChecksum("approval-\(entry.assessmentID.rawValue)"),
+            sourceRunSnapshot: sourceRunSnapshot
+        )
+    }
+
+    private func baseOutput(
+        action: String,
+        entry: ReadinessAssessmentRegistryEntry,
+        mutationApplied: Bool
+    ) -> [String] {
+        [
+            "mtpro readiness \(action) v0.12.0",
+            "issue=GH-963",
+            "validationAnchor=\(MTPROStrictCLI.readinessAssessmentCLILifecycleValidationAnchor)",
+            "verificationAnchor=\(MTPROStrictCLI.readinessAssessmentCLILifecycleVerificationAnchor)",
+            "requiredAnchors=\(MTPROStrictCLI.readinessAssessmentCLILifecycleRequiredAnchors.joined(separator: ","))",
+            "assessmentSessionContract=v0.12.0",
+            "assessmentID=\(entry.assessmentID.rawValue)",
+            "registryPath=.local/mtpro/readiness/registry.json",
+            "storageRoot=\(store.storageRootURL.path)",
+            "mutationApplied=\(mutationApplied)",
+            "assessmentSessionLocalOnly=\(entry.assessmentSessionLocalOnly)",
+            "invalidAssessmentIDsFailClosed=true",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false",
+            "productionCutoverAuthorized=false"
+        ]
+    }
+
+    private static func canonicalNow() -> Date {
+        Date(timeIntervalSince1970: floor(Date().timeIntervalSince1970))
+    }
+
+    private static func stableChecksum(_ seed: String) -> String {
+        var hash: UInt64 = 1_469_598_103_934_665_603
+        for byte in seed.utf8 {
+            hash ^= UInt64(byte)
+            hash &*= 1_099_511_628_211
+        }
+        let chunk = String(format: "%016llx", hash)
+        return "sha256:\(String(repeating: chunk, count: 4))"
     }
 }

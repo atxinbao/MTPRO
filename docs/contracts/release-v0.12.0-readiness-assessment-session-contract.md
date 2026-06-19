@@ -418,6 +418,53 @@ GH-962 允许为 operator review 比较两个本地 readiness assessment snapsho
 
 Compare 输出只能是 local operator review report，包含 matched / changed section、baseline / follow-up assessment ID、generation ID、`compareDoesNotMutateAssessments=true` 和稳定 `reportChecksum`。Compare 不得写回 registry，不得修改 assessment metadata，不得创建 approval，不得移动 tag / release，也不得授权 production cutover、production secret read、production endpoint / broker connection、testnet order 或 production order。
 
+## V0120-012-ASSESSMENT-SCOPED-CLI-LIFECYCLE
+
+`GH-963-VERIFY-V0120-ASSESSMENT-CLI-LIFECYCLE`
+
+`TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE`
+
+`V0120-012-ASSESSMENT-SCOPED-CLI-LIFECYCLE`
+
+`V0120-012-CREATE-BUILD-STATUS-VALIDATE-EXPORT-ARCHIVE`
+
+`V0120-012-COMPARE-LOCAL-ASSESSMENTS`
+
+`V0120-012-INVALID-ASSESSMENT-ID-FAIL-CLOSED`
+
+`V0120-012-LOCAL-REGISTRY-STORE-ONLY`
+
+`V0120-012-NO-PRODUCTION-CUTOVER`
+
+GH-963 只把 v0.12.0 readiness assessment lifecycle 暴露为本地 CLI：
+
+- `mtpro readiness create [assessmentID]`
+- `mtpro readiness build <assessmentID>`
+- `mtpro readiness status <assessmentID>`
+- `mtpro readiness validate <assessmentID>`
+- `mtpro readiness export <assessmentID>`
+- `mtpro readiness archive <assessmentID>`
+- `mtpro readiness compare <baselineAssessmentID> <followUpAssessmentID>`
+
+CLI implementation 固定在 `Sources/MTPROCLI/main.swift` 的 `ReleaseV0120ReadinessAssessmentCLI`。它只使用 `MTPRO_READINESS_ROOT` 或默认 `.local/mtpro/readiness` 作为本地 storage root，并通过 `ReadinessAssessmentRegistryStore` 读写 registry entry、manifest v2、readiness bundle v2 review snapshot 和 compare report。
+
+`invalidAssessmentIDsFailClosed=true`：assessmentID 必须是 safe path component。空字符串、以 `-` 开头、`.`、`..`、`~`、包含 `/` 或 `\` 的值都必须在 CLI parser 层 fail closed，并输出 `mtpro.readiness.arguments`。
+
+`localRegistryStoreOnly=true`：所有命令只产生或读取本地 redacted evidence。`compare` 只返回 operator-review-only report，不修改 assessment registry，不创建 approval，不移动 tag，不创建 GitHub Release。
+
+Boundary flags 必须继续固定为：
+
+- `productionTradingEnabledByDefault=false`
+- `productionSecretRead=false`
+- `productionEndpointConnected=false`
+- `brokerEndpointConnected=false`
+- `productionOrderSubmitted=false`
+- `testnetOrderSubmissionAllowed=false`
+- `testnetOrderRoutingAllowed=false`
+- `productionCutoverAuthorized=false`
+
+GH-963 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不实现 production OMS，不暴露 trading button / order form / live command，不授权 production cutover。
+
 ## V0120-001-DOWNSTREAM-QUEUE-ORDER
 
 `V0120-001-DOWNSTREAM-QUEUE-ORDER`

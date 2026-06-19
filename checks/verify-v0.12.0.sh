@@ -90,6 +90,14 @@ set -euo pipefail
 # V0120-011-SOURCE-RUN-EVIDENCE-COMPARISON
 # V0120-011-NON-MUTATING-COMPARE
 # V0120-011-NO-PRODUCTION-CUTOVER
+# GH-963-VERIFY-V0120-ASSESSMENT-CLI-LIFECYCLE
+# TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE
+# V0120-012-ASSESSMENT-SCOPED-CLI-LIFECYCLE
+# V0120-012-CREATE-BUILD-STATUS-VALIDATE-EXPORT-ARCHIVE
+# V0120-012-COMPARE-LOCAL-ASSESSMENTS
+# V0120-012-INVALID-ASSESSMENT-ID-FAIL-CLOSED
+# V0120-012-LOCAL-REGISTRY-STORE-ONLY
+# V0120-012-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -133,6 +141,7 @@ REGISTRY_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessm
 KILL_SWITCH_NO_TRADE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift"
 APPROVAL_WORKFLOW_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift"
 SHADOW_PARITY_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift"
+MTPRO_CLI_SOURCE="Sources/MTPROCLI/main.swift"
 
 swift test --filter TargetGraphTests/testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract
 swift test --filter TargetGraphTests/testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts
@@ -145,6 +154,7 @@ swift test --filter TargetGraphTests/testGH959KillSwitchNoTradeTrustworthyObserv
 swift test --filter TargetGraphTests/testGH960ApprovalRolesQuorumAndBundleBindingFailClosed
 swift test --filter TargetGraphTests/testGH961ShadowParityBindsImmutableSourceRunSnapshot
 swift test --filter TargetGraphTests/testGH962ReadinessAssessmentDiffCompareIsLocalAndNonMutating
+swift test --filter TargetGraphTests/testGH963ReadinessAssessmentCLILifecycleUsesLocalRegistryOnly
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -235,7 +245,15 @@ for anchor in \
   "V0120-011-POLICY-ARTIFACT-RISK-KILL-APPROVAL-SECTIONS" \
   "V0120-011-SOURCE-RUN-EVIDENCE-COMPARISON" \
   "V0120-011-NON-MUTATING-COMPARE" \
-  "V0120-011-NO-PRODUCTION-CUTOVER"; do
+  "V0120-011-NO-PRODUCTION-CUTOVER" \
+  "GH-963-VERIFY-V0120-ASSESSMENT-CLI-LIFECYCLE" \
+  "TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE" \
+  "V0120-012-ASSESSMENT-SCOPED-CLI-LIFECYCLE" \
+  "V0120-012-CREATE-BUILD-STATUS-VALIDATE-EXPORT-ARCHIVE" \
+  "V0120-012-COMPARE-LOCAL-ASSESSMENTS" \
+  "V0120-012-INVALID-ASSESSMENT-ID-FAIL-CLOSED" \
+  "V0120-012-LOCAL-REGISTRY-STORE-ONLY" \
+  "V0120-012-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -254,6 +272,9 @@ for anchor in \
   fi
   if [[ "$anchor" == GH-961-* || "$anchor" == TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT || "$anchor" == V0120-010-* ]]; then
     require_file_contains "$SHADOW_PARITY_SOURCE" "$anchor"
+  fi
+  if [[ "$anchor" == GH-963-* || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE || "$anchor" == V0120-012-* ]]; then
+    require_file_contains "$MTPRO_CLI_SOURCE" "$anchor"
   fi
 done
 
@@ -450,6 +471,125 @@ require_file_contains "$TESTS" "testGH953ReleaseV0120CarriesForwardV011XPublicat
 require_file_contains "$TESTS" "testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata"
 require_file_contains "$TESTS" "testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery"
 require_file_contains "$TESTS" "testGH956ReadinessManifestV2RecordsAssessmentGenerationAndProvenance"
+require_file_contains "$MTPRO_CLI_SOURCE" "ReleaseV0120ReadinessAssessmentCLI"
+require_file_contains "$MTPRO_CLI_SOURCE" "readinessAssessmentActions"
+require_file_contains "$MTPRO_CLI_SOURCE" "MTPRO_READINESS_ROOT"
+require_file_contains "$MTPRO_CLI_SOURCE" "ReadinessAssessmentRegistryStore"
+require_file_contains "$MTPRO_CLI_SOURCE" "writeManifestV2"
+require_file_contains "$MTPRO_CLI_SOURCE" "writeReadinessBundleV2ReviewSnapshot"
+require_file_contains "$MTPRO_CLI_SOURCE" "compareAssessments"
+require_file_contains "$MTPRO_CLI_SOURCE" "invalidAssessmentIDsFailClosed=true"
+require_file_contains "$CONTRACT" "mtpro readiness create"
+require_file_contains "$CONTRACT" "mtpro readiness compare"
+require_file_contains "$READINESS" "Release v0.12.0 assessment-scoped CLI lifecycle anchor"
+require_file_contains "$PLAN" "GH-963 Release v0.12.0 Assessment-scoped CLI Lifecycle Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE"
+require_file_contains "$LATEST" "Release v0.12.0 Assessment-scoped CLI Lifecycle"
+require_file_contains "$TESTS" "testGH963ReadinessAssessmentCLILifecycleUsesLocalRegistryOnly"
+
+READINESS_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/mtpro-gh963-readiness.XXXXXX")"
+trap 'rm -rf "$READINESS_ROOT"' EXIT
+ASSESSMENT_A="gh-963-cli-a-$$"
+ASSESSMENT_B="gh-963-cli-b-$$"
+
+require_cli_output_contains() {
+  local action="$1"
+  local output="$2"
+  local expected="$3"
+
+  if ! grep -Fq "$expected" <<<"$output"; then
+    printf 'release v0.12.0 assessment-scoped CLI lifecycle verification failed: %s output must contain: %s\n' "$action" "$expected" >&2
+    printf '%s\n' "$output" >&2
+    exit 1
+  fi
+}
+
+run_readiness_cli() {
+  MTPRO_READINESS_ROOT="$READINESS_ROOT" swift run mtpro readiness "$@"
+}
+
+# GH-963 command coverage:
+# swift run mtpro readiness create <assessmentID>
+# swift run mtpro readiness build <assessmentID>
+# swift run mtpro readiness status <assessmentID>
+# swift run mtpro readiness validate <assessmentID>
+# swift run mtpro readiness export <assessmentID>
+# swift run mtpro readiness archive <assessmentID>
+# swift run mtpro readiness compare <baselineAssessmentID> <followUpAssessmentID>
+assert_common_cli_boundary() {
+  local action="$1"
+  local output="$2"
+
+  for expected in \
+    "issue=GH-963" \
+    "validationAnchor=TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE" \
+    "verificationAnchor=GH-963-VERIFY-V0120-ASSESSMENT-CLI-LIFECYCLE" \
+    "assessmentSessionContract=v0.12.0" \
+    "invalidAssessmentIDsFailClosed=true" \
+    "productionTradingEnabledByDefault=false" \
+    "productionSecretRead=false" \
+    "productionEndpointConnected=false" \
+    "brokerEndpointConnected=false" \
+    "productionOrderSubmitted=false" \
+    "testnetOrderSubmissionAllowed=false" \
+    "testnetOrderRoutingAllowed=false" \
+    "productionCutoverAuthorized=false" \
+    "localRegistryStoreOnly=true" \
+    "boundaryHeld=true"; do
+    require_cli_output_contains "$action" "$output" "$expected"
+  done
+}
+
+CREATE_A_OUTPUT="$(run_readiness_cli create "$ASSESSMENT_A")"
+assert_common_cli_boundary "create" "$CREATE_A_OUTPUT"
+require_cli_output_contains "create" "$CREATE_A_OUTPUT" "assessmentID=$ASSESSMENT_A"
+require_cli_output_contains "create" "$CREATE_A_OUTPUT" "created=true"
+
+BUILD_A_OUTPUT="$(run_readiness_cli build "$ASSESSMENT_A")"
+assert_common_cli_boundary "build" "$BUILD_A_OUTPUT"
+require_cli_output_contains "build" "$BUILD_A_OUTPUT" "artifactWritten=true"
+require_cli_output_contains "build" "$BUILD_A_OUTPUT" "readinessBundleWritten=true"
+
+STATUS_A_OUTPUT="$(run_readiness_cli status "$ASSESSMENT_A")"
+assert_common_cli_boundary "status" "$STATUS_A_OUTPUT"
+require_cli_output_contains "status" "$STATUS_A_OUTPUT" "manifestV2Present=true"
+
+VALIDATE_A_OUTPUT="$(run_readiness_cli validate "$ASSESSMENT_A")"
+assert_common_cli_boundary "validate" "$VALIDATE_A_OUTPUT"
+require_cli_output_contains "validate" "$VALIDATE_A_OUTPUT" "validationState=valid"
+
+EXPORT_A_OUTPUT="$(run_readiness_cli export "$ASSESSMENT_A")"
+assert_common_cli_boundary "export" "$EXPORT_A_OUTPUT"
+require_cli_output_contains "export" "$EXPORT_A_OUTPUT" "exportSnapshotOnly=true"
+require_cli_output_contains "export" "$EXPORT_A_OUTPUT" "redactedEvidenceOnly=true"
+
+CREATE_B_OUTPUT="$(run_readiness_cli create "$ASSESSMENT_B")"
+assert_common_cli_boundary "create" "$CREATE_B_OUTPUT"
+BUILD_B_OUTPUT="$(run_readiness_cli build "$ASSESSMENT_B")"
+assert_common_cli_boundary "build" "$BUILD_B_OUTPUT"
+
+COMPARE_OUTPUT="$(run_readiness_cli compare "$ASSESSMENT_A" "$ASSESSMENT_B")"
+assert_common_cli_boundary "compare" "$COMPARE_OUTPUT"
+require_cli_output_contains "compare" "$COMPARE_OUTPUT" "baselineAssessmentID=$ASSESSMENT_A"
+require_cli_output_contains "compare" "$COMPARE_OUTPUT" "followUpAssessmentID=$ASSESSMENT_B"
+require_cli_output_contains "compare" "$COMPARE_OUTPUT" "compareDoesNotMutateAssessments=true"
+require_cli_output_contains "compare" "$COMPARE_OUTPUT" "operatorReviewOnly=true"
+
+ARCHIVE_B_OUTPUT="$(run_readiness_cli archive "$ASSESSMENT_B")"
+assert_common_cli_boundary "archive" "$ARCHIVE_B_OUTPUT"
+require_cli_output_contains "archive" "$ARCHIVE_B_OUTPUT" "archived=true"
+
+if MTPRO_READINESS_ROOT="$READINESS_ROOT" swift run mtpro readiness status "../bad" >/tmp/mtpro-gh963-invalid-status.out 2>&1; then
+  printf 'release v0.12.0 assessment-scoped CLI lifecycle verification failed: invalid status assessmentID must fail closed\n' >&2
+  exit 1
+fi
+require_file_contains "/tmp/mtpro-gh963-invalid-status.out" "mtpro.readiness.arguments"
+
+if MTPRO_READINESS_ROOT="$READINESS_ROOT" swift run mtpro readiness compare "$ASSESSMENT_A" "./bad" >/tmp/mtpro-gh963-invalid-compare.out 2>&1; then
+  printf 'release v0.12.0 assessment-scoped CLI lifecycle verification failed: invalid compare assessmentID must fail closed\n' >&2
+  exit 1
+fi
+require_file_contains "/tmp/mtpro-gh963-invalid-compare.out" "mtpro.readiness.arguments"
 
 for forbidden in \
   "productionTradingEnabledByDefault=true" \
