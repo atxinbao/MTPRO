@@ -73,6 +73,16 @@ set -euo pipefail
 # V0120-009-BUNDLE-CHECKSUM-BINDING
 # V0120-009-TRANSITION-CHECKSUM-CHAIN
 # V0120-009-NO-PRODUCTION-CUTOVER
+# GH-961-VERIFY-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT
+# TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT
+# V0120-010-SHADOW-PARITY-SOURCE-SNAPSHOT
+# V0120-010-SOURCE-RUN-MANIFEST-CHECKSUM
+# V0120-010-EVENT-ID-SET-BINDING
+# V0120-010-RISK-DECISION-ID-BINDING
+# V0120-010-OMS-DRY-RUN-LIFECYCLE-ID-BINDING
+# V0120-010-PORTFOLIO-PROJECTION-CHECKSUM-BINDING
+# V0120-010-RECONCILIATION-CHECKSUM-BINDING
+# V0120-010-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -115,6 +125,7 @@ TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
 REGISTRY_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift"
 KILL_SWITCH_NO_TRADE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift"
 APPROVAL_WORKFLOW_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift"
+SHADOW_PARITY_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift"
 
 swift test --filter TargetGraphTests/testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract
 swift test --filter TargetGraphTests/testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts
@@ -125,6 +136,7 @@ swift test --filter TargetGraphTests/testGH957ArtifactContentPolicyRejectsSecret
 swift test --filter TargetGraphTests/testGH958ImmutableReadinessBundleSnapshotRequiresNewGenerationOnChange
 swift test --filter TargetGraphTests/testGH959KillSwitchNoTradeTrustworthyObservationsFailClosed
 swift test --filter TargetGraphTests/testGH960ApprovalRolesQuorumAndBundleBindingFailClosed
+swift test --filter TargetGraphTests/testGH961ShadowParityBindsImmutableSourceRunSnapshot
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -198,7 +210,17 @@ for anchor in \
   "V0120-009-APPROVAL-EXPIRY-REVOCATION-FAIL-CLOSED" \
   "V0120-009-BUNDLE-CHECKSUM-BINDING" \
   "V0120-009-TRANSITION-CHECKSUM-CHAIN" \
-  "V0120-009-NO-PRODUCTION-CUTOVER"; do
+  "V0120-009-NO-PRODUCTION-CUTOVER" \
+  "GH-961-VERIFY-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT" \
+  "TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT" \
+  "V0120-010-SHADOW-PARITY-SOURCE-SNAPSHOT" \
+  "V0120-010-SOURCE-RUN-MANIFEST-CHECKSUM" \
+  "V0120-010-EVENT-ID-SET-BINDING" \
+  "V0120-010-RISK-DECISION-ID-BINDING" \
+  "V0120-010-OMS-DRY-RUN-LIFECYCLE-ID-BINDING" \
+  "V0120-010-PORTFOLIO-PROJECTION-CHECKSUM-BINDING" \
+  "V0120-010-RECONCILIATION-CHECKSUM-BINDING" \
+  "V0120-010-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -214,6 +236,9 @@ for anchor in \
   fi
   if [[ "$anchor" == GH-960-* || "$anchor" == TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION || "$anchor" == V0120-009-* ]]; then
     require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "$anchor"
+  fi
+  if [[ "$anchor" == GH-961-* || "$anchor" == TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT || "$anchor" == V0120-010-* ]]; then
+    require_file_contains "$SHADOW_PARITY_SOURCE" "$anchor"
   fi
 done
 
@@ -370,6 +395,24 @@ require_file_contains "$PLAN" "GH-960 Release v0.12.0 Approval Role / Quorum Sep
 require_file_contains "$MATRIX" "TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION"
 require_file_contains "$LATEST" "Release v0.12.0 Approval Role / Quorum Separation Snapshot"
 require_file_contains "$TESTS" "testGH960ApprovalRolesQuorumAndBundleBindingFailClosed"
+require_file_contains "$SHADOW_PARITY_SOURCE" "ReleaseV0120ShadowParitySourceSnapshotAnchors"
+require_file_contains "$SHADOW_PARITY_SOURCE" "ReleaseV0120ShadowParitySourceRunSnapshot"
+require_file_contains "$SHADOW_PARITY_SOURCE" "sourceRunManifestChecksum"
+require_file_contains "$SHADOW_PARITY_SOURCE" "eventIDs"
+require_file_contains "$SHADOW_PARITY_SOURCE" "riskDecisionIDs"
+require_file_contains "$SHADOW_PARITY_SOURCE" "omsDryRunLifecycleIDs"
+require_file_contains "$SHADOW_PARITY_SOURCE" "portfolioProjectionChecksum"
+require_file_contains "$SHADOW_PARITY_SOURCE" "reconciliationChecksum"
+require_file_contains "$SHADOW_PARITY_SOURCE" "sourceSnapshotBindingHeld"
+require_file_contains "$SHADOW_PARITY_SOURCE" "sourceSnapshotMismatch"
+require_file_contains "$CONTRACT" "V0120-010-SHADOW-PARITY-SOURCE-SNAPSHOT"
+require_file_contains "$CONTRACT" "sourceRunManifestChecksum"
+require_file_contains "$CONTRACT" "sourceSnapshotBindingHeld"
+require_file_contains "$READINESS" "Release v0.12.0 shadow parity source snapshot anchor"
+require_file_contains "$PLAN" "GH-961 Release v0.12.0 Shadow Parity Source Snapshot Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT"
+require_file_contains "$LATEST" "Release v0.12.0 Shadow Parity Source Snapshot"
+require_file_contains "$TESTS" "testGH961ShadowParityBindsImmutableSourceRunSnapshot"
 require_file_contains "$RELEASE_POLICY" "V0120-002-V011X-RELEASE-PATCH-FACT-BASELINE"
 require_file_contains "$RELEASE_POLICY" "v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public Release 后的 guard hardening closeout"
 require_file_contains "$README" "v0.11.1 patch closeout 不创建"

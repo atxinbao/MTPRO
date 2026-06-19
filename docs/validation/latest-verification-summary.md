@@ -1899,3 +1899,24 @@ bash checks/run.sh
 - #960 records requester / reviewer / approver / revoker role separation, independent reviewer quorum and approver quorum, immutable bundle checksum binding and transition checksum chain evidence.
 - #960 proves requester-as-approver, missing reviewer quorum, missing approver quorum, expired approval, revoked approval, bundle checksum mismatch and transition checksum chain mismatch fail closed.
 - #960 keeps completed approval evidence as local readiness evidence only; it does not authorize production cutover, does not enable order submission, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
+
+## Release v0.12.0 Shadow Parity Source Snapshot
+
+- GH-961-VERIFY-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT
+- TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT
+- V0120-010-SHADOW-PARITY-SOURCE-SNAPSHOT
+- V0120-010-SOURCE-RUN-MANIFEST-CHECKSUM
+- V0120-010-EVENT-ID-SET-BINDING
+- V0120-010-RISK-DECISION-ID-BINDING
+- V0120-010-OMS-DRY-RUN-LIFECYCLE-ID-BINDING
+- V0120-010-PORTFOLIO-PROJECTION-CHECKSUM-BINDING
+- V0120-010-RECONCILIATION-CHECKSUM-BINDING
+- V0120-010-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`
+- Contract source: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- Validation source: `checks/verify-v0.12.0.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH961ShadowParityBindsImmutableSourceRunSnapshot`
+- #961 adds `ReleaseV0120ShadowParitySourceRunSnapshot` to bind shadow parity to `sourceRunManifestChecksum`, `eventIDs`, `riskDecisionIDs`, `omsDryRunLifecycleIDs`, `portfolioProjectionChecksum`, `reconciliationChecksum` and `snapshotChecksum`.
+- #961 requires `sourceSnapshotBindingHeld=true` for valid shadow parity and emits `sourceSnapshotMismatch=true` when source run snapshot evidence changes.
+- #961 proves mutated manifest checksum, event IDs, risk decision IDs, OMS dry-run lifecycle IDs, portfolio projection checksum and reconciliation checksum all invalidate the assessment.
+- #961 keeps shadow parity as local dry-run / shadow evidence only; it does not authorize production cutover, does not enable order submission, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.

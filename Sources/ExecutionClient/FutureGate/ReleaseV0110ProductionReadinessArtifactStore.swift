@@ -704,6 +704,25 @@ public enum ProductionReadinessShadowDryRunParityEvidenceKind: String, Codable, 
     }
 }
 
+/// ReleaseV0120ShadowParitySourceSnapshotAnchors 固定 GH-961 的 source run snapshot 绑定锚点。
+///
+/// 这些锚点只证明 shadow parity artifact 绑定不可变本地 run snapshot；它们不授权
+/// production cutover、secret read、endpoint connection、broker connection 或任何订单命令。
+public enum ReleaseV0120ShadowParitySourceSnapshotAnchors {
+    public static let validationAnchors = [
+        "GH-961-VERIFY-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT",
+        "TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT",
+        "V0120-010-SHADOW-PARITY-SOURCE-SNAPSHOT",
+        "V0120-010-SOURCE-RUN-MANIFEST-CHECKSUM",
+        "V0120-010-EVENT-ID-SET-BINDING",
+        "V0120-010-RISK-DECISION-ID-BINDING",
+        "V0120-010-OMS-DRY-RUN-LIFECYCLE-ID-BINDING",
+        "V0120-010-PORTFOLIO-PROJECTION-CHECKSUM-BINDING",
+        "V0120-010-RECONCILIATION-CHECKSUM-BINDING",
+        "V0120-010-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
 /// ProductionReadinessShadowDryRunParityEvidenceInput 绑定 GH-918 runner 的单个本地 evidence artifact。
 ///
 /// Input 必须是本地 JSON evidence descriptor，并携带 required marker。Runner 只通过 artifact store
@@ -753,6 +772,128 @@ public struct ProductionReadinessShadowDryRunParityEvidenceInput: Equatable, Sen
                 )
             )
         }
+    }
+}
+
+/// ReleaseV0120ShadowParitySourceRunSnapshot 是 GH-961 的不可变 source run 指纹。
+///
+/// Snapshot 只包含本地 dry-run evidence 的 manifest checksum、ID 集合与派生 checksum。shadow
+/// parity 结果必须绑定该 snapshot；任何字段变化都会让 parity assessment 进入 invalid 状态。
+public struct ReleaseV0120ShadowParitySourceRunSnapshot: Codable, Equatable, Sendable {
+    public let runID: Identifier
+    public let sourceRunManifestChecksum: String
+    public let eventIDs: [Identifier]
+    public let riskDecisionIDs: [Identifier]
+    public let omsDryRunLifecycleIDs: [Identifier]
+    public let portfolioProjectionChecksum: String
+    public let reconciliationChecksum: String
+    public let snapshotChecksum: String
+    public let productionTradingEnabledByDefault: Bool
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+
+    public var snapshotHeld: Bool {
+        runID.rawValue.isEmpty == false
+            && ProductionReadinessArtifactStore.isValidSHA256Checksum(sourceRunManifestChecksum)
+            && eventIDs.isEmpty == false
+            && eventIDs.allSatisfy { $0.rawValue.isEmpty == false }
+            && riskDecisionIDs.isEmpty == false
+            && riskDecisionIDs.allSatisfy { $0.rawValue.isEmpty == false }
+            && omsDryRunLifecycleIDs.isEmpty == false
+            && omsDryRunLifecycleIDs.allSatisfy { $0.rawValue.isEmpty == false }
+            && ProductionReadinessArtifactStore.isValidSHA256Checksum(portfolioProjectionChecksum)
+            && ProductionReadinessArtifactStore.isValidSHA256Checksum(reconciliationChecksum)
+            && snapshotChecksum == Self.stableSnapshotChecksum(
+                runID: runID,
+                sourceRunManifestChecksum: sourceRunManifestChecksum,
+                eventIDs: eventIDs,
+                riskDecisionIDs: riskDecisionIDs,
+                omsDryRunLifecycleIDs: omsDryRunLifecycleIDs,
+                portfolioProjectionChecksum: portfolioProjectionChecksum,
+                reconciliationChecksum: reconciliationChecksum
+            )
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+    }
+
+    public init(
+        runID: Identifier,
+        sourceRunManifestChecksum: String,
+        eventIDs: [Identifier],
+        riskDecisionIDs: [Identifier],
+        omsDryRunLifecycleIDs: [Identifier],
+        portfolioProjectionChecksum: String,
+        reconciliationChecksum: String,
+        productionTradingEnabledByDefault: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false
+    ) throws {
+        let sortedEventIDs = eventIDs.sorted { $0.rawValue < $1.rawValue }
+        let sortedRiskDecisionIDs = riskDecisionIDs.sorted { $0.rawValue < $1.rawValue }
+        let sortedOMSDryRunLifecycleIDs = omsDryRunLifecycleIDs.sorted { $0.rawValue < $1.rawValue }
+
+        self.runID = runID
+        self.sourceRunManifestChecksum = sourceRunManifestChecksum
+        self.eventIDs = sortedEventIDs
+        self.riskDecisionIDs = sortedRiskDecisionIDs
+        self.omsDryRunLifecycleIDs = sortedOMSDryRunLifecycleIDs
+        self.portfolioProjectionChecksum = portfolioProjectionChecksum
+        self.reconciliationChecksum = reconciliationChecksum
+        self.snapshotChecksum = Self.stableSnapshotChecksum(
+            runID: runID,
+            sourceRunManifestChecksum: sourceRunManifestChecksum,
+            eventIDs: sortedEventIDs,
+            riskDecisionIDs: sortedRiskDecisionIDs,
+            omsDryRunLifecycleIDs: sortedOMSDryRunLifecycleIDs,
+            portfolioProjectionChecksum: portfolioProjectionChecksum,
+            reconciliationChecksum: reconciliationChecksum
+        )
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+
+        guard snapshotHeld else {
+            throw ProductionReadinessArtifactStoreError.forbiddenCapability("shadowParitySourceRunSnapshotHeld=false")
+        }
+    }
+
+    public static func stableSnapshotChecksum(
+        runID: Identifier,
+        sourceRunManifestChecksum: String,
+        eventIDs: [Identifier],
+        riskDecisionIDs: [Identifier],
+        omsDryRunLifecycleIDs: [Identifier],
+        portfolioProjectionChecksum: String,
+        reconciliationChecksum: String
+    ) -> String {
+        let normalized = [
+            "runID=\(runID.rawValue)",
+            "sourceRunManifestChecksum=\(sourceRunManifestChecksum)",
+            "eventIDs=\(eventIDs.map(\.rawValue).sorted().joined(separator: ","))",
+            "riskDecisionIDs=\(riskDecisionIDs.map(\.rawValue).sorted().joined(separator: ","))",
+            "omsDryRunLifecycleIDs=\(omsDryRunLifecycleIDs.map(\.rawValue).sorted().joined(separator: ","))",
+            "portfolioProjectionChecksum=\(portfolioProjectionChecksum)",
+            "reconciliationChecksum=\(reconciliationChecksum)"
+        ].joined(separator: "\n")
+        let digest = SHA256.hash(data: Data(normalized.utf8))
+        return "sha256:" + digest.map { String(format: "%02x", $0) }.joined()
     }
 }
 
@@ -816,6 +957,10 @@ public struct ProductionReadinessShadowDryRunParityArtifact: Codable, Equatable,
     public let sourceEvidence: [ProductionReadinessShadowDryRunParityEvidenceSummary]
     public let missingEvidenceKinds: [ProductionReadinessShadowDryRunParityEvidenceKind]
     public let invalidEvidenceKinds: [ProductionReadinessShadowDryRunParityEvidenceKind]
+    public let expectedSourceRunSnapshot: ReleaseV0120ShadowParitySourceRunSnapshot?
+    public let observedSourceRunSnapshot: ReleaseV0120ShadowParitySourceRunSnapshot?
+    public let sourceSnapshotBindingHeld: Bool
+    public let sourceSnapshotMismatch: Bool
     public let derivedFromLocalRunEvidence: Bool
     public let referenceOnlyStageConstantsUsed: Bool
     public let productionTradingEnabledByDefault: Bool
@@ -834,6 +979,7 @@ public struct ProductionReadinessShadowDryRunParityArtifact: Codable, Equatable,
             && stateReason.isEmpty == false
             && Set(requiredEvidenceKinds) == Set(ProductionReadinessShadowDryRunParityEvidenceKind.allCases)
             && sourceEvidence.allSatisfy(\.summaryHeld)
+            && sourceSnapshotStateHeld
             && derivedFromLocalRunEvidence
             && referenceOnlyStageConstantsUsed == false
             && productionCapabilitiesDisabled
@@ -856,12 +1002,27 @@ public struct ProductionReadinessShadowDryRunParityArtifact: Codable, Equatable,
             sourceEvidence.count == ProductionReadinessShadowDryRunParityEvidenceKind.allCases.count
                 && missingEvidenceKinds.isEmpty
                 && invalidEvidenceKinds.isEmpty
+                && sourceSnapshotMismatch == false
         case .blocked:
             missingEvidenceKinds.isEmpty == false
         case .invalid:
-            invalidEvidenceKinds.isEmpty == false
+            invalidEvidenceKinds.isEmpty == false || sourceSnapshotMismatch
         case .notEvaluated, .stale, .missing, .checksumMismatch:
             false
+        }
+    }
+
+    private var sourceSnapshotStateHeld: Bool {
+        switch (expectedSourceRunSnapshot, observedSourceRunSnapshot) {
+        case (.none, .none):
+            sourceSnapshotBindingHeld && sourceSnapshotMismatch == false
+        case (.some(let expected), .some(let observed)):
+            expected.snapshotHeld
+                && observed.snapshotHeld
+                && sourceSnapshotBindingHeld == (expected.snapshotChecksum == observed.snapshotChecksum)
+                && sourceSnapshotMismatch == (expected.snapshotChecksum != observed.snapshotChecksum)
+        default:
+            sourceSnapshotBindingHeld == false && sourceSnapshotMismatch
         }
     }
 
@@ -877,6 +1038,8 @@ public struct ProductionReadinessShadowDryRunParityArtifact: Codable, Equatable,
         sourceEvidence: [ProductionReadinessShadowDryRunParityEvidenceSummary],
         missingEvidenceKinds: [ProductionReadinessShadowDryRunParityEvidenceKind] = [],
         invalidEvidenceKinds: [ProductionReadinessShadowDryRunParityEvidenceKind] = [],
+        expectedSourceRunSnapshot: ReleaseV0120ShadowParitySourceRunSnapshot? = nil,
+        observedSourceRunSnapshot: ReleaseV0120ShadowParitySourceRunSnapshot? = nil,
         derivedFromLocalRunEvidence: Bool = true,
         referenceOnlyStageConstantsUsed: Bool = false,
         productionTradingEnabledByDefault: Bool = false,
@@ -898,6 +1061,16 @@ public struct ProductionReadinessShadowDryRunParityArtifact: Codable, Equatable,
         self.sourceEvidence = sourceEvidence.sorted { $0.kind.rawValue < $1.kind.rawValue }
         self.missingEvidenceKinds = missingEvidenceKinds.sorted { $0.rawValue < $1.rawValue }
         self.invalidEvidenceKinds = invalidEvidenceKinds.sorted { $0.rawValue < $1.rawValue }
+        self.expectedSourceRunSnapshot = expectedSourceRunSnapshot
+        self.observedSourceRunSnapshot = observedSourceRunSnapshot
+        self.sourceSnapshotBindingHeld = Self.resolveSourceSnapshotBindingHeld(
+            expected: expectedSourceRunSnapshot,
+            observed: observedSourceRunSnapshot
+        )
+        self.sourceSnapshotMismatch = Self.resolveSourceSnapshotMismatch(
+            expected: expectedSourceRunSnapshot,
+            observed: observedSourceRunSnapshot
+        )
         self.derivedFromLocalRunEvidence = derivedFromLocalRunEvidence
         self.referenceOnlyStageConstantsUsed = referenceOnlyStageConstantsUsed
         self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
@@ -910,6 +1083,34 @@ public struct ProductionReadinessShadowDryRunParityArtifact: Codable, Equatable,
 
         guard artifactHeld else {
             throw ProductionReadinessArtifactStoreError.forbiddenCapability("shadowDryRunParityArtifactHeld=false")
+        }
+    }
+
+    static func resolveSourceSnapshotBindingHeld(
+        expected: ReleaseV0120ShadowParitySourceRunSnapshot?,
+        observed: ReleaseV0120ShadowParitySourceRunSnapshot?
+    ) -> Bool {
+        switch (expected, observed) {
+        case (.none, .none):
+            true
+        case (.some(let expected), .some(let observed)):
+            expected.snapshotChecksum == observed.snapshotChecksum
+        default:
+            false
+        }
+    }
+
+    static func resolveSourceSnapshotMismatch(
+        expected: ReleaseV0120ShadowParitySourceRunSnapshot?,
+        observed: ReleaseV0120ShadowParitySourceRunSnapshot?
+    ) -> Bool {
+        switch (expected, observed) {
+        case (.none, .none):
+            false
+        case (.some(let expected), .some(let observed)):
+            expected.snapshotChecksum != observed.snapshotChecksum
+        default:
+            true
         }
     }
 }
@@ -1499,6 +1700,8 @@ public struct ProductionReadinessArtifactStore {
         evidenceInputs: [ProductionReadinessShadowDryRunParityEvidenceInput],
         artifactDescriptor: ProductionReadinessArtifactDescriptor,
         manifestDescriptor: ProductionReadinessArtifactDescriptor,
+        expectedSourceRunSnapshot: ReleaseV0120ShadowParitySourceRunSnapshot? = nil,
+        observedSourceRunSnapshot: ReleaseV0120ShadowParitySourceRunSnapshot? = nil,
         generatedAt: Date,
         now: Date
     ) throws -> ProductionReadinessShadowDryRunParityRunResult {
@@ -1579,12 +1782,20 @@ public struct ProductionReadinessArtifactStore {
 
         let state: ProductionReadinessBundleValidationState
         let stateReason: String
+        let sourceSnapshotMismatch = ProductionReadinessShadowDryRunParityArtifact.resolveSourceSnapshotMismatch(
+            expected: expectedSourceRunSnapshot,
+            observed: observedSourceRunSnapshot
+        )
+
         if missingEvidenceKinds.isEmpty == false {
             state = .blocked
             stateReason = "missing local run evidence"
         } else if invalidEvidenceKinds.isEmpty == false {
             state = .invalid
             stateReason = "invalid or incomplete local run evidence"
+        } else if sourceSnapshotMismatch {
+            state = .invalid
+            stateReason = "source run snapshot changed"
         } else {
             state = .valid
             stateReason = "shadow dry-run parity derived from local run evidence"
@@ -1598,7 +1809,9 @@ public struct ProductionReadinessArtifactStore {
             stateReason: stateReason,
             sourceEvidence: sourceEvidence,
             missingEvidenceKinds: missingEvidenceKinds,
-            invalidEvidenceKinds: invalidEvidenceKinds
+            invalidEvidenceKinds: invalidEvidenceKinds,
+            expectedSourceRunSnapshot: expectedSourceRunSnapshot,
+            observedSourceRunSnapshot: observedSourceRunSnapshot
         )
         let artifactData = try encodeShadowDryRunParityArtifact(artifact)
         let artifactRecord = try writeArtifact(
