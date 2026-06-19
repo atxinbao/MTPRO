@@ -30,6 +30,14 @@ set -euo pipefail
 # V0120-004-COMPARE-AND-SWAP-MANIFEST
 # V0120-004-CRASH-RECOVERY-SEMANTICS
 # V0120-004-NO-PRODUCTION-CUTOVER
+# GH-956-VERIFY-V0120-READINESS-MANIFEST-V2
+# TVM-RELEASE-V0120-READINESS-MANIFEST-V2
+# V0120-005-READINESS-MANIFEST-V2
+# V0120-005-ASSESSMENT-GENERATION-PROVENANCE
+# V0120-005-SOURCE-RUN-COMMIT-PROVENANCE
+# V0120-005-CANONICAL-ARTIFACT-METADATA
+# V0120-005-PRODUCER-VERSION-SCHEMA
+# V0120-005-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -75,6 +83,7 @@ swift test --filter TargetGraphTests/testGH952ReleaseV0120ReadinessAssessmentSes
 swift test --filter TargetGraphTests/testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts
 swift test --filter TargetGraphTests/testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata
 swift test --filter TargetGraphTests/testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery
+swift test --filter TargetGraphTests/testGH956ReadinessManifestV2RecordsAssessmentGenerationAndProvenance
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -105,7 +114,15 @@ for anchor in \
   "V0120-004-STAGING-DIRECTORY-COMMIT-MARKER" \
   "V0120-004-COMPARE-AND-SWAP-MANIFEST" \
   "V0120-004-CRASH-RECOVERY-SEMANTICS" \
-  "V0120-004-NO-PRODUCTION-CUTOVER"; do
+  "V0120-004-NO-PRODUCTION-CUTOVER" \
+  "GH-956-VERIFY-V0120-READINESS-MANIFEST-V2" \
+  "TVM-RELEASE-V0120-READINESS-MANIFEST-V2" \
+  "V0120-005-READINESS-MANIFEST-V2" \
+  "V0120-005-ASSESSMENT-GENERATION-PROVENANCE" \
+  "V0120-005-SOURCE-RUN-COMMIT-PROVENANCE" \
+  "V0120-005-CANONICAL-ARTIFACT-METADATA" \
+  "V0120-005-PRODUCER-VERSION-SCHEMA" \
+  "V0120-005-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -113,7 +130,7 @@ for anchor in \
   require_file_contains "$LATEST" "$anchor"
   require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
   require_file_contains "$TESTS" "$anchor"
-  if [[ "$anchor" == GH-954-* || "$anchor" == GH-955-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK || "$anchor" == V0120-003-* || "$anchor" == V0120-004-* ]]; then
+  if [[ "$anchor" == GH-954-* || "$anchor" == GH-955-* || "$anchor" == GH-956-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK || "$anchor" == TVM-RELEASE-V0120-READINESS-MANIFEST-V2 || "$anchor" == V0120-003-* || "$anchor" == V0120-004-* || "$anchor" == V0120-005-* ]]; then
     require_file_contains "$REGISTRY_SOURCE" "$anchor"
   fi
 done
@@ -173,6 +190,19 @@ require_file_contains "$REGISTRY_SOURCE" "commit-marker.json"
 require_file_contains "$REGISTRY_SOURCE" ".local/mtpro/readiness/staging"
 require_file_contains "$REGISTRY_SOURCE" "concurrentModification"
 require_file_contains "$REGISTRY_SOURCE" "generationMismatch"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentManifestV2"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentManifestV2ArtifactContentType"
+require_file_contains "$REGISTRY_SOURCE" "v0.12.0.readiness-assessment-manifest.v2"
+require_file_contains "$REGISTRY_SOURCE" "canonical-json-sha256"
+require_file_contains "$REGISTRY_SOURCE" "manifest-v2.json"
+require_file_contains "$REGISTRY_SOURCE" "writeManifestV2"
+require_file_contains "$REGISTRY_SOURCE" "readManifestV2"
+require_file_contains "$REGISTRY_SOURCE" "sourceRunIDs"
+require_file_contains "$REGISTRY_SOURCE" "sourceCommit"
+require_file_contains "$REGISTRY_SOURCE" "artifactContentType"
+require_file_contains "$REGISTRY_SOURCE" "artifactSHA256"
+require_file_contains "$REGISTRY_SOURCE" "artifactBytes"
+require_file_contains "$REGISTRY_SOURCE" "producerVersion"
 require_file_contains "$REGISTRY_SOURCE" "productionCutoverAuthorized == false"
 require_file_contains "$RELEASE_POLICY" "V0120-002-V011X-RELEASE-PATCH-FACT-BASELINE"
 require_file_contains "$RELEASE_POLICY" "v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public Release 后的 guard hardening closeout"
@@ -183,6 +213,7 @@ require_file_contains "$TESTS" "testGH952ReleaseV0120ReadinessAssessmentSessionN
 require_file_contains "$TESTS" "testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts"
 require_file_contains "$TESTS" "testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata"
 require_file_contains "$TESTS" "testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery"
+require_file_contains "$TESTS" "testGH956ReadinessManifestV2RecordsAssessmentGenerationAndProvenance"
 
 for forbidden in \
   "productionTradingEnabledByDefault=true" \

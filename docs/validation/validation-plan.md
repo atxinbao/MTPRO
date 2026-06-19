@@ -4675,3 +4675,24 @@ swift test
 - commit evidence: `.local/mtpro/readiness/assessments/<assessmentID>/compare-and-swap-manifest.json` and `.local/mtpro/readiness/assessments/<assessmentID>/commit-marker.json`
 - fail-closed coverage: lock unavailable, concurrent modification, generation mismatch, transaction abort and crash recovery cleanup
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
+
+## GH-956 Release v0.12.0 Readiness Manifest V2 / Provenance Schema Validation
+
+- GH-956-VERIFY-V0120-READINESS-MANIFEST-V2
+- TVM-RELEASE-V0120-READINESS-MANIFEST-V2
+- V0120-005-READINESS-MANIFEST-V2
+- V0120-005-ASSESSMENT-GENERATION-PROVENANCE
+- V0120-005-SOURCE-RUN-COMMIT-PROVENANCE
+- V0120-005-CANONICAL-ARTIFACT-METADATA
+- V0120-005-PRODUCER-VERSION-SCHEMA
+- V0120-005-NO-PRODUCTION-CUTOVER
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH956ReadinessManifestV2RecordsAssessmentGenerationAndProvenance`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- manifest path: `.local/mtpro/readiness/assessments/<assessmentID>/manifest-v2.json`
+- required provenance fields: `assessmentID`, `generationID`, `sourceRunIDs`, `sourceCommit`, `schemaVersion`, `canonicalizationAlgorithm`, `artifactContentType`, `artifactSHA256`, `artifactBytes`, `createdAt` and `producerVersion`
+- fail-closed coverage: invalid source commit, empty source run IDs, invalid SHA256 checksum and non-positive artifact byte count
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement

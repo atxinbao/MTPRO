@@ -24,7 +24,15 @@ public enum ReadinessAssessmentRegistryStoreAnchors {
         "V0120-004-STAGING-DIRECTORY-COMMIT-MARKER",
         "V0120-004-COMPARE-AND-SWAP-MANIFEST",
         "V0120-004-CRASH-RECOVERY-SEMANTICS",
-        "V0120-004-NO-PRODUCTION-CUTOVER"
+        "V0120-004-NO-PRODUCTION-CUTOVER",
+        "GH-956-VERIFY-V0120-READINESS-MANIFEST-V2",
+        "TVM-RELEASE-V0120-READINESS-MANIFEST-V2",
+        "V0120-005-READINESS-MANIFEST-V2",
+        "V0120-005-ASSESSMENT-GENERATION-PROVENANCE",
+        "V0120-005-SOURCE-RUN-COMMIT-PROVENANCE",
+        "V0120-005-CANONICAL-ARTIFACT-METADATA",
+        "V0120-005-PRODUCER-VERSION-SCHEMA",
+        "V0120-005-NO-PRODUCTION-CUTOVER"
     ]
 }
 
@@ -645,6 +653,240 @@ public struct ReadinessAssessmentRegistryDocument: Codable, Equatable, Sendable 
                 throw ReadinessAssessmentRegistryStoreError.boundaryDrift("registryEntry")
             }
         }
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReadinessAssessmentManifestV2ArtifactContentType 固定 GH-956 manifest v2 允许的本地 artifact 内容类型。
+///
+/// 当前类型只描述本地 readiness evidence artifact 的序列化格式。它不表示 endpoint payload、
+/// broker fill、OMS command 或任何可发送订单的运行时消息。
+public enum ReadinessAssessmentManifestV2ArtifactContentType: String, Codable, CaseIterable, Equatable, Sendable {
+    case jsonEvidence = "application/json"
+    case jsonLinesEvidence = "application/x-ndjson"
+    case textEvidence = "text/plain"
+}
+
+/// ReadinessAssessmentManifestV2 是 GH-956 assessment-scoped manifest / provenance schema。
+///
+/// Manifest V2 只记录本地 assessmentID / generationID、来源 run / commit、artifact checksum、
+/// byte count、schema version 和 producer version。`manifestHeld` 为 true 只证明本地
+/// evidence 可追溯，不授权 production cutover、secret read、endpoint / broker connection
+/// 或 submit / cancel / replace 命令。
+public struct ReadinessAssessmentManifestV2: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.12.0.readiness-assessment-manifest.v2"
+    public static let canonicalizationAlgorithm = "canonical-json-sha256"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let assessmentID: Identifier
+    public let generationID: Identifier
+    public let sourceRunIDs: [Identifier]
+    public let sourceCommit: String
+    public let schemaVersion: String
+    public let canonicalizationAlgorithm: String
+    public let artifactContentType: ReadinessAssessmentManifestV2ArtifactContentType
+    public let artifactSHA256: String
+    public let artifactBytes: Int
+    public let createdAt: Date
+    public let producerVersion: String
+    public let manifestChecksum: String
+    public let assessmentSessionLocalOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionBrokerConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let realOrderSubmissionEnabled: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let testnetOrderRoutingAllowed: Bool
+
+    public var manifestHeld: Bool {
+        issueID.rawValue == "GH-956"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-951", "GH-955"]
+            && releaseVersion == "v0.12.0"
+            && assessmentID.rawValue.isEmpty == false
+            && generationID.rawValue.isEmpty == false
+            && sourceRunIDs.isEmpty == false
+            && sourceRunIDs.allSatisfy { $0.rawValue.isEmpty == false }
+            && sourceRunIDs.map(\.rawValue) == sourceRunIDs.map(\.rawValue).sorted()
+            && Self.isValidSourceCommit(sourceCommit)
+            && schemaVersion == Self.schemaVersion
+            && canonicalizationAlgorithm == Self.canonicalizationAlgorithm
+            && Self.isValidSHA256Checksum(artifactSHA256)
+            && artifactBytes > 0
+            && producerVersion.isEmpty == false
+            && manifestChecksum == Self.stableManifestChecksum(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                sourceRunIDs: sourceRunIDs,
+                sourceCommit: sourceCommit,
+                artifactContentType: artifactContentType,
+                artifactSHA256: artifactSHA256,
+                artifactBytes: artifactBytes,
+                createdAt: createdAt,
+                producerVersion: producerVersion
+            )
+            && assessmentSessionLocalOnly
+            && productionCapabilitiesDisabled
+    }
+
+    public var manifestV2Path: String {
+        ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/manifest-v2.json"
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionBrokerConnected == false
+            && productionOrderSubmitted == false
+            && realOrderSubmissionEnabled == false
+            && testnetOrderSubmissionAllowed == false
+            && testnetOrderRoutingAllowed == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-956"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-951"), Identifier.constant("GH-955")],
+        releaseVersion: String = "v0.12.0",
+        assessmentID: Identifier,
+        generationID: Identifier,
+        sourceRunIDs: [Identifier],
+        sourceCommit: String,
+        schemaVersion: String = Self.schemaVersion,
+        canonicalizationAlgorithm: String = Self.canonicalizationAlgorithm,
+        artifactContentType: ReadinessAssessmentManifestV2ArtifactContentType,
+        artifactSHA256: String,
+        artifactBytes: Int,
+        createdAt: Date,
+        producerVersion: String,
+        manifestChecksum: String? = nil,
+        assessmentSessionLocalOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionBrokerConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        realOrderSubmissionEnabled: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(assessmentID)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(generationID)
+        for sourceRunID in sourceRunIDs {
+            try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(sourceRunID)
+        }
+        let sortedSourceRunIDs = sourceRunIDs.sorted { $0.rawValue < $1.rawValue }
+
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.assessmentID = assessmentID
+        self.generationID = generationID
+        self.sourceRunIDs = sortedSourceRunIDs
+        self.sourceCommit = sourceCommit
+        self.schemaVersion = schemaVersion
+        self.canonicalizationAlgorithm = canonicalizationAlgorithm
+        self.artifactContentType = artifactContentType
+        self.artifactSHA256 = artifactSHA256
+        self.artifactBytes = artifactBytes
+        self.createdAt = createdAt
+        self.producerVersion = producerVersion
+        self.manifestChecksum = manifestChecksum ?? Self.stableManifestChecksum(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            sourceRunIDs: sortedSourceRunIDs,
+            sourceCommit: sourceCommit,
+            artifactContentType: artifactContentType,
+            artifactSHA256: artifactSHA256,
+            artifactBytes: artifactBytes,
+            createdAt: createdAt,
+            producerVersion: producerVersion
+        )
+        self.assessmentSessionLocalOnly = assessmentSessionLocalOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionBrokerConnected = productionBrokerConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.realOrderSubmissionEnabled = realOrderSubmissionEnabled
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+
+        guard manifestHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessManifestV2")
+        }
+    }
+
+    public static func stableManifestChecksum(
+        assessmentID: Identifier,
+        generationID: Identifier,
+        sourceRunIDs: [Identifier],
+        sourceCommit: String,
+        artifactContentType: ReadinessAssessmentManifestV2ArtifactContentType,
+        artifactSHA256: String,
+        artifactBytes: Int,
+        createdAt: Date,
+        producerVersion: String
+    ) -> String {
+        stableSHA256([
+            "GH-956",
+            "v0.12.0",
+            Self.schemaVersion,
+            Self.canonicalizationAlgorithm,
+            assessmentID.rawValue,
+            generationID.rawValue,
+            sourceRunIDs.map(\.rawValue).sorted().joined(separator: ","),
+            sourceCommit,
+            artifactContentType.rawValue,
+            artifactSHA256,
+            String(artifactBytes),
+            String(createdAt.timeIntervalSince1970),
+            producerVersion,
+            "assessmentSessionLocalOnly=true",
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionBrokerConnected=false",
+            "productionOrderSubmitted=false",
+            "realOrderSubmissionEnabled=false",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false"
+        ])
+    }
+
+    public static func isValidSHA256Checksum(_ checksum: String) -> Bool {
+        guard checksum.hasPrefix("sha256:") else {
+            return false
+        }
+        let hex = checksum.dropFirst("sha256:".count)
+        return hex.count == 64 && hex.allSatisfy(Self.isLowercaseHexCharacter)
+    }
+
+    public static func isValidSourceCommit(_ sourceCommit: String) -> Bool {
+        sourceCommit.count == 40 && sourceCommit.allSatisfy(Self.isLowercaseHexCharacter)
+    }
+
+    private static func isLowercaseHexCharacter(_ character: Character) -> Bool {
+        Set("0123456789abcdef").contains(character)
     }
 
     private static func stableSHA256(_ parts: [String]) -> String {
@@ -1327,6 +1569,24 @@ public struct ReadinessAssessmentRegistryStore {
     }
 
     @discardableResult
+    public func writeManifestV2(_ manifest: ReadinessAssessmentManifestV2) throws -> ReadinessAssessmentManifestV2 {
+        try ensureStoreDirectories()
+        try createAssessmentDirectory(for: manifest.assessmentID)
+        try writeJSON(manifest, to: manifestV2URL(for: manifest.assessmentID))
+        return manifest
+    }
+
+    public func readManifestV2(assessmentID: Identifier) throws -> ReadinessAssessmentManifestV2 {
+        let manifestURL = manifestV2URL(for: assessmentID)
+        let data = try Data(contentsOf: manifestURL)
+        let manifest = try Self.decoder.decode(ReadinessAssessmentManifestV2.self, from: data)
+        guard manifest.assessmentID == assessmentID && manifest.manifestHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("decodedReadinessManifestV2")
+        }
+        return manifest
+    }
+
+    @discardableResult
     public func archive(
         assessmentID: Identifier,
         updatedAt: Date
@@ -1619,6 +1879,10 @@ public struct ReadinessAssessmentRegistryStore {
 
     private func commitMarkerURL(for assessmentID: Identifier) -> URL {
         assessmentDirectoryURL(for: assessmentID).appendingPathComponent("commit-marker.json", isDirectory: false)
+    }
+
+    private func manifestV2URL(for assessmentID: Identifier) -> URL {
+        assessmentDirectoryURL(for: assessmentID).appendingPathComponent("manifest-v2.json", isDirectory: false)
     }
 
     private func abortMarkerURL(for control: ReadinessAssessmentTransactionControl) -> URL {
