@@ -41,7 +41,16 @@ public enum ReadinessAssessmentRegistryStoreAnchors {
         "V0120-006-RAW-SECRET-LISTENKEY-REJECTION",
         "V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION",
         "V0120-006-CONTENT-VALIDATION-CHECKSUM",
-        "V0120-006-NO-PRODUCTION-CUTOVER"
+        "V0120-006-NO-PRODUCTION-CUTOVER",
+        "GH-958-VERIFY-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT",
+        "TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT",
+        "V0120-007-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT",
+        "V0120-007-READINESS-BUNDLE-V2-JSON",
+        "V0120-007-READINESS-BUNDLE-V2-MANIFEST-JSON",
+        "V0120-007-REVIEW-SNAPSHOT-IMMUTABLE",
+        "V0120-007-NEW-GENERATION-ON-CHANGE",
+        "V0120-007-BUNDLE-MANIFEST-CHECKSUM",
+        "V0120-007-NO-PRODUCTION-CUTOVER"
     ]
 }
 
@@ -1323,6 +1332,476 @@ public struct ReadinessAssessmentArtifactContentValidationResult: Codable, Equat
     }
 }
 
+/// ReadinessAssessmentBundleV2ReviewState 固定 GH-958 review snapshot 状态。
+///
+/// `in-review` 只表示本地 readiness bundle 已进入人工审阅证据阶段；它不是 approval，
+/// 也不会授权 production cutover、secret read、endpoint / broker connection 或订单命令。
+public enum ReadinessAssessmentBundleV2ReviewState: String, Codable, CaseIterable, Equatable, Sendable {
+    case draft
+    case inReview = "in-review"
+}
+
+/// ReadinessAssessmentBundleV2ArtifactSnapshot 记录 bundle 内单个本地 evidence artifact。
+///
+/// Snapshot 只引用 Manifest V2 / content-policy validation 的 checksum，不保存 raw secret、
+/// listenKey、endpoint response、broker payload 或 order payload。
+public struct ReadinessAssessmentBundleV2ArtifactSnapshot: Codable, Equatable, Sendable {
+    public let artifactID: Identifier
+    public let manifestChecksum: String
+    public let artifactSHA256: String
+    public let contentValidationChecksum: String
+    public let artifactPath: String
+    public let redactedEvidenceOnly: Bool
+    public let noSecretValue: Bool
+    public let noOrderPayload: Bool
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+
+    public var snapshotHeld: Bool {
+        artifactID.rawValue.isEmpty == false
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(manifestChecksum)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(artifactSHA256)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(contentValidationChecksum)
+            && artifactPath.hasPrefix(".local/mtpro/readiness/assessments/")
+            && artifactPath.hasSuffix(".json")
+            && redactedEvidenceOnly
+            && noSecretValue
+            && noOrderPayload
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+    }
+
+    public init(
+        artifactID: Identifier,
+        manifestChecksum: String,
+        artifactSHA256: String,
+        contentValidationChecksum: String,
+        artifactPath: String,
+        redactedEvidenceOnly: Bool = true,
+        noSecretValue: Bool = true,
+        noOrderPayload: Bool = true,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(artifactID)
+        self.artifactID = artifactID
+        self.manifestChecksum = manifestChecksum
+        self.artifactSHA256 = artifactSHA256
+        self.contentValidationChecksum = contentValidationChecksum
+        self.artifactPath = artifactPath
+        self.redactedEvidenceOnly = redactedEvidenceOnly
+        self.noSecretValue = noSecretValue
+        self.noOrderPayload = noOrderPayload
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+
+        guard snapshotHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessBundleV2ArtifactSnapshot")
+        }
+    }
+}
+
+/// ReadinessAssessmentBundleV2 是 GH-958 reviewable readiness bundle payload。
+///
+/// Bundle V2 是 assessment generation scoped 本地 JSON evidence。进入 `in-review` 后，
+/// 同一 generation 的 bundle 不允许原地修改；任何输入变化必须创建新的 generation。
+public struct ReadinessAssessmentBundleV2: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.12.0.readiness-bundle.v2"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let assessmentID: Identifier
+    public let generationID: Identifier
+    public let schemaVersion: String
+    public let bundlePath: String
+    public let manifestPath: String
+    public let reviewState: ReadinessAssessmentBundleV2ReviewState
+    public let sourceRunIDs: [Identifier]
+    public let sourceCommit: String
+    public let artifactSnapshots: [ReadinessAssessmentBundleV2ArtifactSnapshot]
+    public let createdAt: Date
+    public let producerVersion: String
+    public let bundleChecksum: String
+    public let immutableAfterReview: Bool
+    public let changeRequiresNewGeneration: Bool
+    public let assessmentSessionLocalOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let realOrderSubmissionEnabled: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let testnetOrderRoutingAllowed: Bool
+
+    public var bundleHeld: Bool {
+        issueID.rawValue == "GH-958"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-951", "GH-957"]
+            && releaseVersion == "v0.12.0"
+            && assessmentID.rawValue.isEmpty == false
+            && generationID.rawValue.isEmpty == false
+            && schemaVersion == Self.schemaVersion
+            && bundlePath == Self.bundlePath(assessmentID: assessmentID, generationID: generationID)
+            && manifestPath == Self.manifestPath(assessmentID: assessmentID, generationID: generationID)
+            && sourceRunIDs.isEmpty == false
+            && sourceRunIDs.map(\.rawValue) == sourceRunIDs.map(\.rawValue).sorted()
+            && sourceRunIDs.allSatisfy { $0.rawValue.isEmpty == false }
+            && ReadinessAssessmentManifestV2.isValidSourceCommit(sourceCommit)
+            && artifactSnapshots.isEmpty == false
+            && artifactSnapshots.allSatisfy(\.snapshotHeld)
+            && artifactSnapshots.map(\.artifactID.rawValue) == artifactSnapshots.map(\.artifactID.rawValue).sorted()
+            && Set(artifactSnapshots.map(\.artifactID.rawValue)).count == artifactSnapshots.count
+            && producerVersion.isEmpty == false
+            && bundleChecksum == Self.stableBundleChecksum(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                reviewState: reviewState,
+                sourceRunIDs: sourceRunIDs,
+                sourceCommit: sourceCommit,
+                artifactSnapshots: artifactSnapshots,
+                createdAt: createdAt,
+                producerVersion: producerVersion
+            )
+            && immutableAfterReview
+            && changeRequiresNewGeneration
+            && assessmentSessionLocalOnly
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && realOrderSubmissionEnabled == false
+            && testnetOrderSubmissionAllowed == false
+            && testnetOrderRoutingAllowed == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-958"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-951"), Identifier.constant("GH-957")],
+        releaseVersion: String = "v0.12.0",
+        assessmentID: Identifier,
+        generationID: Identifier,
+        schemaVersion: String = Self.schemaVersion,
+        reviewState: ReadinessAssessmentBundleV2ReviewState,
+        sourceRunIDs: [Identifier],
+        sourceCommit: String,
+        artifactSnapshots: [ReadinessAssessmentBundleV2ArtifactSnapshot],
+        createdAt: Date,
+        producerVersion: String,
+        bundleChecksum: String? = nil,
+        immutableAfterReview: Bool = true,
+        changeRequiresNewGeneration: Bool = true,
+        assessmentSessionLocalOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        realOrderSubmissionEnabled: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(assessmentID)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(generationID)
+        for sourceRunID in sourceRunIDs {
+            try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(sourceRunID)
+        }
+        let sortedSourceRunIDs = sourceRunIDs.sorted { $0.rawValue < $1.rawValue }
+        let sortedArtifactSnapshots = artifactSnapshots.sorted { $0.artifactID.rawValue < $1.artifactID.rawValue }
+
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.assessmentID = assessmentID
+        self.generationID = generationID
+        self.schemaVersion = schemaVersion
+        self.bundlePath = Self.bundlePath(assessmentID: assessmentID, generationID: generationID)
+        self.manifestPath = Self.manifestPath(assessmentID: assessmentID, generationID: generationID)
+        self.reviewState = reviewState
+        self.sourceRunIDs = sortedSourceRunIDs
+        self.sourceCommit = sourceCommit
+        self.artifactSnapshots = sortedArtifactSnapshots
+        self.createdAt = createdAt
+        self.producerVersion = producerVersion
+        self.bundleChecksum = bundleChecksum ?? Self.stableBundleChecksum(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            reviewState: reviewState,
+            sourceRunIDs: sortedSourceRunIDs,
+            sourceCommit: sourceCommit,
+            artifactSnapshots: sortedArtifactSnapshots,
+            createdAt: createdAt,
+            producerVersion: producerVersion
+        )
+        self.immutableAfterReview = immutableAfterReview
+        self.changeRequiresNewGeneration = changeRequiresNewGeneration
+        self.assessmentSessionLocalOnly = assessmentSessionLocalOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.realOrderSubmissionEnabled = realOrderSubmissionEnabled
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+
+        guard bundleHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessBundleV2")
+        }
+    }
+
+    public static func stableBundleChecksum(
+        assessmentID: Identifier,
+        generationID: Identifier,
+        reviewState: ReadinessAssessmentBundleV2ReviewState,
+        sourceRunIDs: [Identifier],
+        sourceCommit: String,
+        artifactSnapshots: [ReadinessAssessmentBundleV2ArtifactSnapshot],
+        createdAt: Date,
+        producerVersion: String
+    ) -> String {
+        stableSHA256([
+            "GH-958",
+            "v0.12.0",
+            Self.schemaVersion,
+            bundlePath(assessmentID: assessmentID, generationID: generationID),
+            manifestPath(assessmentID: assessmentID, generationID: generationID),
+            assessmentID.rawValue,
+            generationID.rawValue,
+            reviewState.rawValue,
+            sourceRunIDs.map(\.rawValue).sorted().joined(separator: ","),
+            sourceCommit,
+            String(createdAt.timeIntervalSince1970),
+            producerVersion,
+            "immutableAfterReview=true",
+            "changeRequiresNewGeneration=true",
+            "assessmentSessionLocalOnly=true",
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "realOrderSubmissionEnabled=false",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false"
+        ] + artifactSnapshots.sorted { $0.artifactID.rawValue < $1.artifactID.rawValue }.flatMap { snapshot in
+            [
+                snapshot.artifactID.rawValue,
+                snapshot.manifestChecksum,
+                snapshot.artifactSHA256,
+                snapshot.contentValidationChecksum,
+                snapshot.artifactPath
+            ]
+        })
+    }
+
+    public static func bundlePath(assessmentID: Identifier, generationID: Identifier) -> String {
+        ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/generations/\(generationID.rawValue)/readiness-bundle-v2.json"
+    }
+
+    public static func manifestPath(assessmentID: Identifier, generationID: Identifier) -> String {
+        ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/generations/\(generationID.rawValue)/readiness-bundle-v2.manifest.json"
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReadinessAssessmentBundleV2Manifest 记录 bundle JSON 的实际文件 checksum。
+///
+/// Manifest 只证明 review snapshot 的本地 bytes / checksum / generation identity；它不表示
+/// approval、cutover、broker connection 或 order authorization。
+public struct ReadinessAssessmentBundleV2Manifest: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.12.0.readiness-bundle-manifest.v2"
+    public static let canonicalizationAlgorithm = "canonical-json-sha256"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let assessmentID: Identifier
+    public let generationID: Identifier
+    public let schemaVersion: String
+    public let canonicalizationAlgorithm: String
+    public let bundlePath: String
+    public let manifestPath: String
+    public let bundleChecksum: String
+    public let bundleJSONSHA256: String
+    public let bundleBytes: Int
+    public let createdAt: Date
+    public let producerVersion: String
+    public let manifestChecksum: String
+    public let immutableAfterReview: Bool
+    public let changeRequiresNewGeneration: Bool
+    public let assessmentSessionLocalOnly: Bool
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+
+    public var manifestHeld: Bool {
+        issueID.rawValue == "GH-958"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-951", "GH-957"]
+            && releaseVersion == "v0.12.0"
+            && assessmentID.rawValue.isEmpty == false
+            && generationID.rawValue.isEmpty == false
+            && schemaVersion == Self.schemaVersion
+            && canonicalizationAlgorithm == Self.canonicalizationAlgorithm
+            && bundlePath == ReadinessAssessmentBundleV2.bundlePath(assessmentID: assessmentID, generationID: generationID)
+            && manifestPath == ReadinessAssessmentBundleV2.manifestPath(assessmentID: assessmentID, generationID: generationID)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(bundleChecksum)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(bundleJSONSHA256)
+            && bundleBytes > 0
+            && producerVersion.isEmpty == false
+            && manifestChecksum == Self.stableManifestChecksum(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                bundleChecksum: bundleChecksum,
+                bundleJSONSHA256: bundleJSONSHA256,
+                bundleBytes: bundleBytes,
+                createdAt: createdAt,
+                producerVersion: producerVersion
+            )
+            && immutableAfterReview
+            && changeRequiresNewGeneration
+            && assessmentSessionLocalOnly
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-958"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-951"), Identifier.constant("GH-957")],
+        releaseVersion: String = "v0.12.0",
+        assessmentID: Identifier,
+        generationID: Identifier,
+        schemaVersion: String = Self.schemaVersion,
+        canonicalizationAlgorithm: String = Self.canonicalizationAlgorithm,
+        bundleChecksum: String,
+        bundleJSONSHA256: String,
+        bundleBytes: Int,
+        createdAt: Date,
+        producerVersion: String,
+        manifestChecksum: String? = nil,
+        immutableAfterReview: Bool = true,
+        changeRequiresNewGeneration: Bool = true,
+        assessmentSessionLocalOnly: Bool = true,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(assessmentID)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(generationID)
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.assessmentID = assessmentID
+        self.generationID = generationID
+        self.schemaVersion = schemaVersion
+        self.canonicalizationAlgorithm = canonicalizationAlgorithm
+        self.bundlePath = ReadinessAssessmentBundleV2.bundlePath(assessmentID: assessmentID, generationID: generationID)
+        self.manifestPath = ReadinessAssessmentBundleV2.manifestPath(assessmentID: assessmentID, generationID: generationID)
+        self.bundleChecksum = bundleChecksum
+        self.bundleJSONSHA256 = bundleJSONSHA256
+        self.bundleBytes = bundleBytes
+        self.createdAt = createdAt
+        self.producerVersion = producerVersion
+        self.manifestChecksum = manifestChecksum ?? Self.stableManifestChecksum(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            bundleChecksum: bundleChecksum,
+            bundleJSONSHA256: bundleJSONSHA256,
+            bundleBytes: bundleBytes,
+            createdAt: createdAt,
+            producerVersion: producerVersion
+        )
+        self.immutableAfterReview = immutableAfterReview
+        self.changeRequiresNewGeneration = changeRequiresNewGeneration
+        self.assessmentSessionLocalOnly = assessmentSessionLocalOnly
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+
+        guard manifestHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessBundleV2Manifest")
+        }
+    }
+
+    public static func stableManifestChecksum(
+        assessmentID: Identifier,
+        generationID: Identifier,
+        bundleChecksum: String,
+        bundleJSONSHA256: String,
+        bundleBytes: Int,
+        createdAt: Date,
+        producerVersion: String
+    ) -> String {
+        stableSHA256([
+            "GH-958",
+            "v0.12.0",
+            Self.schemaVersion,
+            Self.canonicalizationAlgorithm,
+            ReadinessAssessmentBundleV2.bundlePath(assessmentID: assessmentID, generationID: generationID),
+            ReadinessAssessmentBundleV2.manifestPath(assessmentID: assessmentID, generationID: generationID),
+            assessmentID.rawValue,
+            generationID.rawValue,
+            bundleChecksum,
+            bundleJSONSHA256,
+            String(bundleBytes),
+            String(createdAt.timeIntervalSince1970),
+            producerVersion,
+            "immutableAfterReview=true",
+            "changeRequiresNewGeneration=true",
+            "assessmentSessionLocalOnly=true",
+            "productionCutoverAuthorized=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
 /// ReadinessAssessmentTransactionControl 固定 GH-955 assessment 写入交易的控制面。
 ///
 /// 它只描述本地 transactionID / generationID、staging directory、commit marker 和
@@ -1739,6 +2218,12 @@ public struct ReadinessAssessmentRegistryTransactionResult: Equatable, Sendable 
     public let commitMarker: ReadinessAssessmentCommitMarker
 }
 
+/// ReadinessAssessmentBundleV2SnapshotWriteResult 汇总 GH-958 review snapshot write evidence。
+public struct ReadinessAssessmentBundleV2SnapshotWriteResult: Equatable, Sendable {
+    public let bundle: ReadinessAssessmentBundleV2
+    public let manifest: ReadinessAssessmentBundleV2Manifest
+}
+
 /// ReadinessAssessmentRegistryStore 提供 GH-954 的本地 assessment history 持久化入口。
 ///
 /// Store 只操作 `.local/mtpro/readiness/registry.json`、`registry.lock` 和
@@ -2066,6 +2551,75 @@ public struct ReadinessAssessmentRegistryStore {
     }
 
     @discardableResult
+    public func writeReadinessBundleV2ReviewSnapshot(
+        _ bundle: ReadinessAssessmentBundleV2
+    ) throws -> ReadinessAssessmentBundleV2SnapshotWriteResult {
+        guard bundle.bundleHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessBundleV2:bundleHeld=false")
+        }
+        guard bundle.reviewState == .inReview else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessBundleV2:reviewStateMustBeInReview")
+        }
+
+        try ensureStoreDirectories()
+        try createAssessmentDirectory(for: bundle.assessmentID)
+        let bundleURL = readinessBundleV2URL(assessmentID: bundle.assessmentID, generationID: bundle.generationID)
+        let manifestURL = readinessBundleV2ManifestURL(assessmentID: bundle.assessmentID, generationID: bundle.generationID)
+
+        if fileManager.fileExists(atPath: bundleURL.path) || fileManager.fileExists(atPath: manifestURL.path) {
+            let existing = try readReadinessBundleV2(
+                assessmentID: bundle.assessmentID,
+                generationID: bundle.generationID
+            )
+            if existing.reviewState == .inReview {
+                throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessBundleV2:generationImmutable")
+            }
+        }
+
+        let bundleData = try Self.encoder.encode(bundle)
+        let manifest = try ReadinessAssessmentBundleV2Manifest(
+            assessmentID: bundle.assessmentID,
+            generationID: bundle.generationID,
+            bundleChecksum: bundle.bundleChecksum,
+            bundleJSONSHA256: Self.sha256Checksum(for: bundleData),
+            bundleBytes: bundleData.count,
+            createdAt: bundle.createdAt,
+            producerVersion: bundle.producerVersion
+        )
+        try writeData(bundleData, to: bundleURL)
+        try writeJSON(manifest, to: manifestURL)
+        return ReadinessAssessmentBundleV2SnapshotWriteResult(bundle: bundle, manifest: manifest)
+    }
+
+    public func readReadinessBundleV2(
+        assessmentID: Identifier,
+        generationID: Identifier
+    ) throws -> ReadinessAssessmentBundleV2 {
+        let data = try Data(contentsOf: readinessBundleV2URL(assessmentID: assessmentID, generationID: generationID))
+        let bundle = try Self.decoder.decode(ReadinessAssessmentBundleV2.self, from: data)
+        guard bundle.assessmentID == assessmentID,
+              bundle.generationID == generationID,
+              bundle.bundleHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("decodedReadinessBundleV2")
+        }
+        return bundle
+    }
+
+    public func readReadinessBundleV2Manifest(
+        assessmentID: Identifier,
+        generationID: Identifier
+    ) throws -> ReadinessAssessmentBundleV2Manifest {
+        let data = try Data(contentsOf: readinessBundleV2ManifestURL(assessmentID: assessmentID, generationID: generationID))
+        let manifest = try Self.decoder.decode(ReadinessAssessmentBundleV2Manifest.self, from: data)
+        guard manifest.assessmentID == assessmentID,
+              manifest.generationID == generationID,
+              manifest.manifestHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("decodedReadinessBundleV2Manifest")
+        }
+        return manifest
+    }
+
+    @discardableResult
     public func archive(
         assessmentID: Identifier,
         updatedAt: Date
@@ -2364,6 +2918,22 @@ public struct ReadinessAssessmentRegistryStore {
         assessmentDirectoryURL(for: assessmentID).appendingPathComponent("manifest-v2.json", isDirectory: false)
     }
 
+    private func generationDirectoryURL(assessmentID: Identifier, generationID: Identifier) -> URL {
+        assessmentDirectoryURL(for: assessmentID)
+            .appendingPathComponent("generations", isDirectory: true)
+            .appendingPathComponent(generationID.rawValue, isDirectory: true)
+    }
+
+    private func readinessBundleV2URL(assessmentID: Identifier, generationID: Identifier) -> URL {
+        generationDirectoryURL(assessmentID: assessmentID, generationID: generationID)
+            .appendingPathComponent("readiness-bundle-v2.json", isDirectory: false)
+    }
+
+    private func readinessBundleV2ManifestURL(assessmentID: Identifier, generationID: Identifier) -> URL {
+        generationDirectoryURL(assessmentID: assessmentID, generationID: generationID)
+            .appendingPathComponent("readiness-bundle-v2.manifest.json", isDirectory: false)
+    }
+
     private func abortMarkerURL(for control: ReadinessAssessmentTransactionControl) -> URL {
         assessmentDirectoryURL(for: control.assessmentID).appendingPathComponent(
             "abort-marker-\(control.transactionID.rawValue).json",
@@ -2372,13 +2942,17 @@ public struct ReadinessAssessmentRegistryStore {
     }
 
     private func writeJSON<T: Encodable>(_ value: T, to url: URL) throws {
+        let data = try Self.encoder.encode(value)
+        try writeData(data, to: url)
+    }
+
+    private func writeData(_ data: Data, to url: URL) throws {
         let parentURL = url.deletingLastPathComponent()
         try fileManager.createDirectory(
             at: parentURL,
             withIntermediateDirectories: true,
             attributes: [.posixPermissions: Self.ownerOnlyDirectoryPermissions]
         )
-        let data = try Self.encoder.encode(value)
         try data.write(to: url, options: .atomic)
         try fileManager.setAttributes(
             [.posixPermissions: Self.ownerOnlyFilePermissions],

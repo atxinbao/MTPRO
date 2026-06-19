@@ -30406,7 +30406,7 @@ final class TargetGraphTests: XCTestCase {
     func testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata() throws {
         // 测试场景：GH-954 只把多次 readiness assessment 历史写入本地 registry；
         // compare-ready 仍是本地 metadata state，不是 cutover、broker 或 order authority。
-        XCTAssertEqual(ReadinessAssessmentRegistryStoreAnchors.validationAnchors, [
+        let expectedRegistryAnchors = [
             "GH-954-VERIFY-V0120-READINESS-ASSESSMENT-REGISTRY-STORE",
             "TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE",
             "V0120-003-READINESS-ASSESSMENT-REGISTRY-STORE",
@@ -30440,7 +30440,13 @@ final class TargetGraphTests: XCTestCase {
             "V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION",
             "V0120-006-CONTENT-VALIDATION-CHECKSUM",
             "V0120-006-NO-PRODUCTION-CUTOVER"
-        ])
+        ]
+        for anchor in expectedRegistryAnchors {
+            XCTAssertTrue(
+                ReadinessAssessmentRegistryStoreAnchors.validationAnchors.contains(anchor),
+                "\(anchor) must stay in registry store anchors"
+            )
+        }
         XCTAssertEqual(
             ReadinessAssessmentRegistryState.allCases.map(\.rawValue),
             [
@@ -31147,6 +31153,217 @@ final class TargetGraphTests: XCTestCase {
                 error as? ReadinessAssessmentRegistryStoreError,
                 .boundaryDrift("artifactContentPolicy:artifactSHA256Mismatch")
             )
+        }
+    }
+
+    func testGH958ImmutableReadinessBundleSnapshotRequiresNewGenerationOnChange() throws {
+        // 测试场景：GH-958 在 artifact content-policy 之后生成 reviewable readiness bundle。
+        // 一旦 bundle 进入 in-review，同一 generation 禁止原地修改；输入变化必须写入新 generation。
+        XCTAssertTrue(
+            ReadinessAssessmentRegistryStoreAnchors.validationAnchors.contains(
+                "GH-958-VERIFY-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT"
+            )
+        )
+        XCTAssertTrue(
+            ReadinessAssessmentRegistryStoreAnchors.validationAnchors.contains(
+                "V0120-007-NEW-GENERATION-ON-CHANGE"
+            )
+        )
+        XCTAssertEqual(ReadinessAssessmentBundleV2ReviewState.allCases.map(\.rawValue), ["draft", "in-review"])
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH958-ImmutableBundle-\(UUID().uuidString)", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: root)
+        }
+
+        let store = ReadinessAssessmentRegistryStore(storageRootURL: root)
+        let assessmentID = Identifier.constant("gh-958-assessment")
+        let sourceCommit = "0517bf8afdd4ab17d6370eb00856abd2833db33f"
+        let createdAt = Date(timeIntervalSince1970: 1_812_400_000)
+
+        func artifactSnapshot(_ id: String, hex: Character, pathGeneration: String) throws -> ReadinessAssessmentBundleV2ArtifactSnapshot {
+            let checksum = "sha256:\(String(repeating: String(hex), count: 64))"
+            return try ReadinessAssessmentBundleV2ArtifactSnapshot(
+                artifactID: Identifier.constant(id),
+                manifestChecksum: checksum,
+                artifactSHA256: checksum,
+                contentValidationChecksum: checksum,
+                artifactPath: ".local/mtpro/readiness/assessments/gh-958-assessment/generations/\(pathGeneration)/artifacts/\(id).json"
+            )
+        }
+
+        let generation1 = Identifier.constant("gh-958-generation-1")
+        let bundle1 = try ReadinessAssessmentBundleV2(
+            assessmentID: assessmentID,
+            generationID: generation1,
+            reviewState: .inReview,
+            sourceRunIDs: [Identifier.constant("gh-958-run-a"), Identifier.constant("gh-958-run-b")],
+            sourceCommit: sourceCommit,
+            artifactSnapshots: [
+                artifactSnapshot("gh-958-redacted-artifact-a", hex: "a", pathGeneration: generation1.rawValue)
+            ],
+            createdAt: createdAt,
+            producerVersion: "mtpro-v0.12.0-gh958"
+        )
+        XCTAssertTrue(bundle1.bundleHeld)
+        XCTAssertEqual(
+            bundle1.bundlePath,
+            ".local/mtpro/readiness/assessments/gh-958-assessment/generations/gh-958-generation-1/readiness-bundle-v2.json"
+        )
+        XCTAssertEqual(
+            bundle1.manifestPath,
+            ".local/mtpro/readiness/assessments/gh-958-assessment/generations/gh-958-generation-1/readiness-bundle-v2.manifest.json"
+        )
+        XCTAssertFalse(bundle1.productionCutoverAuthorized)
+        XCTAssertFalse(bundle1.productionSecretRead)
+        XCTAssertFalse(bundle1.productionEndpointConnected)
+        XCTAssertFalse(bundle1.brokerEndpointConnected)
+        XCTAssertFalse(bundle1.productionOrderSubmitted)
+
+        let write1 = try store.writeReadinessBundleV2ReviewSnapshot(bundle1)
+        XCTAssertEqual(write1.bundle, bundle1)
+        XCTAssertTrue(write1.manifest.manifestHeld)
+        XCTAssertEqual(write1.manifest.bundleChecksum, bundle1.bundleChecksum)
+        XCTAssertTrue(write1.manifest.bundleJSONSHA256.hasPrefix("sha256:"))
+        XCTAssertEqual(write1.manifest.bundleJSONSHA256.dropFirst("sha256:".count).count, 64)
+        XCTAssertGreaterThan(write1.manifest.bundleBytes, 0)
+        XCTAssertEqual(try store.readReadinessBundleV2(assessmentID: assessmentID, generationID: generation1), bundle1)
+        XCTAssertEqual(try store.readReadinessBundleV2Manifest(assessmentID: assessmentID, generationID: generation1), write1.manifest)
+
+        XCTAssertThrowsError(
+            try store.writeReadinessBundleV2ReviewSnapshot(bundle1)
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessBundleV2:generationImmutable"))
+        }
+
+        let changedSameGeneration = try ReadinessAssessmentBundleV2(
+            assessmentID: assessmentID,
+            generationID: generation1,
+            reviewState: .inReview,
+            sourceRunIDs: [Identifier.constant("gh-958-run-a"), Identifier.constant("gh-958-run-b")],
+            sourceCommit: sourceCommit,
+            artifactSnapshots: [
+                artifactSnapshot("gh-958-redacted-artifact-a", hex: "a", pathGeneration: generation1.rawValue),
+                artifactSnapshot("gh-958-redacted-artifact-b", hex: "b", pathGeneration: generation1.rawValue)
+            ],
+            createdAt: createdAt.addingTimeInterval(60),
+            producerVersion: "mtpro-v0.12.0-gh958"
+        )
+        XCTAssertNotEqual(changedSameGeneration.bundleChecksum, bundle1.bundleChecksum)
+        XCTAssertThrowsError(
+            try store.writeReadinessBundleV2ReviewSnapshot(changedSameGeneration)
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessBundleV2:generationImmutable"))
+        }
+
+        let generation2 = Identifier.constant("gh-958-generation-2")
+        let bundle2 = try ReadinessAssessmentBundleV2(
+            assessmentID: assessmentID,
+            generationID: generation2,
+            reviewState: .inReview,
+            sourceRunIDs: [Identifier.constant("gh-958-run-a"), Identifier.constant("gh-958-run-b")],
+            sourceCommit: sourceCommit,
+            artifactSnapshots: [
+                artifactSnapshot("gh-958-redacted-artifact-a", hex: "a", pathGeneration: generation2.rawValue),
+                artifactSnapshot("gh-958-redacted-artifact-b", hex: "b", pathGeneration: generation2.rawValue)
+            ],
+            createdAt: createdAt.addingTimeInterval(120),
+            producerVersion: "mtpro-v0.12.0-gh958"
+        )
+        let write2 = try store.writeReadinessBundleV2ReviewSnapshot(bundle2)
+        XCTAssertNotEqual(bundle2.generationID, bundle1.generationID)
+        XCTAssertNotEqual(bundle2.bundlePath, bundle1.bundlePath)
+        XCTAssertNotEqual(bundle2.bundleChecksum, bundle1.bundleChecksum)
+        XCTAssertEqual(try store.readReadinessBundleV2(assessmentID: assessmentID, generationID: generation2), bundle2)
+        XCTAssertEqual(try store.readReadinessBundleV2Manifest(assessmentID: assessmentID, generationID: generation2), write2.manifest)
+        XCTAssertNotEqual(write2.manifest.bundleJSONSHA256, write1.manifest.bundleJSONSHA256)
+        XCTAssertNotEqual(write2.manifest.manifestChecksum, write1.manifest.manifestChecksum)
+
+        let draft = try ReadinessAssessmentBundleV2(
+            assessmentID: Identifier.constant("gh-958-draft-assessment"),
+            generationID: Identifier.constant("gh-958-draft-generation"),
+            reviewState: .draft,
+            sourceRunIDs: [Identifier.constant("gh-958-run-a")],
+            sourceCommit: sourceCommit,
+            artifactSnapshots: [
+                artifactSnapshot("gh-958-draft-artifact", hex: "c", pathGeneration: "gh-958-draft-generation")
+            ],
+            createdAt: createdAt,
+            producerVersion: "mtpro-v0.12.0-gh958"
+        )
+        XCTAssertThrowsError(
+            try store.writeReadinessBundleV2ReviewSnapshot(draft)
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessBundleV2:reviewStateMustBeInReview"))
+        }
+
+        XCTAssertThrowsError(
+            try ReadinessAssessmentBundleV2(
+                assessmentID: Identifier.constant("gh-958-bad-assessment"),
+                generationID: Identifier.constant("gh-958-bad-generation"),
+                reviewState: .inReview,
+                sourceRunIDs: [Identifier.constant("gh-958-run-a")],
+                sourceCommit: sourceCommit,
+                artifactSnapshots: [
+                    artifactSnapshot("gh-958-bad-artifact", hex: "d", pathGeneration: "gh-958-bad-generation")
+                ],
+                createdAt: createdAt,
+                producerVersion: "mtpro-v0.12.0-gh958",
+                productionCutoverAuthorized: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessBundleV2"))
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift")
+        let contract = try read("docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md")
+        let verifier = try read("checks/verify-v0.12.0.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "GH-958-VERIFY-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT",
+            "TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT",
+            "V0120-007-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT",
+            "V0120-007-READINESS-BUNDLE-V2-JSON",
+            "V0120-007-READINESS-BUNDLE-V2-MANIFEST-JSON",
+            "V0120-007-REVIEW-SNAPSHOT-IMMUTABLE",
+            "V0120-007-NEW-GENERATION-ON-CHANGE",
+            "V0120-007-BUNDLE-MANIFEST-CHECKSUM",
+            "V0120-007-NO-PRODUCTION-CUTOVER"
+        ]
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-958 source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.12.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.12.0 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in readiness docs")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest summary")
+        }
+
+        for expectedSource in [
+            "ReadinessAssessmentBundleV2",
+            "ReadinessAssessmentBundleV2Manifest",
+            "ReadinessAssessmentBundleV2ArtifactSnapshot",
+            "writeReadinessBundleV2ReviewSnapshot",
+            "readiness-bundle-v2.json",
+            "readiness-bundle-v2.manifest.json",
+            "readinessBundleV2:generationImmutable",
+            "changeRequiresNewGeneration"
+        ] {
+            XCTAssertTrue(source.contains(expectedSource), "\(expectedSource) must stay represented in GH-958 source")
         }
     }
 

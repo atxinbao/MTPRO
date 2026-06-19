@@ -47,6 +47,15 @@ set -euo pipefail
 # V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION
 # V0120-006-CONTENT-VALIDATION-CHECKSUM
 # V0120-006-NO-PRODUCTION-CUTOVER
+# GH-958-VERIFY-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+# TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+# V0120-007-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+# V0120-007-READINESS-BUNDLE-V2-JSON
+# V0120-007-READINESS-BUNDLE-V2-MANIFEST-JSON
+# V0120-007-REVIEW-SNAPSHOT-IMMUTABLE
+# V0120-007-NEW-GENERATION-ON-CHANGE
+# V0120-007-BUNDLE-MANIFEST-CHECKSUM
+# V0120-007-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -94,6 +103,7 @@ swift test --filter TargetGraphTests/testGH954ReadinessAssessmentRegistryStorePe
 swift test --filter TargetGraphTests/testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery
 swift test --filter TargetGraphTests/testGH956ReadinessManifestV2RecordsAssessmentGenerationAndProvenance
 swift test --filter TargetGraphTests/testGH957ArtifactContentPolicyRejectsSecretsListenKeysOrdersAndEndpointResponses
+swift test --filter TargetGraphTests/testGH958ImmutableReadinessBundleSnapshotRequiresNewGenerationOnChange
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -141,7 +151,16 @@ for anchor in \
   "V0120-006-RAW-SECRET-LISTENKEY-REJECTION" \
   "V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION" \
   "V0120-006-CONTENT-VALIDATION-CHECKSUM" \
-  "V0120-006-NO-PRODUCTION-CUTOVER"; do
+  "V0120-006-NO-PRODUCTION-CUTOVER" \
+  "GH-958-VERIFY-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT" \
+  "TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT" \
+  "V0120-007-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT" \
+  "V0120-007-READINESS-BUNDLE-V2-JSON" \
+  "V0120-007-READINESS-BUNDLE-V2-MANIFEST-JSON" \
+  "V0120-007-REVIEW-SNAPSHOT-IMMUTABLE" \
+  "V0120-007-NEW-GENERATION-ON-CHANGE" \
+  "V0120-007-BUNDLE-MANIFEST-CHECKSUM" \
+  "V0120-007-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -149,7 +168,7 @@ for anchor in \
   require_file_contains "$LATEST" "$anchor"
   require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
   require_file_contains "$TESTS" "$anchor"
-  if [[ "$anchor" == GH-954-* || "$anchor" == GH-955-* || "$anchor" == GH-956-* || "$anchor" == GH-957-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK || "$anchor" == TVM-RELEASE-V0120-READINESS-MANIFEST-V2 || "$anchor" == TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION || "$anchor" == V0120-003-* || "$anchor" == V0120-004-* || "$anchor" == V0120-005-* || "$anchor" == V0120-006-* ]]; then
+  if [[ "$anchor" == GH-954-* || "$anchor" == GH-955-* || "$anchor" == GH-956-* || "$anchor" == GH-957-* || "$anchor" == GH-958-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK || "$anchor" == TVM-RELEASE-V0120-READINESS-MANIFEST-V2 || "$anchor" == TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION || "$anchor" == TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT || "$anchor" == V0120-003-* || "$anchor" == V0120-004-* || "$anchor" == V0120-005-* || "$anchor" == V0120-006-* || "$anchor" == V0120-007-* ]]; then
     require_file_contains "$REGISTRY_SOURCE" "$anchor"
   fi
 done
@@ -249,6 +268,23 @@ require_file_contains "$PLAN" "GH-957 Release v0.12.0 Artifact Content-policy / 
 require_file_contains "$MATRIX" "TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION"
 require_file_contains "$LATEST" "Release v0.12.0 Artifact Content-policy / Redaction Validator Snapshot"
 require_file_contains "$TESTS" "testGH957ArtifactContentPolicyRejectsSecretsListenKeysOrdersAndEndpointResponses"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentBundleV2"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentBundleV2Manifest"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentBundleV2ArtifactSnapshot"
+require_file_contains "$REGISTRY_SOURCE" "writeReadinessBundleV2ReviewSnapshot"
+require_file_contains "$REGISTRY_SOURCE" "readiness-bundle-v2.json"
+require_file_contains "$REGISTRY_SOURCE" "readiness-bundle-v2.manifest.json"
+require_file_contains "$REGISTRY_SOURCE" "readinessBundleV2:generationImmutable"
+require_file_contains "$REGISTRY_SOURCE" "changeRequiresNewGeneration"
+require_file_contains "$CONTRACT" "V0120-007-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT"
+require_file_contains "$CONTRACT" "readiness-bundle-v2.json"
+require_file_contains "$CONTRACT" "readiness-bundle-v2.manifest.json"
+require_file_contains "$CONTRACT" "同一 generation"
+require_file_contains "$READINESS" "Release v0.12.0 immutable readiness bundle snapshot anchor"
+require_file_contains "$PLAN" "GH-958 Release v0.12.0 Immutable Readiness Bundle Snapshot Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT"
+require_file_contains "$LATEST" "Release v0.12.0 Immutable Readiness Bundle Snapshot"
+require_file_contains "$TESTS" "testGH958ImmutableReadinessBundleSnapshotRequiresNewGenerationOnChange"
 require_file_contains "$RELEASE_POLICY" "V0120-002-V011X-RELEASE-PATCH-FACT-BASELINE"
 require_file_contains "$RELEASE_POLICY" "v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public Release 后的 guard hardening closeout"
 require_file_contains "$README" "v0.11.1 patch closeout 不创建"

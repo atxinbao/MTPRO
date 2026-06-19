@@ -2817,3 +2817,23 @@
 - raw marker rejection: raw artifact bytes must not contain raw secret markers, raw listenKey markers, signed account endpoint paths, order endpoint paths, user data stream endpoint paths, exchange API key headers, production exchange hosts or listenKey query markers
 - content validation checksum: accepted artifact content records `contentValidationChecksum` after Manifest V2 `artifactSHA256` is recomputed and matched
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+
+- GH-958-VERIFY-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+- TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+- V0120-007-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+- V0120-007-READINESS-BUNDLE-V2-JSON
+- V0120-007-READINESS-BUNDLE-V2-MANIFEST-JSON
+- V0120-007-REVIEW-SNAPSHOT-IMMUTABLE
+- V0120-007-NEW-GENERATION-ON-CHANGE
+- V0120-007-BUNDLE-MANIFEST-CHECKSUM
+- V0120-007-NO-PRODUCTION-CUTOVER
+- GH-958 Release v0.12.0 Immutable Readiness Bundle Snapshot Validation
+- testGH958ImmutableReadinessBundleSnapshotRequiresNewGenerationOnChange
+- bundle path: `.local/mtpro/readiness/assessments/<assessmentID>/generations/<generationID>/readiness-bundle-v2.json`
+- manifest path: `.local/mtpro/readiness/assessments/<assessmentID>/generations/<generationID>/readiness-bundle-v2.manifest.json`
+- review immutability: once `reviewState=in-review` is persisted for a generation, same-generation rewrite must fail closed
+- changed input rule: changed artifact snapshot, source run, source commit, producer version or generated content must create a new `generationID`
+- checksum evidence: bundle records stable `bundleChecksum`; manifest records stable `manifestChecksum`, `bundleJSONSHA256` and `bundleBytes`
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

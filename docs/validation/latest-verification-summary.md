@@ -1840,3 +1840,23 @@ bash checks/run.sh
 - #957 adds assessment artifact JSON content-policy validation for `allowedJSONFields`, `requiredJSONFields`, `forbiddenJSONFields`, `forbiddenRawMarkers`, `policyChecksum`, `artifactSHA256` and `contentValidationChecksum`.
 - #957 rejects raw secret, raw listenKey, private payload, order payload, production endpoint response, unexpected top-level field, missing required field and artifact SHA256 mismatch.
 - #957 does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
+
+## Release v0.12.0 Immutable Readiness Bundle Snapshot
+
+- GH-958-VERIFY-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+- TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+- V0120-007-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT
+- V0120-007-READINESS-BUNDLE-V2-JSON
+- V0120-007-READINESS-BUNDLE-V2-MANIFEST-JSON
+- V0120-007-REVIEW-SNAPSHOT-IMMUTABLE
+- V0120-007-NEW-GENERATION-ON-CHANGE
+- V0120-007-BUNDLE-MANIFEST-CHECKSUM
+- V0120-007-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- Contract source: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- Validation source: `checks/verify-v0.12.0.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH958ImmutableReadinessBundleSnapshotRequiresNewGenerationOnChange`
+- #958 adds assessment generation scoped `readiness-bundle-v2.json` and `readiness-bundle-v2.manifest.json` review snapshot evidence.
+- #958 records `assessmentID`, `generationID`, `reviewState=in-review`, `sourceRunIDs`, `sourceCommit`, artifact snapshot checksum references, stable `bundleChecksum`, actual bundle JSON SHA256 / byte count and stable `manifestChecksum`.
+- #958 fails closed when an `in-review` generation is rewritten in place; changed inputs must create a new generation directory and new manifest evidence.
+- #958 does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
