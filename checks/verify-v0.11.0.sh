@@ -669,4 +669,6 @@ swift test --filter TargetGraphTests/testGH922KillSwitchNoTradeStateModelFailsCl
 swift test --filter TargetGraphTests/testGH923AuditableApprovalWorkflowTransitionsFailClosedAndExportLocalEvidence
 swift test --filter TargetGraphTests/testGH924ReleaseV0110FinalAuditReleaseDocsCloseout
 
+bash checks/verify-v0.11.1-release-fact-sync.sh
+
 echo "MTPRO release v0.11.0 production readiness evidence runtime verification passed."

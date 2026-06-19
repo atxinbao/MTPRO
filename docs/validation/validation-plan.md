@@ -6,6 +6,17 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-945 Release v0.11.1 Release Fact Sync / Stale Wording Guard Validation
+
+- `GH-945-VERIFY-V0111-RELEASE-FACT-STALE-WORDING-GUARD`
+- `V0111-001-RELEASE-FACT-SYNC-GUARD`
+- `V0111-001-FOUR-GATE-RELEASE-FLOW`
+- `TVM-RELEASE-V0111-RELEASE-FACT-SYNC-GUARD`
+- Required command: `bash checks/verify-v0.11.1-release-fact-sync.sh`
+- Focused test: `testGH945ReleaseFactSyncGuardRejectsV0110StalePublicationWording`
+- Evidence files: `checks/verify-v0.11.1-release-fact-sync.sh`、`docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md`、`docs/validation/trading-validation-matrix.md`、`docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md` 和 `docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md`。
+- Boundary: GH-945 只固定 v0.11.0 Release Publication Gate 后的 fact sync / stale wording guard；v0.11.0 public GitHub Release 已发布于 `https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`，tag peeled commit `13f592d0710de91351286e5c5490bfacb63c19b0`，publication timestamp `2026-06-19T01:20:58Z`。#924 历史 closeout 本身不创建 tag / GitHub Release 的 wording 必须明确限定为 #924；后续 publication fact 不推进下一 Project / Issue，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-924 Release v0.11.0 Final Audit / Release Docs Validation
 
 - `GH-924-VERIFY-V0110-FINAL-AUDIT-RELEASE-DOCS`

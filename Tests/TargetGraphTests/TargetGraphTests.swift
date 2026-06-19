@@ -29106,6 +29106,112 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH945ReleaseFactSyncGuardRejectsV0110StalePublicationWording() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let policy = try read("docs/release/release-publication-policy.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let releaseFactSyncVerifier = try read("checks/verify-v0.11.1-release-fact-sync.sh")
+        let v0110Verifier = try read("checks/verify-v0.11.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+
+        let v0110PublicationURL = "https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0"
+        let v0110TargetCommit = "13f592d0710de91351286e5c5490bfacb63c19b0"
+        let v0110PublicationTimestamp = "2026-06-19T01:20:58Z"
+
+        for anchor in [
+            "GH-945-VERIFY-V0111-RELEASE-FACT-STALE-WORDING-GUARD",
+            "V0111-001-RELEASE-FACT-SYNC-GUARD",
+            "V0111-001-FOUR-GATE-RELEASE-FLOW",
+            "TVM-RELEASE-V0111-RELEASE-FACT-SYNC-GUARD"
+        ] {
+            XCTAssertTrue(policy.contains(anchor), "\(anchor) must be documented in release publication policy")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be covered by automation readiness")
+            XCTAssertTrue(releaseFactSyncVerifier.contains(anchor), "\(anchor) must be enforced by the focused guard")
+        }
+
+        XCTAssertTrue(policy.contains("v0.11.0 的 construction closeout、Release Publication Gate、release fact sync / stale wording guard 和 production cutover 仍是独立 gate"))
+        XCTAssertTrue(releaseFactSyncVerifier.contains(v0110PublicationURL))
+        XCTAssertTrue(releaseFactSyncVerifier.contains(v0110TargetCommit))
+        XCTAssertTrue(releaseFactSyncVerifier.contains(v0110PublicationTimestamp))
+        XCTAssertTrue(v0110Verifier.contains("bash checks/verify-v0.11.1-release-fact-sync.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1-release-fact-sync.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.11.1-release-fact-sync.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.11.1 release fact sync stale wording guard anchor"))
+        XCTAssertTrue(latest.contains("v0.11.1 release fact stale wording guard"))
+
+        let docsToGuard = [
+            try read("README.md"),
+            try read("docs/roadmap.md"),
+            policy,
+            try read("docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md"),
+            try read("docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md"),
+            latest,
+            validationPlan,
+            tradingMatrix,
+            readiness
+        ]
+
+        for document in docsToGuard {
+            XCTAssertTrue(document.contains(v0110PublicationURL), "v0.11.0 release URL must stay synchronized")
+            XCTAssertTrue(document.contains(v0110TargetCommit), "v0.11.0 tag target must stay synchronized")
+            XCTAssertTrue(document.contains(v0110PublicationTimestamp), "v0.11.0 publication timestamp must stay synchronized")
+
+            for line in document.components(separatedBy: .newlines) {
+                let mentionsV0110 = line.contains("v0.11.0")
+                let containsStalePublicationWording = [
+                    "publication pending",
+                    "release pending",
+                    "tag pending",
+                    "release not created",
+                    "construction closeout only",
+                    "construction closeout final state",
+                    "PR pending",
+                    "不创建 tag",
+                    "不创建 public tag",
+                    "不创建 GitHub Release",
+                    "不发布 GitHub Release",
+                    "没有 tag",
+                    "没有 GitHub Release",
+                    "仍需创建 release",
+                    "未创建 release",
+                    "待发布",
+                    "release artifact 缺失"
+                ].contains { line.contains($0) }
+
+                if mentionsV0110 && containsStalePublicationWording {
+                    XCTAssertTrue(
+                        line.contains("#924") || line.contains("GH-924") || line.contains("V0110-012-NO-PUBLIC-RELEASE-PUBLICATION"),
+                        "stale publication wording must be scoped to #924 historical closeout: \(line)"
+                    )
+                }
+            }
+        }
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault == true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true"
+        ] {
+            XCTAssertFalse(policy.contains(forbiddenAuthorization))
+            XCTAssertFalse(readiness.contains(forbiddenAuthorization))
+        }
+    }
+
     func testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
