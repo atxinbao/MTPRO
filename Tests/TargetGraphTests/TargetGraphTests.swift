@@ -28740,6 +28740,7 @@ final class TargetGraphTests: XCTestCase {
 
         let workflowSource = try read(".github/workflows/checks.yml")
         let dashboardGuardScript = try read("checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh")
+        let aggregateVerifier = try read("checks/verify-v0.11.1.sh")
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
@@ -28787,7 +28788,8 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertTrue(dashboardGuardScript.contains(requiredCommand), "\(requiredCommand) must run in v0.11 macOS guard")
         }
 
-        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh"))
+        XCTAssertTrue(aggregateVerifier.contains("bash checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1.sh"))
         XCTAssertTrue(readinessScript.contains("checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh"))
         XCTAssertTrue(readinessScript.contains("testGH946DashboardMacOSV0110GuardRunsReadinessArtifactStateBeforeBuildAndSmoke"))
         XCTAssertTrue(dashboardSource.contains("GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE"))
@@ -29256,6 +29258,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let latest = try read("docs/validation/latest-verification-summary.md")
         let releaseFactSyncVerifier = try read("checks/verify-v0.11.1-release-fact-sync.sh")
+        let aggregateVerifier = try read("checks/verify-v0.11.1.sh")
         let v0110Verifier = try read("checks/verify-v0.11.0.sh")
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
@@ -29282,7 +29285,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(releaseFactSyncVerifier.contains(v0110TargetCommit))
         XCTAssertTrue(releaseFactSyncVerifier.contains(v0110PublicationTimestamp))
         XCTAssertTrue(v0110Verifier.contains("bash checks/verify-v0.11.1-release-fact-sync.sh"))
-        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1-release-fact-sync.sh"))
+        XCTAssertTrue(aggregateVerifier.contains("bash checks/verify-v0.11.1-release-fact-sync.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1.sh"))
         XCTAssertTrue(readinessScript.contains("checks/verify-v0.11.1-release-fact-sync.sh"))
         XCTAssertTrue(readiness.contains("Release v0.11.1 release fact sync stale wording guard anchor"))
         XCTAssertTrue(latest.contains("v0.11.1 release fact stale wording guard"))
@@ -30016,6 +30020,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift")
         let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
         let verifier = try read("checks/verify-v0.11.1-readiness-artifact-permissions.sh")
+        let aggregateVerifier = try read("checks/verify-v0.11.1.sh")
         let runScript = try read("checks/run.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
@@ -30041,7 +30046,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tests.contains("testGH949ProductionReadinessArtifactStoreEnforcesOwnerOnlyPermissions"))
         XCTAssertTrue(verifier.contains("testGH949ProductionReadinessArtifactStoreEnforcesOwnerOnlyPermissions"))
         XCTAssertTrue(verifier.contains("testGH949ReadinessArtifactPermissionGuardAnchors"))
-        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1-readiness-artifact-permissions.sh"))
+        XCTAssertTrue(aggregateVerifier.contains("bash checks/verify-v0.11.1-readiness-artifact-permissions.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1.sh"))
         XCTAssertTrue(readiness.contains("Release v0.11.1 readiness artifact permission guard anchor"))
         XCTAssertTrue(validationPlan.contains("GH-949 Release v0.11.1 Readiness Artifact Permission Validation"))
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0111-READINESS-ARTIFACT-PERMISSIONS"))
@@ -30056,6 +30062,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift")
         let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
         let verifier = try read("checks/verify-v0.11.1-readiness-artifact-symlink-root.sh")
+        let aggregateVerifier = try read("checks/verify-v0.11.1.sh")
         let runScript = try read("checks/run.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
@@ -30081,10 +30088,73 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tests.contains("testGH948ProductionReadinessArtifactStoreRejectsSymlinkEscapes"))
         XCTAssertTrue(verifier.contains("testGH948ProductionReadinessArtifactStoreRejectsSymlinkEscapes"))
         XCTAssertTrue(verifier.contains("testGH948ReadinessArtifactSymlinkRootGuardAnchors"))
-        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1-readiness-artifact-symlink-root.sh"))
+        XCTAssertTrue(aggregateVerifier.contains("bash checks/verify-v0.11.1-readiness-artifact-symlink-root.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1.sh"))
         XCTAssertTrue(readiness.contains("Release v0.11.1 readiness artifact symlink root guard anchor"))
         XCTAssertTrue(validationPlan.contains("GH-948 Release v0.11.1 Readiness Artifact Symlink Root Validation"))
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0111-READINESS-ARTIFACT-SYMLINK-ROOT"))
+    }
+
+    func testGH950ReleaseV0111PatchAggregateVerifierAnchors() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let aggregateVerifier = try read("checks/verify-v0.11.1.sh")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+
+        for anchor in [
+            "GH-950-VERIFY-V0111-PATCH-AGGREGATE-GUARD",
+            "TVM-RELEASE-V0111-PATCH-AGGREGATE-GUARD",
+            "V0111-006-PATCH-AGGREGATE-VERIFY",
+            "V0111-006-RELEASE-FACT-SYNC",
+            "V0111-006-DASHBOARD-MACOS-SHA256-STATE",
+            "V0111-006-ARTIFACT-SYMLINK-PERMISSIONS",
+            "V0111-006-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(aggregateVerifier.contains(anchor), "\(anchor) must stay in v0.11.1 aggregate verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        for focusedVerifier in [
+            "bash checks/verify-v0.11.1-release-fact-sync.sh",
+            "bash checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh",
+            "bash checks/verify-v0.11.1-readiness-artifact-symlink-root.sh",
+            "bash checks/verify-v0.11.1-readiness-artifact-permissions.sh"
+        ] {
+            XCTAssertTrue(aggregateVerifier.contains(focusedVerifier), "\(focusedVerifier) must be called by v0.11.1 aggregate verifier")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.11.1 patch aggregate guard anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-950 Release v0.11.1 Patch Aggregate Guard Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0111-PATCH-AGGREGATE-GUARD"))
+        XCTAssertTrue(latest.contains("v0.11.1 patch aggregate guard"))
+        XCTAssertTrue(tests.contains("testGH950ReleaseV0111PatchAggregateVerifierAnchors"))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true"
+        ] {
+            XCTAssertFalse(readiness.contains(forbidden), "\(forbidden) must stay out of automation readiness")
+            XCTAssertFalse(validationPlan.contains(forbidden), "\(forbidden) must stay out of validation plan")
+            XCTAssertFalse(tradingMatrix.contains(forbidden), "\(forbidden) must stay out of trading validation matrix")
+        }
     }
 
     func testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum() throws {

@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0111-PATCH-AGGREGATE-GUARD
+
+- TVM-RELEASE-V0111-PATCH-AGGREGATE-GUARD
+- GH-950-VERIFY-V0111-PATCH-AGGREGATE-GUARD
+- V0111-006-PATCH-AGGREGATE-VERIFY
+- V0111-006-RELEASE-FACT-SYNC
+- V0111-006-DASHBOARD-MACOS-SHA256-STATE
+- V0111-006-ARTIFACT-SYMLINK-PERMISSIONS
+- V0111-006-NO-PRODUCTION-CUTOVER
+- GH-950 Release v0.11.1 Patch Aggregate Guard Validation
+- `bash checks/verify-v0.11.1.sh`
+- `swift test --filter TargetGraphTests/testGH950ReleaseV0111PatchAggregateVerifierAnchors`
+- Evidence files: `checks/verify-v0.11.1.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.11.1-release-fact-sync.sh`、`checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh`、`checks/verify-v0.11.1-readiness-artifact-symlink-root.sh`、`checks/verify-v0.11.1-readiness-artifact-permissions.sh` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-950 只聚合 v0.11.1 readiness runtime guard patch 验证入口；release fact sync、Dashboard checksum / state、symlink confinement 和 owner-only permission hardening 均保持本地 evidence / read-model / filesystem guard 语义。该 guard 不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0111-READINESS-ARTIFACT-PERMISSIONS
 
 - TVM-RELEASE-V0111-READINESS-ARTIFACT-PERMISSIONS
