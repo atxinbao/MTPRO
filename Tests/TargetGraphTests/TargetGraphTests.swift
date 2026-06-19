@@ -29844,6 +29844,137 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH948ProductionReadinessArtifactStoreRejectsSymlinkEscapes() throws {
+        XCTAssertEqual(ProductionReadinessArtifactSymlinkRootAnchors.validationAnchors, [
+            "GH-948-VERIFY-V0111-READINESS-ARTIFACT-SYMLINK-ROOT",
+            "TVM-RELEASE-V0111-READINESS-ARTIFACT-SYMLINK-ROOT",
+            "V0111-004-CANONICAL-EVIDENCE-ROOT",
+            "V0111-004-NO-SYMLINK-PATH-COMPONENTS",
+            "V0111-004-RESOLVED-TARGET-STAYS-IN-ROOT",
+            "V0111-004-NO-PRODUCTION-CUTOVER"
+        ])
+
+        let fileManager = FileManager.default
+        let tempRoot = fileManager.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH948-SymlinkEscape-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        let evidenceRoot = tempRoot.appendingPathComponent("approved-root", isDirectory: true)
+        let outsideRoot = tempRoot.appendingPathComponent("outside-root", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: tempRoot)
+        }
+        try fileManager.createDirectory(at: evidenceRoot, withIntermediateDirectories: true)
+        try fileManager.createDirectory(at: outsideRoot, withIntermediateDirectories: true)
+
+        func assertUnsafeSymlink(_ operation: () throws -> Void) {
+            XCTAssertThrowsError(try operation()) { error in
+                guard case ProductionReadinessArtifactStoreError.unsafeSymbolicLink = error else {
+                    return XCTFail("expected unsafeSymbolicLink, got \(error)")
+                }
+            }
+        }
+
+        let symlinkRoot = tempRoot.appendingPathComponent("approved-root-link", isDirectory: true)
+        try fileManager.createSymbolicLink(at: symlinkRoot, withDestinationURL: outsideRoot)
+        assertUnsafeSymlink {
+            _ = try ProductionReadinessArtifactStore(evidenceRootURL: symlinkRoot)
+        }
+
+        let store = try ProductionReadinessArtifactStore(evidenceRootURL: evidenceRoot)
+        let descriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-948-readiness-artifact"),
+            relativePath: "artifacts/readiness.json",
+            artifactType: .jsonEvidence,
+            staleAfterSeconds: 120
+        )
+        let payload = """
+        {
+          "artifactID": "gh-948-readiness-artifact",
+          "releaseVersion": "v0.11.1",
+          "productionTradingEnabledByDefault": false,
+          "productionCutoverAuthorized": false,
+          "productionSecretRead": false,
+          "productionEndpointConnected": false,
+          "brokerEndpointConnected": false,
+          "productionOrderSubmitted": false,
+          "testnetOrderSubmissionAllowed": false
+        }
+        """
+
+        let symlinkDirectory = evidenceRoot.appendingPathComponent("artifacts", isDirectory: true)
+        try fileManager.createSymbolicLink(at: symlinkDirectory, withDestinationURL: outsideRoot)
+        assertUnsafeSymlink {
+            _ = try store.writeStringArtifact(descriptor: descriptor, string: payload)
+        }
+        try fileManager.removeItem(at: symlinkDirectory)
+        try fileManager.createDirectory(at: symlinkDirectory, withIntermediateDirectories: true)
+
+        let outsideArtifact = outsideRoot.appendingPathComponent("readiness.json")
+        try Data(payload.utf8).write(to: outsideArtifact, options: .atomic)
+        let symlinkArtifact = symlinkDirectory.appendingPathComponent("readiness.json")
+        try fileManager.createSymbolicLink(at: symlinkArtifact, withDestinationURL: outsideArtifact)
+        assertUnsafeSymlink {
+            _ = try store.inspectArtifact(descriptor)
+        }
+        assertUnsafeSymlink {
+            _ = try store.readArtifact(descriptor: descriptor)
+        }
+        assertUnsafeSymlink {
+            _ = try store.writeStringArtifact(descriptor: descriptor, string: payload)
+        }
+
+        try fileManager.removeItem(at: symlinkArtifact)
+        let valid = try store.writeStringArtifact(
+            descriptor: descriptor,
+            string: payload,
+            modifiedAt: Date(timeIntervalSince1970: 1_800_110_000)
+        )
+        XCTAssertEqual(valid.state, .valid)
+        XCTAssertTrue(valid.absolutePath.hasPrefix(evidenceRoot.path))
+        XCTAssertTrue(valid.productionCapabilitiesDisabled)
+    }
+
+    func testGH948ReadinessArtifactSymlinkRootGuardAnchors() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+        let verifier = try read("checks/verify-v0.11.1-readiness-artifact-symlink-root.sh")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in ProductionReadinessArtifactSymlinkRootAnchors.validationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in artifact store source")
+            XCTAssertTrue(tests.contains(anchor), "\(anchor) must stay in focused tests")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.11.1 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        XCTAssertTrue(source.contains("validateApprovedEvidenceRoot"))
+        XCTAssertTrue(source.contains("validateArtifactPath"))
+        XCTAssertTrue(source.contains("rejectSymbolicLinkComponents"))
+        XCTAssertTrue(source.contains("validateResolvedTargetInsideEvidenceRoot"))
+        XCTAssertTrue(source.contains("destinationOfSymbolicLink"))
+        XCTAssertTrue(tests.contains("createSymbolicLink"))
+        XCTAssertTrue(tests.contains("testGH948ProductionReadinessArtifactStoreRejectsSymlinkEscapes"))
+        XCTAssertTrue(verifier.contains("testGH948ProductionReadinessArtifactStoreRejectsSymlinkEscapes"))
+        XCTAssertTrue(verifier.contains("testGH948ReadinessArtifactSymlinkRootGuardAnchors"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1-readiness-artifact-symlink-root.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.11.1 readiness artifact symlink root guard anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-948 Release v0.11.1 Readiness Artifact Symlink Root Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0111-READINESS-ARTIFACT-SYMLINK-ROOT"))
+    }
+
     func testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum() throws {
         XCTAssertEqual(ProductionReadinessBundleValidationAnchors.validationAnchors, [
             "GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION",

@@ -49,6 +49,21 @@ public enum ProductionReadinessCanonicalChecksumAnchors {
     ]
 }
 
+/// ProductionReadinessArtifactSymlinkRootAnchors 固定 GH-948 的 symlink escape 防护锚点。
+///
+/// GH-948 只收紧本地 readiness artifact root 和 artifact path 的 filesystem invariant；
+/// 它不读取 production secret、不连接 endpoint / broker、不提交订单，也不授权 production cutover。
+public enum ProductionReadinessArtifactSymlinkRootAnchors {
+    public static let validationAnchors = [
+        "GH-948-VERIFY-V0111-READINESS-ARTIFACT-SYMLINK-ROOT",
+        "TVM-RELEASE-V0111-READINESS-ARTIFACT-SYMLINK-ROOT",
+        "V0111-004-CANONICAL-EVIDENCE-ROOT",
+        "V0111-004-NO-SYMLINK-PATH-COMPONENTS",
+        "V0111-004-RESOLVED-TARGET-STAYS-IN-ROOT",
+        "V0111-004-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
 /// ProductionReadinessBundleValidationAnchors 固定 GH-917 的 bundle validation 验证锚点。
 ///
 /// GH-917 只读取本地 manifest 与本地 artifact，归类 bundle integrity state；它不读取
@@ -123,6 +138,7 @@ public enum ProductionReadinessArtifactStoreError: Error, Equatable, Sendable, C
     case nonFileRoot(String)
     case emptyArtifactID
     case unsafeRelativePath(String)
+    case unsafeSymbolicLink(String)
     case emptyPayload(String)
     case invalidJSON(String)
     case forbiddenCapability(String)
@@ -141,6 +157,8 @@ public enum ProductionReadinessArtifactStoreError: Error, Equatable, Sendable, C
             "GH-914 ProductionReadinessArtifactStore requires a non-empty artifactID"
         case let .unsafeRelativePath(path):
             "GH-914 ProductionReadinessArtifactStore rejects unsafe relative path \(path)"
+        case let .unsafeSymbolicLink(path):
+            "GH-948 ProductionReadinessArtifactStore rejects symlink escape path \(path)"
         case let .emptyPayload(path):
             "GH-914 ProductionReadinessArtifactStore rejects empty payload at \(path)"
         case let .invalidJSON(path):
@@ -993,8 +1011,77 @@ public struct ProductionReadinessArtifactStore {
         guard evidenceRootURL.isFileURL else {
             throw ProductionReadinessArtifactStoreError.nonFileRoot(evidenceRootURL.absoluteString)
         }
-        self.evidenceRootURL = evidenceRootURL.standardizedFileURL
+        let standardizedRoot = evidenceRootURL.standardizedFileURL
+        try Self.validateApprovedEvidenceRoot(standardizedRoot, fileManager: fileManager)
+        self.evidenceRootURL = standardizedRoot
         self.fileManager = fileManager
+    }
+
+    /// validateApprovedEvidenceRoot 固定 GH-948 的 root invariant：approved root 必须是
+    /// 本地 file URL，且 root 自身不能是 symlink。父级系统路径若包含平台级 symlink
+    /// 由后续 resolved-root 比较统一处理，避免把 `/var` 等系统路径误判为逃逸。
+    private static func validateApprovedEvidenceRoot(
+        _ root: URL,
+        fileManager: FileManager
+    ) throws {
+        guard root.isFileURL else {
+            throw ProductionReadinessArtifactStoreError.nonFileRoot(root.absoluteString)
+        }
+        if isSymbolicLink(root, fileManager: fileManager) {
+            throw ProductionReadinessArtifactStoreError.unsafeSymbolicLink(root.path)
+        }
+    }
+
+    /// validateArtifactPath 在所有 artifact read / write / inspect 前执行 no-follow path gate。
+    /// 它不会连接 endpoint 或读取 secret，只在本地 filesystem 上确认 symlink 不能把 artifact
+    /// target 带出 canonical evidence root。
+    private func validateArtifactPath(
+        _ artifactURL: URL,
+        descriptor: ProductionReadinessArtifactDescriptor,
+        includeFinalComponent: Bool
+    ) throws {
+        try rejectSymbolicLinkComponents(
+            descriptor: descriptor,
+            includeFinalComponent: includeFinalComponent
+        )
+        try validateResolvedTargetInsideEvidenceRoot(artifactURL, descriptor: descriptor)
+    }
+
+    private func rejectSymbolicLinkComponents(
+        descriptor: ProductionReadinessArtifactDescriptor,
+        includeFinalComponent: Bool
+    ) throws {
+        let components = descriptor.relativePath.split(separator: "/").map(String.init)
+        var current = evidenceRootURL
+        for (index, component) in components.enumerated() {
+            current.appendPathComponent(component, isDirectory: false)
+            let isFinalComponent = index == components.count - 1
+            guard includeFinalComponent || isFinalComponent == false else {
+                continue
+            }
+            if Self.isSymbolicLink(current, fileManager: fileManager) {
+                throw ProductionReadinessArtifactStoreError.unsafeSymbolicLink(descriptor.relativePath)
+            }
+        }
+    }
+
+    private func validateResolvedTargetInsideEvidenceRoot(
+        _ artifactURL: URL,
+        descriptor: ProductionReadinessArtifactDescriptor
+    ) throws {
+        let resolvedRoot = evidenceRootURL.resolvingSymlinksInPath().standardizedFileURL.path
+        let resolvedTarget = artifactURL.resolvingSymlinksInPath().standardizedFileURL.path
+        guard Self.path(resolvedTarget, isInsideDirectory: resolvedRoot) else {
+            throw ProductionReadinessArtifactStoreError.unsafeSymbolicLink(descriptor.relativePath)
+        }
+    }
+
+    private static func isSymbolicLink(_ url: URL, fileManager: FileManager) -> Bool {
+        (try? fileManager.destinationOfSymbolicLink(atPath: url.path)) != nil
+    }
+
+    private static func path(_ path: String, isInsideDirectory directory: String) -> Bool {
+        path == directory || path.hasPrefix(directory + "/")
     }
 
     public func artifactURL(for descriptor: ProductionReadinessArtifactDescriptor) throws -> URL {
@@ -1009,6 +1096,7 @@ public struct ProductionReadinessArtifactStore {
         guard standardized.path.hasPrefix(evidenceRootURL.path + "/") else {
             throw ProductionReadinessArtifactStoreError.unsafeRelativePath(descriptor.relativePath)
         }
+        try validateArtifactPath(standardized, descriptor: descriptor, includeFinalComponent: true)
         return standardized
     }
 
@@ -1038,6 +1126,7 @@ public struct ProductionReadinessArtifactStore {
             at: url.deletingLastPathComponent(),
             withIntermediateDirectories: true
         )
+        try validateArtifactPath(url, descriptor: descriptor, includeFinalComponent: false)
         try data.write(to: url, options: .atomic)
         try fileManager.setAttributes([.modificationDate: modifiedAt], ofItemAtPath: url.path)
         return try inspectArtifact(descriptor, now: modifiedAt)

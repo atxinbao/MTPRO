@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0111-READINESS-ARTIFACT-SYMLINK-ROOT
+
+- TVM-RELEASE-V0111-READINESS-ARTIFACT-SYMLINK-ROOT
+- GH-948-VERIFY-V0111-READINESS-ARTIFACT-SYMLINK-ROOT
+- V0111-004-CANONICAL-EVIDENCE-ROOT
+- V0111-004-NO-SYMLINK-PATH-COMPONENTS
+- V0111-004-RESOLVED-TARGET-STAYS-IN-ROOT
+- V0111-004-NO-PRODUCTION-CUTOVER
+- GH-948 Release v0.11.1 Readiness Artifact Symlink Root Validation
+- `bash checks/verify-v0.11.1-readiness-artifact-symlink-root.sh`
+- `swift test --filter TargetGraphTests/testGH948ProductionReadinessArtifactStoreRejectsSymlinkEscapes`
+- `swift test --filter TargetGraphTests/testGH948ReadinessArtifactSymlinkRootGuardAnchors`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`checks/verify-v0.11.1-readiness-artifact-symlink-root.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-948 只固定本地 readiness artifact root / path symlink escape guard；approved root、path component 和 artifact target 都不能通过 symlink 逃逸，resolved target 必须留在 canonical root 内。该 guard 不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0111-DASHBOARD-SHA256-STATE-INVARIANTS
 
 - TVM-RELEASE-V0111-DASHBOARD-SHA256-STATE-INVARIANTS
