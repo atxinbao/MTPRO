@@ -32750,6 +32750,107 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH963ReadinessAssessmentCLILifecycleUsesLocalRegistryOnly() throws {
+        // 测试场景：GH-963 为 v0.12.0 assessment session 暴露本地 CLI lifecycle。
+        // 该测试固定命令集合、fail-closed parser、local registry-only evidence 和 no-production-cutover 边界。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let expectedAnchors = [
+            "GH-963-VERIFY-V0120-ASSESSMENT-CLI-LIFECYCLE",
+            "TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE",
+            "V0120-012-ASSESSMENT-SCOPED-CLI-LIFECYCLE",
+            "V0120-012-CREATE-BUILD-STATUS-VALIDATE-EXPORT-ARCHIVE",
+            "V0120-012-COMPARE-LOCAL-ASSESSMENTS",
+            "V0120-012-INVALID-ASSESSMENT-ID-FAIL-CLOSED",
+            "V0120-012-LOCAL-REGISTRY-STORE-ONLY",
+            "V0120-012-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let contract = try read("docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md")
+        let verifier = try read("checks/verify-v0.12.0.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(cliSource.contains(anchor), "\(anchor) must stay in MTPRO CLI source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.12.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.12.0 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+        }
+
+        for requiredCLI in [
+            "readinessAssessmentActions",
+            "readiness create [assessmentID]",
+            "readiness build <assessmentID>",
+            "readiness status <assessmentID>",
+            "readiness validate <assessmentID>",
+            "readiness export <assessmentID>",
+            "readiness archive <assessmentID>",
+            "readiness compare <baselineAssessmentID> <followUpAssessmentID>",
+            "ReleaseV0120ReadinessAssessmentCLI",
+            "MTPRO_READINESS_ROOT",
+            "ReadinessAssessmentRegistryStore",
+            "writeManifestV2",
+            "writeReadinessBundleV2ReviewSnapshot",
+            "compareAssessments",
+            "invalidAssessmentIDsFailClosed=true",
+            "localRegistryStoreOnly=true",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false",
+            "productionCutoverAuthorized=false"
+        ] {
+            XCTAssertTrue(cliSource.contains(requiredCLI), "\(requiredCLI) must stay in GH-963 CLI source")
+        }
+
+        for requiredVerifier in [
+            "swift run mtpro readiness create",
+            "swift run mtpro readiness build",
+            "swift run mtpro readiness status",
+            "swift run mtpro readiness validate",
+            "swift run mtpro readiness export",
+            "swift run mtpro readiness archive",
+            "swift run mtpro readiness compare",
+            "MTPRO_READINESS_ROOT",
+            "mtpro.readiness.arguments",
+            "testGH963ReadinessAssessmentCLILifecycleUsesLocalRegistryOnly"
+        ] {
+            XCTAssertTrue(verifier.contains(requiredVerifier), "\(requiredVerifier) must stay in GH-963 verifier")
+        }
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true"
+        ] {
+            XCTAssertFalse(contract.contains(forbidden), "\(forbidden) must stay out of GH-963 contract")
+            XCTAssertFalse(latest.contains(forbidden), "\(forbidden) must stay out of latest summary")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

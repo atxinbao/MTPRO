@@ -4829,3 +4829,24 @@ swift test
 - snapshot fields: `policyChecksum`, `artifactBundleChecksum`, `riskLimitChecksum`, `killSwitchStateChecksum`, `approvalStateChecksum` and `sourceRunSnapshot`
 - non-mutating evidence: `compareAssessments` returns `ReadinessAssessmentComparisonReport` without mutating registry entries or assessment metadata
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
+
+## GH-963 Release v0.12.0 Assessment-scoped CLI Lifecycle Validation
+
+- GH-963-VERIFY-V0120-ASSESSMENT-CLI-LIFECYCLE
+- TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE
+- V0120-012-ASSESSMENT-SCOPED-CLI-LIFECYCLE
+- V0120-012-CREATE-BUILD-STATUS-VALIDATE-EXPORT-ARCHIVE
+- V0120-012-COMPARE-LOCAL-ASSESSMENTS
+- V0120-012-INVALID-ASSESSMENT-ID-FAIL-CLOSED
+- V0120-012-LOCAL-REGISTRY-STORE-ONLY
+- V0120-012-NO-PRODUCTION-CUTOVER
+- source: `Sources/MTPROCLI/main.swift`
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH963ReadinessAssessmentCLILifecycleUsesLocalRegistryOnly`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- CLI commands: `mtpro readiness create/build/status/validate/export/archive/compare`
+- local store: `MTPRO_READINESS_ROOT` or `.local/mtpro/readiness`, backed by `ReadinessAssessmentRegistryStore`
+- fail-closed coverage: invalid assessment IDs with path separators, dot path components, tilde prefix or option-like prefix fail at `mtpro.readiness.arguments`
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement

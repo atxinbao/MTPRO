@@ -2913,3 +2913,21 @@
 - output evidence: `ReadinessAssessmentComparisonReport` records matched / changed sections, stable `reportChecksum`, `operatorReviewOnly=true` and `compareDoesNotMutateAssessments=true`
 - non-mutating evidence: compare does not write registry, does not mutate assessment metadata and does not create approval state
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE
+
+- GH-963-VERIFY-V0120-ASSESSMENT-CLI-LIFECYCLE
+- TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE
+- V0120-012-ASSESSMENT-SCOPED-CLI-LIFECYCLE
+- V0120-012-CREATE-BUILD-STATUS-VALIDATE-EXPORT-ARCHIVE
+- V0120-012-COMPARE-LOCAL-ASSESSMENTS
+- V0120-012-INVALID-ASSESSMENT-ID-FAIL-CLOSED
+- V0120-012-LOCAL-REGISTRY-STORE-ONLY
+- V0120-012-NO-PRODUCTION-CUTOVER
+- GH-963 Release v0.12.0 Assessment-scoped CLI Lifecycle Validation
+- testGH963ReadinessAssessmentCLILifecycleUsesLocalRegistryOnly
+- CLI commands: `mtpro readiness create`, `build <assessmentID>`, `status <assessmentID>`, `validate <assessmentID>`, `export <assessmentID>`, `archive <assessmentID>` and `compare <baselineAssessmentID> <followUpAssessmentID>`
+- local store: `MTPRO_READINESS_ROOT` or `.local/mtpro/readiness`, backed by `ReadinessAssessmentRegistryStore`
+- fail-closed evidence: invalid assessment IDs are rejected at `mtpro.readiness.arguments`, and outputs include `invalidAssessmentIDsFailClosed=true`
+- output evidence: all commands keep `localRegistryStoreOnly=true`, `boundaryHeld=true`, production capability flags disabled and compare non-mutating / operator-review-only
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
