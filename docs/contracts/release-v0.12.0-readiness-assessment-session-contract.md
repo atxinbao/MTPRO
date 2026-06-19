@@ -264,6 +264,34 @@ stale / expired / unreviewed / mismatched source evidence 必须 fail closed。`
 
 Kill switch / no-trade trustworthy observations 只强化 readiness evidence 的可信派生。它不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不创建下一 Project / Issue，不移动 tag / Release。
 
+## V0120-009-APPROVAL-ROLE-QUORUM-SEPARATION
+
+`GH-960-VERIFY-V0120-APPROVAL-ROLE-QUORUM-SEPARATION`
+
+`TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION`
+
+`V0120-009-REQUESTER-REVIEWER-APPROVER-ROLE-POLICY`
+
+`V0120-009-QUORUM-SEPARATION-OF-DUTIES`
+
+`V0120-009-APPROVAL-EXPIRY-REVOCATION-FAIL-CLOSED`
+
+`V0120-009-BUNDLE-CHECKSUM-BINDING`
+
+`V0120-009-TRANSITION-CHECKSUM-CHAIN`
+
+v0.12.0 approval workflow hardening 固定为本地 readiness approval evidence 的角色和 quorum 收紧。Approval evidence 必须显式记录 requester、reviewer、approver 和 revoker role policy，并保持 separation of duties：requester 不得同时作为 reviewer 或 approver，reviewer 与 approver 不得互相代替。
+
+Reviewer quorum 与 approver quorum 必须独立计算。Approver 不能自动计入 reviewer quorum，reviewer 也不能自动计入 approver quorum。Reviewer quorum 不足、approver quorum 不足、approvedBy 不在 approver role policy 内、requester 被当作 approver 或 role policy mismatch 都必须 fail closed。
+
+Approval evidence 必须绑定 immutable readiness bundle checksum：`boundBundleChecksum` 必须等于 `expectedBundleChecksum`，且两者都必须是 `sha256:<64 lowercase hex>`。Bundle checksum mismatch 必须 fail closed，不得被解释为 partial approval。
+
+Approval transition history 必须记录 `transitionChecksumChain`，并由每条 transition 的 from / to state、actor、timestamp 和 reason 稳定派生。Transition checksum chain mismatch 必须 fail closed。Expiry 与 revocation 继续保持 fail closed：过期 approval evidence、revoked approval evidence 或缺少 revocation reason 的 revoked state 都不能完成 approval evidence。
+
+`V0120-009-NO-PRODUCTION-CUTOVER`
+
+Approval roles / quorum hardening 只提高本地 approval evidence 的可信度。即使 `approvalEvidenceComplete=true`，它仍不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不创建下一 Project / Issue，不移动 tag / Release。
+
 ## V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT
 
 允许的 assessment session 固定为本地、显式、可审计的 no-authorization session：

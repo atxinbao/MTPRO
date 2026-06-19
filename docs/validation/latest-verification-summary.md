@@ -1879,3 +1879,23 @@ bash checks/run.sh
 - #959 derives freshness and review state from timestamps and expected source artifact / checksum / runID evidence instead of accepting caller-provided flags.
 - #959 proves expired / stale evidence, future observation time, unreviewed evidence, mismatched artifact path, mismatched checksum and mismatched source run ID fail closed.
 - #959 keeps inactive + fresh + reviewed at approval-request eligibility only; it does not authorize production cutover, does not enable order submission, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
+
+## Release v0.12.0 Approval Role / Quorum Separation Snapshot
+
+- GH-960-VERIFY-V0120-APPROVAL-ROLE-QUORUM-SEPARATION
+- TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION
+- V0120-009-APPROVAL-ROLE-QUORUM-SEPARATION
+- V0120-009-REQUESTER-REVIEWER-APPROVER-ROLE-POLICY
+- V0120-009-QUORUM-SEPARATION-OF-DUTIES
+- V0120-009-APPROVAL-EXPIRY-REVOCATION-FAIL-CLOSED
+- V0120-009-BUNDLE-CHECKSUM-BINDING
+- V0120-009-TRANSITION-CHECKSUM-CHAIN
+- V0120-009-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift`
+- Contract source: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- Validation source: `checks/verify-v0.12.0.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH960ApprovalRolesQuorumAndBundleBindingFailClosed`
+- #960 adds approval role policy and quorum policy evidence to the local auditable approval workflow model.
+- #960 records requester / reviewer / approver / revoker role separation, independent reviewer quorum and approver quorum, immutable bundle checksum binding and transition checksum chain evidence.
+- #960 proves requester-as-approver, missing reviewer quorum, missing approver quorum, expired approval, revoked approval, bundle checksum mismatch and transition checksum chain mismatch fail closed.
+- #960 keeps completed approval evidence as local readiness evidence only; it does not authorize production cutover, does not enable order submission, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.

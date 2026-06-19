@@ -10028,6 +10028,310 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH960ApprovalRolesQuorumAndBundleBindingFailClosed() throws {
+        // 测试场景：GH-960 强化 approval evidence，只允许本地角色 / quorum / checksum
+        // 证据完整时完成 approval evidence；该状态仍不得转换为 production cutover。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let evaluatedAt = Date(timeIntervalSince1970: 1_812_700_000)
+
+        let approved = try ReleaseV0110AuditableApprovalWorkflowStateModel.v0120ApprovedEvidenceFixture(
+            evaluatedAt: evaluatedAt
+        )
+        XCTAssertTrue(approved.stateModelHeld)
+        XCTAssertTrue(approved.approvalEvidenceComplete)
+        XCTAssertFalse(approved.failClosed)
+        XCTAssertTrue(approved.rolePolicy.rolePolicyHeld)
+        XCTAssertTrue(approved.rolePolicySatisfied)
+        XCTAssertTrue(approved.rolePolicy.separationOfDutiesSatisfied)
+        XCTAssertTrue(approved.quorumPolicy.quorumPolicyHeld)
+        XCTAssertTrue(approved.reviewerQuorumSatisfied)
+        XCTAssertTrue(approved.approverQuorumSatisfied)
+        XCTAssertTrue(approved.quorumSatisfied)
+        XCTAssertTrue(approved.bundleChecksumBindingHeld)
+        XCTAssertTrue(approved.transitionChecksumChainHeld)
+        XCTAssertEqual(approved.issueID, Identifier.constant("GH-960"))
+        XCTAssertEqual(approved.upstreamIssueIDs.map(\.rawValue), ["GH-951", "GH-959"])
+        XCTAssertEqual(approved.validationAnchors, ReleaseV0120ApprovalRoleQuorumSeparationAnchors.validationAnchors)
+        XCTAssertEqual(approved.transitionChecksumChain, approved.transitionHistory.map(\.transitionChecksum))
+        XCTAssertTrue(approved.productionCutoverBlocked)
+        XCTAssertFalse(approved.productionCutoverAuthorized)
+        XCTAssertFalse(approved.orderSubmissionEnabled)
+        XCTAssertFalse(approved.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(approved.productionTradingEnabledByDefault)
+        XCTAssertFalse(approved.productionSecretRead)
+        XCTAssertFalse(approved.productionEndpointConnected)
+        XCTAssertFalse(approved.brokerEndpointConnected)
+        XCTAssertFalse(approved.orderPayloadCreated)
+        XCTAssertFalse(approved.brokerCommandCreated)
+        XCTAssertFalse(approved.productionOMSRuntimeEnabled)
+        XCTAssertFalse(approved.tradingButtonEnabled)
+        XCTAssertFalse(approved.orderFormEnabled)
+        XCTAssertFalse(approved.liveCommandEnabled)
+        XCTAssertFalse(approved.readinessApprovalConvertedToTradingPermission)
+        XCTAssertFalse(approved.approvalWorkflowBypassEnabled)
+
+        let requesterAsApprover = try ReleaseV0110AuditableApprovalWorkflowStateModel(
+            issueID: approved.issueID,
+            upstreamIssueIDs: approved.upstreamIssueIDs,
+            currentState: .approved,
+            requestedBy: approved.requestedBy,
+            reviewedBy: approved.reviewedBy,
+            approvedBy: try XCTUnwrap(approved.requestedBy),
+            requestedAt: approved.requestedAt,
+            reviewedAt: approved.reviewedAt,
+            approvedAt: approved.approvedAt,
+            expiresAt: approved.expiresAt,
+            transitionHistory: approved.transitionHistory,
+            quorumRequired: approved.quorumRequired,
+            rolePolicy: approved.rolePolicy,
+            quorumPolicy: approved.quorumPolicy,
+            boundBundleChecksum: approved.boundBundleChecksum,
+            evaluatedAt: evaluatedAt,
+            validationAnchors: approved.validationAnchors
+        )
+        XCTAssertFalse(requesterAsApprover.rolePolicySatisfied)
+        XCTAssertFalse(requesterAsApprover.approvalEvidenceComplete)
+        XCTAssertTrue(requesterAsApprover.failClosed)
+
+        let missingReviewerQuorum = try ReleaseV0110AuditableApprovalWorkflowStateModel(
+            issueID: approved.issueID,
+            upstreamIssueIDs: approved.upstreamIssueIDs,
+            currentState: .approved,
+            requestedBy: approved.requestedBy,
+            reviewedBy: Array(approved.reviewedBy.prefix(1)),
+            approvedBy: approved.approvedBy,
+            requestedAt: approved.requestedAt,
+            reviewedAt: approved.reviewedAt,
+            approvedAt: approved.approvedAt,
+            expiresAt: approved.expiresAt,
+            transitionHistory: approved.transitionHistory,
+            quorumRequired: approved.quorumRequired,
+            rolePolicy: approved.rolePolicy,
+            quorumPolicy: approved.quorumPolicy,
+            boundBundleChecksum: approved.boundBundleChecksum,
+            evaluatedAt: evaluatedAt,
+            validationAnchors: approved.validationAnchors
+        )
+        XCTAssertFalse(missingReviewerQuorum.reviewerQuorumSatisfied)
+        XCTAssertFalse(missingReviewerQuorum.quorumSatisfied)
+        XCTAssertTrue(missingReviewerQuorum.failClosed)
+
+        let missingApproverQuorum = try ReleaseV0110AuditableApprovalWorkflowStateModel(
+            issueID: approved.issueID,
+            upstreamIssueIDs: approved.upstreamIssueIDs,
+            currentState: .approved,
+            requestedBy: approved.requestedBy,
+            reviewedBy: approved.reviewedBy,
+            approvedBy: approved.approvedBy,
+            requestedAt: approved.requestedAt,
+            reviewedAt: approved.reviewedAt,
+            approvedAt: approved.approvedAt,
+            expiresAt: approved.expiresAt,
+            transitionHistory: approved.transitionHistory,
+            quorumRequired: approved.quorumRequired,
+            rolePolicy: approved.rolePolicy,
+            quorumPolicy: try ReleaseV0120ApprovalWorkflowQuorumPolicy(
+                reviewerQuorumRequired: 2,
+                approverQuorumRequired: 2
+            ),
+            boundBundleChecksum: approved.boundBundleChecksum,
+            evaluatedAt: evaluatedAt,
+            validationAnchors: approved.validationAnchors
+        )
+        XCTAssertTrue(missingApproverQuorum.reviewerQuorumSatisfied)
+        XCTAssertFalse(missingApproverQuorum.approverQuorumSatisfied)
+        XCTAssertFalse(missingApproverQuorum.approvalEvidenceComplete)
+        XCTAssertTrue(missingApproverQuorum.failClosed)
+
+        let expired = try ReleaseV0110AuditableApprovalWorkflowStateModel(
+            issueID: approved.issueID,
+            upstreamIssueIDs: approved.upstreamIssueIDs,
+            currentState: .approved,
+            requestedBy: approved.requestedBy,
+            reviewedBy: approved.reviewedBy,
+            approvedBy: approved.approvedBy,
+            requestedAt: approved.requestedAt,
+            reviewedAt: approved.reviewedAt,
+            approvedAt: approved.approvedAt,
+            expiresAt: evaluatedAt.addingTimeInterval(-1),
+            transitionHistory: approved.transitionHistory,
+            quorumRequired: approved.quorumRequired,
+            rolePolicy: approved.rolePolicy,
+            quorumPolicy: approved.quorumPolicy,
+            boundBundleChecksum: approved.boundBundleChecksum,
+            evaluatedAt: evaluatedAt,
+            validationAnchors: approved.validationAnchors
+        )
+        XCTAssertTrue(expired.isExpired)
+        XCTAssertTrue(expired.failClosed)
+
+        let revoker = try XCTUnwrap(approved.rolePolicy.revokers.first)
+        let revoked = try ReleaseV0110AuditableApprovalWorkflowStateModel(
+            issueID: approved.issueID,
+            upstreamIssueIDs: approved.upstreamIssueIDs,
+            currentState: .revoked,
+            requestedBy: approved.requestedBy,
+            reviewedBy: approved.reviewedBy,
+            approvedBy: approved.approvedBy,
+            requestedAt: approved.requestedAt,
+            reviewedAt: approved.reviewedAt,
+            approvedAt: approved.approvedAt,
+            expiresAt: approved.expiresAt,
+            revokedReason: "operator revoked approval evidence before production cutover gate",
+            transitionHistory: approved.transitionHistory + [
+                try ReleaseV0110ApprovalWorkflowTransition(
+                    fromState: .approved,
+                    toState: .revoked,
+                    actor: revoker,
+                    timestamp: evaluatedAt.addingTimeInterval(-30),
+                    reason: "approval evidence revoked"
+                )
+            ],
+            quorumRequired: approved.quorumRequired,
+            rolePolicy: approved.rolePolicy,
+            quorumPolicy: approved.quorumPolicy,
+            boundBundleChecksum: approved.boundBundleChecksum,
+            evaluatedAt: evaluatedAt,
+            validationAnchors: approved.validationAnchors
+        )
+        XCTAssertTrue(revoked.isRevoked)
+        XCTAssertTrue(revoked.failClosed)
+
+        let mismatchedBundle = try ReleaseV0110AuditableApprovalWorkflowStateModel(
+            issueID: approved.issueID,
+            upstreamIssueIDs: approved.upstreamIssueIDs,
+            currentState: .approved,
+            requestedBy: approved.requestedBy,
+            reviewedBy: approved.reviewedBy,
+            approvedBy: approved.approvedBy,
+            requestedAt: approved.requestedAt,
+            reviewedAt: approved.reviewedAt,
+            approvedAt: approved.approvedAt,
+            expiresAt: approved.expiresAt,
+            transitionHistory: approved.transitionHistory,
+            quorumRequired: approved.quorumRequired,
+            rolePolicy: approved.rolePolicy,
+            quorumPolicy: approved.quorumPolicy,
+            boundBundleChecksum: approved.boundBundleChecksum,
+            expectedBundleChecksum: "sha256:\(String(repeating: "8", count: 64))",
+            evaluatedAt: evaluatedAt,
+            validationAnchors: approved.validationAnchors
+        )
+        XCTAssertFalse(mismatchedBundle.bundleChecksumBindingHeld)
+        XCTAssertFalse(mismatchedBundle.approvalEvidenceComplete)
+        XCTAssertTrue(mismatchedBundle.failClosed)
+
+        let mismatchedTransitionChain = try ReleaseV0110AuditableApprovalWorkflowStateModel(
+            issueID: approved.issueID,
+            upstreamIssueIDs: approved.upstreamIssueIDs,
+            currentState: .approved,
+            requestedBy: approved.requestedBy,
+            reviewedBy: approved.reviewedBy,
+            approvedBy: approved.approvedBy,
+            requestedAt: approved.requestedAt,
+            reviewedAt: approved.reviewedAt,
+            approvedAt: approved.approvedAt,
+            expiresAt: approved.expiresAt,
+            transitionHistory: approved.transitionHistory,
+            quorumRequired: approved.quorumRequired,
+            rolePolicy: approved.rolePolicy,
+            quorumPolicy: approved.quorumPolicy,
+            boundBundleChecksum: approved.boundBundleChecksum,
+            transitionChecksumChain: ["sha256:\(String(repeating: "7", count: 64))"],
+            evaluatedAt: evaluatedAt,
+            validationAnchors: approved.validationAnchors
+        )
+        XCTAssertFalse(mismatchedTransitionChain.transitionChecksumChainHeld)
+        XCTAssertFalse(mismatchedTransitionChain.approvalEvidenceComplete)
+        XCTAssertTrue(mismatchedTransitionChain.failClosed)
+
+        XCTAssertThrowsError(
+            try ReleaseV0120ApprovalWorkflowRolePolicy(
+                requester: try XCTUnwrap(approved.requestedBy),
+                reviewers: approved.reviewedBy,
+                approvers: [try XCTUnwrap(approved.requestedBy)],
+                revokers: approved.rolePolicy.revokers
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0110AuditableApprovalWorkflowStateModel(
+                issueID: approved.issueID,
+                upstreamIssueIDs: approved.upstreamIssueIDs,
+                currentState: .approved,
+                requestedBy: approved.requestedBy,
+                reviewedBy: approved.reviewedBy,
+                approvedBy: approved.approvedBy,
+                requestedAt: approved.requestedAt,
+                reviewedAt: approved.reviewedAt,
+                approvedAt: approved.approvedAt,
+                expiresAt: approved.expiresAt,
+                transitionHistory: approved.transitionHistory,
+                quorumRequired: approved.quorumRequired,
+                rolePolicy: approved.rolePolicy,
+                quorumPolicy: try ReleaseV0120ApprovalWorkflowQuorumPolicy(
+                    reviewerQuorumRequired: 2,
+                    approverQuorumRequired: 1,
+                    approverCountsTowardReviewerQuorum: true
+                ),
+                boundBundleChecksum: approved.boundBundleChecksum,
+                evaluatedAt: evaluatedAt,
+                validationAnchors: approved.validationAnchors
+            )
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift")
+        let contract = try read("docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md")
+        let verifier = try read("checks/verify-v0.12.0.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "GH-960-VERIFY-V0120-APPROVAL-ROLE-QUORUM-SEPARATION",
+            "TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION",
+            "V0120-009-APPROVAL-ROLE-QUORUM-SEPARATION",
+            "V0120-009-REQUESTER-REVIEWER-APPROVER-ROLE-POLICY",
+            "V0120-009-QUORUM-SEPARATION-OF-DUTIES",
+            "V0120-009-APPROVAL-EXPIRY-REVOCATION-FAIL-CLOSED",
+            "V0120-009-BUNDLE-CHECKSUM-BINDING",
+            "V0120-009-TRANSITION-CHECKSUM-CHAIN",
+            "V0120-009-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(ReleaseV0120ApprovalRoleQuorumSeparationAnchors.validationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in approval workflow source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.12.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.12.0 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in readiness docs")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest summary")
+        }
+
+        for expectedSource in [
+            "ReleaseV0120ApprovalWorkflowRolePolicy",
+            "ReleaseV0120ApprovalWorkflowQuorumPolicy",
+            "rolePolicySatisfied",
+            "reviewerQuorumSatisfied",
+            "approverQuorumSatisfied",
+            "bundleChecksumBindingHeld",
+            "transitionChecksumChainHeld",
+            "boundBundleChecksum",
+            "expectedBundleChecksum",
+            "transitionChecksumChain",
+            "stableTransitionChecksum"
+        ] {
+            XCTAssertTrue(source.contains(expectedSource), "\(expectedSource) must stay represented in GH-960 source")
+        }
+    }
+
     func testGH885ProductionCommandSurfaceDisabledProofKeepsDashboardAndCLIReadOnly() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

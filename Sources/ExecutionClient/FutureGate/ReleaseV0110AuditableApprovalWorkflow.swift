@@ -1,3 +1,4 @@
+import Crypto
 import DomainModel
 import Foundation
 
@@ -17,9 +18,123 @@ public enum ReleaseV0110AuditableApprovalWorkflowAnchors {
     ]
 }
 
+/// ReleaseV0120ApprovalRoleQuorumSeparationAnchors 固定 GH-960 的审批角色 / quorum hardening 锚点。
+///
+/// GH-960 只强化本地 approval evidence 的可信度：角色、quorum、职责分离、bundle checksum
+/// 和 transition checksum chain 都必须可审计；即使 evidence approved，也不授权 production cutover。
+public enum ReleaseV0120ApprovalRoleQuorumSeparationAnchors {
+    public static let validationAnchors = [
+        "GH-960-VERIFY-V0120-APPROVAL-ROLE-QUORUM-SEPARATION",
+        "TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION",
+        "V0120-009-APPROVAL-ROLE-QUORUM-SEPARATION",
+        "V0120-009-REQUESTER-REVIEWER-APPROVER-ROLE-POLICY",
+        "V0120-009-QUORUM-SEPARATION-OF-DUTIES",
+        "V0120-009-APPROVAL-EXPIRY-REVOCATION-FAIL-CLOSED",
+        "V0120-009-BUNDLE-CHECKSUM-BINDING",
+        "V0120-009-TRANSITION-CHECKSUM-CHAIN",
+        "V0120-009-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
 /// ReleaseV0110ApprovalWorkflowArtifactKind 固定 GH-923 的本地 approval evidence 文件。
 public enum ReleaseV0110ApprovalWorkflowArtifactKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case approvalWorkflowTransitions = "approval_workflow_transitions.json"
+}
+
+/// ReleaseV0120ApprovalWorkflowRolePolicy 固定 GH-960 的 requester / reviewer / approver 角色边界。
+///
+/// 这些角色只用于本地 readiness approval evidence。职责分离要求 requester 不得充当 reviewer
+/// 或 approver，reviewer 与 approver 也不得互相代替。
+public struct ReleaseV0120ApprovalWorkflowRolePolicy: Codable, Equatable, Sendable {
+    public let requester: ReleaseV0110ApprovalWorkflowActorReference
+    public let reviewers: [ReleaseV0110ApprovalWorkflowActorReference]
+    public let approvers: [ReleaseV0110ApprovalWorkflowActorReference]
+    public let revokers: [ReleaseV0110ApprovalWorkflowActorReference]
+    public let separationOfDutiesRequired: Bool
+
+    public var rolePolicyHeld: Bool {
+        reviewers.isEmpty == false
+            && approvers.isEmpty == false
+            && revokers.isEmpty == false
+            && Set(reviewers.map(\.reference)).count == reviewers.count
+            && Set(approvers.map(\.reference)).count == approvers.count
+            && Set(revokers.map(\.reference)).count == revokers.count
+            && separationOfDutiesSatisfied
+    }
+
+    public var separationOfDutiesSatisfied: Bool {
+        guard separationOfDutiesRequired else {
+            return true
+        }
+
+        let requesterReference = requester.reference
+        let reviewerReferences = Set(reviewers.map(\.reference))
+        let approverReferences = Set(approvers.map(\.reference))
+
+        return reviewerReferences.contains(requesterReference) == false
+            && approverReferences.contains(requesterReference) == false
+            && reviewerReferences.isDisjoint(with: approverReferences)
+    }
+
+    public init(
+        requester: ReleaseV0110ApprovalWorkflowActorReference,
+        reviewers: [ReleaseV0110ApprovalWorkflowActorReference],
+        approvers: [ReleaseV0110ApprovalWorkflowActorReference],
+        revokers: [ReleaseV0110ApprovalWorkflowActorReference],
+        separationOfDutiesRequired: Bool = true
+    ) throws {
+        self.requester = requester
+        self.reviewers = reviewers
+        self.approvers = approvers
+        self.revokers = revokers
+        self.separationOfDutiesRequired = separationOfDutiesRequired
+
+        guard rolePolicyHeld else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "approvalWorkflowRolePolicy",
+                expected: "requester/reviewer/approver/revoker separation of duties",
+                actual: "invalid"
+            )
+        }
+    }
+}
+
+/// ReleaseV0120ApprovalWorkflowQuorumPolicy 固定 GH-960 的 review / approval quorum 规则。
+///
+/// Approver quorum 与 reviewer quorum 分开计算；approver 不能自动计入 reviewer quorum，
+/// reviewer 也不能自动计入 approver quorum。
+public struct ReleaseV0120ApprovalWorkflowQuorumPolicy: Codable, Equatable, Sendable {
+    public let reviewerQuorumRequired: Int
+    public let approverQuorumRequired: Int
+    public let approverCountsTowardReviewerQuorum: Bool
+    public let reviewerCountsTowardApproverQuorum: Bool
+
+    public var quorumPolicyHeld: Bool {
+        reviewerQuorumRequired > 0
+            && approverQuorumRequired > 0
+            && approverCountsTowardReviewerQuorum == false
+            && reviewerCountsTowardApproverQuorum == false
+    }
+
+    public init(
+        reviewerQuorumRequired: Int,
+        approverQuorumRequired: Int,
+        approverCountsTowardReviewerQuorum: Bool = false,
+        reviewerCountsTowardApproverQuorum: Bool = false
+    ) throws {
+        self.reviewerQuorumRequired = reviewerQuorumRequired
+        self.approverQuorumRequired = approverQuorumRequired
+        self.approverCountsTowardReviewerQuorum = approverCountsTowardReviewerQuorum
+        self.reviewerCountsTowardApproverQuorum = reviewerCountsTowardApproverQuorum
+
+        guard quorumPolicyHeld else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "approvalWorkflowQuorumPolicy",
+                expected: "positive independent reviewer/approver quorum",
+                actual: "invalid"
+            )
+        }
+    }
 }
 
 /// ReleaseV0110ApprovalWorkflowState 是 GH-923 的可审计审批状态集合。
@@ -63,6 +178,16 @@ public struct ReleaseV0110ApprovalWorkflowTransition: Codable, Equatable, Sendab
     public var transitionHeld: Bool {
         Self.isAllowedTransition(from: fromState, to: toState)
             && reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+    }
+
+    public var transitionChecksum: String {
+        Self.stableTransitionChecksum(
+            fromState: fromState,
+            toState: toState,
+            actor: actor,
+            timestamp: timestamp,
+            reason: reason
+        )
     }
 
     public init(
@@ -111,6 +236,29 @@ public struct ReleaseV0110ApprovalWorkflowTransition: Codable, Equatable, Sendab
             false
         }
     }
+
+    public static func stableTransitionChecksum(
+        fromState: ReleaseV0110ApprovalWorkflowState,
+        toState: ReleaseV0110ApprovalWorkflowState,
+        actor: ReleaseV0110ApprovalWorkflowActorReference,
+        timestamp: Date,
+        reason: String
+    ) -> String {
+        stableSHA256([
+            fromState.rawValue,
+            toState.rawValue,
+            actor.reference,
+            String(timestamp.timeIntervalSince1970),
+            reason.trimmingCharacters(in: .whitespacesAndNewlines)
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
 }
 
 /// ReleaseV0110AuditableApprovalWorkflowStateModel 是 GH-923 的本地审批工作流状态模型。
@@ -132,6 +280,11 @@ public struct ReleaseV0110AuditableApprovalWorkflowStateModel: Codable, Equatabl
     public let revokedReason: String?
     public let transitionHistory: [ReleaseV0110ApprovalWorkflowTransition]
     public let quorumRequired: Int
+    public let rolePolicy: ReleaseV0120ApprovalWorkflowRolePolicy
+    public let quorumPolicy: ReleaseV0120ApprovalWorkflowQuorumPolicy
+    public let boundBundleChecksum: String
+    public let expectedBundleChecksum: String
+    public let transitionChecksumChain: [String]
     public let evaluatedAt: Date
     public let localEvidenceOnly: Bool
     public let transitionHistoryAuditable: Bool
@@ -154,7 +307,44 @@ public struct ReleaseV0110AuditableApprovalWorkflowStateModel: Codable, Equatabl
     public let validationAnchors: [String]
 
     public var quorumSatisfied: Bool {
-        quorumRequired > 0 && Set(reviewedBy.map(\.reference)).count >= quorumRequired
+        reviewerQuorumSatisfied && approverQuorumSatisfied
+    }
+
+    public var reviewerQuorumSatisfied: Bool {
+        quorumRequired == quorumPolicy.reviewerQuorumRequired
+            && Set(reviewedBy.map(\.reference)).count >= quorumPolicy.reviewerQuorumRequired
+    }
+
+    public var approverQuorumSatisfied: Bool {
+        guard let approvedBy else {
+            return false
+        }
+        return quorumPolicy.approverQuorumRequired == 1
+            && rolePolicy.approvers.contains(approvedBy)
+    }
+
+    public var rolePolicySatisfied: Bool {
+        guard let requestedBy else {
+            return false
+        }
+        let reviewerReferences = Set(reviewedBy.map(\.reference))
+        let allowedReviewerReferences = Set(rolePolicy.reviewers.map(\.reference))
+        let approvedByAllowed = approvedBy.map { rolePolicy.approvers.contains($0) } ?? true
+
+        return rolePolicy.rolePolicyHeld
+            && rolePolicy.requester == requestedBy
+            && reviewerReferences.isSubset(of: allowedReviewerReferences)
+            && approvedByAllowed
+            && rolePolicy.separationOfDutiesSatisfied
+    }
+
+    public var bundleChecksumBindingHeld: Bool {
+        boundBundleChecksum == expectedBundleChecksum
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(boundBundleChecksum)
+    }
+
+    public var transitionChecksumChainHeld: Bool {
+        transitionChecksumChain == transitionHistory.map(\.transitionChecksum)
     }
 
     public var isExpired: Bool {
@@ -173,6 +363,9 @@ public struct ReleaseV0110AuditableApprovalWorkflowStateModel: Codable, Equatabl
             && reviewedAt != nil
             && approvedAt != nil
             && quorumSatisfied
+            && rolePolicySatisfied
+            && bundleChecksumBindingHeld
+            && transitionChecksumChainHeld
             && isExpired == false
             && isRevoked == false
             && transitionHistoryHeld
@@ -203,17 +396,21 @@ public struct ReleaseV0110AuditableApprovalWorkflowStateModel: Codable, Equatabl
     }
 
     public var stateModelHeld: Bool {
-        issueID.rawValue == "GH-923"
-            && upstreamIssueIDs.map(\.rawValue) == ["GH-913", "GH-922"]
+        issueIDHeld
+            && upstreamIssueIDsHeld
             && artifactDescriptor == Self.requiredArtifactDescriptor
             && transitionHistoryHeld
+            && transitionChecksumChainHeld
             && quorumRequired > 0
+            && quorumPolicy.quorumPolicyHeld
+            && rolePolicy.rolePolicyHeld
             && reviewedByReferencesUnique
             && revokedStateHeld
+            && bundleChecksumBindingHeld
             && localEvidenceOnly
             && transitionHistoryAuditable
             && productionCapabilitiesDisabled
-            && validationAnchors == Self.requiredValidationAnchors
+            && validationAnchorsHeld
     }
 
     public var transitionHistoryHeld: Bool {
@@ -253,6 +450,19 @@ public struct ReleaseV0110AuditableApprovalWorkflowStateModel: Codable, Equatabl
             : revokedReason == nil
     }
 
+    private var issueIDHeld: Bool {
+        issueID.rawValue == "GH-923" || issueID.rawValue == "GH-960"
+    }
+
+    private var upstreamIssueIDsHeld: Bool {
+        let rawValues = upstreamIssueIDs.map(\.rawValue)
+        return rawValues == ["GH-913", "GH-922"] || rawValues == ["GH-951", "GH-959"]
+    }
+
+    private var validationAnchorsHeld: Bool {
+        validationAnchors == Self.requiredValidationAnchors || validationAnchors == Self.v0120RoleQuorumValidationAnchors
+    }
+
     public init(
         issueID: Identifier = Identifier.constant("GH-923"),
         upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-913"), Identifier.constant("GH-922")],
@@ -268,6 +478,11 @@ public struct ReleaseV0110AuditableApprovalWorkflowStateModel: Codable, Equatabl
         revokedReason: String? = nil,
         transitionHistory: [ReleaseV0110ApprovalWorkflowTransition],
         quorumRequired: Int,
+        rolePolicy: ReleaseV0120ApprovalWorkflowRolePolicy? = nil,
+        quorumPolicy: ReleaseV0120ApprovalWorkflowQuorumPolicy? = nil,
+        boundBundleChecksum: String = Self.defaultBoundBundleChecksum,
+        expectedBundleChecksum: String? = nil,
+        transitionChecksumChain: [String]? = nil,
         evaluatedAt: Date,
         localEvidenceOnly: Bool = true,
         transitionHistoryAuditable: Bool = true,
@@ -289,6 +504,18 @@ public struct ReleaseV0110AuditableApprovalWorkflowStateModel: Codable, Equatabl
         approvalWorkflowBypassEnabled: Bool = false,
         validationAnchors: [String] = Self.requiredValidationAnchors
     ) throws {
+        let resolvedRolePolicy = try rolePolicy ?? Self.defaultRolePolicy(
+            requestedBy: requestedBy,
+            reviewedBy: reviewedBy,
+            approvedBy: approvedBy
+        )
+        let resolvedQuorumPolicy = try quorumPolicy ?? ReleaseV0120ApprovalWorkflowQuorumPolicy(
+            reviewerQuorumRequired: quorumRequired,
+            approverQuorumRequired: approvedBy == nil ? 1 : 1
+        )
+        let resolvedExpectedBundleChecksum = expectedBundleChecksum ?? boundBundleChecksum
+        let resolvedTransitionChecksumChain = transitionChecksumChain ?? transitionHistory.map(\.transitionChecksum)
+
         self.issueID = issueID
         self.upstreamIssueIDs = upstreamIssueIDs
         self.artifactDescriptor = artifactDescriptor
@@ -303,6 +530,11 @@ public struct ReleaseV0110AuditableApprovalWorkflowStateModel: Codable, Equatabl
         self.revokedReason = revokedReason?.trimmingCharacters(in: .whitespacesAndNewlines)
         self.transitionHistory = transitionHistory
         self.quorumRequired = quorumRequired
+        self.rolePolicy = resolvedRolePolicy
+        self.quorumPolicy = resolvedQuorumPolicy
+        self.boundBundleChecksum = boundBundleChecksum
+        self.expectedBundleChecksum = resolvedExpectedBundleChecksum
+        self.transitionChecksumChain = resolvedTransitionChecksumChain
         self.evaluatedAt = evaluatedAt
         self.localEvidenceOnly = localEvidenceOnly
         self.transitionHistoryAuditable = transitionHistoryAuditable
@@ -329,11 +561,18 @@ public struct ReleaseV0110AuditableApprovalWorkflowStateModel: Codable, Equatabl
             artifactDescriptor: artifactDescriptor,
             upstreamIssueIDs: upstreamIssueIDs,
             quorumRequired: quorumRequired,
+            rolePolicy: resolvedRolePolicy,
+            quorumPolicy: resolvedQuorumPolicy,
+            boundBundleChecksum: boundBundleChecksum,
+            expectedBundleChecksum: resolvedExpectedBundleChecksum,
+            transitionChecksumChain: resolvedTransitionChecksumChain,
             validationAnchors: validationAnchors
         )
     }
 
     public static let requiredValidationAnchors = ReleaseV0110AuditableApprovalWorkflowAnchors.validationAnchors
+    public static let v0120RoleQuorumValidationAnchors = ReleaseV0120ApprovalRoleQuorumSeparationAnchors.validationAnchors
+    public static let defaultBoundBundleChecksum = "sha256:\(String(repeating: "9", count: 64))"
 
     public static let requiredArtifactDescriptor: ProductionReadinessArtifactDescriptor = {
         do {
@@ -446,6 +685,72 @@ public struct ReleaseV0110AuditableApprovalWorkflowStateModel: Codable, Equatabl
         )
     }
 
+    public static func v0120ApprovedEvidenceFixture(
+        evaluatedAt: Date = Date(timeIntervalSince1970: 1_812_700_000),
+        boundBundleChecksum: String = defaultBoundBundleChecksum
+    ) throws -> ReleaseV0110AuditableApprovalWorkflowStateModel {
+        let requestedAt = evaluatedAt.addingTimeInterval(-600)
+        let reviewedAt = evaluatedAt.addingTimeInterval(-300)
+        let approvedAt = evaluatedAt.addingTimeInterval(-120)
+        let expiresAt = evaluatedAt.addingTimeInterval(3_600)
+        let requester = try ReleaseV0110ApprovalWorkflowActorReference("operator/requester")
+        let reviewerA = try ReleaseV0110ApprovalWorkflowActorReference("operator/reviewer-a")
+        let reviewerB = try ReleaseV0110ApprovalWorkflowActorReference("operator/reviewer-b")
+        let approver = try ReleaseV0110ApprovalWorkflowActorReference("operator/approver")
+        let revoker = try ReleaseV0110ApprovalWorkflowActorReference("operator/revoker")
+        let transitions = [
+            try ReleaseV0110ApprovalWorkflowTransition(
+                fromState: .notRequested,
+                toState: .requested,
+                actor: requester,
+                timestamp: requestedAt,
+                reason: "operator requested v0.12 approval evidence"
+            ),
+            try ReleaseV0110ApprovalWorkflowTransition(
+                fromState: .requested,
+                toState: .reviewing,
+                actor: reviewerA,
+                timestamp: reviewedAt,
+                reason: "review quorum collection started"
+            ),
+            try ReleaseV0110ApprovalWorkflowTransition(
+                fromState: .reviewing,
+                toState: .approved,
+                actor: approver,
+                timestamp: approvedAt,
+                reason: "local readiness evidence approved for record only"
+            )
+        ]
+
+        return try ReleaseV0110AuditableApprovalWorkflowStateModel(
+            issueID: Identifier.constant("GH-960"),
+            upstreamIssueIDs: [Identifier.constant("GH-951"), Identifier.constant("GH-959")],
+            currentState: .approved,
+            requestedBy: requester,
+            reviewedBy: [reviewerA, reviewerB],
+            approvedBy: approver,
+            requestedAt: requestedAt,
+            reviewedAt: reviewedAt,
+            approvedAt: approvedAt,
+            expiresAt: expiresAt,
+            transitionHistory: transitions,
+            quorumRequired: 2,
+            rolePolicy: try ReleaseV0120ApprovalWorkflowRolePolicy(
+                requester: requester,
+                reviewers: [reviewerA, reviewerB],
+                approvers: [approver],
+                revokers: [revoker]
+            ),
+            quorumPolicy: try ReleaseV0120ApprovalWorkflowQuorumPolicy(
+                reviewerQuorumRequired: 2,
+                approverQuorumRequired: 1
+            ),
+            boundBundleChecksum: boundBundleChecksum,
+            evaluatedAt: evaluatedAt,
+            validationAnchors: Self.v0120RoleQuorumValidationAnchors
+        )
+    }
+
     public func canonicalEvidenceData() throws -> Data {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -467,11 +772,36 @@ public struct ReleaseV0110AuditableApprovalWorkflowStateModel: Codable, Equatabl
 }
 
 private extension ReleaseV0110AuditableApprovalWorkflowStateModel {
+    static func defaultRolePolicy(
+        requestedBy: ReleaseV0110ApprovalWorkflowActorReference?,
+        reviewedBy: [ReleaseV0110ApprovalWorkflowActorReference],
+        approvedBy: ReleaseV0110ApprovalWorkflowActorReference?
+    ) throws -> ReleaseV0120ApprovalWorkflowRolePolicy {
+        let requester = try requestedBy ?? ReleaseV0110ApprovalWorkflowActorReference("operator/requester")
+        let reviewers = reviewedBy.isEmpty
+            ? [try ReleaseV0110ApprovalWorkflowActorReference("operator/reviewer")]
+            : reviewedBy
+        let approver = try approvedBy ?? ReleaseV0110ApprovalWorkflowActorReference("operator/approver")
+        let revoker = try ReleaseV0110ApprovalWorkflowActorReference("operator/revoker")
+
+        return try ReleaseV0120ApprovalWorkflowRolePolicy(
+            requester: requester,
+            reviewers: reviewers,
+            approvers: [approver],
+            revokers: [revoker]
+        )
+    }
+
     static func validate(
         model: ReleaseV0110AuditableApprovalWorkflowStateModel,
         artifactDescriptor: ProductionReadinessArtifactDescriptor,
         upstreamIssueIDs: [Identifier],
         quorumRequired: Int,
+        rolePolicy: ReleaseV0120ApprovalWorkflowRolePolicy,
+        quorumPolicy: ReleaseV0120ApprovalWorkflowQuorumPolicy,
+        boundBundleChecksum: String,
+        expectedBundleChecksum: String,
+        transitionChecksumChain: [String],
         validationAnchors: [String]
     ) throws {
         guard artifactDescriptor == requiredArtifactDescriptor else {
@@ -481,22 +811,34 @@ private extension ReleaseV0110AuditableApprovalWorkflowStateModel {
                 actual: artifactDescriptor.relativePath
             )
         }
-        guard upstreamIssueIDs.map(\.rawValue) == ["GH-913", "GH-922"] else {
+        guard model.upstreamIssueIDsHeld else {
             throw CoreError.liveTradingBoundaryContractMismatch(
                 field: "approvalWorkflowUpstreamIssueIDs",
-                expected: "GH-913,GH-922",
+                expected: "GH-913,GH-922 or GH-951,GH-959",
                 actual: upstreamIssueIDs.map(\.rawValue).joined(separator: ",")
             )
         }
         guard quorumRequired > 0 else {
             throw CoreError.liveTradingBoundaryContractMismatch(field: "approvalWorkflowQuorumRequired", expected: ">0", actual: "\(quorumRequired)")
         }
-        guard validationAnchors == requiredValidationAnchors else {
+        guard model.validationAnchorsHeld else {
             throw CoreError.liveTradingBoundaryContractMismatch(
                 field: "approvalWorkflowValidationAnchors",
-                expected: requiredValidationAnchors.joined(separator: ","),
+                expected: "\(requiredValidationAnchors.joined(separator: ",")) or \(v0120RoleQuorumValidationAnchors.joined(separator: ","))",
                 actual: validationAnchors.joined(separator: ",")
             )
+        }
+        guard rolePolicy.rolePolicyHeld else {
+            throw CoreError.liveTradingBoundaryContractMismatch(field: "approvalWorkflowRolePolicy", expected: "held", actual: "invalid")
+        }
+        guard quorumPolicy.quorumPolicyHeld else {
+            throw CoreError.liveTradingBoundaryContractMismatch(field: "approvalWorkflowQuorumPolicy", expected: "held", actual: "invalid")
+        }
+        guard ReadinessAssessmentManifestV2.isValidSHA256Checksum(boundBundleChecksum) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(field: "approvalWorkflowBoundBundleChecksum", expected: "sha256:<64 lowercase hex>", actual: boundBundleChecksum)
+        }
+        guard ReadinessAssessmentManifestV2.isValidSHA256Checksum(expectedBundleChecksum) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(field: "approvalWorkflowExpectedBundleChecksum", expected: "sha256:<64 lowercase hex>", actual: expectedBundleChecksum)
         }
         guard model.transitionHistoryHeld else {
             throw CoreError.liveTradingBoundaryContractMismatch(field: "approvalWorkflowTransitionHistory", expected: "contiguous audited transitions", actual: "invalid")
