@@ -119,6 +119,14 @@ v0.10.0 readiness evidence 允许记录 approval workflow、manual confirmation 
 
 `V0110-ACTUAL-GITHUB-RELEASE`
 
+`GH-945-VERIFY-V0111-RELEASE-FACT-STALE-WORDING-GUARD`
+
+`V0111-001-RELEASE-FACT-SYNC-GUARD`
+
+`V0111-001-FOUR-GATE-RELEASE-FLOW`
+
+`TVM-RELEASE-V0111-RELEASE-FACT-SYNC-GUARD`
+
 v0.11.0 使用 `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening` 作为 release construction queue。#924 construction closeout 本身只收口 Stage Code Audit、release notes、root docs refresh、aggregate verifier guard 和 focused closeout test；它不创建 tag，也不发布 GitHub Release。
 
 v0.11.0 当前存在 public GitHub Release：
@@ -130,7 +138,9 @@ v0.11.0 当前存在 public GitHub Release：
 - tag peeled commit：`13f592d0710de91351286e5c5490bfacb63c19b0`
 - publication timestamp：`2026-06-19T01:20:58Z`
 
-v0.11.0 的 construction closeout、Release Publication Gate 和 production cutover 仍是独立 gate。已发布事实不授权 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实订单，不创建下一 Project / Issue，也不推进 v0.12.0。
+v0.11.0 的 construction closeout、Release Publication Gate、release fact sync / stale wording guard 和 production cutover 仍是独立 gate。已发布事实不授权 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实订单，不创建下一 Project / Issue，也不推进 v0.12.0。
+
+GH-945 / v0.11.1 stale wording guard 固定该 release fact：所有未限定为 #924 历史 closeout 的 v0.11.0 文档不得继续描述为 publication pending、tag pending、release not created、没有 GitHub Release、未创建 release 或待发布。
 
 ## V080-002-V080-CONSTRUCTION-VS-PUBLICATION
 

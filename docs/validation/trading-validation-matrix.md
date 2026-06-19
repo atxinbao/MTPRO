@@ -6,6 +6,18 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0111-RELEASE-FACT-SYNC-GUARD
+
+- TVM-RELEASE-V0111-RELEASE-FACT-SYNC-GUARD
+- GH-945-VERIFY-V0111-RELEASE-FACT-STALE-WORDING-GUARD
+- V0111-001-RELEASE-FACT-SYNC-GUARD
+- V0111-001-FOUR-GATE-RELEASE-FLOW
+- GH-945 Release v0.11.1 Release Fact Sync / Stale Wording Guard Validation
+- `bash checks/verify-v0.11.1-release-fact-sync.sh`
+- `swift test --filter TargetGraphTests/testGH945ReleaseFactSyncGuardRejectsV0110StalePublicationWording`
+- Evidence docs: `docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md`、`docs/validation/validation-plan.md`、`docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md` 和 `docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md`。
+- Boundary: GH-945 只固定 v0.11.0 publication fact sync / stale wording guard；v0.11.0 已通过独立 Release Publication Gate 发布 public GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`；tag peeled commit `13f592d0710de91351286e5c5490bfacb63c19b0`；publication timestamp `2026-06-19T01:20:58Z`。该 guard 不移动 tag、不重写 release、不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
 ## TVM-RELEASE-V0110-FINAL-AUDIT-RELEASE-DOCS
 
 - TVM-RELEASE-V0110-FINAL-AUDIT-RELEASE-DOCS
