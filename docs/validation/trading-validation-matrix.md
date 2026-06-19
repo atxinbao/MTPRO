@@ -21,7 +21,7 @@
 - `bash checks/verify-v0.11.0.sh`
 - `swift test --filter TargetGraphTests/testGH924ReleaseV0110FinalAuditReleaseDocsCloseout`
 - Evidence docs: `docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md`、`docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md`、`docs/validation/latest-verification-summary.md`、`docs/automation/automation-readiness.md`、`docs/validation/validation-plan.md` 和 `checks/verify-v0.11.0.sh`。
-- Boundary: GH-924 只收口 v0.11.0 validation suite、Stage Code Audit、release notes、root docs refresh 和 aggregate verifier guard；不创建 `v0.11.0` tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+- Boundary: GH-924 只收口 v0.11.0 validation suite、Stage Code Audit、release notes、root docs refresh 和 aggregate verifier guard；GH-924 本身不创建 `v0.11.0` tag / GitHub Release。后续独立 Release Publication Gate 已发布 `v0.11.0` public GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`；该 publication 不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
 
 ## TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS
 

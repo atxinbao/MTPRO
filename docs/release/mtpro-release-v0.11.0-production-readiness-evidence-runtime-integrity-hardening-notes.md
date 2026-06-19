@@ -8,7 +8,7 @@
 
 v0.11.0 是 v0.10.0 / v0.10.1 production readiness evidence 之后的本地 evidence runtime 和 integrity hardening construction closeout。它把 production readiness 从静态 reference evidence 推进到本地 artifact store、manifest、canonical JSON SHA256、bundle validation、Dashboard read-model、CLI local artifact commands、fixed-point policy、kill switch / no-trade state、auditable approval workflow transitions 和 shadow dry-run parity evidence。
 
-本说明是 release construction notes，不是 GitHub Release publication。#924 不创建 `v0.11.0` tag，不发布 GitHub Release，不授权 production cutover。
+本说明最初是 #924 release construction notes；#924 本身不创建 `v0.11.0` tag，不发布 GitHub Release，不授权 production cutover。后续独立 Release Publication Gate 已发布 v0.11.0 public GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`，tag peeled commit：`13f592d0710de91351286e5c5490bfacb63c19b0`，publication timestamp：`2026-06-19T01:20:58Z`。该 publication 不移动 #924 历史 closeout 边界，也不授权 production cutover。
 
 ## Completed Queue
 
@@ -81,7 +81,7 @@ bash checks/run.sh
 - 不实现或启用 production OMS。
 - 不启用 trading button、order form 或 live command。
 - Approval workflow `approved` 只表示本地 readiness evidence 完整，不等于 production cutover authorization。
-- `v0.11.0` public tag / GitHub Release publication 需要后续独立 release publication gate。
+- `v0.11.0` public tag / GitHub Release publication 已通过后续独立 Release Publication Gate 完成：`https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`。
 
 ## Operator Meaning
 
