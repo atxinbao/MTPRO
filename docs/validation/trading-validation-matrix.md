@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0111-PATCH-AUDIT-RELEASE-NOTES
+
+- TVM-RELEASE-V0111-PATCH-AUDIT-RELEASE-NOTES
+- GH-951-VERIFY-V0111-PATCH-AUDIT-RELEASE-NOTES
+- V0111-007-PATCH-AUDIT
+- V0111-007-RELEASE-NOTES
+- V0111-007-VALIDATION-SUMMARY
+- V0111-007-AGGREGATE-VERIFY
+- V0111-007-NO-PRODUCTION-CUTOVER
+- V0111-007-NO-TAG-OR-RELEASE-MOVE
+- GH-951 Release v0.11.1 Patch Audit / Release Notes Closeout Validation
+- `bash checks/verify-v0.11.1.sh`
+- `swift test --filter TargetGraphTests/testGH951ReleaseV0111PatchAuditReleaseNotesCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.11.1-readiness-runtime-guard-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.11.1-readiness-runtime-guard-patch-notes.md`、`docs/validation/latest-verification-summary.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.11.1.sh`、`checks/automation-readiness.sh` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-951 只固定 v0.11.1 patch closeout evidence；#945..#950 已 closed / done，PR #966..#971 merged / checks SUCCESS。该 closeout 不创建 / 移动 / 重写 tag 或 GitHub Release，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover，也不推进 v0.12.0。
+
 ## TVM-RELEASE-V0111-PATCH-AGGREGATE-GUARD
 
 - TVM-RELEASE-V0111-PATCH-AGGREGATE-GUARD
