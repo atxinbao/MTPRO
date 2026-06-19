@@ -22,6 +22,14 @@ set -euo pipefail
 # V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER
 # V0120-003-COMPARE-READY-METADATA
 # V0120-003-NO-PRODUCTION-CUTOVER
+# GH-955-VERIFY-V0120-ASSESSMENT-TRANSACTION-LOCK
+# TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK
+# V0120-004-ASSESSMENT-TRANSACTION-LOCK
+# V0120-004-TRANSACTION-ID-GENERATION-ID
+# V0120-004-STAGING-DIRECTORY-COMMIT-MARKER
+# V0120-004-COMPARE-AND-SWAP-MANIFEST
+# V0120-004-CRASH-RECOVERY-SEMANTICS
+# V0120-004-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -66,6 +74,7 @@ REGISTRY_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessm
 swift test --filter TargetGraphTests/testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract
 swift test --filter TargetGraphTests/testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts
 swift test --filter TargetGraphTests/testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata
+swift test --filter TargetGraphTests/testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -88,7 +97,15 @@ for anchor in \
   "V0120-003-ASSESSMENT-DIRECTORY-PATH" \
   "V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER" \
   "V0120-003-COMPARE-READY-METADATA" \
-  "V0120-003-NO-PRODUCTION-CUTOVER"; do
+  "V0120-003-NO-PRODUCTION-CUTOVER" \
+  "GH-955-VERIFY-V0120-ASSESSMENT-TRANSACTION-LOCK" \
+  "TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK" \
+  "V0120-004-ASSESSMENT-TRANSACTION-LOCK" \
+  "V0120-004-TRANSACTION-ID-GENERATION-ID" \
+  "V0120-004-STAGING-DIRECTORY-COMMIT-MARKER" \
+  "V0120-004-COMPARE-AND-SWAP-MANIFEST" \
+  "V0120-004-CRASH-RECOVERY-SEMANTICS" \
+  "V0120-004-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -96,7 +113,7 @@ for anchor in \
   require_file_contains "$LATEST" "$anchor"
   require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
   require_file_contains "$TESTS" "$anchor"
-  if [[ "$anchor" == GH-954-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == V0120-003-* ]]; then
+  if [[ "$anchor" == GH-954-* || "$anchor" == GH-955-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK || "$anchor" == V0120-003-* || "$anchor" == V0120-004-* ]]; then
     require_file_contains "$REGISTRY_SOURCE" "$anchor"
   fi
 done
@@ -146,6 +163,16 @@ require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentRegistryStore"
 require_file_contains "$REGISTRY_SOURCE" ".local/mtpro/readiness/registry.json"
 require_file_contains "$REGISTRY_SOURCE" ".local/mtpro/readiness/assessments"
 require_file_contains "$REGISTRY_SOURCE" "compareReadyAssessments"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentTransactionControl"
+require_file_contains "$REGISTRY_SOURCE" "createWithTransaction"
+require_file_contains "$REGISTRY_SOURCE" "stageAssessmentTransaction"
+require_file_contains "$REGISTRY_SOURCE" "abortAssessmentTransaction"
+require_file_contains "$REGISTRY_SOURCE" "recoverInterruptedTransactions"
+require_file_contains "$REGISTRY_SOURCE" "compare-and-swap-manifest.json"
+require_file_contains "$REGISTRY_SOURCE" "commit-marker.json"
+require_file_contains "$REGISTRY_SOURCE" ".local/mtpro/readiness/staging"
+require_file_contains "$REGISTRY_SOURCE" "concurrentModification"
+require_file_contains "$REGISTRY_SOURCE" "generationMismatch"
 require_file_contains "$REGISTRY_SOURCE" "productionCutoverAuthorized == false"
 require_file_contains "$RELEASE_POLICY" "V0120-002-V011X-RELEASE-PATCH-FACT-BASELINE"
 require_file_contains "$RELEASE_POLICY" "v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public Release 后的 guard hardening closeout"
@@ -155,6 +182,7 @@ require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.12.0.sh"
 require_file_contains "$TESTS" "testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract"
 require_file_contains "$TESTS" "testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts"
 require_file_contains "$TESTS" "testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata"
+require_file_contains "$TESTS" "testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery"
 
 for forbidden in \
   "productionTradingEnabledByDefault=true" \

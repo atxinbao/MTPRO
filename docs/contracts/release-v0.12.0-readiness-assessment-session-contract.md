@@ -37,6 +37,22 @@
 
 `V0120-003-NO-PRODUCTION-CUTOVER`
 
+`GH-955-VERIFY-V0120-ASSESSMENT-TRANSACTION-LOCK`
+
+`TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK`
+
+`V0120-004-ASSESSMENT-TRANSACTION-LOCK`
+
+`V0120-004-TRANSACTION-ID-GENERATION-ID`
+
+`V0120-004-STAGING-DIRECTORY-COMMIT-MARKER`
+
+`V0120-004-COMPARE-AND-SWAP-MANIFEST`
+
+`V0120-004-CRASH-RECOVERY-SEMANTICS`
+
+`V0120-004-NO-PRODUCTION-CUTOVER`
+
 ## Contract Scope
 
 `v0.12.0` 定义 readiness assessment session / 就绪度评估会话。该会话只允许整理、校验、比较和展示本地 readiness evidence，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order。
@@ -99,6 +115,26 @@ Registry store 可以持有以下本地 metadata state：
 `V0120-003-NO-PRODUCTION-CUTOVER`
 
 Registry store 不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不创建下一 Project / Issue，不移动 tag / Release。
+
+## V0120-004-ASSESSMENT-TRANSACTION-LOCK
+
+`V0120-004-TRANSACTION-ID-GENERATION-ID`
+
+`V0120-004-STAGING-DIRECTORY-COMMIT-MARKER`
+
+`V0120-004-COMPARE-AND-SWAP-MANIFEST`
+
+`V0120-004-CRASH-RECOVERY-SEMANTICS`
+
+v0.12.0 readiness assessment registry write 必须使用本地 transaction control，防止同一个 assessment 被多个 writer 混写。每次写入必须携带 `transactionID`、`generationID` 和可选 `expectedPreviousGenerationID`。`generationID` 必须单调推进；当当前 compare-and-swap manifest 中的 generation 与 `expectedPreviousGenerationID` 不一致时，写入必须 fail closed 为 concurrent modification。
+
+每个 assessment 的本地 lock 固定为 `.local/mtpro/readiness/assessments/<assessmentID>/assessment.lock`。每个 transaction 的 staging directory 固定为 `.local/mtpro/readiness/staging/<assessmentID>/<transactionID>/`，其中保存 `transaction-manifest.json` 和 staging `commit-marker.json`。成功提交后，store 必须写入 `.local/mtpro/readiness/assessments/<assessmentID>/compare-and-swap-manifest.json` 和 `.local/mtpro/readiness/assessments/<assessmentID>/commit-marker.json`，并移除 staging directory。
+
+Transaction abort 必须释放 assessment lock、移除 staging directory，并输出本地 `abort-marker-<transactionID>.json`。Crash recovery 只允许清理残留 staging directory 和残留 assessment lock，并输出本地 recovery report；不得补写、推断或伪造 production approval、broker state、order state 或 endpoint state。
+
+`V0120-004-NO-PRODUCTION-CUTOVER`
+
+Assessment transaction lock / generation control 只强化本地 readiness metadata write consistency。它不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不创建下一 Project / Issue，不移动 tag / Release。
 
 ## V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT
 

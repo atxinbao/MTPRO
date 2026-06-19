@@ -4653,3 +4653,25 @@ swift test
 - assessment directory path: `.local/mtpro/readiness/assessments/<assessmentID>/`
 - allowed scope: create / list / inspect / archive / recover local readiness assessment metadata, compare-ready metadata state, checksum validation and fail-closed corrupted registry handling
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
+
+## GH-955 Release v0.12.0 Assessment Transaction Lock / Generation Control Validation
+
+- GH-955-VERIFY-V0120-ASSESSMENT-TRANSACTION-LOCK
+- TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK
+- V0120-004-ASSESSMENT-TRANSACTION-LOCK
+- V0120-004-TRANSACTION-ID-GENERATION-ID
+- V0120-004-STAGING-DIRECTORY-COMMIT-MARKER
+- V0120-004-COMPARE-AND-SWAP-MANIFEST
+- V0120-004-CRASH-RECOVERY-SEMANTICS
+- V0120-004-NO-PRODUCTION-CUTOVER
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- transaction control: assessment lock path `.local/mtpro/readiness/assessments/<assessmentID>/assessment.lock`, `transactionID`, `generationID`, optional `expectedPreviousGenerationID`
+- staging evidence: `.local/mtpro/readiness/staging/<assessmentID>/<transactionID>/transaction-manifest.json` and staging `commit-marker.json`
+- commit evidence: `.local/mtpro/readiness/assessments/<assessmentID>/compare-and-swap-manifest.json` and `.local/mtpro/readiness/assessments/<assessmentID>/commit-marker.json`
+- fail-closed coverage: lock unavailable, concurrent modification, generation mismatch, transaction abort and crash recovery cleanup
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement

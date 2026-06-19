@@ -30414,7 +30414,15 @@ final class TargetGraphTests: XCTestCase {
             "V0120-003-ASSESSMENT-DIRECTORY-PATH",
             "V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER",
             "V0120-003-COMPARE-READY-METADATA",
-            "V0120-003-NO-PRODUCTION-CUTOVER"
+            "V0120-003-NO-PRODUCTION-CUTOVER",
+            "GH-955-VERIFY-V0120-ASSESSMENT-TRANSACTION-LOCK",
+            "TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK",
+            "V0120-004-ASSESSMENT-TRANSACTION-LOCK",
+            "V0120-004-TRANSACTION-ID-GENERATION-ID",
+            "V0120-004-STAGING-DIRECTORY-COMMIT-MARKER",
+            "V0120-004-COMPARE-AND-SWAP-MANIFEST",
+            "V0120-004-CRASH-RECOVERY-SEMANTICS",
+            "V0120-004-NO-PRODUCTION-CUTOVER"
         ])
         XCTAssertEqual(
             ReadinessAssessmentRegistryState.allCases.map(\.rawValue),
@@ -30572,6 +30580,211 @@ final class TargetGraphTests: XCTestCase {
         ] {
             XCTAssertFalse(encodedRegistry.contains(forbidden), "\(forbidden) must stay false in GH-954 registry")
         }
+    }
+
+    func testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery() throws {
+        // 测试场景：GH-955 在 GH-954 registry store 上增加本地 transaction / generation
+        // 控制；所有锁、staging、commit marker 和 CAS manifest 都是本地证据，不是生产交易授权。
+        XCTAssertTrue(
+            ReadinessAssessmentRegistryStoreAnchors.validationAnchors.contains(
+                "GH-955-VERIFY-V0120-ASSESSMENT-TRANSACTION-LOCK"
+            )
+        )
+        XCTAssertTrue(
+            ReadinessAssessmentRegistryStoreAnchors.validationAnchors.contains(
+                "V0120-004-COMPARE-AND-SWAP-MANIFEST"
+            )
+        )
+
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH955-AssessmentTransactionLock-\(UUID().uuidString)", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: root)
+        }
+
+        let store = ReadinessAssessmentRegistryStore(storageRootURL: root)
+        let createdAt = Date(timeIntervalSince1970: 1_812_100_000)
+        let updatedAt = Date(timeIntervalSince1970: 1_812_100_120)
+        let assessmentID = Identifier.constant("gh-955-assessment")
+        let firstTransactionID = Identifier.constant("gh-955-tx-1")
+        let firstGenerationID = Identifier.constant("gh-955-gen-1")
+
+        let firstResult = try store.createWithTransaction(
+            assessmentID: assessmentID,
+            transactionID: firstTransactionID,
+            generationID: firstGenerationID,
+            expectedPreviousGenerationID: nil,
+            state: .ready,
+            sourceReleaseVersion: "v0.12.0",
+            assessedBy: "Codex",
+            reason: "transactional readiness assessment write",
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+        XCTAssertTrue(firstResult.control.controlHeld)
+        XCTAssertTrue(firstResult.manifest.manifestHeld)
+        XCTAssertTrue(firstResult.commitMarker.markerHeld)
+        XCTAssertEqual(firstResult.manifest.currentGenerationID, firstGenerationID)
+        XCTAssertNil(firstResult.manifest.previousGenerationID)
+        XCTAssertEqual(firstResult.document.entries.map(\.assessmentID.rawValue), [assessmentID.rawValue])
+        XCTAssertFalse(firstResult.document.productionCutoverAuthorized)
+
+        let assessmentDirectory = root
+            .appendingPathComponent("assessments", isDirectory: true)
+            .appendingPathComponent(assessmentID.rawValue, isDirectory: true)
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: assessmentDirectory
+                    .appendingPathComponent("compare-and-swap-manifest.json", isDirectory: false)
+                    .path
+            )
+        )
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: assessmentDirectory
+                    .appendingPathComponent("commit-marker.json", isDirectory: false)
+                    .path
+            )
+        )
+        XCTAssertFalse(
+            FileManager.default.fileExists(
+                atPath: root
+                    .appendingPathComponent("staging", isDirectory: true)
+                    .appendingPathComponent(assessmentID.rawValue, isDirectory: true)
+                    .appendingPathComponent(firstTransactionID.rawValue, isDirectory: true)
+                    .path
+            )
+        )
+
+        XCTAssertThrowsError(
+            try store.createWithTransaction(
+                assessmentID: assessmentID,
+                transactionID: Identifier.constant("gh-955-tx-2"),
+                generationID: Identifier.constant("gh-955-gen-2"),
+                expectedPreviousGenerationID: nil,
+                state: .ready,
+                sourceReleaseVersion: "v0.12.0",
+                assessedBy: "Codex",
+                reason: "stale writer must fail compare-and-swap",
+                createdAt: createdAt,
+                updatedAt: updatedAt.addingTimeInterval(60)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReadinessAssessmentRegistryStoreError,
+                .concurrentModification(expected: "<none>", actual: firstGenerationID.rawValue)
+            )
+        }
+
+        XCTAssertThrowsError(
+            try store.createWithTransaction(
+                assessmentID: assessmentID,
+                transactionID: Identifier.constant("gh-955-tx-3"),
+                generationID: firstGenerationID,
+                expectedPreviousGenerationID: firstGenerationID,
+                state: .ready,
+                sourceReleaseVersion: "v0.12.0",
+                assessedBy: "Codex",
+                reason: "generation must advance",
+                createdAt: createdAt,
+                updatedAt: updatedAt.addingTimeInterval(120)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReadinessAssessmentRegistryStoreError,
+                .generationMismatch(
+                    expected: "new generation different from \(firstGenerationID.rawValue)",
+                    actual: firstGenerationID.rawValue
+                )
+            )
+        }
+
+        let lockedAssessmentID = Identifier.constant("gh-955-locked-assessment")
+        let lockedAssessmentDirectory = root
+            .appendingPathComponent("assessments", isDirectory: true)
+            .appendingPathComponent(lockedAssessmentID.rawValue, isDirectory: true)
+        try FileManager.default.createDirectory(
+            at: lockedAssessmentDirectory.appendingPathComponent("assessment.lock", isDirectory: true),
+            withIntermediateDirectories: true
+        )
+        XCTAssertThrowsError(
+            try store.createWithTransaction(
+                assessmentID: lockedAssessmentID,
+                transactionID: Identifier.constant("gh-955-locked-tx"),
+                generationID: Identifier.constant("gh-955-locked-gen"),
+                expectedPreviousGenerationID: nil,
+                state: .ready,
+                sourceReleaseVersion: "v0.12.0",
+                assessedBy: "Codex",
+                reason: "lock unavailable",
+                createdAt: createdAt,
+                updatedAt: updatedAt
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReadinessAssessmentRegistryStoreError,
+                .lockUnavailable(".local/mtpro/readiness/assessments/\(lockedAssessmentID.rawValue)/assessment.lock")
+            )
+        }
+
+        let abortControl = try store.stageAssessmentTransaction(
+            assessmentID: Identifier.constant("gh-955-abort-assessment"),
+            transactionID: Identifier.constant("gh-955-abort-tx"),
+            generationID: Identifier.constant("gh-955-abort-gen"),
+            expectedPreviousGenerationID: nil,
+            startedAt: createdAt
+        )
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: root
+                    .appendingPathComponent("staging", isDirectory: true)
+                    .appendingPathComponent(abortControl.assessmentID.rawValue, isDirectory: true)
+                    .appendingPathComponent(abortControl.transactionID.rawValue, isDirectory: true)
+                    .path
+            )
+        )
+        let abortMarker = try store.abortAssessmentTransaction(
+            control: abortControl,
+            reason: "operator aborted local assessment transaction",
+            abortedAt: updatedAt.addingTimeInterval(180)
+        )
+        XCTAssertTrue(abortMarker.abortHeld)
+        XCTAssertFalse(
+            FileManager.default.fileExists(
+                atPath: root
+                    .appendingPathComponent("staging", isDirectory: true)
+                    .appendingPathComponent(abortControl.assessmentID.rawValue, isDirectory: true)
+                    .appendingPathComponent(abortControl.transactionID.rawValue, isDirectory: true)
+                    .path
+            )
+        )
+
+        let crashControl = try store.stageAssessmentTransaction(
+            assessmentID: Identifier.constant("gh-955-crash-assessment"),
+            transactionID: Identifier.constant("gh-955-crash-tx"),
+            generationID: Identifier.constant("gh-955-crash-gen"),
+            expectedPreviousGenerationID: nil,
+            startedAt: createdAt
+        )
+        let recovery = try store.recoverInterruptedTransactions(recoveredAt: updatedAt.addingTimeInterval(240))
+        XCTAssertTrue(recovery.recoveryHeld)
+        XCTAssertTrue(
+            recovery.recoveredStagingDirectoryPaths.contains(
+                ".local/mtpro/readiness/staging/\(crashControl.assessmentID.rawValue)/\(crashControl.transactionID.rawValue)"
+            )
+        )
+        XCTAssertTrue(
+            recovery.recoveredAssessmentLockPaths.contains(
+                ".local/mtpro/readiness/assessments/\(crashControl.assessmentID.rawValue)/assessment.lock"
+            )
+        )
+        XCTAssertTrue(
+            recovery.recoveredAssessmentLockPaths.contains(
+                ".local/mtpro/readiness/assessments/\(lockedAssessmentID.rawValue)/assessment.lock"
+            )
+        )
+        XCTAssertFalse(recovery.productionCutoverAuthorized)
+        XCTAssertFalse(recovery.productionOrderSubmitted)
     }
 
     func testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum() throws {

@@ -2761,3 +2761,21 @@
 - lifecycle operations: create / list / inspect / archive / recover mutate local metadata and checksum evidence only
 - compare-ready state: compare-ready only means local metadata is eligible for later diff / compare, not production readiness or order authorization
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK
+
+- GH-955-VERIFY-V0120-ASSESSMENT-TRANSACTION-LOCK
+- TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK
+- V0120-004-ASSESSMENT-TRANSACTION-LOCK
+- V0120-004-TRANSACTION-ID-GENERATION-ID
+- V0120-004-STAGING-DIRECTORY-COMMIT-MARKER
+- V0120-004-COMPARE-AND-SWAP-MANIFEST
+- V0120-004-CRASH-RECOVERY-SEMANTICS
+- V0120-004-NO-PRODUCTION-CUTOVER
+- GH-955 Release v0.12.0 Assessment Transaction Lock / Generation Control Validation
+- testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery
+- assessment lock: `.local/mtpro/readiness/assessments/<assessmentID>/assessment.lock` prevents concurrent writer mixing
+- generation control: `transactionID`, `generationID` and `expectedPreviousGenerationID` drive compare-and-swap fail-closed behavior
+- staging / commit evidence: staging transaction manifest and commit marker must move into assessment-local compare-and-swap manifest and commit marker on success
+- abort / recovery: abort releases lock and removes staging; crash recovery only clears stale staging directories and assessment locks
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
