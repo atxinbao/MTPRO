@@ -1860,3 +1860,22 @@ bash checks/run.sh
 - #958 records `assessmentID`, `generationID`, `reviewState=in-review`, `sourceRunIDs`, `sourceCommit`, artifact snapshot checksum references, stable `bundleChecksum`, actual bundle JSON SHA256 / byte count and stable `manifestChecksum`.
 - #958 fails closed when an `in-review` generation is rewritten in place; changed inputs must create a new generation directory and new manifest evidence.
 - #958 does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
+
+## Release v0.12.0 Kill Switch / No-trade Trustworthy Observations Snapshot
+
+- GH-959-VERIFY-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+- TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+- V0120-008-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+- V0120-008-OBSERVED-EXPIRES-REVIEWED-SOURCE-EVIDENCE
+- V0120-008-DERIVED-FRESHNESS-AND-REVIEW-STATE
+- V0120-008-STALE-UNREVIEWED-MISMATCH-FAIL-CLOSED
+- V0120-008-APPROVAL-REQUEST-ONLY-NO-CUTOVER
+- V0120-008-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift`
+- Contract source: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- Validation source: `checks/verify-v0.12.0.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH959KillSwitchNoTradeTrustworthyObservationsFailClosed`
+- #959 adds trustworthy observation evidence fields to the kill switch / no-trade readiness snapshot: `observedAt`, `expiresAt`, `reviewedAt`, `reviewedBy`, `sourceArtifact`, `sourceChecksum` and `sourceRunID`.
+- #959 derives freshness and review state from timestamps and expected source artifact / checksum / runID evidence instead of accepting caller-provided flags.
+- #959 proves expired / stale evidence, future observation time, unreviewed evidence, mismatched artifact path, mismatched checksum and mismatched source run ID fail closed.
+- #959 keeps inactive + fresh + reviewed at approval-request eligibility only; it does not authorize production cutover, does not enable order submission, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.

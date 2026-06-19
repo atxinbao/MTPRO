@@ -2837,3 +2837,22 @@
 - changed input rule: changed artifact snapshot, source run, source commit, producer version or generated content must create a new `generationID`
 - checksum evidence: bundle records stable `bundleChecksum`; manifest records stable `manifestChecksum`, `bundleJSONSHA256` and `bundleBytes`
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+
+- GH-959-VERIFY-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+- TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+- V0120-008-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+- V0120-008-OBSERVED-EXPIRES-REVIEWED-SOURCE-EVIDENCE
+- V0120-008-DERIVED-FRESHNESS-AND-REVIEW-STATE
+- V0120-008-STALE-UNREVIEWED-MISMATCH-FAIL-CLOSED
+- V0120-008-APPROVAL-REQUEST-ONLY-NO-CUTOVER
+- V0120-008-NO-PRODUCTION-CUTOVER
+- GH-959 Release v0.12.0 Kill Switch / No-trade Trustworthy Observations Validation
+- testGH959KillSwitchNoTradeTrustworthyObservationsFailClosed
+- observation fields: `observedAt`, `expiresAt`, `reviewedAt`, `reviewedBy`, `sourceArtifact`, `sourceChecksum` and `sourceRunID`
+- source evidence rules: `sourceArtifact` must be a safe relative local readiness artifact path, `sourceChecksum` must be `sha256:<64 lowercase hex>`, and `sourceRunID` must match the expected review source run ID
+- freshness derivation: future observations become `unknown`, expired evidence becomes `stale`, mismatched source artifact / checksum / runID becomes `unavailable`, and only unexpired matching evidence becomes `fresh`
+- review derivation: missing review evidence becomes `pending`, out-of-window review evidence becomes `unknown`, mismatched source evidence becomes `unavailable`, and only matching in-window review evidence becomes `reviewed`
+- approval boundary: inactive + fresh + reviewed reaches only approval-request eligibility; production cutover, order submission, endpoint / broker connection, secret read and UI command surfaces remain disabled
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

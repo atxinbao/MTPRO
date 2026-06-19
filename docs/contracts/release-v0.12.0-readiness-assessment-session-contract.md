@@ -238,6 +238,32 @@ v0.12.0 readiness bundle snapshot 固定为 assessment generation scoped 本地 
 
 Immutable readiness bundle snapshot 只强化本地 review evidence 的 generation immutability。它不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不创建下一 Project / Issue，不移动 tag / Release。
 
+## V0120-008-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+
+`GH-959-VERIFY-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS`
+
+`TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS`
+
+`V0120-008-OBSERVED-EXPIRES-REVIEWED-SOURCE-EVIDENCE`
+
+`V0120-008-DERIVED-FRESHNESS-AND-REVIEW-STATE`
+
+`V0120-008-STALE-UNREVIEWED-MISMATCH-FAIL-CLOSED`
+
+`V0120-008-APPROVAL-REQUEST-ONLY-NO-CUTOVER`
+
+v0.12.0 kill switch / no-trade trustworthy observations 固定为对 GH-922 state model 的证据派生收紧。每个 observation snapshot 必须记录 `observedAt`、`expiresAt`、`reviewedAt`、`reviewedBy`、`sourceArtifact`、`sourceChecksum` 和 `sourceRunID`。`sourceArtifact` 必须是安全相对路径，`sourceChecksum` 必须是 `sha256:<64 lowercase hex>`，`sourceRunID` 必须非空。
+
+freshness state 必须由 `observedAt`、`expiresAt`、当前 `evaluatedAt` 和 expected source evidence 匹配结果推导：未来观测时间为 `unknown`，过期或 invalid observation window 为 `stale`，source artifact / checksum / runID mismatch 为 `unavailable`，只有未过期且 source evidence 匹配时才是 `fresh`。
+
+review state 必须由 `reviewedAt`、`reviewedBy`、observation window 和 expected source evidence 匹配结果推导：缺少复核时间或复核人时为 `pending`，复核时间早于 observation、晚于 evaluatedAt 或超出 expiresAt 时为 `unknown`，source artifact / checksum / runID mismatch 为 `unavailable`，只有 source evidence 匹配且复核时间落在有效窗口内时才是 `reviewed`。
+
+stale / expired / unreviewed / mismatched source evidence 必须 fail closed。`inactive + fresh + reviewed` 只允许进入 approval-request eligibility；该 eligibility 不等于 production cutover approval，也不授权 order submit / cancel / replace。
+
+`V0120-008-NO-PRODUCTION-CUTOVER`
+
+Kill switch / no-trade trustworthy observations 只强化 readiness evidence 的可信派生。它不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不创建下一 Project / Issue，不移动 tag / Release。
+
 ## V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT
 
 允许的 assessment session 固定为本地、显式、可审计的 no-authorization session：

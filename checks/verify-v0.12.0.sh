@@ -56,6 +56,14 @@ set -euo pipefail
 # V0120-007-NEW-GENERATION-ON-CHANGE
 # V0120-007-BUNDLE-MANIFEST-CHECKSUM
 # V0120-007-NO-PRODUCTION-CUTOVER
+# GH-959-VERIFY-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+# TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+# V0120-008-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS
+# V0120-008-OBSERVED-EXPIRES-REVIEWED-SOURCE-EVIDENCE
+# V0120-008-DERIVED-FRESHNESS-AND-REVIEW-STATE
+# V0120-008-STALE-UNREVIEWED-MISMATCH-FAIL-CLOSED
+# V0120-008-APPROVAL-REQUEST-ONLY-NO-CUTOVER
+# V0120-008-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -96,6 +104,7 @@ AUTOMATION_SCRIPT="checks/automation-readiness.sh"
 RUN_SCRIPT="checks/run.sh"
 TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
 REGISTRY_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift"
+KILL_SWITCH_NO_TRADE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift"
 
 swift test --filter TargetGraphTests/testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract
 swift test --filter TargetGraphTests/testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts
@@ -104,6 +113,7 @@ swift test --filter TargetGraphTests/testGH955AssessmentTransactionLockControlsG
 swift test --filter TargetGraphTests/testGH956ReadinessManifestV2RecordsAssessmentGenerationAndProvenance
 swift test --filter TargetGraphTests/testGH957ArtifactContentPolicyRejectsSecretsListenKeysOrdersAndEndpointResponses
 swift test --filter TargetGraphTests/testGH958ImmutableReadinessBundleSnapshotRequiresNewGenerationOnChange
+swift test --filter TargetGraphTests/testGH959KillSwitchNoTradeTrustworthyObservationsFailClosed
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -160,7 +170,15 @@ for anchor in \
   "V0120-007-REVIEW-SNAPSHOT-IMMUTABLE" \
   "V0120-007-NEW-GENERATION-ON-CHANGE" \
   "V0120-007-BUNDLE-MANIFEST-CHECKSUM" \
-  "V0120-007-NO-PRODUCTION-CUTOVER"; do
+  "V0120-007-NO-PRODUCTION-CUTOVER" \
+  "GH-959-VERIFY-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS" \
+  "TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS" \
+  "V0120-008-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS" \
+  "V0120-008-OBSERVED-EXPIRES-REVIEWED-SOURCE-EVIDENCE" \
+  "V0120-008-DERIVED-FRESHNESS-AND-REVIEW-STATE" \
+  "V0120-008-STALE-UNREVIEWED-MISMATCH-FAIL-CLOSED" \
+  "V0120-008-APPROVAL-REQUEST-ONLY-NO-CUTOVER" \
+  "V0120-008-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -170,6 +188,9 @@ for anchor in \
   require_file_contains "$TESTS" "$anchor"
   if [[ "$anchor" == GH-954-* || "$anchor" == GH-955-* || "$anchor" == GH-956-* || "$anchor" == GH-957-* || "$anchor" == GH-958-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK || "$anchor" == TVM-RELEASE-V0120-READINESS-MANIFEST-V2 || "$anchor" == TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION || "$anchor" == TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT || "$anchor" == V0120-003-* || "$anchor" == V0120-004-* || "$anchor" == V0120-005-* || "$anchor" == V0120-006-* || "$anchor" == V0120-007-* ]]; then
     require_file_contains "$REGISTRY_SOURCE" "$anchor"
+  fi
+  if [[ "$anchor" == GH-959-* || "$anchor" == TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS || "$anchor" == V0120-008-* ]]; then
+    require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "$anchor"
   fi
 done
 
@@ -285,6 +306,27 @@ require_file_contains "$PLAN" "GH-958 Release v0.12.0 Immutable Readiness Bundle
 require_file_contains "$MATRIX" "TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT"
 require_file_contains "$LATEST" "Release v0.12.0 Immutable Readiness Bundle Snapshot"
 require_file_contains "$TESTS" "testGH958ImmutableReadinessBundleSnapshotRequiresNewGenerationOnChange"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "ReleaseV0120KillSwitchNoTradeTrustworthyObservationAnchors"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "observedAt"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "expiresAt"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "reviewedAt"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "reviewedBy"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "sourceArtifact"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "sourceChecksum"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "sourceRunID"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "expectedSourceArtifact"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "expectedSourceChecksum"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "expectedSourceRunID"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "deriveFreshnessState"
+require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "deriveReviewState"
+require_file_contains "$CONTRACT" "V0120-008-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS"
+require_file_contains "$CONTRACT" "observedAt"
+require_file_contains "$CONTRACT" "sourceChecksum"
+require_file_contains "$READINESS" "Release v0.12.0 kill switch / no-trade trustworthy observations anchor"
+require_file_contains "$PLAN" "GH-959 Release v0.12.0 Kill Switch / No-trade Trustworthy Observations Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS"
+require_file_contains "$LATEST" "Release v0.12.0 Kill Switch / No-trade Trustworthy Observations Snapshot"
+require_file_contains "$TESTS" "testGH959KillSwitchNoTradeTrustworthyObservationsFailClosed"
 require_file_contains "$RELEASE_POLICY" "V0120-002-V011X-RELEASE-PATCH-FACT-BASELINE"
 require_file_contains "$RELEASE_POLICY" "v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public Release 后的 guard hardening closeout"
 require_file_contains "$README" "v0.11.1 patch closeout 不创建"

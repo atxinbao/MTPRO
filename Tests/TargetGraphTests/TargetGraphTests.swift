@@ -9565,17 +9565,68 @@ final class TargetGraphTests: XCTestCase {
         func read(_ relativePath: String) throws -> String {
             try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
         }
+        let evaluatedAt = Date(timeIntervalSince1970: 1_812_500_000)
         func snapshot(
             _ name: String,
             state: ReleaseV0100KillSwitchNoTradeReadinessState,
             freshnessState: ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState = .fresh,
             reviewState: ReleaseV0110KillSwitchNoTradeReviewState = .reviewed
         ) throws -> ReleaseV0110KillSwitchNoTradeReadinessSnapshot {
-            try ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
+            let sourceArtifact = ".local/mtpro/readiness/assessments/gh-922/\(name).json"
+            let sourceChecksum = "sha256:\(String(repeating: "a", count: 64))"
+            let sourceRunID = Identifier.constant("gh-922-\(name)-run")
+            let sourceMismatch = freshnessState == .unavailable || reviewState == .unavailable
+
+            let observedAt: Date
+            let expiresAt: Date
+            switch freshnessState {
+            case .fresh:
+                observedAt = evaluatedAt.addingTimeInterval(-60)
+                expiresAt = evaluatedAt.addingTimeInterval(300)
+            case .unknown:
+                observedAt = evaluatedAt.addingTimeInterval(60)
+                expiresAt = evaluatedAt.addingTimeInterval(300)
+            case .stale:
+                observedAt = evaluatedAt.addingTimeInterval(-600)
+                expiresAt = evaluatedAt.addingTimeInterval(-60)
+            case .unavailable:
+                observedAt = evaluatedAt.addingTimeInterval(-60)
+                expiresAt = evaluatedAt.addingTimeInterval(300)
+            }
+
+            let reviewedAt: Date?
+            let reviewedBy: String?
+            switch reviewState {
+            case .reviewed:
+                reviewedAt = observedAt <= evaluatedAt
+                    ? evaluatedAt.addingTimeInterval(-30)
+                    : observedAt.addingTimeInterval(10)
+                reviewedBy = "Codex"
+            case .pending:
+                reviewedAt = nil
+                reviewedBy = nil
+            case .unknown:
+                reviewedAt = evaluatedAt.addingTimeInterval(60)
+                reviewedBy = "Codex"
+            case .unavailable:
+                reviewedAt = evaluatedAt.addingTimeInterval(-30)
+                reviewedBy = "Codex"
+            }
+
+            return try ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
                 name: name,
                 state: state,
-                freshnessState: freshnessState,
-                reviewState: reviewState
+                observedAt: observedAt,
+                expiresAt: expiresAt,
+                reviewedAt: reviewedAt,
+                reviewedBy: reviewedBy,
+                sourceArtifact: sourceArtifact,
+                sourceChecksum: sourceChecksum,
+                sourceRunID: sourceRunID,
+                expectedSourceArtifact: sourceMismatch ? ".local/mtpro/readiness/assessments/gh-922/mismatch.json" : sourceArtifact,
+                expectedSourceChecksum: sourceMismatch ? "sha256:\(String(repeating: "b", count: 64))" : sourceChecksum,
+                expectedSourceRunID: sourceMismatch ? Identifier.constant("gh-922-mismatch-run") : sourceRunID,
+                evaluatedAt: evaluatedAt
             )
         }
 
@@ -9706,6 +9757,13 @@ final class TargetGraphTests: XCTestCase {
             "ReleaseV0110KillSwitchNoTradeReadinessStateModel",
             "ReleaseV0110KillSwitchNoTradeEvidenceFreshnessState",
             "ReleaseV0110KillSwitchNoTradeReviewState",
+            "observedAt",
+            "expiresAt",
+            "reviewedAt",
+            "reviewedBy",
+            "sourceArtifact",
+            "sourceChecksum",
+            "sourceRunID",
             "eligibleForApprovalRequest",
             "productionCutoverBlocked",
             "orderSubmissionEnabled"
@@ -31364,6 +31422,190 @@ final class TargetGraphTests: XCTestCase {
             "changeRequiresNewGeneration"
         ] {
             XCTAssertTrue(source.contains(expectedSource), "\(expectedSource) must stay represented in GH-958 source")
+        }
+    }
+
+    func testGH959KillSwitchNoTradeTrustworthyObservationsFailClosed() throws {
+        // 测试场景：GH-959 将 kill switch / no-trade 的 freshness 和 review state 改为从
+        // 本地 source artifact evidence 派生，拒绝 caller 直接声明 fresh / reviewed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let evaluatedAt = Date(timeIntervalSince1970: 1_812_600_000)
+        let sourceArtifact = ".local/mtpro/readiness/assessments/gh-959/artifacts/kill-switch-no-trade.json"
+        let sourceChecksum = "sha256:\(String(repeating: "c", count: 64))"
+        let sourceRunID = Identifier.constant("gh-959-source-run")
+
+        func snapshot(
+            _ name: String,
+            state: ReleaseV0100KillSwitchNoTradeReadinessState = .inactive,
+            observedAt: Date? = nil,
+            expiresAt: Date? = nil,
+            reviewedAt: Date? = nil,
+            reviewedBy: String? = "Codex",
+            expectedArtifact: String? = nil,
+            expectedChecksum: String? = nil,
+            expectedRunID: Identifier? = nil
+        ) throws -> ReleaseV0110KillSwitchNoTradeReadinessSnapshot {
+            let resolvedObservedAt = observedAt ?? evaluatedAt.addingTimeInterval(-60)
+            let resolvedExpiresAt = expiresAt ?? evaluatedAt.addingTimeInterval(300)
+            return try ReleaseV0110KillSwitchNoTradeReadinessSnapshot(
+                name: name,
+                state: state,
+                observedAt: resolvedObservedAt,
+                expiresAt: resolvedExpiresAt,
+                reviewedAt: reviewedAt ?? evaluatedAt.addingTimeInterval(-30),
+                reviewedBy: reviewedBy,
+                sourceArtifact: sourceArtifact,
+                sourceChecksum: sourceChecksum,
+                sourceRunID: sourceRunID,
+                expectedSourceArtifact: expectedArtifact ?? sourceArtifact,
+                expectedSourceChecksum: expectedChecksum ?? sourceChecksum,
+                expectedSourceRunID: expectedRunID ?? sourceRunID,
+                evaluatedAt: evaluatedAt
+            )
+        }
+
+        let freshReviewed = try snapshot("kill-switch")
+        XCTAssertEqual(freshReviewed.observedAt, evaluatedAt.addingTimeInterval(-60))
+        XCTAssertEqual(freshReviewed.expiresAt, evaluatedAt.addingTimeInterval(300))
+        XCTAssertEqual(freshReviewed.reviewedAt, evaluatedAt.addingTimeInterval(-30))
+        XCTAssertEqual(freshReviewed.reviewedBy, "Codex")
+        XCTAssertEqual(freshReviewed.sourceArtifact, sourceArtifact)
+        XCTAssertEqual(freshReviewed.sourceChecksum, sourceChecksum)
+        XCTAssertEqual(freshReviewed.sourceRunID, sourceRunID)
+        XCTAssertEqual(freshReviewed.freshnessState, .fresh)
+        XCTAssertEqual(freshReviewed.reviewState, .reviewed)
+        XCTAssertTrue(freshReviewed.approvalRequestEligible)
+
+        let eligible = try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
+            issueID: Identifier.constant("GH-922"),
+            upstreamIssueIDs: [Identifier.constant("GH-913")],
+            killSwitchSnapshot: try snapshot("kill-switch"),
+            noTradeSnapshot: try snapshot("no-trade")
+        )
+        XCTAssertTrue(eligible.approvalRequestEligible)
+        XCTAssertEqual(eligible.approvalRequestEligibility, .eligibleForApprovalRequest)
+        XCTAssertTrue(eligible.productionCutoverBlocked)
+        XCTAssertFalse(eligible.cutoverAuthorized)
+        XCTAssertFalse(eligible.orderSubmissionEnabled)
+        XCTAssertFalse(eligible.testnetOrderSubmissionEnabled)
+        XCTAssertFalse(eligible.productionEndpointConnectionEnabled)
+        XCTAssertFalse(eligible.productionBrokerConnectionEnabled)
+        XCTAssertFalse(eligible.productionSecretValueRead)
+
+        let expired = try snapshot(
+            "kill-switch",
+            expiresAt: evaluatedAt.addingTimeInterval(-1)
+        )
+        XCTAssertEqual(expired.freshnessState, .stale)
+        XCTAssertTrue(expired.failClosed)
+
+        let futureObservation = try snapshot(
+            "kill-switch",
+            observedAt: evaluatedAt.addingTimeInterval(60),
+            expiresAt: evaluatedAt.addingTimeInterval(300),
+            reviewedAt: evaluatedAt.addingTimeInterval(-30)
+        )
+        XCTAssertEqual(futureObservation.freshnessState, .unknown)
+        XCTAssertEqual(futureObservation.reviewState, .unknown)
+        XCTAssertTrue(futureObservation.failClosed)
+
+        let unreviewed = try snapshot(
+            "kill-switch",
+            reviewedAt: nil,
+            reviewedBy: nil
+        )
+        XCTAssertEqual(unreviewed.freshnessState, .fresh)
+        XCTAssertEqual(unreviewed.reviewState, .pending)
+        XCTAssertTrue(unreviewed.failClosed)
+
+        let mismatchedArtifact = try snapshot(
+            "kill-switch",
+            expectedArtifact: ".local/mtpro/readiness/assessments/gh-959/artifacts/mismatch.json"
+        )
+        XCTAssertEqual(mismatchedArtifact.freshnessState, .unavailable)
+        XCTAssertEqual(mismatchedArtifact.reviewState, .unavailable)
+        XCTAssertTrue(mismatchedArtifact.failClosed)
+
+        let mismatchedChecksum = try snapshot(
+            "kill-switch",
+            expectedChecksum: "sha256:\(String(repeating: "d", count: 64))"
+        )
+        XCTAssertEqual(mismatchedChecksum.freshnessState, .unavailable)
+        XCTAssertEqual(mismatchedChecksum.reviewState, .unavailable)
+        XCTAssertTrue(mismatchedChecksum.failClosed)
+
+        let mismatchedRun = try snapshot(
+            "kill-switch",
+            expectedRunID: Identifier.constant("gh-959-mismatch-source-run")
+        )
+        XCTAssertEqual(mismatchedRun.freshnessState, .unavailable)
+        XCTAssertEqual(mismatchedRun.reviewState, .unavailable)
+        XCTAssertTrue(mismatchedRun.failClosed)
+
+        let staleModel = try ReleaseV0110KillSwitchNoTradeReadinessStateModel(
+            killSwitchSnapshot: expired,
+            noTradeSnapshot: try snapshot("no-trade")
+        )
+        XCTAssertTrue(staleModel.failClosed)
+        XCTAssertFalse(staleModel.approvalRequestEligible)
+        XCTAssertEqual(staleModel.approvalRequestEligibility, .blocked)
+        XCTAssertTrue(staleModel.productionCutoverBlocked)
+        XCTAssertFalse(staleModel.cutoverAuthorized)
+        XCTAssertFalse(staleModel.orderSubmissionEnabled)
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift")
+        let contract = try read("docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md")
+        let verifier = try read("checks/verify-v0.12.0.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let expectedAnchors = [
+            "GH-959-VERIFY-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS",
+            "TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS",
+            "V0120-008-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS",
+            "V0120-008-OBSERVED-EXPIRES-REVIEWED-SOURCE-EVIDENCE",
+            "V0120-008-DERIVED-FRESHNESS-AND-REVIEW-STATE",
+            "V0120-008-STALE-UNREVIEWED-MISMATCH-FAIL-CLOSED",
+            "V0120-008-APPROVAL-REQUEST-ONLY-NO-CUTOVER",
+            "V0120-008-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(ReleaseV0120KillSwitchNoTradeTrustworthyObservationAnchors.validationAnchors, expectedAnchors)
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in kill switch / no-trade source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.12.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.12.0 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in readiness docs")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest summary")
+        }
+
+        for expectedSource in [
+            "observedAt",
+            "expiresAt",
+            "reviewedAt",
+            "reviewedBy",
+            "sourceArtifact",
+            "sourceChecksum",
+            "sourceRunID",
+            "expectedSourceArtifact",
+            "expectedSourceChecksum",
+            "expectedSourceRunID",
+            "deriveFreshnessState",
+            "deriveReviewState",
+            "ProductionReadinessArtifactDescriptor.isSafeRelativePath",
+            "ReadinessAssessmentManifestV2.isValidSHA256Checksum"
+        ] {
+            XCTAssertTrue(source.contains(expectedSource), "\(expectedSource) must stay represented in GH-959 source")
         }
     }
 
