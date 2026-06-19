@@ -2856,3 +2856,23 @@
 - review derivation: missing review evidence becomes `pending`, out-of-window review evidence becomes `unknown`, mismatched source evidence becomes `unavailable`, and only matching in-window review evidence becomes `reviewed`
 - approval boundary: inactive + fresh + reviewed reaches only approval-request eligibility; production cutover, order submission, endpoint / broker connection, secret read and UI command surfaces remain disabled
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION
+
+- GH-960-VERIFY-V0120-APPROVAL-ROLE-QUORUM-SEPARATION
+- TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION
+- V0120-009-APPROVAL-ROLE-QUORUM-SEPARATION
+- V0120-009-REQUESTER-REVIEWER-APPROVER-ROLE-POLICY
+- V0120-009-QUORUM-SEPARATION-OF-DUTIES
+- V0120-009-APPROVAL-EXPIRY-REVOCATION-FAIL-CLOSED
+- V0120-009-BUNDLE-CHECKSUM-BINDING
+- V0120-009-TRANSITION-CHECKSUM-CHAIN
+- V0120-009-NO-PRODUCTION-CUTOVER
+- GH-960 Release v0.12.0 Approval Role / Quorum Separation Validation
+- testGH960ApprovalRolesQuorumAndBundleBindingFailClosed
+- role evidence: `ReleaseV0120ApprovalWorkflowRolePolicy` records requester, reviewers, approvers, revokers and separation of duties
+- quorum evidence: `ReleaseV0120ApprovalWorkflowQuorumPolicy` separates reviewer quorum from approver quorum
+- checksum evidence: `boundBundleChecksum`, `expectedBundleChecksum` and `transitionChecksumChain` bind approval evidence to immutable bundle and transition history
+- fail-closed coverage: requester-as-approver, missing reviewer quorum, missing approver quorum, expired approval, revoked approval, bundle checksum mismatch and transition checksum chain mismatch
+- approval boundary: `approvalEvidenceComplete=true` is still local readiness evidence only; production cutover, order submission, endpoint / broker connection, secret read and UI command surfaces remain disabled
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

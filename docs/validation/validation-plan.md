@@ -4763,3 +4763,26 @@ swift test
 - fail-closed coverage: expired / stale evidence, future observation time, unreviewed evidence, mismatched artifact path, mismatched checksum and mismatched source run ID
 - approval boundary: inactive + fresh + reviewed only reaches approval-request eligibility; it does not authorize production cutover, order submission, endpoint connection, broker connection, secret read or OMS / UI command enablement
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
+
+## GH-960 Release v0.12.0 Approval Role / Quorum Separation Validation
+
+- GH-960-VERIFY-V0120-APPROVAL-ROLE-QUORUM-SEPARATION
+- TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION
+- V0120-009-APPROVAL-ROLE-QUORUM-SEPARATION
+- V0120-009-REQUESTER-REVIEWER-APPROVER-ROLE-POLICY
+- V0120-009-QUORUM-SEPARATION-OF-DUTIES
+- V0120-009-APPROVAL-EXPIRY-REVOCATION-FAIL-CLOSED
+- V0120-009-BUNDLE-CHECKSUM-BINDING
+- V0120-009-TRANSITION-CHECKSUM-CHAIN
+- V0120-009-NO-PRODUCTION-CUTOVER
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift`
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH960ApprovalRolesQuorumAndBundleBindingFailClosed`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- role evidence: requester / reviewer / approver / revoker role policy must preserve separation of duties, with requester != approver and reviewer / approver roles not interchangeable
+- quorum evidence: reviewer quorum and approver quorum are independent; approver does not count toward reviewer quorum and reviewer does not count toward approver quorum
+- checksum evidence: `boundBundleChecksum` must match `expectedBundleChecksum`, and `transitionChecksumChain` must match derived transition checksums
+- fail-closed coverage: requester-as-approver, missing reviewer quorum, missing approver quorum, expired approval, revoked approval, bundle checksum mismatch and transition checksum chain mismatch
+- forbidden scope: approval evidence completion is not production cutover authorization; no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement

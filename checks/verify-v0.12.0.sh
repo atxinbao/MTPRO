@@ -64,6 +64,15 @@ set -euo pipefail
 # V0120-008-STALE-UNREVIEWED-MISMATCH-FAIL-CLOSED
 # V0120-008-APPROVAL-REQUEST-ONLY-NO-CUTOVER
 # V0120-008-NO-PRODUCTION-CUTOVER
+# GH-960-VERIFY-V0120-APPROVAL-ROLE-QUORUM-SEPARATION
+# TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION
+# V0120-009-APPROVAL-ROLE-QUORUM-SEPARATION
+# V0120-009-REQUESTER-REVIEWER-APPROVER-ROLE-POLICY
+# V0120-009-QUORUM-SEPARATION-OF-DUTIES
+# V0120-009-APPROVAL-EXPIRY-REVOCATION-FAIL-CLOSED
+# V0120-009-BUNDLE-CHECKSUM-BINDING
+# V0120-009-TRANSITION-CHECKSUM-CHAIN
+# V0120-009-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -105,6 +114,7 @@ RUN_SCRIPT="checks/run.sh"
 TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
 REGISTRY_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift"
 KILL_SWITCH_NO_TRADE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift"
+APPROVAL_WORKFLOW_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift"
 
 swift test --filter TargetGraphTests/testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract
 swift test --filter TargetGraphTests/testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts
@@ -114,6 +124,7 @@ swift test --filter TargetGraphTests/testGH956ReadinessManifestV2RecordsAssessme
 swift test --filter TargetGraphTests/testGH957ArtifactContentPolicyRejectsSecretsListenKeysOrdersAndEndpointResponses
 swift test --filter TargetGraphTests/testGH958ImmutableReadinessBundleSnapshotRequiresNewGenerationOnChange
 swift test --filter TargetGraphTests/testGH959KillSwitchNoTradeTrustworthyObservationsFailClosed
+swift test --filter TargetGraphTests/testGH960ApprovalRolesQuorumAndBundleBindingFailClosed
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -178,7 +189,16 @@ for anchor in \
   "V0120-008-DERIVED-FRESHNESS-AND-REVIEW-STATE" \
   "V0120-008-STALE-UNREVIEWED-MISMATCH-FAIL-CLOSED" \
   "V0120-008-APPROVAL-REQUEST-ONLY-NO-CUTOVER" \
-  "V0120-008-NO-PRODUCTION-CUTOVER"; do
+  "V0120-008-NO-PRODUCTION-CUTOVER" \
+  "GH-960-VERIFY-V0120-APPROVAL-ROLE-QUORUM-SEPARATION" \
+  "TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION" \
+  "V0120-009-APPROVAL-ROLE-QUORUM-SEPARATION" \
+  "V0120-009-REQUESTER-REVIEWER-APPROVER-ROLE-POLICY" \
+  "V0120-009-QUORUM-SEPARATION-OF-DUTIES" \
+  "V0120-009-APPROVAL-EXPIRY-REVOCATION-FAIL-CLOSED" \
+  "V0120-009-BUNDLE-CHECKSUM-BINDING" \
+  "V0120-009-TRANSITION-CHECKSUM-CHAIN" \
+  "V0120-009-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -191,6 +211,9 @@ for anchor in \
   fi
   if [[ "$anchor" == GH-959-* || "$anchor" == TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS || "$anchor" == V0120-008-* ]]; then
     require_file_contains "$KILL_SWITCH_NO_TRADE_SOURCE" "$anchor"
+  fi
+  if [[ "$anchor" == GH-960-* || "$anchor" == TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION || "$anchor" == V0120-009-* ]]; then
+    require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "$anchor"
   fi
 done
 
@@ -327,6 +350,26 @@ require_file_contains "$PLAN" "GH-959 Release v0.12.0 Kill Switch / No-trade Tru
 require_file_contains "$MATRIX" "TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS"
 require_file_contains "$LATEST" "Release v0.12.0 Kill Switch / No-trade Trustworthy Observations Snapshot"
 require_file_contains "$TESTS" "testGH959KillSwitchNoTradeTrustworthyObservationsFailClosed"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "ReleaseV0120ApprovalRoleQuorumSeparationAnchors"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "ReleaseV0120ApprovalWorkflowRolePolicy"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "ReleaseV0120ApprovalWorkflowQuorumPolicy"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "rolePolicySatisfied"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "reviewerQuorumSatisfied"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "approverQuorumSatisfied"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "bundleChecksumBindingHeld"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "transitionChecksumChainHeld"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "boundBundleChecksum"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "expectedBundleChecksum"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "transitionChecksumChain"
+require_file_contains "$APPROVAL_WORKFLOW_SOURCE" "stableTransitionChecksum"
+require_file_contains "$CONTRACT" "V0120-009-APPROVAL-ROLE-QUORUM-SEPARATION"
+require_file_contains "$CONTRACT" "boundBundleChecksum"
+require_file_contains "$CONTRACT" "transitionChecksumChain"
+require_file_contains "$READINESS" "Release v0.12.0 approval role / quorum separation anchor"
+require_file_contains "$PLAN" "GH-960 Release v0.12.0 Approval Role / Quorum Separation Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION"
+require_file_contains "$LATEST" "Release v0.12.0 Approval Role / Quorum Separation Snapshot"
+require_file_contains "$TESTS" "testGH960ApprovalRolesQuorumAndBundleBindingFailClosed"
 require_file_contains "$RELEASE_POLICY" "V0120-002-V011X-RELEASE-PATCH-FACT-BASELINE"
 require_file_contains "$RELEASE_POLICY" "v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public Release 后的 guard hardening closeout"
 require_file_contains "$README" "v0.11.1 patch closeout 不创建"
