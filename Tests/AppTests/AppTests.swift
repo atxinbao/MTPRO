@@ -3617,6 +3617,102 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH964DashboardAssessmentHistoryShowsLocalEvidenceAndAdversarialCoverageWithoutCommands() throws {
+        // 测试场景：GH-964 Dashboard 只能展示 v0.12.0 readiness assessment history。
+        // assessment list / detail / generation history / provenance / validation status /
+        // approval status / comparison 都是本地 read model；adversarial CI 只作为验证证据展示。
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV0120AssessmentHistorySurface
+
+        XCTAssertEqual(surface.issueID, "GH-964")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-951", "GH-963"])
+        XCTAssertEqual(surface.previousIssueID, "GH-963")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-965")
+        XCTAssertEqual(surface.releaseVersion, "v0.12.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.rows.count, 7)
+        XCTAssertEqual(surface.rowKinds, ReleaseV0120DashboardAssessmentHistorySurfaceKind.allCases)
+        XCTAssertEqual(
+            surface.rowKindLabels,
+            [
+                "assessment-list",
+                "assessment-detail",
+                "generation-history",
+                "provenance",
+                "validation-status",
+                "approval-status",
+                "comparison"
+            ]
+        )
+        XCTAssertTrue(surface.rows.allSatisfy(\.rowHeld))
+        XCTAssertEqual(
+            surface.generationIDs,
+            [
+                "gh-964-baseline-generation-1",
+                "gh-964-validation-generation-2",
+                "gh-964-compare-generation-3"
+            ]
+        )
+        XCTAssertEqual(
+            surface.comparisonSections,
+            [
+                "policy",
+                "artifacts",
+                "risk-limits",
+                "kill-switch-state",
+                "approval-state",
+                "source-run-evidence"
+            ]
+        )
+        XCTAssertEqual(
+            surface.adversarialValidationCases,
+            [
+                "symlink-attack",
+                "concurrent-build",
+                "crash-recovery",
+                "checksum-toctou",
+                "file-permissions",
+                "tamper-after-validation",
+                "macos-dashboard-focused-guard"
+            ]
+        )
+        XCTAssertTrue(surface.readModelOnly)
+        XCTAssertTrue(surface.localRegistryStoreOnly)
+        XCTAssertTrue(surface.dashboardMacOSFocusedGuardRequired)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertFalse(surface.exposesTradingButton)
+        XCTAssertFalse(surface.exposesOrderForm)
+        XCTAssertFalse(surface.exposesLiveCommand)
+        XCTAssertEqual(metricValue("v0.12 assessment history rows", in: surface.metrics), "7")
+        XCTAssertEqual(metricValue("Generation history", in: surface.metrics), "3")
+        XCTAssertEqual(metricValue("Adversarial guard cases", in: surface.metrics), "7")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Validation status: local-ready"))
+        XCTAssertTrue(surface.details.contains("Approval status: evidence-only-not-cutover"))
+        XCTAssertTrue(surface.details.contains("Dashboard macOS focused guard: required-before-build-and-smoke"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Production cutover: none"))
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0120AssessmentHistoryRows=7"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0120AssessmentHistoryGenerations=3"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0120AssessmentHistoryAdversarialCases=7"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0120AssessmentHistoryBoundary=confirmed"))
+
+        for anchor in ReleaseV0120DashboardAssessmentHistorySurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-964 surface")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly() throws {
         // 测试场景：GH-919 Dashboard Production Readiness Center 必须消费本地 readiness
         // manifest / bundle validation JSON 的真实状态，而不是继续把 fixture 当作 evidence exists。

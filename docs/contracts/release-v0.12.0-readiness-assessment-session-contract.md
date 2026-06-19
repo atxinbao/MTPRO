@@ -465,6 +465,30 @@ Boundary flags 必须继续固定为：
 
 GH-963 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不实现 production OMS，不暴露 trading button / order form / live command，不授权 production cutover。
 
+## V0120-013-DASHBOARD-ASSESSMENT-HISTORY
+
+`GH-964-VERIFY-V0120-DASHBOARD-ASSESSMENT-HISTORY`
+
+`TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY`
+
+`V0120-013-DASHBOARD-ASSESSMENT-HISTORY`
+
+`V0120-013-ASSESSMENT-LIST-DETAIL-GENERATION-HISTORY`
+
+`V0120-013-PROVENANCE-VALIDATION-APPROVAL-COMPARISON`
+
+`V0120-013-ADVERSARIAL-CI-GUARD`
+
+`V0120-013-NO-PRODUCTION-CUTOVER`
+
+GH-964 只允许 Dashboard 展示本地 readiness assessment history：assessment list / detail / generation history、provenance、validation status、approval status 和 comparison。展示输入固定为 redacted local artifact path、assessmentID、generationID、status label、source issue 和 checksum reference。
+
+Dashboard surface 固定为 `ReleaseV0120DashboardAssessmentHistorySurfaceViewModel`，并通过 `releaseV0120AssessmentHistorySurface` 接入 `DashboardShellSnapshot`。该 surface 必须保持 `readModelOnly=true`、`localRegistryStoreOnly=true`、`productionTradingEnabledByDefault=false`、`productionSecretRead=false`、`productionEndpointConnected=false`、`brokerEndpointConnected=false`、`testnetOrderSubmissionAllowed=false`、`productionOrderSubmitted=false`、`productionCutoverAuthorized=false`。
+
+adversarial CI guard 固定覆盖 `symlink-attack`、`concurrent-build`、`crash-recovery`、`checksum-toctou`、`file-permissions`、`tamper-after-validation` 和 `macos-dashboard-focused-guard`。required `dashboard-macos` job 必须在 Dashboard build / smoke 前执行 `bash checks/verify-v0.12.0-dashboard-macos-guards.sh`。
+
+GH-964 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不实现 production OMS，不暴露 trading button / order form / live command，不授权 production cutover。
+
 ## V0120-001-DOWNSTREAM-QUEUE-ORDER
 
 `V0120-001-DOWNSTREAM-QUEUE-ORDER`

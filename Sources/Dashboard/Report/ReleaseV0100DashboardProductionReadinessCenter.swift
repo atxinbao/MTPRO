@@ -922,3 +922,410 @@ public struct ReleaseV0100DashboardProductionReadinessCenterViewModel:
         )
     ]
 }
+
+/// ReleaseV0120DashboardAssessmentHistorySurfaceKind 固定 GH-964 Dashboard 必须展示的评估历史只读行。
+///
+/// 每一行都只对应本地 readiness assessment evidence 的观察维度。它们不能被解释为
+/// production cutover、approval execution、broker command、testnet order 或真实订单入口。
+public enum ReleaseV0120DashboardAssessmentHistorySurfaceKind:
+    String,
+    Codable,
+    CaseIterable,
+    Equatable,
+    Hashable,
+    Sendable
+{
+    case assessmentList = "assessment-list"
+    case assessmentDetail = "assessment-detail"
+    case generationHistory = "generation-history"
+    case provenance
+    case validationStatus = "validation-status"
+    case approvalStatus = "approval-status"
+    case comparison
+}
+
+/// ReleaseV0120DashboardAssessmentHistoryRow 是 Dashboard 展示单条 assessment history 的稳定快照。
+///
+/// Row 只保存 redacted checksum、local artifact path 和状态标签；不保存 secret、raw payload、
+/// endpoint response、listenKey、broker response 或 order payload。
+public struct ReleaseV0120DashboardAssessmentHistoryRow:
+    Codable,
+    Equatable,
+    Identifiable,
+    Sendable
+{
+    public let kind: ReleaseV0120DashboardAssessmentHistorySurfaceKind
+    public let title: String
+    public let assessmentID: String
+    public let generationID: String
+    public let statusLabel: String
+    public let sourceIssueID: String
+    public let artifactPath: String
+    public let checksumReference: String
+    public let redacted: Bool
+    public let localOnly: Bool
+    public let readModelOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var id: String {
+        kind.rawValue
+    }
+
+    public var rowHeld: Bool {
+        title.isEmpty == false
+            && assessmentID == "release-v0.12.0-gh964-assessment"
+            && generationID.isEmpty == false
+            && statusLabel.isEmpty == false
+            && sourceIssueID == "GH-964"
+            && artifactPath.hasPrefix(".local/mtpro/readiness/assessments/")
+            && artifactPath.contains("..") == false
+            && ReleaseV0110DashboardReadinessArtifactStateInput
+                .isValidSHA256Reference(checksumReference)
+            && redacted
+            && localOnly
+            && readModelOnly
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && testnetOrderSubmissionAllowed == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        kind: ReleaseV0120DashboardAssessmentHistorySurfaceKind,
+        title: String,
+        assessmentID: String,
+        generationID: String,
+        statusLabel: String,
+        sourceIssueID: String,
+        artifactPath: String,
+        checksumReference: String,
+        redacted: Bool = true,
+        localOnly: Bool = true,
+        readModelOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) {
+        self.kind = kind
+        self.title = title
+        self.assessmentID = assessmentID
+        self.generationID = generationID
+        self.statusLabel = statusLabel
+        self.sourceIssueID = sourceIssueID
+        self.artifactPath = artifactPath
+        self.checksumReference = checksumReference
+        self.redacted = redacted
+        self.localOnly = localOnly
+        self.readModelOnly = readModelOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+    }
+}
+
+/// ReleaseV0120DashboardAssessmentHistorySurfaceViewModel 固定 GH-964 的 Dashboard 评估历史面。
+///
+/// 该 surface 汇总 assessment list、detail、generation history、provenance、validation status、
+/// approval status 和 comparison；同时列出 symlink、并发、崩溃恢复、TOCTOU、权限、篡改和
+/// macOS focused guard 等 adversarial CI evidence。它仍然只是 Dashboard read model。
+public struct ReleaseV0120DashboardAssessmentHistorySurfaceViewModel:
+    Codable,
+    Equatable,
+    Sendable
+{
+    public let issueID: String
+    public let upstreamIssueIDs: [String]
+    public let previousIssueID: String
+    public let downstreamIssueID: String
+    public let releaseVersion: String
+    public let source: ViewModelSourceContract
+    public let rows: [ReleaseV0120DashboardAssessmentHistoryRow]
+    public let generationIDs: [String]
+    public let comparisonSections: [String]
+    public let adversarialValidationCases: [String]
+    public let validationAnchors: [String]
+    public let requiredValidationCommands: [String]
+    public let readModelOnly: Bool
+    public let localRegistryStoreOnly: Bool
+    public let dashboardMacOSFocusedGuardRequired: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+    public let exposesTradingButton: Bool
+    public let exposesOrderForm: Bool
+    public let exposesLiveCommand: Bool
+
+    public init(
+        issueID: String = "GH-964",
+        upstreamIssueIDs: [String] = ["GH-951", "GH-963"],
+        previousIssueID: String = "GH-963",
+        downstreamIssueID: String = "GH-965",
+        releaseVersion: String = "v0.12.0",
+        source: ViewModelSourceContract = ViewModelSourceContract(),
+        rows: [ReleaseV0120DashboardAssessmentHistoryRow],
+        generationIDs: [String],
+        comparisonSections: [String],
+        adversarialValidationCases: [String],
+        validationAnchors: [String] = Self.requiredValidationAnchors,
+        requiredValidationCommands: [String] = Self.requiredValidationCommands,
+        readModelOnly: Bool = true,
+        localRegistryStoreOnly: Bool = true,
+        dashboardMacOSFocusedGuardRequired: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        exposesTradingButton: Bool = false,
+        exposesOrderForm: Bool = false,
+        exposesLiveCommand: Bool = false
+    ) {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.previousIssueID = previousIssueID
+        self.downstreamIssueID = downstreamIssueID
+        self.releaseVersion = releaseVersion
+        self.source = source
+        self.rows = rows
+        self.generationIDs = generationIDs
+        self.comparisonSections = comparisonSections
+        self.adversarialValidationCases = adversarialValidationCases
+        self.validationAnchors = validationAnchors
+        self.requiredValidationCommands = requiredValidationCommands
+        self.readModelOnly = readModelOnly
+        self.localRegistryStoreOnly = localRegistryStoreOnly
+        self.dashboardMacOSFocusedGuardRequired = dashboardMacOSFocusedGuardRequired
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.exposesTradingButton = exposesTradingButton
+        self.exposesOrderForm = exposesOrderForm
+        self.exposesLiveCommand = exposesLiveCommand
+    }
+
+    public var rowKinds: [ReleaseV0120DashboardAssessmentHistorySurfaceKind] {
+        rows.map(\.kind)
+    }
+
+    public var rowKindLabels: [String] {
+        rowKinds.map(\.rawValue)
+    }
+
+    public var boundaryHeld: Bool {
+        issueID == "GH-964"
+            && upstreamIssueIDs == ["GH-951", "GH-963"]
+            && previousIssueID == "GH-963"
+            && downstreamIssueID == "GH-965"
+            && releaseVersion == "v0.12.0"
+            && source.isReadModelOnly
+            && rowKinds == ReleaseV0120DashboardAssessmentHistorySurfaceKind.allCases
+            && rows.allSatisfy(\.rowHeld)
+            && generationIDs == [
+                "gh-964-baseline-generation-1",
+                "gh-964-validation-generation-2",
+                "gh-964-compare-generation-3"
+            ]
+            && comparisonSections == [
+                "policy",
+                "artifacts",
+                "risk-limits",
+                "kill-switch-state",
+                "approval-state",
+                "source-run-evidence"
+            ]
+            && adversarialValidationCases == Self.expectedAdversarialValidationCases
+            && validationAnchors == Self.requiredValidationAnchors
+            && requiredValidationCommands == Self.requiredValidationCommands
+            && readModelOnly
+            && localRegistryStoreOnly
+            && dashboardMacOSFocusedGuardRequired
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && testnetOrderSubmissionAllowed == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && exposesTradingButton == false
+            && exposesOrderForm == false
+            && exposesLiveCommand == false
+    }
+
+    public var metrics: [DashboardShellMetric] {
+        [
+            DashboardShellMetric(label: "v0.12 assessment history rows", value: "\(rows.count)"),
+            DashboardShellMetric(label: "Assessment history kinds", value: rowKindLabels.joined(separator: ",")),
+            DashboardShellMetric(label: "Generation history", value: "\(generationIDs.count)"),
+            DashboardShellMetric(
+                label: "Adversarial guard cases",
+                value: "\(adversarialValidationCases.count)"
+            ),
+            DashboardShellMetric(label: "Boundary", value: boundaryHeld ? "confirmed" : "blocked")
+        ]
+    }
+
+    public var details: [String] {
+        [
+            "Assessment rows: \(rowKindLabels.joined(separator: ","))",
+            "Assessment id: release-v0.12.0-gh964-assessment",
+            "Generation history: \(generationIDs.joined(separator: ","))",
+            "Provenance artifacts: \(rows.map(\.artifactPath).joined(separator: ","))",
+            "Validation status: local-ready",
+            "Approval status: evidence-only-not-cutover",
+            "Comparison sections: \(comparisonSections.joined(separator: ","))",
+            "Adversarial CI: \(adversarialValidationCases.joined(separator: ","))",
+            "Dashboard macOS focused guard: required-before-build-and-smoke",
+            "Trading button: none",
+            "Order form: none",
+            "Live command: none",
+            "Production cutover: none"
+        ]
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-964-VERIFY-V0120-DASHBOARD-ASSESSMENT-HISTORY",
+        "TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY",
+        "V0120-013-DASHBOARD-ASSESSMENT-HISTORY",
+        "V0120-013-ASSESSMENT-LIST-DETAIL-GENERATION-HISTORY",
+        "V0120-013-PROVENANCE-VALIDATION-APPROVAL-COMPARISON",
+        "V0120-013-ADVERSARIAL-CI-GUARD",
+        "V0120-013-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static let requiredValidationCommands = [
+        "swift test --filter AppTests/testGH964DashboardAssessmentHistoryShowsLocalEvidenceAndAdversarialCoverageWithoutCommands",
+        "swift test --filter TargetGraphTests/testGH964DashboardAssessmentHistoryAndAdversarialCIGuardsAreAnchored",
+        "bash checks/verify-v0.12.0-dashboard-macos-guards.sh",
+        "bash checks/verify-v0.12.0.sh",
+        "DASHBOARD_SMOKE=1 swift run Dashboard",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+
+    public static let expectedAdversarialValidationCases = [
+        "symlink-attack",
+        "concurrent-build",
+        "crash-recovery",
+        "checksum-toctou",
+        "file-permissions",
+        "tamper-after-validation",
+        "macos-dashboard-focused-guard"
+    ]
+
+    public static let deterministicFixture = ReleaseV0120DashboardAssessmentHistorySurfaceViewModel(
+        rows: [
+            ReleaseV0120DashboardAssessmentHistoryRow(
+                kind: .assessmentList,
+                title: "Assessment List",
+                assessmentID: "release-v0.12.0-gh964-assessment",
+                generationID: "gh-964-baseline-generation-1",
+                statusLabel: "listed",
+                sourceIssueID: "GH-964",
+                artifactPath: ".local/mtpro/readiness/assessments/release-v0.12.0-gh964-assessment/registry.json",
+                checksumReference: "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+            ),
+            ReleaseV0120DashboardAssessmentHistoryRow(
+                kind: .assessmentDetail,
+                title: "Assessment Detail",
+                assessmentID: "release-v0.12.0-gh964-assessment",
+                generationID: "gh-964-baseline-generation-1",
+                statusLabel: "detail-ready",
+                sourceIssueID: "GH-964",
+                artifactPath: ".local/mtpro/readiness/assessments/release-v0.12.0-gh964-assessment/detail.json",
+                checksumReference: "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+            ),
+            ReleaseV0120DashboardAssessmentHistoryRow(
+                kind: .generationHistory,
+                title: "Generation History",
+                assessmentID: "release-v0.12.0-gh964-assessment",
+                generationID: "gh-964-validation-generation-2",
+                statusLabel: "three-generations",
+                sourceIssueID: "GH-964",
+                artifactPath: ".local/mtpro/readiness/assessments/release-v0.12.0-gh964-assessment/generations.json",
+                checksumReference: "sha256:7777777777777777777777777777777777777777777777777777777777777777"
+            ),
+            ReleaseV0120DashboardAssessmentHistoryRow(
+                kind: .provenance,
+                title: "Provenance",
+                assessmentID: "release-v0.12.0-gh964-assessment",
+                generationID: "gh-964-validation-generation-2",
+                statusLabel: "source-run-bound",
+                sourceIssueID: "GH-964",
+                artifactPath: ".local/mtpro/readiness/assessments/release-v0.12.0-gh964-assessment/provenance.json",
+                checksumReference: "sha256:8888888888888888888888888888888888888888888888888888888888888888"
+            ),
+            ReleaseV0120DashboardAssessmentHistoryRow(
+                kind: .validationStatus,
+                title: "Validation Status",
+                assessmentID: "release-v0.12.0-gh964-assessment",
+                generationID: "gh-964-validation-generation-2",
+                statusLabel: "local-validation-ready",
+                sourceIssueID: "GH-964",
+                artifactPath: ".local/mtpro/readiness/assessments/release-v0.12.0-gh964-assessment/validation-status.json",
+                checksumReference: "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+            ),
+            ReleaseV0120DashboardAssessmentHistoryRow(
+                kind: .approvalStatus,
+                title: "Approval Status",
+                assessmentID: "release-v0.12.0-gh964-assessment",
+                generationID: "gh-964-compare-generation-3",
+                statusLabel: "evidence-only-not-cutover",
+                sourceIssueID: "GH-964",
+                artifactPath: ".local/mtpro/readiness/assessments/release-v0.12.0-gh964-assessment/approval-status.json",
+                checksumReference: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ),
+            ReleaseV0120DashboardAssessmentHistoryRow(
+                kind: .comparison,
+                title: "Comparison",
+                assessmentID: "release-v0.12.0-gh964-assessment",
+                generationID: "gh-964-compare-generation-3",
+                statusLabel: "operator-review-only",
+                sourceIssueID: "GH-964",
+                artifactPath: ".local/mtpro/readiness/assessments/release-v0.12.0-gh964-assessment/comparison.json",
+                checksumReference: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            )
+        ],
+        generationIDs: [
+            "gh-964-baseline-generation-1",
+            "gh-964-validation-generation-2",
+            "gh-964-compare-generation-3"
+        ],
+        comparisonSections: [
+            "policy",
+            "artifacts",
+            "risk-limits",
+            "kill-switch-state",
+            "approval-state",
+            "source-run-evidence"
+        ],
+        adversarialValidationCases: expectedAdversarialValidationCases
+    )
+}

@@ -98,6 +98,13 @@ set -euo pipefail
 # V0120-012-INVALID-ASSESSMENT-ID-FAIL-CLOSED
 # V0120-012-LOCAL-REGISTRY-STORE-ONLY
 # V0120-012-NO-PRODUCTION-CUTOVER
+# GH-964-VERIFY-V0120-DASHBOARD-ASSESSMENT-HISTORY
+# TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY
+# V0120-013-DASHBOARD-ASSESSMENT-HISTORY
+# V0120-013-ASSESSMENT-LIST-DETAIL-GENERATION-HISTORY
+# V0120-013-PROVENANCE-VALIDATION-APPROVAL-COMPARISON
+# V0120-013-ADVERSARIAL-CI-GUARD
+# V0120-013-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -137,6 +144,11 @@ RELEASE_POLICY="docs/release/release-publication-policy.md"
 AUTOMATION_SCRIPT="checks/automation-readiness.sh"
 RUN_SCRIPT="checks/run.sh"
 TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
+APP_TESTS="Tests/AppTests/AppTests.swift"
+WORKFLOW=".github/workflows/checks.yml"
+DASHBOARD_SOURCE="Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift"
+DASHBOARD_SHELL_SOURCE="Sources/Dashboard/DashboardShell.swift"
+DASHBOARD_GUARD="checks/verify-v0.12.0-dashboard-macos-guards.sh"
 REGISTRY_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift"
 KILL_SWITCH_NO_TRADE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift"
 APPROVAL_WORKFLOW_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift"
@@ -155,6 +167,8 @@ swift test --filter TargetGraphTests/testGH960ApprovalRolesQuorumAndBundleBindin
 swift test --filter TargetGraphTests/testGH961ShadowParityBindsImmutableSourceRunSnapshot
 swift test --filter TargetGraphTests/testGH962ReadinessAssessmentDiffCompareIsLocalAndNonMutating
 swift test --filter TargetGraphTests/testGH963ReadinessAssessmentCLILifecycleUsesLocalRegistryOnly
+swift test --filter AppTests/testGH964DashboardAssessmentHistoryShowsLocalEvidenceAndAdversarialCoverageWithoutCommands
+swift test --filter TargetGraphTests/testGH964DashboardAssessmentHistoryAndAdversarialCIGuardsAreAnchored
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -253,7 +267,14 @@ for anchor in \
   "V0120-012-COMPARE-LOCAL-ASSESSMENTS" \
   "V0120-012-INVALID-ASSESSMENT-ID-FAIL-CLOSED" \
   "V0120-012-LOCAL-REGISTRY-STORE-ONLY" \
-  "V0120-012-NO-PRODUCTION-CUTOVER"; do
+  "V0120-012-NO-PRODUCTION-CUTOVER" \
+  "GH-964-VERIFY-V0120-DASHBOARD-ASSESSMENT-HISTORY" \
+  "TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY" \
+  "V0120-013-DASHBOARD-ASSESSMENT-HISTORY" \
+  "V0120-013-ASSESSMENT-LIST-DETAIL-GENERATION-HISTORY" \
+  "V0120-013-PROVENANCE-VALIDATION-APPROVAL-COMPARISON" \
+  "V0120-013-ADVERSARIAL-CI-GUARD" \
+  "V0120-013-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -275,6 +296,10 @@ for anchor in \
   fi
   if [[ "$anchor" == GH-963-* || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE || "$anchor" == V0120-012-* ]]; then
     require_file_contains "$MTPRO_CLI_SOURCE" "$anchor"
+  fi
+  if [[ "$anchor" == GH-964-* || "$anchor" == TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY || "$anchor" == V0120-013-* ]]; then
+    require_file_contains "$DASHBOARD_SOURCE" "$anchor"
+    require_file_contains "$DASHBOARD_GUARD" "$anchor"
   fi
 done
 
@@ -486,6 +511,47 @@ require_file_contains "$PLAN" "GH-963 Release v0.12.0 Assessment-scoped CLI Life
 require_file_contains "$MATRIX" "TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE"
 require_file_contains "$LATEST" "Release v0.12.0 Assessment-scoped CLI Lifecycle"
 require_file_contains "$TESTS" "testGH963ReadinessAssessmentCLILifecycleUsesLocalRegistryOnly"
+require_file_contains "$DASHBOARD_SOURCE" "ReleaseV0120DashboardAssessmentHistorySurfaceViewModel"
+require_file_contains "$DASHBOARD_SOURCE" "ReleaseV0120DashboardAssessmentHistorySurfaceKind"
+require_file_contains "$DASHBOARD_SOURCE" "ReleaseV0120DashboardAssessmentHistoryRow"
+require_file_contains "$DASHBOARD_SOURCE" "assessment-list"
+require_file_contains "$DASHBOARD_SOURCE" "assessment-detail"
+require_file_contains "$DASHBOARD_SOURCE" "generation-history"
+require_file_contains "$DASHBOARD_SOURCE" "provenance"
+require_file_contains "$DASHBOARD_SOURCE" "validation-status"
+require_file_contains "$DASHBOARD_SOURCE" "approval-status"
+require_file_contains "$DASHBOARD_SOURCE" "comparison"
+require_file_contains "$DASHBOARD_SOURCE" "symlink-attack"
+require_file_contains "$DASHBOARD_SOURCE" "concurrent-build"
+require_file_contains "$DASHBOARD_SOURCE" "crash-recovery"
+require_file_contains "$DASHBOARD_SOURCE" "checksum-toctou"
+require_file_contains "$DASHBOARD_SOURCE" "file-permissions"
+require_file_contains "$DASHBOARD_SOURCE" "tamper-after-validation"
+require_file_contains "$DASHBOARD_SOURCE" "macos-dashboard-focused-guard"
+require_file_contains "$DASHBOARD_SHELL_SOURCE" "releaseV0120AssessmentHistorySurface"
+require_file_contains "$DASHBOARD_SHELL_SOURCE" "DashboardReleaseV0120AssessmentHistoryPanel"
+require_file_contains "$DASHBOARD_SHELL_SOURCE" "releaseV0120AssessmentHistoryRows"
+require_file_contains "$DASHBOARD_SHELL_SOURCE" "releaseV0120AssessmentHistoryGenerations"
+require_file_contains "$DASHBOARD_SHELL_SOURCE" "releaseV0120AssessmentHistoryAdversarialCases"
+require_file_contains "$DASHBOARD_SHELL_SOURCE" "releaseV0120AssessmentHistoryBoundary"
+require_file_contains "$DASHBOARD_GUARD" "bash checks/verify-v0.12.0.sh"
+require_file_contains "$DASHBOARD_GUARD" "DASHBOARD_SMOKE=1 swift run Dashboard"
+require_file_contains "$DASHBOARD_GUARD" "releaseV0120AssessmentHistoryRows=7"
+require_file_contains "$DASHBOARD_GUARD" "releaseV0120AssessmentHistoryGenerations=3"
+require_file_contains "$DASHBOARD_GUARD" "releaseV0120AssessmentHistoryAdversarialCases=7"
+require_file_contains "$DASHBOARD_GUARD" "releaseV0120AssessmentHistoryBoundary=confirmed"
+require_file_contains "$WORKFLOW" "Verify v0.12.0 Dashboard macOS focused guards"
+require_file_contains "$WORKFLOW" "bash checks/verify-v0.12.0-dashboard-macos-guards.sh"
+require_file_contains "$APP_TESTS" "testGH964DashboardAssessmentHistoryShowsLocalEvidenceAndAdversarialCoverageWithoutCommands"
+require_file_contains "$TESTS" "testGH964DashboardAssessmentHistoryAndAdversarialCIGuardsAreAnchored"
+require_file_contains "$CONTRACT" "V0120-013-DASHBOARD-ASSESSMENT-HISTORY"
+require_file_contains "$CONTRACT" "assessment list / detail / generation history"
+require_file_contains "$CONTRACT" "adversarial CI guard"
+require_file_contains "$READINESS" "Release v0.12.0 Dashboard assessment history / adversarial CI anchor"
+require_file_contains "$PLAN" "GH-964 Release v0.12.0 Dashboard Assessment History / Adversarial CI Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY"
+require_file_contains "$LATEST" "Release v0.12.0 Dashboard Assessment History / Adversarial CI"
+require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.12.0-dashboard-macos-guards.sh"
 
 READINESS_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/mtpro-gh963-readiness.XXXXXX")"
 trap 'rm -rf "$READINESS_ROOT"' EXIT

@@ -19,9 +19,10 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | Latest completed release construction scope | `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening` |
 | Latest completed patch scope | `MTPRO Release v0.11.1 Readiness Runtime Guard Patch` |
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
-| Active queue | GitHub fallback queue `#952..#965` for v0.12.0 readiness assessment sessions；#952..#962 已 closed / done 且 PR #973..#983 merged / checks SUCCESS；#963 本 PR 负责 assessment-scoped CLI lifecycle；merge 后才允许对 #964 做 fresh WIP=1 preflight |
+| Active queue | GitHub fallback queue `#952..#965` for v0.12.0 readiness assessment sessions；#952..#963 已 closed / done 且 PR #973..#984 merged / checks SUCCESS；#964 本 PR 负责 Dashboard assessment history / adversarial CI；merge 后才允许对 #965 做 fresh WIP=1 preflight |
 | Stage Code Audit Report | `docs/audit/mtpro-release-v0.11.1-readiness-runtime-guard-patch-stage-code-audit.md` |
 | Release publication | v0.11.1 patch closeout 只执行 audit / release notes / verifier fact sync，不执行 publication action，也不改变任何既有 release identity；v0.11.0 public GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`；tag peeled commit `13f592d0710de91351286e5c5490bfacb63c19b0`；publication timestamp `2026-06-19T01:20:58Z`；v0.10.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；target commit `7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`；publication timestamp `2026-06-18T05:19:46Z`；v0.9.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`；target commit `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`；v0.9.1 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1`；tag peeled commit `d041f0dd304075562a85e494695697290972288f`；均不授权 production cutover |
+| v0.12.0 Dashboard assessment history / adversarial CI | `GH-964-VERIFY-V0120-DASHBOARD-ASSESSMENT-HISTORY`；`TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY`；`V0120-013-DASHBOARD-ASSESSMENT-HISTORY`；verifier：`checks/verify-v0.12.0-dashboard-macos-guards.sh` 和 `checks/verify-v0.12.0.sh`；implementation：`Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift` 和 `Sources/Dashboard/DashboardShell.swift`；focused tests：`testGH964DashboardAssessmentHistoryShowsLocalEvidenceAndAdversarialCoverageWithoutCommands`、`testGH964DashboardAssessmentHistoryAndAdversarialCIGuardsAreAnchored`；Dashboard 只展示 assessment list、detail、generation history、provenance、validation status、approval status、comparison 和 adversarial CI cases；required `dashboard-macos` job 在 Dashboard build / smoke 前执行 v0.12 focused guard；不授权 production cutover |
 | v0.12.0 assessment-scoped CLI lifecycle | `GH-963-VERIFY-V0120-ASSESSMENT-CLI-LIFECYCLE`；`TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE`；`V0120-012-ASSESSMENT-SCOPED-CLI-LIFECYCLE`；verifier：`checks/verify-v0.12.0.sh`；implementation：`Sources/MTPROCLI/main.swift`；focused test：`testGH963ReadinessAssessmentCLILifecycleUsesLocalRegistryOnly`；`mtpro readiness create/build/status/validate/export/archive/compare` 只读写本地 readiness assessment registry / manifest / bundle / compare evidence；invalid assessmentID fail closed；不授权 production cutover |
 | v0.11.1 patch audit / release notes closeout | `GH-951-VERIFY-V0111-PATCH-AUDIT-RELEASE-NOTES`；`TVM-RELEASE-V0111-PATCH-AUDIT-RELEASE-NOTES`；`V0111-007-PATCH-AUDIT`；`V0111-007-RELEASE-NOTES`；`V0111-007-VALIDATION-SUMMARY`；`V0111-007-AGGREGATE-VERIFY`；verifier：`checks/verify-v0.11.1.sh`；Stage Code Audit：`docs/audit/mtpro-release-v0.11.1-readiness-runtime-guard-patch-stage-code-audit.md`；release notes：`docs/release/mtpro-release-v0.11.1-readiness-runtime-guard-patch-notes.md`；focused test：`testGH951ReleaseV0111PatchAuditReleaseNotesCloseout`；不创建 / 移动 tag 或 release，不授权 production cutover |
 | v0.11.1 patch aggregate guard | `GH-950-VERIFY-V0111-PATCH-AGGREGATE-GUARD`；`TVM-RELEASE-V0111-PATCH-AGGREGATE-GUARD`；`V0111-006-PATCH-AGGREGATE-VERIFY`；verifier：`checks/verify-v0.11.1.sh`；focused test：`testGH950ReleaseV0111PatchAggregateVerifierAnchors`；聚合 v0.11.1 release fact sync、Dashboard macOS v0.11 guard、Dashboard checksum / state invariant、readiness artifact symlink root guard 和 readiness artifact permission guard；不授权 production cutover |
@@ -50,6 +51,39 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。`v0.11.0` public GitHub Release 已通过独立 Release Publication Gate 发布；该 publication 不授权 production cutover。v0.11.1 patch closeout 不创建、不移动、不重写 tag 或 GitHub Release，不推进 v0.12.0。
+
+## Release v0.12.0 Dashboard Assessment History / Adversarial CI Snapshot
+
+`GH-964-VERIFY-V0120-DASHBOARD-ASSESSMENT-HISTORY`
+
+`TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY`
+
+`V0120-013-DASHBOARD-ASSESSMENT-HISTORY`
+
+`V0120-013-ASSESSMENT-LIST-DETAIL-GENERATION-HISTORY`
+
+`V0120-013-PROVENANCE-VALIDATION-APPROVAL-COMPARISON`
+
+`V0120-013-ADVERSARIAL-CI-GUARD`
+
+`V0120-013-NO-PRODUCTION-CUTOVER`
+
+GH-964 在 v0.12.0 queue 中把 readiness assessment history 接入 Dashboard read-model-only surface。`ReleaseV0120DashboardAssessmentHistorySurfaceViewModel` 展示 `assessment-list`、`assessment-detail`、`generation-history`、`provenance`、`validation-status`、`approval-status` 和 `comparison` 七类行。
+
+Dashboard shell 通过 `releaseV0120AssessmentHistorySurface` 和 `DashboardReleaseV0120AssessmentHistoryPanel` 展示 metrics / details。smoke summary 固定输出 `releaseV0120AssessmentHistoryRows=7`、`releaseV0120AssessmentHistoryGenerations=3`、`releaseV0120AssessmentHistoryAdversarialCases=7` 和 `releaseV0120AssessmentHistoryBoundary=confirmed`。
+
+Adversarial CI cases 固定为 `symlink-attack`、`concurrent-build`、`crash-recovery`、`checksum-toctou`、`file-permissions`、`tamper-after-validation` 和 `macos-dashboard-focused-guard`。required `dashboard-macos` job 必须在 Dashboard build / smoke 前执行 `bash checks/verify-v0.12.0-dashboard-macos-guards.sh`。
+
+Boundary flags 固定为 `readModelOnly=true`、`localRegistryStoreOnly=true`、`productionTradingEnabledByDefault=false`、`productionCutoverAuthorized=false`、`productionSecretRead=false`、`productionEndpointConnected=false`、`brokerEndpointConnected=false`、`productionOrderSubmitted=false`、`testnetOrderSubmissionAllowed=false`。GH-964 不读取 production secret、不连接 production endpoint / broker、不提交 testnet 或 production order、不授权 production cutover。
+
+Focused validation：
+
+```bash
+swift test --filter AppTests/testGH964DashboardAssessmentHistoryShowsLocalEvidenceAndAdversarialCoverageWithoutCommands
+swift test --filter TargetGraphTests/testGH964DashboardAssessmentHistoryAndAdversarialCIGuardsAreAnchored
+bash checks/verify-v0.12.0-dashboard-macos-guards.sh
+bash checks/verify-v0.12.0.sh
+```
 
 ## Release v0.12.0 Assessment-scoped CLI Lifecycle Snapshot
 

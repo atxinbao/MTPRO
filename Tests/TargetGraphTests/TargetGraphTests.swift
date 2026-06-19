@@ -32851,6 +32851,117 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH964DashboardAssessmentHistoryAndAdversarialCIGuardsAreAnchored() throws {
+        // 测试场景：GH-964 把 v0.12.0 readiness assessment history 接入 Dashboard
+        // read model，并让 macOS required job 在 Dashboard build / smoke 前执行 focused guard。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let expectedAnchors = [
+            "GH-964-VERIFY-V0120-DASHBOARD-ASSESSMENT-HISTORY",
+            "TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY",
+            "V0120-013-DASHBOARD-ASSESSMENT-HISTORY",
+            "V0120-013-ASSESSMENT-LIST-DETAIL-GENERATION-HISTORY",
+            "V0120-013-PROVENANCE-VALIDATION-APPROVAL-COMPARISON",
+            "V0120-013-ADVERSARIAL-CI-GUARD",
+            "V0120-013-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let dashboardSource = try read("Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift")
+        let dashboardShell = try read("Sources/Dashboard/DashboardShell.swift")
+        let appTests = try read("Tests/AppTests/AppTests.swift")
+        let verifier = try read("checks/verify-v0.12.0.sh")
+        let dashboardGuard = try read("checks/verify-v0.12.0-dashboard-macos-guards.sh")
+        let workflow = try read(".github/workflows/checks.yml")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(dashboardSource.contains(anchor), "\(anchor) must stay in Dashboard source")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.12.0 verifier")
+            XCTAssertTrue(dashboardGuard.contains(anchor), "\(anchor) must stay in Dashboard macOS guard")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+        }
+
+        for requiredString in [
+            "ReleaseV0120DashboardAssessmentHistorySurfaceViewModel",
+            "ReleaseV0120DashboardAssessmentHistorySurfaceKind",
+            "ReleaseV0120DashboardAssessmentHistoryRow",
+            "releaseV0120AssessmentHistorySurface",
+            "DashboardReleaseV0120AssessmentHistoryPanel",
+            "assessment-list",
+            "assessment-detail",
+            "generation-history",
+            "provenance",
+            "validation-status",
+            "approval-status",
+            "comparison",
+            "symlink-attack",
+            "concurrent-build",
+            "crash-recovery",
+            "checksum-toctou",
+            "file-permissions",
+            "tamper-after-validation",
+            "macos-dashboard-focused-guard",
+            "releaseV0120AssessmentHistoryRows=7",
+            "releaseV0120AssessmentHistoryGenerations=3",
+            "releaseV0120AssessmentHistoryAdversarialCases=7",
+            "releaseV0120AssessmentHistoryBoundary=confirmed",
+            "testGH964DashboardAssessmentHistoryShowsLocalEvidenceAndAdversarialCoverageWithoutCommands",
+            "testGH964DashboardAssessmentHistoryAndAdversarialCIGuardsAreAnchored",
+            "Verify v0.12.0 Dashboard macOS focused guards",
+            "bash checks/verify-v0.12.0-dashboard-macos-guards.sh"
+        ] {
+            XCTAssertTrue(
+                dashboardSource.contains(requiredString)
+                    || dashboardShell.contains(requiredString)
+                    || appTests.contains(requiredString)
+                    || verifier.contains(requiredString)
+                    || dashboardGuard.contains(requiredString)
+                    || workflow.contains(requiredString)
+                    || readiness.contains(requiredString)
+                    || readinessScript.contains(requiredString)
+                    || validationPlan.contains(requiredString)
+                    || tradingMatrix.contains(requiredString)
+                    || latest.contains(requiredString),
+                "\(requiredString) must stay wired into GH-964 evidence"
+            )
+        }
+
+        let dashboardGuardIndex = try XCTUnwrap(
+            workflow.range(of: "Verify v0.12.0 Dashboard macOS focused guards")?.lowerBound
+        )
+        let dashboardBuildIndex = try XCTUnwrap(workflow.range(of: "Build Dashboard")?.lowerBound)
+        let dashboardSmokeIndex = try XCTUnwrap(workflow.range(of: "Run Dashboard smoke")?.lowerBound)
+        XCTAssertLessThan(dashboardGuardIndex, dashboardBuildIndex)
+        XCTAssertLessThan(dashboardGuardIndex, dashboardSmokeIndex)
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true"
+        ] {
+            XCTAssertFalse(dashboardSource.contains(forbidden), "\(forbidden) must stay out of GH-964 source")
+            XCTAssertFalse(latest.contains(forbidden), "\(forbidden) must stay out of latest summary")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
