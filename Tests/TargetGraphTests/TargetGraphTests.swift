@@ -30157,6 +30157,80 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH951ReleaseV0111PatchAuditReleaseNotesCloseout() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let aggregateVerifier = try read("checks/verify-v0.11.1.sh")
+        let audit = try read("docs/audit/mtpro-release-v0.11.1-readiness-runtime-guard-patch-stage-code-audit.md")
+        let releaseNotes = try read("docs/release/mtpro-release-v0.11.1-readiness-runtime-guard-patch-notes.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+
+        for anchor in [
+            "GH-951-VERIFY-V0111-PATCH-AUDIT-RELEASE-NOTES",
+            "TVM-RELEASE-V0111-PATCH-AUDIT-RELEASE-NOTES",
+            "V0111-007-PATCH-AUDIT",
+            "V0111-007-RELEASE-NOTES",
+            "V0111-007-VALIDATION-SUMMARY",
+            "V0111-007-AGGREGATE-VERIFY",
+            "V0111-007-NO-PRODUCTION-CUTOVER",
+            "V0111-007-NO-TAG-OR-RELEASE-MOVE"
+        ] {
+            XCTAssertTrue(aggregateVerifier.contains(anchor), "\(anchor) must stay in v0.11.1 aggregate verifier")
+            XCTAssertTrue(audit.contains(anchor), "\(anchor) must stay in v0.11.1 audit")
+            XCTAssertTrue(releaseNotes.contains(anchor), "\(anchor) must stay in v0.11.1 release notes")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        for issue in ["#945", "#946", "#947", "#948", "#949", "#950", "#951"] {
+            XCTAssertTrue(audit.contains(issue), "\(issue) must be represented in the v0.11.1 patch audit")
+        }
+
+        for pullRequest in ["PR `#966`", "PR `#967`", "PR `#968`", "PR `#969`", "PR `#970`", "PR `#971`"] {
+            XCTAssertTrue(audit.contains(pullRequest), "\(pullRequest) must be represented in the v0.11.1 patch audit")
+        }
+
+        XCTAssertTrue(audit.contains("This PR owns final v0.11.1 Stage Code Audit"))
+        XCTAssertTrue(releaseNotes.contains("v0.11.1 是 v0.11.0 public GitHub Release 之后的 readiness runtime guard hardening patch"))
+        XCTAssertTrue(latest.contains("v0.11.1 patch audit / release notes closeout"))
+        XCTAssertTrue(releasePolicy.contains("GH-951 不是 release publication gate"))
+        XCTAssertTrue(releasePolicy.contains("不创建 `v0.11.1` tag"))
+        XCTAssertTrue(releasePolicy.contains("不移动、不覆盖、不重写 `v0.11.0` tag 或 GitHub Release"))
+        XCTAssertTrue(aggregateVerifier.contains("swift test --filter TargetGraphTests/testGH951ReleaseV0111PatchAuditReleaseNotesCloseout"))
+        XCTAssertTrue(readiness.contains("Release v0.11.1 patch audit / release notes closeout anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-951 Release v0.11.1 Patch Audit / Release Notes Closeout Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0111-PATCH-AUDIT-RELEASE-NOTES"))
+        XCTAssertTrue(tests.contains("testGH951ReleaseV0111PatchAuditReleaseNotesCloseout"))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true"
+        ] {
+            XCTAssertFalse(audit.contains(forbidden), "\(forbidden) must stay out of v0.11.1 audit")
+            XCTAssertFalse(releaseNotes.contains(forbidden), "\(forbidden) must stay out of v0.11.1 release notes")
+            XCTAssertFalse(validationPlan.contains(forbidden), "\(forbidden) must stay out of validation plan")
+            XCTAssertFalse(tradingMatrix.contains(forbidden), "\(forbidden) must stay out of trading validation matrix")
+        }
+    }
+
     func testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum() throws {
         XCTAssertEqual(ProductionReadinessBundleValidationAnchors.validationAnchors, [
             "GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION",

@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-951 Release v0.11.1 Patch Audit / Release Notes Closeout Validation
+
+- `GH-951-VERIFY-V0111-PATCH-AUDIT-RELEASE-NOTES`
+- `TVM-RELEASE-V0111-PATCH-AUDIT-RELEASE-NOTES`
+- `V0111-007-PATCH-AUDIT`
+- `V0111-007-RELEASE-NOTES`
+- `V0111-007-VALIDATION-SUMMARY`
+- `V0111-007-AGGREGATE-VERIFY`
+- `V0111-007-NO-PRODUCTION-CUTOVER`
+- `V0111-007-NO-TAG-OR-RELEASE-MOVE`
+- Required command: `bash checks/verify-v0.11.1.sh`
+- Focused test: `testGH951ReleaseV0111PatchAuditReleaseNotesCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.11.1-readiness-runtime-guard-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.11.1-readiness-runtime-guard-patch-notes.md`、`docs/validation/latest-verification-summary.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.11.1.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/trading-validation-matrix.md`。
+- Boundary: GH-951 只收口 v0.11.1 patch audit、release notes、latest verification summary、release publication boundary notes 和 aggregate verifier closeout anchors；不创建 / 移动 / 重写 tag 或 GitHub Release，不推进 v0.12.0，不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## GH-950 Release v0.11.1 Patch Aggregate Guard Validation
 
 - `GH-950-VERIFY-V0111-PATCH-AGGREGATE-GUARD`

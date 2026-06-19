@@ -142,6 +142,36 @@ v0.11.0 的 construction closeout、Release Publication Gate、release fact sync
 
 GH-945 / v0.11.1 stale wording guard 固定该 release fact：所有未限定为 #924 历史 closeout 的 v0.11.0 文档不得继续描述为 publication pending、tag pending、release not created、没有 GitHub Release、未创建 release 或待发布。
 
+## V0111-007-PATCH-AUDIT-RELEASE-NOTES
+
+`GH-951-VERIFY-V0111-PATCH-AUDIT-RELEASE-NOTES`
+
+`TVM-RELEASE-V0111-PATCH-AUDIT-RELEASE-NOTES`
+
+`V0111-007-PATCH-AUDIT`
+
+`V0111-007-RELEASE-NOTES`
+
+`V0111-007-VALIDATION-SUMMARY`
+
+`V0111-007-AGGREGATE-VERIFY`
+
+`V0111-007-NO-PRODUCTION-CUTOVER`
+
+`V0111-007-NO-TAG-OR-RELEASE-MOVE`
+
+v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public Release 后的 guard hardening closeout。它只收口 #945..#951 的 release fact sync、Dashboard macOS focused guard、Dashboard SHA-256 / readiness state invariants、readiness artifact symlink root confinement、readiness artifact owner-only permissions、aggregate verifier、Stage Code Audit 和 release notes。
+
+GH-951 不是 release publication gate：
+
+- 不创建 `v0.11.1` tag。
+- 不创建 `v0.11.1` GitHub Release。
+- 不移动、不覆盖、不重写 `v0.11.0` tag 或 GitHub Release。
+- 不推进 v0.12.0。
+- 不授权 production cutover。
+
+v0.11.0 public GitHub Release 仍保持为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`，tag peeled commit `13f592d0710de91351286e5c5490bfacb63c19b0`，publication timestamp `2026-06-19T01:20:58Z`。v0.11.1 patch closeout 不改变该 release identity。
+
 ## V080-002-V080-CONSTRUCTION-VS-PUBLICATION
 
 `V080-002-V080-CONSTRUCTION-VS-PUBLICATION`
