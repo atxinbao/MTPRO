@@ -2743,3 +2743,21 @@
 - v0.11.1 patch fact: patch closeout covers #945..#951 and does not create or move any tag / GitHub Release
 - gate separation: construction closeout, public release publication, release fact sync / stale wording guard, patch closeout and production cutover remain independent gates
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE
+
+- GH-954-VERIFY-V0120-READINESS-ASSESSMENT-REGISTRY-STORE
+- TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE
+- V0120-003-READINESS-ASSESSMENT-REGISTRY-STORE
+- V0120-003-REGISTRY-JSON-PATH
+- V0120-003-ASSESSMENT-DIRECTORY-PATH
+- V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER
+- V0120-003-COMPARE-READY-METADATA
+- V0120-003-NO-PRODUCTION-CUTOVER
+- GH-954 Release v0.12.0 Readiness Assessment Registry Store Validation
+- testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata
+- registry path: `.local/mtpro/readiness/registry.json` is the only registry payload path
+- assessment paths: `.local/mtpro/readiness/assessments/<assessmentID>/` holds local metadata / provenance / comparison / redacted export path references only
+- lifecycle operations: create / list / inspect / archive / recover mutate local metadata and checksum evidence only
+- compare-ready state: compare-ready only means local metadata is eligible for later diff / compare, not production readiness or order authorization
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

@@ -14,6 +14,14 @@ set -euo pipefail
 # V0120-002-V0111-PATCH-FACT
 # V0120-002-CONSTRUCTION-PUBLICATION-CUTOVER-SEPARATION
 # V0120-002-NO-PRODUCTION-CUTOVER
+# GH-954-VERIFY-V0120-READINESS-ASSESSMENT-REGISTRY-STORE
+# TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE
+# V0120-003-READINESS-ASSESSMENT-REGISTRY-STORE
+# V0120-003-REGISTRY-JSON-PATH
+# V0120-003-ASSESSMENT-DIRECTORY-PATH
+# V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER
+# V0120-003-COMPARE-READY-METADATA
+# V0120-003-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -53,9 +61,11 @@ RELEASE_POLICY="docs/release/release-publication-policy.md"
 AUTOMATION_SCRIPT="checks/automation-readiness.sh"
 RUN_SCRIPT="checks/run.sh"
 TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
+REGISTRY_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift"
 
 swift test --filter TargetGraphTests/testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract
 swift test --filter TargetGraphTests/testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts
+swift test --filter TargetGraphTests/testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -70,7 +80,15 @@ for anchor in \
   "V0120-002-V0110-PUBLICATION-FACT" \
   "V0120-002-V0111-PATCH-FACT" \
   "V0120-002-CONSTRUCTION-PUBLICATION-CUTOVER-SEPARATION" \
-  "V0120-002-NO-PRODUCTION-CUTOVER"; do
+  "V0120-002-NO-PRODUCTION-CUTOVER" \
+  "GH-954-VERIFY-V0120-READINESS-ASSESSMENT-REGISTRY-STORE" \
+  "TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE" \
+  "V0120-003-READINESS-ASSESSMENT-REGISTRY-STORE" \
+  "V0120-003-REGISTRY-JSON-PATH" \
+  "V0120-003-ASSESSMENT-DIRECTORY-PATH" \
+  "V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER" \
+  "V0120-003-COMPARE-READY-METADATA" \
+  "V0120-003-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -78,6 +96,9 @@ for anchor in \
   require_file_contains "$LATEST" "$anchor"
   require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
   require_file_contains "$TESTS" "$anchor"
+  if [[ "$anchor" == GH-954-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == V0120-003-* ]]; then
+    require_file_contains "$REGISTRY_SOURCE" "$anchor"
+  fi
 done
 
 require_file_contains "$CONTRACT" "assessmentSessionAllowed=true"
@@ -113,6 +134,19 @@ require_file_contains "$MATRIX" "TVM-RELEASE-V0120-READINESS-ASSESSMENT-SESSION-
 require_file_contains "$MATRIX" "TVM-RELEASE-V0120-V011X-RELEASE-PATCH-FACTS"
 require_file_contains "$LATEST" "Release v0.12.0 Readiness Assessment Session Contract Snapshot"
 require_file_contains "$LATEST" "Release v0.12.0 v0.11.x Publication / Patch Fact Baseline Snapshot"
+require_file_contains "$READINESS" "Release v0.12.0 readiness assessment registry store anchor"
+require_file_contains "$PLAN" "GH-954 Release v0.12.0 Readiness Assessment Registry Store Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE"
+require_file_contains "$LATEST" "Release v0.12.0 Readiness Assessment Registry Store Snapshot"
+require_file_contains "$CONTRACT" ".local/mtpro/readiness/registry.json"
+require_file_contains "$CONTRACT" ".local/mtpro/readiness/assessments/<assessmentID>/"
+require_file_contains "$CONTRACT" "create / list / inspect / archive / recover"
+require_file_contains "$CONTRACT" "compare-ready"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentRegistryStore"
+require_file_contains "$REGISTRY_SOURCE" ".local/mtpro/readiness/registry.json"
+require_file_contains "$REGISTRY_SOURCE" ".local/mtpro/readiness/assessments"
+require_file_contains "$REGISTRY_SOURCE" "compareReadyAssessments"
+require_file_contains "$REGISTRY_SOURCE" "productionCutoverAuthorized == false"
 require_file_contains "$RELEASE_POLICY" "V0120-002-V011X-RELEASE-PATCH-FACT-BASELINE"
 require_file_contains "$RELEASE_POLICY" "v0.11.1 Readiness Runtime Guard Patch 是 v0.11.0 public Release 后的 guard hardening closeout"
 require_file_contains "$README" "v0.11.1 patch closeout 不创建"
@@ -120,6 +154,7 @@ require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.12.0.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.12.0.sh"
 require_file_contains "$TESTS" "testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract"
 require_file_contains "$TESTS" "testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts"
+require_file_contains "$TESTS" "testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata"
 
 for forbidden in \
   "productionTradingEnabledByDefault=true" \

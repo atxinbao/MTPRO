@@ -30403,6 +30403,177 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata() throws {
+        // 测试场景：GH-954 只把多次 readiness assessment 历史写入本地 registry；
+        // compare-ready 仍是本地 metadata state，不是 cutover、broker 或 order authority。
+        XCTAssertEqual(ReadinessAssessmentRegistryStoreAnchors.validationAnchors, [
+            "GH-954-VERIFY-V0120-READINESS-ASSESSMENT-REGISTRY-STORE",
+            "TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE",
+            "V0120-003-READINESS-ASSESSMENT-REGISTRY-STORE",
+            "V0120-003-REGISTRY-JSON-PATH",
+            "V0120-003-ASSESSMENT-DIRECTORY-PATH",
+            "V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER",
+            "V0120-003-COMPARE-READY-METADATA",
+            "V0120-003-NO-PRODUCTION-CUTOVER"
+        ])
+        XCTAssertEqual(
+            ReadinessAssessmentRegistryState.allCases.map(\.rawValue),
+            [
+                "baseline",
+                "follow-up",
+                "ready",
+                "compare-ready",
+                "blocked",
+                "incomplete",
+                "invalid",
+                "stale",
+                "superseded",
+                "archived",
+                "recovered"
+            ]
+        )
+
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH954-ReadinessAssessmentRegistry-\(UUID().uuidString)", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: root)
+        }
+
+        let store = ReadinessAssessmentRegistryStore(storageRootURL: root)
+        let createdAt = Date(timeIntervalSince1970: 1_812_000_000)
+        let updatedAt = Date(timeIntervalSince1970: 1_812_000_120)
+        let baselineID = Identifier.constant("gh-954-baseline-assessment")
+        let followUpID = Identifier.constant("gh-954-follow-up-assessment")
+
+        let baselineDocument = try store.create(
+            assessmentID: baselineID,
+            state: .baseline,
+            sourceReleaseVersion: "v0.11.0",
+            sourcePatchVersion: "v0.11.1",
+            assessedBy: "Codex",
+            reason: "baseline assessment imported from v0.11.x release facts",
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+        XCTAssertEqual(baselineDocument.registryPath, ".local/mtpro/readiness/registry.json")
+        XCTAssertEqual(baselineDocument.assessmentsRootPath, ".local/mtpro/readiness/assessments")
+        XCTAssertTrue(baselineDocument.documentHeld)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("registry.json").path))
+        XCTAssertTrue(
+            FileManager.default.fileExists(
+                atPath: root
+                    .appendingPathComponent("assessments", isDirectory: true)
+                    .appendingPathComponent(baselineID.rawValue, isDirectory: true)
+                    .path
+            )
+        )
+
+        let compareDocument = try store.create(
+            assessmentID: followUpID,
+            state: .compareReady,
+            sourceReleaseVersion: "v0.12.0",
+            comparisonBaseAssessmentID: baselineID,
+            assessedBy: "Codex",
+            reason: "follow-up assessment ready for local diff",
+            createdAt: createdAt,
+            updatedAt: updatedAt.addingTimeInterval(60)
+        )
+        XCTAssertEqual(compareDocument.entries.map(\.assessmentID.rawValue), [
+            baselineID.rawValue,
+            followUpID.rawValue
+        ])
+        XCTAssertEqual(try store.listAssessments().count, 2)
+        XCTAssertEqual(try store.inspect(assessmentID: followUpID).state, .compareReady)
+        XCTAssertEqual(try store.compareReadyAssessments().map(\.assessmentID.rawValue), [followUpID.rawValue])
+
+        let archivedDocument = try store.archive(
+            assessmentID: followUpID,
+            updatedAt: updatedAt.addingTimeInterval(120)
+        )
+        let archivedEntry = try archivedDocument.inspect(assessmentID: followUpID)
+        XCTAssertEqual(archivedEntry.lifecycle, .archived)
+        XCTAssertEqual(archivedEntry.state, .archived)
+        XCTAssertTrue(try store.compareReadyAssessments().isEmpty)
+
+        let recoveredDocument = try store.recover(
+            assessmentID: baselineID,
+            reason: "registry metadata recovery evidence",
+            updatedAt: updatedAt.addingTimeInterval(180)
+        )
+        let recoveredEntry = try recoveredDocument.inspect(assessmentID: baselineID)
+        XCTAssertEqual(recoveredEntry.lifecycle, .recoveryEvidence)
+        XCTAssertEqual(recoveredEntry.state, .recovered)
+        XCTAssertEqual(recoveredEntry.recoveryReason, "registry metadata recovery evidence")
+
+        XCTAssertThrowsError(
+            try store.recover(
+                assessmentID: followUpID,
+                reason: "archived entries stay immutable",
+                updatedAt: updatedAt.addingTimeInterval(240)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReadinessAssessmentRegistryStoreError,
+                .cannotMutateArchivedAssessment(followUpID.rawValue)
+            )
+        }
+        XCTAssertThrowsError(
+            try store.create(
+                assessmentID: Identifier.constant("../escape"),
+                state: .ready,
+                sourceReleaseVersion: "v0.12.0",
+                assessedBy: "Codex",
+                reason: "unsafe path component",
+                createdAt: createdAt,
+                updatedAt: updatedAt
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReadinessAssessmentRegistryStoreError,
+                .unsafeAssessmentID("../escape")
+            )
+        }
+
+        let loaded = try store.load()
+        XCTAssertTrue(loaded.documentHeld)
+        XCTAssertEqual(
+            loaded.registryChecksum,
+            ReadinessAssessmentRegistryDocument.stableRegistryChecksum(
+                entries: loaded.entries,
+                createdAt: loaded.createdAt,
+                updatedAt: loaded.updatedAt
+            )
+        )
+        XCTAssertFalse(loaded.productionTradingEnabledByDefault)
+        XCTAssertFalse(loaded.productionCutoverAuthorized)
+        XCTAssertFalse(loaded.productionSecretRead)
+        XCTAssertFalse(loaded.productionEndpointConnected)
+        XCTAssertFalse(loaded.brokerEndpointConnected)
+        XCTAssertFalse(loaded.productionBrokerConnected)
+        XCTAssertFalse(loaded.productionOrderSubmitted)
+        XCTAssertFalse(loaded.realOrderSubmissionEnabled)
+        XCTAssertFalse(loaded.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(loaded.testnetOrderRoutingAllowed)
+
+        let encodedRegistry = try XCTUnwrap(
+            String(data: JSONEncoder().encode(loaded), encoding: .utf8)
+        )
+        for forbidden in [
+            "productionTradingEnabledByDefault\":true",
+            "productionCutoverAuthorized\":true",
+            "productionSecretRead\":true",
+            "productionEndpointConnected\":true",
+            "brokerEndpointConnected\":true",
+            "productionBrokerConnected\":true",
+            "productionOrderSubmitted\":true",
+            "realOrderSubmissionEnabled\":true",
+            "testnetOrderSubmissionAllowed\":true",
+            "testnetOrderRoutingAllowed\":true"
+        ] {
+            XCTAssertFalse(encodedRegistry.contains(forbidden), "\(forbidden) must stay false in GH-954 registry")
+        }
+    }
+
     func testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum() throws {
         XCTAssertEqual(ProductionReadinessBundleValidationAnchors.validationAnchors, [
             "GH-917-VERIFY-V0110-READINESS-BUNDLE-VALIDATION",
