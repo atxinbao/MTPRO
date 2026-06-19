@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-950 Release v0.11.1 Patch Aggregate Guard Validation
+
+- `GH-950-VERIFY-V0111-PATCH-AGGREGATE-GUARD`
+- `TVM-RELEASE-V0111-PATCH-AGGREGATE-GUARD`
+- `V0111-006-PATCH-AGGREGATE-VERIFY`
+- `V0111-006-RELEASE-FACT-SYNC`
+- `V0111-006-DASHBOARD-MACOS-SHA256-STATE`
+- `V0111-006-ARTIFACT-SYMLINK-PERMISSIONS`
+- `V0111-006-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.11.1.sh`
+- Focused test: `testGH950ReleaseV0111PatchAggregateVerifierAnchors`
+- Evidence files: `checks/verify-v0.11.1.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.11.1-release-fact-sync.sh`、`checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh`、`checks/verify-v0.11.1-readiness-artifact-symlink-root.sh`、`checks/verify-v0.11.1-readiness-artifact-permissions.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/trading-validation-matrix.md`。
+- Boundary: GH-950 只新增 v0.11.1 patch aggregate verifier，聚合 release fact sync、Dashboard macOS v0.11 guard、Dashboard checksum / state invariants、readiness artifact symlink confinement 和 owner-only permission hardening；不新增 trading button、order form、live command、submit / cancel / replace、production endpoint / broker、production secret read、testnet order routing 或 production cutover。
+
 ## GH-949 Release v0.11.1 Readiness Artifact Permission Validation
 
 - `GH-949-VERIFY-V0111-READINESS-ARTIFACT-PERMISSIONS`

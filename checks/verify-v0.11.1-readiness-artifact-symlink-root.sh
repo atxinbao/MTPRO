@@ -60,7 +60,8 @@ require_file_contains "$TESTS" "testGH948ReadinessArtifactSymlinkRootGuardAnchor
 require_file_contains "$TESTS" "createSymbolicLink"
 require_file_contains "$READINESS_SCRIPT" "Release v0.11.1 readiness artifact symlink root guard anchor"
 require_file_contains "$READINESS_SCRIPT" "checks/verify-v0.11.1-readiness-artifact-symlink-root.sh"
-require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.11.1-readiness-artifact-symlink-root.sh"
+require_file_contains "checks/verify-v0.11.1.sh" "bash checks/verify-v0.11.1-readiness-artifact-symlink-root.sh"
+require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.11.1.sh"
 require_file_contains "$PLAN" "GH-948 Release v0.11.1 Readiness Artifact Symlink Root Validation"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0111-READINESS-ARTIFACT-SYMLINK-ROOT"
 

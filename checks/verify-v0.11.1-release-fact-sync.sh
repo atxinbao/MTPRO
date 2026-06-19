@@ -80,7 +80,8 @@ require_file_contains "$MATRIX" "TVM-RELEASE-V0111-RELEASE-FACT-SYNC-GUARD"
 require_file_contains "$READINESS" "Release v0.11.1 release fact sync stale wording guard anchor"
 require_file_contains "checks/automation-readiness.sh" "GH-945-VERIFY-V0111-RELEASE-FACT-STALE-WORDING-GUARD"
 require_file_contains "checks/verify-v0.11.0.sh" "bash checks/verify-v0.11.1-release-fact-sync.sh"
-require_file_contains "checks/run.sh" "bash checks/verify-v0.11.1-release-fact-sync.sh"
+require_file_contains "checks/verify-v0.11.1.sh" "bash checks/verify-v0.11.1-release-fact-sync.sh"
+require_file_contains "checks/run.sh" "bash checks/verify-v0.11.1.sh"
 require_file_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH945ReleaseFactSyncGuardRejectsV0110StalePublicationWording"
 
 for forbidden in \
