@@ -2779,3 +2779,21 @@
 - staging / commit evidence: staging transaction manifest and commit marker must move into assessment-local compare-and-swap manifest and commit marker on success
 - abort / recovery: abort releases lock and removes staging; crash recovery only clears stale staging directories and assessment locks
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-READINESS-MANIFEST-V2
+
+- GH-956-VERIFY-V0120-READINESS-MANIFEST-V2
+- TVM-RELEASE-V0120-READINESS-MANIFEST-V2
+- V0120-005-READINESS-MANIFEST-V2
+- V0120-005-ASSESSMENT-GENERATION-PROVENANCE
+- V0120-005-SOURCE-RUN-COMMIT-PROVENANCE
+- V0120-005-CANONICAL-ARTIFACT-METADATA
+- V0120-005-PRODUCER-VERSION-SCHEMA
+- V0120-005-NO-PRODUCTION-CUTOVER
+- GH-956 Release v0.12.0 Readiness Manifest V2 / Provenance Schema Validation
+- testGH956ReadinessManifestV2RecordsAssessmentGenerationAndProvenance
+- manifest path: `.local/mtpro/readiness/assessments/<assessmentID>/manifest-v2.json`
+- assessment generation provenance: `assessmentID` and `generationID` bind the manifest to one local assessment generation
+- source provenance: `sourceRunIDs` and `sourceCommit` preserve source run lineage and source commit identity
+- canonical artifact metadata: `schemaVersion`, `canonicalizationAlgorithm`, `artifactContentType`, `artifactSHA256`, `artifactBytes`, `createdAt` and `producerVersion` must be present and fail closed on invalid source commit, checksum or byte count
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

@@ -1802,3 +1802,22 @@ bash checks/run.sh
 - #955 adds local `transactionID` / `generationID` compare-and-swap metadata, staging directory evidence at `.local/mtpro/readiness/staging/<assessmentID>/<transactionID>/`, and committed `compare-and-swap-manifest.json` / `commit-marker.json` artifacts.
 - #955 covers lock unavailable, concurrent modification, generation mismatch, transaction abort and crash recovery cleanup semantics.
 - #955 does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
+
+## Release v0.12.0 Readiness Manifest V2 / Provenance Schema Snapshot
+
+- GH-956-VERIFY-V0120-READINESS-MANIFEST-V2
+- TVM-RELEASE-V0120-READINESS-MANIFEST-V2
+- V0120-005-READINESS-MANIFEST-V2
+- V0120-005-ASSESSMENT-GENERATION-PROVENANCE
+- V0120-005-SOURCE-RUN-COMMIT-PROVENANCE
+- V0120-005-CANONICAL-ARTIFACT-METADATA
+- V0120-005-PRODUCER-VERSION-SCHEMA
+- V0120-005-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- Contract source: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- Validation source: `checks/verify-v0.12.0.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH956ReadinessManifestV2RecordsAssessmentGenerationAndProvenance`
+- #956 adds assessment-scoped Manifest V2 at `.local/mtpro/readiness/assessments/<assessmentID>/manifest-v2.json`.
+- #956 records `assessmentID`, `generationID`, `sourceRunIDs`, `sourceCommit`, `schemaVersion`, `canonicalizationAlgorithm`, `artifactContentType`, `artifactSHA256`, `artifactBytes`, `createdAt` and `producerVersion` as required local provenance fields.
+- #956 covers invalid source commit, empty source run IDs, invalid SHA256 checksum and non-positive artifact byte count fail-closed behavior.
+- #956 does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.

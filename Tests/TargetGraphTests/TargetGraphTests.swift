@@ -30422,7 +30422,15 @@ final class TargetGraphTests: XCTestCase {
             "V0120-004-STAGING-DIRECTORY-COMMIT-MARKER",
             "V0120-004-COMPARE-AND-SWAP-MANIFEST",
             "V0120-004-CRASH-RECOVERY-SEMANTICS",
-            "V0120-004-NO-PRODUCTION-CUTOVER"
+            "V0120-004-NO-PRODUCTION-CUTOVER",
+            "GH-956-VERIFY-V0120-READINESS-MANIFEST-V2",
+            "TVM-RELEASE-V0120-READINESS-MANIFEST-V2",
+            "V0120-005-READINESS-MANIFEST-V2",
+            "V0120-005-ASSESSMENT-GENERATION-PROVENANCE",
+            "V0120-005-SOURCE-RUN-COMMIT-PROVENANCE",
+            "V0120-005-CANONICAL-ARTIFACT-METADATA",
+            "V0120-005-PRODUCER-VERSION-SCHEMA",
+            "V0120-005-NO-PRODUCTION-CUTOVER"
         ])
         XCTAssertEqual(
             ReadinessAssessmentRegistryState.allCases.map(\.rawValue),
@@ -30785,6 +30793,190 @@ final class TargetGraphTests: XCTestCase {
         )
         XCTAssertFalse(recovery.productionCutoverAuthorized)
         XCTAssertFalse(recovery.productionOrderSubmitted)
+    }
+
+    func testGH956ReadinessManifestV2RecordsAssessmentGenerationAndProvenance() throws {
+        // 测试场景：GH-956 为 v0.12.0 assessment 增加 Manifest V2 / provenance schema。
+        // 该 schema 只记录本地 artifact provenance，不授权 production cutover、secret、
+        // endpoint、broker、OMS 或订单命令。
+        XCTAssertTrue(
+            ReadinessAssessmentRegistryStoreAnchors.validationAnchors.contains(
+                "GH-956-VERIFY-V0120-READINESS-MANIFEST-V2"
+            )
+        )
+        XCTAssertTrue(
+            ReadinessAssessmentRegistryStoreAnchors.validationAnchors.contains(
+                "V0120-005-CANONICAL-ARTIFACT-METADATA"
+            )
+        )
+
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH956-ReadinessManifestV2-\(UUID().uuidString)", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: root)
+        }
+
+        let store = ReadinessAssessmentRegistryStore(storageRootURL: root)
+        let createdAt = Date(timeIntervalSince1970: 1_812_200_000)
+        let assessmentID = Identifier.constant("gh-956-assessment")
+        let generationID = Identifier.constant("gh-956-generation-1")
+        let sourceRunA = Identifier.constant("gh-956-run-a")
+        let sourceRunB = Identifier.constant("gh-956-run-b")
+        let sourceCommit = "0354aeefc0b9f4c74ae8fa9cc80a60787b28860d"
+        let artifactSHA256 = "sha256:\(String(repeating: "a", count: 64))"
+
+        let manifest = try ReadinessAssessmentManifestV2(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            sourceRunIDs: [sourceRunB, sourceRunA],
+            sourceCommit: sourceCommit,
+            artifactContentType: .jsonEvidence,
+            artifactSHA256: artifactSHA256,
+            artifactBytes: 4096,
+            createdAt: createdAt,
+            producerVersion: "mtpro-v0.12.0-gh956"
+        )
+        XCTAssertTrue(manifest.manifestHeld)
+        XCTAssertEqual(manifest.schemaVersion, ReadinessAssessmentManifestV2.schemaVersion)
+        XCTAssertEqual(manifest.canonicalizationAlgorithm, ReadinessAssessmentManifestV2.canonicalizationAlgorithm)
+        XCTAssertEqual(manifest.artifactContentType, .jsonEvidence)
+        XCTAssertEqual(manifest.sourceRunIDs.map(\.rawValue), [sourceRunA.rawValue, sourceRunB.rawValue])
+        XCTAssertEqual(manifest.sourceCommit, sourceCommit)
+        XCTAssertEqual(manifest.artifactSHA256, artifactSHA256)
+        XCTAssertEqual(manifest.artifactBytes, 4096)
+        XCTAssertEqual(manifest.producerVersion, "mtpro-v0.12.0-gh956")
+        XCTAssertEqual(
+            manifest.manifestChecksum,
+            ReadinessAssessmentManifestV2.stableManifestChecksum(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                sourceRunIDs: [sourceRunA, sourceRunB],
+                sourceCommit: sourceCommit,
+                artifactContentType: .jsonEvidence,
+                artifactSHA256: artifactSHA256,
+                artifactBytes: 4096,
+                createdAt: createdAt,
+                producerVersion: "mtpro-v0.12.0-gh956"
+            )
+        )
+        XCTAssertEqual(
+            manifest.manifestV2Path,
+            ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/manifest-v2.json"
+        )
+        XCTAssertFalse(manifest.productionTradingEnabledByDefault)
+        XCTAssertFalse(manifest.productionCutoverAuthorized)
+        XCTAssertFalse(manifest.productionSecretRead)
+        XCTAssertFalse(manifest.productionEndpointConnected)
+        XCTAssertFalse(manifest.brokerEndpointConnected)
+        XCTAssertFalse(manifest.productionBrokerConnected)
+        XCTAssertFalse(manifest.productionOrderSubmitted)
+        XCTAssertFalse(manifest.realOrderSubmissionEnabled)
+        XCTAssertFalse(manifest.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(manifest.testnetOrderRoutingAllowed)
+
+        let written = try store.writeManifestV2(manifest)
+        XCTAssertEqual(written, manifest)
+        let manifestURL = root
+            .appendingPathComponent("assessments", isDirectory: true)
+            .appendingPathComponent(assessmentID.rawValue, isDirectory: true)
+            .appendingPathComponent("manifest-v2.json", isDirectory: false)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: manifestURL.path))
+        let decoded = try store.readManifestV2(assessmentID: assessmentID)
+        XCTAssertEqual(decoded, manifest)
+
+        let encodedManifest = try XCTUnwrap(
+            String(data: JSONEncoder().encode(decoded), encoding: .utf8)
+        )
+        for required in [
+            "\"assessmentID\"",
+            "\"generationID\"",
+            "\"sourceRunIDs\"",
+            "\"sourceCommit\"",
+            "\"schemaVersion\"",
+            "\"canonicalizationAlgorithm\"",
+            "\"artifactContentType\"",
+            "\"artifactSHA256\"",
+            "\"artifactBytes\"",
+            "\"createdAt\"",
+            "\"producerVersion\""
+        ] {
+            XCTAssertTrue(encodedManifest.contains(required), "\(required) must be encoded in Manifest V2")
+        }
+        for forbidden in [
+            "productionTradingEnabledByDefault\":true",
+            "productionCutoverAuthorized\":true",
+            "productionSecretRead\":true",
+            "productionEndpointConnected\":true",
+            "brokerEndpointConnected\":true",
+            "productionBrokerConnected\":true",
+            "productionOrderSubmitted\":true",
+            "realOrderSubmissionEnabled\":true",
+            "testnetOrderSubmissionAllowed\":true",
+            "testnetOrderRoutingAllowed\":true"
+        ] {
+            XCTAssertFalse(encodedManifest.contains(forbidden), "\(forbidden) must stay false in GH-956 manifest")
+        }
+
+        XCTAssertThrowsError(
+            try ReadinessAssessmentManifestV2(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                sourceRunIDs: [sourceRunA],
+                sourceCommit: "not-a-commit",
+                artifactContentType: .jsonEvidence,
+                artifactSHA256: artifactSHA256,
+                artifactBytes: 1,
+                createdAt: createdAt,
+                producerVersion: "mtpro-v0.12.0-gh956"
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessManifestV2"))
+        }
+        XCTAssertThrowsError(
+            try ReadinessAssessmentManifestV2(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                sourceRunIDs: [],
+                sourceCommit: sourceCommit,
+                artifactContentType: .jsonEvidence,
+                artifactSHA256: artifactSHA256,
+                artifactBytes: 1,
+                createdAt: createdAt,
+                producerVersion: "mtpro-v0.12.0-gh956"
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessManifestV2"))
+        }
+        XCTAssertThrowsError(
+            try ReadinessAssessmentManifestV2(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                sourceRunIDs: [sourceRunA],
+                sourceCommit: sourceCommit,
+                artifactContentType: .jsonEvidence,
+                artifactSHA256: "sha256:not-valid",
+                artifactBytes: 1,
+                createdAt: createdAt,
+                producerVersion: "mtpro-v0.12.0-gh956"
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessManifestV2"))
+        }
+        XCTAssertThrowsError(
+            try ReadinessAssessmentManifestV2(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                sourceRunIDs: [sourceRunA],
+                sourceCommit: sourceCommit,
+                artifactContentType: .jsonEvidence,
+                artifactSHA256: artifactSHA256,
+                artifactBytes: 0,
+                createdAt: createdAt,
+                producerVersion: "mtpro-v0.12.0-gh956"
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessManifestV2"))
+        }
     }
 
     func testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum() throws {
