@@ -1765,3 +1765,21 @@ bash checks/run.sh
 - v0.11.0 public GitHub Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`, tag peeled commit `13f592d0710de91351286e5c5490bfacb63c19b0`, publication timestamp `2026-06-19T01:20:58Z`.
 - v0.11.1 patch closeout fact: #945..#951 closed the readiness runtime guard patch, did not create `v0.11.1` tag / GitHub Release, did not move `v0.11.0`, and did not authorize production cutover.
 - #953 only carries these facts into v0.12.0 baseline assessment provenance. It does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
+
+## Release v0.12.0 Readiness Assessment Registry Store Snapshot
+
+- GH-954-VERIFY-V0120-READINESS-ASSESSMENT-REGISTRY-STORE
+- TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE
+- V0120-003-READINESS-ASSESSMENT-REGISTRY-STORE
+- V0120-003-REGISTRY-JSON-PATH
+- V0120-003-ASSESSMENT-DIRECTORY-PATH
+- V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER
+- V0120-003-COMPARE-READY-METADATA
+- V0120-003-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- Contract source: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- Validation source: `checks/verify-v0.12.0.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata`
+- #954 adds the local readiness assessment registry store path `.local/mtpro/readiness/registry.json` and local assessment metadata directory path `.local/mtpro/readiness/assessments/<assessmentID>/`.
+- #954 covers create / list / inspect / archive / recover metadata transitions, compare-ready metadata state, checksum validation and fail-closed corrupted registry handling.
+- #954 does not create or move a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.

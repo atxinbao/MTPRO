@@ -4632,3 +4632,24 @@ swift test
 - baseline facts: v0.11.0 public GitHub Release URL `https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`, tag peeled commit `13f592d0710de91351286e5c5490bfacb63c19b0`, publication timestamp `2026-06-19T01:20:58Z`
 - patch facts: v0.11.1 patch closeout covers #945..#951, does not create a `v0.11.1` tag / GitHub Release, does not move `v0.11.0`, and does not advance v0.12.0 by itself
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no real order, no tag / release movement
+
+## GH-954 Release v0.12.0 Readiness Assessment Registry Store Validation
+
+- GH-954-VERIFY-V0120-READINESS-ASSESSMENT-REGISTRY-STORE
+- TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE
+- V0120-003-READINESS-ASSESSMENT-REGISTRY-STORE
+- V0120-003-REGISTRY-JSON-PATH
+- V0120-003-ASSESSMENT-DIRECTORY-PATH
+- V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER
+- V0120-003-COMPARE-READY-METADATA
+- V0120-003-NO-PRODUCTION-CUTOVER
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- registry path: `.local/mtpro/readiness/registry.json`
+- assessment directory path: `.local/mtpro/readiness/assessments/<assessmentID>/`
+- allowed scope: create / list / inspect / archive / recover local readiness assessment metadata, compare-ready metadata state, checksum validation and fail-closed corrupted registry handling
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement

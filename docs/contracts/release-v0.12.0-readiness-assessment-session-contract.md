@@ -21,6 +21,22 @@
 
 `V0120-002-NO-PRODUCTION-CUTOVER`
 
+`GH-954-VERIFY-V0120-READINESS-ASSESSMENT-REGISTRY-STORE`
+
+`TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE`
+
+`V0120-003-READINESS-ASSESSMENT-REGISTRY-STORE`
+
+`V0120-003-REGISTRY-JSON-PATH`
+
+`V0120-003-ASSESSMENT-DIRECTORY-PATH`
+
+`V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER`
+
+`V0120-003-COMPARE-READY-METADATA`
+
+`V0120-003-NO-PRODUCTION-CUTOVER`
+
 ## Contract Scope
 
 `v0.12.0` 定义 readiness assessment session / 就绪度评估会话。该会话只允许整理、校验、比较和展示本地 readiness evidence，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order。
@@ -49,6 +65,40 @@ v0.12.0 readiness assessment session 必须把 v0.11.x 已发生事实作为 bas
 `V0120-002-NO-PRODUCTION-CUTOVER`
 
 以上 baseline facts 只提供 assessment provenance。它们不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，也不创建下一 Project / Issue。
+
+## V0120-003-READINESS-ASSESSMENT-REGISTRY-STORE
+
+`V0120-003-REGISTRY-JSON-PATH`
+
+`V0120-003-ASSESSMENT-DIRECTORY-PATH`
+
+`V0120-003-CREATE-LIST-INSPECT-ARCHIVE-RECOVER`
+
+`V0120-003-COMPARE-READY-METADATA`
+
+v0.12.0 readiness assessment registry store 固定为本地 metadata history store。它只允许写入 `.local/mtpro/readiness/registry.json`，并为每个 assessment 建立 `.local/mtpro/readiness/assessments/<assessmentID>/` 本地 evidence 目录。
+
+Registry store 允许的操作固定为 create / list / inspect / archive / recover，以及读取 compare-ready metadata state。`compare-ready` 只表示该 assessment metadata 可以进入后续本地 diff / compare，不表示 production ready、operator approval、broker connection 或 order authority。
+
+每个 registry entry 必须保存 assessmentID、source release / patch、artifact path、lifecycle state、comparison base、checksum 和 fail-closed metadata。assessmentID 必须是安全的本地路径组件；缺失、损坏或 checksum mismatch 的 registry 必须 fail closed。
+
+Registry store 可以持有以下本地 metadata state：
+
+- `baseline`
+- `follow-up`
+- `ready`
+- `compare-ready`
+- `blocked`
+- `incomplete`
+- `invalid`
+- `stale`
+- `superseded`
+- `archived`
+- `recovered`
+
+`V0120-003-NO-PRODUCTION-CUTOVER`
+
+Registry store 不授权 production cutover，不打开 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不创建下一 Project / Issue，不移动 tag / Release。
 
 ## V0120-001-READINESS-ASSESSMENT-SESSION-CONTRACT
 
