@@ -2876,3 +2876,23 @@
 - fail-closed coverage: requester-as-approver, missing reviewer quorum, missing approver quorum, expired approval, revoked approval, bundle checksum mismatch and transition checksum chain mismatch
 - approval boundary: `approvalEvidenceComplete=true` is still local readiness evidence only; production cutover, order submission, endpoint / broker connection, secret read and UI command surfaces remain disabled
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT
+
+- GH-961-VERIFY-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT
+- TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT
+- V0120-010-SHADOW-PARITY-SOURCE-SNAPSHOT
+- V0120-010-SOURCE-RUN-MANIFEST-CHECKSUM
+- V0120-010-EVENT-ID-SET-BINDING
+- V0120-010-RISK-DECISION-ID-BINDING
+- V0120-010-OMS-DRY-RUN-LIFECYCLE-ID-BINDING
+- V0120-010-PORTFOLIO-PROJECTION-CHECKSUM-BINDING
+- V0120-010-RECONCILIATION-CHECKSUM-BINDING
+- V0120-010-NO-PRODUCTION-CUTOVER
+- GH-961 Release v0.12.0 Shadow Parity Source Snapshot Validation
+- testGH961ShadowParityBindsImmutableSourceRunSnapshot
+- source snapshot fields: `sourceRunManifestChecksum`, `eventIDs`, `riskDecisionIDs`, `omsDryRunLifecycleIDs`, `portfolioProjectionChecksum`, `reconciliationChecksum` and `snapshotChecksum`
+- binding evidence: `sourceSnapshotBindingHeld=true` proves expected and observed source run snapshots match
+- fail-closed evidence: any mutated source run manifest checksum, event ID set, risk decision ID set, OMS dry-run lifecycle ID set, portfolio projection checksum or reconciliation checksum sets `sourceSnapshotMismatch=true` and invalidates the assessment
+- approval boundary: shadow parity source snapshot binding remains local dry-run / shadow evidence only; it does not authorize production cutover, order submission, endpoint / broker connection, secret read or UI command surfaces
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

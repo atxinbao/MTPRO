@@ -32268,6 +32268,233 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH961ShadowParityBindsImmutableSourceRunSnapshot() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        XCTAssertEqual(ReleaseV0120ShadowParitySourceSnapshotAnchors.validationAnchors, [
+            "GH-961-VERIFY-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT",
+            "TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT",
+            "V0120-010-SHADOW-PARITY-SOURCE-SNAPSHOT",
+            "V0120-010-SOURCE-RUN-MANIFEST-CHECKSUM",
+            "V0120-010-EVENT-ID-SET-BINDING",
+            "V0120-010-RISK-DECISION-ID-BINDING",
+            "V0120-010-OMS-DRY-RUN-LIFECYCLE-ID-BINDING",
+            "V0120-010-PORTFOLIO-PROJECTION-CHECKSUM-BINDING",
+            "V0120-010-RECONCILIATION-CHECKSUM-BINDING",
+            "V0120-010-NO-PRODUCTION-CUTOVER"
+        ])
+
+        let evidenceRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH961-ShadowParitySourceSnapshot-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: evidenceRoot)
+        }
+
+        let store = try ProductionReadinessArtifactStore(evidenceRootURL: evidenceRoot)
+        let runID = Identifier.constant("gh-961-local-run")
+        let policyVersion = "policy-v0.12.0-010"
+        let now = Date(timeIntervalSince1970: 1_800_120_000)
+        let inputs = try ProductionReadinessShadowDryRunParityEvidenceInput.defaultInputs(
+            runID: runID,
+            staleAfterSeconds: 120
+        )
+        let artifactDescriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-961-shadow-parity-source-snapshot"),
+            relativePath: "runs/\(runID.rawValue)/shadow_dry_run_parity.json",
+            artifactType: .jsonEvidence,
+            staleAfterSeconds: 120
+        )
+        let manifestDescriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-961-shadow-parity-source-snapshot-manifest"),
+            relativePath: "runs/\(runID.rawValue)/shadow_dry_run_parity_manifest.json",
+            artifactType: .jsonEvidence
+        )
+
+        func checksum(_ scalar: String) -> String {
+            "sha256:" + String(repeating: scalar, count: 64)
+        }
+
+        func snapshot(
+            manifest: String = "a",
+            eventIDs: [String] = ["event-1", "event-2"],
+            riskDecisionIDs: [String] = ["risk-decision-1"],
+            omsDryRunLifecycleIDs: [String] = ["oms-dry-run-1"],
+            portfolio: String = "b",
+            reconciliation: String = "c"
+        ) throws -> ReleaseV0120ShadowParitySourceRunSnapshot {
+            try ReleaseV0120ShadowParitySourceRunSnapshot(
+                runID: runID,
+                sourceRunManifestChecksum: checksum(manifest),
+                eventIDs: eventIDs.map { Identifier.constant($0) },
+                riskDecisionIDs: riskDecisionIDs.map { Identifier.constant($0) },
+                omsDryRunLifecycleIDs: omsDryRunLifecycleIDs.map { Identifier.constant($0) },
+                portfolioProjectionChecksum: checksum(portfolio),
+                reconciliationChecksum: checksum(reconciliation)
+            )
+        }
+
+        func payload(for kind: ProductionReadinessShadowDryRunParityEvidenceKind) -> String {
+            """
+            {
+              "artifactID": "gh-961-\(kind.artifactIDComponent)",
+              "localRunEvidenceKind": "\(kind.rawValue)",
+              "runID": "\(runID.rawValue)",
+              "policyVersion": "\(policyVersion)",
+              "sequence": "\(kind.artifactIDComponent)",
+              "derivedFromLocalRunEvidence": true,
+              "productionTradingEnabledByDefault": false,
+              "productionCutoverAuthorized": false,
+              "productionSecretRead": false,
+              "productionEndpointConnected": false,
+              "brokerEndpointConnected": false,
+              "productionOrderSubmitted": false,
+              "testnetOrderSubmissionAllowed": false
+            }
+            """
+        }
+
+        for input in inputs {
+            _ = try store.writeStringArtifact(
+                descriptor: input.descriptor,
+                string: payload(for: input.kind),
+                modifiedAt: now
+            )
+        }
+
+        let expectedSnapshot = try snapshot()
+        let valid = try store.writeShadowDryRunParityArtifact(
+            runID: runID,
+            policyVersion: policyVersion,
+            evidenceInputs: inputs,
+            artifactDescriptor: artifactDescriptor,
+            manifestDescriptor: manifestDescriptor,
+            expectedSourceRunSnapshot: expectedSnapshot,
+            observedSourceRunSnapshot: expectedSnapshot,
+            generatedAt: now.addingTimeInterval(10),
+            now: now.addingTimeInterval(10)
+        )
+        XCTAssertTrue(valid.resultHeld)
+        XCTAssertEqual(valid.artifact.state, .valid)
+        XCTAssertTrue(valid.artifact.sourceSnapshotBindingHeld)
+        XCTAssertFalse(valid.artifact.sourceSnapshotMismatch)
+        XCTAssertEqual(valid.artifact.expectedSourceRunSnapshot?.snapshotChecksum, expectedSnapshot.snapshotChecksum)
+        XCTAssertEqual(valid.artifact.observedSourceRunSnapshot?.snapshotChecksum, expectedSnapshot.snapshotChecksum)
+        XCTAssertFalse(valid.artifact.productionCutoverAuthorized)
+        XCTAssertFalse(valid.artifact.productionSecretRead)
+        XCTAssertFalse(valid.artifact.productionEndpointConnected)
+        XCTAssertFalse(valid.artifact.brokerEndpointConnected)
+        XCTAssertFalse(valid.artifact.productionOrderSubmitted)
+        XCTAssertFalse(valid.artifact.testnetOrderSubmissionAllowed)
+
+        let output = try String(
+            contentsOf: store.artifactURL(for: artifactDescriptor),
+            encoding: .utf8
+        )
+        XCTAssertTrue(output.contains("\"sourceSnapshotBindingHeld\":true"))
+        XCTAssertTrue(output.contains(expectedSnapshot.snapshotChecksum))
+        XCTAssertTrue(output.contains(checksum("a")))
+        XCTAssertTrue(output.contains("event-1"))
+        XCTAssertTrue(output.contains("risk-decision-1"))
+        XCTAssertTrue(output.contains("oms-dry-run-1"))
+        XCTAssertTrue(output.contains(checksum("b")))
+        XCTAssertTrue(output.contains(checksum("c")))
+
+        for mutated in [
+            try snapshot(manifest: "d"),
+            try snapshot(eventIDs: ["event-1", "event-mutated"]),
+            try snapshot(riskDecisionIDs: ["risk-decision-mutated"]),
+            try snapshot(omsDryRunLifecycleIDs: ["oms-dry-run-mutated"]),
+            try snapshot(portfolio: "e"),
+            try snapshot(reconciliation: "f")
+        ] {
+            let invalid = try store.writeShadowDryRunParityArtifact(
+                runID: runID,
+                policyVersion: policyVersion,
+                evidenceInputs: inputs,
+                artifactDescriptor: artifactDescriptor,
+                manifestDescriptor: manifestDescriptor,
+                expectedSourceRunSnapshot: expectedSnapshot,
+                observedSourceRunSnapshot: mutated,
+                generatedAt: now.addingTimeInterval(20),
+                now: now.addingTimeInterval(20)
+            )
+            XCTAssertTrue(invalid.resultHeld)
+            XCTAssertEqual(invalid.artifact.state, .invalid)
+            XCTAssertFalse(invalid.artifact.sourceSnapshotBindingHeld)
+            XCTAssertTrue(invalid.artifact.sourceSnapshotMismatch)
+            XCTAssertTrue(invalid.artifact.invalidEvidenceKinds.isEmpty)
+            XCTAssertTrue(invalid.artifact.stateReason.contains("source run snapshot changed"))
+            XCTAssertFalse(invalid.artifact.productionCutoverAuthorized)
+            XCTAssertFalse(invalid.artifact.productionSecretRead)
+            XCTAssertFalse(invalid.artifact.productionEndpointConnected)
+            XCTAssertFalse(invalid.artifact.brokerEndpointConnected)
+            XCTAssertFalse(invalid.artifact.productionOrderSubmitted)
+            XCTAssertFalse(invalid.artifact.testnetOrderSubmissionAllowed)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift")
+        let contract = try read("docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md")
+        let verifier = try read("checks/verify-v0.12.0.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        for anchor in ReleaseV0120ShadowParitySourceSnapshotAnchors.validationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.12.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.12.0 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+        }
+
+        for requiredString in [
+            "ReleaseV0120ShadowParitySourceRunSnapshot",
+            "sourceRunManifestChecksum",
+            "eventIDs",
+            "riskDecisionIDs",
+            "omsDryRunLifecycleIDs",
+            "portfolioProjectionChecksum",
+            "reconciliationChecksum",
+            "sourceSnapshotBindingHeld",
+            "sourceSnapshotMismatch",
+            "testGH961ShadowParityBindsImmutableSourceRunSnapshot"
+        ] {
+            XCTAssertTrue(
+                source.contains(requiredString)
+                    || contract.contains(requiredString)
+                    || verifier.contains(requiredString)
+                    || readiness.contains(requiredString)
+                    || readinessScript.contains(requiredString)
+                    || validationPlan.contains(requiredString)
+                    || tradingMatrix.contains(requiredString)
+                    || latest.contains(requiredString),
+                "\(requiredString) must stay wired into GH-961 evidence"
+            )
+        }
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true"
+        ] {
+            XCTAssertFalse(contract.contains(forbidden), "\(forbidden) must stay out of #961 contract")
+            XCTAssertFalse(latest.contains(forbidden), "\(forbidden) must stay out of latest summary")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

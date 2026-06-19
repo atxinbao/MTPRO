@@ -368,6 +368,34 @@ Assessment session 的最高权限是形成本地 readiness evidence。即使所
 
 Production cutover 仍是独立 human-approved gate。v0.12.0 只加强 readiness assessment 可信度，不改变 no-default-production-trading policy。
 
+## V0120-010-SHADOW-PARITY-SOURCE-SNAPSHOT
+
+`GH-961-VERIFY-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT`
+
+`TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT`
+
+`V0120-010-SHADOW-PARITY-SOURCE-SNAPSHOT`
+
+`V0120-010-SOURCE-RUN-MANIFEST-CHECKSUM`
+
+`V0120-010-EVENT-ID-SET-BINDING`
+
+`V0120-010-RISK-DECISION-ID-BINDING`
+
+`V0120-010-OMS-DRY-RUN-LIFECYCLE-ID-BINDING`
+
+`V0120-010-PORTFOLIO-PROJECTION-CHECKSUM-BINDING`
+
+`V0120-010-RECONCILIATION-CHECKSUM-BINDING`
+
+`V0120-010-NO-PRODUCTION-CUTOVER`
+
+GH-961 将 v0.11.0 `shadow_dry_run_parity.json` 的本地 parity assessment 绑定到不可变 source run snapshot。snapshot 字段固定为 `sourceRunManifestChecksum`、`eventIDs`、`riskDecisionIDs`、`omsDryRunLifecycleIDs`、`portfolioProjectionChecksum`、`reconciliationChecksum` 和派生 `snapshotChecksum`。
+
+`sourceSnapshotBindingHeld=true` 是 shadow parity 进入 `valid` 的必要条件；如果 source run manifest checksum、event ID set、risk decision ID set、OMS dry-run lifecycle ID set、portfolio projection checksum 或 reconciliation checksum 任一变化，artifact 必须输出 `sourceSnapshotMismatch=true`，assessment state 必须变为 `invalid`。
+
+该绑定只校验本地 dry-run / shadow evidence 是否来自同一个不可变 source run snapshot，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不启用 production OMS、trading button、order form 或 live command。
+
 ## V0120-001-DOWNSTREAM-QUEUE-ORDER
 
 `V0120-001-DOWNSTREAM-QUEUE-ORDER`

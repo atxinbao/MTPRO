@@ -4786,3 +4786,26 @@ swift test
 - checksum evidence: `boundBundleChecksum` must match `expectedBundleChecksum`, and `transitionChecksumChain` must match derived transition checksums
 - fail-closed coverage: requester-as-approver, missing reviewer quorum, missing approver quorum, expired approval, revoked approval, bundle checksum mismatch and transition checksum chain mismatch
 - forbidden scope: approval evidence completion is not production cutover authorization; no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
+
+## GH-961 Release v0.12.0 Shadow Parity Source Snapshot Validation
+
+- GH-961-VERIFY-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT
+- TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT
+- V0120-010-SHADOW-PARITY-SOURCE-SNAPSHOT
+- V0120-010-SOURCE-RUN-MANIFEST-CHECKSUM
+- V0120-010-EVENT-ID-SET-BINDING
+- V0120-010-RISK-DECISION-ID-BINDING
+- V0120-010-OMS-DRY-RUN-LIFECYCLE-ID-BINDING
+- V0120-010-PORTFOLIO-PROJECTION-CHECKSUM-BINDING
+- V0120-010-RECONCILIATION-CHECKSUM-BINDING
+- V0120-010-NO-PRODUCTION-CUTOVER
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift`
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH961ShadowParityBindsImmutableSourceRunSnapshot`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- snapshot fields: `sourceRunManifestChecksum`, `eventIDs`, `riskDecisionIDs`, `omsDryRunLifecycleIDs`, `portfolioProjectionChecksum`, `reconciliationChecksum` and `snapshotChecksum`
+- binding rule: `sourceSnapshotBindingHeld=true` is required for valid shadow parity; changed source run manifest checksum, event ID set, risk decision IDs, OMS dry-run lifecycle IDs, portfolio projection checksum or reconciliation checksum must set `sourceSnapshotMismatch=true`
+- fail-closed coverage: every mutated source run snapshot variant invalidates the parity assessment while keeping all production capability flags disabled
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
