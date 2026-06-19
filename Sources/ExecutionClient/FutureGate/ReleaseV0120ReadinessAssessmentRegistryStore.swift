@@ -32,7 +32,16 @@ public enum ReadinessAssessmentRegistryStoreAnchors {
         "V0120-005-SOURCE-RUN-COMMIT-PROVENANCE",
         "V0120-005-CANONICAL-ARTIFACT-METADATA",
         "V0120-005-PRODUCER-VERSION-SCHEMA",
-        "V0120-005-NO-PRODUCTION-CUTOVER"
+        "V0120-005-NO-PRODUCTION-CUTOVER",
+        "GH-957-VERIFY-V0120-ARTIFACT-CONTENT-POLICY-REDACTION",
+        "TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION",
+        "V0120-006-ARTIFACT-CONTENT-POLICY",
+        "V0120-006-JSON-SCHEMA-ALLOWLIST",
+        "V0120-006-FORBIDDEN-FIELD-REJECTION",
+        "V0120-006-RAW-SECRET-LISTENKEY-REJECTION",
+        "V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION",
+        "V0120-006-CONTENT-VALIDATION-CHECKSUM",
+        "V0120-006-NO-PRODUCTION-CUTOVER"
     ]
 }
 
@@ -897,6 +906,423 @@ public struct ReadinessAssessmentManifestV2: Codable, Equatable, Sendable {
     }
 }
 
+/// ReadinessAssessmentArtifactContentValidationState 固定 GH-957 content policy validator 状态。
+///
+/// `valid` 只表示本地 artifact bytes 通过 JSON schema / redaction policy；它不授权
+/// production cutover、secret read、endpoint / broker connection 或任何订单命令。
+public enum ReadinessAssessmentArtifactContentValidationState: String, Codable, CaseIterable, Equatable, Sendable {
+    case valid
+}
+
+/// ReadinessAssessmentArtifactContentPolicy 定义 GH-957 每个 readiness artifact 的内容策略。
+///
+/// Policy 只描述本地 JSON evidence 的 top-level field allowlist、required field、forbidden
+/// field 和 raw marker denylist。它拒绝 raw secret、raw listenKey、order payload 和
+/// production endpoint response 形状，但不会读取 secret、调用 endpoint 或连接 broker。
+public struct ReadinessAssessmentArtifactContentPolicy: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.12.0.artifact-content-policy.v1"
+    public static let checksumAlgorithm = "canonical-json-sha256"
+    public static let defaultForbiddenJSONFields = [
+        "apiKey",
+        "balance",
+        "balances",
+        "clientOrderId",
+        "endpointResponse",
+        "listenKey",
+        "makerCommission",
+        "orderId",
+        "origClientOrderId",
+        "price",
+        "privatePayload",
+        "quantity",
+        "secret",
+        "serverTime",
+        "side",
+        "signature",
+        "status",
+        "timeInForce",
+        "type"
+    ]
+    public static let defaultForbiddenRawMarkers = [
+        "/api/v3/account",
+        "/api/v3/order",
+        "/api/v3/userDataStream",
+        "/fapi/v1/account",
+        "/fapi/v1/order",
+        "X-MBX-APIKEY",
+        "api.binance.com",
+        "fapi.binance.com",
+        "listenKey=",
+        "raw-listen-key",
+        "raw-secret",
+        "secretKey=",
+        "sk_live_"
+    ]
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let checksumAlgorithm: String
+    public let policyVersion: String
+    public let artifactID: Identifier
+    public let artifactContentType: ReadinessAssessmentManifestV2ArtifactContentType
+    public let allowedJSONFields: [String]
+    public let requiredJSONFields: [String]
+    public let forbiddenJSONFields: [String]
+    public let forbiddenRawMarkers: [String]
+    public let policyChecksum: String
+    public let assessmentSessionLocalOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let realOrderSubmissionEnabled: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let testnetOrderRoutingAllowed: Bool
+
+    public var policyHeld: Bool {
+        issueID.rawValue == "GH-957"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-951", "GH-956"]
+            && releaseVersion == "v0.12.0"
+            && schemaVersion == Self.schemaVersion
+            && checksumAlgorithm == Self.checksumAlgorithm
+            && policyVersion.isEmpty == false
+            && artifactID.rawValue.isEmpty == false
+            && artifactContentType == .jsonEvidence
+            && allowedJSONFields.isEmpty == false
+            && requiredJSONFields.isEmpty == false
+            && forbiddenJSONFields.isEmpty == false
+            && forbiddenRawMarkers.isEmpty == false
+            && Self.isSortedUnique(allowedJSONFields)
+            && Self.isSortedUnique(requiredJSONFields)
+            && Self.isSortedUnique(forbiddenJSONFields)
+            && Self.isSortedUnique(forbiddenRawMarkers)
+            && Set(requiredJSONFields).isSubset(of: Set(allowedJSONFields))
+            && Set(allowedJSONFields).isDisjoint(with: Set(forbiddenJSONFields))
+            && Set(requiredJSONFields).isDisjoint(with: Set(forbiddenJSONFields))
+            && policyChecksum == Self.stablePolicyChecksum(
+                policyVersion: policyVersion,
+                artifactID: artifactID,
+                artifactContentType: artifactContentType,
+                allowedJSONFields: allowedJSONFields,
+                requiredJSONFields: requiredJSONFields,
+                forbiddenJSONFields: forbiddenJSONFields,
+                forbiddenRawMarkers: forbiddenRawMarkers
+            )
+            && assessmentSessionLocalOnly
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && realOrderSubmissionEnabled == false
+            && testnetOrderSubmissionAllowed == false
+            && testnetOrderRoutingAllowed == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-957"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-951"), Identifier.constant("GH-956")],
+        releaseVersion: String = "v0.12.0",
+        schemaVersion: String = Self.schemaVersion,
+        checksumAlgorithm: String = Self.checksumAlgorithm,
+        policyVersion: String,
+        artifactID: Identifier,
+        artifactContentType: ReadinessAssessmentManifestV2ArtifactContentType = .jsonEvidence,
+        allowedJSONFields: [String],
+        requiredJSONFields: [String],
+        forbiddenJSONFields: [String] = Self.defaultForbiddenJSONFields,
+        forbiddenRawMarkers: [String] = Self.defaultForbiddenRawMarkers,
+        policyChecksum: String? = nil,
+        assessmentSessionLocalOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        realOrderSubmissionEnabled: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(artifactID)
+        let sortedAllowedJSONFields = allowedJSONFields.sorted()
+        let sortedRequiredJSONFields = requiredJSONFields.sorted()
+        let sortedForbiddenJSONFields = forbiddenJSONFields.sorted()
+        let sortedForbiddenRawMarkers = forbiddenRawMarkers.sorted()
+
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.checksumAlgorithm = checksumAlgorithm
+        self.policyVersion = policyVersion
+        self.artifactID = artifactID
+        self.artifactContentType = artifactContentType
+        self.allowedJSONFields = sortedAllowedJSONFields
+        self.requiredJSONFields = sortedRequiredJSONFields
+        self.forbiddenJSONFields = sortedForbiddenJSONFields
+        self.forbiddenRawMarkers = sortedForbiddenRawMarkers
+        self.policyChecksum = policyChecksum ?? Self.stablePolicyChecksum(
+            policyVersion: policyVersion,
+            artifactID: artifactID,
+            artifactContentType: artifactContentType,
+            allowedJSONFields: sortedAllowedJSONFields,
+            requiredJSONFields: sortedRequiredJSONFields,
+            forbiddenJSONFields: sortedForbiddenJSONFields,
+            forbiddenRawMarkers: sortedForbiddenRawMarkers
+        )
+        self.assessmentSessionLocalOnly = assessmentSessionLocalOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.realOrderSubmissionEnabled = realOrderSubmissionEnabled
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+
+        guard policyHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("artifactContentPolicy")
+        }
+    }
+
+    public static func stablePolicyChecksum(
+        policyVersion: String,
+        artifactID: Identifier,
+        artifactContentType: ReadinessAssessmentManifestV2ArtifactContentType,
+        allowedJSONFields: [String],
+        requiredJSONFields: [String],
+        forbiddenJSONFields: [String],
+        forbiddenRawMarkers: [String]
+    ) -> String {
+        stableSHA256([
+            "GH-957",
+            "v0.12.0",
+            Self.schemaVersion,
+            Self.checksumAlgorithm,
+            policyVersion,
+            artifactID.rawValue,
+            artifactContentType.rawValue,
+            allowedJSONFields.sorted().joined(separator: ","),
+            requiredJSONFields.sorted().joined(separator: ","),
+            forbiddenJSONFields.sorted().joined(separator: ","),
+            forbiddenRawMarkers.sorted().joined(separator: ","),
+            "assessmentSessionLocalOnly=true",
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "realOrderSubmissionEnabled=false",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false"
+        ])
+    }
+
+    private static func isSortedUnique(_ values: [String]) -> Bool {
+        values == values.sorted() && Set(values).count == values.count && values.allSatisfy { $0.isEmpty == false }
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReadinessAssessmentArtifactContentValidationResult 是 GH-957 content validator 输出的本地 evidence。
+///
+/// Result 记录通过 allowlist / denylist / checksum 校验后的 artifact 内容证明。它只证明
+/// artifact 未包含 raw secret、raw listenKey、order payload 或 production endpoint response；
+/// 不会把 readiness evidence 升级为交易授权。
+public struct ReadinessAssessmentArtifactContentValidationResult: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let artifactID: Identifier
+    public let policyVersion: String
+    public let policyChecksum: String
+    public let artifactSHA256: String
+    public let validationState: ReadinessAssessmentArtifactContentValidationState
+    public let observedTopLevelJSONFields: [String]
+    public let missingRequiredJSONFields: [String]
+    public let unexpectedJSONFields: [String]
+    public let forbiddenJSONFields: [String]
+    public let forbiddenRawMarkers: [String]
+    public let validatedAt: Date
+    public let stateReason: String
+    public let contentValidationChecksum: String
+    public let assessmentSessionLocalOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let realOrderSubmissionEnabled: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let testnetOrderRoutingAllowed: Bool
+
+    public var validationHeld: Bool {
+        issueID.rawValue == "GH-957"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-951", "GH-956"]
+            && releaseVersion == "v0.12.0"
+            && artifactID.rawValue.isEmpty == false
+            && policyVersion.isEmpty == false
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(policyChecksum)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(artifactSHA256)
+            && validationState == .valid
+            && observedTopLevelJSONFields.isEmpty == false
+            && observedTopLevelJSONFields == observedTopLevelJSONFields.sorted()
+            && missingRequiredJSONFields.isEmpty
+            && unexpectedJSONFields.isEmpty
+            && forbiddenJSONFields.isEmpty
+            && forbiddenRawMarkers.isEmpty
+            && stateReason == "artifact content policy valid"
+            && contentValidationChecksum == Self.stableContentValidationChecksum(
+                artifactID: artifactID,
+                policyVersion: policyVersion,
+                policyChecksum: policyChecksum,
+                artifactSHA256: artifactSHA256,
+                observedTopLevelJSONFields: observedTopLevelJSONFields,
+                validatedAt: validatedAt
+            )
+            && assessmentSessionLocalOnly
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && realOrderSubmissionEnabled == false
+            && testnetOrderSubmissionAllowed == false
+            && testnetOrderRoutingAllowed == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-957"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-951"), Identifier.constant("GH-956")],
+        releaseVersion: String = "v0.12.0",
+        artifactID: Identifier,
+        policyVersion: String,
+        policyChecksum: String,
+        artifactSHA256: String,
+        validationState: ReadinessAssessmentArtifactContentValidationState = .valid,
+        observedTopLevelJSONFields: [String],
+        missingRequiredJSONFields: [String] = [],
+        unexpectedJSONFields: [String] = [],
+        forbiddenJSONFields: [String] = [],
+        forbiddenRawMarkers: [String] = [],
+        validatedAt: Date,
+        stateReason: String = "artifact content policy valid",
+        contentValidationChecksum: String? = nil,
+        assessmentSessionLocalOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        realOrderSubmissionEnabled: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(artifactID)
+        let sortedObservedTopLevelJSONFields = observedTopLevelJSONFields.sorted()
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.artifactID = artifactID
+        self.policyVersion = policyVersion
+        self.policyChecksum = policyChecksum
+        self.artifactSHA256 = artifactSHA256
+        self.validationState = validationState
+        self.observedTopLevelJSONFields = sortedObservedTopLevelJSONFields
+        self.missingRequiredJSONFields = missingRequiredJSONFields.sorted()
+        self.unexpectedJSONFields = unexpectedJSONFields.sorted()
+        self.forbiddenJSONFields = forbiddenJSONFields.sorted()
+        self.forbiddenRawMarkers = forbiddenRawMarkers.sorted()
+        self.validatedAt = validatedAt
+        self.stateReason = stateReason
+        self.contentValidationChecksum = contentValidationChecksum ?? Self.stableContentValidationChecksum(
+            artifactID: artifactID,
+            policyVersion: policyVersion,
+            policyChecksum: policyChecksum,
+            artifactSHA256: artifactSHA256,
+            observedTopLevelJSONFields: sortedObservedTopLevelJSONFields,
+            validatedAt: validatedAt
+        )
+        self.assessmentSessionLocalOnly = assessmentSessionLocalOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.realOrderSubmissionEnabled = realOrderSubmissionEnabled
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+
+        guard validationHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("artifactContentValidationResult")
+        }
+    }
+
+    public static func stableContentValidationChecksum(
+        artifactID: Identifier,
+        policyVersion: String,
+        policyChecksum: String,
+        artifactSHA256: String,
+        observedTopLevelJSONFields: [String],
+        validatedAt: Date
+    ) -> String {
+        stableSHA256([
+            "GH-957",
+            "v0.12.0",
+            artifactID.rawValue,
+            policyVersion,
+            policyChecksum,
+            artifactSHA256,
+            observedTopLevelJSONFields.sorted().joined(separator: ","),
+            String(validatedAt.timeIntervalSince1970),
+            "artifact content policy valid",
+            "assessmentSessionLocalOnly=true",
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "realOrderSubmissionEnabled=false",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false"
+        ])
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
 /// ReadinessAssessmentTransactionControl 固定 GH-955 assessment 写入交易的控制面。
 ///
 /// 它只描述本地 transactionID / generationID、staging directory、commit marker 和
@@ -1586,6 +2012,59 @@ public struct ReadinessAssessmentRegistryStore {
         return manifest
     }
 
+    public func validateArtifactContent(
+        data: Data,
+        manifest: ReadinessAssessmentManifestV2,
+        policy: ReadinessAssessmentArtifactContentPolicy,
+        validatedAt: Date
+    ) throws -> ReadinessAssessmentArtifactContentValidationResult {
+        guard manifest.manifestHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("artifactContentPolicy:manifestHeld=false")
+        }
+        guard policy.policyHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("artifactContentPolicy:policyHeld=false")
+        }
+        guard manifest.artifactContentType == .jsonEvidence,
+              policy.artifactContentType == .jsonEvidence else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("artifactContentPolicy:jsonEvidenceRequired")
+        }
+
+        let canonicalData = try Self.canonicalJSONData(for: data)
+        let artifactChecksum = Self.sha256Checksum(for: canonicalData)
+        guard artifactChecksum == manifest.artifactSHA256 else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("artifactContentPolicy:artifactSHA256Mismatch")
+        }
+
+        let jsonObject = try Self.jsonObject(for: canonicalData)
+        let topLevelFields = try Self.topLevelJSONFields(in: jsonObject)
+        let allJSONFields = Self.recursiveJSONFields(in: jsonObject)
+        let allowedFields = Set(policy.allowedJSONFields)
+        let requiredFields = Set(policy.requiredJSONFields)
+        let observedFields = Set(topLevelFields)
+        let allFields = Set(allJSONFields)
+        let missingRequiredFields = policy.requiredJSONFields.filter { observedFields.contains($0) == false }
+        let unexpectedFields = topLevelFields.filter { allowedFields.contains($0) == false }
+        let forbiddenFields = policy.forbiddenJSONFields.filter { allFields.contains($0) }
+        let forbiddenRawMarkers = Self.forbiddenRawMarkers(in: canonicalData, policy: policy)
+
+        guard requiredFields.isSubset(of: allowedFields),
+              missingRequiredFields.isEmpty,
+              unexpectedFields.isEmpty,
+              forbiddenFields.isEmpty,
+              forbiddenRawMarkers.isEmpty else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("artifactContentPolicy:rejectedContent")
+        }
+
+        return try ReadinessAssessmentArtifactContentValidationResult(
+            artifactID: policy.artifactID,
+            policyVersion: policy.policyVersion,
+            policyChecksum: policy.policyChecksum,
+            artifactSHA256: artifactChecksum,
+            observedTopLevelJSONFields: topLevelFields,
+            validatedAt: validatedAt
+        )
+    }
+
     @discardableResult
     public func archive(
         assessmentID: Identifier,
@@ -1941,6 +2420,66 @@ public struct ReadinessAssessmentRegistryStore {
             try fileManager.removeItem(at: registryURL)
         }
         try fileManager.moveItem(at: temporaryURL, to: registryURL)
+    }
+
+    private static func canonicalJSONData(for data: Data) throws -> Data {
+        let object = try jsonObject(for: data)
+        guard JSONSerialization.isValidJSONObject(object) else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("artifactContentPolicy:invalidJSON")
+        }
+        do {
+            return try JSONSerialization.data(
+                withJSONObject: object,
+                options: [.sortedKeys, .withoutEscapingSlashes]
+            )
+        } catch {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("artifactContentPolicy:invalidJSON")
+        }
+    }
+
+    private static func jsonObject(for data: Data) throws -> Any {
+        do {
+            return try JSONSerialization.jsonObject(with: data)
+        } catch {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("artifactContentPolicy:invalidJSON")
+        }
+    }
+
+    private static func topLevelJSONFields(in object: Any) throws -> [String] {
+        guard let dictionary = object as? [String: Any] else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("artifactContentPolicy:topLevelObjectRequired")
+        }
+        return dictionary.keys.sorted()
+    }
+
+    private static func recursiveJSONFields(in object: Any) -> [String] {
+        if let dictionary = object as? [String: Any] {
+            return dictionary.keys.sorted() + dictionary.values.flatMap { recursiveJSONFields(in: $0) }
+        }
+        if let array = object as? [Any] {
+            return array.flatMap { recursiveJSONFields(in: $0) }
+        }
+        return []
+    }
+
+    private static func forbiddenRawMarkers(
+        in data: Data,
+        policy: ReadinessAssessmentArtifactContentPolicy
+    ) -> [String] {
+        guard let payload = String(data: data, encoding: .utf8) else {
+            return ["nonUTF8Payload"]
+        }
+        let loweredPayload = payload.lowercased()
+        return policy.forbiddenRawMarkers.filter { marker in
+            loweredPayload.contains(marker.lowercased())
+        }
+    }
+
+    private static func sha256Checksum(for data: Data) -> String {
+        let digest = SHA256.hash(data: data)
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
     }
 
     private static var encoder: JSONEncoder {

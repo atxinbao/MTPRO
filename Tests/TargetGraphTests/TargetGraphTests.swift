@@ -30430,7 +30430,16 @@ final class TargetGraphTests: XCTestCase {
             "V0120-005-SOURCE-RUN-COMMIT-PROVENANCE",
             "V0120-005-CANONICAL-ARTIFACT-METADATA",
             "V0120-005-PRODUCER-VERSION-SCHEMA",
-            "V0120-005-NO-PRODUCTION-CUTOVER"
+            "V0120-005-NO-PRODUCTION-CUTOVER",
+            "GH-957-VERIFY-V0120-ARTIFACT-CONTENT-POLICY-REDACTION",
+            "TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION",
+            "V0120-006-ARTIFACT-CONTENT-POLICY",
+            "V0120-006-JSON-SCHEMA-ALLOWLIST",
+            "V0120-006-FORBIDDEN-FIELD-REJECTION",
+            "V0120-006-RAW-SECRET-LISTENKEY-REJECTION",
+            "V0120-006-ORDER-ENDPOINT-PAYLOAD-REJECTION",
+            "V0120-006-CONTENT-VALIDATION-CHECKSUM",
+            "V0120-006-NO-PRODUCTION-CUTOVER"
         ])
         XCTAssertEqual(
             ReadinessAssessmentRegistryState.allCases.map(\.rawValue),
@@ -30976,6 +30985,168 @@ final class TargetGraphTests: XCTestCase {
             )
         ) { error in
             XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessManifestV2"))
+        }
+    }
+
+    func testGH957ArtifactContentPolicyRejectsSecretsListenKeysOrdersAndEndpointResponses() throws {
+        // 测试场景：GH-957 在 Manifest V2 之后增加 per-artifact content policy / redaction validator。
+        // Validator 只校验本地 JSON evidence bytes，不读取 secret、不连接 endpoint / broker、
+        // 不提交 testnet / production order，也不授权 production cutover。
+        XCTAssertTrue(
+            ReadinessAssessmentRegistryStoreAnchors.validationAnchors.contains(
+                "GH-957-VERIFY-V0120-ARTIFACT-CONTENT-POLICY-REDACTION"
+            )
+        )
+        XCTAssertTrue(
+            ReadinessAssessmentRegistryStoreAnchors.validationAnchors.contains(
+                "V0120-006-CONTENT-VALIDATION-CHECKSUM"
+            )
+        )
+        XCTAssertEqual(ReadinessAssessmentArtifactContentValidationState.allCases.map(\.rawValue), ["valid"])
+
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH957-ArtifactContentPolicy-\(UUID().uuidString)", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: root)
+        }
+
+        let store = ReadinessAssessmentRegistryStore(storageRootURL: root)
+        let artifactID = Identifier.constant("gh-957-redacted-artifact")
+        let policyVersion = "policy-v0.12.0-006"
+        let allowedFields = [
+            "artifactID",
+            "contentChecksum",
+            "noOrderPayload",
+            "noSecretValue",
+            "policyVersion",
+            "productionCutoverAuthorized",
+            "redactionProof"
+        ]
+        let requiredFields = [
+            "artifactID",
+            "noOrderPayload",
+            "noSecretValue",
+            "policyVersion",
+            "productionCutoverAuthorized",
+            "redactionProof"
+        ]
+        let policy = try ReadinessAssessmentArtifactContentPolicy(
+            policyVersion: policyVersion,
+            artifactID: artifactID,
+            allowedJSONFields: allowedFields,
+            requiredJSONFields: requiredFields
+        )
+        XCTAssertTrue(policy.policyHeld)
+        XCTAssertEqual(policy.allowedJSONFields, allowedFields.sorted())
+        XCTAssertTrue(policy.forbiddenJSONFields.contains("secret"))
+        XCTAssertTrue(policy.forbiddenJSONFields.contains("listenKey"))
+        XCTAssertTrue(policy.forbiddenRawMarkers.contains("api.binance.com"))
+
+        let validPayload = #"{"artifactID":"gh-957-redacted-artifact","contentChecksum":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","noOrderPayload":true,"noSecretValue":true,"policyVersion":"policy-v0.12.0-006","productionCutoverAuthorized":false,"redactionProof":true}"#
+        let validData = Data(validPayload.utf8)
+        let validArtifactSHA = try ProductionReadinessArtifactStore.canonicalJSONSHA256Checksum(for: validData)
+        let manifest = try ReadinessAssessmentManifestV2(
+            assessmentID: Identifier.constant("gh-957-assessment"),
+            generationID: Identifier.constant("gh-957-generation-1"),
+            sourceRunIDs: [Identifier.constant("gh-957-source-run")],
+            sourceCommit: "6e6f59382546419cf4e04c24635815d44a72a008",
+            artifactContentType: .jsonEvidence,
+            artifactSHA256: validArtifactSHA,
+            artifactBytes: validData.count,
+            createdAt: Date(timeIntervalSince1970: 1_812_300_000),
+            producerVersion: "mtpro-v0.12.0-gh957"
+        )
+        let validatedAt = Date(timeIntervalSince1970: 1_812_300_120)
+        let result = try store.validateArtifactContent(
+            data: validData,
+            manifest: manifest,
+            policy: policy,
+            validatedAt: validatedAt
+        )
+        XCTAssertTrue(result.validationHeld)
+        XCTAssertEqual(result.validationState, .valid)
+        XCTAssertEqual(result.artifactID, artifactID)
+        XCTAssertEqual(result.policyChecksum, policy.policyChecksum)
+        XCTAssertEqual(result.artifactSHA256, validArtifactSHA)
+        XCTAssertEqual(result.observedTopLevelJSONFields, allowedFields.sorted())
+        XCTAssertEqual(
+            result.contentValidationChecksum,
+            ReadinessAssessmentArtifactContentValidationResult.stableContentValidationChecksum(
+                artifactID: artifactID,
+                policyVersion: policyVersion,
+                policyChecksum: policy.policyChecksum,
+                artifactSHA256: validArtifactSHA,
+                observedTopLevelJSONFields: allowedFields.sorted(),
+                validatedAt: validatedAt
+            )
+        )
+        XCTAssertFalse(result.productionTradingEnabledByDefault)
+        XCTAssertFalse(result.productionCutoverAuthorized)
+        XCTAssertFalse(result.productionSecretRead)
+        XCTAssertFalse(result.productionEndpointConnected)
+        XCTAssertFalse(result.brokerEndpointConnected)
+        XCTAssertFalse(result.productionOrderSubmitted)
+        XCTAssertFalse(result.realOrderSubmissionEnabled)
+        XCTAssertFalse(result.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(result.testnetOrderRoutingAllowed)
+
+        var rejectionIndex = 0
+        func rejected(_ payload: String, expected: ReadinessAssessmentRegistryStoreError = .boundaryDrift("artifactContentPolicy:rejectedContent")) throws {
+            rejectionIndex += 1
+            let data = Data(payload.utf8)
+            let manifest = try ReadinessAssessmentManifestV2(
+                assessmentID: Identifier.constant("gh-957-rejected-assessment-\(rejectionIndex)"),
+                generationID: Identifier.constant("gh-957-rejected-generation"),
+                sourceRunIDs: [Identifier.constant("gh-957-source-run")],
+                sourceCommit: "6e6f59382546419cf4e04c24635815d44a72a008",
+                artifactContentType: .jsonEvidence,
+                artifactSHA256: try ProductionReadinessArtifactStore.canonicalJSONSHA256Checksum(for: data),
+                artifactBytes: data.count,
+                createdAt: Date(timeIntervalSince1970: 1_812_300_000),
+                producerVersion: "mtpro-v0.12.0-gh957"
+            )
+            XCTAssertThrowsError(
+                try store.validateArtifactContent(
+                    data: data,
+                    manifest: manifest,
+                    policy: policy,
+                    validatedAt: validatedAt
+                )
+            ) { error in
+                XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, expected)
+            }
+        }
+
+        try rejected(#"{"artifactID":"gh-957-redacted-artifact","noOrderPayload":true,"noSecretValue":false,"policyVersion":"policy-v0.12.0-006","productionCutoverAuthorized":false,"redactionProof":false,"secret":"raw-secret"}"#)
+        try rejected(#"{"artifactID":"gh-957-redacted-artifact","listenKey":"raw-listen-key","noOrderPayload":true,"noSecretValue":true,"policyVersion":"policy-v0.12.0-006","productionCutoverAuthorized":false,"redactionProof":false}"#)
+        try rejected(#"{"artifactID":"gh-957-redacted-artifact","noOrderPayload":false,"noSecretValue":true,"policyVersion":"policy-v0.12.0-006","productionCutoverAuthorized":false,"quantity":"1.0","redactionProof":false,"side":"BUY","type":"MARKET"}"#)
+        try rejected(#"{"artifactID":"gh-957-redacted-artifact","endpointResponse":{"balances":[],"serverTime":1812300000},"noOrderPayload":true,"noSecretValue":true,"policyVersion":"policy-v0.12.0-006","productionCutoverAuthorized":false,"redactionProof":false,"url":"https://api.binance.com/api/v3/account"}"#)
+        try rejected(#"{"artifactID":"gh-957-redacted-artifact","noOrderPayload":true,"noSecretValue":true,"policyVersion":"policy-v0.12.0-006","productionCutoverAuthorized":false,"redactionProof":true,"unexpectedField":true}"#)
+        try rejected(#"{"artifactID":"gh-957-redacted-artifact","noSecretValue":true,"policyVersion":"policy-v0.12.0-006","productionCutoverAuthorized":false,"redactionProof":true}"#)
+
+        let mismatchedManifest = try ReadinessAssessmentManifestV2(
+            assessmentID: Identifier.constant("gh-957-mismatched-assessment"),
+            generationID: Identifier.constant("gh-957-generation-2"),
+            sourceRunIDs: [Identifier.constant("gh-957-source-run")],
+            sourceCommit: "6e6f59382546419cf4e04c24635815d44a72a008",
+            artifactContentType: .jsonEvidence,
+            artifactSHA256: "sha256:\(String(repeating: "b", count: 64))",
+            artifactBytes: validData.count,
+            createdAt: Date(timeIntervalSince1970: 1_812_300_000),
+            producerVersion: "mtpro-v0.12.0-gh957"
+        )
+        XCTAssertThrowsError(
+            try store.validateArtifactContent(
+                data: validData,
+                manifest: mismatchedManifest,
+                policy: policy,
+                validatedAt: validatedAt
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReadinessAssessmentRegistryStoreError,
+                .boundaryDrift("artifactContentPolicy:artifactSHA256Mismatch")
+            )
         }
     }
 
