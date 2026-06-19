@@ -83,6 +83,13 @@ set -euo pipefail
 # V0120-010-PORTFOLIO-PROJECTION-CHECKSUM-BINDING
 # V0120-010-RECONCILIATION-CHECKSUM-BINDING
 # V0120-010-NO-PRODUCTION-CUTOVER
+# GH-962-VERIFY-V0120-READINESS-ASSESSMENT-DIFF-COMPARE
+# TVM-RELEASE-V0120-READINESS-ASSESSMENT-DIFF-COMPARE
+# V0120-011-READINESS-ASSESSMENT-DIFF-COMPARE
+# V0120-011-POLICY-ARTIFACT-RISK-KILL-APPROVAL-SECTIONS
+# V0120-011-SOURCE-RUN-EVIDENCE-COMPARISON
+# V0120-011-NON-MUTATING-COMPARE
+# V0120-011-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -137,6 +144,7 @@ swift test --filter TargetGraphTests/testGH958ImmutableReadinessBundleSnapshotRe
 swift test --filter TargetGraphTests/testGH959KillSwitchNoTradeTrustworthyObservationsFailClosed
 swift test --filter TargetGraphTests/testGH960ApprovalRolesQuorumAndBundleBindingFailClosed
 swift test --filter TargetGraphTests/testGH961ShadowParityBindsImmutableSourceRunSnapshot
+swift test --filter TargetGraphTests/testGH962ReadinessAssessmentDiffCompareIsLocalAndNonMutating
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -220,7 +228,14 @@ for anchor in \
   "V0120-010-OMS-DRY-RUN-LIFECYCLE-ID-BINDING" \
   "V0120-010-PORTFOLIO-PROJECTION-CHECKSUM-BINDING" \
   "V0120-010-RECONCILIATION-CHECKSUM-BINDING" \
-  "V0120-010-NO-PRODUCTION-CUTOVER"; do
+  "V0120-010-NO-PRODUCTION-CUTOVER" \
+  "GH-962-VERIFY-V0120-READINESS-ASSESSMENT-DIFF-COMPARE" \
+  "TVM-RELEASE-V0120-READINESS-ASSESSMENT-DIFF-COMPARE" \
+  "V0120-011-READINESS-ASSESSMENT-DIFF-COMPARE" \
+  "V0120-011-POLICY-ARTIFACT-RISK-KILL-APPROVAL-SECTIONS" \
+  "V0120-011-SOURCE-RUN-EVIDENCE-COMPARISON" \
+  "V0120-011-NON-MUTATING-COMPARE" \
+  "V0120-011-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -228,7 +243,7 @@ for anchor in \
   require_file_contains "$LATEST" "$anchor"
   require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
   require_file_contains "$TESTS" "$anchor"
-  if [[ "$anchor" == GH-954-* || "$anchor" == GH-955-* || "$anchor" == GH-956-* || "$anchor" == GH-957-* || "$anchor" == GH-958-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK || "$anchor" == TVM-RELEASE-V0120-READINESS-MANIFEST-V2 || "$anchor" == TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION || "$anchor" == TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT || "$anchor" == V0120-003-* || "$anchor" == V0120-004-* || "$anchor" == V0120-005-* || "$anchor" == V0120-006-* || "$anchor" == V0120-007-* ]]; then
+  if [[ "$anchor" == GH-954-* || "$anchor" == GH-955-* || "$anchor" == GH-956-* || "$anchor" == GH-957-* || "$anchor" == GH-958-* || "$anchor" == GH-962-* || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE || "$anchor" == TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK || "$anchor" == TVM-RELEASE-V0120-READINESS-MANIFEST-V2 || "$anchor" == TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION || "$anchor" == TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT || "$anchor" == TVM-RELEASE-V0120-READINESS-ASSESSMENT-DIFF-COMPARE || "$anchor" == V0120-003-* || "$anchor" == V0120-004-* || "$anchor" == V0120-005-* || "$anchor" == V0120-006-* || "$anchor" == V0120-007-* || "$anchor" == V0120-011-* ]]; then
     require_file_contains "$REGISTRY_SOURCE" "$anchor"
   fi
   if [[ "$anchor" == GH-959-* || "$anchor" == TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS || "$anchor" == V0120-008-* ]]; then
@@ -287,6 +302,18 @@ require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentRegistryStore"
 require_file_contains "$REGISTRY_SOURCE" ".local/mtpro/readiness/registry.json"
 require_file_contains "$REGISTRY_SOURCE" ".local/mtpro/readiness/assessments"
 require_file_contains "$REGISTRY_SOURCE" "compareReadyAssessments"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentComparisonSnapshot"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentComparisonReport"
+require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentComparisonDelta"
+require_file_contains "$REGISTRY_SOURCE" "compareAssessments"
+require_file_contains "$REGISTRY_SOURCE" "policyChecksum"
+require_file_contains "$REGISTRY_SOURCE" "artifactBundleChecksum"
+require_file_contains "$REGISTRY_SOURCE" "riskLimitChecksum"
+require_file_contains "$REGISTRY_SOURCE" "killSwitchStateChecksum"
+require_file_contains "$REGISTRY_SOURCE" "approvalStateChecksum"
+require_file_contains "$REGISTRY_SOURCE" "sourceRunSnapshot"
+require_file_contains "$REGISTRY_SOURCE" "compareDoesNotMutateAssessments"
+require_file_contains "$REGISTRY_SOURCE" "operatorReviewOnly"
 require_file_contains "$REGISTRY_SOURCE" "ReadinessAssessmentTransactionControl"
 require_file_contains "$REGISTRY_SOURCE" "createWithTransaction"
 require_file_contains "$REGISTRY_SOURCE" "stageAssessmentTransaction"

@@ -4809,3 +4809,23 @@ swift test
 - binding rule: `sourceSnapshotBindingHeld=true` is required for valid shadow parity; changed source run manifest checksum, event ID set, risk decision IDs, OMS dry-run lifecycle IDs, portfolio projection checksum or reconciliation checksum must set `sourceSnapshotMismatch=true`
 - fail-closed coverage: every mutated source run snapshot variant invalidates the parity assessment while keeping all production capability flags disabled
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
+
+## GH-962 Release v0.12.0 Readiness Assessment Diff / Compare Validation
+
+- GH-962-VERIFY-V0120-READINESS-ASSESSMENT-DIFF-COMPARE
+- TVM-RELEASE-V0120-READINESS-ASSESSMENT-DIFF-COMPARE
+- V0120-011-READINESS-ASSESSMENT-DIFF-COMPARE
+- V0120-011-POLICY-ARTIFACT-RISK-KILL-APPROVAL-SECTIONS
+- V0120-011-SOURCE-RUN-EVIDENCE-COMPARISON
+- V0120-011-NON-MUTATING-COMPARE
+- V0120-011-NO-PRODUCTION-CUTOVER
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- contract doc: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- focused verifier: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH962ReadinessAssessmentDiffCompareIsLocalAndNonMutating`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- compare sections: `policy`, `artifacts`, `risk-limits`, `kill-switch-state`, `approval-state` and `source-run-evidence`
+- snapshot fields: `policyChecksum`, `artifactBundleChecksum`, `riskLimitChecksum`, `killSwitchStateChecksum`, `approvalStateChecksum` and `sourceRunSnapshot`
+- non-mutating evidence: `compareAssessments` returns `ReadinessAssessmentComparisonReport` without mutating registry entries or assessment metadata
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement

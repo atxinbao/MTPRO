@@ -2896,3 +2896,20 @@
 - fail-closed evidence: any mutated source run manifest checksum, event ID set, risk decision ID set, OMS dry-run lifecycle ID set, portfolio projection checksum or reconciliation checksum sets `sourceSnapshotMismatch=true` and invalidates the assessment
 - approval boundary: shadow parity source snapshot binding remains local dry-run / shadow evidence only; it does not authorize production cutover, order submission, endpoint / broker connection, secret read or UI command surfaces
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-READINESS-ASSESSMENT-DIFF-COMPARE
+
+- GH-962-VERIFY-V0120-READINESS-ASSESSMENT-DIFF-COMPARE
+- TVM-RELEASE-V0120-READINESS-ASSESSMENT-DIFF-COMPARE
+- V0120-011-READINESS-ASSESSMENT-DIFF-COMPARE
+- V0120-011-POLICY-ARTIFACT-RISK-KILL-APPROVAL-SECTIONS
+- V0120-011-SOURCE-RUN-EVIDENCE-COMPARISON
+- V0120-011-NON-MUTATING-COMPARE
+- V0120-011-NO-PRODUCTION-CUTOVER
+- GH-962 Release v0.12.0 Readiness Assessment Diff / Compare Validation
+- testGH962ReadinessAssessmentDiffCompareIsLocalAndNonMutating
+- compare sections: `policy`, `artifacts`, `risk-limits`, `kill-switch-state`, `approval-state` and `source-run-evidence`
+- compare input: `ReadinessAssessmentComparisonSnapshot` uses `policyChecksum`, `artifactBundleChecksum`, `riskLimitChecksum`, `killSwitchStateChecksum`, `approvalStateChecksum` and GH-961 `sourceRunSnapshot`
+- output evidence: `ReadinessAssessmentComparisonReport` records matched / changed sections, stable `reportChecksum`, `operatorReviewOnly=true` and `compareDoesNotMutateAssessments=true`
+- non-mutating evidence: compare does not write registry, does not mutate assessment metadata and does not create approval state
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
