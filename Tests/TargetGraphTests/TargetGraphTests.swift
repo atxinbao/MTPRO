@@ -32495,6 +32495,261 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH962ReadinessAssessmentDiffCompareIsLocalAndNonMutating() throws {
+        // 测试场景：GH-962 为 operator review 生成两个 assessment 的本地 compare report；
+        // compare 只能读取本地 snapshot / checksum，不修改 registry，也不授权 production cutover。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let expectedAnchors = [
+            "GH-962-VERIFY-V0120-READINESS-ASSESSMENT-DIFF-COMPARE",
+            "TVM-RELEASE-V0120-READINESS-ASSESSMENT-DIFF-COMPARE",
+            "V0120-011-READINESS-ASSESSMENT-DIFF-COMPARE",
+            "V0120-011-POLICY-ARTIFACT-RISK-KILL-APPROVAL-SECTIONS",
+            "V0120-011-SOURCE-RUN-EVIDENCE-COMPARISON",
+            "V0120-011-NON-MUTATING-COMPARE",
+            "V0120-011-NO-PRODUCTION-CUTOVER"
+        ]
+        for anchor in expectedAnchors {
+            XCTAssertTrue(
+                ReadinessAssessmentRegistryStoreAnchors.validationAnchors.contains(anchor),
+                "\(anchor) must stay in registry store anchors"
+            )
+        }
+
+        XCTAssertEqual(ReadinessAssessmentComparisonSection.allCases.map(\.rawValue), [
+            "policy",
+            "artifacts",
+            "risk-limits",
+            "kill-switch-state",
+            "approval-state",
+            "source-run-evidence"
+        ])
+        XCTAssertEqual(ReadinessAssessmentComparisonDeltaState.allCases.map(\.rawValue), ["unchanged", "changed"])
+
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH962-ReadinessAssessmentCompare-\(UUID().uuidString)", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: root)
+        }
+
+        let store = ReadinessAssessmentRegistryStore(storageRootURL: root)
+        let createdAt = Date(timeIntervalSince1970: 1_812_900_000)
+        let baselineID = Identifier.constant("gh-962-baseline-assessment")
+        let followUpID = Identifier.constant("gh-962-follow-up-assessment")
+        let baselineGeneration = Identifier.constant("gh-962-generation-1")
+        let followUpGeneration = Identifier.constant("gh-962-generation-2")
+
+        _ = try store.create(
+            assessmentID: baselineID,
+            state: .ready,
+            sourceReleaseVersion: "v0.12.0",
+            assessedBy: "Codex",
+            reason: "baseline assessment ready for local compare",
+            createdAt: createdAt,
+            updatedAt: createdAt
+        )
+        _ = try store.create(
+            assessmentID: followUpID,
+            state: .compareReady,
+            sourceReleaseVersion: "v0.12.0",
+            comparisonBaseAssessmentID: baselineID,
+            assessedBy: "Codex",
+            reason: "follow-up assessment ready for local compare",
+            createdAt: createdAt,
+            updatedAt: createdAt.addingTimeInterval(60)
+        )
+        let registryBeforeCompare = try store.load()
+
+        func checksum(_ scalar: String) -> String {
+            "sha256:" + String(repeating: scalar, count: 64)
+        }
+
+        func sourceSnapshot(
+            run: String,
+            manifest: String,
+            events: [String],
+            riskDecisions: [String],
+            omsLifecycles: [String],
+            portfolio: String,
+            reconciliation: String
+        ) throws -> ReleaseV0120ShadowParitySourceRunSnapshot {
+            try ReleaseV0120ShadowParitySourceRunSnapshot(
+                runID: Identifier.constant(run),
+                sourceRunManifestChecksum: checksum(manifest),
+                eventIDs: events.map { Identifier.constant($0) },
+                riskDecisionIDs: riskDecisions.map { Identifier.constant($0) },
+                omsDryRunLifecycleIDs: omsLifecycles.map { Identifier.constant($0) },
+                portfolioProjectionChecksum: checksum(portfolio),
+                reconciliationChecksum: checksum(reconciliation)
+            )
+        }
+
+        let baselineSnapshot = try ReadinessAssessmentComparisonSnapshot(
+            assessmentID: baselineID,
+            generationID: baselineGeneration,
+            policyChecksum: checksum("a"),
+            artifactBundleChecksum: checksum("b"),
+            riskLimitChecksum: checksum("c"),
+            killSwitchStateChecksum: checksum("d"),
+            approvalStateChecksum: checksum("e"),
+            sourceRunSnapshot: sourceSnapshot(
+                run: "gh-962-run-baseline",
+                manifest: "f",
+                events: ["event-1", "event-2"],
+                riskDecisions: ["risk-1"],
+                omsLifecycles: ["oms-1"],
+                portfolio: "1",
+                reconciliation: "2"
+            )
+        )
+        let followUpSnapshot = try ReadinessAssessmentComparisonSnapshot(
+            assessmentID: followUpID,
+            generationID: followUpGeneration,
+            policyChecksum: checksum("a"),
+            artifactBundleChecksum: checksum("3"),
+            riskLimitChecksum: checksum("c"),
+            killSwitchStateChecksum: checksum("4"),
+            approvalStateChecksum: checksum("5"),
+            sourceRunSnapshot: sourceSnapshot(
+                run: "gh-962-run-follow-up",
+                manifest: "6",
+                events: ["event-1", "event-3"],
+                riskDecisions: ["risk-1", "risk-2"],
+                omsLifecycles: ["oms-1"],
+                portfolio: "7",
+                reconciliation: "8"
+            )
+        )
+
+        let comparedAt = createdAt.addingTimeInterval(120)
+        let report = try store.compareAssessments(
+            baselineSnapshot: baselineSnapshot,
+            followUpSnapshot: followUpSnapshot,
+            comparedAt: comparedAt
+        )
+        XCTAssertTrue(report.reportHeld)
+        XCTAssertEqual(report.baselineAssessmentID, baselineID)
+        XCTAssertEqual(report.followUpAssessmentID, followUpID)
+        XCTAssertEqual(report.baselineGenerationID, baselineGeneration)
+        XCTAssertEqual(report.followUpGenerationID, followUpGeneration)
+        XCTAssertEqual(report.comparedSections, ReadinessAssessmentComparisonSection.allCases)
+        XCTAssertEqual(report.unchangedSections, [.policy, .riskLimits])
+        XCTAssertEqual(report.changedSections, [.artifacts, .killSwitchState, .approvalState, .sourceRunEvidence])
+        XCTAssertTrue(report.hasDifferences)
+        XCTAssertTrue(report.compareDoesNotMutateAssessments)
+        XCTAssertTrue(report.operatorReviewOnly)
+        XCTAssertEqual(
+            report.reportChecksum,
+            ReadinessAssessmentComparisonReport.stableReportChecksum(
+                baselineAssessmentID: baselineID,
+                followUpAssessmentID: followUpID,
+                baselineGenerationID: baselineGeneration,
+                followUpGenerationID: followUpGeneration,
+                comparedAt: comparedAt,
+                deltas: report.deltas
+            )
+        )
+
+        let registryAfterCompare = try store.load()
+        XCTAssertEqual(registryAfterCompare, registryBeforeCompare)
+        XCTAssertFalse(report.productionTradingEnabledByDefault)
+        XCTAssertFalse(report.productionCutoverAuthorized)
+        XCTAssertFalse(report.productionSecretRead)
+        XCTAssertFalse(report.productionEndpointConnected)
+        XCTAssertFalse(report.brokerEndpointConnected)
+        XCTAssertFalse(report.productionOrderSubmitted)
+        XCTAssertFalse(report.realOrderSubmissionEnabled)
+        XCTAssertFalse(report.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(report.testnetOrderRoutingAllowed)
+
+        let encodedReport = try XCTUnwrap(String(data: JSONEncoder().encode(report), encoding: .utf8))
+        for required in [
+            "\"policy\"",
+            "\"artifacts\"",
+            "\"risk-limits\"",
+            "\"kill-switch-state\"",
+            "\"approval-state\"",
+            "\"source-run-evidence\"",
+            "\"compareDoesNotMutateAssessments\":true",
+            "\"operatorReviewOnly\":true"
+        ] {
+            XCTAssertTrue(encodedReport.contains(required), "\(required) must stay in encoded GH-962 compare report")
+        }
+        for forbidden in [
+            "productionTradingEnabledByDefault\":true",
+            "productionCutoverAuthorized\":true",
+            "productionSecretRead\":true",
+            "productionEndpointConnected\":true",
+            "brokerEndpointConnected\":true",
+            "productionOrderSubmitted\":true",
+            "realOrderSubmissionEnabled\":true",
+            "testnetOrderSubmissionAllowed\":true",
+            "testnetOrderRoutingAllowed\":true"
+        ] {
+            XCTAssertFalse(encodedReport.contains(forbidden), "\(forbidden) must stay false in GH-962 compare report")
+        }
+
+        XCTAssertThrowsError(
+            try ReadinessAssessmentComparisonSnapshot(
+                assessmentID: Identifier.constant("gh-962-bad-assessment"),
+                generationID: Identifier.constant("gh-962-bad-generation"),
+                policyChecksum: checksum("a"),
+                artifactBundleChecksum: checksum("b"),
+                riskLimitChecksum: checksum("c"),
+                killSwitchStateChecksum: checksum("d"),
+                approvalStateChecksum: checksum("e"),
+                sourceRunSnapshot: baselineSnapshot.sourceRunSnapshot,
+                productionCutoverAuthorized: true
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessAssessmentComparisonSnapshot"))
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift")
+        let contract = try read("docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md")
+        let verifier = try read("checks/verify-v0.12.0.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.12.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.12.0 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+        }
+
+        for requiredSource in [
+            "ReadinessAssessmentComparisonSnapshot",
+            "ReadinessAssessmentComparisonReport",
+            "ReadinessAssessmentComparisonDelta",
+            "compareAssessments",
+            "policyChecksum",
+            "artifactBundleChecksum",
+            "riskLimitChecksum",
+            "killSwitchStateChecksum",
+            "approvalStateChecksum",
+            "sourceRunSnapshot",
+            "testGH962ReadinessAssessmentDiffCompareIsLocalAndNonMutating"
+        ] {
+            XCTAssertTrue(
+                source.contains(requiredSource)
+                    || verifier.contains(requiredSource)
+                    || readinessScript.contains(requiredSource),
+                "\(requiredSource) must stay wired into GH-962 source / verifier evidence"
+            )
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

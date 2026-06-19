@@ -50,7 +50,14 @@ public enum ReadinessAssessmentRegistryStoreAnchors {
         "V0120-007-REVIEW-SNAPSHOT-IMMUTABLE",
         "V0120-007-NEW-GENERATION-ON-CHANGE",
         "V0120-007-BUNDLE-MANIFEST-CHECKSUM",
-        "V0120-007-NO-PRODUCTION-CUTOVER"
+        "V0120-007-NO-PRODUCTION-CUTOVER",
+        "GH-962-VERIFY-V0120-READINESS-ASSESSMENT-DIFF-COMPARE",
+        "TVM-RELEASE-V0120-READINESS-ASSESSMENT-DIFF-COMPARE",
+        "V0120-011-READINESS-ASSESSMENT-DIFF-COMPARE",
+        "V0120-011-POLICY-ARTIFACT-RISK-KILL-APPROVAL-SECTIONS",
+        "V0120-011-SOURCE-RUN-EVIDENCE-COMPARISON",
+        "V0120-011-NON-MUTATING-COMPARE",
+        "V0120-011-NO-PRODUCTION-CUTOVER"
     ]
 }
 
@@ -2224,6 +2231,373 @@ public struct ReadinessAssessmentBundleV2SnapshotWriteResult: Equatable, Sendabl
     public let manifest: ReadinessAssessmentBundleV2Manifest
 }
 
+/// ReadinessAssessmentComparisonSection 固定 GH-962 本地 assessment compare 的比较维度。
+///
+/// 这些 section 只用于 operator review 的本地差异阅读；它们不能被解释成 approval、
+/// production cutover、broker connection 或 submit / cancel / replace 授权。
+public enum ReadinessAssessmentComparisonSection: String, Codable, CaseIterable, Equatable, Sendable {
+    case policy
+    case artifacts
+    case riskLimits = "risk-limits"
+    case killSwitchState = "kill-switch-state"
+    case approvalState = "approval-state"
+    case sourceRunEvidence = "source-run-evidence"
+}
+
+/// ReadinessAssessmentComparisonDeltaState 表示单个 compare section 的差异状态。
+public enum ReadinessAssessmentComparisonDeltaState: String, Codable, CaseIterable, Equatable, Sendable {
+    case unchanged
+    case changed
+}
+
+/// ReadinessAssessmentComparisonSnapshot 是 GH-962 比较两个 assessment 时的稳定输入视图。
+///
+/// Snapshot 只引用前序 evidence 的 checksum 和 source run fingerprint，不保存 secret、
+/// endpoint response、broker payload 或 order payload。比较只能消费这些本地 evidence 指纹。
+public struct ReadinessAssessmentComparisonSnapshot: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let assessmentID: Identifier
+    public let generationID: Identifier
+    public let policyChecksum: String
+    public let artifactBundleChecksum: String
+    public let riskLimitChecksum: String
+    public let killSwitchStateChecksum: String
+    public let approvalStateChecksum: String
+    public let sourceRunSnapshot: ReleaseV0120ShadowParitySourceRunSnapshot
+    public let assessmentSessionLocalOnly: Bool
+    public let compareDoesNotMutateAssessments: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let realOrderSubmissionEnabled: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let testnetOrderRoutingAllowed: Bool
+
+    public var snapshotHeld: Bool {
+        issueID.rawValue == "GH-962"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-951", "GH-961"]
+            && releaseVersion == "v0.12.0"
+            && assessmentID.rawValue.isEmpty == false
+            && generationID.rawValue.isEmpty == false
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(policyChecksum)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(artifactBundleChecksum)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(riskLimitChecksum)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(killSwitchStateChecksum)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(approvalStateChecksum)
+            && sourceRunSnapshot.snapshotHeld
+            && assessmentSessionLocalOnly
+            && compareDoesNotMutateAssessments
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && realOrderSubmissionEnabled == false
+            && testnetOrderSubmissionAllowed == false
+            && testnetOrderRoutingAllowed == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-962"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-951"), Identifier.constant("GH-961")],
+        releaseVersion: String = "v0.12.0",
+        assessmentID: Identifier,
+        generationID: Identifier,
+        policyChecksum: String,
+        artifactBundleChecksum: String,
+        riskLimitChecksum: String,
+        killSwitchStateChecksum: String,
+        approvalStateChecksum: String,
+        sourceRunSnapshot: ReleaseV0120ShadowParitySourceRunSnapshot,
+        assessmentSessionLocalOnly: Bool = true,
+        compareDoesNotMutateAssessments: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        realOrderSubmissionEnabled: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(assessmentID)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(generationID)
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.assessmentID = assessmentID
+        self.generationID = generationID
+        self.policyChecksum = policyChecksum
+        self.artifactBundleChecksum = artifactBundleChecksum
+        self.riskLimitChecksum = riskLimitChecksum
+        self.killSwitchStateChecksum = killSwitchStateChecksum
+        self.approvalStateChecksum = approvalStateChecksum
+        self.sourceRunSnapshot = sourceRunSnapshot
+        self.assessmentSessionLocalOnly = assessmentSessionLocalOnly
+        self.compareDoesNotMutateAssessments = compareDoesNotMutateAssessments
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.realOrderSubmissionEnabled = realOrderSubmissionEnabled
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+
+        guard snapshotHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessAssessmentComparisonSnapshot")
+        }
+    }
+
+    public func comparisonValue(for section: ReadinessAssessmentComparisonSection) -> String {
+        switch section {
+        case .policy:
+            policyChecksum
+        case .artifacts:
+            artifactBundleChecksum
+        case .riskLimits:
+            riskLimitChecksum
+        case .killSwitchState:
+            killSwitchStateChecksum
+        case .approvalState:
+            approvalStateChecksum
+        case .sourceRunEvidence:
+            sourceRunSnapshot.snapshotChecksum
+        }
+    }
+}
+
+/// ReadinessAssessmentComparisonDelta 是 GH-962 单个 section 的 deterministic diff row。
+public struct ReadinessAssessmentComparisonDelta: Codable, Equatable, Sendable {
+    public let section: ReadinessAssessmentComparisonSection
+    public let baselineValue: String
+    public let followUpValue: String
+    public let deltaState: ReadinessAssessmentComparisonDeltaState
+    public let stateReason: String
+
+    public var deltaHeld: Bool {
+        baselineValue.isEmpty == false
+            && followUpValue.isEmpty == false
+            && deltaState == (baselineValue == followUpValue ? .unchanged : .changed)
+            && stateReason == (deltaState == .unchanged ? "matched" : "changed")
+    }
+
+    public init(
+        section: ReadinessAssessmentComparisonSection,
+        baselineValue: String,
+        followUpValue: String
+    ) {
+        self.section = section
+        self.baselineValue = baselineValue
+        self.followUpValue = followUpValue
+        self.deltaState = baselineValue == followUpValue ? .unchanged : .changed
+        self.stateReason = baselineValue == followUpValue ? "matched" : "changed"
+    }
+}
+
+/// ReadinessAssessmentComparisonReport 是 GH-962 的 operator review compare 输出。
+///
+/// Report 只解释两个 local readiness assessment snapshot 的 matched / changed sections。
+/// 它不修改 registry，不创建 approval，不授权 production cutover，也不启用任何订单路径。
+public struct ReadinessAssessmentComparisonReport: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let baselineAssessmentID: Identifier
+    public let followUpAssessmentID: Identifier
+    public let baselineGenerationID: Identifier
+    public let followUpGenerationID: Identifier
+    public let comparedAt: Date
+    public let comparedSections: [ReadinessAssessmentComparisonSection]
+    public let changedSections: [ReadinessAssessmentComparisonSection]
+    public let unchangedSections: [ReadinessAssessmentComparisonSection]
+    public let deltas: [ReadinessAssessmentComparisonDelta]
+    public let hasDifferences: Bool
+    public let reportChecksum: String
+    public let assessmentSessionLocalOnly: Bool
+    public let compareDoesNotMutateAssessments: Bool
+    public let operatorReviewOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionCutoverAuthorized: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let realOrderSubmissionEnabled: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let testnetOrderRoutingAllowed: Bool
+
+    public var reportHeld: Bool {
+        issueID.rawValue == "GH-962"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-951", "GH-961"]
+            && releaseVersion == "v0.12.0"
+            && baselineAssessmentID.rawValue.isEmpty == false
+            && followUpAssessmentID.rawValue.isEmpty == false
+            && baselineAssessmentID != followUpAssessmentID
+            && baselineGenerationID.rawValue.isEmpty == false
+            && followUpGenerationID.rawValue.isEmpty == false
+            && comparedSections == ReadinessAssessmentComparisonSection.allCases
+            && deltas.map(\.section) == comparedSections
+            && deltas.allSatisfy(\.deltaHeld)
+            && changedSections == deltas.filter { $0.deltaState == .changed }.map(\.section)
+            && unchangedSections == deltas.filter { $0.deltaState == .unchanged }.map(\.section)
+            && hasDifferences == (changedSections.isEmpty == false)
+            && reportChecksum == Self.stableReportChecksum(
+                baselineAssessmentID: baselineAssessmentID,
+                followUpAssessmentID: followUpAssessmentID,
+                baselineGenerationID: baselineGenerationID,
+                followUpGenerationID: followUpGenerationID,
+                comparedAt: comparedAt,
+                deltas: deltas
+            )
+            && assessmentSessionLocalOnly
+            && compareDoesNotMutateAssessments
+            && operatorReviewOnly
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionCutoverAuthorized == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && realOrderSubmissionEnabled == false
+            && testnetOrderSubmissionAllowed == false
+            && testnetOrderRoutingAllowed == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-962"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-951"), Identifier.constant("GH-961")],
+        releaseVersion: String = "v0.12.0",
+        baselineSnapshot: ReadinessAssessmentComparisonSnapshot,
+        followUpSnapshot: ReadinessAssessmentComparisonSnapshot,
+        comparedAt: Date,
+        reportChecksum: String? = nil,
+        assessmentSessionLocalOnly: Bool = true,
+        compareDoesNotMutateAssessments: Bool = true,
+        operatorReviewOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionCutoverAuthorized: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        realOrderSubmissionEnabled: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        testnetOrderRoutingAllowed: Bool = false
+    ) throws {
+        guard baselineSnapshot.snapshotHeld, followUpSnapshot.snapshotHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessAssessmentComparisonSnapshot")
+        }
+        let sections = ReadinessAssessmentComparisonSection.allCases
+        let resolvedDeltas = sections.map { section in
+            ReadinessAssessmentComparisonDelta(
+                section: section,
+                baselineValue: baselineSnapshot.comparisonValue(for: section),
+                followUpValue: followUpSnapshot.comparisonValue(for: section)
+            )
+        }
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.baselineAssessmentID = baselineSnapshot.assessmentID
+        self.followUpAssessmentID = followUpSnapshot.assessmentID
+        self.baselineGenerationID = baselineSnapshot.generationID
+        self.followUpGenerationID = followUpSnapshot.generationID
+        self.comparedAt = comparedAt
+        self.comparedSections = sections
+        self.changedSections = resolvedDeltas.filter { $0.deltaState == .changed }.map(\.section)
+        self.unchangedSections = resolvedDeltas.filter { $0.deltaState == .unchanged }.map(\.section)
+        self.deltas = resolvedDeltas
+        self.hasDifferences = resolvedDeltas.contains { $0.deltaState == .changed }
+        self.reportChecksum = reportChecksum ?? Self.stableReportChecksum(
+            baselineAssessmentID: baselineSnapshot.assessmentID,
+            followUpAssessmentID: followUpSnapshot.assessmentID,
+            baselineGenerationID: baselineSnapshot.generationID,
+            followUpGenerationID: followUpSnapshot.generationID,
+            comparedAt: comparedAt,
+            deltas: resolvedDeltas
+        )
+        self.assessmentSessionLocalOnly = assessmentSessionLocalOnly
+        self.compareDoesNotMutateAssessments = compareDoesNotMutateAssessments
+        self.operatorReviewOnly = operatorReviewOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.realOrderSubmissionEnabled = realOrderSubmissionEnabled
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.testnetOrderRoutingAllowed = testnetOrderRoutingAllowed
+
+        guard reportHeld else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessAssessmentComparisonReport")
+        }
+    }
+
+    public static func stableReportChecksum(
+        baselineAssessmentID: Identifier,
+        followUpAssessmentID: Identifier,
+        baselineGenerationID: Identifier,
+        followUpGenerationID: Identifier,
+        comparedAt: Date,
+        deltas: [ReadinessAssessmentComparisonDelta]
+    ) -> String {
+        stableSHA256([
+            "GH-962",
+            "v0.12.0",
+            baselineAssessmentID.rawValue,
+            followUpAssessmentID.rawValue,
+            baselineGenerationID.rawValue,
+            followUpGenerationID.rawValue,
+            String(comparedAt.timeIntervalSince1970),
+            "assessmentSessionLocalOnly=true",
+            "compareDoesNotMutateAssessments=true",
+            "operatorReviewOnly=true",
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "realOrderSubmissionEnabled=false",
+            "testnetOrderSubmissionAllowed=false",
+            "testnetOrderRoutingAllowed=false"
+        ] + deltas.map { delta in
+            [
+                delta.section.rawValue,
+                delta.baselineValue,
+                delta.followUpValue,
+                delta.deltaState.rawValue,
+                delta.stateReason
+            ].joined(separator: "=")
+        })
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
 /// ReadinessAssessmentRegistryStore 提供 GH-954 的本地 assessment history 持久化入口。
 ///
 /// Store 只操作 `.local/mtpro/readiness/registry.json`、`registry.lock` 和
@@ -2477,6 +2851,26 @@ public struct ReadinessAssessmentRegistryStore {
 
     public func compareReadyAssessments() throws -> [ReadinessAssessmentRegistryEntry] {
         try load().compareReadyAssessments()
+    }
+
+    public func compareAssessments(
+        baselineSnapshot: ReadinessAssessmentComparisonSnapshot,
+        followUpSnapshot: ReadinessAssessmentComparisonSnapshot,
+        comparedAt: Date
+    ) throws -> ReadinessAssessmentComparisonReport {
+        let before = try? load()
+        let report = try ReadinessAssessmentComparisonReport(
+            baselineSnapshot: baselineSnapshot,
+            followUpSnapshot: followUpSnapshot,
+            comparedAt: comparedAt
+        )
+        if let before {
+            let after = try load()
+            guard after == before else {
+                throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessAssessmentComparisonMutatedRegistry")
+            }
+        }
+        return report
     }
 
     @discardableResult

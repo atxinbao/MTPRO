@@ -1920,3 +1920,21 @@ bash checks/run.sh
 - #961 requires `sourceSnapshotBindingHeld=true` for valid shadow parity and emits `sourceSnapshotMismatch=true` when source run snapshot evidence changes.
 - #961 proves mutated manifest checksum, event IDs, risk decision IDs, OMS dry-run lifecycle IDs, portfolio projection checksum and reconciliation checksum all invalidate the assessment.
 - #961 keeps shadow parity as local dry-run / shadow evidence only; it does not authorize production cutover, does not enable order submission, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
+
+## Release v0.12.0 Readiness Assessment Diff / Compare
+
+- GH-962-VERIFY-V0120-READINESS-ASSESSMENT-DIFF-COMPARE
+- TVM-RELEASE-V0120-READINESS-ASSESSMENT-DIFF-COMPARE
+- V0120-011-READINESS-ASSESSMENT-DIFF-COMPARE
+- V0120-011-POLICY-ARTIFACT-RISK-KILL-APPROVAL-SECTIONS
+- V0120-011-SOURCE-RUN-EVIDENCE-COMPARISON
+- V0120-011-NON-MUTATING-COMPARE
+- V0120-011-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift`
+- Contract source: `docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md`
+- Validation source: `checks/verify-v0.12.0.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH962ReadinessAssessmentDiffCompareIsLocalAndNonMutating`
+- #962 adds `ReadinessAssessmentComparisonSnapshot`, `ReadinessAssessmentComparisonDelta` and `ReadinessAssessmentComparisonReport` for local operator review.
+- #962 compares `policy`, `artifacts`, `risk-limits`, `kill-switch-state`, `approval-state` and `source-run-evidence` using `policyChecksum`, `artifactBundleChecksum`, `riskLimitChecksum`, `killSwitchStateChecksum`, `approvalStateChecksum` and GH-961 `sourceRunSnapshot`.
+- #962 proves `compareAssessments` does not mutate registry entries or assessment metadata and records `compareDoesNotMutateAssessments=true` / `operatorReviewOnly=true`.
+- #962 keeps diff / compare as local readiness evidence only; it does not authorize production cutover, does not enable order submission, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
