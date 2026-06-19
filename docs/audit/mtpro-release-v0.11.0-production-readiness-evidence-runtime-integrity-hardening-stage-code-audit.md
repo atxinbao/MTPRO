@@ -8,7 +8,7 @@
 
 `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening` 收口 v0.10.0 / v0.10.1 production readiness evidence 的本地运行时化和完整性加固。本阶段只允许本地 readiness artifact、manifest、checksum、bundle validation、Dashboard read-model、CLI local artifact commands、policy evidence、kill switch / no-trade state、approval workflow transitions 和 shadow dry-run parity evidence。
 
-本阶段不发布 `v0.11.0` GitHub Release，不创建 tag，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order。
+本 Stage Code Audit / #924 阶段本身不发布 `v0.11.0` GitHub Release，不创建 tag，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order。后续独立 Release Publication Gate 已创建 annotated tag 并发布 v0.11.0 public GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`，tag peeled commit：`13f592d0710de91351286e5c5490bfacb63c19b0`，publication timestamp：`2026-06-19T01:20:58Z`；该 publication 不授权 production cutover。
 
 ## Issue / PR Evidence
 
@@ -25,7 +25,7 @@
 | `#921` | Fixed-point capital / exposure policy | `CLOSED`, `done` | PR `#940` merged at `2026-06-18T21:03:46Z`; merge commit `8848e2b2658dc3a169a006b5bba9fb1b6aaf8b15` | `checks`, `linux-checks`, `dashboard-macos` SUCCESS |
 | `#922` | Kill switch / no-trade state model | `CLOSED`, `done` | PR `#941` merged at `2026-06-18T21:41:45Z`; merge commit `7e3875e617181fb4221aa0ab27ae7e7c9b98f5f4` | `checks`, `linux-checks`, `dashboard-macos` SUCCESS |
 | `#923` | Auditable approval workflow transitions | `CLOSED`, `done` | PR `#942` merged at `2026-06-18T22:34:30Z`; merge commit `c8bceafd87bc388d0a7299121f57a671d95f9ee2` | `checks`, `linux-checks`, `dashboard-macos` SUCCESS |
-| `#924` | Final validation suite / stage audit / release docs | this PR | This PR owns final v0.11.0 Stage Code Audit, release notes, root docs refresh, aggregate verifier guard and closeout test | This PR must pass `checks`, `linux-checks`, `dashboard-macos` before merge |
+| `#924` | Final validation suite / stage audit / release docs | `CLOSED`, `done` | PR `#943` merged at `2026-06-18T23:24:32Z`; merge commit `13f592d0710de91351286e5c5490bfacb63c19b0`; This PR owns final v0.11.0 Stage Code Audit, release notes, root docs refresh, aggregate verifier guard and closeout test | `checks`, `linux-checks`, `dashboard-macos` SUCCESS |
 
 ## Evidence Chain
 
@@ -111,10 +111,10 @@ bash checks/run.sh
 
 ## Known Residual Risk
 
-- `v0.11.0` is construction closeout only; there is no public GitHub Release publication in #924.
+- #924 is construction closeout only; public `v0.11.0` GitHub Release publication completed later through the separate Release Publication Gate at `https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`.
 - Production cutover remains separately gated and unauthorized.
-- A future release publication gate may create a tag and GitHub Release, but this Stage Code Audit does not authorize that action.
+- The later Release Publication Gate created the `v0.11.0` annotated tag and public GitHub Release, but this Stage Code Audit still does not authorize production cutover.
 
 ## Next Handoff
 
-After #924 merges, Parent Codex may verify #913 through #924 are closed / done, open PR count is zero, open active issue count is zero, `main == origin/main`, and the worktree is clean. Any public `v0.11.0` tag / GitHub Release requires a separate explicit release publication instruction.
+After #924 merged, Parent Codex verified #913 through #924 are closed / done, open PR count is zero, open active issue count is zero, `main == origin/main`, and the worktree is clean. The separate explicit release publication instruction has now published `v0.11.0`; no next Project / Issue or production cutover is authorized by this fact sync.
