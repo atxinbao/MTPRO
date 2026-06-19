@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0111-DASHBOARD-MACOS-V0110-GUARDS
+
+- TVM-RELEASE-V0111-DASHBOARD-MACOS-V0110-GUARDS
+- GH-946-VERIFY-V0111-DASHBOARD-MACOS-V0110-GUARDS
+- V0111-002-DASHBOARD-MACOS-V0110-GUARDS
+- V0111-002-READINESS-ARTIFACT-STATE-SURFACE
+- V0111-002-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+- V0111-002-NO-PRODUCTION-CUTOVER
+- GH-946 Release v0.11.1 Dashboard macOS v0.11 Focused Guard Validation
+- `bash checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh`
+- `swift test --filter AppTests/testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly`
+- `swift test --filter TargetGraphTests/testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors`
+- workflow evidence: required `dashboard-macos` job runs `checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh` after v0.10 Dashboard guard and before Dashboard build / smoke.
+- Boundary: v0.11.1 Dashboard macOS v0.11 guard 只固定 Dashboard readiness artifact state surface 和 required workflow 顺序；不读取 production secret，不连接 production endpoint / broker，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0111-RELEASE-FACT-SYNC-GUARD
 
 - TVM-RELEASE-V0111-RELEASE-FACT-SYNC-GUARD

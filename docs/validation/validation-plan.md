@@ -6,6 +6,19 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-946 Release v0.11.1 Dashboard macOS v0.11 Focused Guard Validation
+
+- `GH-946-VERIFY-V0111-DASHBOARD-MACOS-V0110-GUARDS`
+- `TVM-RELEASE-V0111-DASHBOARD-MACOS-V0110-GUARDS`
+- `V0111-002-DASHBOARD-MACOS-V0110-GUARDS`
+- `V0111-002-READINESS-ARTIFACT-STATE-SURFACE`
+- `V0111-002-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND`
+- `V0111-002-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh`
+- Focused tests: `testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly`、`testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors` 和 `testGH946DashboardMacOSV0110GuardRunsReadinessArtifactStateBeforeBuildAndSmoke`
+- Evidence files: `.github/workflows/checks.yml`、`checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh`、`checks/verify-v0.11.0.sh`、`checks/run.sh`、`Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift`、`Sources/Dashboard/DashboardShell.swift`、`Tests/AppTests/AppTests.swift` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-946 只让 required `dashboard-macos` job 在 Dashboard build / smoke 前执行 v0.11 verifier 与 Dashboard readiness artifact state focused guard；不新增 trading button、order form、live command、submit / cancel / replace、production endpoint / broker、production secret read、testnet order routing 或 production cutover。
+
 ## GH-945 Release v0.11.1 Release Fact Sync / Stale Wording Guard Validation
 
 - `GH-945-VERIFY-V0111-RELEASE-FACT-STALE-WORDING-GUARD`
