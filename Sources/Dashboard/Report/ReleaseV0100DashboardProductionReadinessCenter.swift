@@ -64,6 +64,22 @@ public enum ReleaseV0110DashboardProductionReadinessCenterArtifactStateAnchors {
     ]
 }
 
+/// ReleaseV0111DashboardReadinessArtifactInvariantAnchors 固定 GH-947 的 Dashboard invariant guard。
+///
+/// GH-947 只收紧本地 readiness artifact 的 checksum / state 映射规则；它不引入 endpoint、
+/// secret、broker command、testnet order 或 production cutover。
+public enum ReleaseV0111DashboardReadinessArtifactInvariantAnchors {
+    public static let validationAnchors = [
+        "GH-947-VERIFY-V0111-DASHBOARD-SHA256-STATE-INVARIANTS",
+        "TVM-RELEASE-V0111-DASHBOARD-SHA256-STATE-INVARIANTS",
+        "V0111-003-DASHBOARD-SHA256-STATE-INVARIANTS",
+        "V0111-003-STRICT-SHA256-LOWERCASE-HEX",
+        "V0111-003-VALID-STALE-INVALID-CHECKSUM-MAPPING",
+        "V0111-003-MISSING-BLOCKED-CHECKSUM-MISMATCH-FAIL-CLOSED",
+        "V0111-003-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
 /// ReleaseV0110DashboardReadinessArtifactStateInput 是 Dashboard 可消费的本地 artifact 状态行。
 ///
 /// 该类型故意保留在 Dashboard target 内，避免 Dashboard 直接依赖 ExecutionClient / FutureGate。
@@ -89,8 +105,31 @@ public struct ReleaseV0110DashboardReadinessArtifactStateInput:
         artifactID.isEmpty == false
             && Self.isSafeRelativePath(relativePath)
             && stateReason.isEmpty == false
-            && checksumReference.hasPrefix("sha256:")
+            && Self.isValidSHA256Reference(checksumReference)
             && stateEvidenceHeld
+    }
+
+    public static func isValidSHA256Reference(_ reference: String) -> Bool {
+        guard reference.hasPrefix("sha256:"), reference.count == 71 else {
+            return false
+        }
+        return reference
+            .dropFirst("sha256:".count)
+            .unicodeScalars
+            .allSatisfy { scalar in
+                (48...57).contains(scalar.value) || (97...102).contains(scalar.value)
+            }
+    }
+
+    public static func checksumMatchesInputState(
+        _ state: ReleaseV0110DashboardReadinessArtifactState
+    ) -> Bool {
+        switch state {
+        case .valid, .stale, .invalid:
+            true
+        case .checksumMismatch, .missing, .blocked, .notEvaluated:
+            false
+        }
     }
 
     public init(
@@ -115,12 +154,12 @@ public struct ReleaseV0110DashboardReadinessArtifactStateInput:
         switch state {
         case .valid:
             evidenceExists && checksumMatches
+        case .stale, .invalid:
+            evidenceExists && checksumMatches
         case .checksumMismatch:
             evidenceExists && checksumMatches == false
-        case .missing, .notEvaluated:
+        case .missing, .blocked, .notEvaluated:
             evidenceExists == false && checksumMatches == false
-        case .blocked, .stale, .invalid:
-            true
         }
     }
 
@@ -248,7 +287,7 @@ public struct ReleaseV0100DashboardProductionReadinessCenterCard:
             && title.isEmpty == false
             && statusLabel == artifactValidationState.dashboardStatusLabel
             && Self.allowedArtifactNames.contains(evidenceArtifact)
-            && checksumReference.hasPrefix("sha256:")
+            && ReleaseV0110DashboardReadinessArtifactStateInput.isValidSHA256Reference(checksumReference)
             && artifactStateReason.isEmpty == false
             && localArtifactStateBound
             && artifactEvidenceStateHeld
@@ -365,12 +404,12 @@ public struct ReleaseV0100DashboardProductionReadinessCenterCard:
         switch artifactValidationState {
         case .valid:
             artifactEvidenceExists && artifactChecksumMatches
+        case .stale, .invalid:
+            artifactEvidenceExists && artifactChecksumMatches
         case .checksumMismatch:
             artifactEvidenceExists && artifactChecksumMatches == false
-        case .missing, .notEvaluated:
+        case .missing, .blocked, .notEvaluated:
             artifactEvidenceExists == false && artifactChecksumMatches == false
-        case .blocked, .stale, .invalid:
-            true
         }
     }
 
@@ -691,13 +730,15 @@ public struct ReleaseV0100DashboardProductionReadinessCenterViewModel:
             )
         }
         return manifest.entries.map { entry in
-            ReleaseV0110DashboardReadinessArtifactStateInput(
+            let state = ReleaseV0110DashboardReadinessArtifactState(rawValue: entry.validationState) ?? .invalid
+            return ReleaseV0110DashboardReadinessArtifactStateInput(
                 artifactID: entry.artifactID,
                 relativePath: entry.relativePath,
-                state: ReleaseV0110DashboardReadinessArtifactState(rawValue: entry.validationState) ?? .invalid,
+                state: state,
                 evidenceExists: entry.evidenceExists,
                 checksumReference: entry.checksum,
-                checksumMatches: entry.validationState == ReleaseV0110DashboardReadinessArtifactState.valid.rawValue,
+                checksumMatches: ReleaseV0110DashboardReadinessArtifactStateInput
+                    .checksumMatchesInputState(state),
                 stateReason: entry.stateReason
             )
         }
@@ -814,70 +855,70 @@ public struct ReleaseV0100DashboardProductionReadinessCenterViewModel:
             sourceIssueID: "GH-878",
             title: "Readiness Overview",
             evidenceArtifact: "production-readiness-overview.json",
-            checksumReference: "sha256:gh890-readiness-overview"
+            checksumReference: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         ),
         ReleaseV0100DashboardProductionReadinessCenterCard(
             panel: .environmentProfile,
             sourceIssueID: "GH-880",
             title: "Environment Profile",
             evidenceArtifact: "production-environment-profile.json",
-            checksumReference: "sha256:gh890-environment-profile"
+            checksumReference: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         ),
         ReleaseV0100DashboardProductionReadinessCenterCard(
             panel: .secretReadiness,
             sourceIssueID: "GH-881",
             title: "Secret Readiness",
             evidenceArtifact: "secret-readiness.json",
-            checksumReference: "sha256:gh890-secret-readiness"
+            checksumReference: "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
         ),
         ReleaseV0100DashboardProductionReadinessCenterCard(
             panel: .endpointPolicy,
             sourceIssueID: "GH-882",
             title: "Endpoint Policy",
             evidenceArtifact: "endpoint-policy-readiness.json",
-            checksumReference: "sha256:gh890-endpoint-policy"
+            checksumReference: "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
         ),
         ReleaseV0100DashboardProductionReadinessCenterCard(
             panel: .riskCapitalLimits,
             sourceIssueID: "GH-883",
             title: "Risk / Capital Limits",
             evidenceArtifact: "capital-exposure-limits.json",
-            checksumReference: "sha256:gh890-risk-capital"
+            checksumReference: "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
         ),
         ReleaseV0100DashboardProductionReadinessCenterCard(
             panel: .killSwitchNoTrade,
             sourceIssueID: "GH-884",
             title: "Kill Switch / No-trade",
             evidenceArtifact: "kill-switch-no-trade-readiness.json",
-            checksumReference: "sha256:gh890-kill-switch-no-trade"
+            checksumReference: "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
         ),
         ReleaseV0100DashboardProductionReadinessCenterCard(
             panel: .commandSurfaceDisabled,
             sourceIssueID: "GH-885",
             title: "Command Surface Disabled",
             evidenceArtifact: "dashboard-production-surface-disabled.json",
-            checksumReference: "sha256:gh890-command-surface"
+            checksumReference: "sha256:1111111111111111111111111111111111111111111111111111111111111111"
         ),
         ReleaseV0100DashboardProductionReadinessCenterCard(
             panel: .shadowDryRunParity,
             sourceIssueID: "GH-886",
             title: "Shadow Dry-run Parity",
             evidenceArtifact: "shadow-dry-run-parity.json",
-            checksumReference: "sha256:gh890-shadow-dry-run"
+            checksumReference: "sha256:2222222222222222222222222222222222222222222222222222222222222222"
         ),
         ReleaseV0100DashboardProductionReadinessCenterCard(
             panel: .approvalWorkflow,
             sourceIssueID: "GH-888",
             title: "Approval Workflow",
             evidenceArtifact: "cutover-approval-workflow.json",
-            checksumReference: "sha256:gh890-approval-workflow"
+            checksumReference: "sha256:3333333333333333333333333333333333333333333333333333333333333333"
         ),
         ReleaseV0100DashboardProductionReadinessCenterCard(
             panel: .readinessBundle,
             sourceIssueID: "GH-887",
             title: "Readiness Bundle",
             evidenceArtifact: "production-readiness-bundle.json",
-            checksumReference: "sha256:gh890-readiness-bundle"
+            checksumReference: "sha256:4444444444444444444444444444444444444444444444444444444444444444"
         )
     ]
 }

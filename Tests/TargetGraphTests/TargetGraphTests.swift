@@ -28813,6 +28813,63 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH947DashboardSHA256AndReadinessStateInvariantsAreGuarded() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let dashboardSource = try read("Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift")
+        let appTests = try read("Tests/AppTests/AppTests.swift")
+        let dashboardGuardScript = try read("checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-947-VERIFY-V0111-DASHBOARD-SHA256-STATE-INVARIANTS",
+            "TVM-RELEASE-V0111-DASHBOARD-SHA256-STATE-INVARIANTS",
+            "V0111-003-DASHBOARD-SHA256-STATE-INVARIANTS",
+            "V0111-003-STRICT-SHA256-LOWERCASE-HEX",
+            "V0111-003-VALID-STALE-INVALID-CHECKSUM-MAPPING",
+            "V0111-003-MISSING-BLOCKED-CHECKSUM-MISMATCH-FAIL-CLOSED",
+            "V0111-003-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(dashboardSource.contains(anchor), "\(anchor) must stay in Dashboard source anchors")
+            XCTAssertTrue(appTests.contains(anchor), "\(anchor) must stay in AppTests evidence")
+            XCTAssertTrue(dashboardGuardScript.contains(anchor), "\(anchor) must stay in Dashboard macOS guard script")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+            XCTAssertTrue(readinessDoc.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        XCTAssertTrue(
+            dashboardGuardScript.contains(
+                "swift test --filter AppTests/testGH947DashboardReadinessArtifactStateInvariantsRequireStrictSHA256AndExplicitStateMapping"
+            )
+        )
+        XCTAssertTrue(dashboardSource.contains("ReleaseV0111DashboardReadinessArtifactInvariantAnchors"))
+        XCTAssertTrue(dashboardSource.contains("isValidSHA256Reference"))
+        XCTAssertTrue(dashboardSource.contains("checksumMatchesInputState"))
+        XCTAssertTrue(dashboardSource.contains("reference.count == 71"))
+        XCTAssertTrue(dashboardSource.contains("case .stale, .invalid:"))
+        XCTAssertTrue(dashboardSource.contains("case .missing, .blocked, .notEvaluated:"))
+        XCTAssertTrue(appTests.contains("sha256:<64 lowercase hex>"))
+        XCTAssertTrue(appTests.contains("uppercase checksum is not canonical"))
+        XCTAssertTrue(appTests.contains("checksum-mismatch cannot also match"))
+        XCTAssertTrue(appTests.contains("blocked readiness gate must fail closed without evidence"))
+        XCTAssertTrue(
+            readinessScript.contains(
+                "testGH947DashboardReadinessArtifactStateInvariantsRequireStrictSHA256AndExplicitStateMapping"
+            )
+        )
+        XCTAssertTrue(readinessDoc.contains("Release v0.11.1 Dashboard SHA-256 readiness state invariant anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-947 Release v0.11.1 Dashboard SHA-256 State Invariant Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0111-DASHBOARD-SHA256-STATE-INVARIANTS"))
+    }
+
     func testGH909CLIVerifyV0100WordingUsesReadinessContractReferenceEvidence() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

@@ -3635,8 +3635,8 @@ final class AppTests: XCTestCase {
             "cutover-approval-workflow.json": (.valid, true, true, "artifact valid"),
             "production-readiness-bundle.json": (.valid, true, true, "artifact valid")
         ]
-        let manifestEntries = cards.map { card -> String in
-            let state = try! XCTUnwrap(stateByArtifact[card.evidenceArtifact])
+        let manifestEntries = try cards.map { card -> String in
+            let state = try XCTUnwrap(stateByArtifact[card.evidenceArtifact])
             return """
             {
               "artifactID": "gh-919-\(card.panel.rawValue)",
@@ -3726,6 +3726,193 @@ final class AppTests: XCTestCase {
                 "V0110-007-MISSING-CORRUPT-STALE-CHECKSUM-MISMATCH",
                 "V0110-007-NO-STATIC-EVIDENCE-EXISTS",
                 "V0110-007-READ-ONLY-NO-PRODUCTION-CUTOVER"
+            ]
+        )
+    }
+
+    func testGH947DashboardReadinessArtifactStateInvariantsRequireStrictSHA256AndExplicitStateMapping() throws {
+        // 测试场景：GH-947 Dashboard v0.11 artifact state surface 必须使用严格
+        // `sha256:<64 lowercase hex>` reference，并对每个 readiness state 固定明确的
+        // evidence / checksum invariant。该测试只验证 read model，不授权 production cutover 或订单。
+        let checksum = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        XCTAssertTrue(ReleaseV0110DashboardReadinessArtifactStateInput.isValidSHA256Reference(checksum))
+        XCTAssertFalse(
+            ReleaseV0110DashboardReadinessArtifactStateInput.isValidSHA256Reference(
+                "sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            )
+        )
+        XCTAssertFalse(ReleaseV0110DashboardReadinessArtifactStateInput.isValidSHA256Reference("sha256:abc"))
+        XCTAssertFalse(
+            ReleaseV0110DashboardReadinessArtifactStateInput.isValidSHA256Reference(
+                "md5:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            )
+        )
+
+        let cards = ReleaseV0100DashboardProductionReadinessCenterViewModel.defaultReadinessCards
+        let stateByArtifact: [String: (ReleaseV0110DashboardReadinessArtifactState, Bool, String)] = [
+            "production-readiness-overview.json": (.valid, true, "artifact valid"),
+            "production-environment-profile.json": (.stale, true, "stale artifact with matching checksum"),
+            "secret-readiness.json": (.invalid, true, "schema invalid with matching checksum"),
+            "endpoint-policy-readiness.json": (.checksumMismatch, true, "checksum mismatch"),
+            "capital-exposure-limits.json": (.missing, false, "missing local readiness artifact"),
+            "kill-switch-no-trade-readiness.json": (.blocked, false, "artifact blocked by readiness gate"),
+            "dashboard-production-surface-disabled.json": (.valid, true, "artifact valid"),
+            "shadow-dry-run-parity.json": (.stale, true, "stale artifact with matching checksum"),
+            "cutover-approval-workflow.json": (.invalid, true, "schema invalid with matching checksum"),
+            "production-readiness-bundle.json": (.checksumMismatch, true, "checksum mismatch")
+        ]
+        let manifestEntries = try cards.map { card -> String in
+            let state = try XCTUnwrap(stateByArtifact[card.evidenceArtifact])
+            return """
+            {
+              "artifactID": "gh-947-\(card.panel.rawValue)",
+              "relativePath": "runs/gh-947/\(card.evidenceArtifact)",
+              "checksum": "\(checksum)",
+              "validationState": "\(state.0.rawValue)",
+              "evidenceExists": \(state.1),
+              "stateReason": "\(state.2)"
+            }
+            """
+        }
+        let manifestJSON = """
+        {
+          "entries": [
+            \(manifestEntries.joined(separator: ",\n"))
+          ],
+          "productionTradingEnabledByDefault": false,
+          "productionSecretRead": false,
+          "productionEndpointConnected": false,
+          "brokerEndpointConnected": false,
+          "productionOrderSubmitted": false,
+          "testnetOrderSubmissionAllowed": false,
+          "productionCutoverAuthorized": false
+        }
+        """
+        let artifactStates = try ReleaseV0100DashboardProductionReadinessCenterViewModel
+            .artifactStates(fromReadinessManifestJSON: Data(manifestJSON.utf8))
+        let statesByFileName = Dictionary(uniqueKeysWithValues: artifactStates.map { ($0.fileName, $0) })
+
+        XCTAssertEqual(statesByFileName["production-readiness-overview.json"]?.checksumMatches, true)
+        XCTAssertEqual(statesByFileName["production-environment-profile.json"]?.checksumMatches, true)
+        XCTAssertEqual(statesByFileName["secret-readiness.json"]?.checksumMatches, true)
+        XCTAssertEqual(statesByFileName["endpoint-policy-readiness.json"]?.checksumMatches, false)
+        XCTAssertEqual(statesByFileName["capital-exposure-limits.json"]?.checksumMatches, false)
+        XCTAssertEqual(statesByFileName["kill-switch-no-trade-readiness.json"]?.checksumMatches, false)
+        XCTAssertTrue(artifactStates.allSatisfy(\.inputHeld))
+
+        let bundleJSON = """
+        {
+          "policyVersion": "v0.11.1-dashboard-state-invariants",
+          "state": "valid",
+          "requiredArtifactIDs": ["gh-947-production-readiness-overview"],
+          "manifestArtifactIDs": ["gh-947-production-readiness-overview"],
+          "missingRequiredArtifactIDs": [],
+          "unexpectedArtifactIDs": [],
+          "stateReason": "dashboard state invariants held",
+          "productionTradingEnabledByDefault": false,
+          "productionSecretRead": false,
+          "productionEndpointConnected": false,
+          "brokerEndpointConnected": false,
+          "productionOrderSubmitted": false,
+          "testnetOrderSubmissionAllowed": false,
+          "productionCutoverAuthorized": false
+        }
+        """
+        let bundleState = try ReleaseV0100DashboardProductionReadinessCenterViewModel
+            .bundleState(fromBundleValidationJSON: Data(bundleJSON.utf8))
+        let surface = ReleaseV0100DashboardProductionReadinessCenterViewModel.localArtifactStateFixture(
+            artifactStates: artifactStates,
+            bundleState: bundleState,
+            source: "gh-947-dashboard-state-invariants"
+        )
+
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertTrue(surface.readinessCards.allSatisfy(\.cardHeld))
+        XCTAssertEqual(metricValue("Readiness bundle state", in: surface.metrics), "valid")
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretAutoReadEnabled)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionOrderSubmitted)
+
+        let invalidCases: [ReleaseV0110DashboardReadinessArtifactStateInput] = [
+            ReleaseV0110DashboardReadinessArtifactStateInput(
+                artifactID: "gh-947-bad-checksum",
+                relativePath: "runs/gh-947/bad-checksum.json",
+                state: .valid,
+                evidenceExists: true,
+                checksumReference: "sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                checksumMatches: true,
+                stateReason: "uppercase checksum is not canonical"
+            ),
+            ReleaseV0110DashboardReadinessArtifactStateInput(
+                artifactID: "gh-947-valid-no-evidence",
+                relativePath: "runs/gh-947/valid-no-evidence.json",
+                state: .valid,
+                evidenceExists: false,
+                checksumReference: checksum,
+                checksumMatches: true,
+                stateReason: "valid requires evidence"
+            ),
+            ReleaseV0110DashboardReadinessArtifactStateInput(
+                artifactID: "gh-947-stale-no-evidence",
+                relativePath: "runs/gh-947/stale-no-evidence.json",
+                state: .stale,
+                evidenceExists: false,
+                checksumReference: checksum,
+                checksumMatches: true,
+                stateReason: "stale requires existing evidence"
+            ),
+            ReleaseV0110DashboardReadinessArtifactStateInput(
+                artifactID: "gh-947-mismatch-with-match",
+                relativePath: "runs/gh-947/mismatch-with-match.json",
+                state: .checksumMismatch,
+                evidenceExists: true,
+                checksumReference: checksum,
+                checksumMatches: true,
+                stateReason: "checksum-mismatch cannot also match"
+            ),
+            ReleaseV0110DashboardReadinessArtifactStateInput(
+                artifactID: "gh-947-missing-with-evidence",
+                relativePath: "runs/gh-947/missing-with-evidence.json",
+                state: .missing,
+                evidenceExists: true,
+                checksumReference: checksum,
+                checksumMatches: false,
+                stateReason: "missing cannot have evidence"
+            ),
+            ReleaseV0110DashboardReadinessArtifactStateInput(
+                artifactID: "gh-947-invalid-without-match",
+                relativePath: "runs/gh-947/invalid-without-match.json",
+                state: .invalid,
+                evidenceExists: true,
+                checksumReference: checksum,
+                checksumMatches: false,
+                stateReason: "invalid is schema invalid, not checksum mismatch"
+            ),
+            ReleaseV0110DashboardReadinessArtifactStateInput(
+                artifactID: "gh-947-blocked-with-evidence",
+                relativePath: "runs/gh-947/blocked-with-evidence.json",
+                state: .blocked,
+                evidenceExists: true,
+                checksumReference: checksum,
+                checksumMatches: false,
+                stateReason: "blocked readiness gate must fail closed without evidence"
+            )
+        ]
+        XCTAssertTrue(invalidCases.allSatisfy { $0.inputHeld == false })
+
+        XCTAssertEqual(
+            ReleaseV0111DashboardReadinessArtifactInvariantAnchors.validationAnchors,
+            [
+                "GH-947-VERIFY-V0111-DASHBOARD-SHA256-STATE-INVARIANTS",
+                "TVM-RELEASE-V0111-DASHBOARD-SHA256-STATE-INVARIANTS",
+                "V0111-003-DASHBOARD-SHA256-STATE-INVARIANTS",
+                "V0111-003-STRICT-SHA256-LOWERCASE-HEX",
+                "V0111-003-VALID-STALE-INVALID-CHECKSUM-MAPPING",
+                "V0111-003-MISSING-BLOCKED-CHECKSUM-MISMATCH-FAIL-CLOSED",
+                "V0111-003-NO-PRODUCTION-CUTOVER"
             ]
         )
     }

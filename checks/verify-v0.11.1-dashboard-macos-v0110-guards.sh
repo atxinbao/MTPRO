@@ -7,6 +7,13 @@ set -euo pipefail
 # V0111-002-READINESS-ARTIFACT-STATE-SURFACE
 # V0111-002-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
 # V0111-002-NO-PRODUCTION-CUTOVER
+# GH-947-VERIFY-V0111-DASHBOARD-SHA256-STATE-INVARIANTS
+# TVM-RELEASE-V0111-DASHBOARD-SHA256-STATE-INVARIANTS
+# V0111-003-DASHBOARD-SHA256-STATE-INVARIANTS
+# V0111-003-STRICT-SHA256-LOWERCASE-HEX
+# V0111-003-VALID-STALE-INVALID-CHECKSUM-MAPPING
+# V0111-003-MISSING-BLOCKED-CHECKSUM-MISMATCH-FAIL-CLOSED
+# V0111-003-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -60,6 +67,7 @@ PY
 
 bash checks/verify-v0.11.0.sh
 swift test --filter AppTests/testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly
+swift test --filter AppTests/testGH947DashboardReadinessArtifactStateInvariantsRequireStrictSHA256AndExplicitStateMapping
 swift test --filter TargetGraphTests/testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
@@ -75,7 +83,14 @@ for anchor in \
   "V0111-002-DASHBOARD-MACOS-V0110-GUARDS" \
   "V0111-002-READINESS-ARTIFACT-STATE-SURFACE" \
   "V0111-002-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND" \
-  "V0111-002-NO-PRODUCTION-CUTOVER"; do
+  "V0111-002-NO-PRODUCTION-CUTOVER" \
+  "GH-947-VERIFY-V0111-DASHBOARD-SHA256-STATE-INVARIANTS" \
+  "TVM-RELEASE-V0111-DASHBOARD-SHA256-STATE-INVARIANTS" \
+  "V0111-003-DASHBOARD-SHA256-STATE-INVARIANTS" \
+  "V0111-003-STRICT-SHA256-LOWERCASE-HEX" \
+  "V0111-003-VALID-STALE-INVALID-CHECKSUM-MAPPING" \
+  "V0111-003-MISSING-BLOCKED-CHECKSUM-MISMATCH-FAIL-CLOSED" \
+  "V0111-003-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$0" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -85,12 +100,17 @@ done
 
 require_file_contains "$DASHBOARD_SOURCE" "GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE"
 require_file_contains "$DASHBOARD_SOURCE" "ReleaseV0110DashboardReadinessArtifactState"
+require_file_contains "$DASHBOARD_SOURCE" "ReleaseV0111DashboardReadinessArtifactInvariantAnchors"
+require_file_contains "$DASHBOARD_SOURCE" "isValidSHA256Reference"
+require_file_contains "$DASHBOARD_SOURCE" "checksumMatchesInputState"
 require_file_contains "$DASHBOARD_SOURCE" "artifactStates(fromReadinessManifestJSON data: Data)"
 require_file_contains "$DASHBOARD_SOURCE" "bundleState(fromBundleValidationJSON data: Data)"
 require_file_contains "$DASHBOARD_SOURCE" "checksum-mismatch"
 require_file_contains "$DASHBOARD_SHELL" "releaseV0100ProductionReadinessCenter.boundaryHeld"
 require_file_contains "$APP_TESTS" "testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly"
+require_file_contains "$APP_TESTS" "testGH947DashboardReadinessArtifactStateInvariantsRequireStrictSHA256AndExplicitStateMapping"
 require_file_contains "$TARGET_TESTS" "testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors"
+require_file_contains "$TARGET_TESTS" "testGH947DashboardSHA256AndReadinessStateInvariantsAreGuarded"
 
 for forbidden in \
   "productionCutoverAuthorized=true" \
