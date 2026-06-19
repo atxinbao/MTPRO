@@ -29935,6 +29935,118 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(valid.productionCapabilitiesDisabled)
     }
 
+    func testGH949ProductionReadinessArtifactStoreEnforcesOwnerOnlyPermissions() throws {
+        XCTAssertEqual(ProductionReadinessArtifactPermissionAnchors.validationAnchors, [
+            "GH-949-VERIFY-V0111-READINESS-ARTIFACT-PERMISSIONS",
+            "TVM-RELEASE-V0111-READINESS-ARTIFACT-PERMISSIONS",
+            "V0111-005-OWNER-ONLY-DIRECTORIES",
+            "V0111-005-OWNER-ONLY-FILES",
+            "V0111-005-PERMISSION-REPAIR",
+            "V0111-005-NO-PRODUCTION-CUTOVER"
+        ])
+        XCTAssertEqual(ProductionReadinessArtifactStore.ownerOnlyDirectoryPermissions, 0o700)
+        XCTAssertEqual(ProductionReadinessArtifactStore.ownerOnlyFilePermissions, 0o600)
+
+        let fileManager = FileManager.default
+        let tempRoot = fileManager.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH949-ArtifactPermissions-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        let evidenceRoot = tempRoot.appendingPathComponent("approved-root", isDirectory: true)
+        let broadDirectory = evidenceRoot.appendingPathComponent("broad/permissions", isDirectory: true)
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: tempRoot)
+        }
+        try fileManager.createDirectory(at: broadDirectory, withIntermediateDirectories: true)
+        try fileManager.setAttributes([.posixPermissions: 0o777], ofItemAtPath: evidenceRoot.path)
+        try fileManager.setAttributes([.posixPermissions: 0o777], ofItemAtPath: broadDirectory.path)
+
+        func permissionBits(_ url: URL) throws -> Int {
+            let attributes = try fileManager.attributesOfItem(atPath: url.path)
+            guard let permissions = attributes[.posixPermissions] as? NSNumber else {
+                XCTFail("expected POSIX permissions for \(url.path)")
+                return -1
+            }
+            return permissions.intValue & 0o777
+        }
+
+        let store = try ProductionReadinessArtifactStore(evidenceRootURL: evidenceRoot)
+        let descriptor = try ProductionReadinessArtifactDescriptor(
+            artifactID: Identifier.constant("gh-949-readiness-artifact"),
+            relativePath: "broad/permissions/readiness.json",
+            artifactType: .jsonEvidence,
+            staleAfterSeconds: 120
+        )
+        let modifiedAt = Date(timeIntervalSince1970: 1_800_111_000)
+        let payload = """
+        {
+          "artifactID": "gh-949-readiness-artifact",
+          "releaseVersion": "v0.11.1",
+          "productionTradingEnabledByDefault": false,
+          "productionCutoverAuthorized": false,
+          "productionSecretRead": false,
+          "productionEndpointConnected": false,
+          "brokerEndpointConnected": false,
+          "productionOrderSubmitted": false,
+          "testnetOrderSubmissionAllowed": false
+        }
+        """
+
+        let record = try store.writeStringArtifact(
+            descriptor: descriptor,
+            string: payload,
+            modifiedAt: modifiedAt
+        )
+
+        XCTAssertEqual(record.state, .valid)
+        XCTAssertTrue(record.productionCapabilitiesDisabled)
+        XCTAssertEqual(try permissionBits(evidenceRoot), 0o700)
+        XCTAssertEqual(try permissionBits(evidenceRoot.appendingPathComponent("broad", isDirectory: true)), 0o700)
+        XCTAssertEqual(try permissionBits(broadDirectory), 0o700)
+        XCTAssertEqual(try permissionBits(URL(fileURLWithPath: record.absolutePath)), 0o600)
+        XCTAssertEqual(record.modifiedAt, modifiedAt)
+    }
+
+    func testGH949ReadinessArtifactPermissionGuardAnchors() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+        let verifier = try read("checks/verify-v0.11.1-readiness-artifact-permissions.sh")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in ProductionReadinessArtifactPermissionAnchors.validationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in artifact store source")
+            XCTAssertTrue(tests.contains(anchor), "\(anchor) must stay in focused tests")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.11.1 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        XCTAssertTrue(source.contains("ProductionReadinessArtifactPermissionAnchors"))
+        XCTAssertTrue(source.contains("ownerOnlyDirectoryPermissions"))
+        XCTAssertTrue(source.contains("ownerOnlyFilePermissions"))
+        XCTAssertTrue(source.contains("enforceOwnerOnlyDirectoryPermissions"))
+        XCTAssertTrue(source.contains("enforceOwnerOnlyFilePermissions"))
+        XCTAssertTrue(source.contains(".posixPermissions"))
+        XCTAssertTrue(tests.contains("testGH949ProductionReadinessArtifactStoreEnforcesOwnerOnlyPermissions"))
+        XCTAssertTrue(verifier.contains("testGH949ProductionReadinessArtifactStoreEnforcesOwnerOnlyPermissions"))
+        XCTAssertTrue(verifier.contains("testGH949ReadinessArtifactPermissionGuardAnchors"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1-readiness-artifact-permissions.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.11.1 readiness artifact permission guard anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-949 Release v0.11.1 Readiness Artifact Permission Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0111-READINESS-ARTIFACT-PERMISSIONS"))
+    }
+
     func testGH948ReadinessArtifactSymlinkRootGuardAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
