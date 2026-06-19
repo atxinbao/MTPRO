@@ -28732,6 +28732,87 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH946DashboardMacOSV0110GuardRunsReadinessArtifactStateBeforeBuildAndSmoke() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let workflowSource = try read(".github/workflows/checks.yml")
+        let dashboardGuardScript = try read("checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let dashboardSource = try read("Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift")
+        let dashboardShell = try read("Sources/Dashboard/DashboardShell.swift")
+
+        for anchor in [
+            "GH-946-VERIFY-V0111-DASHBOARD-MACOS-V0110-GUARDS",
+            "TVM-RELEASE-V0111-DASHBOARD-MACOS-V0110-GUARDS",
+            "V0111-002-DASHBOARD-MACOS-V0110-GUARDS",
+            "V0111-002-READINESS-ARTIFACT-STATE-SURFACE",
+            "V0111-002-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND",
+            "V0111-002-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(dashboardGuardScript.contains(anchor), "\(anchor) must be enforced by the #946 guard")
+            XCTAssertTrue(readinessDoc.contains(anchor), "\(anchor) must be documented in automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+        }
+
+        XCTAssertTrue(workflowSource.contains("Verify v0.10.0 Dashboard macOS focused guards"))
+        XCTAssertTrue(workflowSource.contains("Verify v0.11.0 Dashboard macOS focused guards"))
+        XCTAssertTrue(workflowSource.contains("bash checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh"))
+        let v0100GuardIndex = try XCTUnwrap(
+            workflowSource.range(of: "Verify v0.10.0 Dashboard macOS focused guards")?.lowerBound
+        )
+        let v0110GuardIndex = try XCTUnwrap(
+            workflowSource.range(of: "Verify v0.11.0 Dashboard macOS focused guards")?.lowerBound
+        )
+        let buildIndex = try XCTUnwrap(workflowSource.range(of: "Build Dashboard")?.lowerBound)
+        let smokeIndex = try XCTUnwrap(workflowSource.range(of: "Run Dashboard smoke")?.lowerBound)
+        XCTAssertLessThan(v0100GuardIndex, v0110GuardIndex)
+        XCTAssertLessThan(v0110GuardIndex, buildIndex)
+        XCTAssertLessThan(v0110GuardIndex, smokeIndex)
+
+        for requiredCommand in [
+            "bash checks/verify-v0.11.0.sh",
+            "swift test --filter AppTests/testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly",
+            "swift test --filter TargetGraphTests/testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors",
+            "swift build --product Dashboard",
+            "DASHBOARD_SMOKE=1 swift run Dashboard"
+        ] {
+            XCTAssertTrue(dashboardGuardScript.contains(requiredCommand), "\(requiredCommand) must run in v0.11 macOS guard")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.11.1-dashboard-macos-v0110-guards.sh"))
+        XCTAssertTrue(readinessScript.contains("testGH946DashboardMacOSV0110GuardRunsReadinessArtifactStateBeforeBuildAndSmoke"))
+        XCTAssertTrue(dashboardSource.contains("GH-919-VERIFY-V0110-DASHBOARD-REAL-ARTIFACT-STATE"))
+        XCTAssertTrue(dashboardSource.contains("ReleaseV0110DashboardReadinessArtifactState"))
+        XCTAssertTrue(dashboardSource.contains("artifactStates(fromReadinessManifestJSON data: Data)"))
+        XCTAssertTrue(dashboardSource.contains("bundleState(fromBundleValidationJSON data: Data)"))
+        XCTAssertTrue(dashboardSource.contains("checksum-mismatch"))
+        XCTAssertTrue(dashboardShell.contains("releaseV0100ProductionReadinessCenter.boundaryHeld"))
+
+        for forbidden in [
+            "productionCutoverAuthorized=true",
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "swift run mtpro submit",
+            "swift run mtpro cancel",
+            "swift run mtpro replace"
+        ] {
+            XCTAssertFalse(workflowSource.contains(forbidden), "\(forbidden) must stay out of dashboard-macos workflow")
+        }
+    }
+
     func testGH909CLIVerifyV0100WordingUsesReadinessContractReferenceEvidence() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
