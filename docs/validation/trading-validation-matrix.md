@@ -3119,7 +3119,7 @@
 - validation surface: #996 consumes #995 local evidence root and derives normal manifest sourceCommit, sourceRunIDs, artifact bytes and artifact checksums from real local files
 - CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` preserves Manifest V2 provenance only after source provenance is local, traceable and non-synthetic
 - fail-closed evidence: placeholder sourceCommit, `gh-963-source-run`, `source-run-*` synthetic run IDs, missing artifact file, artifact metadata mismatch and fixture-only evidence are rejected
-- dependency evidence: #996 is complete; #997 is the active build pipeline gate after fresh WIP=1 preflight
+- dependency evidence: #996 and #997 are complete; #998 is the active evidence-chain validate gate after fresh WIP=1 preflight
 - forbidden scope: no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
 
 ## TVM-RELEASE-V0130-BUILD-PIPELINE
@@ -3136,5 +3136,22 @@
 - validation surface: #997 consumes #995 local evidence root and #996 provenance, then validates schema, raw artifact checksum, content policy, Manifest V2, Bundle V2 and local registry entry consistency
 - CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` emits `validationReportChecksum`, writes Manifest V2, writes Bundle V2 and confirms the local registry entry
 - fail-closed evidence: schema failure, checksum mismatch, placeholder sourceCommit, synthetic sourceRunID, fixture-only evidence and raw endpoint marker evidence are rejected
-- dependency evidence: #998 through #1005 remain blocked by #997 until this build pipeline PR is merged and #997 is closed / done
+- dependency evidence: #997 is complete; #999 through #1005 remain blocked by #998 until the validate PR is merged and #998 is closed / done
 - forbidden scope: no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE
+
+- GH-998-VERIFY-V0130-EVIDENCE-CHAIN-VALIDATE
+- V0130-005-REGISTRY-MANIFEST-BUNDLE-CONSISTENCY
+- V0130-005-ARTIFACT-POLICY-CHECKSUM-PROVENANCE
+- V0130-005-EXPORT-COMPARISON-IDENTITY
+- V0130-005-MISSING-STALE-TAMPERED-FAILS-CLOSED
+- V0130-005-NO-PRODUCTION-CUTOVER
+- GH-998 Release v0.13.0 Evidence-chain Validate Validation
+- testGH998ReleaseV0130ValidateRejectsBrokenEvidenceChain
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: #998 consumes the #997 local registry / Manifest V2 / Bundle V2 / bundle manifest output and verifies registry, manifest, bundle, artifact snapshot, content checksum, source provenance and optional export / comparison identity coherence
+- CLI surface: `mtpro readiness validate <assessmentID>` emits `evidenceChainCoherent`, `failureReasons`, `bundleBytesMatchManifest`, `artifactSnapshotsMatchManifest`, `contentValidationChecksumsPresent` and `exportComparisonIdentityConsistent`
+- fail-closed evidence: missing registry, tampered bundle bytes and artifact snapshot / Manifest V2 checksum mismatch return blocked validation with explicit failure reasons
+- dependency evidence: #999 through #1005 remain blocked by #998 until this validate PR is merged and #998 is closed / done
+- forbidden scope: no diff / compare, no redacted export package, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

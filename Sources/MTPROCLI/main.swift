@@ -2395,16 +2395,44 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
                 && manifest.artifactBytes == localEvidenceArtifact.artifactBytes
                 && manifest.sourceRunIDs == [localEvidenceArtifact.sourceRunID]
         }()
-        let validationState = manifest?.manifestHeld == true && artifactEvidenceMatchesManifest ? "valid" : "blocked"
+        let evidenceChainReport = try ReleaseV0130LocalEvidenceIntakeModel(
+            fileManager: store.fileManager
+        ).validateEvidenceChain(
+            assessmentID: entry.assessmentID,
+            store: store
+        )
         return (baseOutput(action: action, entry: entry, mutationApplied: false) + [
+            "issue=GH-998",
+            "v013ValidationAnchor=GH-998-VERIFY-V0130-EVIDENCE-CHAIN-VALIDATE",
+            "v013MatrixAnchor=TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE",
+            "v013ConsistencyAnchor=V0130-005-REGISTRY-MANIFEST-BUNDLE-CONSISTENCY",
+            "v013ArtifactPolicyAnchor=V0130-005-ARTIFACT-POLICY-CHECKSUM-PROVENANCE",
+            "v013ExportComparisonAnchor=V0130-005-EXPORT-COMPARISON-IDENTITY",
+            "v013FailClosedAnchor=V0130-005-MISSING-STALE-TAMPERED-FAILS-CLOSED",
+            "v013NoCutoverAnchor=V0130-005-NO-PRODUCTION-CUTOVER",
             "assessmentIDValid=true",
             "registryEntryHeld=\(entry.entryHeld)",
             "manifestV2Present=\(manifest != nil)",
             "manifestHeld=\(manifest?.manifestHeld ?? false)",
             "artifactEvidencePresent=\(localEvidenceArtifact != nil)",
             "artifactEvidenceMatchesManifest=\(artifactEvidenceMatchesManifest)",
+            "registryDocumentHeld=\(evidenceChainReport.registryDocumentHeld)",
+            "bundleV2Present=\(evidenceChainReport.bundleV2Present)",
+            "bundleHeld=\(evidenceChainReport.bundleHeld)",
+            "bundleManifestPresent=\(evidenceChainReport.bundleManifestPresent)",
+            "bundleManifestHeld=\(evidenceChainReport.bundleManifestHeld)",
+            "bundleBytesMatchManifest=\(evidenceChainReport.bundleBytesMatchManifest)",
+            "registryManifestAssessmentMatches=\(evidenceChainReport.registryManifestAssessmentMatches)",
+            "manifestBundleIdentityMatches=\(evidenceChainReport.manifestBundleIdentityMatches)",
+            "manifestBundleProvenanceMatches=\(evidenceChainReport.manifestBundleProvenanceMatches)",
+            "artifactSnapshotsPresent=\(evidenceChainReport.artifactSnapshotsPresent)",
+            "artifactSnapshotsMatchManifest=\(evidenceChainReport.artifactSnapshotsMatchManifest)",
+            "contentValidationChecksumsPresent=\(evidenceChainReport.contentValidationChecksumsPresent)",
+            "exportComparisonIdentityConsistent=\(evidenceChainReport.exportComparisonIdentityConsistent)",
+            "evidenceChainCoherent=\(evidenceChainReport.evidenceChainCoherent)",
+            "failureReasons=\(evidenceChainReport.failureReasons.isEmpty ? "none" : evidenceChainReport.failureReasons.joined(separator: ","))",
             "productionCapabilitiesDisabled=\(entry.productionCapabilitiesDisabled)",
-            "validationState=\(validationState)",
+            "validationState=\(evidenceChainReport.validationState)",
             "invalidAssessmentIDsFailClosed=true",
             "localRegistryStoreOnly=true",
             "boundaryHeld=true"

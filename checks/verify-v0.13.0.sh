@@ -31,6 +31,13 @@ set -euo pipefail
 # V0130-004-PROVENANCE-VALIDATION-REPORT
 # V0130-004-BUILD-FAILS-CLOSED
 # V0130-004-NO-PRODUCTION-CUTOVER
+# GH-998-VERIFY-V0130-EVIDENCE-CHAIN-VALIDATE
+# TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE
+# V0130-005-REGISTRY-MANIFEST-BUNDLE-CONSISTENCY
+# V0130-005-ARTIFACT-POLICY-CHECKSUM-PROVENANCE
+# V0130-005-EXPORT-COMPARISON-IDENTITY
+# V0130-005-MISSING-STALE-TAMPERED-FAILS-CLOSED
+# V0130-005-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -81,6 +88,7 @@ swift test --filter TargetGraphTests/testGH994ReleaseV0130LocalEvidenceReadiness
 swift test --filter TargetGraphTests/testGH995ReleaseV0130LocalEvidenceIntakeModelDiscoversValidRootAndFailsClosed
 swift test --filter TargetGraphTests/testGH996ReleaseV0130ProvenanceBuildRejectsSyntheticAndFixtureEvidence
 swift test --filter TargetGraphTests/testGH997ReleaseV0130BuildPipelineWritesManifestBundleRegistryAndPolicyReport
+swift test --filter TargetGraphTests/testGH998ReleaseV0130ValidateRejectsBrokenEvidenceChain
 
 for anchor in \
   "GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT" \
@@ -158,24 +166,47 @@ for anchor in \
   require_file_contains "$TESTS" "$anchor"
 done
 
+for anchor in \
+  "GH-998-VERIFY-V0130-EVIDENCE-CHAIN-VALIDATE" \
+  "TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE" \
+  "V0130-005-REGISTRY-MANIFEST-BUNDLE-CONSISTENCY" \
+  "V0130-005-ARTIFACT-POLICY-CHECKSUM-PROVENANCE" \
+  "V0130-005-EXPORT-COMPARISON-IDENTITY" \
+  "V0130-005-MISSING-STALE-TAMPERED-FAILS-CLOSED" \
+  "V0130-005-NO-PRODUCTION-CUTOVER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$SOURCE" "$anchor"
+  require_file_contains "$CLI_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
 require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.13.0.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.13.0.sh"
 require_file_contains "$READINESS" "Release v0.13.0 local evidence-driven readiness engine contract anchor"
 require_file_contains "$READINESS" "Release v0.13.0 local evidence intake model anchor"
 require_file_contains "$READINESS" "Release v0.13.0 synthetic provenance rejection anchor"
 require_file_contains "$READINESS" "Release v0.13.0 build pipeline anchor"
+require_file_contains "$READINESS" "Release v0.13.0 evidence-chain validate anchor"
 require_file_contains "$PLAN" "GH-994 Release v0.13.0 Local Evidence-driven Readiness Engine Contract Validation"
 require_file_contains "$PLAN" "GH-995 Release v0.13.0 Local Evidence Intake Model Validation"
 require_file_contains "$PLAN" "GH-996 Release v0.13.0 Synthetic Provenance Rejection Validation"
 require_file_contains "$PLAN" "GH-997 Release v0.13.0 Build Pipeline Validation"
+require_file_contains "$PLAN" "GH-998 Release v0.13.0 Evidence-chain Validate Validation"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-INTAKE-MODEL"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-BUILD-PIPELINE"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE"
 require_file_contains "$LATEST" "v0.13.0 local evidence-driven readiness engine contract"
 require_file_contains "$LATEST" "v0.13.0 local evidence intake model"
 require_file_contains "$LATEST" "v0.13.0 synthetic provenance rejection"
 require_file_contains "$LATEST" "v0.13.0 build pipeline"
+require_file_contains "$LATEST" "v0.13.0 evidence-chain validate"
 require_file_contains "$ROADMAP" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
 require_file_contains "$GOAL" "release/v0.13.0"
 require_file_contains "$BLUEPRINT" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
@@ -191,6 +222,8 @@ require_file_contains "$SOURCE" "ReleaseV0130LocalEvidenceBuildProvenance"
 require_file_contains "$SOURCE" "buildProvenance(evidenceRootURL:"
 require_file_contains "$SOURCE" "ReleaseV0130LocalEvidenceBuildPipelineResult"
 require_file_contains "$SOURCE" "buildPipeline("
+require_file_contains "$SOURCE" "ReleaseV0130LocalEvidenceChainValidationReport"
+require_file_contains "$SOURCE" "validateEvidenceChain("
 require_file_contains "$SOURCE" "syntheticSourceRunID"
 require_file_contains "$SOURCE" "fixtureOnlyEvidence"
 require_file_contains "$CLI_SOURCE" "readiness intake <evidenceRoot>"
@@ -202,6 +235,8 @@ require_file_contains "$CLI_SOURCE" "fixtureOnlyEvidenceRejected=true"
 require_file_contains "$CLI_SOURCE" "validationReportChecksum="
 require_file_contains "$CLI_SOURCE" "readinessBundleWritten=true"
 require_file_contains "$CLI_SOURCE" "registryEntryConfirmed=true"
+require_file_contains "$CLI_SOURCE" "evidenceChainCoherent="
+require_file_contains "$CLI_SOURCE" "failureReasons="
 
 for required_contract_string in \
   "artifact -> policy -> manifest -> bundle -> registry -> diff" \
@@ -225,6 +260,15 @@ for required_intake_string in \
   "read-only local intake diagnostics" \
   "不写 registry、不生成 bundle、不执行 diff"; do
   require_file_contains "$CONTRACT" "$required_intake_string"
+done
+
+for required_validate_string in \
+  "readiness validate <assessmentID>" \
+  "registry / manifest / bundle / artifact / policy / checksum / provenance" \
+  "missing、stale、tampered、inconsistent evidence" \
+  "export / comparison identity" \
+  "完整 evidence chain"; do
+  require_file_contains "$CONTRACT" "$required_validate_string"
 done
 
 fixture_root="$(mktemp -d)"
@@ -318,6 +362,32 @@ printf '%s\n' "$build_output" | grep -Fq "artifactRelativePaths=artifacts/readin
 printf '%s\n' "$build_output" | grep -Fq "syntheticProvenanceRejected=true" || fail "build-v013 must reject synthetic provenance by contract"
 printf '%s\n' "$build_output" | grep -Fq "fixtureOnly=false" || fail "build-v013 normal manifest must not be fixture-only"
 printf '%s\n' "$build_output" | grep -Fq "productionCutoverAuthorized=false" || fail "build-v013 must not authorize production cutover"
+
+validate_output="$(MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness validate gh-996-assessment)"
+printf '%s\n' "$validate_output" | grep -Fq "issue=GH-998" || fail "readiness validate output must link GH-998"
+printf '%s\n' "$validate_output" | grep -Fq "v013ValidationAnchor=GH-998-VERIFY-V0130-EVIDENCE-CHAIN-VALIDATE" || fail "readiness validate output must expose GH-998 anchor"
+printf '%s\n' "$validate_output" | grep -Fq "registryDocumentHeld=true" || fail "readiness validate must confirm registry document"
+printf '%s\n' "$validate_output" | grep -Fq "bundleV2Present=true" || fail "readiness validate must confirm Bundle V2 presence"
+printf '%s\n' "$validate_output" | grep -Fq "bundleManifestPresent=true" || fail "readiness validate must confirm bundle manifest presence"
+printf '%s\n' "$validate_output" | grep -Fq "bundleBytesMatchManifest=true" || fail "readiness validate must confirm bundle bytes"
+printf '%s\n' "$validate_output" | grep -Fq "manifestBundleIdentityMatches=true" || fail "readiness validate must confirm manifest/bundle identity"
+printf '%s\n' "$validate_output" | grep -Fq "manifestBundleProvenanceMatches=true" || fail "readiness validate must confirm provenance"
+printf '%s\n' "$validate_output" | grep -Fq "artifactSnapshotsMatchManifest=true" || fail "readiness validate must confirm artifact snapshots"
+printf '%s\n' "$validate_output" | grep -Fq "contentValidationChecksumsPresent=true" || fail "readiness validate must confirm content checksums"
+printf '%s\n' "$validate_output" | grep -Fq "exportComparisonIdentityConsistent=true" || fail "readiness validate must confirm optional export/comparison identity"
+printf '%s\n' "$validate_output" | grep -Fq "evidenceChainCoherent=true" || fail "readiness validate must pass only coherent evidence chain"
+printf '%s\n' "$validate_output" | grep -Fq "failureReasons=none" || fail "readiness validate valid chain must report no failures"
+printf '%s\n' "$validate_output" | grep -Fq "validationState=valid" || fail "readiness validate valid chain must be valid"
+
+gh998_tamper_store="$gh996_root/gh998-tamper-store"
+MTPRO_READINESS_ROOT="$gh998_tamper_store" swift run mtpro readiness build-v013 gh-998-tamper "$gh996_valid_root" >/dev/null
+tamper_bundle="$(find "$gh998_tamper_store/assessments/gh-998-tamper/generations" -name readiness-bundle-v2.json -print -quit)"
+[[ -n "$tamper_bundle" ]] || fail "readiness validate tamper smoke must find bundle JSON"
+printf '\n' >>"$tamper_bundle"
+tamper_validate_output="$(MTPRO_READINESS_ROOT="$gh998_tamper_store" swift run mtpro readiness validate gh-998-tamper)"
+printf '%s\n' "$tamper_validate_output" | grep -Fq "validationState=blocked" || fail "readiness validate must block tampered evidence"
+printf '%s\n' "$tamper_validate_output" | grep -Fq "evidenceChainCoherent=false" || fail "readiness validate must mark tampered chain incoherent"
+printf '%s\n' "$tamper_validate_output" | grep -Fq "failureReasons=bundleBytes:checksum-or-byte-count-mismatch" || fail "readiness validate must explain bundle byte tamper"
 
 gh997_auto_store="$gh996_root/gh997-auto-store"
 auto_registry_output="$(MTPRO_READINESS_ROOT="$gh997_auto_store" swift run mtpro readiness build-v013 gh-997-auto-assessment "$gh996_valid_root")"

@@ -53,6 +53,23 @@ public enum ReleaseV0130LocalEvidenceBuildPipelineAnchors {
     ]
 }
 
+/// ReleaseV0130LocalEvidenceChainValidationAnchors 固定 GH-998 的完整 evidence-chain validate 锚点。
+///
+/// 这些锚点只证明 `readiness validate <assessmentID>` 会检查 registry、Manifest V2、
+/// Bundle V2、artifact snapshot、checksum、provenance 和可选 export / comparison identity；
+/// 它们不授权 production cutover、secret read、endpoint / broker connection 或任何订单命令。
+public enum ReleaseV0130LocalEvidenceChainValidationAnchors {
+    public static let validationAnchors = [
+        "GH-998-VERIFY-V0130-EVIDENCE-CHAIN-VALIDATE",
+        "TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE",
+        "V0130-005-REGISTRY-MANIFEST-BUNDLE-CONSISTENCY",
+        "V0130-005-ARTIFACT-POLICY-CHECKSUM-PROVENANCE",
+        "V0130-005-EXPORT-COMPARISON-IDENTITY",
+        "V0130-005-MISSING-STALE-TAMPERED-FAILS-CLOSED",
+        "V0130-005-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
 /// ReleaseV0130LocalEvidenceArtifactProvenance 是 GH-996 从真实本地 artifact bytes
 /// 派生出的 manifest metadata。
 ///
@@ -525,6 +542,145 @@ public struct ReleaseV0130LocalEvidenceBuildValidationReport: Codable, Equatable
             .map { String(format: "%02x", $0) }
             .joined()
         return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV0130LocalEvidenceChainValidationReport 是 GH-998 `readiness validate` 的完整链路结果。
+///
+/// Report 即使在 blocked 场景也必须可编码并返回 failure reasons，便于 operator 明确看到
+/// registry、manifest、bundle、artifact、checksum 或 provenance 的断点；它不把任何 readiness
+/// pass 解释为 production cutover authorization。
+public struct ReleaseV0130LocalEvidenceChainValidationReport: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let assessmentID: Identifier
+    public let generationID: Identifier?
+    public let registryDocumentHeld: Bool
+    public let registryEntryHeld: Bool
+    public let manifestV2Present: Bool
+    public let manifestHeld: Bool
+    public let bundleV2Present: Bool
+    public let bundleHeld: Bool
+    public let bundleManifestPresent: Bool
+    public let bundleManifestHeld: Bool
+    public let bundleBytesMatchManifest: Bool
+    public let registryManifestAssessmentMatches: Bool
+    public let manifestBundleIdentityMatches: Bool
+    public let manifestBundleProvenanceMatches: Bool
+    public let artifactSnapshotsPresent: Bool
+    public let artifactSnapshotsMatchManifest: Bool
+    public let contentValidationChecksumsPresent: Bool
+    public let exportComparisonIdentityConsistent: Bool
+    public let validationState: String
+    public let failureReasons: [String]
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var evidenceChainCoherent: Bool {
+        registryDocumentHeld
+            && registryEntryHeld
+            && manifestV2Present
+            && manifestHeld
+            && bundleV2Present
+            && bundleHeld
+            && bundleManifestPresent
+            && bundleManifestHeld
+            && bundleBytesMatchManifest
+            && registryManifestAssessmentMatches
+            && manifestBundleIdentityMatches
+            && manifestBundleProvenanceMatches
+            && artifactSnapshotsPresent
+            && artifactSnapshotsMatchManifest
+            && contentValidationChecksumsPresent
+            && exportComparisonIdentityConsistent
+            && failureReasons.isEmpty
+            && validationState == "valid"
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-998"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-954"),
+            Identifier.constant("GH-956"),
+            Identifier.constant("GH-957"),
+            Identifier.constant("GH-958"),
+            Identifier.constant("GH-997")
+        ],
+        releaseVersion: String = "v0.13.0",
+        assessmentID: Identifier,
+        generationID: Identifier?,
+        registryDocumentHeld: Bool,
+        registryEntryHeld: Bool,
+        manifestV2Present: Bool,
+        manifestHeld: Bool,
+        bundleV2Present: Bool,
+        bundleHeld: Bool,
+        bundleManifestPresent: Bool,
+        bundleManifestHeld: Bool,
+        bundleBytesMatchManifest: Bool,
+        registryManifestAssessmentMatches: Bool,
+        manifestBundleIdentityMatches: Bool,
+        manifestBundleProvenanceMatches: Bool,
+        artifactSnapshotsPresent: Bool,
+        artifactSnapshotsMatchManifest: Bool,
+        contentValidationChecksumsPresent: Bool,
+        exportComparisonIdentityConsistent: Bool,
+        failureReasons: [String],
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs.sorted { $0.rawValue < $1.rawValue }
+        self.releaseVersion = releaseVersion
+        self.assessmentID = assessmentID
+        self.generationID = generationID
+        self.registryDocumentHeld = registryDocumentHeld
+        self.registryEntryHeld = registryEntryHeld
+        self.manifestV2Present = manifestV2Present
+        self.manifestHeld = manifestHeld
+        self.bundleV2Present = bundleV2Present
+        self.bundleHeld = bundleHeld
+        self.bundleManifestPresent = bundleManifestPresent
+        self.bundleManifestHeld = bundleManifestHeld
+        self.bundleBytesMatchManifest = bundleBytesMatchManifest
+        self.registryManifestAssessmentMatches = registryManifestAssessmentMatches
+        self.manifestBundleIdentityMatches = manifestBundleIdentityMatches
+        self.manifestBundleProvenanceMatches = manifestBundleProvenanceMatches
+        self.artifactSnapshotsPresent = artifactSnapshotsPresent
+        self.artifactSnapshotsMatchManifest = artifactSnapshotsMatchManifest
+        self.contentValidationChecksumsPresent = contentValidationChecksumsPresent
+        self.exportComparisonIdentityConsistent = exportComparisonIdentityConsistent
+        self.failureReasons = failureReasons
+        self.validationState = failureReasons.isEmpty ? "valid" : "blocked"
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
     }
 }
 
@@ -1245,17 +1401,23 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
                     contentValidationChecksum: contentValidation.contentValidationChecksum
                 )
             )
+            let snapshotArtifactPath = Self.bundleArtifactPath(
+                assessmentID: registryEntry.assessmentID,
+                generationID: generationID,
+                artifactID: artifact.provenance.artifactID
+            )
+            try Self.writeBundleArtifactSnapshot(
+                canonicalData,
+                relativePath: snapshotArtifactPath,
+                store: store
+            )
             artifactSnapshots.append(
                 try ReadinessAssessmentBundleV2ArtifactSnapshot(
                     artifactID: artifact.provenance.artifactID,
                     manifestChecksum: manifest.manifestChecksum,
                     artifactSHA256: canonicalSHA256,
                     contentValidationChecksum: contentValidation.contentValidationChecksum,
-                    artifactPath: Self.bundleArtifactPath(
-                        assessmentID: registryEntry.assessmentID,
-                        generationID: generationID,
-                        artifactID: artifact.provenance.artifactID
-                    )
+                    artifactPath: snapshotArtifactPath
                 )
             )
         }
@@ -1300,6 +1462,185 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
             bundleWrite: bundleWrite,
             validationReport: validationReport,
             registryEntryCreated: registryEntryCreated
+        )
+    }
+
+    /// 执行 GH-998 的完整 evidence-chain consistency check。
+    ///
+    /// 该入口只读取本地 registry store，逐项检查 registry entry、Manifest V2、Bundle V2、
+    /// bundle manifest、artifact snapshot checksum 和 provenance 是否互相一致。Optional
+    /// export / comparison 文件如果存在，也必须绑定同一个 assessmentID；如果后续 issue
+    /// 尚未生成这些文件，validate 不会抢占 #999 / #1000 的 required artifact scope。
+    public func validateEvidenceChain(
+        assessmentID: Identifier,
+        store: ReadinessAssessmentRegistryStore
+    ) throws -> ReleaseV0130LocalEvidenceChainValidationReport {
+        var failureReasons: [String] = []
+
+        let registryDocument = Self.capture("registry:missing-or-corrupt", into: &failureReasons) {
+            try store.load()
+        }
+        let registryEntry = Self.capture("registryEntry:missing-or-invalid", into: &failureReasons) {
+            try registryDocument?.inspect(assessmentID: assessmentID)
+        }
+        let manifest = Self.capture("manifestV2:missing-or-invalid", into: &failureReasons) {
+            try store.readManifestV2(assessmentID: assessmentID)
+        }
+
+        let generationID = manifest?.generationID
+        let bundle: ReadinessAssessmentBundleV2? = Self.capture("bundleV2:missing-or-invalid", into: &failureReasons) {
+            guard let manifest else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("bundleV2:manifestRequired")
+            }
+            return try store.readReadinessBundleV2(
+                assessmentID: assessmentID,
+                generationID: manifest.generationID
+            )
+        }
+        let bundleManifest: ReadinessAssessmentBundleV2Manifest? = Self.capture("bundleManifest:missing-or-invalid", into: &failureReasons) {
+            guard let manifest else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("bundleManifest:manifestRequired")
+            }
+            return try store.readReadinessBundleV2Manifest(
+                assessmentID: assessmentID,
+                generationID: manifest.generationID
+            )
+        }
+
+        let bundleData: Data? = Self.capture("bundleBytes:missing", into: &failureReasons) {
+            guard let generationID else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("bundleBytes:generationRequired")
+            }
+            return try Data(contentsOf: Self.bundleJSONURL(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                store: store
+            ))
+        }
+        let bundleBytesMatchManifest = {
+            guard let bundleData, let bundleManifest else {
+                return false
+            }
+            return Self.sha256Hex(bundleData) == bundleManifest.bundleJSONSHA256
+                && bundleData.count == bundleManifest.bundleBytes
+        }()
+        if bundleData != nil, bundleManifest != nil, bundleBytesMatchManifest == false {
+            failureReasons.append("bundleBytes:checksum-or-byte-count-mismatch")
+        }
+
+        let registryManifestAssessmentMatches = registryEntry?.assessmentID == manifest?.assessmentID
+        if registryEntry != nil, manifest != nil, registryManifestAssessmentMatches == false {
+            failureReasons.append("registryManifest:assessmentID-mismatch")
+        }
+
+        let manifestBundleIdentityMatches = {
+            guard let manifest, let bundle, let bundleManifest else {
+                return false
+            }
+            return bundle.assessmentID == manifest.assessmentID
+                && bundle.generationID == manifest.generationID
+                && bundleManifest.assessmentID == manifest.assessmentID
+                && bundleManifest.generationID == manifest.generationID
+                && bundleManifest.bundleChecksum == bundle.bundleChecksum
+        }()
+        if manifest != nil, bundle != nil, bundleManifest != nil, manifestBundleIdentityMatches == false {
+            failureReasons.append("manifestBundle:identity-or-bundle-checksum-mismatch")
+        }
+
+        let manifestBundleProvenanceMatches = {
+            guard let manifest, let bundle else {
+                return false
+            }
+            return bundle.sourceCommit == manifest.sourceCommit
+                && bundle.sourceRunIDs == manifest.sourceRunIDs
+        }()
+        if manifest != nil, bundle != nil, manifestBundleProvenanceMatches == false {
+            failureReasons.append("manifestBundle:source-provenance-mismatch")
+        }
+
+        let artifactSnapshotsPresent = bundle?.artifactSnapshots.isEmpty == false
+        if bundle != nil, artifactSnapshotsPresent == false {
+            failureReasons.append("artifactSnapshots:missing")
+        }
+
+        let artifactSnapshotBytesMatch = {
+            guard let bundle else {
+                return false
+            }
+            return bundle.artifactSnapshots.allSatisfy {
+                Self.artifactSnapshotBytesMatch($0, store: store)
+            }
+        }()
+        if bundle != nil, artifactSnapshotsPresent, artifactSnapshotBytesMatch == false {
+            failureReasons.append("artifactSnapshots:artifact-bytes-missing-or-checksum-mismatch")
+        }
+
+        let artifactSnapshotsMatchManifest = {
+            guard let manifest, let bundle else {
+                return false
+            }
+            return bundle.artifactSnapshots.allSatisfy { snapshot in
+                snapshot.snapshotHeld
+                    && snapshot.manifestChecksum == manifest.manifestChecksum
+                    && Self.artifactSnapshotBytesMatch(snapshot, store: store)
+            }
+        }()
+        if manifest != nil, bundle != nil, artifactSnapshotsPresent, artifactSnapshotsMatchManifest == false {
+            failureReasons.append("artifactSnapshots:manifest-checksum-or-policy-mismatch")
+        }
+
+        let contentValidationChecksumsPresent = {
+            guard let bundle else {
+                return false
+            }
+            return bundle.artifactSnapshots.allSatisfy {
+                ReadinessAssessmentManifestV2.isValidSHA256Checksum($0.contentValidationChecksum)
+                    && ReadinessAssessmentManifestV2.isValidSHA256Checksum($0.artifactSHA256)
+            }
+        }()
+        if bundle != nil, artifactSnapshotsPresent, contentValidationChecksumsPresent == false {
+            failureReasons.append("artifactSnapshots:missing-content-validation-checksum")
+        }
+
+        let exportComparisonIdentityConsistent = Self.optionalJSONAssessmentIdentityMatches(
+            relativePath: registryEntry?.artifactPaths.provenanceSummaryJSONPath,
+            assessmentID: assessmentID,
+            store: store
+        ) && Self.optionalJSONAssessmentIdentityMatches(
+            relativePath: registryEntry?.artifactPaths.comparisonMetadataJSONPath,
+            assessmentID: assessmentID,
+            store: store
+        )
+        && Self.optionalExportDirectoryIdentityMatches(
+            relativePath: registryEntry?.artifactPaths.redactedExportDirectoryPath,
+            assessmentID: assessmentID,
+            store: store
+        )
+        if registryEntry != nil, exportComparisonIdentityConsistent == false {
+            failureReasons.append("exportComparison:assessmentID-mismatch")
+        }
+
+        let orderedReasons = Array(NSOrderedSet(array: failureReasons)).compactMap { $0 as? String }
+        return ReleaseV0130LocalEvidenceChainValidationReport(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            registryDocumentHeld: registryDocument?.documentHeld ?? false,
+            registryEntryHeld: registryEntry?.entryHeld ?? false,
+            manifestV2Present: manifest != nil,
+            manifestHeld: manifest?.manifestHeld ?? false,
+            bundleV2Present: bundle != nil,
+            bundleHeld: bundle?.bundleHeld ?? false,
+            bundleManifestPresent: bundleManifest != nil,
+            bundleManifestHeld: bundleManifest?.manifestHeld ?? false,
+            bundleBytesMatchManifest: bundleBytesMatchManifest,
+            registryManifestAssessmentMatches: registryManifestAssessmentMatches,
+            manifestBundleIdentityMatches: manifestBundleIdentityMatches,
+            manifestBundleProvenanceMatches: manifestBundleProvenanceMatches,
+            artifactSnapshotsPresent: artifactSnapshotsPresent,
+            artifactSnapshotsMatchManifest: artifactSnapshotsMatchManifest,
+            contentValidationChecksumsPresent: contentValidationChecksumsPresent,
+            exportComparisonIdentityConsistent: exportComparisonIdentityConsistent,
+            failureReasons: orderedReasons
         )
     }
 
@@ -1689,6 +2030,156 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
         artifactID: Identifier
     ) -> String {
         ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/generations/\(generationID.rawValue)/artifacts/\(artifactID.rawValue).json"
+    }
+
+    private static func writeBundleArtifactSnapshot(
+        _ data: Data,
+        relativePath: String,
+        store: ReadinessAssessmentRegistryStore
+    ) throws {
+        let url = storeURL(for: relativePath, store: store, isDirectory: false).standardizedFileURL
+        let rootPath = store.storageRootURL.standardizedFileURL.path
+        guard url.path.hasPrefix(rootPath + "/") else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("buildPipeline:unsafeBundleArtifactPath")
+        }
+
+        if store.fileManager.fileExists(atPath: url.path) {
+            let existing = try Data(contentsOf: url)
+            guard existing == data else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("buildPipeline:bundleArtifactSnapshotImmutable")
+            }
+            return
+        }
+
+        let parentURL = url.deletingLastPathComponent()
+        try store.fileManager.createDirectory(
+            at: parentURL,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: ReadinessAssessmentRegistryStore.ownerOnlyDirectoryPermissions]
+        )
+        try data.write(to: url, options: .atomic)
+        try store.fileManager.setAttributes(
+            [.posixPermissions: ReadinessAssessmentRegistryStore.ownerOnlyFilePermissions],
+            ofItemAtPath: url.path
+        )
+    }
+
+    private static func bundleJSONURL(
+        assessmentID: Identifier,
+        generationID: Identifier,
+        store: ReadinessAssessmentRegistryStore
+    ) -> URL {
+        store.storageRootURL
+            .appendingPathComponent("assessments", isDirectory: true)
+            .appendingPathComponent(assessmentID.rawValue, isDirectory: true)
+            .appendingPathComponent("generations", isDirectory: true)
+            .appendingPathComponent(generationID.rawValue, isDirectory: true)
+            .appendingPathComponent("readiness-bundle-v2.json", isDirectory: false)
+    }
+
+    private static func capture<T>(
+        _ reason: String,
+        into failureReasons: inout [String],
+        operation: () throws -> T?
+    ) -> T? {
+        do {
+            guard let result = try operation() else {
+                failureReasons.append(reason)
+                return nil
+            }
+            return result
+        } catch {
+            failureReasons.append(reason)
+            return nil
+        }
+    }
+
+    private static func optionalJSONAssessmentIdentityMatches(
+        relativePath: String?,
+        assessmentID: Identifier,
+        store: ReadinessAssessmentRegistryStore
+    ) -> Bool {
+        guard let relativePath else {
+            return true
+        }
+        let url = storeURL(for: relativePath, store: store, isDirectory: false)
+        guard store.fileManager.fileExists(atPath: url.path) else {
+            return true
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            let object = try JSONSerialization.jsonObject(with: data)
+            return Self.containsAssessmentID(assessmentID.rawValue, in: object)
+        } catch {
+            return false
+        }
+    }
+
+    private static func optionalExportDirectoryIdentityMatches(
+        relativePath: String?,
+        assessmentID: Identifier,
+        store: ReadinessAssessmentRegistryStore
+    ) -> Bool {
+        guard let relativePath else {
+            return true
+        }
+        let directoryURL = storeURL(for: relativePath, store: store, isDirectory: true)
+        var isDirectory: ObjCBool = false
+        guard store.fileManager.fileExists(atPath: directoryURL.path, isDirectory: &isDirectory),
+              isDirectory.boolValue else {
+            return true
+        }
+        do {
+            let urls = try store.fileManager.contentsOfDirectory(
+                at: directoryURL,
+                includingPropertiesForKeys: nil
+            ).filter { $0.pathExtension == "json" }
+            return try urls.allSatisfy { url in
+                let data = try Data(contentsOf: url)
+                let object = try JSONSerialization.jsonObject(with: data)
+                return Self.containsAssessmentID(assessmentID.rawValue, in: object)
+            }
+        } catch {
+            return false
+        }
+    }
+
+    private static func containsAssessmentID(_ assessmentID: String, in object: Any) -> Bool {
+        if let dictionary = object as? [String: Any] {
+            if dictionary["assessmentID"] as? String == assessmentID {
+                return true
+            }
+            return dictionary.values.contains { containsAssessmentID(assessmentID, in: $0) }
+        }
+        if let array = object as? [Any] {
+            return array.contains { containsAssessmentID(assessmentID, in: $0) }
+        }
+        return false
+    }
+
+    private static func artifactSnapshotBytesMatch(
+        _ snapshot: ReadinessAssessmentBundleV2ArtifactSnapshot,
+        store: ReadinessAssessmentRegistryStore
+    ) -> Bool {
+        let url = storeURL(for: snapshot.artifactPath, store: store, isDirectory: false)
+        guard store.fileManager.fileExists(atPath: url.path),
+              let data = try? Data(contentsOf: url) else {
+            return false
+        }
+        return sha256Hex(data) == snapshot.artifactSHA256
+            && data.isEmpty == false
+    }
+
+    private static func storeURL(
+        for relativePath: String,
+        store: ReadinessAssessmentRegistryStore,
+        isDirectory: Bool
+    ) -> URL {
+        let normalizedPath = relativePath.replacingOccurrences(
+            of: "\(ReadinessAssessmentRegistryStore.defaultRelativeRoot)/",
+            with: ""
+        )
+        return store.storageRootURL.appendingPathComponent(normalizedPath, isDirectory: isDirectory)
     }
 
     private static func sha256Hex(_ data: Data) -> String {
