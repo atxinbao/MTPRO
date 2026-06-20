@@ -3055,3 +3055,19 @@
 - provenance binding: manifest source commit, derived sourceRunID, artifact SHA / byte count, bundle snapshot checksum chain and bundle manifest SHA / byte count must match the generated local files
 - rejection cases: placeholder source commit, synthetic sourceRunID, fixed artifact bytes, missing checksum chain and production-enabled flags fail the guard
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0121-PATCH-AUDIT-RELEASE-NOTES
+
+- GH-993-VERIFY-V0121-PATCH-AUDIT-RELEASE-NOTES
+- V0121-006-PATCH-AUDIT
+- V0121-006-RELEASE-NOTES
+- V0121-006-VALIDATION-SUMMARY
+- V0121-006-NO-PRODUCTION-CUTOVER
+- V0121-006-NO-TAG-OR-RELEASE-MOVE
+- GH-993 Release v0.12.1 Patch Audit / Release Notes Validation
+- testGH993ReleaseV0121PatchAuditReleaseNotesCloseout
+- focused verifier: `bash checks/verify-v0.12.1-patch-audit-release-notes.sh`
+- issue evidence: #988, #989, #990, #991, #992 and #993 define the v0.12.1 provenance hardening patch queue
+- PR evidence: PR #1006, #1007, #1008, #1009 and #1010 merged with required checks SUCCESS before #993 preflight
+- documentation evidence: Stage Code Audit and release notes document release fact sync, source commit provenance, local evidence metadata, compare fail-closed behavior and generated JSON inspection
+- forbidden scope: no v0.12.1 tag, no v0.12.1 GitHub Release, no v0.12.0 tag / release movement, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

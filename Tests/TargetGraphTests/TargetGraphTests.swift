@@ -33626,6 +33626,113 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH993ReleaseV0121PatchAuditReleaseNotesCloseout() throws {
+        // 测试场景：GH-993 收口 v0.12.1 provenance hardening patch 的最终审计、
+        // release notes、root docs 和 automation guard，确保该 closeout 不被误读为
+        // release publication gate 或 production cutover authorization。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let closeoutVerifier = try read("checks/verify-v0.12.1-patch-audit-release-notes.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let audit = try read("docs/audit/mtpro-release-v0.12.1-readiness-assessment-provenance-hardening-patch-stage-code-audit.md")
+        let releaseNotes = try read("docs/release/mtpro-release-v0.12.1-readiness-assessment-provenance-hardening-patch-notes.md")
+        let publicationPolicy = try read("docs/release/release-publication-policy.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+
+        for anchor in [
+            "GH-993-VERIFY-V0121-PATCH-AUDIT-RELEASE-NOTES",
+            "TVM-RELEASE-V0121-PATCH-AUDIT-RELEASE-NOTES",
+            "V0121-006-PATCH-AUDIT",
+            "V0121-006-RELEASE-NOTES",
+            "V0121-006-VALIDATION-SUMMARY",
+            "V0121-006-NO-PRODUCTION-CUTOVER",
+            "V0121-006-NO-TAG-OR-RELEASE-MOVE"
+        ] {
+            XCTAssertTrue(closeoutVerifier.contains(anchor), "\(anchor) must be enforced by the closeout verifier")
+            XCTAssertTrue(audit.contains(anchor), "\(anchor) must be recorded in the stage code audit")
+            XCTAssertTrue(releaseNotes.contains(anchor), "\(anchor) must be recorded in release notes")
+            XCTAssertTrue(publicationPolicy.contains(anchor), "\(anchor) must be fixed in release publication policy")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be covered by automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be summarized in latest verification")
+        }
+
+        for carriedAnchor in [
+            "GH-988-VERIFY-V0121-RELEASE-FACT-STALE-WORDING-GUARD",
+            "GH-989-VERIFY-V0121-SOURCE-COMMIT-PROVENANCE",
+            "GH-990-VERIFY-V0121-LOCAL-EVIDENCE-METADATA",
+            "GH-991-VERIFY-V0121-COMPARE-FAIL-CLOSED",
+            "GH-992-VERIFY-V0121-JSON-INSPECTION-GUARDS"
+        ] {
+            XCTAssertTrue(audit.contains(carriedAnchor), "\(carriedAnchor) must be carried into the final audit")
+            XCTAssertTrue(releaseNotes.contains(carriedAnchor), "\(carriedAnchor) must be carried into release notes")
+            XCTAssertTrue(latest.contains(carriedAnchor), "\(carriedAnchor) must be carried into latest verification")
+        }
+
+        for completedIssue in ["#988", "#989", "#990", "#991", "#992", "#993"] {
+            XCTAssertTrue(audit.contains(completedIssue), "\(completedIssue) must be present in audit evidence")
+            XCTAssertTrue(releaseNotes.contains(completedIssue), "\(completedIssue) must be present in release notes")
+        }
+
+        for mergedPREvidence in ["#1006", "#1007", "#1008", "#1009", "#1010"] {
+            XCTAssertTrue(audit.contains(mergedPREvidence), "\(mergedPREvidence) must be present in audit PR evidence")
+        }
+
+        for mergeCommit in [
+            "69591a5e76413dc2e5f6f1acbd2692934b6c478e",
+            "3232b1e93d6d03d5ffb1d5e27a905bb29a4113e6",
+            "3b88d5774bca845c8ef07ae8a8ff5189fdc6342e",
+            "25ea9aab0222a29767a1271f8d4ed41e04baae3c",
+            "7233629a7df8a90d6d4c2fd438892e2393643dfa"
+        ] {
+            XCTAssertTrue(audit.contains(mergeCommit), "\(mergeCommit) must be present in audit merge evidence")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.12.1-patch-audit-release-notes.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.12.1-patch-audit-release-notes.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.12.1 patch audit / release notes closeout anchor"))
+        XCTAssertTrue(latest.contains("v0.12.1 patch audit / release notes closeout"))
+        XCTAssertTrue(publicationPolicy.contains("GH-993 is not a release publication gate"))
+        XCTAssertTrue(publicationPolicy.contains("不创建 `v0.12.1` tag"))
+        XCTAssertTrue(publicationPolicy.contains("不创建 `v0.12.1` GitHub Release"))
+        XCTAssertTrue(publicationPolicy.contains("不移动、不覆盖、不重写 `v0.12.0` tag 或 GitHub Release"))
+        XCTAssertTrue(goal.contains("MTPRO Release v0.12.1 Readiness Assessment Provenance Hardening Patch"))
+        XCTAssertTrue(blueprint.contains("MTPRO Release v0.12.1 Readiness Assessment Provenance Hardening Patch"))
+        XCTAssertTrue(roadmap.contains("MTPRO Release v0.12.1 Readiness Assessment Provenance Hardening Patch"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "realOrderSubmissionEnabled=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true"
+        ] {
+            XCTAssertFalse(audit.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must not be enabled in audit")
+            XCTAssertFalse(releaseNotes.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must not be enabled in release notes")
+            XCTAssertFalse(latest.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must not be enabled in latest verification")
+            XCTAssertFalse(publicationPolicy.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must not be enabled in publication policy")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

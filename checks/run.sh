@@ -141,6 +141,7 @@ bash checks/verify-v0.12.1-sourcecommit-provenance.sh
 bash checks/verify-v0.12.1-local-evidence-metadata.sh
 bash checks/verify-v0.12.1-compare-fail-closed.sh
 bash checks/verify-v0.12.1-json-inspection-guards.sh
+bash checks/verify-v0.12.1-patch-audit-release-notes.sh
 bash checks/verify-v0.12.0-dashboard-macos-guards.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh

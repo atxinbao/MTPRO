@@ -9785,4 +9785,22 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 JSON inspection guard anchor"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH992ReadinessJSONInspectionGuardsValidateGeneratedEvidence"
 
+require_file "checks/verify-v0.12.1-patch-audit-release-notes.sh"
+require_contains "checks/verify-v0.12.1-patch-audit-release-notes.sh" "GH-993-VERIFY-V0121-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "checks/verify-v0.12.1-patch-audit-release-notes.sh" "TVM-RELEASE-V0121-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "checks/verify-v0.12.1-patch-audit-release-notes.sh" "V0121-006-PATCH-AUDIT"
+require_contains "checks/verify-v0.12.1-patch-audit-release-notes.sh" "V0121-006-RELEASE-NOTES"
+require_contains "checks/verify-v0.12.1-patch-audit-release-notes.sh" "V0121-006-VALIDATION-SUMMARY"
+require_contains "checks/verify-v0.12.1-patch-audit-release-notes.sh" "V0121-006-NO-PRODUCTION-CUTOVER"
+require_contains "checks/verify-v0.12.1-patch-audit-release-notes.sh" "V0121-006-NO-TAG-OR-RELEASE-MOVE"
+require_contains "checks/run.sh" "bash checks/verify-v0.12.1-patch-audit-release-notes.sh"
+require_contains "docs/audit/mtpro-release-v0.12.1-readiness-assessment-provenance-hardening-patch-stage-code-audit.md" "GH-993-VERIFY-V0121-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "docs/release/mtpro-release-v0.12.1-readiness-assessment-provenance-hardening-patch-notes.md" "GH-993-VERIFY-V0121-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "docs/release/release-publication-policy.md" "V0121-006-PATCH-AUDIT"
+require_contains "docs/validation/latest-verification-summary.md" "v0.12.1 patch audit / release notes closeout"
+require_contains "docs/validation/validation-plan.md" "GH-993 Release v0.12.1 Patch Audit / Release Notes Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0121-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 patch audit / release notes closeout anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH993ReleaseV0121PatchAuditReleaseNotesCloseout"
+
 printf 'MTPRO automation readiness checks passed.\n'

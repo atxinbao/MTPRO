@@ -4986,3 +4986,18 @@ swift test
 - provenance checks: manifest `sourceCommit`, sourceRunID, artifact sha / bytes, bundle snapshot checksum chain and bundle manifest byte / sha evidence must match generated local files
 - fail-closed checks: tampered placeholder commit, synthetic `gh-963-source-run`, fixed `artifactBytes=512`, missing checksum chain and production-enabled flags must be rejected by the guard
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
+
+## GH-993 Release v0.12.1 Patch Audit / Release Notes Validation
+
+- GH-993-VERIFY-V0121-PATCH-AUDIT-RELEASE-NOTES
+- TVM-RELEASE-V0121-PATCH-AUDIT-RELEASE-NOTES
+- V0121-006-PATCH-AUDIT
+- V0121-006-RELEASE-NOTES
+- V0121-006-VALIDATION-SUMMARY
+- V0121-006-NO-PRODUCTION-CUTOVER
+- V0121-006-NO-TAG-OR-RELEASE-MOVE
+- focused verifier: `bash checks/verify-v0.12.1-patch-audit-release-notes.sh`
+- focused test: `testGH993ReleaseV0121PatchAuditReleaseNotesCloseout`
+- closure evidence: #988..#992 closed / done before #993 preflight; PR #1006..#1010 merged with required `checks`, `linux-checks` and `dashboard-macos` SUCCESS
+- documentation evidence: v0.12.1 Stage Code Audit, release notes, latest verification summary, release publication policy, automation readiness and trading validation matrix carry the completed patch facts
+- forbidden scope: no v0.12.1 tag, no v0.12.1 GitHub Release, no v0.12.0 tag / release movement, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no v0.13.0 promotion
