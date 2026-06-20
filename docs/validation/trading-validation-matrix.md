@@ -3117,7 +3117,24 @@
 - testGH996ReleaseV0130ProvenanceBuildRejectsSyntheticAndFixtureEvidence
 - focused verifier: `bash checks/verify-v0.13.0.sh`
 - validation surface: #996 consumes #995 local evidence root and derives normal manifest sourceCommit, sourceRunIDs, artifact bytes and artifact checksums from real local files
-- CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` writes Manifest V2 only after source provenance is local, traceable and non-synthetic
+- CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` preserves Manifest V2 provenance only after source provenance is local, traceable and non-synthetic
 - fail-closed evidence: placeholder sourceCommit, `gh-963-source-run`, `source-run-*` synthetic run IDs, missing artifact file, artifact metadata mismatch and fixture-only evidence are rejected
-- dependency evidence: #997 through #1005 remain blocked by #996 until this provenance PR is merged and #996 is closed / done
-- forbidden scope: no readiness bundle write, no registry lifecycle advance, no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+- dependency evidence: #996 is complete; #997 is the active build pipeline gate after fresh WIP=1 preflight
+- forbidden scope: no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0130-BUILD-PIPELINE
+
+- GH-997-VERIFY-V0130-BUILD-PIPELINE
+- V0130-004-SCHEMA-CHECKSUM-POLICY-REGISTRY-FLOW
+- V0130-004-MANIFEST-BUNDLE-REGISTRY-WRITE
+- V0130-004-PROVENANCE-VALIDATION-REPORT
+- V0130-004-BUILD-FAILS-CLOSED
+- V0130-004-NO-PRODUCTION-CUTOVER
+- GH-997 Release v0.13.0 Build Pipeline Validation
+- testGH997ReleaseV0130BuildPipelineWritesManifestBundleRegistryAndPolicyReport
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: #997 consumes #995 local evidence root and #996 provenance, then validates schema, raw artifact checksum, content policy, Manifest V2, Bundle V2 and local registry entry consistency
+- CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` emits `validationReportChecksum`, writes Manifest V2, writes Bundle V2 and confirms the local registry entry
+- fail-closed evidence: schema failure, checksum mismatch, placeholder sourceCommit, synthetic sourceRunID, fixture-only evidence and raw endpoint marker evidence are rejected
+- dependency evidence: #998 through #1005 remain blocked by #997 until this build pipeline PR is merged and #997 is closed / done
+- forbidden scope: no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

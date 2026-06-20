@@ -49,11 +49,25 @@
 
 `V0130-003-NO-PRODUCTION-CUTOVER`
 
+`GH-997-VERIFY-V0130-BUILD-PIPELINE`
+
+`TVM-RELEASE-V0130-BUILD-PIPELINE`
+
+`V0130-004-SCHEMA-CHECKSUM-POLICY-REGISTRY-FLOW`
+
+`V0130-004-MANIFEST-BUNDLE-REGISTRY-WRITE`
+
+`V0130-004-PROVENANCE-VALIDATION-REPORT`
+
+`V0130-004-BUILD-FAILS-CLOSED`
+
+`V0130-004-NO-PRODUCTION-CUTOVER`
+
 ## Contract Scope
 
 `v0.13.0` 定义 local evidence-driven readiness engine / 本地证据驱动就绪引擎。它承接 v0.12.0 readiness assessment sessions 和 v0.12.1 provenance hardening patch 的已完成事实，把 readiness assessment 从“可生成本地 assessment evidence”推进为“只能从真实本地 evidence root intake、校验、打包、登记、比较和导出”的 engine contract。
 
-本 contract 是 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。它只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；不实现 #995 之后的 evidence intake、build pipeline、validate、diff、CLI lifecycle 或 fixtures。#995 至 #1005 必须继续被 #994 阻塞，直到本 contract PR merged、required checks success、#994 closed / done、本地 `main == origin/main` 且 worktree clean。
+本 contract 是 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。它只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；不实现 #995 之后的 evidence intake、build pipeline、validate、diff、CLI lifecycle 或 fixtures。#995 至 #1005 必须继续被 #994 阻塞，直到本 contract PR merged、required checks success、#994 closed / done、本地 `main == origin/main` 且 worktree clean。当前执行事实：#994、#995 和 #996 已完成；#997 在 fresh WIP=1 preflight 后作为唯一 active build pipeline gate 执行。
 
 ## Inputs
 
@@ -89,11 +103,27 @@ CLI surface 固定为 `readiness intake <evidenceRoot>`。该命令只能输出 
 
 ## #996 Synthetic Provenance Rejection
 
-#996 在 #995 intake gate 完成后，把 v0.13 normal manifest provenance 绑定到显式 local evidence root。CLI surface 固定为 `readiness build-v013 <assessmentID> <evidenceRoot>`；该命令必须先读取既有 local assessment entry，再调用 #995 intake model，最后只把 intake-derived sourceCommit、sourceRunIDs、artifact bytes 和 artifact checksums 写入 Manifest V2。
+#996 在 #995 intake gate 完成后，把 v0.13 normal manifest provenance 绑定到显式 local evidence root。#996 的 provenance layer 必须先读取 local evidence root，再调用 #995 intake model，最后只把 intake-derived sourceCommit、sourceRunIDs、artifact bytes 和 artifact checksums 交给 Manifest V2。
 
 `readiness build-v013 <assessmentID> <evidenceRoot>` 不得从 assessmentID、generationID、固定字符串或 artifact checksum fallback 伪造 sourceRunID。它必须拒绝 placeholder sourceCommit、zero / demo commit、`gh-963-source-run`、`source-run-*` synthetic sourceRunID、缺失 artifact file、artifact byte / checksum mismatch，以及显式 `fixtureOnly=true` 或 `evidenceClassification=fixture` 的 fixture-only evidence。
 
-Normal manifest 只能在 `normalManifestEligible=true`、`syntheticProvenanceRejected=true`、`fixtureOnly=false`、`localEvidenceTraceable=true` 时生成。#996 仍不写 readiness bundle、不推进 registry lifecycle、不执行 diff、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace，也不授权 production cutover。
+Normal manifest provenance 只能在 `normalManifestEligible=true`、`syntheticProvenanceRejected=true`、`fixtureOnly=false`、`localEvidenceTraceable=true` 时进入后续 build。#996 本身不执行 diff、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace，也不授权 production cutover。
+
+## #997 Build Pipeline
+
+#997 在 #996 provenance gate 完成后，升级 `readiness build-v013 <assessmentID> <evidenceRoot>` 为 deterministic verify-and-build pipeline。该命令必须读取真实 local evidence root，执行 #995 schema validation，复用 #996 sourceCommit / sourceRunID / artifact provenance，重新计算 raw artifact checksum，并对每个 local artifact 执行 content policy validation。#997 固定为 schema / checksum / policy / manifest / bundle / registry flow。
+
+Build pipeline 的固定顺序为：
+
+1. `schemaValidated=true`：run logs / event stream / artifacts / registry / prior assessments 必须通过 #995 schema gate。
+2. `checksumValidated=true`：artifact index 的 path、byte count 和 checksum 必须与本地文件一致。
+3. `contentPolicyValidated=true`：artifact JSON 必须通过 allowlist / denylist / raw marker policy；raw secret、listenKey、production endpoint、account endpoint、order endpoint 和 broker payload marker 必须 fail closed。
+4. `manifestWritten=true`：写入 Manifest V2，并保留 #996 intake-derived provenance。
+5. `readinessBundleWritten=true`：写入 immutable readiness Bundle V2 review snapshot。
+6. `registryEntryConfirmed=true`：确认或创建 local readiness registry entry。
+7. 输出 `validationReportChecksum`，把 provenance、policy、manifest、bundle 和 registry checksum 串成 validation report。
+
+#997 必须对 schema、checksum、policy、manifest、bundle 或 registry consistency 任一失败 fail closed。#997 不执行 diff / compare，不创建 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不授权 production cutover。
 
 ## Outputs
 
