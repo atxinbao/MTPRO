@@ -34797,6 +34797,253 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.13.0.sh"))
     }
 
+    func testGH1000ReleaseV0130CompareBuildsEvidenceLevelDiffAndBlocksBrokenLinks() throws {
+        // 测试场景：GH-1000 将 compare 从 v0.12 field-level section diff 升级为
+        // v0.13 evidence-level readiness diff。Broken evidence link 必须进入 blocker，
+        // 不能被当作普通 changed diff。
+        let fileManager = FileManager.default
+        let root = fileManager.temporaryDirectory.appendingPathComponent(
+            "mtpro-gh1000-evidence-level-diff-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        defer { try? fileManager.removeItem(at: root) }
+
+        let validCommit = "f8dcd7860cc0265fc2cae4fe350b3f22c2dcfd58"
+        let model = ReleaseV0130LocalEvidenceIntakeModel(fileManager: fileManager)
+
+        func evidenceRoot(_ name: String) -> URL {
+            root.appendingPathComponent(name, isDirectory: true)
+        }
+
+        func write(root evidenceRoot: URL, _ relativePath: String, _ payload: String) throws {
+            let url = relativePath.split(separator: "/").reduce(evidenceRoot) { partialURL, component in
+                partialURL.appendingPathComponent(String(component))
+            }
+            try fileManager.createDirectory(
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try Data(payload.utf8).write(to: url, options: .atomic)
+        }
+
+        func writeEvidenceRoot(
+            named name: String,
+            sourceRunID: String,
+            summaryID: String
+        ) throws -> URL {
+            let evidenceRoot = evidenceRoot(name)
+            for directory in ReleaseV0130LocalEvidenceIntakeModel.requiredDirectories {
+                try fileManager.createDirectory(
+                    at: evidenceRoot.appendingPathComponent(directory, isDirectory: true),
+                    withIntermediateDirectories: true
+                )
+            }
+            try write(
+                root: evidenceRoot,
+                "run-logs/run-journal.jsonl",
+                #"{"sourceRunID":"\#(sourceRunID)","sourceCommit":"\#(validCommit)","eventType":"compare.ready","createdAt":"2026-06-20T04:00:00Z"}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "event-stream/events.jsonl",
+                #"{"eventID":"event-\#(sourceRunID)","sourceRunID":"\#(sourceRunID)","eventType":"comparison.evidence","occurredAt":"2026-06-20T04:00:01Z"}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "artifacts/readiness-summary.json",
+                #"{"summaryID":"\#(summaryID)","sourceRunID":"\#(sourceRunID)","sourceCommit":"\#(validCommit)","redactedEvidenceOnly":true,"noSecretValue":true,"noOrderPayload":true,"productionTradingEnabledByDefault":false,"productionCutoverAuthorized":false}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "artifacts/artifact-index.json",
+                #"{"sourceRunID":"\#(sourceRunID)","sourceCommit":"\#(validCommit)","artifacts":[{"id":"artifact-\#(sourceRunID)","path":"artifacts/readiness-summary.json"}]}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "registry/registry.json",
+                #"{"registryVersion":"v0.13.0.local-evidence-intake","assessments":[{"assessmentID":"assessment-gh1000"}]}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "prior-assessments/assessments-index.json",
+                #"{"assessmentIDs":["baseline-gh1000","followup-gh1000"],"sourceRunIDs":["\#(sourceRunID)"]}"#
+            )
+            return evidenceRoot
+        }
+
+        func bundleJSONURL(
+            store: ReadinessAssessmentRegistryStore,
+            assessmentID: Identifier,
+            generationID: Identifier
+        ) -> URL {
+            store.storageRootURL
+                .appendingPathComponent("assessments", isDirectory: true)
+                .appendingPathComponent(assessmentID.rawValue, isDirectory: true)
+                .appendingPathComponent("generations", isDirectory: true)
+                .appendingPathComponent(generationID.rawValue, isDirectory: true)
+                .appendingPathComponent("readiness-bundle-v2.json", isDirectory: false)
+        }
+
+        let store = ReadinessAssessmentRegistryStore(
+            storageRootURL: root.appendingPathComponent("store", isDirectory: true),
+            fileManager: fileManager
+        )
+        let baselineBuild = try model.buildPipeline(
+            assessmentID: Identifier.constant("gh-1000-baseline-assessment"),
+            generationID: Identifier.constant("gh-1000-baseline-generation"),
+            evidenceRootURL: try writeEvidenceRoot(
+                named: "baseline",
+                sourceRunID: "run-gh1000-baseline",
+                summaryID: "artifact-gh1000-baseline-summary"
+            ),
+            store: store,
+            createdAt: Date(timeIntervalSince1970: 1_813_000_700)
+        )
+        let followUpBuild = try model.buildPipeline(
+            assessmentID: Identifier.constant("gh-1000-followup-assessment"),
+            generationID: Identifier.constant("gh-1000-followup-generation"),
+            evidenceRootURL: try writeEvidenceRoot(
+                named: "followup",
+                sourceRunID: "run-gh1000-followup",
+                summaryID: "artifact-gh1000-followup-summary"
+            ),
+            store: store,
+            createdAt: Date(timeIntervalSince1970: 1_813_000_800)
+        )
+        let registryBeforeCompare = try store.load()
+        let report = try model.compareEvidenceLevelAssessments(
+            baselineAssessmentID: baselineBuild.registryEntry.assessmentID,
+            followUpAssessmentID: followUpBuild.registryEntry.assessmentID,
+            store: store,
+            comparedAt: Date(timeIntervalSince1970: 1_813_000_900)
+        )
+
+        XCTAssertTrue(report.evidenceLevelComparisonHeld)
+        XCTAssertEqual(report.issueID.rawValue, "GH-1000")
+        XCTAssertEqual(report.comparisonState, "changed")
+        XCTAssertEqual(report.comparedSections, ReleaseV0130EvidenceLevelDiffSection.allCases)
+        XCTAssertTrue(report.changedSections.contains(.sourceData))
+        XCTAssertTrue(report.changedSections.contains(.checksumChain))
+        XCTAssertTrue(report.changedSections.contains(.provenance))
+        XCTAssertTrue(report.blockedSections.isEmpty)
+        XCTAssertTrue(report.blockers.isEmpty)
+        XCTAssertTrue(report.comparisonDoesNotMutateAssessments)
+        XCTAssertTrue(report.operatorReviewOnly)
+        XCTAssertTrue(report.localRegistryStoreOnly)
+        XCTAssertTrue(report.redactedEvidenceOnly)
+        XCTAssertEqual(try store.load(), registryBeforeCompare)
+        XCTAssertFalse(report.productionTradingEnabledByDefault)
+        XCTAssertFalse(report.productionSecretRead)
+        XCTAssertFalse(report.productionEndpointConnected)
+        XCTAssertFalse(report.brokerEndpointConnected)
+        XCTAssertFalse(report.productionOrderSubmitted)
+        XCTAssertFalse(report.productionCutoverAuthorized)
+
+        let comparisonURL = store.storageRootURL
+            .appendingPathComponent("assessments", isDirectory: true)
+            .appendingPathComponent(followUpBuild.registryEntry.assessmentID.rawValue, isDirectory: true)
+            .appendingPathComponent("comparison-metadata.json", isDirectory: false)
+        let comparisonJSON = try String(contentsOf: comparisonURL, encoding: .utf8)
+        XCTAssertTrue(comparisonJSON.contains("GH-1000"))
+        XCTAssertTrue(comparisonJSON.contains(followUpBuild.registryEntry.assessmentID.rawValue))
+        XCTAssertTrue(comparisonJSON.contains("evidence-level-readiness-diff") == false)
+
+        let postCompareValidation = try model.validateEvidenceChain(
+            assessmentID: followUpBuild.registryEntry.assessmentID,
+            store: store
+        )
+        XCTAssertTrue(postCompareValidation.evidenceChainCoherent)
+        XCTAssertTrue(postCompareValidation.exportComparisonIdentityConsistent)
+
+        let brokenStore = ReadinessAssessmentRegistryStore(
+            storageRootURL: root.appendingPathComponent("broken-store", isDirectory: true),
+            fileManager: fileManager
+        )
+        let brokenBaseline = try model.buildPipeline(
+            assessmentID: Identifier.constant("gh-1000-broken-baseline"),
+            generationID: Identifier.constant("gh-1000-broken-baseline-generation"),
+            evidenceRootURL: try writeEvidenceRoot(
+                named: "broken-baseline",
+                sourceRunID: "run-gh1000-broken-baseline",
+                summaryID: "artifact-gh1000-broken-baseline-summary"
+            ),
+            store: brokenStore,
+            createdAt: Date(timeIntervalSince1970: 1_813_001_000)
+        )
+        let brokenFollowUp = try model.buildPipeline(
+            assessmentID: Identifier.constant("gh-1000-broken-followup"),
+            generationID: Identifier.constant("gh-1000-broken-followup-generation"),
+            evidenceRootURL: try writeEvidenceRoot(
+                named: "broken-followup",
+                sourceRunID: "run-gh1000-broken-followup",
+                summaryID: "artifact-gh1000-broken-followup-summary"
+            ),
+            store: brokenStore,
+            createdAt: Date(timeIntervalSince1970: 1_813_001_100)
+        )
+        try fileManager.removeItem(at: bundleJSONURL(
+            store: brokenStore,
+            assessmentID: brokenFollowUp.registryEntry.assessmentID,
+            generationID: brokenFollowUp.manifest.generationID
+        ))
+        let blockedReport = try model.compareEvidenceLevelAssessments(
+            baselineAssessmentID: brokenBaseline.registryEntry.assessmentID,
+            followUpAssessmentID: brokenFollowUp.registryEntry.assessmentID,
+            store: brokenStore,
+            comparedAt: Date(timeIntervalSince1970: 1_813_001_200)
+        )
+        XCTAssertEqual(blockedReport.comparisonState, "blocked")
+        XCTAssertEqual(blockedReport.blockedSections, ReleaseV0130EvidenceLevelDiffSection.allCases)
+        XCTAssertTrue(blockedReport.blockers.contains("follow-up:bundleBytes:missing"))
+        XCTAssertTrue(blockedReport.blockers.contains("follow-up:bundleV2:missing-or-invalid"))
+        XCTAssertTrue(blockedReport.changedSections.isEmpty)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift")
+        let cli = try read("Sources/MTPROCLI/main.swift")
+        let verifier = try read("checks/verify-v0.13.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF",
+            "TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF",
+            "V0130-007-EVIDENCE-LEVEL-DIFF-COMPARE",
+            "V0130-007-SOURCE-POLICY-RISK-CHECKSUM-PROVENANCE-COMPLETENESS",
+            "V0130-007-BROKEN-EVIDENCE-LINK-BLOCKER",
+            "V0130-007-COMPARISON-EXPORT-VALIDATION",
+            "V0130-007-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(ReleaseV0130EvidenceLevelDiffAnchors.validationAnchors.contains(anchor))
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-1000 source")
+            XCTAssertTrue(cli.contains(anchor), "\(anchor) must stay in GH-1000 CLI")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.13 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.13 contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        XCTAssertTrue(cli.contains("comparisonFormat=evidence-level-readiness-diff"))
+        XCTAssertTrue(cli.contains("comparisonState="))
+        XCTAssertTrue(cli.contains("blockedSections="))
+        XCTAssertTrue(cli.contains("comparisonMetadataJSONPath="))
+        XCTAssertTrue(source.contains("compareEvidenceLevelAssessments("))
+        XCTAssertTrue(verifier.contains("testGH1000ReleaseV0130CompareBuildsEvidenceLevelDiffAndBlocksBrokenLinks"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.13.0.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

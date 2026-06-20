@@ -3119,7 +3119,7 @@
 - validation surface: #996 consumes #995 local evidence root and derives normal manifest sourceCommit, sourceRunIDs, artifact bytes and artifact checksums from real local files
 - CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` preserves Manifest V2 provenance only after source provenance is local, traceable and non-synthetic
 - fail-closed evidence: placeholder sourceCommit, `gh-963-source-run`, `source-run-*` synthetic run IDs, missing artifact file, artifact metadata mismatch and fixture-only evidence are rejected
-- dependency evidence: #996, #997 and #998 are complete; #999 is the active redacted audit export package gate after fresh WIP=1 preflight
+- dependency evidence: #996, #997, #998 and #999 are complete; #1000 is the active evidence-level diff / compare gate after fresh WIP=1 preflight
 - forbidden scope: no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
 
 ## TVM-RELEASE-V0130-BUILD-PIPELINE
@@ -3136,7 +3136,7 @@
 - validation surface: #997 consumes #995 local evidence root and #996 provenance, then validates schema, raw artifact checksum, content policy, Manifest V2, Bundle V2 and local registry entry consistency
 - CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` emits `validationReportChecksum`, writes Manifest V2, writes Bundle V2 and confirms the local registry entry
 - fail-closed evidence: schema failure, checksum mismatch, placeholder sourceCommit, synthetic sourceRunID, fixture-only evidence and raw endpoint marker evidence are rejected
-- dependency evidence: #997 and #998 are complete; #999 is the active redacted audit export package gate after WIP=1 preflight
+- dependency evidence: #997, #998 and #999 are complete; #1000 is the active evidence-level diff / compare gate after WIP=1 preflight
 - forbidden scope: no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
 
 ## TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE
@@ -3170,5 +3170,23 @@
 - validation surface: #999 consumes #998 coherent evidence-chain output and writes a complete local redacted audit export package with assessment summary, Manifest V2, Bundle V2, validation report, provenance and comparison JSON evidence
 - CLI surface: `mtpro readiness export <assessmentID>` emits `packageComplete`, `exportedChecksumsMatchSource`, `evidenceChainCoherent`, `redactedEvidenceOnly`, `noSecretValue`, `noEndpointPayload` and `noOrderPayload`
 - fail-closed evidence: missing or tampered evidence chain blocks export before partial package output; exported Manifest V2 and Bundle V2 must match source bytes
-- dependency evidence: #1000 through #1005 remain blocked by #999 until this export package PR is merged and #999 is closed / done
+- dependency evidence: #999 is complete; #1000 is the next WIP=1 evidence-level diff / compare gate after fresh preflight
 - forbidden scope: no diff / compare, no CLI lifecycle ordering, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF
+
+- GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF
+- V0130-007-EVIDENCE-LEVEL-DIFF-COMPARE
+- V0130-007-SOURCE-POLICY-RISK-CHECKSUM-PROVENANCE-COMPLETENESS
+- V0130-007-BROKEN-EVIDENCE-LINK-BLOCKER
+- V0130-007-COMPARISON-EXPORT-VALIDATION
+- V0130-007-NO-PRODUCTION-CUTOVER
+- GH-1000 Release v0.13.0 Evidence-level Diff Validation
+- testGH1000ReleaseV0130CompareBuildsEvidenceLevelDiffAndBlocksBrokenLinks
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: #1000 consumes #998 coherent evidence-chain output and #999 redacted audit export package evidence, then compares source data、policy、risk posture、checksum chain、provenance and evidence completeness
+- CLI surface: `mtpro readiness compare <baselineAssessmentID> <followUpAssessmentID>` emits `comparisonFormat=evidence-level-readiness-diff`, `comparisonState`, `comparedSections`, `changedSections`, `unchangedSections`, `blockedSections`, `blockers`, `reportChecksum` and `comparisonMetadataJSONPath`
+- fail-closed evidence: broken evidence links, missing bundle bytes, tampered artifact snapshots or stale follow-up inputs produce `comparisonState=blocked` and section-level blockers instead of a normal changed diff
+- export validation evidence: comparison metadata remains local, binds baseline and follow-up assessment identity, and keeps `exportComparisonIdentityConsistent=true` after compare
+- dependency evidence: #1000 is blocked by #999; #1001 through #1005 remain blocked by #1000 until this evidence-level diff PR is merged and #1000 is closed / done
+- forbidden scope: no CLI lifecycle ordering, no transaction recovery snapshot, no generation collision-proofing, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

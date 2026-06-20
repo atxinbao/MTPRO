@@ -2537,6 +2537,15 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             )
         }
         let followUpEntry = try store.inspect(assessmentID: comparisonAssessmentID)
+        if try evidenceLevelCompareEligible(
+            baselineEntry: baselineEntry,
+            followUpEntry: followUpEntry
+        ) {
+            return try evidenceLevelCompareOutput(
+                baselineEntry: baselineEntry,
+                followUpEntry: followUpEntry
+            )
+        }
         let report = try store.compareAssessments(
             baselineSnapshot: try comparisonSnapshot(for: baselineEntry),
             followUpSnapshot: try comparisonSnapshot(for: followUpEntry),
@@ -2553,6 +2562,64 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             "compareDoesNotMutateAssessments=\(report.compareDoesNotMutateAssessments)",
             "operatorReviewOnly=\(report.operatorReviewOnly)",
             "localRegistryStoreOnly=true",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func evidenceLevelCompareEligible(
+        baselineEntry: ReadinessAssessmentRegistryEntry,
+        followUpEntry: ReadinessAssessmentRegistryEntry
+    ) throws -> Bool {
+        try redactedAuditExportPackageEligible(entry: baselineEntry)
+            && redactedAuditExportPackageEligible(entry: followUpEntry)
+    }
+
+    private func evidenceLevelCompareOutput(
+        baselineEntry: ReadinessAssessmentRegistryEntry,
+        followUpEntry: ReadinessAssessmentRegistryEntry
+    ) throws -> String {
+        let report = try ReleaseV0130LocalEvidenceIntakeModel(
+            fileManager: store.fileManager
+        ).compareEvidenceLevelAssessments(
+            baselineAssessmentID: baselineEntry.assessmentID,
+            followUpAssessmentID: followUpEntry.assessmentID,
+            store: store,
+            comparedAt: Self.canonicalNow()
+        )
+        return (baseOutput(action: action, entry: baselineEntry, mutationApplied: false) + [
+            "issue=GH-1000",
+            "v013ValidationAnchor=GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF",
+            "v013MatrixAnchor=TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF",
+            "v013DiffAnchor=V0130-007-EVIDENCE-LEVEL-DIFF-COMPARE",
+            "v013SectionsAnchor=V0130-007-SOURCE-POLICY-RISK-CHECKSUM-PROVENANCE-COMPLETENESS",
+            "v013BlockerAnchor=V0130-007-BROKEN-EVIDENCE-LINK-BLOCKER",
+            "v013ExportValidationAnchor=V0130-007-COMPARISON-EXPORT-VALIDATION",
+            "v013NoCutoverAnchor=V0130-007-NO-PRODUCTION-CUTOVER",
+            "baselineAssessmentID=\(report.baselineAssessmentID.rawValue)",
+            "followUpAssessmentID=\(report.followUpAssessmentID.rawValue)",
+            "comparisonFormat=evidence-level-readiness-diff",
+            "comparisonState=\(report.comparisonState)",
+            "baselineValidationState=\(report.baselineValidationState)",
+            "followUpValidationState=\(report.followUpValidationState)",
+            "comparedSections=\(report.comparedSections.map(\.rawValue).joined(separator: ","))",
+            "changedSections=\(report.changedSections.map(\.rawValue).joined(separator: ","))",
+            "unchangedSections=\(report.unchangedSections.map(\.rawValue).joined(separator: ","))",
+            "blockedSections=\(report.blockedSections.map(\.rawValue).joined(separator: ","))",
+            "blockers=\(report.blockers.isEmpty ? "none" : report.blockers.joined(separator: ","))",
+            "hasDifferences=\(report.changedSections.isEmpty == false)",
+            "reportChecksum=\(report.reportChecksum)",
+            "comparisonMetadataJSONPath=\(followUpEntry.artifactPaths.comparisonMetadataJSONPath)",
+            "compareDoesNotMutateAssessments=\(report.comparisonDoesNotMutateAssessments)",
+            "operatorReviewOnly=\(report.operatorReviewOnly)",
+            "localRegistryStoreOnly=\(report.localRegistryStoreOnly)",
+            "redactedEvidenceOnly=\(report.redactedEvidenceOnly)",
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "testnetOrderSubmissionAllowed=false",
             "boundaryHeld=true"
         ]).joined(separator: "\n")
     }

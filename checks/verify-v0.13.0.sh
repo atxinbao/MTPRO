@@ -45,6 +45,13 @@ set -euo pipefail
 # V0130-006-EXPORT-CHECKSUMS-MATCH-SOURCE
 # V0130-006-MISSING-EVIDENCE-FAILS-CLOSED
 # V0130-006-NO-SECRET-PRODUCTION-CUTOVER
+# GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF
+# TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF
+# V0130-007-EVIDENCE-LEVEL-DIFF-COMPARE
+# V0130-007-SOURCE-POLICY-RISK-CHECKSUM-PROVENANCE-COMPLETENESS
+# V0130-007-BROKEN-EVIDENCE-LINK-BLOCKER
+# V0130-007-COMPARISON-EXPORT-VALIDATION
+# V0130-007-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -97,6 +104,7 @@ swift test --filter TargetGraphTests/testGH996ReleaseV0130ProvenanceBuildRejects
 swift test --filter TargetGraphTests/testGH997ReleaseV0130BuildPipelineWritesManifestBundleRegistryAndPolicyReport
 swift test --filter TargetGraphTests/testGH998ReleaseV0130ValidateRejectsBrokenEvidenceChain
 swift test --filter TargetGraphTests/testGH999ReleaseV0130ExportWritesCompleteRedactedAuditPackage
+swift test --filter TargetGraphTests/testGH1000ReleaseV0130CompareBuildsEvidenceLevelDiffAndBlocksBrokenLinks
 
 for anchor in \
   "GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT" \
@@ -212,6 +220,25 @@ for anchor in \
   require_file_contains "$TESTS" "$anchor"
 done
 
+for anchor in \
+  "GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF" \
+  "TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF" \
+  "V0130-007-EVIDENCE-LEVEL-DIFF-COMPARE" \
+  "V0130-007-SOURCE-POLICY-RISK-CHECKSUM-PROVENANCE-COMPLETENESS" \
+  "V0130-007-BROKEN-EVIDENCE-LINK-BLOCKER" \
+  "V0130-007-COMPARISON-EXPORT-VALIDATION" \
+  "V0130-007-NO-PRODUCTION-CUTOVER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$SOURCE" "$anchor"
+  require_file_contains "$CLI_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
 require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.13.0.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.13.0.sh"
 require_file_contains "$READINESS" "Release v0.13.0 local evidence-driven readiness engine contract anchor"
@@ -220,24 +247,28 @@ require_file_contains "$READINESS" "Release v0.13.0 synthetic provenance rejecti
 require_file_contains "$READINESS" "Release v0.13.0 build pipeline anchor"
 require_file_contains "$READINESS" "Release v0.13.0 evidence-chain validate anchor"
 require_file_contains "$READINESS" "Release v0.13.0 redacted audit export package anchor"
+require_file_contains "$READINESS" "Release v0.13.0 evidence-level diff anchor"
 require_file_contains "$PLAN" "GH-994 Release v0.13.0 Local Evidence-driven Readiness Engine Contract Validation"
 require_file_contains "$PLAN" "GH-995 Release v0.13.0 Local Evidence Intake Model Validation"
 require_file_contains "$PLAN" "GH-996 Release v0.13.0 Synthetic Provenance Rejection Validation"
 require_file_contains "$PLAN" "GH-997 Release v0.13.0 Build Pipeline Validation"
 require_file_contains "$PLAN" "GH-998 Release v0.13.0 Evidence-chain Validate Validation"
 require_file_contains "$PLAN" "GH-999 Release v0.13.0 Redacted Audit Export Package Validation"
+require_file_contains "$PLAN" "GH-1000 Release v0.13.0 Evidence-level Diff Validation"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-INTAKE-MODEL"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-BUILD-PIPELINE"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF"
 require_file_contains "$LATEST" "v0.13.0 local evidence-driven readiness engine contract"
 require_file_contains "$LATEST" "v0.13.0 local evidence intake model"
 require_file_contains "$LATEST" "v0.13.0 synthetic provenance rejection"
 require_file_contains "$LATEST" "v0.13.0 build pipeline"
 require_file_contains "$LATEST" "v0.13.0 evidence-chain validate"
 require_file_contains "$LATEST" "v0.13.0 redacted audit export package"
+require_file_contains "$LATEST" "v0.13.0 evidence-level diff"
 require_file_contains "$ROADMAP" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
 require_file_contains "$GOAL" "release/v0.13.0"
 require_file_contains "$BLUEPRINT" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
@@ -257,6 +288,8 @@ require_file_contains "$SOURCE" "ReleaseV0130LocalEvidenceChainValidationReport"
 require_file_contains "$SOURCE" "validateEvidenceChain("
 require_file_contains "$SOURCE" "ReleaseV0130RedactedAuditExportPackageReport"
 require_file_contains "$SOURCE" "writeRedactedAuditExportPackage("
+require_file_contains "$SOURCE" "ReleaseV0130EvidenceLevelComparisonReport"
+require_file_contains "$SOURCE" "compareEvidenceLevelAssessments("
 require_file_contains "$SOURCE" "syntheticSourceRunID"
 require_file_contains "$SOURCE" "fixtureOnlyEvidence"
 require_file_contains "$CLI_SOURCE" "readiness intake <evidenceRoot>"
@@ -272,6 +305,10 @@ require_file_contains "$CLI_SOURCE" "evidenceChainCoherent="
 require_file_contains "$CLI_SOURCE" "failureReasons="
 require_file_contains "$CLI_SOURCE" "packageComplete="
 require_file_contains "$CLI_SOURCE" "exportedChecksumsMatchSource="
+require_file_contains "$CLI_SOURCE" "comparisonFormat=evidence-level-readiness-diff"
+require_file_contains "$CLI_SOURCE" "comparisonState="
+require_file_contains "$CLI_SOURCE" "blockedSections="
+require_file_contains "$CLI_SOURCE" "comparisonMetadataJSONPath="
 
 for required_contract_string in \
   "artifact -> policy -> manifest -> bundle -> registry -> diff" \
@@ -447,6 +484,40 @@ cmp -s "$gh999_source_bundle" "$gh999_export_dir/bundle-v2.json" \
 post_export_validate="$(MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness validate gh-996-assessment)"
 printf '%s\n' "$post_export_validate" | grep -Fq "exportComparisonIdentityConsistent=true" || fail "readiness validate must accept export/comparison identity after export"
 printf '%s\n' "$post_export_validate" | grep -Fq "evidenceChainCoherent=true" || fail "readiness validate must remain coherent after export"
+
+gh1000_followup_root="$gh996_root/gh1000-followup"
+write_gh996_evidence_root "$gh1000_followup_root" "run-gh1000-followup" "$gh996_commit"
+MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness build-v013 gh-1000-followup "$gh1000_followup_root" >/dev/null
+compare_output="$(MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness compare gh-996-assessment gh-1000-followup)"
+printf '%s\n' "$compare_output" | grep -Fq "issue=GH-1000" || fail "readiness compare output must link GH-1000"
+printf '%s\n' "$compare_output" | grep -Fq "v013ValidationAnchor=GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF" || fail "readiness compare must expose GH-1000 anchor"
+printf '%s\n' "$compare_output" | grep -Fq "comparisonFormat=evidence-level-readiness-diff" || fail "readiness compare must use evidence-level format for v0.13"
+printf '%s\n' "$compare_output" | grep -Fq "comparisonState=changed" || fail "readiness compare must report changed evidence"
+printf '%s\n' "$compare_output" | grep -Fq "comparedSections=source-data,policy,risk-posture,checksum-chain,provenance,evidence-completeness" || fail "readiness compare must cover all evidence-level sections"
+printf '%s\n' "$compare_output" | grep -Fq "blockedSections=" || fail "readiness compare must expose blocked sections field"
+printf '%s\n' "$compare_output" | grep -Fq "blockers=none" || fail "readiness compare valid chain must not report blockers"
+printf '%s\n' "$compare_output" | grep -Fq "compareDoesNotMutateAssessments=true" || fail "readiness compare must remain non-mutating"
+printf '%s\n' "$compare_output" | grep -Fq "operatorReviewOnly=true" || fail "readiness compare must remain operator-review-only"
+printf '%s\n' "$compare_output" | grep -Fq "comparisonMetadataJSONPath=.local/mtpro/readiness/assessments/gh-1000-followup/comparison-metadata.json" || fail "readiness compare must write comparison metadata"
+[[ -s "$gh996_store/assessments/gh-1000-followup/comparison-metadata.json" ]] || fail "readiness compare must write comparison metadata JSON"
+grep -Fq "gh-1000-followup" "$gh996_store/assessments/gh-1000-followup/comparison-metadata.json" \
+  || fail "comparison metadata must bind follow-up assessmentID"
+post_compare_validate="$(MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness validate gh-1000-followup)"
+printf '%s\n' "$post_compare_validate" | grep -Fq "exportComparisonIdentityConsistent=true" || fail "validate must accept comparison metadata identity"
+
+gh1000_block_store="$gh996_root/gh1000-block-store"
+MTPRO_READINESS_ROOT="$gh1000_block_store" swift run mtpro readiness build-v013 gh-1000-block-baseline "$gh996_valid_root" >/dev/null
+gh1000_block_followup_root="$gh996_root/gh1000-block-followup"
+write_gh996_evidence_root "$gh1000_block_followup_root" "run-gh1000-block-followup" "$gh996_commit"
+MTPRO_READINESS_ROOT="$gh1000_block_store" swift run mtpro readiness build-v013 gh-1000-block-followup "$gh1000_block_followup_root" >/dev/null
+gh1000_block_bundle="$(find "$gh1000_block_store/assessments/gh-1000-block-followup/generations" -name readiness-bundle-v2.json -print -quit)"
+[[ -n "$gh1000_block_bundle" ]] || fail "readiness compare blocker smoke must find follow-up bundle"
+rm "$gh1000_block_bundle"
+blocked_compare_output="$(MTPRO_READINESS_ROOT="$gh1000_block_store" swift run mtpro readiness compare gh-1000-block-baseline gh-1000-block-followup)"
+printf '%s\n' "$blocked_compare_output" | grep -Fq "comparisonState=blocked" || fail "readiness compare must block broken evidence links"
+printf '%s\n' "$blocked_compare_output" | grep -Fq "blockedSections=source-data,policy,risk-posture,checksum-chain,provenance,evidence-completeness" || fail "readiness compare broken links must block all evidence sections"
+printf '%s\n' "$blocked_compare_output" | grep -Fq "follow-up:bundleBytes:missing" || fail "readiness compare blockers must explain missing bundle bytes"
+printf '%s\n' "$blocked_compare_output" | grep -Fq "follow-up:bundleV2:missing-or-invalid" || fail "readiness compare blockers must explain broken Bundle V2"
 
 gh998_tamper_store="$gh996_root/gh998-tamper-store"
 MTPRO_READINESS_ROOT="$gh998_tamper_store" swift run mtpro readiness build-v013 gh-998-tamper "$gh996_valid_root" >/dev/null
