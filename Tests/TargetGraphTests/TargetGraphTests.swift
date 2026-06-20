@@ -32962,6 +32962,130 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH965ReleaseV0120FinalAuditDocsRunbookCloseCompletedFactsOnly() throws {
+        // 测试场景：GH-965 只收口 v0.12.0 final audit / release notes /
+        // operator runbook / root docs refresh，不创建 tag / Release，也不授权 production cutover。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let expectedAnchors = [
+            "GH-965-VERIFY-V0120-FINAL-AUDIT-DOCS-RUNBOOK",
+            "GH-965-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK",
+            "TVM-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK",
+            "V0120-014-STAGE-CODE-AUDIT",
+            "V0120-014-RELEASE-NOTES",
+            "V0120-014-OPERATOR-RUNBOOK",
+            "V0120-014-ASSESSMENT-REGISTRY-SCHEMA",
+            "V0120-014-MANIFEST-V2-SCHEMA",
+            "V0120-014-PROVENANCE-CONTRACT",
+            "V0120-014-ADVERSARIAL-VALIDATION-SUMMARY",
+            "V0120-014-ROOT-DOCS-REFRESH",
+            "V0120-014-AGGREGATE-VERIFY",
+            "V0120-014-NO-PRODUCTION-CUTOVER",
+            "V0120-014-NO-TAG-OR-RELEASE-MOVE"
+        ]
+
+        let audit = try read("docs/audit/mtpro-release-v0.12.0-readiness-assessment-sessions-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.12.0-readiness-assessment-sessions-notes.md")
+        let runbook = try read("docs/operators/release-v0.12.0-readiness-assessment-sessions-runbook.md")
+        let contract = try read("docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md")
+        let verifier = try read("checks/verify-v0.12.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+
+        for anchor in expectedAnchors {
+            XCTAssertTrue(audit.contains(anchor), "\(anchor) must stay in v0.12.0 stage audit")
+            XCTAssertTrue(notes.contains(anchor), "\(anchor) must stay in v0.12.0 release notes")
+            XCTAssertTrue(runbook.contains(anchor), "\(anchor) must stay in v0.12.0 runbook")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.12.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.12.0 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness shell gate")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        for requiredString in [
+            "MTPRO Release v0.12.0 Readiness Assessment Sessions",
+            "#952 through #964 were closed / done before #965 preflight",
+            "PR #973 through PR #985 were merged with required `checks` SUCCESS",
+            "docs/audit/mtpro-release-v0.12.0-readiness-assessment-sessions-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.12.0-readiness-assessment-sessions-notes.md",
+            "docs/operators/release-v0.12.0-readiness-assessment-sessions-runbook.md",
+            ".local/mtpro/readiness/registry.json",
+            ".local/mtpro/readiness/assessments/<assessmentID>/",
+            "Manifest V2",
+            "sourceRunIDs",
+            "sourceCommit",
+            "artifact content-policy rejection",
+            "transaction lock crash recovery",
+            "immutable bundle guard",
+            "source snapshot mutation guard",
+            "approval quorum fail-closed",
+            "Dashboard macOS adversarial CI",
+            "releaseV0120AssessmentHistoryRows=7",
+            "testGH965ReleaseV0120FinalAuditDocsRunbookCloseCompletedFactsOnly",
+            "bash checks/verify-v0.12.0.sh",
+            "Project Closure Count: 45 / 45 (100%)",
+            "Latest Completed Project：`MTPRO Release v0.12.0 Readiness Assessment Sessions`"
+        ] {
+            XCTAssertTrue(
+                audit.contains(requiredString)
+                    || notes.contains(requiredString)
+                    || runbook.contains(requiredString)
+                    || contract.contains(requiredString)
+                    || verifier.contains(requiredString)
+                    || runScript.contains(requiredString)
+                    || readiness.contains(requiredString)
+                    || readinessScript.contains(requiredString)
+                    || latest.contains(requiredString)
+                    || validationPlan.contains(requiredString)
+                    || tradingMatrix.contains(requiredString)
+                    || readme.contains(requiredString)
+                    || goal.contains(requiredString)
+                    || blueprint.contains(requiredString)
+                    || roadmap.contains(requiredString),
+                "\(requiredString) must stay wired into GH-965 closure evidence"
+            )
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.12.0.sh"))
+        XCTAssertTrue(readme.contains("MTPRO Release v0.12.0 Readiness Assessment Sessions"))
+        XCTAssertTrue(goal.contains("MTPRO Release v0.12.0 Readiness Assessment Sessions"))
+        XCTAssertTrue(blueprint.contains("MTPRO Release v0.12.0 Readiness Assessment Sessions"))
+        XCTAssertTrue(roadmap.contains("Current maturity statement：`MTPRO Release v0.12.0 Readiness Assessment Sessions complete with production trading disabled by default and production cutover not authorized`"))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true"
+        ] {
+            XCTAssertFalse(audit.contains(forbidden), "\(forbidden) must stay out of GH-965 audit")
+            XCTAssertFalse(notes.contains(forbidden), "\(forbidden) must stay out of GH-965 notes")
+            XCTAssertFalse(runbook.contains(forbidden), "\(forbidden) must stay out of GH-965 runbook")
+            XCTAssertFalse(latest.contains(forbidden), "\(forbidden) must stay out of latest summary")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

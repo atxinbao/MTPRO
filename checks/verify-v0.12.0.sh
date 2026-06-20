@@ -105,6 +105,20 @@ set -euo pipefail
 # V0120-013-PROVENANCE-VALIDATION-APPROVAL-COMPARISON
 # V0120-013-ADVERSARIAL-CI-GUARD
 # V0120-013-NO-PRODUCTION-CUTOVER
+# GH-965-VERIFY-V0120-FINAL-AUDIT-DOCS-RUNBOOK
+# GH-965-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK
+# TVM-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK
+# V0120-014-STAGE-CODE-AUDIT
+# V0120-014-RELEASE-NOTES
+# V0120-014-OPERATOR-RUNBOOK
+# V0120-014-ASSESSMENT-REGISTRY-SCHEMA
+# V0120-014-MANIFEST-V2-SCHEMA
+# V0120-014-PROVENANCE-CONTRACT
+# V0120-014-ADVERSARIAL-VALIDATION-SUMMARY
+# V0120-014-ROOT-DOCS-REFRESH
+# V0120-014-AGGREGATE-VERIFY
+# V0120-014-NO-PRODUCTION-CUTOVER
+# V0120-014-NO-TAG-OR-RELEASE-MOVE
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -149,6 +163,12 @@ WORKFLOW=".github/workflows/checks.yml"
 DASHBOARD_SOURCE="Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift"
 DASHBOARD_SHELL_SOURCE="Sources/Dashboard/DashboardShell.swift"
 DASHBOARD_GUARD="checks/verify-v0.12.0-dashboard-macos-guards.sh"
+AUDIT="docs/audit/mtpro-release-v0.12.0-readiness-assessment-sessions-stage-code-audit.md"
+RELEASE_NOTES="docs/release/mtpro-release-v0.12.0-readiness-assessment-sessions-notes.md"
+RUNBOOK="docs/operators/release-v0.12.0-readiness-assessment-sessions-runbook.md"
+GOAL="GOAL.md"
+BLUEPRINT="BLUEPRINT.md"
+ROADMAP="docs/roadmap.md"
 REGISTRY_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift"
 KILL_SWITCH_NO_TRADE_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift"
 APPROVAL_WORKFLOW_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift"
@@ -169,6 +189,7 @@ swift test --filter TargetGraphTests/testGH962ReadinessAssessmentDiffCompareIsLo
 swift test --filter TargetGraphTests/testGH963ReadinessAssessmentCLILifecycleUsesLocalRegistryOnly
 swift test --filter AppTests/testGH964DashboardAssessmentHistoryShowsLocalEvidenceAndAdversarialCoverageWithoutCommands
 swift test --filter TargetGraphTests/testGH964DashboardAssessmentHistoryAndAdversarialCIGuardsAreAnchored
+swift test --filter TargetGraphTests/testGH965ReleaseV0120FinalAuditDocsRunbookCloseCompletedFactsOnly
 
 for anchor in \
   "GH-952-VERIFY-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT" \
@@ -274,7 +295,21 @@ for anchor in \
   "V0120-013-ASSESSMENT-LIST-DETAIL-GENERATION-HISTORY" \
   "V0120-013-PROVENANCE-VALIDATION-APPROVAL-COMPARISON" \
   "V0120-013-ADVERSARIAL-CI-GUARD" \
-  "V0120-013-NO-PRODUCTION-CUTOVER"; do
+  "V0120-013-NO-PRODUCTION-CUTOVER" \
+  "GH-965-VERIFY-V0120-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "GH-965-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "TVM-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK" \
+  "V0120-014-STAGE-CODE-AUDIT" \
+  "V0120-014-RELEASE-NOTES" \
+  "V0120-014-OPERATOR-RUNBOOK" \
+  "V0120-014-ASSESSMENT-REGISTRY-SCHEMA" \
+  "V0120-014-MANIFEST-V2-SCHEMA" \
+  "V0120-014-PROVENANCE-CONTRACT" \
+  "V0120-014-ADVERSARIAL-VALIDATION-SUMMARY" \
+  "V0120-014-ROOT-DOCS-REFRESH" \
+  "V0120-014-AGGREGATE-VERIFY" \
+  "V0120-014-NO-PRODUCTION-CUTOVER" \
+  "V0120-014-NO-TAG-OR-RELEASE-MOVE"; do
   require_file_contains "$CONTRACT" "$anchor"
   require_file_contains "$READINESS" "$anchor"
   require_file_contains "$PLAN" "$anchor"
@@ -301,7 +336,30 @@ for anchor in \
     require_file_contains "$DASHBOARD_SOURCE" "$anchor"
     require_file_contains "$DASHBOARD_GUARD" "$anchor"
   fi
+  if [[ "$anchor" == GH-965-* || "$anchor" == TVM-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK || "$anchor" == V0120-014-* ]]; then
+    require_file_contains "$AUDIT" "$anchor"
+    require_file_contains "$RELEASE_NOTES" "$anchor"
+    require_file_contains "$RUNBOOK" "$anchor"
+  fi
 done
+
+require_file_contains "$AUDIT" "MTPRO Release v0.12.0 Readiness Assessment Sessions Stage Code Audit"
+require_file_contains "$RELEASE_NOTES" "MTPRO Release v0.12.0 Readiness Assessment Sessions Notes"
+require_file_contains "$RUNBOOK" "MTPRO Release v0.12.0 Readiness Assessment Sessions Operator Runbook"
+require_file_contains "$AUDIT" "#952 through #964 were closed / done before #965 preflight"
+require_file_contains "$AUDIT" 'PR #973 through PR #985 were merged with required `checks` SUCCESS'
+require_file_contains "$RELEASE_NOTES" "This is a construction closeout note"
+require_file_contains "$RUNBOOK" "This runbook tells an operator how to review v0.12.0 readiness assessment evidence locally"
+require_file_contains "$README" "MTPRO Release v0.12.0 Readiness Assessment Sessions"
+require_file_contains "$GOAL" "MTPRO Release v0.12.0 Readiness Assessment Sessions"
+require_file_contains "$BLUEPRINT" "MTPRO Release v0.12.0 Readiness Assessment Sessions"
+require_file_contains "$ROADMAP" "Project Closure Count: 45 / 45 (100%)"
+require_file_contains "$ROADMAP" 'Latest Completed Project：`MTPRO Release v0.12.0 Readiness Assessment Sessions`'
+require_file_contains "$READINESS" "Release v0.12.0 final audit / docs / runbook anchor"
+require_file_contains "$PLAN" "GH-965 Release v0.12.0 Final Audit / Docs / Runbook Validation"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK"
+require_file_contains "$LATEST" "Release v0.12.0 Final Audit / Docs / Runbook Snapshot"
+require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.12.0.sh"
 
 require_file_contains "$CONTRACT" "assessmentSessionAllowed=true"
 require_file_contains "$CONTRACT" "assessmentSessionLocalOnly=true"
