@@ -65,7 +65,7 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 
 ## Boundary
 
-productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。`v0.12.0` readiness assessment sessions closeout 不创建、不移动、不重写 tag 或 GitHub Release；它只收口本地 readiness assessment evidence、final audit、release notes、operator runbook、root docs refresh 和 aggregate verifier guard。
+productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。该 default-off / gated posture 是当前 release line 的 fail-closed 状态，不是 MTPRO 永久禁止实盘；后续 live trading 只能在独立 planning、唯一 live queue source、Parent Codex preflight、readiness evidence、credential / signed endpoint、OMS、risk、reconciliation、audit / rollback 和 Human approval gates 满足后逐层启用。`v0.12.0` readiness assessment sessions closeout 不创建、不移动、不重写 tag 或 GitHub Release；它只收口本地 readiness assessment evidence、final audit、release notes、operator runbook、root docs refresh 和 aggregate verifier guard。
 
 ## Release v0.12.1 Patch Audit / Release Notes Closeout Snapshot
 

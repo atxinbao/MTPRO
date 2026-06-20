@@ -28,11 +28,11 @@ MTPRO 借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapte
 | Current maturity statement | `MTPRO Release v0.12.0 Readiness Assessment Sessions complete with production trading disabled by default and production cutover not authorized` |
 | Active venue / products / strategies | `activeVenue == Binance`；`activeProductTypes == [spot, usdsPerpetual]`；`activeStrategies == [ema, rsi]` |
 | Runtime modes | `runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]` |
-| Production default | `productionTradingEnabledByDefault == false` |
+| Production default | `productionTradingEnabledByDefault == false`；这是当前 release line 的默认关闭策略，不是永久禁止实盘。 |
 | Production capability | `productionCapabilityGatedNotMissing == true` |
 | Historical boundary | `oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true` |
 
-Production trading、production secret、production endpoint、production broker connection、testnet / production submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.12.0 授权。后续执行只能来自 Human 指定的唯一 live queue source，并且必须经过 Parent Codex queue preflight。
+Production trading、production secret、production endpoint、production broker connection、testnet / production submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.12.0 授权。这里的“不授权 / 默认关闭”是当前阶段的 readiness gate，不是 MTPRO 的永久产品限制。MTPRO 的长期目标仍包含受控 Live trading；后续只能在 evidence-driven readiness、signed endpoint / credential、OMS、pre-trade / post-trade risk、kill switch、reconciliation、audit trail、operator runbook 和 Human approval 全部满足后，按唯一 live queue source 逐层启用。
 
 当前 live queue source 为 GitHub fallback `release/v0.13.0` issues `#994..#1005`。`#994` 已完成 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` contract gate；`#995` 已完成 local evidence intake model gate；`#996` 已完成 synthetic provenance rejection gate；`#997` 已完成 build pipeline gate；`#998` 是当前唯一 active evidence-chain validate gate；`#999..#1005` 在 #998 merged / checks success / closed done / main fast-forward 之前保持 blocked。
 
@@ -54,7 +54,7 @@ Production trading、production secret、production endpoint、production broker
 
 | 文件 / 目录 | 作用 |
 | --- | --- |
-| `GOAL.md` | Project Charter：目标、受众、永久硬边界和成功标准 |
+| `GOAL.md` | Project Charter：目标、受众、当前阶段硬边界、永久边界和成功标准 |
 | `BLUEPRINT.md` | Canonical Blueprint：Root Blueprint + Complete Blueprint |
 | `environment.md` | 本地环境、验证入口、外部系统能力和禁区 |
 | `architecture.md` | Engineering Module Map / 工程模块地图：模块边界、依赖方向、数据流和不变量 |

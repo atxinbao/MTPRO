@@ -51,6 +51,8 @@ GOAL.md
 
 Completed Project 的完整证据见 `docs/audit/`。当前 Project、active issue、Todo / In Progress / In Review 状态必须从 Human 指定的 live queue source 和 Parent Codex queue preview 实时读取，不写死在仓库文档中。
 
+Roadmap 里的 `production trading 默认保持关闭`、`production cutover 未授权` 和各 release 的 `not authorized` 都是当前阶段的 gate 状态，不是永久禁止实盘。MTPRO 的目标仍包含受控 Live trading；路线必须先完成本地 evidence-driven readiness、testnet closed loop、production read-only / signed endpoint、shadow live、controlled canary 等阶段，再由 Human approval 明确授权。
+
 Machine guard anchors:
 
 - MTPRO Release v0.2.0 | Completed

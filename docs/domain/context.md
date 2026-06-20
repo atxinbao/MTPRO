@@ -10,7 +10,7 @@
 
 | Term | Meaning | Boundary |
 | --- | --- | --- |
-| Project Charter | `GOAL.md`：为什么建、服务谁、永久硬边界和成功标准 | 不等于完整蓝图 |
+| Project Charter | `GOAL.md`：为什么建、服务谁、当前阶段硬边界、永久边界和成功标准 | 不等于完整蓝图 |
 | Root Blueprint / Complete Blueprint | `BLUEPRINT.md`：最终产品 / 系统 / 设计蓝图与 Future Construction Zones / 未来建设区 | 不授权执行 |
 | Engineering Module Map / 工程模块地图 | `architecture.md`：模块、边界、依赖方向和数据流 | 不推翻蓝图 |
 | Linear execution contract | live issue body 的 Scope / Non-goals / Validation / Boundary / PR Requirements | 仓库文档不替代 live queue |
@@ -24,7 +24,7 @@
 
 ## Forbidden Vocabulary
 
-Production / live 能力必须保持 gated：productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。禁止把 signed endpoint、account endpoint、listenKey、private WebSocket runtime、broker adapter、OMS、real order lifecycle、trading button、live command、order form 写成当前默认能力；不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实 order，不授权 production cutover。
+Production / live 能力必须保持 gated：productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。这里的 gated / disabled-by-default 是当前默认关闭和 fail-closed 策略，不是永久禁止实盘。禁止把 signed endpoint、account endpoint、listenKey、private WebSocket runtime、broker adapter、OMS、real order lifecycle、trading button、live command、order form 写成当前默认能力；不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实 order，不授权 production cutover。后续只有在独立 planning、唯一 live queue source、Parent Codex preflight、readiness evidence、credential / signed endpoint、OMS、risk、reconciliation、audit / rollback 和 Human approval gates 满足后，才能把对应能力从 gated 逐层提升为可执行 scope。
 
 ## Required Anchors
 

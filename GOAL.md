@@ -2,7 +2,7 @@
 
 本文档是 MTPRO 的 Project Charter，不是完整蓝图，不是工程模块地图，不是施工计划。
 
-它只回答四个问题：为什么建、服务谁、永久硬边界是什么、怎样判断项目仍然朝正确方向推进。完整产品 / 系统 / 设计蓝图见 `BLUEPRINT.md`；当前施工阶段、目标切片和进度条见 `docs/roadmap.md`。
+它只回答四个问题：为什么建、服务谁、当前阶段硬边界 / 永久硬边界是什么、怎样判断项目仍然朝正确方向推进。完整产品 / 系统 / 设计蓝图见 `BLUEPRINT.md`；当前施工阶段、目标切片和进度条见 `docs/roadmap.md`。
 
 ## 项目使命
 
@@ -21,9 +21,11 @@ MTPRO 首先服务个人专业交易者 / 独立策略研究者：在本机 Mac 
 | Local-first | 核心研究、回测、Paper、报告和审计优先在本地工作台闭环完成。 |
 | Evidence chain first | 工作台导航以 Research -> Backtest -> Report -> Paper -> Events 为主，不以交易按钮为中心。 |
 | 少量可解释策略优先 | 当前 active strategy scope 是 EMA + RSI；其他策略只能作为 future candidate。 |
-| Binance boundary | Binance 是当前 active venue；production secret / endpoint / broker / real order 默认关闭。 |
+| Binance boundary | Binance 是当前 active venue；production secret / endpoint / broker / real order 当前默认关闭，但不是永久禁止；后续只能按 readiness gates 逐层放权。 |
 | Paper / Live 隔离 | Paper 证据不能被解释为真实订单、真实成交或 broker action。 |
 | Live gated | Live trading 是最终产品目标的一部分，但只能在独立 Human decision、独立 Project Definition、signed endpoint / broker / risk / operations gates 之后进入执行范围。 |
+
+因此，`productionTradingEnabledByDefault == false` 表示当前版本线默认 fail-closed；它不是“永远禁止实盘”。MTPRO 的 live 能力路线是先完成本地 evidence-driven readiness，再进入 testnet closed loop、production read-only / signed endpoint、shadow live、controlled canary，最后才可能由 Human approval 授权真实生产交易。
 
 ## 当前成功标准
 
@@ -77,13 +79,18 @@ Anchor facts retained for readiness guards:
 - Historical patch statement retained for release v0.12.1：`MTPRO Release v0.12.1 Readiness Assessment Provenance Hardening Patch complete as patch closeout without tag publication and without production cutover authorization`。
 - 当前 live queue source 为 GitHub fallback `release/v0.13.0`，#994 contract gate、#995 local evidence intake model gate、#996 synthetic provenance rejection gate 和 #997 build pipeline gate 已完成；#998 是唯一 active evidence-chain validate gate；#999..#1005 保持 blocked，直到 #998 PR merged / required checks success / issue closed done / main fast-forward / fresh WIP=1 preflight。Release v0.12.0 completion、v0.12.1 patch closeout、v0.13.0 contract gate、#995 local evidence intake model、#996 synthetic provenance rejection、#997 build pipeline 和当前 #998 evidence-chain validate 不授权 strategy 直连 ExecutionClient、broker command、production OMS、trading button、Live PRO Console production command、live command、real broker、real order、testnet order routing、production cutover 或任何 production trading。
 
-## 永久硬边界
+## 当前阶段硬边界与永久硬边界
+
+下列前五项是当前 release stage 的默认关闭能力，不是 MTPRO 永久产品限制。它们只有在独立 Project Definition、唯一 live queue source、Parent Codex preflight、credential / signed endpoint / OMS / risk / reconciliation / audit / rollback gates 和 Human approval 全部满足后，才能按版本路线逐层放开。
 
 - 当前阶段不实现真实 Live trading。
 - 当前阶段不接 signed endpoint、account endpoint 或 listenKey。
 - 当前阶段不连接 broker。
 - 当前阶段不提交、撤销、替换真实订单。
 - 当前阶段不实现真实账户余额、broker position sync 或 OMS。
+
+以下是长期产品边界：
+
 - 不迁移 `macos-trader` 整仓代码。
 - 不引入 NautilusTrader 作为运行依赖。
 - 不把 `BLUEPRINT.md` 中的 Future Construction Zones / 未来建设区自动转成当前 execution scope。
