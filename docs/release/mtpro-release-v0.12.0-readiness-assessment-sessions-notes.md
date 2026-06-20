@@ -26,7 +26,7 @@ Anchor set:
 
 `MTPRO Release v0.12.0 Readiness Assessment Sessions` closes the local readiness assessment layer for v0.12.0. It turns v0.11.x readiness evidence into assessment-scoped, redacted, comparable and reviewable local artifacts.
 
-This is a construction closeout note. It is not a Git tag publication, not a GitHub Release publication and not a production cutover.
+This is a construction closeout note for #965. The later v0.12.0 Release Publication Gate has published the stable GitHub Release at `https://github.com/atxinbao/MTPRO/releases/tag/v0.12.0`, with tag peeled commit `25e31afd351db9a372db62222226b0a3db26c93a` and publication timestamp `2026-06-20T01:11:22Z`. That publication is still not a production cutover.
 
 ## Completed Scope
 
@@ -45,8 +45,8 @@ This is a construction closeout note. It is not a Git tag publication, not a Git
 ## Issue / PR Evidence
 
 - #952 through #964 were closed / done before #965 preflight.
-- PR #973 through PR #985 were merged with required `checks` SUCCESS.
-- #965 owns final audit docs, release notes, operator runbook, root docs refresh and aggregate verifier guard updates.
+- PR #973 through PR #986 were merged with required `checks` SUCCESS.
+- #965 is closed / done and owns final audit docs, release notes, operator runbook, root docs refresh and aggregate verifier guard updates.
 
 ## Capability Notes
 
@@ -85,14 +85,14 @@ bash checks/run.sh
 
 v0.12.0 does not authorize production cutover. Production trading remains disabled by default.
 
-This closeout does not:
+This closeout and the later stable GitHub Release publication do not:
 
 - read production secrets
 - connect production endpoint or broker endpoint
 - submit, cancel or replace testnet or production orders
 - implement or authorize production OMS
 - expose trading button, order form or live command
-- create or move a tag
-- create or move a GitHub Release
+- move or overwrite any existing tag
+- move or overwrite any existing GitHub Release
 - create the next Project or Issue
 - promote the next queue item

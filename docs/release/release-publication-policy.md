@@ -11,6 +11,7 @@
 - `GH-879 V0100-002 Align v0.9.1 / v0.10.0 release publication docs and version policy`
 - `v0.11.0 Release Publication Gate fact sync`
 - `GH-953 V0120-002 Align v0.11.x release publication and patch facts`
+- `v0.12.0 Release Publication Gate fact sync`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -142,6 +143,23 @@ v0.11.0 当前存在 public GitHub Release：
 v0.11.0 的 construction closeout、Release Publication Gate、release fact sync / stale wording guard 和 production cutover 仍是独立 gate。已发布事实不授权 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实订单，不创建下一 Project / Issue，也不推进 v0.12.0。
 
 GH-945 / v0.11.1 stale wording guard 固定该 release fact：所有未限定为 #924 历史 closeout 的 v0.11.0 文档不得继续描述为 publication pending、tag pending、release not created、没有 GitHub Release、未创建 release 或待发布。
+
+## V0120-ACTUAL-GITHUB-RELEASE
+
+`V0120-ACTUAL-GITHUB-RELEASE`
+
+v0.12.0 使用 `MTPRO Release v0.12.0 Readiness Assessment Sessions` 作为 release construction queue。#965 construction closeout 本身只收口 Stage Code Audit、release notes、operator runbook、root docs refresh、aggregate verifier guard 和 focused closeout test；它不授权 production cutover。
+
+v0.12.0 当前存在 public GitHub Release：
+
+- release tag：`v0.12.0`
+- release title：`MTPRO v0.12.0 Readiness Assessment Sessions`
+- release URL：`https://github.com/atxinbao/MTPRO/releases/tag/v0.12.0`
+- release type：stable release；非 draft；非 prerelease
+- tag peeled commit：`25e31afd351db9a372db62222226b0a3db26c93a`
+- publication timestamp：`2026-06-20T01:11:22Z`
+
+v0.12.0 的 construction closeout、Release Publication Gate、release fact sync / stale wording guard 和 production cutover 仍是独立 gate。已发布事实不授权 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实订单，不创建下一 Project / Issue，也不推进 v0.13.0。
 
 ## V0111-007-PATCH-AUDIT-RELEASE-NOTES
 

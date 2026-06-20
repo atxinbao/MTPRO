@@ -10,7 +10,7 @@
 
 ## Conclusion
 
-`MTPRO Release v0.12.0 Readiness Assessment Sessions` is closed as a readiness-assessment construction stage after the #965 closure PR is merged. The stage creates local, redacted, reviewable readiness assessment evidence for release operators. It does not publish a tag, does not create or move a GitHub Release, does not authorize production cutover, and does not enable production trading.
+`MTPRO Release v0.12.0 Readiness Assessment Sessions` is closed as a readiness-assessment construction stage after the #965 closure PR is merged. The stage creates local, redacted, reviewable readiness assessment evidence for release operators. Tag and GitHub Release publication were intentionally outside #965 and later completed through the separate v0.12.0 Release Publication Gate at `https://github.com/atxinbao/MTPRO/releases/tag/v0.12.0`, tag peeled commit `25e31afd351db9a372db62222226b0a3db26c93a`, publication timestamp `2026-06-20T01:11:22Z`. The publication does not authorize production cutover and does not enable production trading.
 
 Current maturity statement:
 
@@ -56,9 +56,11 @@ WIP=1 evidence: before #965 promotion there were no open PRs and no open `todo`,
 | #983 | #962 | `8a76f8c931d0cc4109d1426f6c10d6ba9de3f70f` | `checks` SUCCESS |
 | #984 | #963 | `a3febf9336236fe6580458284205cd3028489129` | `checks` SUCCESS |
 | #985 | #964 | `327b420d60573f2455c956fd4172e3af5083e31b` | `checks` SUCCESS |
-| #965 closure PR | #965 | pending until merge | must reach `checks` SUCCESS before merge |
+| #986 | #965 | `25e31afd351db9a372db62222226b0a3db26c93a` | `checks` SUCCESS |
 
-PR #973 through PR #985 were merged with required `checks` SUCCESS.
+PR #973 through PR #986 were merged with required `checks` SUCCESS.
+
+Before #965 closure, PR #973 through PR #985 were merged with required `checks` SUCCESS.
 
 ## Contract / Schema Audit
 
@@ -72,7 +74,7 @@ PR #973 through PR #985 were merged with required `checks` SUCCESS.
 - `V0120-014-ROOT-DOCS-REFRESH`: root docs refresh updates completed facts only and does not create the next project or issue.
 - `V0120-014-AGGREGATE-VERIFY`: `checks/verify-v0.12.0.sh` is the release-specific aggregate verifier and is called by `checks/run.sh`.
 - `V0120-014-NO-PRODUCTION-CUTOVER`: this stage remains readiness evidence only.
-- `V0120-014-NO-TAG-OR-RELEASE-MOVE`: #965 does not create, move, delete or overwrite any tag or GitHub Release.
+- `V0120-014-NO-TAG-OR-RELEASE-MOVE`: #965 did not create, move, delete or overwrite any tag or GitHub Release; the later v0.12.0 Release Publication Gate created the stable publication without moving existing release facts.
 
 ## Validation Evidence
 
@@ -107,7 +109,7 @@ bash checks/run.sh
 | testnet or production submit / cancel / replace | not allowed |
 | production OMS | not implemented or authorized by this stage |
 | trading button / order form / live command | not exposed |
-| tag / GitHub Release movement | not performed by #965 |
+| tag / GitHub Release movement | not performed by #965; v0.12.0 stable release later published by separate Release Publication Gate without production cutover authorization |
 | next Project / Issue promotion | not performed by #965 |
 
 ## Residual Risk
@@ -118,4 +120,4 @@ bash checks/run.sh
 
 ## Next Handoff
 
-After #965 PR merge, Parent Codex may mark #965 `done` and close it. No next project, issue, tag, GitHub Release or production cutover is authorized by this report. Any v0.12.x publication or v0.13.0 planning requires a separate Human decision and fresh queue preflight.
+#965 is closed / done after PR #986 merge. v0.12.0 stable GitHub Release publication later completed through the separate Release Publication Gate. No next project, issue or production cutover is authorized by this report. Any v0.12.x patch or v0.13.0 planning requires a separate Human decision and fresh queue preflight.
