@@ -149,7 +149,7 @@
 
 `v0.13.0` 定义 local evidence-driven readiness engine / 本地证据驱动就绪引擎。它承接 v0.12.0 readiness assessment sessions 和 v0.12.1 provenance hardening patch 的已完成事实，把 readiness assessment 从“可生成本地 assessment evidence”推进为“只能从真实本地 evidence root intake、校验、打包、登记、比较和导出”的 engine contract。
 
-本 contract 起始于 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。#994 只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；后续 issue 按 WIP=1 逐项完成。当前执行事实：#994、#995、#996、#997、#998、#999、#1000、#1001 和 #1002 已完成；#1003 在 fresh WIP=1 preflight 后作为唯一 active ordered CLI execution lifecycle gate 执行；#1004..#1005 继续 blocked，直到 #1003 PR merged、required checks success、issue closed / done、本地 `main == origin/main` 且 worktree clean。
+本 contract 起始于 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。#994 只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；后续 issue 按 WIP=1 逐项完成。当前执行事实：#994、#995、#996、#997、#998、#999、#1000、#1001、#1002 和 #1003 已完成；#1004 在 fresh WIP=1 preflight 后作为唯一 active local evidence fixtures and regression suite gate 执行；#1005 继续 blocked，直到 #1004 PR merged、required checks success、issue closed / done、本地 `main == origin/main` 且 worktree clean。
 
 ## Inputs
 
@@ -338,6 +338,20 @@ registry lookup remains stable：#1002 只能改变 generationID 的唯一性，
 `readiness compare <baselineAssessmentID> <followUpAssessmentID>` 必须要求 baseline 已完成 export marker、follow-up 已完成 validation marker，随后仍按 #1000 evidence-level compare 报告 broken evidence link blocker，不能把 marker 检查降级为普通 warning。`readiness archive <assessmentID>` 必须要求当前 export marker 与当前 validation marker 仍一致；archive-before-export、compare-before-follow-up-validate、export-before-validate 和 stale marker must fail closed，并输出 `nextRequiredAction` 与 explicit reason。
 
 #1003 不创建 fixture suite、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace，也不把本地 lifecycle marker 解释为 production readiness approval。
+
+## #1004 Local Evidence Fixtures and Regression Suite
+
+- `GH-1004-VERIFY-V0130-LOCAL-EVIDENCE-FIXTURES`
+- `TVM-RELEASE-V0130-LOCAL-EVIDENCE-FIXTURES`
+- `V0130-011-MINIMAL-VALID-LOCAL-EVIDENCE-FIXTURE`
+- `V0130-011-INVALID-TAMPERED-MISSING-FIXTURE-CASES`
+- `V0130-011-BUILD-VALIDATE-EXPORT-COMPARE-RECOVERY-REGRESSION`
+- `V0130-011-FIXTURE-RUNTIME-PATH-SEPARATION`
+- `V0130-011-NO-PRODUCTION-CUTOVER`
+
+#1004 在 #1003 ordered CLI lifecycle 完成后，新增 `Tests/Fixtures/ReleaseV0130LocalEvidence/valid` 作为最小 valid local evidence fixture。该 fixture 只提供 run logs、event stream、artifact index、redacted readiness summary、registry 和 prior assessments 的本地样本；runtime-facing readiness output 必须写入临时 `.local/mtpro/readiness` registry store 或 operator 指定 store，不能写回 `Tests/Fixtures`。
+
+Regression suite 必须覆盖 valid fixture 的 intake、build、validate、export、compare 和 transaction recovery path，并覆盖 missing artifact index、synthetic sourceRunID、placeholder sourceCommit、fixture-only marker 和 tampered artifact snapshot 等 fail-closed cases。Fixture 只用于 deterministic CI / local validation，不代表 production evidence、不读取 secret、不连接 endpoint / broker、不发送 testnet 或 production order，也不授权 production cutover。
 
 Build pipeline 的固定顺序为：
 

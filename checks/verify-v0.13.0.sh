@@ -72,6 +72,13 @@ set -euo pipefail
 # V0130-010-VALIDATION-EXPORT-MARKERS
 # V0130-010-BYPASS-MANUAL-FILES-REJECTED
 # V0130-010-NO-PRODUCTION-CUTOVER
+# GH-1004-VERIFY-V0130-LOCAL-EVIDENCE-FIXTURES
+# TVM-RELEASE-V0130-LOCAL-EVIDENCE-FIXTURES
+# V0130-011-MINIMAL-VALID-LOCAL-EVIDENCE-FIXTURE
+# V0130-011-INVALID-TAMPERED-MISSING-FIXTURE-CASES
+# V0130-011-BUILD-VALIDATE-EXPORT-COMPARE-RECOVERY-REGRESSION
+# V0130-011-FIXTURE-RUNTIME-PATH-SEPARATION
+# V0130-011-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -128,6 +135,7 @@ swift test --filter TargetGraphTests/testGH1000ReleaseV0130CompareBuildsEvidence
 swift test --filter TargetGraphTests/testGH1001ReleaseV0130TransactionRecoverySnapshotExplainsInterruptedAndStaleStaging
 swift test --filter TargetGraphTests/testGH1002ReleaseV0130GenerationIDCollisionProofingKeepsRegistryLookupStable
 swift test --filter TargetGraphTests/testGH1003ReleaseV0130OrderedReadinessCLILifecycleRequiresMarkersAndNextActions
+swift test --filter TargetGraphTests/testGH1004ReleaseV0130LocalEvidenceFixturesAndRegressionSuiteCoversFailClosedFlow
 
 for anchor in \
   "GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT" \
@@ -298,6 +306,40 @@ for anchor in \
   require_file_contains "$TESTS" "$anchor"
 done
 
+for anchor in \
+  "GH-1003-VERIFY-V0130-ORDERED-READINESS-CLI-LIFECYCLE" \
+  "TVM-RELEASE-V0130-ORDERED-READINESS-CLI-LIFECYCLE" \
+  "V0130-010-CREATE-BUILD-VALIDATE-EXPORT-COMPARE-ARCHIVE" \
+  "V0130-010-VALIDATION-EXPORT-MARKERS" \
+  "V0130-010-BYPASS-MANUAL-FILES-REJECTED" \
+  "V0130-010-NO-PRODUCTION-CUTOVER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$CLI_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+for anchor in \
+  "GH-1004-VERIFY-V0130-LOCAL-EVIDENCE-FIXTURES" \
+  "TVM-RELEASE-V0130-LOCAL-EVIDENCE-FIXTURES" \
+  "V0130-011-MINIMAL-VALID-LOCAL-EVIDENCE-FIXTURE" \
+  "V0130-011-INVALID-TAMPERED-MISSING-FIXTURE-CASES" \
+  "V0130-011-BUILD-VALIDATE-EXPORT-COMPARE-RECOVERY-REGRESSION" \
+  "V0130-011-FIXTURE-RUNTIME-PATH-SEPARATION" \
+  "V0130-011-NO-PRODUCTION-CUTOVER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
 require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.13.0.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.13.0.sh"
 require_file_contains "$READINESS" "Release v0.13.0 local evidence-driven readiness engine contract anchor"
@@ -309,6 +351,8 @@ require_file_contains "$READINESS" "Release v0.13.0 redacted audit export packag
 require_file_contains "$READINESS" "Release v0.13.0 evidence-level diff anchor"
 require_file_contains "$READINESS" "Release v0.13.0 transaction recovery forensic snapshot anchor"
 require_file_contains "$READINESS" "Release v0.13.0 generation ID collision-proofing anchor"
+require_file_contains "$READINESS" "Release v0.13.0 ordered CLI execution lifecycle anchor"
+require_file_contains "$READINESS" "Release v0.13.0 local evidence fixtures and regression suite anchor"
 require_file_contains "$PLAN" "GH-994 Release v0.13.0 Local Evidence-driven Readiness Engine Contract Validation"
 require_file_contains "$PLAN" "GH-995 Release v0.13.0 Local Evidence Intake Model Validation"
 require_file_contains "$PLAN" "GH-996 Release v0.13.0 Synthetic Provenance Rejection Validation"
@@ -318,6 +362,8 @@ require_file_contains "$PLAN" "GH-999 Release v0.13.0 Redacted Audit Export Pack
 require_file_contains "$PLAN" "GH-1000 Release v0.13.0 Evidence-level Diff Validation"
 require_file_contains "$PLAN" "GH-1001 Release v0.13.0 Transaction Recovery Forensic Snapshot Validation"
 require_file_contains "$PLAN" "GH-1002 Release v0.13.0 Generation ID Collision-proofing Validation"
+require_file_contains "$PLAN" "GH-1003 Release v0.13.0 Ordered Readiness CLI Lifecycle Validation"
+require_file_contains "$PLAN" "GH-1004 Release v0.13.0 Local Evidence Fixtures and Regression Suite Validation"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-INTAKE-MODEL"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION"
@@ -327,6 +373,8 @@ require_file_contains "$MATRIX" "TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-TRANSACTION-RECOVERY-SNAPSHOT"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-GENERATION-ID-COLLISION-PROOFING"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0130-ORDERED-READINESS-CLI-LIFECYCLE"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-FIXTURES"
 require_file_contains "$LATEST" "v0.13.0 local evidence-driven readiness engine contract"
 require_file_contains "$LATEST" "v0.13.0 local evidence intake model"
 require_file_contains "$LATEST" "v0.13.0 synthetic provenance rejection"
@@ -336,10 +384,17 @@ require_file_contains "$LATEST" "v0.13.0 redacted audit export package"
 require_file_contains "$LATEST" "v0.13.0 evidence-level diff"
 require_file_contains "$LATEST" "v0.13.0 transaction recovery forensic snapshot"
 require_file_contains "$LATEST" "v0.13.0 generation ID collision-proofing"
+require_file_contains "$LATEST" "v0.13.0 ordered CLI execution lifecycle"
+require_file_contains "$LATEST" "v0.13.0 local evidence fixtures and regression suite"
 require_file_contains "$ROADMAP" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
 require_file_contains "$GOAL" "release/v0.13.0"
 require_file_contains "$BLUEPRINT" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
 require_file_contains "$README" "release/v0.13.0"
+require_file_contains "Tests/Fixtures/ReleaseV0130LocalEvidence/valid/run-logs/run-journal.jsonl" "run-gh1004-fixture-baseline"
+require_file_contains "Tests/Fixtures/ReleaseV0130LocalEvidence/valid/artifacts/artifact-index.json" "artifact-gh1004-readiness-summary"
+require_file_contains "Tests/Fixtures/ReleaseV0130LocalEvidence/valid/artifacts/readiness-summary.json" "productionTradingEnabledByDefault\":false"
+require_file_contains "$TESTS" "source-run-aaaaaaaaaaaaaaaa"
+require_file_contains "$TESTS" "artifactSnapshots:artifact-bytes-missing-or-checksum-mismatch"
 require_file_contains "$SOURCE" "ReleaseV0130LocalEvidenceIntakeModel"
 require_file_contains "$SOURCE" "ReleaseV0130LocalEvidenceIntakeReport"
 require_file_contains "$SOURCE" "run-logs/run-journal.jsonl"
@@ -395,7 +450,8 @@ for required_contract_string in \
   "compare-before-build" \
   "export-before-validate" \
   "synthetic readiness data" \
-  "#1004..#1005 继续 blocked"; do
+  "#1004 在 fresh WIP=1 preflight 后作为唯一 active" \
+  "#1005 继续 blocked"; do
   require_file_contains "$CONTRACT" "$required_contract_string"
 done
 

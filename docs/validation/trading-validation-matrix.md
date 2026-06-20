@@ -3241,3 +3241,19 @@
 - fail-closed evidence: export-before-validate, compare-before-follow-up-validate, archive-before-export and stale marker attempts fail closed before writing new success output
 - dependency evidence: #1003 is blocked by #1002 and is the active WIP=1 gate; #1004 through #1005 remain blocked by #1003 until this PR is merged and #1003 is closed / done
 - forbidden scope: no fixture suite, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+- GH-1004-VERIFY-V0130-LOCAL-EVIDENCE-FIXTURES
+- TVM-RELEASE-V0130-LOCAL-EVIDENCE-FIXTURES
+- V0130-011-MINIMAL-VALID-LOCAL-EVIDENCE-FIXTURE
+- V0130-011-INVALID-TAMPERED-MISSING-FIXTURE-CASES
+- V0130-011-BUILD-VALIDATE-EXPORT-COMPARE-RECOVERY-REGRESSION
+- V0130-011-FIXTURE-RUNTIME-PATH-SEPARATION
+- V0130-011-NO-PRODUCTION-CUTOVER
+- GH-1004 Release v0.13.0 Local Evidence Fixtures and Regression Suite Validation
+- testGH1004ReleaseV0130LocalEvidenceFixturesAndRegressionSuiteCoversFailClosedFlow
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: static minimal fixture under `Tests/Fixtures/ReleaseV0130LocalEvidence/valid` plus generated invalid/tampered/missing cases
+- regression evidence: build / validate / export / compare / recovery paths consume copied fixture data in a temporary runtime store
+- fail-closed evidence: missing artifact index, synthetic sourceRunID, placeholder sourceCommit, fixture-only marker and tampered artifact snapshot are rejected
+- dependency evidence: #1004 is blocked by #1003 and is the active WIP=1 gate; #1005 remains blocked by #1004 until this PR is merged and #1004 is closed / done
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
