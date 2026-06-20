@@ -63,11 +63,25 @@
 
 `V0130-004-NO-PRODUCTION-CUTOVER`
 
+`GH-998-VERIFY-V0130-EVIDENCE-CHAIN-VALIDATE`
+
+`TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE`
+
+`V0130-005-REGISTRY-MANIFEST-BUNDLE-CONSISTENCY`
+
+`V0130-005-ARTIFACT-POLICY-CHECKSUM-PROVENANCE`
+
+`V0130-005-EXPORT-COMPARISON-IDENTITY`
+
+`V0130-005-MISSING-STALE-TAMPERED-FAILS-CLOSED`
+
+`V0130-005-NO-PRODUCTION-CUTOVER`
+
 ## Contract Scope
 
 `v0.13.0` 定义 local evidence-driven readiness engine / 本地证据驱动就绪引擎。它承接 v0.12.0 readiness assessment sessions 和 v0.12.1 provenance hardening patch 的已完成事实，把 readiness assessment 从“可生成本地 assessment evidence”推进为“只能从真实本地 evidence root intake、校验、打包、登记、比较和导出”的 engine contract。
 
-本 contract 是 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。它只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；不实现 #995 之后的 evidence intake、build pipeline、validate、diff、CLI lifecycle 或 fixtures。#995 至 #1005 必须继续被 #994 阻塞，直到本 contract PR merged、required checks success、#994 closed / done、本地 `main == origin/main` 且 worktree clean。当前执行事实：#994、#995 和 #996 已完成；#997 在 fresh WIP=1 preflight 后作为唯一 active build pipeline gate 执行。
+本 contract 是 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。它只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；不实现 #995 之后的 evidence intake、build pipeline、validate、diff、CLI lifecycle 或 fixtures。#995 至 #1005 必须继续被 #994 阻塞，直到本 contract PR merged、required checks success、#994 closed / done、本地 `main == origin/main` 且 worktree clean。当前执行事实：#994、#995、#996 和 #997 已完成；#998 在 fresh WIP=1 preflight 后作为唯一 active evidence-chain validate gate 执行。
 
 ## Inputs
 
@@ -112,6 +126,26 @@ Normal manifest provenance 只能在 `normalManifestEligible=true`、`syntheticP
 ## #997 Build Pipeline
 
 #997 在 #996 provenance gate 完成后，升级 `readiness build-v013 <assessmentID> <evidenceRoot>` 为 deterministic verify-and-build pipeline。该命令必须读取真实 local evidence root，执行 #995 schema validation，复用 #996 sourceCommit / sourceRunID / artifact provenance，重新计算 raw artifact checksum，并对每个 local artifact 执行 content policy validation。#997 固定为 schema / checksum / policy / manifest / bundle / registry flow。
+
+## #998 Evidence-chain Validate
+
+#998 在 #997 build pipeline gate 完成后，升级 `readiness validate <assessmentID>` 为完整 evidence-chain consistency check。该命令必须读取 local registry store，逐项校验 registry / manifest / bundle / artifact / policy / checksum / provenance 是否一致，并在存在 export / comparison artifact 时确认它们绑定同一个 assessment identity。export / comparison identity 必须与 registry entry 的 assessmentID 保持一致。只有完整 evidence chain coherent 时，validate 才能返回 valid。
+
+Validate 通过条件必须同时满足：
+
+- registry document 和 registry entry 均 held。
+- Manifest V2 存在且 held。
+- Bundle V2 存在且 held。
+- bundle manifest 存在且 held。
+- bundle JSON bytes 与 bundle manifest 的 checksum / byte count 一致。
+- registry entry、Manifest V2、Bundle V2 和 bundle manifest 的 assessmentID / generationID / bundleChecksum 一致。
+- Manifest V2 与 Bundle V2 的 sourceCommit / sourceRunIDs 一致。
+- artifact snapshots 存在，且每个 snapshot 的 manifestChecksum、artifactSHA256、contentValidationChecksum 与 Manifest V2 / policy 链路一致。
+- provenance summary、comparison metadata 和 redacted export directory 如果存在，必须包含同一个 assessmentID。
+
+`readiness validate <assessmentID>` 必须对 missing、stale、tampered、inconsistent evidence fail closed，并输出明确 failure reasons。它不能只检查文件存在或 anchor 存在，也不能把 incoherent evidence 降级为 warning。
+
+#998 不执行 diff、不生成 redacted audit export package、不创建 CLI lifecycle ordering、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace。
 
 Build pipeline 的固定顺序为：
 
@@ -217,7 +251,7 @@ Fail-closed output must be actionable local diagnostic evidence. It must not sil
 
 ## Non-goals
 
-- 不实现 #997 之后的 build pipeline、bundle、registry lifecycle、diff、fixture suite 或 stage audit。
+- 不实现 #999 之后的 redacted export package、diff、CLI lifecycle、fixture suite 或 stage audit。
 - 不新增 runtime pipeline。
 - 不发布 v0.13.0 tag 或 GitHub Release。
 - 不移动、不覆盖、不重写 v0.12.0 tag / GitHub Release。
