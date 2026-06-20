@@ -124,6 +124,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT"
 
+bash checks/verify-v0.12.1-release-fact-sync.sh
+
 require_file_contains() {
   local file="$1"
   local expected="$2"

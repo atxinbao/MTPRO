@@ -26,6 +26,13 @@ Anchor set:
 
 This runbook tells an operator how to review v0.12.0 readiness assessment evidence locally. It is a review and validation guide only. It is not a production cutover guide.
 
+## Release Publication Fact
+
+- v0.12.0 GitHub Release 已完成发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.12.0`
+- v0.12.0 peeled commit：`25e31afd351db9a372db62222226b0a3db26c93a`
+- v0.12.0 publishedAt：`2026-06-20T01:11:22Z`
+- This published fact does not authorize production cutover, production secret reads, production endpoint connection, broker endpoint connection or real orders.
+
 ## Preconditions
 
 - #952 through #965 are closed / done after #965 PR merge.

@@ -136,6 +136,7 @@ bash checks/verify-v0.10.1.sh
 bash checks/verify-v0.11.0.sh
 bash checks/verify-v0.11.1.sh
 bash checks/verify-v0.12.0.sh
+bash checks/verify-v0.12.1-release-fact-sync.sh
 bash checks/verify-v0.12.0-dashboard-macos-guards.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh

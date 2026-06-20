@@ -9712,4 +9712,21 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH636Final
 
 require_absent ".github/workflows/checks.yml" "pull_request_target"
 
+require_file "checks/verify-v0.12.1-release-fact-sync.sh"
+require_contains "checks/verify-v0.12.1-release-fact-sync.sh" "GH-988-VERIFY-V0121-RELEASE-FACT-STALE-WORDING-GUARD"
+require_contains "checks/verify-v0.12.1-release-fact-sync.sh" "V0121-001-RELEASE-FACT-SYNC-GUARD"
+require_contains "checks/verify-v0.12.1-release-fact-sync.sh" "V0121-001-FOUR-GATE-RELEASE-FLOW"
+require_contains "checks/verify-v0.12.1-release-fact-sync.sh" "TVM-RELEASE-V0121-RELEASE-FACT-SYNC-GUARD"
+require_contains "checks/verify-v0.12.1-release-fact-sync.sh" "https://github.com/atxinbao/MTPRO/releases/tag/v0.12.0"
+require_contains "checks/verify-v0.12.1-release-fact-sync.sh" "25e31afd351db9a372db62222226b0a3db26c93a"
+require_contains "checks/verify-v0.12.1-release-fact-sync.sh" "2026-06-20T01:11:22Z"
+require_contains "checks/verify-v0.12.0.sh" "bash checks/verify-v0.12.1-release-fact-sync.sh"
+require_contains "checks/run.sh" "bash checks/verify-v0.12.1-release-fact-sync.sh"
+require_contains "docs/release/release-publication-policy.md" "GH-988 / v0.12.1 stale wording guard 固定该 release fact"
+require_contains "docs/validation/latest-verification-summary.md" "v0.12.1 release fact stale wording guard"
+require_contains "docs/validation/validation-plan.md" "GH-988 Release v0.12.1 Release Fact Sync / Stale Wording Guard Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0121-RELEASE-FACT-SYNC-GUARD"
+require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 release fact sync stale wording guard anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH988ReleaseFactSyncGuardRejectsV0120StalePublicationWording"
+
 printf 'MTPRO automation readiness checks passed.\n'
