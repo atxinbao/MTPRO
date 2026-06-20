@@ -489,6 +489,54 @@ adversarial CI guard 固定覆盖 `symlink-attack`、`concurrent-build`、`crash
 
 GH-964 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不实现 production OMS，不暴露 trading button / order form / live command，不授权 production cutover。
 
+## V0120-014-FINAL-AUDIT-DOCS-RUNBOOK
+
+`GH-965-VERIFY-V0120-FINAL-AUDIT-DOCS-RUNBOOK`
+
+`GH-965-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK`
+
+`TVM-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK`
+
+`V0120-014-STAGE-CODE-AUDIT`
+
+`V0120-014-RELEASE-NOTES`
+
+`V0120-014-OPERATOR-RUNBOOK`
+
+`V0120-014-ASSESSMENT-REGISTRY-SCHEMA`
+
+`V0120-014-MANIFEST-V2-SCHEMA`
+
+`V0120-014-PROVENANCE-CONTRACT`
+
+`V0120-014-ADVERSARIAL-VALIDATION-SUMMARY`
+
+`V0120-014-ROOT-DOCS-REFRESH`
+
+`V0120-014-AGGREGATE-VERIFY`
+
+`V0120-014-NO-PRODUCTION-CUTOVER`
+
+`V0120-014-NO-TAG-OR-RELEASE-MOVE`
+
+GH-965 closes the v0.12.0 readiness assessment session stage with final audit docs, release notes, operator runbook, root docs refresh and aggregate verifier guard updates. It records completed facts for #952 through #965 only.
+
+The Stage Code Audit Report is `docs/audit/mtpro-release-v0.12.0-readiness-assessment-sessions-stage-code-audit.md`.
+
+The release notes are `docs/release/mtpro-release-v0.12.0-readiness-assessment-sessions-notes.md`.
+
+The operator runbook is `docs/operators/release-v0.12.0-readiness-assessment-sessions-runbook.md`.
+
+The assessment registry schema remains local-only: `.local/mtpro/readiness/registry.json` and `.local/mtpro/readiness/assessments/<assessmentID>/`.
+
+The Manifest V2 schema remains assessment / generation scoped and records `assessmentID`, `generationID`, `sourceRunIDs`, `sourceCommit`, canonical artifact metadata, producer version and checksum evidence.
+
+The provenance contract binds local redacted evidence to issue, PR, checks, merge commit, source run and checksum references.
+
+The adversarial validation summary covers artifact content-policy rejection, transaction lock crash recovery, immutable bundle guard, source snapshot mutation guard, approval quorum fail-closed coverage and Dashboard macOS adversarial CI.
+
+GH-965 does not create, move, delete or overwrite any tag or GitHub Release. It does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, does not send testnet or production order, does not implement production OMS, and does not expose trading button / order form / live command.
+
 ## V0120-001-DOWNSTREAM-QUEUE-ORDER
 
 `V0120-001-DOWNSTREAM-QUEUE-ORDER`

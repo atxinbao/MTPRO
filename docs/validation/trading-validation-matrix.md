@@ -2952,3 +2952,33 @@
 - macOS guard: required `dashboard-macos` job runs `checks/verify-v0.12.0-dashboard-macos-guards.sh` before Dashboard build / smoke
 - approval boundary: approval status is evidence-only and never converts into production cutover authorization
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK
+
+- GH-965-VERIFY-V0120-FINAL-AUDIT-DOCS-RUNBOOK
+- GH-965-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK
+- TVM-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK
+- V0120-014-STAGE-CODE-AUDIT
+- V0120-014-RELEASE-NOTES
+- V0120-014-OPERATOR-RUNBOOK
+- V0120-014-ASSESSMENT-REGISTRY-SCHEMA
+- V0120-014-MANIFEST-V2-SCHEMA
+- V0120-014-PROVENANCE-CONTRACT
+- V0120-014-ADVERSARIAL-VALIDATION-SUMMARY
+- V0120-014-ROOT-DOCS-REFRESH
+- V0120-014-AGGREGATE-VERIFY
+- V0120-014-NO-PRODUCTION-CUTOVER
+- V0120-014-NO-TAG-OR-RELEASE-MOVE
+- GH-965 Release v0.12.0 Final Audit / Docs / Runbook Validation
+- testGH965ReleaseV0120FinalAuditDocsRunbookCloseCompletedFactsOnly
+- stage audit: `docs/audit/mtpro-release-v0.12.0-readiness-assessment-sessions-stage-code-audit.md`
+- release notes: `docs/release/mtpro-release-v0.12.0-readiness-assessment-sessions-notes.md`
+- operator runbook: `docs/operators/release-v0.12.0-readiness-assessment-sessions-runbook.md`
+- aggregate verifier: `checks/verify-v0.12.0.sh`
+- completed queue evidence: #952 through #964 were closed / done before #965 preflight; #965 closes final audit / docs / runbook after its PR reaches required checks success
+- PR evidence: PR #973 through PR #985 were merged with required `checks` SUCCESS; the #965 closure PR must be merged before the issue can be labeled done
+- root docs refresh evidence: root docs only synchronize completed v0.12.0 readiness assessment facts, not future direction and not production cutover
+- assessment registry schema evidence: `.local/mtpro/readiness/registry.json` and `.local/mtpro/readiness/assessments/<assessmentID>/`
+- Manifest V2 schema evidence: assessment / generation scoped provenance and checksum metadata
+- adversarial validation evidence: content-policy rejection, transaction crash recovery, immutable bundle guard, source snapshot mutation guard, approval quorum fail-closed coverage and Dashboard macOS adversarial CI
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no production OMS, no trading button, no order form, no live command, no tag / release movement, no next Project / Issue promotion
