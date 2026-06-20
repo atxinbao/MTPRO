@@ -34592,6 +34592,211 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.13.0.sh"))
     }
 
+    func testGH999ReleaseV0130ExportWritesCompleteRedactedAuditPackage() throws {
+        // 测试场景：GH-999 只能在 #998 evidence-chain coherent 后写出本地 redacted
+        // audit package。导出包必须包含完整 JSON 文件集、checksum 绑定和 assessmentID identity，
+        // 缺失源证据时必须 fail closed。
+        let fileManager = FileManager.default
+        let root = fileManager.temporaryDirectory.appendingPathComponent(
+            "mtpro-gh999-redacted-export-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        defer { try? fileManager.removeItem(at: root) }
+
+        let validCommit = "f8dcd7860cc0265fc2cae4fe350b3f22c2dcfd58"
+        let model = ReleaseV0130LocalEvidenceIntakeModel(fileManager: fileManager)
+
+        func evidenceRoot(_ name: String) -> URL {
+            root.appendingPathComponent(name, isDirectory: true)
+        }
+
+        func write(root evidenceRoot: URL, _ relativePath: String, _ payload: String) throws {
+            let url = relativePath.split(separator: "/").reduce(evidenceRoot) { partialURL, component in
+                partialURL.appendingPathComponent(String(component))
+            }
+            try fileManager.createDirectory(
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try Data(payload.utf8).write(to: url, options: .atomic)
+        }
+
+        func writeEvidenceRoot(
+            named name: String,
+            sourceRunID: String
+        ) throws -> URL {
+            let evidenceRoot = evidenceRoot(name)
+            for directory in ReleaseV0130LocalEvidenceIntakeModel.requiredDirectories {
+                try fileManager.createDirectory(
+                    at: evidenceRoot.appendingPathComponent(directory, isDirectory: true),
+                    withIntermediateDirectories: true
+                )
+            }
+            try write(
+                root: evidenceRoot,
+                "run-logs/run-journal.jsonl",
+                #"{"sourceRunID":"\#(sourceRunID)","sourceCommit":"\#(validCommit)","eventType":"run.completed","createdAt":"2026-06-20T03:00:00Z"}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "event-stream/events.jsonl",
+                #"{"eventID":"event-gh999","sourceRunID":"\#(sourceRunID)","eventType":"audit.exportable","occurredAt":"2026-06-20T03:00:01Z"}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "artifacts/readiness-summary.json",
+                #"{"summaryID":"artifact-gh999-summary","sourceRunID":"\#(sourceRunID)","sourceCommit":"\#(validCommit)","redactedEvidenceOnly":true,"noSecretValue":true,"noOrderPayload":true,"productionTradingEnabledByDefault":false,"productionCutoverAuthorized":false}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "artifacts/artifact-index.json",
+                #"{"sourceRunID":"\#(sourceRunID)","sourceCommit":"\#(validCommit)","artifacts":[{"id":"artifact-gh999","path":"artifacts/readiness-summary.json"}]}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "registry/registry.json",
+                #"{"registryVersion":"v0.13.0.local-evidence-intake","assessments":[{"assessmentID":"assessment-gh999"}]}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "prior-assessments/assessments-index.json",
+                #"{"assessmentIDs":["baseline-gh999"],"sourceRunIDs":["\#(sourceRunID)"]}"#
+            )
+            return evidenceRoot
+        }
+
+        func bundleJSONURL(
+            store: ReadinessAssessmentRegistryStore,
+            assessmentID: Identifier,
+            generationID: Identifier
+        ) -> URL {
+            store.storageRootURL
+                .appendingPathComponent("assessments", isDirectory: true)
+                .appendingPathComponent(assessmentID.rawValue, isDirectory: true)
+                .appendingPathComponent("generations", isDirectory: true)
+                .appendingPathComponent(generationID.rawValue, isDirectory: true)
+                .appendingPathComponent("readiness-bundle-v2.json", isDirectory: false)
+        }
+
+        let store = ReadinessAssessmentRegistryStore(
+            storageRootURL: root.appendingPathComponent("store", isDirectory: true),
+            fileManager: fileManager
+        )
+        let build = try model.buildPipeline(
+            assessmentID: Identifier.constant("gh-999-export-assessment"),
+            generationID: Identifier.constant("gh-999-export-generation"),
+            evidenceRootURL: try writeEvidenceRoot(named: "valid", sourceRunID: "run-gh999-export"),
+            store: store,
+            createdAt: Date(timeIntervalSince1970: 1_813_000_300)
+        )
+        let exportReport = try model.writeRedactedAuditExportPackage(
+            assessmentID: build.registryEntry.assessmentID,
+            store: store
+        )
+
+        XCTAssertTrue(exportReport.packageHeld)
+        XCTAssertTrue(exportReport.packageComplete)
+        XCTAssertTrue(exportReport.exportedChecksumsMatchSource)
+        XCTAssertTrue(exportReport.evidenceChainCoherent)
+        XCTAssertEqual(exportReport.files.map(\.fileName), ReleaseV0130RedactedAuditExportPackageReport.requiredFileNames)
+
+        let exportDirectoryURL = store.storageRootURL
+            .appendingPathComponent("assessments", isDirectory: true)
+            .appendingPathComponent(build.registryEntry.assessmentID.rawValue, isDirectory: true)
+            .appendingPathComponent("redacted-export", isDirectory: true)
+        for fileName in ReleaseV0130RedactedAuditExportPackageReport.requiredFileNames {
+            let data = try Data(contentsOf: exportDirectoryURL.appendingPathComponent(fileName, isDirectory: false))
+            let content = try XCTUnwrap(String(data: data, encoding: .utf8))
+            XCTAssertTrue(content.contains(build.registryEntry.assessmentID.rawValue), "\(fileName) must bind assessmentID")
+            XCTAssertFalse(content.contains("productionTradingEnabledByDefault\":true"))
+            XCTAssertFalse(content.contains("productionSecretRead\":true"))
+            XCTAssertFalse(content.contains("productionEndpointConnected\":true"))
+            XCTAssertFalse(content.contains("/api/v3/account"))
+            XCTAssertFalse(content.contains("\"listenKey\""))
+            XCTAssertFalse(content.contains("\"signature\""))
+            XCTAssertFalse(content.contains("\"orderEndpointPayload\""))
+        }
+
+        let manifestExport = try XCTUnwrap(exportReport.files.first { $0.fileName == "manifest-v2.json" })
+        let bundleExport = try XCTUnwrap(exportReport.files.first { $0.fileName == "bundle-v2.json" })
+        XCTAssertEqual(manifestExport.sourceSHA256, manifestExport.exportSHA256)
+        XCTAssertEqual(bundleExport.sourceSHA256, bundleExport.exportSHA256)
+        XCTAssertTrue(manifestExport.checksumMatchesSource)
+        XCTAssertTrue(bundleExport.checksumMatchesSource)
+
+        let postExportValidation = try model.validateEvidenceChain(
+            assessmentID: build.registryEntry.assessmentID,
+            store: store
+        )
+        XCTAssertTrue(postExportValidation.evidenceChainCoherent)
+        XCTAssertTrue(postExportValidation.exportComparisonIdentityConsistent)
+
+        let brokenStore = ReadinessAssessmentRegistryStore(
+            storageRootURL: root.appendingPathComponent("broken-store", isDirectory: true),
+            fileManager: fileManager
+        )
+        let brokenBuild = try model.buildPipeline(
+            assessmentID: Identifier.constant("gh-999-broken-assessment"),
+            generationID: Identifier.constant("gh-999-broken-generation"),
+            evidenceRootURL: try writeEvidenceRoot(named: "broken", sourceRunID: "run-gh999-broken"),
+            store: brokenStore,
+            createdAt: Date(timeIntervalSince1970: 1_813_000_400)
+        )
+        try fileManager.removeItem(at: bundleJSONURL(
+            store: brokenStore,
+            assessmentID: brokenBuild.registryEntry.assessmentID,
+            generationID: brokenBuild.manifest.generationID
+        ))
+        XCTAssertThrowsError(
+            try model.writeRedactedAuditExportPackage(
+                assessmentID: brokenBuild.registryEntry.assessmentID,
+                store: brokenStore
+            )
+        )
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift")
+        let cli = try read("Sources/MTPROCLI/main.swift")
+        let verifier = try read("checks/verify-v0.13.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE",
+            "TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE",
+            "V0130-006-REDACTED-AUDIT-EXPORT-PACKAGE",
+            "V0130-006-COMPLETE-AUDIT-PACKAGE",
+            "V0130-006-EXPORT-CHECKSUMS-MATCH-SOURCE",
+            "V0130-006-MISSING-EVIDENCE-FAILS-CLOSED",
+            "V0130-006-NO-SECRET-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(ReleaseV0130RedactedAuditExportPackageAnchors.validationAnchors.contains(anchor))
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-999 source")
+            XCTAssertTrue(cli.contains(anchor), "\(anchor) must stay in GH-999 CLI")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.13 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.13 contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        XCTAssertTrue(cli.contains("packageComplete="))
+        XCTAssertTrue(cli.contains("exportedChecksumsMatchSource="))
+        XCTAssertTrue(verifier.contains("testGH999ReleaseV0130ExportWritesCompleteRedactedAuditPackage"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.13.0.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

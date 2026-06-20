@@ -70,6 +70,23 @@ public enum ReleaseV0130LocalEvidenceChainValidationAnchors {
     ]
 }
 
+/// ReleaseV0130RedactedAuditExportPackageAnchors 固定 GH-999 的 redacted audit export package 锚点。
+///
+/// 这些锚点只证明 `readiness export <assessmentID>` 会把已通过 #998 validate 的本地证据链
+/// 写成可审计、checksum 绑定、redacted-only 的本地导出包；它们不授权 production cutover、
+/// secret read、endpoint / broker connection 或任何订单命令。
+public enum ReleaseV0130RedactedAuditExportPackageAnchors {
+    public static let validationAnchors = [
+        "GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE",
+        "TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE",
+        "V0130-006-REDACTED-AUDIT-EXPORT-PACKAGE",
+        "V0130-006-COMPLETE-AUDIT-PACKAGE",
+        "V0130-006-EXPORT-CHECKSUMS-MATCH-SOURCE",
+        "V0130-006-MISSING-EVIDENCE-FAILS-CLOSED",
+        "V0130-006-NO-SECRET-PRODUCTION-CUTOVER"
+    ]
+}
+
 /// ReleaseV0130LocalEvidenceArtifactProvenance 是 GH-996 从真实本地 artifact bytes
 /// 派生出的 manifest metadata。
 ///
@@ -681,6 +698,207 @@ public struct ReleaseV0130LocalEvidenceChainValidationReport: Codable, Equatable
         self.productionOrderSubmitted = productionOrderSubmitted
         self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
         self.productionCutoverAuthorized = productionCutoverAuthorized
+    }
+}
+
+/// ReleaseV0130RedactedAuditExportFile 记录 GH-999 导出包单个 JSON 文件的 checksum 证据。
+///
+/// Source-derived 文件必须和 registry store 中的源 artifact byte-for-byte 一致；generated
+/// 文件必须在本地导出目录中落盘并绑定自己的 SHA256。所有文件都必须保持 redacted-only，
+/// 且不得包含 secret、endpoint payload 或 order payload。
+public struct ReleaseV0130RedactedAuditExportFile: Codable, Equatable, Sendable {
+    public let fileName: String
+    public let exportRelativePath: String
+    public let sourceRelativePath: String?
+    public let sourceSHA256: String?
+    public let exportSHA256: String
+    public let byteCount: Int
+    public let checksumMatchesSource: Bool
+    public let required: Bool
+    public let redactedEvidenceOnly: Bool
+    public let noSecretValue: Bool
+    public let noEndpointPayload: Bool
+    public let noOrderPayload: Bool
+
+    public var fileHeld: Bool {
+        ProductionReadinessArtifactDescriptor.isSafeRelativePath(exportRelativePath)
+            && exportRelativePath.hasSuffix("/\(fileName)")
+            && (sourceRelativePath == nil || sourceRelativePath.map {
+                ProductionReadinessArtifactDescriptor.isSafeRelativePath($0)
+            } == true)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(exportSHA256)
+            && (sourceSHA256 == nil || ReadinessAssessmentManifestV2.isValidSHA256Checksum(sourceSHA256 ?? ""))
+            && byteCount > 0
+            && checksumMatchesSource
+            && required
+            && redactedEvidenceOnly
+            && noSecretValue
+            && noEndpointPayload
+            && noOrderPayload
+    }
+
+    public init(
+        fileName: String,
+        exportRelativePath: String,
+        sourceRelativePath: String?,
+        sourceSHA256: String?,
+        exportSHA256: String,
+        byteCount: Int,
+        checksumMatchesSource: Bool,
+        required: Bool = true,
+        redactedEvidenceOnly: Bool = true,
+        noSecretValue: Bool = true,
+        noEndpointPayload: Bool = true,
+        noOrderPayload: Bool = true
+    ) throws {
+        self.fileName = fileName
+        self.exportRelativePath = exportRelativePath
+        self.sourceRelativePath = sourceRelativePath
+        self.sourceSHA256 = sourceSHA256
+        self.exportSHA256 = exportSHA256
+        self.byteCount = byteCount
+        self.checksumMatchesSource = checksumMatchesSource
+        self.required = required
+        self.redactedEvidenceOnly = redactedEvidenceOnly
+        self.noSecretValue = noSecretValue
+        self.noEndpointPayload = noEndpointPayload
+        self.noOrderPayload = noOrderPayload
+
+        guard fileHeld else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("redactedAuditExportFileHeld=false")
+        }
+    }
+}
+
+/// ReleaseV0130RedactedAuditExportPackageReport 是 GH-999 导出包的落盘证明。
+///
+/// Report 证明 export directory 内包含完整 redacted audit package，且 Manifest V2 / Bundle V2
+/// 的导出字节与源 artifact checksum 一致。它只服务本地审计，不改变 assessment lifecycle，
+/// 不创建 comparison diff，也不把 readiness pass 转换成 production cutover authorization。
+public struct ReleaseV0130RedactedAuditExportPackageReport: Codable, Equatable, Sendable {
+    public static let requiredFileNames = [
+        "assessment-summary.json",
+        "bundle-v2.json",
+        "comparison.json",
+        "manifest-v2.json",
+        "provenance.json",
+        "validation-report.json"
+    ]
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let assessmentID: Identifier
+    public let generationID: Identifier
+    public let exportDirectoryPath: String
+    public let provenanceSummaryJSONPath: String
+    public let comparisonMetadataJSONPath: String
+    public let files: [ReleaseV0130RedactedAuditExportFile]
+    public let evidenceChainCoherent: Bool
+    public let packageComplete: Bool
+    public let exportedChecksumsMatchSource: Bool
+    public let missingEvidenceFailsClosed: Bool
+    public let redactedEvidenceOnly: Bool
+    public let noSecretValue: Bool
+    public let noEndpointPayload: Bool
+    public let noOrderPayload: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var packageHeld: Bool {
+        issueID.rawValue == "GH-999"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-997", "GH-998"]
+            && releaseVersion == "v0.13.0"
+            && assessmentID.rawValue.isEmpty == false
+            && generationID.rawValue.isEmpty == false
+            && exportDirectoryPath.hasSuffix("/redacted-export")
+            && provenanceSummaryJSONPath.hasSuffix("/provenance-summary.json")
+            && comparisonMetadataJSONPath.hasSuffix("/comparison-metadata.json")
+            && files.map(\.fileName).sorted() == Self.requiredFileNames
+            && files.allSatisfy(\.fileHeld)
+            && evidenceChainCoherent
+            && packageComplete
+            && exportedChecksumsMatchSource
+            && missingEvidenceFailsClosed
+            && redactedEvidenceOnly
+            && noSecretValue
+            && noEndpointPayload
+            && noOrderPayload
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-999"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-997"),
+            Identifier.constant("GH-998")
+        ],
+        releaseVersion: String = "v0.13.0",
+        assessmentID: Identifier,
+        generationID: Identifier,
+        exportDirectoryPath: String,
+        provenanceSummaryJSONPath: String,
+        comparisonMetadataJSONPath: String,
+        files: [ReleaseV0130RedactedAuditExportFile],
+        evidenceChainCoherent: Bool,
+        packageComplete: Bool,
+        exportedChecksumsMatchSource: Bool,
+        missingEvidenceFailsClosed: Bool = true,
+        redactedEvidenceOnly: Bool = true,
+        noSecretValue: Bool = true,
+        noEndpointPayload: Bool = true,
+        noOrderPayload: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs.sorted { $0.rawValue < $1.rawValue }
+        self.releaseVersion = releaseVersion
+        self.assessmentID = assessmentID
+        self.generationID = generationID
+        self.exportDirectoryPath = exportDirectoryPath
+        self.provenanceSummaryJSONPath = provenanceSummaryJSONPath
+        self.comparisonMetadataJSONPath = comparisonMetadataJSONPath
+        self.files = files.sorted { $0.fileName < $1.fileName }
+        self.evidenceChainCoherent = evidenceChainCoherent
+        self.packageComplete = packageComplete
+        self.exportedChecksumsMatchSource = exportedChecksumsMatchSource
+        self.missingEvidenceFailsClosed = missingEvidenceFailsClosed
+        self.redactedEvidenceOnly = redactedEvidenceOnly
+        self.noSecretValue = noSecretValue
+        self.noEndpointPayload = noEndpointPayload
+        self.noOrderPayload = noOrderPayload
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard packageHeld else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("redactedAuditExportPackageHeld=false")
+        }
     }
 }
 
@@ -1465,6 +1683,239 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
         )
     }
 
+    /// 执行 GH-999 的 redacted audit export package 写出。
+    ///
+    /// 该入口只接受已经通过 #998 evidence-chain validate 的本地 assessment。Manifest V2 和
+    /// Bundle V2 会 byte-for-byte 复制到 redacted export directory，其余 summary /
+    /// validation / provenance / comparison 文件只包含本地审计 metadata 和 checksum 证据。
+    @discardableResult
+    public func writeRedactedAuditExportPackage(
+        assessmentID: Identifier,
+        store: ReadinessAssessmentRegistryStore
+    ) throws -> ReleaseV0130RedactedAuditExportPackageReport {
+        let preExportReport = try validateEvidenceChain(assessmentID: assessmentID, store: store)
+        guard preExportReport.evidenceChainCoherent else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "redactedAuditExport:evidenceChainInvalid:\(preExportReport.failureReasons.joined(separator: ","))"
+            )
+        }
+        guard let generationID = preExportReport.generationID else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "redactedAuditExport:generationIDMissing"
+            )
+        }
+
+        let registryDocument = try store.load()
+        let registryEntry = try registryDocument.inspect(assessmentID: assessmentID)
+        let manifest = try store.readManifestV2(assessmentID: assessmentID)
+        let bundle = try store.readReadinessBundleV2(
+            assessmentID: assessmentID,
+            generationID: generationID
+        )
+        let bundleManifest = try store.readReadinessBundleV2Manifest(
+            assessmentID: assessmentID,
+            generationID: generationID
+        )
+        guard registryEntry.productionCapabilitiesDisabled,
+              manifest.productionCapabilitiesDisabled,
+              bundle.productionCapabilitiesDisabled,
+              preExportReport.productionCapabilitiesDisabled else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "redactedAuditExport:productionCapabilitiesEnabled"
+            )
+        }
+
+        let manifestData = try Data(contentsOf: Self.storeURL(
+            for: manifest.manifestV2Path,
+            store: store,
+            isDirectory: false
+        ))
+        let bundleData = try Data(contentsOf: Self.bundleJSONURL(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            store: store
+        ))
+        let validationData = try Self.exportEncoder.encode(preExportReport)
+        let manifestSHA256 = Self.sha256Hex(manifestData)
+        let bundleSHA256 = Self.sha256Hex(bundleData)
+        let validationSHA256 = Self.sha256Hex(validationData)
+
+        let summaryData = try Self.canonicalExportJSONData([
+            "assessmentID": assessmentID.rawValue,
+            "generationID": generationID.rawValue,
+            "issueID": "GH-999",
+            "releaseVersion": "v0.13.0",
+            "registryChecksum": registryDocument.registryChecksum,
+            "manifestChecksum": manifest.manifestChecksum,
+            "bundleChecksum": bundle.bundleChecksum,
+            "bundleManifestChecksum": bundleManifest.manifestChecksum,
+            "evidenceChainCoherent": true,
+            "packageFileNames": ReleaseV0130RedactedAuditExportPackageReport.requiredFileNames,
+            "redactedEvidenceOnly": true,
+            "noSecretValue": true,
+            "noEndpointPayload": true,
+            "noOrderPayload": true,
+            "productionTradingEnabledByDefault": false,
+            "productionCutoverAuthorized": false,
+            "productionSecretRead": false,
+            "productionEndpointConnected": false,
+            "brokerEndpointConnected": false,
+            "productionOrderSubmitted": false,
+            "testnetOrderSubmissionAllowed": false
+        ])
+        let provenanceData = try Self.canonicalExportJSONData([
+            "assessmentID": assessmentID.rawValue,
+            "generationID": generationID.rawValue,
+            "issueID": "GH-999",
+            "releaseVersion": "v0.13.0",
+            "sourceManifestPath": manifest.manifestV2Path,
+            "sourceManifestSHA256": manifestSHA256,
+            "sourceBundlePath": bundle.bundlePath,
+            "sourceBundleSHA256": bundleSHA256,
+            "sourceValidationReportSHA256": validationSHA256,
+            "artifactSnapshotCount": bundle.artifactSnapshots.count,
+            "artifactSnapshotSHA256": bundle.artifactSnapshots.map(\.artifactSHA256).sorted(),
+            "sourceRunIDs": manifest.sourceRunIDs.map(\.rawValue),
+            "sourceCommit": manifest.sourceCommit,
+            "redactedEvidenceOnly": true,
+            "noSecretValue": true,
+            "noEndpointPayload": true,
+            "noOrderPayload": true,
+            "productionTradingEnabledByDefault": false,
+            "productionCutoverAuthorized": false,
+            "productionSecretRead": false,
+            "productionEndpointConnected": false,
+            "brokerEndpointConnected": false,
+            "productionOrderSubmitted": false,
+            "testnetOrderSubmissionAllowed": false
+        ])
+        let comparisonData = try Self.canonicalExportJSONData([
+            "assessmentID": assessmentID.rawValue,
+            "generationID": generationID.rawValue,
+            "issueID": "GH-999",
+            "releaseVersion": "v0.13.0",
+            "comparisonAvailable": false,
+            "comparisonReason": "single-assessment redacted audit export package",
+            "comparisonDoesNotMutateAssessments": true,
+            "operatorReviewOnly": true,
+            "redactedEvidenceOnly": true,
+            "noSecretValue": true,
+            "noEndpointPayload": true,
+            "noOrderPayload": true,
+            "productionTradingEnabledByDefault": false,
+            "productionCutoverAuthorized": false,
+            "productionSecretRead": false,
+            "productionEndpointConnected": false,
+            "brokerEndpointConnected": false,
+            "productionOrderSubmitted": false,
+            "testnetOrderSubmissionAllowed": false
+        ])
+
+        let exportDirectoryURL = Self.storeURL(
+            for: registryEntry.artifactPaths.redactedExportDirectoryPath,
+            store: store,
+            isDirectory: true
+        )
+        try Self.replaceDirectory(exportDirectoryURL, store: store)
+
+        let files = try [
+            Self.writeExportFile(
+                fileName: "assessment-summary.json",
+                data: summaryData,
+                sourceRelativePath: nil,
+                sourceSHA256: nil,
+                exportDirectoryURL: exportDirectoryURL,
+                exportDirectoryPath: registryEntry.artifactPaths.redactedExportDirectoryPath,
+                store: store
+            ),
+            Self.writeExportFile(
+                fileName: "manifest-v2.json",
+                data: manifestData,
+                sourceRelativePath: manifest.manifestV2Path,
+                sourceSHA256: manifestSHA256,
+                exportDirectoryURL: exportDirectoryURL,
+                exportDirectoryPath: registryEntry.artifactPaths.redactedExportDirectoryPath,
+                store: store
+            ),
+            Self.writeExportFile(
+                fileName: "bundle-v2.json",
+                data: bundleData,
+                sourceRelativePath: bundle.bundlePath,
+                sourceSHA256: bundleSHA256,
+                exportDirectoryURL: exportDirectoryURL,
+                exportDirectoryPath: registryEntry.artifactPaths.redactedExportDirectoryPath,
+                store: store
+            ),
+            Self.writeExportFile(
+                fileName: "validation-report.json",
+                data: validationData,
+                sourceRelativePath: nil,
+                sourceSHA256: nil,
+                exportDirectoryURL: exportDirectoryURL,
+                exportDirectoryPath: registryEntry.artifactPaths.redactedExportDirectoryPath,
+                store: store
+            ),
+            Self.writeExportFile(
+                fileName: "provenance.json",
+                data: provenanceData,
+                sourceRelativePath: nil,
+                sourceSHA256: nil,
+                exportDirectoryURL: exportDirectoryURL,
+                exportDirectoryPath: registryEntry.artifactPaths.redactedExportDirectoryPath,
+                store: store
+            ),
+            Self.writeExportFile(
+                fileName: "comparison.json",
+                data: comparisonData,
+                sourceRelativePath: nil,
+                sourceSHA256: nil,
+                exportDirectoryURL: exportDirectoryURL,
+                exportDirectoryPath: registryEntry.artifactPaths.redactedExportDirectoryPath,
+                store: store
+            )
+        ]
+
+        try Self.writeStoreData(
+            provenanceData,
+            relativePath: registryEntry.artifactPaths.provenanceSummaryJSONPath,
+            store: store,
+            isDirectory: false
+        )
+        try Self.writeStoreData(
+            comparisonData,
+            relativePath: registryEntry.artifactPaths.comparisonMetadataJSONPath,
+            store: store,
+            isDirectory: false
+        )
+
+        let postExportReport = try validateEvidenceChain(assessmentID: assessmentID, store: store)
+        guard postExportReport.evidenceChainCoherent,
+              postExportReport.exportComparisonIdentityConsistent else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "redactedAuditExport:postExportIdentityInvalid"
+            )
+        }
+
+        let packageComplete = ReleaseV0130RedactedAuditExportPackageReport.requiredFileNames.allSatisfy { fileName in
+            let url = exportDirectoryURL.appendingPathComponent(fileName, isDirectory: false)
+            return store.fileManager.fileExists(atPath: url.path)
+                && ((try? Data(contentsOf: url).isEmpty) == false)
+        }
+        let exportedChecksumsMatchSource = files.allSatisfy(\.checksumMatchesSource)
+
+        return try ReleaseV0130RedactedAuditExportPackageReport(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            exportDirectoryPath: registryEntry.artifactPaths.redactedExportDirectoryPath,
+            provenanceSummaryJSONPath: registryEntry.artifactPaths.provenanceSummaryJSONPath,
+            comparisonMetadataJSONPath: registryEntry.artifactPaths.comparisonMetadataJSONPath,
+            files: files,
+            evidenceChainCoherent: postExportReport.evidenceChainCoherent,
+            packageComplete: packageComplete,
+            exportedChecksumsMatchSource: exportedChecksumsMatchSource
+        )
+    }
+
     /// 执行 GH-998 的完整 evidence-chain consistency check。
     ///
     /// 该入口只读取本地 registry store，逐项检查 registry entry、Manifest V2、Bundle V2、
@@ -2064,6 +2515,108 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
         )
     }
 
+    private static func writeExportFile(
+        fileName: String,
+        data: Data,
+        sourceRelativePath: String?,
+        sourceSHA256: String?,
+        exportDirectoryURL: URL,
+        exportDirectoryPath: String,
+        store: ReadinessAssessmentRegistryStore
+    ) throws -> ReleaseV0130RedactedAuditExportFile {
+        let exportRelativePath = "\(exportDirectoryPath)/\(fileName)"
+        let url = exportDirectoryURL.appendingPathComponent(fileName, isDirectory: false)
+        try writeData(data, to: url, store: store)
+        let writtenData = try Data(contentsOf: url)
+        let exportSHA256 = sha256Hex(writtenData)
+        return try ReleaseV0130RedactedAuditExportFile(
+            fileName: fileName,
+            exportRelativePath: exportRelativePath,
+            sourceRelativePath: sourceRelativePath,
+            sourceSHA256: sourceSHA256,
+            exportSHA256: exportSHA256,
+            byteCount: writtenData.count,
+            checksumMatchesSource: sourceSHA256.map { $0 == exportSHA256 } ?? true
+        )
+    }
+
+    private static func replaceDirectory(
+        _ directoryURL: URL,
+        store: ReadinessAssessmentRegistryStore
+    ) throws {
+        let rootPath = store.storageRootURL.standardizedFileURL.path
+        let standardizedURL = directoryURL.standardizedFileURL
+        guard standardizedURL.path.hasPrefix(rootPath + "/") else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "redactedAuditExport:unsafeExportDirectory"
+            )
+        }
+        if store.fileManager.fileExists(atPath: standardizedURL.path) {
+            try store.fileManager.removeItem(at: standardizedURL)
+        }
+        try store.fileManager.createDirectory(
+            at: standardizedURL,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: ReadinessAssessmentRegistryStore.ownerOnlyDirectoryPermissions]
+        )
+        try store.fileManager.setAttributes(
+            [.posixPermissions: ReadinessAssessmentRegistryStore.ownerOnlyDirectoryPermissions],
+            ofItemAtPath: standardizedURL.path
+        )
+    }
+
+    private static func writeStoreData(
+        _ data: Data,
+        relativePath: String,
+        store: ReadinessAssessmentRegistryStore,
+        isDirectory: Bool
+    ) throws {
+        let url = storeURL(for: relativePath, store: store, isDirectory: isDirectory)
+        try writeData(data, to: url, store: store)
+    }
+
+    private static func writeData(
+        _ data: Data,
+        to url: URL,
+        store: ReadinessAssessmentRegistryStore
+    ) throws {
+        let rootPath = store.storageRootURL.standardizedFileURL.path
+        let standardizedURL = url.standardizedFileURL
+        guard standardizedURL.path.hasPrefix(rootPath + "/") else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "redactedAuditExport:unsafeWritePath"
+            )
+        }
+        try store.fileManager.createDirectory(
+            at: standardizedURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: ReadinessAssessmentRegistryStore.ownerOnlyDirectoryPermissions]
+        )
+        try data.write(to: standardizedURL, options: .atomic)
+        try store.fileManager.setAttributes(
+            [.posixPermissions: ReadinessAssessmentRegistryStore.ownerOnlyFilePermissions],
+            ofItemAtPath: standardizedURL.path
+        )
+    }
+
+    private static func canonicalExportJSONData(_ object: [String: Any]) throws -> Data {
+        guard JSONSerialization.isValidJSONObject(object) else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "redactedAuditExport:invalidJSON"
+            )
+        }
+        do {
+            return try JSONSerialization.data(
+                withJSONObject: object,
+                options: [.sortedKeys, .withoutEscapingSlashes]
+            )
+        } catch {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "redactedAuditExport:invalidJSON"
+            )
+        }
+    }
+
     private static func bundleJSONURL(
         assessmentID: Identifier,
         generationID: Identifier,
@@ -2187,5 +2740,12 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
             .map { String(format: "%02x", $0) }
             .joined()
         return "sha256:\(digest)"
+    }
+
+    private static var exportEncoder: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return encoder
     }
 }

@@ -2441,6 +2441,22 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
 
     private func exportOutput() throws -> String {
         let entry = try requiredEntry()
+        guard try redactedAuditExportPackageEligible(entry: entry) else {
+            return try snapshotExportOutput(entry: entry)
+        }
+        return try redactedAuditExportPackageOutput(entry: entry)
+    }
+
+    /// #999 的 package writer 只接管 `build-v013` 产出的 v0.13 evidence-chain。
+    ///
+    /// 普通 `readiness build` 仍属于 v0.12 assessment CLI contract，必须保持
+    /// `exportSnapshotOnly=true`，避免破坏历史 release guard。
+    private func redactedAuditExportPackageEligible(entry: ReadinessAssessmentRegistryEntry) throws -> Bool {
+        let manifest = try? store.readManifestV2(assessmentID: entry.assessmentID)
+        return manifest?.producerVersion.hasPrefix("mtpro-v0.13.0") == true
+    }
+
+    private func snapshotExportOutput(entry: ReadinessAssessmentRegistryEntry) throws -> String {
         let manifest = try? store.readManifestV2(assessmentID: entry.assessmentID)
         return (baseOutput(action: action, entry: entry, mutationApplied: false) + [
             "exportFormat=redacted-readiness-assessment-summary",
@@ -2450,6 +2466,48 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             "redactedEvidenceOnly=true",
             "noSecretValue=true",
             "noOrderPayload=true",
+            "localRegistryStoreOnly=true",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private func redactedAuditExportPackageOutput(entry: ReadinessAssessmentRegistryEntry) throws -> String {
+        let report = try ReleaseV0130LocalEvidenceIntakeModel(
+            fileManager: store.fileManager
+        ).writeRedactedAuditExportPackage(
+            assessmentID: entry.assessmentID,
+            store: store
+        )
+        return (baseOutput(action: action, entry: entry, mutationApplied: false) + [
+            "issue=GH-999",
+            "v013ValidationAnchor=GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE",
+            "v013MatrixAnchor=TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE",
+            "v013ExportPackageAnchor=V0130-006-REDACTED-AUDIT-EXPORT-PACKAGE",
+            "v013CompletePackageAnchor=V0130-006-COMPLETE-AUDIT-PACKAGE",
+            "v013ChecksumAnchor=V0130-006-EXPORT-CHECKSUMS-MATCH-SOURCE",
+            "v013FailClosedAnchor=V0130-006-MISSING-EVIDENCE-FAILS-CLOSED",
+            "v013NoSecretCutoverAnchor=V0130-006-NO-SECRET-PRODUCTION-CUTOVER",
+            "exportFormat=redacted-audit-export-package",
+            "exportSnapshotOnly=false",
+            "exportDirectoryPath=\(report.exportDirectoryPath)",
+            "packageFileNames=\(report.files.map(\.fileName).joined(separator: ","))",
+            "packageComplete=\(report.packageComplete)",
+            "exportedChecksumsMatchSource=\(report.exportedChecksumsMatchSource)",
+            "evidenceChainCoherent=\(report.evidenceChainCoherent)",
+            "provenanceSummaryJSONPath=\(report.provenanceSummaryJSONPath)",
+            "comparisonMetadataJSONPath=\(report.comparisonMetadataJSONPath)",
+            "missingEvidenceFailsClosed=\(report.missingEvidenceFailsClosed)",
+            "redactedEvidenceOnly=true",
+            "noSecretValue=true",
+            "noEndpointPayload=true",
+            "noOrderPayload=true",
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "testnetOrderSubmissionAllowed=false",
             "localRegistryStoreOnly=true",
             "boundaryHeld=true"
         ]).joined(separator: "\n")

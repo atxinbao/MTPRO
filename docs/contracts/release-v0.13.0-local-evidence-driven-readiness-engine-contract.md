@@ -81,7 +81,7 @@
 
 `v0.13.0` 定义 local evidence-driven readiness engine / 本地证据驱动就绪引擎。它承接 v0.12.0 readiness assessment sessions 和 v0.12.1 provenance hardening patch 的已完成事实，把 readiness assessment 从“可生成本地 assessment evidence”推进为“只能从真实本地 evidence root intake、校验、打包、登记、比较和导出”的 engine contract。
 
-本 contract 是 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。它只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；不实现 #995 之后的 evidence intake、build pipeline、validate、diff、CLI lifecycle 或 fixtures。#995 至 #1005 必须继续被 #994 阻塞，直到本 contract PR merged、required checks success、#994 closed / done、本地 `main == origin/main` 且 worktree clean。当前执行事实：#994、#995、#996 和 #997 已完成；#998 在 fresh WIP=1 preflight 后作为唯一 active evidence-chain validate gate 执行。
+本 contract 是 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。它只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；不实现 #995 之后的 evidence intake、build pipeline、validate、diff、CLI lifecycle 或 fixtures。#995 至 #1005 必须继续被 #994 阻塞，直到本 contract PR merged、required checks success、#994 closed / done、本地 `main == origin/main` 且 worktree clean。当前执行事实：#994、#995、#996、#997 和 #998 已完成；#999 在 fresh WIP=1 preflight 后作为唯一 active redacted audit export package gate 执行。
 
 ## Inputs
 
@@ -146,6 +146,35 @@ Validate 通过条件必须同时满足：
 `readiness validate <assessmentID>` 必须对 missing、stale、tampered、inconsistent evidence fail closed，并输出明确 failure reasons。它不能只检查文件存在或 anchor 存在，也不能把 incoherent evidence 降级为 warning。
 
 #998 不执行 diff、不生成 redacted audit export package、不创建 CLI lifecycle ordering、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace。
+
+## #999 Redacted Audit Export Package
+
+Anchors:
+
+- `GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE`
+- `TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE`
+- `V0130-006-REDACTED-AUDIT-EXPORT-PACKAGE`
+- `V0130-006-COMPLETE-AUDIT-PACKAGE`
+- `V0130-006-EXPORT-CHECKSUMS-MATCH-SOURCE`
+- `V0130-006-MISSING-EVIDENCE-FAILS-CLOSED`
+- `V0130-006-NO-SECRET-PRODUCTION-CUTOVER`
+
+#999 在 #998 evidence-chain validate gate 完成后，升级 `readiness export <assessmentID>` 为本地 redacted audit export package writer。该命令必须先执行完整 evidence-chain consistency check；只有 registry document、registry entry、Manifest V2、Bundle V2、bundle manifest、bundle bytes、artifact snapshots、content validation checksum、source provenance 和 optional export / comparison identity 全部 coherent 时，才允许写出 redacted export directory。
+
+导出包固定包含以下本地 JSON 文件：
+
+- `assessment-summary.json`
+- `manifest-v2.json`
+- `bundle-v2.json`
+- `validation-report.json`
+- `provenance.json`
+- `comparison.json`
+
+`manifest-v2.json` 和 `bundle-v2.json` 必须 byte-for-byte 匹配 local registry store 的源 Manifest V2 / Bundle V2；导出 report 必须输出 `packageComplete=true`、`exportedChecksumsMatchSource=true`、`missingEvidenceFailsClosed=true`、`redactedEvidenceOnly=true`、`noSecretValue=true`、`noEndpointPayload=true` 和 `noOrderPayload=true`。导出目录、`provenance-summary.json` 和 `comparison-metadata.json` 中的所有 JSON 必须绑定同一个 `assessmentID`，确保后续 `readiness validate <assessmentID>` 继续返回 `exportComparisonIdentityConsistent=true`。
+
+`readiness export <assessmentID>` 必须对 missing、stale、tampered、inconsistent evidence fail closed；不能在 validate blocked 时写出 partial package，不能把缺失 evidence 降级为 warning，不能补造 comparison evidence 或 source artifact checksum。
+
+#999 不执行 diff / compare、不创建 CLI lifecycle ordering、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace。
 
 Build pipeline 的固定顺序为：
 

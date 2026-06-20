@@ -3119,7 +3119,7 @@
 - validation surface: #996 consumes #995 local evidence root and derives normal manifest sourceCommit, sourceRunIDs, artifact bytes and artifact checksums from real local files
 - CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` preserves Manifest V2 provenance only after source provenance is local, traceable and non-synthetic
 - fail-closed evidence: placeholder sourceCommit, `gh-963-source-run`, `source-run-*` synthetic run IDs, missing artifact file, artifact metadata mismatch and fixture-only evidence are rejected
-- dependency evidence: #996 and #997 are complete; #998 is the active evidence-chain validate gate after fresh WIP=1 preflight
+- dependency evidence: #996, #997 and #998 are complete; #999 is the active redacted audit export package gate after fresh WIP=1 preflight
 - forbidden scope: no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
 
 ## TVM-RELEASE-V0130-BUILD-PIPELINE
@@ -3136,7 +3136,7 @@
 - validation surface: #997 consumes #995 local evidence root and #996 provenance, then validates schema, raw artifact checksum, content policy, Manifest V2, Bundle V2 and local registry entry consistency
 - CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` emits `validationReportChecksum`, writes Manifest V2, writes Bundle V2 and confirms the local registry entry
 - fail-closed evidence: schema failure, checksum mismatch, placeholder sourceCommit, synthetic sourceRunID, fixture-only evidence and raw endpoint marker evidence are rejected
-- dependency evidence: #997 is complete; #999 through #1005 remain blocked by #998 until the validate PR is merged and #998 is closed / done
+- dependency evidence: #997 and #998 are complete; #999 is the active redacted audit export package gate after WIP=1 preflight
 - forbidden scope: no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
 
 ## TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE
@@ -3153,5 +3153,22 @@
 - validation surface: #998 consumes the #997 local registry / Manifest V2 / Bundle V2 / bundle manifest output and verifies registry, manifest, bundle, artifact snapshot, content checksum, source provenance and optional export / comparison identity coherence
 - CLI surface: `mtpro readiness validate <assessmentID>` emits `evidenceChainCoherent`, `failureReasons`, `bundleBytesMatchManifest`, `artifactSnapshotsMatchManifest`, `contentValidationChecksumsPresent` and `exportComparisonIdentityConsistent`
 - fail-closed evidence: missing registry, tampered bundle bytes and artifact snapshot / Manifest V2 checksum mismatch return blocked validation with explicit failure reasons
-- dependency evidence: #999 through #1005 remain blocked by #998 until this validate PR is merged and #998 is closed / done
+- dependency evidence: #998 is complete; #999 is the next WIP=1 redacted audit export package gate
 - forbidden scope: no diff / compare, no redacted export package, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE
+
+- GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE
+- V0130-006-REDACTED-AUDIT-EXPORT-PACKAGE
+- V0130-006-COMPLETE-AUDIT-PACKAGE
+- V0130-006-EXPORT-CHECKSUMS-MATCH-SOURCE
+- V0130-006-MISSING-EVIDENCE-FAILS-CLOSED
+- V0130-006-NO-SECRET-PRODUCTION-CUTOVER
+- GH-999 Release v0.13.0 Redacted Audit Export Package Validation
+- testGH999ReleaseV0130ExportWritesCompleteRedactedAuditPackage
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: #999 consumes #998 coherent evidence-chain output and writes a complete local redacted audit export package with assessment summary, Manifest V2, Bundle V2, validation report, provenance and comparison JSON evidence
+- CLI surface: `mtpro readiness export <assessmentID>` emits `packageComplete`, `exportedChecksumsMatchSource`, `evidenceChainCoherent`, `redactedEvidenceOnly`, `noSecretValue`, `noEndpointPayload` and `noOrderPayload`
+- fail-closed evidence: missing or tampered evidence chain blocks export before partial package output; exported Manifest V2 and Bundle V2 must match source bytes
+- dependency evidence: #1000 through #1005 remain blocked by #999 until this export package PR is merged and #999 is closed / done
+- forbidden scope: no diff / compare, no CLI lifecycle ordering, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
