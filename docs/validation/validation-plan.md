@@ -4934,3 +4934,20 @@ swift test
 - placeholder rejection: fixed demo commit `0123456789abcdef0123456789abcdef01234567`, zero commit and empty provenance fail at `mtpro.readiness.sourceCommit`
 - artifact evidence: accepted source commit is recorded in `ReadinessAssessmentManifestV2` and `ReadinessAssessmentBundleV2`
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
+
+## GH-990 Release v0.12.1 Local Evidence Metadata Validation
+
+- GH-990-VERIFY-V0121-LOCAL-EVIDENCE-METADATA
+- V0121-003-LOCAL-EVIDENCE-SOURCERUNID
+- V0121-003-ARTIFACT-BYTES-CHECKSUM
+- V0121-003-MISSING-LOCAL-EVIDENCE-FAIL-CLOSED
+- TVM-RELEASE-V0121-LOCAL-EVIDENCE-METADATA
+- focused verifier: `bash checks/verify-v0.12.1-local-evidence-metadata.sh`
+- aggregate verifier carry-forward: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH990ReadinessLocalEvidenceMetadataBindsArtifactsAndSourceRunIDs`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- local evidence input: `mtpro readiness build <assessmentID>` writes `.local/mtpro/readiness/assessments/<assessmentID>/artifacts/readiness-summary.json`
+- metadata binding: Manifest V2 `sourceRunIDs`, `artifactSHA256` and `artifactBytes` are derived from the actual local evidence file bytes
+- fail-closed evidence: removing or tampering with the local artifact makes `mtpro readiness validate <assessmentID>` return `artifactEvidenceMatchesManifest=false` and `validationState=blocked`
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite

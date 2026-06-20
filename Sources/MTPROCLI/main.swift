@@ -1874,12 +1874,46 @@ private struct ReleaseV0110ReadinessCLI {
 /// `ReadinessAssessmentRegistryStore` 生成 assessment metadata、manifest、bundle 和 compare
 /// report evidence。它不读取 secret、不连接 production endpoint / broker，不提交 / 取消 /
 /// 替换订单，也不把任何 readiness result 升级为 production cutover authorization。
+private struct ReleaseV0121ReadinessLocalEvidenceArtifactMetadata {
+    let artifactID: Identifier
+    let generationID: Identifier
+    let url: URL
+    let relativePath: String
+    let data: Data
+    let artifactSHA256: String
+    let artifactBytes: Int
+    let sourceRunID: Identifier
+}
+
+private typealias LocalEvidenceArtifactMetadata = ReleaseV0121ReadinessLocalEvidenceArtifactMetadata
+
 private struct ReleaseV0120ReadinessAssessmentCLI {
     private static let readinessRootEnvironmentKey = "MTPRO_READINESS_ROOT"
     private static let sourceCommitEnvironmentKey = "MTPRO_READINESS_SOURCE_COMMIT"
     private static let sourceCommitExpectedDescription =
         "\(sourceCommitEnvironmentKey)=<40 lowercase hex commit> or verified local git HEAD"
     private static let producerVersion = "mtpro-cli-v0.12.0"
+    private static let localEvidenceArtifactFileName = "readiness-summary.json"
+    private static let localEvidenceArtifactJSONFields = [
+        "assessmentID",
+        "artifactPath",
+        "brokerEndpointConnected",
+        "createdAtEpochSeconds",
+        "evidenceKind",
+        "generationID",
+        "localOnly",
+        "noOrderPayload",
+        "noSecretValue",
+        "producerVersion",
+        "productionCutoverAuthorized",
+        "productionEndpointConnected",
+        "productionOrderSubmitted",
+        "productionSecretRead",
+        "productionTradingEnabledByDefault",
+        "redactedEvidenceOnly",
+        "registryEntryChecksum",
+        "sourceCommit"
+    ]
 
     let action: String
     let assessmentID: Identifier?
@@ -1972,27 +2006,39 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
         let entry = try requiredEntry()
         let now = Self.canonicalNow()
         let generationID = Identifier.constant("\(entry.assessmentID.rawValue)-generation-\(Int(now.timeIntervalSince1970))")
-        let artifactSHA256 = Self.stableChecksum("artifact-\(entry.assessmentID.rawValue)")
         let sourceCommit = try sourceCommitResolver()
+        let localEvidenceArtifact = try writeLocalEvidenceArtifact(
+            entry: entry,
+            generationID: generationID,
+            sourceCommit: sourceCommit,
+            createdAt: now
+        )
         let manifest = try ReadinessAssessmentManifestV2(
             assessmentID: entry.assessmentID,
             generationID: generationID,
-            sourceRunIDs: [Identifier.constant("gh-963-source-run")],
+            sourceRunIDs: [localEvidenceArtifact.sourceRunID],
             sourceCommit: sourceCommit,
             artifactContentType: .jsonEvidence,
-            artifactSHA256: artifactSHA256,
-            artifactBytes: 512,
+            artifactSHA256: localEvidenceArtifact.artifactSHA256,
+            artifactBytes: localEvidenceArtifact.artifactBytes,
             createdAt: now,
             producerVersion: Self.producerVersion
         )
         _ = try store.writeManifestV2(manifest)
 
+        let contentPolicy = try localEvidenceArtifactContentPolicy(artifactID: localEvidenceArtifact.artifactID)
+        let contentValidation = try store.validateArtifactContent(
+            data: localEvidenceArtifact.data,
+            manifest: manifest,
+            policy: contentPolicy,
+            validatedAt: now.addingTimeInterval(1)
+        )
         let artifactSnapshot = try ReadinessAssessmentBundleV2ArtifactSnapshot(
-            artifactID: Identifier.constant("\(entry.assessmentID.rawValue)-readiness-summary"),
+            artifactID: localEvidenceArtifact.artifactID,
             manifestChecksum: manifest.manifestChecksum,
-            artifactSHA256: artifactSHA256,
-            contentValidationChecksum: Self.stableChecksum("content-\(entry.assessmentID.rawValue)"),
-            artifactPath: "\(entry.artifactPaths.assessmentDirectoryPath)/artifacts/readiness-summary.json"
+            artifactSHA256: localEvidenceArtifact.artifactSHA256,
+            contentValidationChecksum: contentValidation.contentValidationChecksum,
+            artifactPath: localEvidenceArtifact.relativePath
         )
         let bundle = try ReadinessAssessmentBundleV2(
             assessmentID: entry.assessmentID,
@@ -2007,7 +2053,12 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
         let writeResult = try store.writeReadinessBundleV2ReviewSnapshot(bundle)
         return (baseOutput(action: action, entry: entry, mutationApplied: true) + [
             "generationID=\(generationID.rawValue)",
+            "sourceRunIDs=\(manifest.sourceRunIDs.map(\.rawValue).joined(separator: ","))",
             "sourceCommit=\(manifest.sourceCommit)",
+            "localEvidenceArtifactPath=\(localEvidenceArtifact.relativePath)",
+            "artifactSHA256=\(manifest.artifactSHA256)",
+            "artifactBytes=\(manifest.artifactBytes)",
+            "contentValidationChecksum=\(contentValidation.contentValidationChecksum)",
             "manifestV2Path=\(manifest.manifestV2Path)",
             "manifestChecksum=\(manifest.manifestChecksum)",
             "readinessBundlePath=\(writeResult.bundle.bundlePath)",
@@ -2040,13 +2091,31 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
     private func validateOutput() throws -> String {
         let entry = try requiredEntry()
         let manifest = try? store.readManifestV2(assessmentID: entry.assessmentID)
+        let localEvidenceArtifact = try? manifest.map {
+            try localEvidenceArtifactMetadata(
+                entry: entry,
+                generationID: $0.generationID,
+                artifactID: Self.localEvidenceArtifactID(for: entry)
+            )
+        }
+        let artifactEvidenceMatchesManifest: Bool = {
+            guard let manifest, let localEvidenceArtifact else {
+                return false
+            }
+            return manifest.artifactSHA256 == localEvidenceArtifact.artifactSHA256
+                && manifest.artifactBytes == localEvidenceArtifact.artifactBytes
+                && manifest.sourceRunIDs == [localEvidenceArtifact.sourceRunID]
+        }()
+        let validationState = manifest?.manifestHeld == true && artifactEvidenceMatchesManifest ? "valid" : "blocked"
         return (baseOutput(action: action, entry: entry, mutationApplied: false) + [
             "assessmentIDValid=true",
             "registryEntryHeld=\(entry.entryHeld)",
             "manifestV2Present=\(manifest != nil)",
             "manifestHeld=\(manifest?.manifestHeld ?? false)",
+            "artifactEvidencePresent=\(localEvidenceArtifact != nil)",
+            "artifactEvidenceMatchesManifest=\(artifactEvidenceMatchesManifest)",
             "productionCapabilitiesDisabled=\(entry.productionCapabilitiesDisabled)",
-            "validationState=\(manifest == nil ? "blocked" : "valid")",
+            "validationState=\(validationState)",
             "invalidAssessmentIDsFailClosed=true",
             "localRegistryStoreOnly=true",
             "boundaryHeld=true"
@@ -2122,6 +2191,126 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             )
         }
         return try store.inspect(assessmentID: assessmentID)
+    }
+
+    private func writeLocalEvidenceArtifact(
+        entry: ReadinessAssessmentRegistryEntry,
+        generationID: Identifier,
+        sourceCommit: String,
+        createdAt: Date
+    ) throws -> LocalEvidenceArtifactMetadata {
+        let artifactID = Self.localEvidenceArtifactID(for: entry)
+        let relativePath = Self.localEvidenceArtifactRelativePath(for: entry)
+        let artifactURL = localEvidenceArtifactURL(for: entry)
+        let payload: [String: Any] = [
+            "assessmentID": entry.assessmentID.rawValue,
+            "artifactPath": relativePath,
+            "brokerEndpointConnected": false,
+            "createdAtEpochSeconds": Int(createdAt.timeIntervalSince1970),
+            "evidenceKind": "readiness-local-summary",
+            "generationID": generationID.rawValue,
+            "localOnly": true,
+            "noOrderPayload": true,
+            "noSecretValue": true,
+            "producerVersion": Self.producerVersion,
+            "productionCutoverAuthorized": false,
+            "productionEndpointConnected": false,
+            "productionOrderSubmitted": false,
+            "productionSecretRead": false,
+            "productionTradingEnabledByDefault": false,
+            "redactedEvidenceOnly": true,
+            "registryEntryChecksum": entry.entryChecksum,
+            "sourceCommit": sourceCommit
+        ]
+        let data = try Self.canonicalJSONData(payload)
+        try writeLocalEvidenceData(data, to: artifactURL)
+        return try localEvidenceArtifactMetadata(entry: entry, generationID: generationID, artifactID: artifactID)
+    }
+
+    private func localEvidenceArtifactMetadata(
+        entry: ReadinessAssessmentRegistryEntry,
+        generationID: Identifier,
+        artifactID: Identifier
+    ) throws -> LocalEvidenceArtifactMetadata {
+        let artifactURL = localEvidenceArtifactURL(for: entry)
+        guard store.fileManager.fileExists(atPath: artifactURL.path) else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("localEvidenceArtifact:missing")
+        }
+        let data = try Data(contentsOf: artifactURL)
+        guard data.isEmpty == false else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("localEvidenceArtifact:empty")
+        }
+        let artifactSHA256 = ReleaseV060LocalRunJournalWriter.sha256Hex(data)
+        let sourceRunID = try Self.sourceRunID(artifactSHA256: artifactSHA256)
+        return LocalEvidenceArtifactMetadata(
+            artifactID: artifactID,
+            generationID: generationID,
+            url: artifactURL,
+            relativePath: Self.localEvidenceArtifactRelativePath(for: entry),
+            data: data,
+            artifactSHA256: artifactSHA256,
+            artifactBytes: data.count,
+            sourceRunID: sourceRunID
+        )
+    }
+
+    private func localEvidenceArtifactContentPolicy(
+        artifactID: Identifier
+    ) throws -> ReadinessAssessmentArtifactContentPolicy {
+        try ReadinessAssessmentArtifactContentPolicy(
+            policyVersion: "v0.12.1.local-evidence-metadata.v1",
+            artifactID: artifactID,
+            allowedJSONFields: Self.localEvidenceArtifactJSONFields,
+            requiredJSONFields: Self.localEvidenceArtifactJSONFields
+        )
+    }
+
+    private func localEvidenceArtifactURL(for entry: ReadinessAssessmentRegistryEntry) -> URL {
+        store.storageRootURL
+            .appendingPathComponent("assessments", isDirectory: true)
+            .appendingPathComponent(entry.assessmentID.rawValue, isDirectory: true)
+            .appendingPathComponent("artifacts", isDirectory: true)
+            .appendingPathComponent(Self.localEvidenceArtifactFileName, isDirectory: false)
+    }
+
+    private func writeLocalEvidenceData(_ data: Data, to url: URL) throws {
+        let parentURL = url.deletingLastPathComponent()
+        try store.fileManager.createDirectory(
+            at: parentURL,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: ReadinessAssessmentRegistryStore.ownerOnlyDirectoryPermissions]
+        )
+        try data.write(to: url, options: .atomic)
+        try store.fileManager.setAttributes(
+            [.posixPermissions: ReadinessAssessmentRegistryStore.ownerOnlyFilePermissions],
+            ofItemAtPath: url.path
+        )
+    }
+
+    private static func localEvidenceArtifactID(for entry: ReadinessAssessmentRegistryEntry) -> Identifier {
+        Identifier.constant("\(entry.assessmentID.rawValue)-readiness-summary")
+    }
+
+    private static func localEvidenceArtifactRelativePath(for entry: ReadinessAssessmentRegistryEntry) -> String {
+        "\(entry.artifactPaths.assessmentDirectoryPath)/artifacts/\(localEvidenceArtifactFileName)"
+    }
+
+    private static func sourceRunID(artifactSHA256: String) throws -> Identifier {
+        guard ReadinessAssessmentManifestV2.isValidSHA256Checksum(artifactSHA256) else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("localEvidenceArtifact:invalidChecksum")
+        }
+        let hex = artifactSHA256.dropFirst("sha256:".count)
+        return Identifier.constant("source-run-\(String(hex.prefix(16)))")
+    }
+
+    private static func canonicalJSONData(_ payload: [String: Any]) throws -> Data {
+        guard JSONSerialization.isValidJSONObject(payload) else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("localEvidenceArtifact:invalidJSON")
+        }
+        return try JSONSerialization.data(
+            withJSONObject: payload,
+            options: [.sortedKeys, .withoutEscapingSlashes]
+        )
     }
 
     private func comparisonSnapshot(

@@ -33321,6 +33321,120 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH990ReadinessLocalEvidenceMetadataBindsArtifactsAndSourceRunIDs() throws {
+        // 测试场景：GH-990 要求 readiness build 绑定实际本地 artifact bytes / checksum / sourceRunID。
+        // 旧 `gh-963-source-run` 和固定 `artifactBytes: 512` 不得再作为 normal readiness evidence 通过。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let storeSource = try read(
+            "Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift"
+        )
+        let localEvidenceVerifier = try read("checks/verify-v0.12.1-local-evidence-metadata.sh")
+        let v0120Verifier = try read("checks/verify-v0.12.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-990-VERIFY-V0121-LOCAL-EVIDENCE-METADATA",
+            "V0121-003-LOCAL-EVIDENCE-SOURCERUNID",
+            "V0121-003-ARTIFACT-BYTES-CHECKSUM",
+            "V0121-003-MISSING-LOCAL-EVIDENCE-FAIL-CLOSED",
+            "TVM-RELEASE-V0121-LOCAL-EVIDENCE-METADATA"
+        ] {
+            XCTAssertTrue(localEvidenceVerifier.contains(anchor), "\(anchor) must be enforced by the focused guard")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be covered by automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be summarized in latest verification")
+        }
+
+        XCTAssertTrue(cliSource.contains("writeLocalEvidenceArtifact"))
+        XCTAssertTrue(cliSource.contains("localEvidenceArtifactMetadata"))
+        XCTAssertTrue(cliSource.contains("ReleaseV060LocalRunJournalWriter.sha256Hex(data)"))
+        XCTAssertTrue(cliSource.contains("artifactEvidenceMatchesManifest"))
+        XCTAssertFalse(cliSource.contains("Identifier.constant(\"gh-963-source-run\")"))
+        XCTAssertFalse(cliSource.contains("artifactBytes: 512"))
+        XCTAssertTrue(storeSource.contains("forbiddenSourceRunIDPlaceholders"))
+        XCTAssertTrue(storeSource.contains("gh-963-source-run"))
+        XCTAssertTrue(v0120Verifier.contains("bash checks/verify-v0.12.1-local-evidence-metadata.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.12.1-local-evidence-metadata.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.12.1-local-evidence-metadata.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.12.1 local evidence metadata guard anchor"))
+        XCTAssertTrue(latest.contains("v0.12.1 local evidence metadata guard"))
+
+        let validCommit = "22fb2aff1fe706b9bfc32f3ecb2a1aa11228aa24"
+        let assessmentID = Identifier.constant("gh-990-assessment")
+        let generationID = Identifier.constant("gh-990-generation")
+        let derivedSourceRunID = Identifier.constant("source-run-aaaaaaaaaaaaaaaa")
+        let oldSourceRunID = Identifier.constant("gh-963-source-run")
+        let artifactSHA256 = "sha256:\(String(repeating: "a", count: 64))"
+        let createdAt = Date(timeIntervalSince1970: 1_812_500_000)
+
+        XCTAssertTrue(ReadinessAssessmentManifestV2.forbiddenSourceRunIDPlaceholders.contains(oldSourceRunID.rawValue))
+
+        let manifest = try ReadinessAssessmentManifestV2(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            sourceRunIDs: [derivedSourceRunID],
+            sourceCommit: validCommit,
+            artifactContentType: .jsonEvidence,
+            artifactSHA256: artifactSHA256,
+            artifactBytes: 257,
+            createdAt: createdAt,
+            producerVersion: "mtpro-v0.12.1-gh990"
+        )
+        XCTAssertTrue(manifest.manifestHeld)
+        XCTAssertEqual(manifest.sourceRunIDs, [derivedSourceRunID])
+        XCTAssertEqual(manifest.artifactBytes, 257)
+
+        XCTAssertThrowsError(
+            try ReadinessAssessmentManifestV2(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                sourceRunIDs: [oldSourceRunID],
+                sourceCommit: validCommit,
+                artifactContentType: .jsonEvidence,
+                artifactSHA256: artifactSHA256,
+                artifactBytes: 257,
+                createdAt: createdAt,
+                producerVersion: "mtpro-v0.12.1-gh990"
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessManifestV2"))
+        }
+
+        XCTAssertThrowsError(
+            try ReadinessAssessmentBundleV2(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                reviewState: .inReview,
+                sourceRunIDs: [oldSourceRunID],
+                sourceCommit: validCommit,
+                artifactSnapshots: [
+                    ReadinessAssessmentBundleV2ArtifactSnapshot(
+                        artifactID: Identifier.constant("gh-990-artifact"),
+                        manifestChecksum: manifest.manifestChecksum,
+                        artifactSHA256: artifactSHA256,
+                        contentValidationChecksum: "sha256:\(String(repeating: "b", count: 64))",
+                        artifactPath: ".local/mtpro/readiness/assessments/gh-990-assessment/artifacts/summary.json"
+                    )
+                ],
+                createdAt: createdAt.addingTimeInterval(1),
+                producerVersion: "mtpro-v0.12.1-gh990"
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessBundleV2"))
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
