@@ -128,6 +128,7 @@ bash checks/verify-v0.12.1-release-fact-sync.sh
 bash checks/verify-v0.12.1-sourcecommit-provenance.sh
 bash checks/verify-v0.12.1-local-evidence-metadata.sh
 bash checks/verify-v0.12.1-compare-fail-closed.sh
+bash checks/verify-v0.12.1-json-inspection-guards.sh
 
 require_file_contains() {
   local file="$1"

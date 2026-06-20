@@ -3041,3 +3041,17 @@
 - no fabricated evidence: compare cannot synthesize sourceRunID, event, risk, OMS or artifact evidence from assessmentID fallback strings
 - missing artifact evidence: deleting the local source-run artifact makes compare fail closed before a report is emitted
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
+
+## TVM-RELEASE-V0121-JSON-INSPECTION-GUARD
+
+- GH-992-VERIFY-V0121-JSON-INSPECTION-GUARDS
+- V0121-005-READINESS-JSON-INSPECTION
+- V0121-005-GENERATED-EVIDENCE-PROVENANCE
+- V0121-005-PLACEHOLDER-AND-PRODUCTION-FLAG-REJECTION
+- GH-992 Release v0.12.1 JSON Inspection Guard Validation
+- testGH992ReadinessJSONInspectionGuardsValidateGeneratedEvidence
+- focused verifier: `bash checks/verify-v0.12.1-json-inspection-guards.sh`
+- inspected evidence: generated registry, manifest-v2, readiness-summary artifact, readiness-bundle-v2, bundle manifest, export output and compare output
+- provenance binding: manifest source commit, derived sourceRunID, artifact SHA / byte count, bundle snapshot checksum chain and bundle manifest SHA / byte count must match the generated local files
+- rejection cases: placeholder source commit, synthetic sourceRunID, fixed artifact bytes, missing checksum chain and production-enabled flags fail the guard
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

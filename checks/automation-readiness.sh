@@ -9771,4 +9771,18 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 compare fail-closed guard anchor"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH991ReadinessCompareFailsClosedWithoutSourceRunEvidence"
 
+require_file "checks/verify-v0.12.1-json-inspection-guards.sh"
+require_contains "checks/verify-v0.12.1-json-inspection-guards.sh" "GH-992-VERIFY-V0121-JSON-INSPECTION-GUARDS"
+require_contains "checks/verify-v0.12.1-json-inspection-guards.sh" "V0121-005-READINESS-JSON-INSPECTION"
+require_contains "checks/verify-v0.12.1-json-inspection-guards.sh" "V0121-005-GENERATED-EVIDENCE-PROVENANCE"
+require_contains "checks/verify-v0.12.1-json-inspection-guards.sh" "V0121-005-PLACEHOLDER-AND-PRODUCTION-FLAG-REJECTION"
+require_contains "checks/verify-v0.12.1-json-inspection-guards.sh" "TVM-RELEASE-V0121-JSON-INSPECTION-GUARD"
+require_contains "checks/verify-v0.12.0.sh" "bash checks/verify-v0.12.1-json-inspection-guards.sh"
+require_contains "checks/run.sh" "bash checks/verify-v0.12.1-json-inspection-guards.sh"
+require_contains "docs/validation/latest-verification-summary.md" "v0.12.1 JSON inspection guard"
+require_contains "docs/validation/validation-plan.md" "GH-992 Release v0.12.1 JSON Inspection Guard Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0121-JSON-INSPECTION-GUARD"
+require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 JSON inspection guard anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH992ReadinessJSONInspectionGuardsValidateGeneratedEvidence"
+
 printf 'MTPRO automation readiness checks passed.\n'
