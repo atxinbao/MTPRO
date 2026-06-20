@@ -12,6 +12,7 @@
 - `v0.11.0 Release Publication Gate fact sync`
 - `GH-953 V0120-002 Align v0.11.x release publication and patch facts`
 - `v0.12.0 Release Publication Gate fact sync`
+- `GH-993 V0121-006 Close v0.12.1 patch audit and release notes`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -170,6 +171,34 @@ v0.12.0 当前存在 public GitHub Release：
 v0.12.0 的 construction closeout、Release Publication Gate、release fact sync / stale wording guard 和 production cutover 仍是独立 gate。已发布事实不授权 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实订单，不创建下一 Project / Issue，也不推进 v0.13.0。
 
 GH-988 / v0.12.1 stale wording guard 固定该 release fact：所有未限定为 #965 历史 closeout 的 v0.12.0 文档不得继续描述为 publication pending、tag pending、release not created、no public tag、no GitHub Release、未创建 release 或待发布。
+
+## V0121-006-PATCH-AUDIT-RELEASE-NOTES
+
+`GH-993-VERIFY-V0121-PATCH-AUDIT-RELEASE-NOTES`
+
+`TVM-RELEASE-V0121-PATCH-AUDIT-RELEASE-NOTES`
+
+`V0121-006-PATCH-AUDIT`
+
+`V0121-006-RELEASE-NOTES`
+
+`V0121-006-VALIDATION-SUMMARY`
+
+`V0121-006-NO-PRODUCTION-CUTOVER`
+
+`V0121-006-NO-TAG-OR-RELEASE-MOVE`
+
+v0.12.1 Readiness Assessment Provenance Hardening Patch 是 v0.12.0 public Release 后的 provenance hardening closeout。它只收口 #988..#993 的 release fact sync、source commit provenance、local evidence metadata、compare fail-closed behavior、generated JSON inspection、Stage Code Audit、release notes 和 root-doc patch facts。
+
+GH-993 is not a release publication gate:
+
+- 不创建 `v0.12.1` tag。
+- 不创建 `v0.12.1` GitHub Release。
+- 不移动、不覆盖、不重写 `v0.12.0` tag 或 GitHub Release。
+- 不推进 v0.13.0。
+- 不授权 production cutover。
+
+v0.12.0 public GitHub Release 仍保持为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.12.0`，tag peeled commit `25e31afd351db9a372db62222226b0a3db26c93a`，publication timestamp `2026-06-20T01:11:22Z`。v0.12.1 patch closeout 不改变该 release identity。
 
 ## V0111-007-PATCH-AUDIT-RELEASE-NOTES
 
