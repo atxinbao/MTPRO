@@ -3087,3 +3087,20 @@
 - validation surface: contract-only definition of local evidence root intake, artifact policy validation, manifest provenance binding, immutable bundle, registry lifecycle entry, evidence-level diff / compare, redacted audit export and fail-closed lifecycle order
 - dependency evidence: #995 through #1005 remain blocked by #994 until this contract PR is merged and #994 is closed / done
 - forbidden scope: no implementation of #995 evidence intake, no synthetic readiness data, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0130-LOCAL-EVIDENCE-INTAKE-MODEL
+
+- GH-995-VERIFY-V0130-LOCAL-EVIDENCE-INTAKE-MODEL
+- V0130-002-LOCAL-EVIDENCE-ROOT-LAYOUT
+- V0130-002-RUN-LOGS-EVENT-STREAM-ARTIFACTS-REGISTRY-PRIOR-ASSESSMENTS
+- V0130-002-SCHEMA-VALIDATION-DIAGNOSTICS
+- V0130-002-MISSING-MALFORMED-FAILS-CLOSED
+- V0130-002-NO-PRODUCTION-ENDPOINT-SECRET-ORDER
+- V0130-002-READ-ONLY-INTAKE
+- GH-995 Release v0.13.0 Local Evidence Intake Model Validation
+- testGH995ReleaseV0130LocalEvidenceIntakeModelDiscoversValidRootAndFailsClosed
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: local evidence root discovery and schema validation for run logs / event stream / artifacts / registry / prior assessments; missing root, missing file, malformed JSON / JSONL and forbidden production marker fail closed with actionable diagnostics
+- CLI surface: `mtpro readiness intake <evidenceRoot>` reports `intakeValid`, `failClosed`, category states and diagnostics without writing assessment output
+- dependency evidence: #996 through #1005 remain blocked by #995 until this intake PR is merged and #995 is closed / done
+- forbidden scope: no registry write, no bundle build, no diff / compare, no synthetic sourceRunID / sourceCommit replacement, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

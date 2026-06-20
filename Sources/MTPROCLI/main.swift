@@ -130,7 +130,8 @@ private enum MTPROStrictCLI {
         "readiness status",
         "readiness validate",
         "readiness export",
-        "readiness approval-status"
+        "readiness approval-status",
+        "readiness intake <evidenceRoot>"
     ]
     static let readinessAssessmentSupportedActionCommands = [
         "readiness create [assessmentID]",
@@ -277,6 +278,17 @@ private enum MTPROStrictCLI {
             return try ReleaseV0110ReadinessCLI(action: action).output()
         }
 
+        if action == "intake" {
+            guard arguments.count == 3 else {
+                throw MTPROCLIParserError.invalidArguments(
+                    field: "mtpro.readiness.arguments",
+                    expected: "readiness intake <evidenceRoot>",
+                    actual: arguments.joined(separator: " ")
+                )
+            }
+            return try ReleaseV0130LocalEvidenceIntakeCLI(evidenceRootPath: arguments[2]).output()
+        }
+
         if action == "create" {
             guard arguments.count == 2 || arguments.count == 3 else {
                 throw MTPROCLIParserError.invalidArguments(
@@ -326,7 +338,7 @@ private enum MTPROStrictCLI {
         guard ["help", "build", "status", "validate", "export", "approval-status"].contains(action) else {
             throw MTPROCLIParserError.invalidArguments(
                 field: "mtpro.readiness.action",
-                expected: "help,build,status,validate,export,approval-status,create,archive,compare",
+                expected: "help,build,status,validate,export,approval-status,intake,create,archive,compare",
                 actual: arguments.joined(separator: " ")
             )
         }
@@ -1896,6 +1908,97 @@ private struct ReleaseV0121ReadinessLocalSourceRunEvidence: Decodable {
 
 private typealias LocalEvidenceArtifactMetadata = ReleaseV0121ReadinessLocalEvidenceArtifactMetadata
 private typealias LocalSourceRunEvidence = ReleaseV0121ReadinessLocalSourceRunEvidence
+
+/// ReleaseV0130LocalEvidenceIntakeCLI 是 GH-995 的本地证据 intake CLI binder。
+///
+/// 该 binder 只读取调用方显式传入的 local evidence root，并输出 discover / validate
+/// diagnostics；它不写 assessment output、不写 registry、不生成 bundle、不做 diff，也不触发
+/// production secret / endpoint / broker / order capability。
+private struct ReleaseV0130LocalEvidenceIntakeCLI {
+    private static let validationAnchor = "GH-995-VERIFY-V0130-LOCAL-EVIDENCE-INTAKE-MODEL"
+    private static let matrixAnchor = "TVM-RELEASE-V0130-LOCAL-EVIDENCE-INTAKE-MODEL"
+    private static let requiredAnchors = [
+        "V0130-002-LOCAL-EVIDENCE-ROOT-LAYOUT",
+        "V0130-002-RUN-LOGS-EVENT-STREAM-ARTIFACTS-REGISTRY-PRIOR-ASSESSMENTS",
+        "V0130-002-SCHEMA-VALIDATION-DIAGNOSTICS",
+        "V0130-002-MISSING-MALFORMED-FAILS-CLOSED",
+        "V0130-002-NO-PRODUCTION-ENDPOINT-SECRET-ORDER",
+        "V0130-002-READ-ONLY-INTAKE"
+    ]
+
+    let evidenceRootPath: String
+    private let model: ReleaseV0130LocalEvidenceIntakeModel
+
+    init(
+        evidenceRootPath: String,
+        model: ReleaseV0130LocalEvidenceIntakeModel = ReleaseV0130LocalEvidenceIntakeModel()
+    ) {
+        self.evidenceRootPath = evidenceRootPath
+        self.model = model
+    }
+
+    func output() throws -> String {
+        let report = try model.validate(
+            evidenceRootURL: URL(fileURLWithPath: evidenceRootPath, isDirectory: true)
+        )
+        let stateByCategory = Dictionary(uniqueKeysWithValues: report.records.map {
+            ($0.descriptor.category.rawValue, $0.state.rawValue)
+        })
+        let validCategories = report.records
+            .filter { $0.state == .valid }
+            .map(\.descriptor.category.rawValue)
+            .joined(separator: ",")
+        let failedCategories = report.records
+            .filter { $0.state != .valid }
+            .map(\.descriptor.category.rawValue)
+            .joined(separator: ",")
+        let diagnostics = report.diagnostics.isEmpty
+            ? "none"
+            : report.diagnostics.map { $0.replacingOccurrences(of: "\n", with: " ") }.joined(separator: " | ")
+        let requiredAnchors = ([
+            Self.validationAnchor,
+            Self.matrixAnchor
+        ] + Self.requiredAnchors).joined(separator: ",")
+
+        return [
+            "mtpro readiness intake v0.13.0",
+            "issue=GH-995",
+            "validationAnchor=\(Self.validationAnchor)",
+            "matrixAnchor=\(Self.matrixAnchor)",
+            "requiredAnchors=\(requiredAnchors)",
+            "action=intake",
+            "evidenceRoot=\(report.evidenceRootPath)",
+            "requiredDirectories=\(report.requiredDirectoryPaths.joined(separator: ","))",
+            "recordCount=\(report.records.count)",
+            "categoryStates=\(stateByCategory.sorted { $0.key < $1.key }.map { "\($0.key):\($0.value)" }.joined(separator: ","))",
+            "validCategories=\(validCategories)",
+            "failedCategories=\(failedCategories)",
+            "intakeValid=\(report.valid)",
+            "failClosed=\(report.failClosed)",
+            "diagnosticCount=\(report.diagnostics.count)",
+            "missingDiagnosticCount=\(report.missingDiagnostics.count)",
+            "malformedDiagnosticCount=\(report.malformedDiagnostics.count)",
+            "forbiddenDiagnosticCount=\(report.forbiddenDiagnostics.count)",
+            "diagnostics=\(diagnostics)",
+            "localReadOnly=\(report.readOnlyIntake)",
+            "assessmentOutputWritten=\(report.assessmentOutputWritten)",
+            "registryWritten=\(report.registryWritten)",
+            "bundleWritten=\(report.bundleWritten)",
+            "diffBuilt=\(report.diffBuilt)",
+            "noSecretValue=true",
+            "noEndpointPayload=true",
+            "noOrderPayload=true",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "testnetOrderSubmissionAllowed=false",
+            "productionCutoverAuthorized=false",
+            "boundaryHeld=\(report.localFileURLOnly && report.productionCapabilitiesDisabled)"
+        ].joined(separator: "\n")
+    }
+}
 
 private struct ReleaseV0120ReadinessAssessmentCLI {
     private static let readinessRootEnvironmentKey = "MTPRO_READINESS_ROOT"

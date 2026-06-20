@@ -5017,3 +5017,21 @@ swift test
 - documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines inputs, outputs, evidence roots, schema contracts, lifecycle order, fail-closed behavior and the artifact -> policy -> manifest -> bundle -> registry -> diff chain
 - dependency evidence: #994 is blocked by #993; #995 through #1005 remain blocked until #994 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
 - forbidden scope: no evidence intake runtime, no synthetic readiness data, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-995 Release v0.13.0 Local Evidence Intake Model Validation
+
+- GH-995-VERIFY-V0130-LOCAL-EVIDENCE-INTAKE-MODEL
+- TVM-RELEASE-V0130-LOCAL-EVIDENCE-INTAKE-MODEL
+- V0130-002-LOCAL-EVIDENCE-ROOT-LAYOUT
+- V0130-002-RUN-LOGS-EVENT-STREAM-ARTIFACTS-REGISTRY-PRIOR-ASSESSMENTS
+- V0130-002-SCHEMA-VALIDATION-DIAGNOSTICS
+- V0130-002-MISSING-MALFORMED-FAILS-CLOSED
+- V0130-002-NO-PRODUCTION-ENDPOINT-SECRET-ORDER
+- V0130-002-READ-ONLY-INTAKE
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH995ReleaseV0130LocalEvidenceIntakeModelDiscoversValidRootAndFailsClosed`
+- CLI smoke: `swift run mtpro readiness intake <evidenceRoot>` validates a temporary local evidence root and then fails closed on missing evidence
+- documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #995 canonical layout for run logs / event stream / artifacts / registry / prior assessments
+- implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` and `Sources/MTPROCLI/main.swift` expose read-only local intake diagnostics
+- dependency evidence: #995 is blocked by #994; #996 through #1005 remain blocked until #995 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- forbidden scope: no registry write, no bundle build, no diff / compare, no assessment output write, no synthetic sourceRunID / sourceCommit / artifact metadata replacement, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order

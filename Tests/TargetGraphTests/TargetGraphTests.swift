@@ -33801,7 +33801,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(goal.contains("release/v0.13.0"))
         XCTAssertTrue(blueprint.contains("MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"))
         XCTAssertTrue(roadmap.contains("MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"))
-        XCTAssertTrue(latest.contains("#995..#1005 remain blocked by #994"))
+        XCTAssertTrue(latest.contains("#994 contract gate is complete"))
 
         for forbiddenAuthorization in [
             "productionTradingEnabledByDefault=true",
@@ -33819,6 +33819,115 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertFalse(contract.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must not be enabled in contract")
             XCTAssertFalse(readiness.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must not be enabled in readiness docs")
             XCTAssertFalse(latest.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must not be enabled in latest summary")
+        }
+    }
+
+    func testGH995ReleaseV0130LocalEvidenceIntakeModelDiscoversValidRootAndFailsClosed() throws {
+        // 测试场景：GH-995 只实现显式 local evidence root 的只读 intake model。
+        // 该测试固定 run logs / event stream / artifacts / registry / prior assessments 五类目录，
+        // 并验证缺失、malformed、forbidden production marker 都会 fail closed。
+        let fileManager = FileManager.default
+        let root = fileManager.temporaryDirectory.appendingPathComponent(
+            "mtpro-gh995-local-evidence-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        defer { try? fileManager.removeItem(at: root) }
+
+        func write(_ relativePath: String, _ payload: String) throws {
+            let url = relativePath.split(separator: "/").reduce(root) { partialURL, component in
+                partialURL.appendingPathComponent(String(component))
+            }
+            try fileManager.createDirectory(
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try Data(payload.utf8).write(to: url, options: .atomic)
+        }
+
+        func writeValidEvidenceRoot() throws {
+            for directory in ReleaseV0130LocalEvidenceIntakeModel.requiredDirectories {
+                try fileManager.createDirectory(
+                    at: root.appendingPathComponent(directory, isDirectory: true),
+                    withIntermediateDirectories: true
+                )
+            }
+            try write(
+                "run-logs/run-journal.jsonl",
+                #"{"sourceRunID":"run-gh995","sourceCommit":"8c3f87168d04f22d4cf21364963648f39f4aaf8e","eventType":"run.completed","createdAt":"2026-06-20T00:00:00Z"}"#
+            )
+            try write(
+                "event-stream/events.jsonl",
+                #"{"eventID":"event-gh995","sourceRunID":"run-gh995","eventType":"risk.accepted","occurredAt":"2026-06-20T00:00:01Z"}"#
+            )
+            try write(
+                "artifacts/artifact-index.json",
+                #"{"sourceRunID":"run-gh995","sourceCommit":"8c3f87168d04f22d4cf21364963648f39f4aaf8e","artifacts":[{"id":"artifact-gh995","path":"artifacts/readiness-summary.json"}]}"#
+            )
+            try write(
+                "registry/registry.json",
+                #"{"registryVersion":"v0.13.0.local-evidence-intake","assessments":[{"assessmentID":"assessment-gh995"}]}"#
+            )
+            try write(
+                "prior-assessments/assessments-index.json",
+                #"{"assessmentIDs":["baseline-gh995","followup-gh995"],"sourceRunIDs":["run-gh995"]}"#
+            )
+        }
+
+        try writeValidEvidenceRoot()
+        let model = ReleaseV0130LocalEvidenceIntakeModel(fileManager: fileManager)
+        let validReport = try model.validate(evidenceRootURL: root)
+
+        XCTAssertTrue(validReport.valid)
+        XCTAssertFalse(validReport.failClosed)
+        XCTAssertEqual(validReport.records.count, ReleaseV0130LocalEvidenceCategory.allCases.count)
+        XCTAssertEqual(Set(validReport.records.map(\.descriptor.category)), Set(ReleaseV0130LocalEvidenceCategory.allCases))
+        XCTAssertTrue(validReport.records.allSatisfy(\.recordHeld))
+        XCTAssertTrue(validReport.records.allSatisfy { $0.state == .valid })
+        XCTAssertTrue(validReport.localFileURLOnly)
+        XCTAssertTrue(validReport.readOnlyIntake)
+        XCTAssertFalse(validReport.assessmentOutputWritten)
+        XCTAssertFalse(validReport.registryWritten)
+        XCTAssertFalse(validReport.bundleWritten)
+        XCTAssertFalse(validReport.diffBuilt)
+        XCTAssertTrue(validReport.productionCapabilitiesDisabled)
+
+        let missingFileURL = root.appendingPathComponent("registry/registry.json")
+        try fileManager.removeItem(at: missingFileURL)
+        let missingReport = try model.validate(evidenceRootURL: root)
+        XCTAssertFalse(missingReport.valid)
+        XCTAssertTrue(missingReport.failClosed)
+        XCTAssertEqual(missingReport.missingDiagnostics.count, 1)
+        XCTAssertTrue(missingReport.missingDiagnostics[0].contains("missing"))
+
+        try write("registry/registry.json", "not-json")
+        let malformedReport = try model.validate(evidenceRootURL: root)
+        XCTAssertFalse(malformedReport.valid)
+        XCTAssertTrue(malformedReport.failClosed)
+        XCTAssertEqual(malformedReport.malformedDiagnostics.count, 1)
+        XCTAssertTrue(malformedReport.malformedDiagnostics[0].contains("malformed"))
+
+        try write("registry/registry.json", #"{"registryVersion":"v0.13.0.local-evidence-intake","assessments":[]}"#)
+        try write(
+            "artifacts/artifact-index.json",
+            #"{"sourceRunID":"run-gh995","sourceCommit":"8c3f87168d04f22d4cf21364963648f39f4aaf8e","artifacts":[],"productionEndpointConnected":true}"#
+        )
+        let forbiddenReport = try model.validate(evidenceRootURL: root)
+        XCTAssertFalse(forbiddenReport.valid)
+        XCTAssertTrue(forbiddenReport.failClosed)
+        XCTAssertEqual(forbiddenReport.forbiddenDiagnostics.count, 1)
+        XCTAssertTrue(forbiddenReport.forbiddenDiagnostics[0].contains("forbidden production capability"))
+
+        for anchor in [
+            "GH-995-VERIFY-V0130-LOCAL-EVIDENCE-INTAKE-MODEL",
+            "TVM-RELEASE-V0130-LOCAL-EVIDENCE-INTAKE-MODEL",
+            "V0130-002-LOCAL-EVIDENCE-ROOT-LAYOUT",
+            "V0130-002-RUN-LOGS-EVENT-STREAM-ARTIFACTS-REGISTRY-PRIOR-ASSESSMENTS",
+            "V0130-002-SCHEMA-VALIDATION-DIAGNOSTICS",
+            "V0130-002-MISSING-MALFORMED-FAILS-CLOSED",
+            "V0130-002-NO-PRODUCTION-ENDPOINT-SECRET-ORDER",
+            "V0130-002-READ-ONLY-INTAKE"
+        ] {
+            XCTAssertTrue(ReleaseV0130LocalEvidenceIntakeAnchors.validationAnchors.contains(anchor))
         }
     }
 
