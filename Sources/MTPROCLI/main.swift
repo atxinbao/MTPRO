@@ -1876,24 +1876,29 @@ private struct ReleaseV0110ReadinessCLI {
 /// 替换订单，也不把任何 readiness result 升级为 production cutover authorization。
 private struct ReleaseV0120ReadinessAssessmentCLI {
     private static let readinessRootEnvironmentKey = "MTPRO_READINESS_ROOT"
-    private static let sourceCommit = "0123456789abcdef0123456789abcdef01234567"
+    private static let sourceCommitEnvironmentKey = "MTPRO_READINESS_SOURCE_COMMIT"
+    private static let sourceCommitExpectedDescription =
+        "\(sourceCommitEnvironmentKey)=<40 lowercase hex commit> or verified local git HEAD"
     private static let producerVersion = "mtpro-cli-v0.12.0"
 
     let action: String
     let assessmentID: Identifier?
     let comparisonAssessmentID: Identifier?
     let store: ReadinessAssessmentRegistryStore
+    let sourceCommitResolver: () throws -> String
 
     init(
         action: String,
         assessmentID: Identifier?,
         comparisonAssessmentID: Identifier?,
         storageRootURL: URL? = nil,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        sourceCommitResolver: (() throws -> String)? = nil
     ) {
         self.action = action
         self.assessmentID = assessmentID
         self.comparisonAssessmentID = comparisonAssessmentID
+        self.sourceCommitResolver = sourceCommitResolver ?? Self.defaultSourceCommit
         if let storageRootURL {
             self.store = ReadinessAssessmentRegistryStore(storageRootURL: storageRootURL, fileManager: fileManager)
         } else if let override = ProcessInfo.processInfo.environment[Self.readinessRootEnvironmentKey],
@@ -1968,11 +1973,12 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
         let now = Self.canonicalNow()
         let generationID = Identifier.constant("\(entry.assessmentID.rawValue)-generation-\(Int(now.timeIntervalSince1970))")
         let artifactSHA256 = Self.stableChecksum("artifact-\(entry.assessmentID.rawValue)")
+        let sourceCommit = try sourceCommitResolver()
         let manifest = try ReadinessAssessmentManifestV2(
             assessmentID: entry.assessmentID,
             generationID: generationID,
             sourceRunIDs: [Identifier.constant("gh-963-source-run")],
-            sourceCommit: Self.sourceCommit,
+            sourceCommit: sourceCommit,
             artifactContentType: .jsonEvidence,
             artifactSHA256: artifactSHA256,
             artifactBytes: 512,
@@ -2001,6 +2007,7 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
         let writeResult = try store.writeReadinessBundleV2ReviewSnapshot(bundle)
         return (baseOutput(action: action, entry: entry, mutationApplied: true) + [
             "generationID=\(generationID.rawValue)",
+            "sourceCommit=\(manifest.sourceCommit)",
             "manifestV2Path=\(manifest.manifestV2Path)",
             "manifestChecksum=\(manifest.manifestChecksum)",
             "readinessBundlePath=\(writeResult.bundle.bundlePath)",
@@ -2022,6 +2029,7 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             "registryLifecycle=\(entry.lifecycle.rawValue)",
             "manifestV2Present=\(manifest != nil)",
             "generationID=\(manifest?.generationID.rawValue ?? "not-built")",
+            "sourceCommit=\(manifest?.sourceCommit ?? "not-built")",
             "manifestChecksum=\(manifest?.manifestChecksum ?? "not-built")",
             "readinessState=\(manifest == nil ? "not-built" : "in-review")",
             "localRegistryStoreOnly=true",
@@ -2174,6 +2182,71 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
 
     private static func canonicalNow() -> Date {
         Date(timeIntervalSince1970: floor(Date().timeIntervalSince1970))
+    }
+
+    private static func defaultSourceCommit() throws -> String {
+        if let override = ProcessInfo.processInfo.environment[sourceCommitEnvironmentKey] {
+            return try canonicalSourceCommit(override, provenance: sourceCommitEnvironmentKey)
+        }
+
+        return try localGitHeadSourceCommit()
+    }
+
+    private static func localGitHeadSourceCommit() throws -> String {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        process.arguments = ["git", "rev-parse", "--verify", "HEAD"]
+        process.currentDirectoryURL = URL(
+            fileURLWithPath: FileManager.default.currentDirectoryPath,
+            isDirectory: true
+        )
+
+        let standardOutput = Pipe()
+        let standardError = Pipe()
+        process.standardOutput = standardOutput
+        process.standardError = standardError
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.readiness.sourceCommit",
+                expected: sourceCommitExpectedDescription,
+                actual: "local git HEAD unavailable: \(error)"
+            )
+        }
+
+        let output = String(
+            data: standardOutput.fileHandleForReading.readDataToEndOfFile(),
+            encoding: .utf8
+        ) ?? ""
+        let errorOutput = String(
+            data: standardError.fileHandleForReading.readDataToEndOfFile(),
+            encoding: .utf8
+        ) ?? ""
+
+        guard process.terminationStatus == 0 else {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.readiness.sourceCommit",
+                expected: sourceCommitExpectedDescription,
+                actual: errorOutput.trimmingCharacters(in: .whitespacesAndNewlines)
+            )
+        }
+
+        return try canonicalSourceCommit(output, provenance: "local git HEAD")
+    }
+
+    private static func canonicalSourceCommit(_ rawValue: String, provenance: String) throws -> String {
+        let sourceCommit = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard ReadinessAssessmentManifestV2.isValidSourceCommit(sourceCommit) else {
+            throw MTPROCLIParserError.invalidArguments(
+                field: "mtpro.readiness.sourceCommit",
+                expected: sourceCommitExpectedDescription,
+                actual: "\(provenance)=\(sourceCommit.isEmpty ? "empty" : sourceCommit)"
+            )
+        }
+        return sourceCommit
     }
 
     private static func stableChecksum(_ seed: String) -> String {

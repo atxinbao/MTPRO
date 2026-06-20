@@ -9729,4 +9729,18 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 release fact sync stale wording guard anchor"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH988ReleaseFactSyncGuardRejectsV0120StalePublicationWording"
 
+require_file "checks/verify-v0.12.1-sourcecommit-provenance.sh"
+require_contains "checks/verify-v0.12.1-sourcecommit-provenance.sh" "GH-989-VERIFY-V0121-SOURCE-COMMIT-PROVENANCE"
+require_contains "checks/verify-v0.12.1-sourcecommit-provenance.sh" "V0121-002-SOURCE-COMMIT-PROVENANCE"
+require_contains "checks/verify-v0.12.1-sourcecommit-provenance.sh" "V0121-002-PLACEHOLDER-SOURCE-COMMIT-REJECTION"
+require_contains "checks/verify-v0.12.1-sourcecommit-provenance.sh" "TVM-RELEASE-V0121-SOURCE-COMMIT-PROVENANCE"
+require_contains "checks/verify-v0.12.1-sourcecommit-provenance.sh" "MTPRO_READINESS_SOURCE_COMMIT"
+require_contains "checks/verify-v0.12.0.sh" "bash checks/verify-v0.12.1-sourcecommit-provenance.sh"
+require_contains "checks/run.sh" "bash checks/verify-v0.12.1-sourcecommit-provenance.sh"
+require_contains "docs/validation/latest-verification-summary.md" "v0.12.1 source commit provenance guard"
+require_contains "docs/validation/validation-plan.md" "GH-989 Release v0.12.1 Source Commit Provenance Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0121-SOURCE-COMMIT-PROVENANCE"
+require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 source commit provenance guard anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH989ReadinessSourceCommitProvenanceRejectsPlaceholdersAndAcceptsRealCommits"
+
 printf 'MTPRO automation readiness checks passed.\n'

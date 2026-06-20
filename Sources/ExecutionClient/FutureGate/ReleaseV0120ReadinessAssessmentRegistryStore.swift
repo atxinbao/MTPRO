@@ -707,6 +707,11 @@ public enum ReadinessAssessmentManifestV2ArtifactContentType: String, Codable, C
 public struct ReadinessAssessmentManifestV2: Codable, Equatable, Sendable {
     public static let schemaVersion = "v0.12.0.readiness-assessment-manifest.v2"
     public static let canonicalizationAlgorithm = "canonical-json-sha256"
+    public static let forbiddenSourceCommitPlaceholders: Set<String> = [
+        "0000000000000000000000000000000000000000",
+        "0123456789abcdef0123456789abcdef01234567",
+        "1111111111111111111111111111111111111111"
+    ]
 
     public let issueID: Identifier
     public let upstreamIssueIDs: [Identifier]
@@ -907,7 +912,9 @@ public struct ReadinessAssessmentManifestV2: Codable, Equatable, Sendable {
     }
 
     public static func isValidSourceCommit(_ sourceCommit: String) -> Bool {
-        sourceCommit.count == 40 && sourceCommit.allSatisfy(Self.isLowercaseHexCharacter)
+        sourceCommit.count == 40
+            && sourceCommit.allSatisfy(Self.isLowercaseHexCharacter)
+            && Self.forbiddenSourceCommitPlaceholders.contains(sourceCommit) == false
     }
 
     private static func isLowercaseHexCharacter(_ character: Character) -> Bool {

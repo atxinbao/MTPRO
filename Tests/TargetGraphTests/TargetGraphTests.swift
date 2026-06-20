@@ -33207,6 +33207,120 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH989ReadinessSourceCommitProvenanceRejectsPlaceholdersAndAcceptsRealCommits() throws {
+        // 测试场景：GH-989 要求 readiness assessment manifest / bundle 使用真实 commit provenance。
+        // CLI 不得继续写入固定 placeholder；模型层也必须拒绝已知 placeholder 和空 provenance。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let storeSource = try read(
+            "Sources/ExecutionClient/FutureGate/ReleaseV0120ReadinessAssessmentRegistryStore.swift"
+        )
+        let sourceCommitVerifier = try read("checks/verify-v0.12.1-sourcecommit-provenance.sh")
+        let v0120Verifier = try read("checks/verify-v0.12.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-989-VERIFY-V0121-SOURCE-COMMIT-PROVENANCE",
+            "V0121-002-SOURCE-COMMIT-PROVENANCE",
+            "V0121-002-PLACEHOLDER-SOURCE-COMMIT-REJECTION",
+            "TVM-RELEASE-V0121-SOURCE-COMMIT-PROVENANCE"
+        ] {
+            XCTAssertTrue(sourceCommitVerifier.contains(anchor), "\(anchor) must be enforced by the focused guard")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be covered by automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be summarized in latest verification")
+        }
+
+        let placeholderCommit = "0123456789abcdef0123456789abcdef01234567"
+        let zeroCommit = String(repeating: "0", count: 40)
+        let validCommit = "0354aeefc0b9f4c74ae8fa9cc80a60787b28860d"
+
+        XCTAssertTrue(cliSource.contains("MTPRO_READINESS_SOURCE_COMMIT"))
+        XCTAssertTrue(cliSource.contains("\"git\", \"rev-parse\", \"--verify\", \"HEAD\""))
+        XCTAssertTrue(cliSource.contains("sourceCommitResolver"))
+        XCTAssertFalse(cliSource.contains(placeholderCommit), "CLI source must not embed the old placeholder commit")
+        XCTAssertTrue(storeSource.contains("forbiddenSourceCommitPlaceholders"))
+        XCTAssertTrue(sourceCommitVerifier.contains(placeholderCommit))
+        XCTAssertTrue(sourceCommitVerifier.contains("MTPRO_READINESS_SOURCE_COMMIT"))
+        XCTAssertTrue(v0120Verifier.contains("bash checks/verify-v0.12.1-sourcecommit-provenance.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.12.1-sourcecommit-provenance.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.12.1-sourcecommit-provenance.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.12.1 source commit provenance guard anchor"))
+        XCTAssertTrue(latest.contains("v0.12.1 source commit provenance guard"))
+
+        XCTAssertTrue(ReadinessAssessmentManifestV2.forbiddenSourceCommitPlaceholders.contains(placeholderCommit))
+        XCTAssertFalse(ReadinessAssessmentManifestV2.isValidSourceCommit(placeholderCommit))
+        XCTAssertFalse(ReadinessAssessmentManifestV2.isValidSourceCommit(zeroCommit))
+        XCTAssertTrue(ReadinessAssessmentManifestV2.isValidSourceCommit(validCommit))
+
+        let assessmentID = Identifier.constant("gh-989-assessment")
+        let generationID = Identifier.constant("gh-989-generation")
+        let sourceRunID = Identifier.constant("gh-989-source-run")
+        let artifactSHA256 = "sha256:\(String(repeating: "b", count: 64))"
+        let createdAt = Date(timeIntervalSince1970: 1_812_400_000)
+
+        let manifest = try ReadinessAssessmentManifestV2(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            sourceRunIDs: [sourceRunID],
+            sourceCommit: validCommit,
+            artifactContentType: .jsonEvidence,
+            artifactSHA256: artifactSHA256,
+            artifactBytes: 1024,
+            createdAt: createdAt,
+            producerVersion: "mtpro-v0.12.1-gh989"
+        )
+        XCTAssertTrue(manifest.manifestHeld)
+        XCTAssertEqual(manifest.sourceCommit, validCommit)
+
+        let bundle = try ReadinessAssessmentBundleV2(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            reviewState: .inReview,
+            sourceRunIDs: [sourceRunID],
+            sourceCommit: validCommit,
+            artifactSnapshots: [
+                ReadinessAssessmentBundleV2ArtifactSnapshot(
+                    artifactID: Identifier.constant("gh-989-artifact"),
+                    manifestChecksum: manifest.manifestChecksum,
+                    artifactSHA256: artifactSHA256,
+                    contentValidationChecksum: "sha256:\(String(repeating: "c", count: 64))",
+                    artifactPath: ".local/mtpro/readiness/assessments/gh-989-assessment/artifacts/summary.json"
+                )
+            ],
+            createdAt: createdAt.addingTimeInterval(1),
+            producerVersion: "mtpro-v0.12.1-gh989"
+        )
+        XCTAssertTrue(bundle.bundleHeld)
+        XCTAssertEqual(bundle.sourceCommit, validCommit)
+
+        XCTAssertThrowsError(
+            try ReadinessAssessmentManifestV2(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                sourceRunIDs: [sourceRunID],
+                sourceCommit: placeholderCommit,
+                artifactContentType: .jsonEvidence,
+                artifactSHA256: artifactSHA256,
+                artifactBytes: 1024,
+                createdAt: createdAt,
+                producerVersion: "mtpro-v0.12.1-gh989"
+            )
+        ) { error in
+            XCTAssertEqual(error as? ReadinessAssessmentRegistryStoreError, .boundaryDrift("readinessManifestV2"))
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
