@@ -2997,3 +2997,17 @@
 - stale wording evidence: guard rejects `publication pending`, `release pending`, `tag pending`, `no public tag`, `no GitHub Release`, `未创建 release` and `待发布` wording for v0.12.0 unless the line is explicitly scoped to #965 construction closeout
 - historical closeout allowance: #965 / GH-965 / `V0120-014-NO-TAG-OR-RELEASE-MOVE` wording remains scoped to construction closeout and does not contradict the public release fact
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
+
+## TVM-RELEASE-V0121-SOURCE-COMMIT-PROVENANCE
+
+- GH-989-VERIFY-V0121-SOURCE-COMMIT-PROVENANCE
+- V0121-002-SOURCE-COMMIT-PROVENANCE
+- V0121-002-PLACEHOLDER-SOURCE-COMMIT-REJECTION
+- TVM-RELEASE-V0121-SOURCE-COMMIT-PROVENANCE
+- GH-989 Release v0.12.1 Source Commit Provenance Validation
+- testGH989ReadinessSourceCommitProvenanceRejectsPlaceholdersAndAcceptsRealCommits
+- CLI source: `MTPRO_READINESS_SOURCE_COMMIT` is the explicit source commit input for readiness build
+- local fallback: verified local `git rev-parse --verify HEAD` is accepted when explicit source commit is absent
+- rejection evidence: fixed placeholder `0123456789abcdef0123456789abcdef01234567`, zero commit and empty provenance cannot pass readiness build / manifest validation
+- artifact evidence: accepted source commit is recorded in Manifest V2 and readiness bundle provenance fields
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite

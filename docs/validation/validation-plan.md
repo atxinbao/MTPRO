@@ -4918,3 +4918,19 @@ swift test
 - stale wording guard: root docs, release policy, v0.12.0 release notes, v0.12.0 stage audit, v0.12.0 runbook and validation docs must reject publication pending / no public tag / no GitHub Release wording for v0.12.0 unless the line is explicitly scoped to #965 construction closeout
 - allowed historical wording: #965 construction closeout wording may say that #965 itself did not move or create a tag / release, because the later Release Publication Gate published the immutable public release
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
+
+## GH-989 Release v0.12.1 Source Commit Provenance Validation
+
+- GH-989-VERIFY-V0121-SOURCE-COMMIT-PROVENANCE
+- V0121-002-SOURCE-COMMIT-PROVENANCE
+- V0121-002-PLACEHOLDER-SOURCE-COMMIT-REJECTION
+- TVM-RELEASE-V0121-SOURCE-COMMIT-PROVENANCE
+- focused verifier: `bash checks/verify-v0.12.1-sourcecommit-provenance.sh`
+- aggregate verifier carry-forward: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH989ReadinessSourceCommitProvenanceRejectsPlaceholdersAndAcceptsRealCommits`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- CLI provenance input: `mtpro readiness build <assessmentID>` resolves a source commit from `MTPRO_READINESS_SOURCE_COMMIT` first, then from verified local `git rev-parse --verify HEAD`
+- placeholder rejection: fixed demo commit `0123456789abcdef0123456789abcdef01234567`, zero commit and empty provenance fail at `mtpro.readiness.sourceCommit`
+- artifact evidence: accepted source commit is recorded in `ReadinessAssessmentManifestV2` and `ReadinessAssessmentBundleV2`
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
