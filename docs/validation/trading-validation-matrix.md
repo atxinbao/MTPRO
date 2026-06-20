@@ -2931,3 +2931,24 @@
 - fail-closed evidence: invalid assessment IDs are rejected at `mtpro.readiness.arguments`, and outputs include `invalidAssessmentIDsFailClosed=true`
 - output evidence: all commands keep `localRegistryStoreOnly=true`, `boundaryHeld=true`, production capability flags disabled and compare non-mutating / operator-review-only
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY
+
+- GH-964-VERIFY-V0120-DASHBOARD-ASSESSMENT-HISTORY
+- TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY
+- V0120-013-DASHBOARD-ASSESSMENT-HISTORY
+- V0120-013-ASSESSMENT-LIST-DETAIL-GENERATION-HISTORY
+- V0120-013-PROVENANCE-VALIDATION-APPROVAL-COMPARISON
+- V0120-013-ADVERSARIAL-CI-GUARD
+- V0120-013-NO-PRODUCTION-CUTOVER
+- GH-964 Release v0.12.0 Dashboard Assessment History / Adversarial CI Validation
+- testGH964DashboardAssessmentHistoryShowsLocalEvidenceAndAdversarialCoverageWithoutCommands
+- testGH964DashboardAssessmentHistoryAndAdversarialCIGuardsAreAnchored
+- Dashboard surface: `ReleaseV0120DashboardAssessmentHistorySurfaceViewModel`
+- shell binding: `releaseV0120AssessmentHistorySurface` and `DashboardReleaseV0120AssessmentHistoryPanel`
+- assessment history rows: `assessment-list`, `assessment-detail`, `generation-history`, `provenance`, `validation-status`, `approval-status` and `comparison`
+- generation history evidence: three local generation IDs are displayed as redacted readiness assessment evidence
+- adversarial CI coverage: `symlink-attack`, `concurrent-build`, `crash-recovery`, `checksum-toctou`, `file-permissions`, `tamper-after-validation` and `macos-dashboard-focused-guard`
+- macOS guard: required `dashboard-macos` job runs `checks/verify-v0.12.0-dashboard-macos-guards.sh` before Dashboard build / smoke
+- approval boundary: approval status is evidence-only and never converts into production cutover authorization
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

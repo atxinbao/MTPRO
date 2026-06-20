@@ -4850,3 +4850,24 @@ swift test
 - local store: `MTPRO_READINESS_ROOT` or `.local/mtpro/readiness`, backed by `ReadinessAssessmentRegistryStore`
 - fail-closed coverage: invalid assessment IDs with path separators, dot path components, tilde prefix or option-like prefix fail at `mtpro.readiness.arguments`
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag / release movement
+
+## GH-964 Release v0.12.0 Dashboard Assessment History / Adversarial CI Validation
+
+- GH-964-VERIFY-V0120-DASHBOARD-ASSESSMENT-HISTORY
+- TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY
+- V0120-013-DASHBOARD-ASSESSMENT-HISTORY
+- V0120-013-ASSESSMENT-LIST-DETAIL-GENERATION-HISTORY
+- V0120-013-PROVENANCE-VALIDATION-APPROVAL-COMPARISON
+- V0120-013-ADVERSARIAL-CI-GUARD
+- V0120-013-NO-PRODUCTION-CUTOVER
+- source: `Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift`
+- shell binding: `Sources/Dashboard/DashboardShell.swift`
+- macOS guard: `checks/verify-v0.12.0-dashboard-macos-guards.sh`
+- aggregate verifier: `bash checks/verify-v0.12.0.sh`
+- focused tests: `testGH964DashboardAssessmentHistoryShowsLocalEvidenceAndAdversarialCoverageWithoutCommands` and `testGH964DashboardAssessmentHistoryAndAdversarialCIGuardsAreAnchored`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- Dashboard rows: `assessment-list`, `assessment-detail`, `generation-history`, `provenance`, `validation-status`, `approval-status` and `comparison`
+- adversarial CI cases: `symlink-attack`, `concurrent-build`, `crash-recovery`, `checksum-toctou`, `file-permissions`, `tamper-after-validation` and `macos-dashboard-focused-guard`
+- workflow guard: required `dashboard-macos` job runs `bash checks/verify-v0.12.0-dashboard-macos-guards.sh` before Dashboard build and smoke
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
