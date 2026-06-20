@@ -34,6 +34,8 @@ MTPRO 借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapte
 
 Production trading、production secret、production endpoint、production broker connection、testnet / production submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.12.0 授权。后续执行只能来自 Human 指定的唯一 live queue source，并且必须经过 Parent Codex queue preflight。
 
+当前 live queue source 为 GitHub fallback `release/v0.13.0` issues `#994..#1005`。`#994` 只定义 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` contract；`#995..#1005` 在 #994 merged / checks success / closed done / main fast-forward 之前保持 blocked。
+
 ## 必读入口
 
 1. `README.md`

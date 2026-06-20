@@ -75,7 +75,7 @@ Anchor facts retained for readiness guards:
 - Historical maturity statement retained for release v0.9.0：`MTPRO Release v0.9.0 Testnet No-order Observability complete with production trading disabled by default`。
 - Historical maturity statement retained for release v0.11.0：`MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening complete with production trading disabled by default and production cutover not authorized`。
 - Historical patch statement retained for release v0.12.1：`MTPRO Release v0.12.1 Readiness Assessment Provenance Hardening Patch complete as patch closeout without tag publication and without production cutover authorization`。
-- 无当前可执行推荐；下一阶段必须经 Human + `@001 / PLN` 规划、live queue 写入与 Parent Codex queue preflight。Release v0.12.0 completion 和 v0.12.1 patch closeout 不授权 strategy 直连 ExecutionClient、broker command、production OMS、trading button、Live PRO Console production command、live command、real broker、real order、testnet order routing、production cutover 或任何 production trading。
+- 当前 live queue source 为 GitHub fallback `release/v0.13.0`，#994 是唯一 active contract gate；#995..#1005 保持 blocked，直到 #994 PR merged / required checks success / issue closed done / main fast-forward / fresh WIP=1 preflight。Release v0.12.0 completion、v0.12.1 patch closeout 和 v0.13.0 contract gate 不授权 strategy 直连 ExecutionClient、broker command、production OMS、trading button、Live PRO Console production command、live command、real broker、real order、testnet order routing、production cutover 或任何 production trading。
 
 ## 永久硬边界
 

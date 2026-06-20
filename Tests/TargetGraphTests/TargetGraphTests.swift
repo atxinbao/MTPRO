@@ -33733,6 +33733,95 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH994ReleaseV0130LocalEvidenceReadinessEngineContract() throws {
+        // 测试场景：GH-994 只定义 v0.13.0 本地证据驱动 readiness engine 合同。
+        // 该测试固定 contract、验证脚本、root docs 和 validation docs 的锚点，
+        // 防止 #994 被误扩展为 evidence intake runtime 或 production cutover 授权。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
+        let verifier = try read("checks/verify-v0.13.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+
+        for anchor in [
+            "GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT",
+            "TVM-RELEASE-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT",
+            "V0130-001-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT",
+            "V0130-001-REAL-LOCAL-EVIDENCE-INTAKE-REQUIRED",
+            "V0130-001-ARTIFACT-POLICY-MANIFEST-BUNDLE-REGISTRY-DIFF-CHAIN",
+            "V0130-001-LIFECYCLE-ORDER-FAIL-CLOSED",
+            "V0130-001-NO-SYNTHETIC-READINESS-DATA",
+            "V0130-001-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be recorded in the v0.13.0 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be enforced by the focused verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be enforced by automation readiness")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be documented in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be summarized in latest verification")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.13.0.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.13.0.sh"))
+        XCTAssertTrue(verifier.contains("testGH994ReleaseV0130LocalEvidenceReadinessEngineContract"))
+        XCTAssertTrue(readiness.contains("Release v0.13.0 local evidence-driven readiness engine contract anchor"))
+        XCTAssertTrue(latest.contains("v0.13.0 local evidence-driven readiness engine contract"))
+        XCTAssertTrue(validationPlan.contains("GH-994 Release v0.13.0 Local Evidence-driven Readiness Engine Contract Validation"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT"))
+
+        for requiredContractTerm in [
+            "local evidence root",
+            "real local evidence intake",
+            "artifact -> policy -> manifest -> bundle -> registry -> diff",
+            "sourceRunID",
+            "sourceCommit",
+            "generationID",
+            "compare-before-build",
+            "export-before-validate",
+            "synthetic readiness data",
+            "#995 至 #1005 必须继续被 #994 阻塞"
+        ] {
+            XCTAssertTrue(contract.contains(requiredContractTerm), "\(requiredContractTerm) must be explicit in #994 contract")
+        }
+
+        XCTAssertTrue(readme.contains("release/v0.13.0"))
+        XCTAssertTrue(goal.contains("release/v0.13.0"))
+        XCTAssertTrue(blueprint.contains("MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"))
+        XCTAssertTrue(roadmap.contains("MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"))
+        XCTAssertTrue(latest.contains("#995..#1005 remain blocked by #994"))
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true",
+            "tradingButtonEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must not be enabled in contract")
+            XCTAssertFalse(readiness.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must not be enabled in readiness docs")
+            XCTAssertFalse(latest.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must not be enabled in latest summary")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

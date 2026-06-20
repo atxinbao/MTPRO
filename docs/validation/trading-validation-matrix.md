@@ -3071,3 +3071,19 @@
 - PR evidence: PR #1006, #1007, #1008, #1009 and #1010 merged with required checks SUCCESS before #993 preflight
 - documentation evidence: Stage Code Audit and release notes document release fact sync, source commit provenance, local evidence metadata, compare fail-closed behavior and generated JSON inspection
 - forbidden scope: no v0.12.1 tag, no v0.12.1 GitHub Release, no v0.12.0 tag / release movement, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT
+
+- GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT
+- V0130-001-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT
+- V0130-001-REAL-LOCAL-EVIDENCE-INTAKE-REQUIRED
+- V0130-001-ARTIFACT-POLICY-MANIFEST-BUNDLE-REGISTRY-DIFF-CHAIN
+- V0130-001-LIFECYCLE-ORDER-FAIL-CLOSED
+- V0130-001-NO-SYNTHETIC-READINESS-DATA
+- V0130-001-NO-PRODUCTION-CUTOVER
+- GH-994 Release v0.13.0 Local Evidence-driven Readiness Engine Contract Validation
+- testGH994ReleaseV0130LocalEvidenceReadinessEngineContract
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: contract-only definition of local evidence root intake, artifact policy validation, manifest provenance binding, immutable bundle, registry lifecycle entry, evidence-level diff / compare, redacted audit export and fail-closed lifecycle order
+- dependency evidence: #995 through #1005 remain blocked by #994 until this contract PR is merged and #994 is closed / done
+- forbidden scope: no implementation of #995 evidence intake, no synthetic readiness data, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

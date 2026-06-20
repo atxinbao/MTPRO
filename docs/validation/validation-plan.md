@@ -5001,3 +5001,19 @@ swift test
 - closure evidence: #988..#992 closed / done before #993 preflight; PR #1006..#1010 merged with required `checks`, `linux-checks` and `dashboard-macos` SUCCESS
 - documentation evidence: v0.12.1 Stage Code Audit, release notes, latest verification summary, release publication policy, automation readiness and trading validation matrix carry the completed patch facts
 - forbidden scope: no v0.12.1 tag, no v0.12.1 GitHub Release, no v0.12.0 tag / release movement, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no v0.13.0 promotion
+
+## GH-994 Release v0.13.0 Local Evidence-driven Readiness Engine Contract Validation
+
+- GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT
+- TVM-RELEASE-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT
+- V0130-001-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT
+- V0130-001-REAL-LOCAL-EVIDENCE-INTAKE-REQUIRED
+- V0130-001-ARTIFACT-POLICY-MANIFEST-BUNDLE-REGISTRY-DIFF-CHAIN
+- V0130-001-LIFECYCLE-ORDER-FAIL-CLOSED
+- V0130-001-NO-SYNTHETIC-READINESS-DATA
+- V0130-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH994ReleaseV0130LocalEvidenceReadinessEngineContract`
+- documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines inputs, outputs, evidence roots, schema contracts, lifecycle order, fail-closed behavior and the artifact -> policy -> manifest -> bundle -> registry -> diff chain
+- dependency evidence: #994 is blocked by #993; #995 through #1005 remain blocked until #994 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- forbidden scope: no evidence intake runtime, no synthetic readiness data, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
