@@ -33792,7 +33792,8 @@ final class TargetGraphTests: XCTestCase {
             "compare-before-build",
             "export-before-validate",
             "synthetic readiness data",
-            "#1004..#1005 继续 blocked"
+            "#1004 在 fresh WIP=1 preflight 后作为唯一 active",
+            "#1005 继续 blocked"
         ] {
             XCTAssertTrue(contract.contains(requiredContractTerm), "\(requiredContractTerm) must be explicit in #994 contract")
         }
@@ -35418,13 +35419,295 @@ final class TargetGraphTests: XCTestCase {
         }
 
         XCTAssertTrue(readme.contains("#1003"))
-        XCTAssertTrue(readme.contains("#1004..#1005"))
+        XCTAssertTrue(readme.contains("#1004"))
+        XCTAssertTrue(readme.contains("#1005"))
         XCTAssertTrue(goal.contains("#1003"))
         XCTAssertTrue(blueprint.contains("ordered CLI execution lifecycle"))
         XCTAssertTrue(roadmap.contains("validation-state.json"))
         XCTAssertTrue(roadmap.contains("export-state.json"))
         XCTAssertTrue(latest.contains("v0.13.0 ordered CLI execution lifecycle"))
         XCTAssertTrue(verifier.contains("testGH1003ReleaseV0130OrderedReadinessCLILifecycleRequiresMarkersAndNextActions"))
+    }
+
+    func testGH1004ReleaseV0130LocalEvidenceFixturesAndRegressionSuiteCoversFailClosedFlow() throws {
+        // 测试场景：GH-1004 把 v0.13 本地证据流程固定到仓库内最小 fixture 和
+        // 回归 suite。Fixture 只位于 Tests/Fixtures；runtime output 必须写到临时
+        // registry store，防止 fixture 被误当成 operator-facing readiness evidence。
+        // Anchors: GH-1004-VERIFY-V0130-LOCAL-EVIDENCE-FIXTURES,
+        // TVM-RELEASE-V0130-LOCAL-EVIDENCE-FIXTURES,
+        // V0130-011-MINIMAL-VALID-LOCAL-EVIDENCE-FIXTURE,
+        // V0130-011-INVALID-TAMPERED-MISSING-FIXTURE-CASES,
+        // V0130-011-BUILD-VALIDATE-EXPORT-COMPARE-RECOVERY-REGRESSION,
+        // V0130-011-FIXTURE-RUNTIME-PATH-SEPARATION,
+        // V0130-011-NO-PRODUCTION-CUTOVER.
+        let fileManager = FileManager.default
+        let repositoryRoot = URL(fileURLWithPath: fileManager.currentDirectoryPath, isDirectory: true)
+        let fixtureRoot = repositoryRoot
+            .appendingPathComponent("Tests", isDirectory: true)
+            .appendingPathComponent("Fixtures", isDirectory: true)
+            .appendingPathComponent("ReleaseV0130LocalEvidence", isDirectory: true)
+            .appendingPathComponent("valid", isDirectory: true)
+        let tempRoot = fileManager.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH1004-LocalEvidence-\(UUID().uuidString)", isDirectory: true)
+        defer { try? fileManager.removeItem(at: tempRoot) }
+        try fileManager.createDirectory(at: tempRoot, withIntermediateDirectories: true)
+
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        func copyFixture(named name: String) throws -> URL {
+            let destination = tempRoot.appendingPathComponent(name, isDirectory: true)
+            try fileManager.copyItem(at: fixtureRoot, to: destination)
+            return destination
+        }
+
+        func rewriteFixture(_ root: URL, replacing oldValue: String, with newValue: String) throws {
+            let enumerator = fileManager.enumerator(
+                at: root,
+                includingPropertiesForKeys: [.isRegularFileKey]
+            )
+            while let url = enumerator?.nextObject() as? URL {
+                let values = try url.resourceValues(forKeys: [.isRegularFileKey])
+                guard values.isRegularFile == true else {
+                    continue
+                }
+                let updated = try String(contentsOf: url, encoding: .utf8)
+                    .replacingOccurrences(of: oldValue, with: newValue)
+                try Data(updated.utf8).write(to: url, options: .atomic)
+            }
+        }
+
+        func write(_ text: String, relativePath: String, under root: URL) throws {
+            let destination = relativePath.split(separator: "/").reduce(root) { partialURL, component in
+                partialURL.appendingPathComponent(String(component))
+            }
+            try fileManager.createDirectory(
+                at: destination.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try Data(text.utf8).write(to: destination, options: .atomic)
+        }
+
+        func storeURL(for relativePath: String, store: ReadinessAssessmentRegistryStore) -> URL {
+            let normalizedPath = relativePath.replacingOccurrences(
+                of: "\(ReadinessAssessmentRegistryStore.defaultRelativeRoot)/",
+                with: ""
+            )
+            return store.storageRootURL.appendingPathComponent(normalizedPath, isDirectory: false)
+        }
+
+        XCTAssertTrue(fileManager.fileExists(atPath: fixtureRoot.appendingPathComponent("run-logs/run-journal.jsonl").path))
+        XCTAssertTrue(fixtureRoot.path.contains("/Tests/Fixtures/ReleaseV0130LocalEvidence/valid"))
+
+        let model = ReleaseV0130LocalEvidenceIntakeModel(fileManager: fileManager)
+        let validRoot = try copyFixture(named: "valid-baseline")
+        let store = ReadinessAssessmentRegistryStore(
+            storageRootURL: tempRoot.appendingPathComponent("runtime-store", isDirectory: true)
+        )
+        XCTAssertFalse(store.storageRootURL.path.contains("/Tests/Fixtures/"))
+
+        let intakeReport = try model.validate(evidenceRootURL: validRoot)
+        XCTAssertTrue(intakeReport.valid)
+        XCTAssertFalse(intakeReport.failClosed)
+        XCTAssertTrue(intakeReport.localFileURLOnly)
+        XCTAssertTrue(intakeReport.readOnlyIntake)
+        XCTAssertFalse(intakeReport.assessmentOutputWritten)
+        XCTAssertFalse(intakeReport.registryWritten)
+        XCTAssertTrue(intakeReport.productionCapabilitiesDisabled)
+
+        let provenance = try model.buildProvenance(evidenceRootURL: validRoot)
+        XCTAssertTrue(provenance.normalManifestEligible)
+        XCTAssertEqual(provenance.sourceRunIDs.map(\.rawValue), ["run-gh1004-fixture-baseline"])
+        XCTAssertEqual(provenance.sourceCommit, "807211695eadba817408ca9e6b8f0bf3a1d080cd")
+        XCTAssertEqual(provenance.artifactProvenances.map(\.relativePath), ["artifacts/readiness-summary.json"])
+        XCTAssertFalse(provenance.fixtureOnly)
+        XCTAssertTrue(provenance.productionCapabilitiesDisabled)
+
+        let assessmentID = Identifier.constant("gh-1004-baseline")
+        let generationID = Identifier.constant("gh-1004-baseline-generation")
+        let createdAt = Date(timeIntervalSince1970: 1_813_201_100)
+        let pipeline = try model.buildPipeline(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            evidenceRootURL: validRoot,
+            store: store,
+            createdAt: createdAt
+        )
+        XCTAssertTrue(pipeline.pipelineHeld)
+        XCTAssertTrue(pipeline.validationReport.reportHeld)
+        XCTAssertTrue(pipeline.provenance.normalManifestEligible)
+
+        let validation = try model.validateEvidenceChain(assessmentID: assessmentID, store: store)
+        XCTAssertTrue(validation.evidenceChainCoherent)
+        XCTAssertEqual(validation.validationState, "valid")
+        XCTAssertTrue(validation.evidenceChainCoherent)
+        XCTAssertTrue(validation.failureReasons.isEmpty)
+
+        let export = try model.writeRedactedAuditExportPackage(assessmentID: assessmentID, store: store)
+        XCTAssertTrue(export.packageHeld)
+        XCTAssertTrue(export.packageComplete)
+        XCTAssertTrue(export.exportedChecksumsMatchSource)
+        XCTAssertTrue(export.redactedEvidenceOnly)
+        XCTAssertTrue(export.productionCapabilitiesDisabled)
+
+        let followUpRoot = try copyFixture(named: "valid-followup")
+        try rewriteFixture(followUpRoot, replacing: "run-gh1004-fixture-baseline", with: "run-gh1004-fixture-followup")
+        let followUpID = Identifier.constant("gh-1004-followup")
+        _ = try model.buildPipeline(
+            assessmentID: followUpID,
+            generationID: Identifier.constant("gh-1004-followup-generation"),
+            evidenceRootURL: followUpRoot,
+            store: store,
+            createdAt: createdAt.addingTimeInterval(60)
+        )
+        let comparison = try model.compareEvidenceLevelAssessments(
+            baselineAssessmentID: assessmentID,
+            followUpAssessmentID: followUpID,
+            store: store,
+            comparedAt: createdAt.addingTimeInterval(120)
+        )
+        XCTAssertTrue(comparison.evidenceLevelComparisonHeld)
+        XCTAssertEqual(comparison.comparisonState, "changed")
+        XCTAssertTrue(comparison.blockers.isEmpty)
+        XCTAssertTrue(comparison.comparisonDoesNotMutateAssessments)
+        XCTAssertTrue(comparison.operatorReviewOnly)
+
+        let recovery = try model.writeTransactionRecoverySnapshot(
+            assessmentID: Identifier.constant("gh-1004-recovery"),
+            operation: .buildPipeline,
+            stagingState: .interrupted,
+            intendedWritePaths: [
+                ".local/mtpro/readiness/assessments/gh-1004-recovery/metadata.json",
+                ".local/mtpro/readiness/assessments/gh-1004-recovery/readiness-bundle-v2.json"
+            ],
+            completedWritePaths: [
+                ".local/mtpro/readiness/assessments/gh-1004-recovery/metadata.json"
+            ],
+            cleanupResult: .removedStagingArtifacts,
+            cleanupAuditPaths: [
+                ".local/mtpro/readiness/staging/gh-1004-recovery/cleanup.log"
+            ],
+            failureReason: "GH-1004 regression fixture interrupted build",
+            staleStagingDetected: false,
+            store: store,
+            recordedAt: createdAt.addingTimeInterval(180)
+        )
+        XCTAssertTrue(recovery.recoverySnapshotHeld)
+        XCTAssertTrue(recovery.partialWritesRejectedAsAssessmentOutput)
+        XCTAssertTrue(recovery.productionCapabilitiesDisabled)
+
+        let missingRoot = try copyFixture(named: "missing-artifact-index")
+        try fileManager.removeItem(at: missingRoot.appendingPathComponent("artifacts/artifact-index.json"))
+        let missingReport = try model.validate(evidenceRootURL: missingRoot)
+        XCTAssertFalse(missingReport.valid)
+        XCTAssertTrue(missingReport.failClosed)
+        XCTAssertEqual(missingReport.missingDiagnostics.count, 1)
+        XCTAssertThrowsError(try model.buildProvenance(evidenceRootURL: missingRoot))
+
+        let syntheticRoot = try copyFixture(named: "synthetic-source-run")
+        try rewriteFixture(syntheticRoot, replacing: "run-gh1004-fixture-baseline", with: "source-run-aaaaaaaaaaaaaaaa")
+        XCTAssertThrowsError(try model.buildProvenance(evidenceRootURL: syntheticRoot)) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0130LocalEvidenceProvenanceError,
+                .syntheticSourceRunID("source-run-aaaaaaaaaaaaaaaa")
+            )
+        }
+
+        let placeholderCommitRoot = try copyFixture(named: "placeholder-commit")
+        try rewriteFixture(
+            placeholderCommitRoot,
+            replacing: "807211695eadba817408ca9e6b8f0bf3a1d080cd",
+            with: "0123456789abcdef0123456789abcdef01234567"
+        )
+        XCTAssertThrowsError(try model.buildProvenance(evidenceRootURL: placeholderCommitRoot)) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0130LocalEvidenceProvenanceError,
+                .invalidSourceCommit("0123456789abcdef0123456789abcdef01234567")
+            )
+        }
+
+        let fixtureOnlyRoot = try copyFixture(named: "fixture-only")
+        try write(
+            #"{"sourceRunID":"run-gh1004-fixture-baseline","sourceCommit":"807211695eadba817408ca9e6b8f0bf3a1d080cd","artifacts":[{"id":"artifact-gh1004-readiness-summary","path":"artifacts/readiness-summary.json"}],"fixtureOnly":true}"#,
+            relativePath: "artifacts/artifact-index.json",
+            under: fixtureOnlyRoot
+        )
+        XCTAssertThrowsError(try model.buildProvenance(evidenceRootURL: fixtureOnlyRoot)) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0130LocalEvidenceProvenanceError,
+                .fixtureOnlyEvidence("explicit fixture-only marker")
+            )
+        }
+
+        let tamperedStore = ReadinessAssessmentRegistryStore(
+            storageRootURL: tempRoot.appendingPathComponent("tampered-store", isDirectory: true)
+        )
+        let tamperedRoot = try copyFixture(named: "tampered-artifact")
+        let tamperedPipeline = try model.buildPipeline(
+            assessmentID: Identifier.constant("gh-1004-tampered"),
+            generationID: Identifier.constant("gh-1004-tampered-generation"),
+            evidenceRootURL: tamperedRoot,
+            store: tamperedStore,
+            createdAt: createdAt.addingTimeInterval(240)
+        )
+        let snapshotPath = try XCTUnwrap(tamperedPipeline.bundleWrite.bundle.artifactSnapshots.first?.artifactPath)
+        try Data(#"{"tampered":true}"#.utf8).write(
+            to: storeURL(for: snapshotPath, store: tamperedStore),
+            options: .atomic
+        )
+        let tamperedValidation = try model.validateEvidenceChain(
+            assessmentID: Identifier.constant("gh-1004-tampered"),
+            store: tamperedStore
+        )
+        XCTAssertEqual(tamperedValidation.validationState, "blocked")
+        XCTAssertFalse(tamperedValidation.evidenceChainCoherent)
+        XCTAssertTrue(
+            tamperedValidation.failureReasons.contains("artifactSnapshots:artifact-bytes-missing-or-checksum-mismatch")
+        )
+
+        let verifier = try read("checks/verify-v0.13.0.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+
+        for anchor in [
+            "GH-1004-VERIFY-V0130-LOCAL-EVIDENCE-FIXTURES",
+            "TVM-RELEASE-V0130-LOCAL-EVIDENCE-FIXTURES",
+            "V0130-011-MINIMAL-VALID-LOCAL-EVIDENCE-FIXTURE",
+            "V0130-011-INVALID-TAMPERED-MISSING-FIXTURE-CASES",
+            "V0130-011-BUILD-VALIDATE-EXPORT-COMPARE-RECOVERY-REGRESSION",
+            "V0130-011-FIXTURE-RUNTIME-PATH-SEPARATION",
+            "V0130-011-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.13 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.13 contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        XCTAssertTrue(verifier.contains("testGH1004ReleaseV0130LocalEvidenceFixturesAndRegressionSuiteCoversFailClosedFlow"))
+        XCTAssertTrue(verifier.contains("Tests/Fixtures/ReleaseV0130LocalEvidence/valid"))
+        XCTAssertTrue(verifier.contains("run-gh1004-fixture-baseline"))
+        XCTAssertTrue(verifier.contains("source-run-aaaaaaaaaaaaaaaa"))
+        XCTAssertTrue(verifier.contains("artifactSnapshots:artifact-bytes-missing-or-checksum-mismatch"))
+        XCTAssertTrue(verifier.contains("validation-state.json"))
+        XCTAssertTrue(verifier.contains("export-before-validate"))
+        XCTAssertTrue(readme.contains("#1004"))
+        XCTAssertTrue(goal.contains("#1004"))
+        XCTAssertTrue(blueprint.contains("local evidence fixtures and regression suite"))
+        XCTAssertTrue(roadmap.contains("#1004"))
+        XCTAssertTrue(latest.contains("v0.13.0 local evidence fixtures and regression suite"))
     }
 
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {

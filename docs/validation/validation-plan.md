@@ -5182,3 +5182,22 @@ swift test
 - implementation evidence: `Sources/MTPROCLI/main.swift` exposes `validation-state.json`, `export-state.json`, lifecycle marker validation and `nextRequiredAction`
 - dependency evidence: #1003 is blocked by #1002; #1004 through #1005 remain blocked until #1003 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
 - forbidden scope: no fixture suite, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-1004 Release v0.13.0 Local Evidence Fixtures and Regression Suite Validation
+
+- GH-1004-VERIFY-V0130-LOCAL-EVIDENCE-FIXTURES
+- TVM-RELEASE-V0130-LOCAL-EVIDENCE-FIXTURES
+- V0130-011-MINIMAL-VALID-LOCAL-EVIDENCE-FIXTURE
+- V0130-011-INVALID-TAMPERED-MISSING-FIXTURE-CASES
+- V0130-011-BUILD-VALIDATE-EXPORT-COMPARE-RECOVERY-REGRESSION
+- V0130-011-FIXTURE-RUNTIME-PATH-SEPARATION
+- V0130-011-NO-PRODUCTION-CUTOVER
+- GH-1004 Release v0.13.0 Local Evidence Fixtures and Regression Suite Validation
+- testGH1004ReleaseV0130LocalEvidenceFixturesAndRegressionSuiteCoversFailClosedFlow
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- fixture evidence: `Tests/Fixtures/ReleaseV0130LocalEvidence/valid` contains the minimal valid local evidence root for run logs, event stream, artifact index, readiness summary, registry and prior assessments
+- regression evidence: tests cover intake, build, validate, export, compare and transaction recovery with valid fixture data
+- fail-closed evidence: missing artifact index, synthetic sourceRunID, placeholder sourceCommit, fixture-only marker and tampered artifact snapshot must fail closed
+- path separation evidence: fixture paths remain under `Tests/Fixtures`; runtime-facing evidence is written only to a temporary readiness registry store
+- dependency evidence: #1004 is blocked by #1003 and is the active WIP=1 gate; #1005 remains blocked by #1004 until this PR is merged and #1004 is closed / done
+- forbidden scope: no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
