@@ -77,11 +77,39 @@
 
 `V0130-005-NO-PRODUCTION-CUTOVER`
 
+`GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE`
+
+`TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE`
+
+`V0130-006-REDACTED-AUDIT-EXPORT-PACKAGE`
+
+`V0130-006-COMPLETE-AUDIT-PACKAGE`
+
+`V0130-006-EXPORT-CHECKSUMS-MATCH-SOURCE`
+
+`V0130-006-MISSING-EVIDENCE-FAILS-CLOSED`
+
+`V0130-006-NO-SECRET-PRODUCTION-CUTOVER`
+
+`GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF`
+
+`TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF`
+
+`V0130-007-EVIDENCE-LEVEL-DIFF-COMPARE`
+
+`V0130-007-SOURCE-POLICY-RISK-CHECKSUM-PROVENANCE-COMPLETENESS`
+
+`V0130-007-BROKEN-EVIDENCE-LINK-BLOCKER`
+
+`V0130-007-COMPARISON-EXPORT-VALIDATION`
+
+`V0130-007-NO-PRODUCTION-CUTOVER`
+
 ## Contract Scope
 
 `v0.13.0` 定义 local evidence-driven readiness engine / 本地证据驱动就绪引擎。它承接 v0.12.0 readiness assessment sessions 和 v0.12.1 provenance hardening patch 的已完成事实，把 readiness assessment 从“可生成本地 assessment evidence”推进为“只能从真实本地 evidence root intake、校验、打包、登记、比较和导出”的 engine contract。
 
-本 contract 是 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。它只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；不实现 #995 之后的 evidence intake、build pipeline、validate、diff、CLI lifecycle 或 fixtures。#995 至 #1005 必须继续被 #994 阻塞，直到本 contract PR merged、required checks success、#994 closed / done、本地 `main == origin/main` 且 worktree clean。当前执行事实：#994、#995、#996、#997 和 #998 已完成；#999 在 fresh WIP=1 preflight 后作为唯一 active redacted audit export package gate 执行。
+本 contract 是 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。它只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；不实现 #995 之后的 evidence intake、build pipeline、validate、diff、CLI lifecycle 或 fixtures。#995 至 #1005 必须继续被 #994 阻塞，直到本 contract PR merged、required checks success、#994 closed / done、本地 `main == origin/main` 且 worktree clean。当前执行事实：#994、#995、#996、#997、#998 和 #999 已完成；#1000 在 fresh WIP=1 preflight 后作为唯一 active evidence-level diff / compare gate 执行。
 
 ## Inputs
 
@@ -176,6 +204,39 @@ Anchors:
 
 #999 不执行 diff / compare、不创建 CLI lifecycle ordering、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace。
 
+## #1000 Evidence-level Diff / Compare
+
+Anchors:
+
+- `GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF`
+- `TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF`
+- `V0130-007-EVIDENCE-LEVEL-DIFF-COMPARE`
+- `V0130-007-SOURCE-POLICY-RISK-CHECKSUM-PROVENANCE-COMPLETENESS`
+- `V0130-007-BROKEN-EVIDENCE-LINK-BLOCKER`
+- `V0130-007-COMPARISON-EXPORT-VALIDATION`
+- `V0130-007-NO-PRODUCTION-CUTOVER`
+
+#1000 在 #999 redacted audit export package gate 完成后，升级 `readiness compare <baselineAssessmentID> <followUpAssessmentID>` 为 evidence-level readiness diff。该 compare 必须先对 baseline 和 follow-up assessment 执行 #998 evidence-chain validate；只有 registry、Manifest V2、Bundle V2、bundle manifest、bundle bytes、artifact snapshots、content validation checksum、source provenance、redacted export 和 optional comparison identity 均 coherent 时，才允许输出正常 diff。
+
+Evidence-level diff 固定比较六段：
+
+- source data。
+- policy。
+- risk posture。
+- checksum chain。
+- provenance。
+- evidence completeness。
+
+Canonical section phrase：source data、policy、risk posture、checksum chain、provenance、evidence completeness。
+
+每段 diff 必须输出 `unchanged`、`changed` 或 `blocker`。sourceCommit / sourceRunIDs、content validation checksum、registry lifecycle / production-disabled flags、bundle / manifest / artifact checksum、producer version / generation / artifact path 和 validation completeness 都必须进入 deterministic fingerprint。broken evidence links、missing、tampered、stale 或 inconsistent evidence link 不能被降级为普通 changed；必须进入 `blockedSections` 和 `blockers`，并让 `comparisonState=blocked`。
+
+`readiness compare <baselineAssessmentID> <followUpAssessmentID>` 必须保持 non-mutating：baseline 和 follow-up registry entry 除 comparison metadata sidecar 外不得被改写；compare 完成后必须再次运行 validate，保持 `exportComparisonIdentityConsistent=true`。比较输出必须可写入本地 `comparison-metadata.json`，如果 follow-up 已有 redacted export directory，也必须写出可验证的 export `comparison.json`。
+
+CLI 输出必须包含 `comparisonFormat=evidence-level-readiness-diff`、`comparisonState`、`comparedSections`、`changedSections`、`unchangedSections`、`blockedSections`、`blockers`、`hasDifferences`、`reportChecksum`、`comparisonMetadataJSONPath`、`compareDoesNotMutateAssessments=true` 和 `operatorReviewOnly=true`。该输出只供 operator review，不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace。
+
+#1000 不创建 CLI lifecycle ordering、不创建 transaction recovery snapshot、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace。
+
 Build pipeline 的固定顺序为：
 
 1. `schemaValidated=true`：run logs / event stream / artifacts / registry / prior assessments 必须通过 #995 schema gate。
@@ -247,7 +308,7 @@ CLI 或 automation 不得允许 compare-before-build、export-before-validate、
 | #997 | build pipeline schema + checksum + policy + registry flow | blocked by #996 |
 | #998 | full evidence-chain consistency validate | blocked by #997 |
 | #999 | redacted audit export package | blocked by #998 |
-| #1000 | evidence-level diff / compare | blocked by #998 |
+| #1000 | evidence-level diff / compare | blocked by #999 |
 | #1001 | transaction recovery forensic snapshot | blocked by #997 |
 | #1002 | generation ID collision-proofing | blocked by #997 |
 | #1003 | ordered CLI execution lifecycle | blocked by #998, #999, #1000, #1001, #1002 |
@@ -280,7 +341,7 @@ Fail-closed output must be actionable local diagnostic evidence. It must not sil
 
 ## Non-goals
 
-- 不实现 #999 之后的 redacted export package、diff、CLI lifecycle、fixture suite 或 stage audit。
+- 不实现 #1000 之后的 CLI lifecycle、transaction recovery snapshot、generation collision-proofing、fixture suite 或 stage audit。
 - 不新增 runtime pipeline。
 - 不发布 v0.13.0 tag 或 GitHub Release。
 - 不移动、不覆盖、不重写 v0.12.0 tag / GitHub Release。

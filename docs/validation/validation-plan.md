@@ -5051,7 +5051,7 @@ swift test
 - fail-closed evidence: placeholder sourceCommit, old `gh-963-source-run`, checksum-derived `source-run-*` synthetic run IDs and explicit fixture-only evidence all fail closed before manifest write
 - documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #996 normal manifest provenance replacement and fixture isolation boundary
 - implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` and `Sources/MTPROCLI/main.swift` expose `ReleaseV0130LocalEvidenceBuildProvenance` and `readiness build-v013 <assessmentID> <evidenceRoot>`
-- dependency evidence: #996 is blocked by #995; #996, #997 and #998 are complete, and #999 is the active redacted audit export package gate after WIP=1 preflight
+- dependency evidence: #996 is blocked by #995; #996, #997, #998 and #999 are complete, and #1000 is the active evidence-level diff / compare gate after WIP=1 preflight
 - forbidden scope: no diff / compare, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
 
 ## GH-997 Release v0.13.0 Build Pipeline Validation
@@ -5107,3 +5107,23 @@ swift test
 - implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` exposes `ReleaseV0130RedactedAuditExportPackageReport` and `writeRedactedAuditExportPackage`; `Sources/MTPROCLI/main.swift` exposes export output fields including `packageComplete` and `exportedChecksumsMatchSource`
 - dependency evidence: #999 is blocked by #998; #1000 through #1005 remain blocked until #999 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
 - forbidden scope: no diff / compare, no CLI lifecycle ordering, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-1000 Release v0.13.0 Evidence-level Diff Validation
+
+- GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF
+- TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF
+- V0130-007-EVIDENCE-LEVEL-DIFF-COMPARE
+- V0130-007-SOURCE-POLICY-RISK-CHECKSUM-PROVENANCE-COMPLETENESS
+- V0130-007-BROKEN-EVIDENCE-LINK-BLOCKER
+- V0130-007-COMPARISON-EXPORT-VALIDATION
+- V0130-007-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1000ReleaseV0130CompareBuildsEvidenceLevelDiffAndBlocksBrokenLinks`
+- CLI smoke: `swift run mtpro readiness compare <baselineAssessmentID> <followUpAssessmentID>` emits `comparisonFormat=evidence-level-readiness-diff`, `comparisonState`, `comparedSections`, `changedSections`, `unchangedSections`, `blockedSections`, `blockers`, `reportChecksum` and `comparisonMetadataJSONPath`
+- validation surface: compare evaluates source data、policy、risk posture、checksum chain、provenance and evidence completeness after running #998 validate on both baseline and follow-up assessments
+- fail-closed evidence: missing, tampered, stale or inconsistent evidence links return `comparisonState=blocked` and put the affected sections into `blockedSections` rather than reporting a normal field-level diff
+- export validation evidence: comparison writes local `comparison-metadata.json`, updates export `comparison.json` when a redacted export directory exists, and preserves `exportComparisonIdentityConsistent=true` after compare
+- documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #1000 evidence-level diff / compare behavior and broken evidence link blockers
+- implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` exposes `ReleaseV0130EvidenceLevelComparisonReport` and `compareEvidenceLevelAssessments`; `Sources/MTPROCLI/main.swift` exposes evidence-level compare output fields
+- dependency evidence: #1000 is blocked by #999; #1001 through #1005 remain blocked until #1000 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- forbidden scope: no CLI lifecycle ordering, no transaction recovery snapshot, no generation collision-proofing, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order

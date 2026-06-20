@@ -87,6 +87,275 @@ public enum ReleaseV0130RedactedAuditExportPackageAnchors {
     ]
 }
 
+/// ReleaseV0130EvidenceLevelDiffAnchors 固定 GH-1000 的 evidence-level diff / compare 锚点。
+///
+/// 这些锚点只证明 `readiness compare <baseline> <followUp>` 会在 v0.13.0 本地
+/// evidence chain 上比较 source data、policy、risk posture、checksum、provenance
+/// 和 evidence completeness；它们不授权 production cutover、secret read、endpoint /
+/// broker connection 或任何订单命令。
+public enum ReleaseV0130EvidenceLevelDiffAnchors {
+    public static let validationAnchors = [
+        "GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF",
+        "TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF",
+        "V0130-007-EVIDENCE-LEVEL-DIFF-COMPARE",
+        "V0130-007-SOURCE-POLICY-RISK-CHECKSUM-PROVENANCE-COMPLETENESS",
+        "V0130-007-BROKEN-EVIDENCE-LINK-BLOCKER",
+        "V0130-007-COMPARISON-EXPORT-VALIDATION",
+        "V0130-007-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
+/// v0.13.0 evidence-level compare 固定的审计维度。
+public enum ReleaseV0130EvidenceLevelDiffSection: String, Codable, CaseIterable, Equatable, Sendable {
+    case sourceData = "source-data"
+    case policy
+    case riskPosture = "risk-posture"
+    case checksumChain = "checksum-chain"
+    case provenance
+    case evidenceCompleteness = "evidence-completeness"
+}
+
+/// 单个 evidence-level section 的比较状态。
+public enum ReleaseV0130EvidenceLevelDiffState: String, Codable, CaseIterable, Equatable, Sendable {
+    case unchanged
+    case changed
+    case blocker
+}
+
+/// ReleaseV0130EvidenceLevelDiff 记录某个审计维度的 baseline / follow-up 指纹。
+///
+/// 如果任一 assessment 的 evidence chain 不完整，该 section 必须进入 `blocker`，而不是
+/// 把缺失、stale 或 tampered evidence 当作普通 changed diff。
+public struct ReleaseV0130EvidenceLevelDiff: Codable, Equatable, Sendable {
+    public let section: ReleaseV0130EvidenceLevelDiffSection
+    public let state: ReleaseV0130EvidenceLevelDiffState
+    public let baselineFingerprint: String?
+    public let followUpFingerprint: String?
+    public let evidenceLinkReasons: [String]
+    public let blockerReasons: [String]
+
+    public var diffHeld: Bool {
+        switch state {
+        case .unchanged:
+            return baselineFingerprint != nil
+                && baselineFingerprint == followUpFingerprint
+                && blockerReasons.isEmpty
+        case .changed:
+            return baselineFingerprint != nil
+                && followUpFingerprint != nil
+                && baselineFingerprint != followUpFingerprint
+                && blockerReasons.isEmpty
+        case .blocker:
+            return blockerReasons.isEmpty == false
+        }
+    }
+
+    public init(
+        section: ReleaseV0130EvidenceLevelDiffSection,
+        state: ReleaseV0130EvidenceLevelDiffState,
+        baselineFingerprint: String?,
+        followUpFingerprint: String?,
+        evidenceLinkReasons: [String],
+        blockerReasons: [String]
+    ) {
+        self.section = section
+        self.state = state
+        self.baselineFingerprint = baselineFingerprint
+        self.followUpFingerprint = followUpFingerprint
+        self.evidenceLinkReasons = evidenceLinkReasons.sorted()
+        self.blockerReasons = blockerReasons.sorted()
+    }
+}
+
+/// ReleaseV0130EvidenceLevelComparisonReport 是 GH-1000 的本地 operator review report。
+///
+/// Report 只写本地 comparison metadata / optional export comparison JSON，不修改 registry
+/// entry、不创建 approval、不授权 production cutover。任何 broken evidence link 都必须进入
+/// blocker state。
+public struct ReleaseV0130EvidenceLevelComparisonReport: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let assessmentID: Identifier
+    public let baselineAssessmentID: Identifier
+    public let followUpAssessmentID: Identifier
+    public let baselineGenerationID: Identifier?
+    public let followUpGenerationID: Identifier?
+    public let comparedAt: Date
+    public let baselineValidationState: String
+    public let followUpValidationState: String
+    public let comparedSections: [ReleaseV0130EvidenceLevelDiffSection]
+    public let changedSections: [ReleaseV0130EvidenceLevelDiffSection]
+    public let unchangedSections: [ReleaseV0130EvidenceLevelDiffSection]
+    public let blockedSections: [ReleaseV0130EvidenceLevelDiffSection]
+    public let deltas: [ReleaseV0130EvidenceLevelDiff]
+    public let blockers: [String]
+    public let comparisonState: String
+    public let reportChecksum: String
+    public let comparisonDoesNotMutateAssessments: Bool
+    public let operatorReviewOnly: Bool
+    public let localRegistryStoreOnly: Bool
+    public let redactedEvidenceOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var evidenceLevelComparisonHeld: Bool {
+        issueID.rawValue == "GH-1000"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-998", "GH-999"]
+            && releaseVersion == "v0.13.0"
+            && assessmentID == followUpAssessmentID
+            && comparedSections == ReleaseV0130EvidenceLevelDiffSection.allCases
+            && deltas.map(\.section) == comparedSections
+            && deltas.allSatisfy(\.diffHeld)
+            && changedSections == deltas.filter { $0.state == .changed }.map(\.section)
+            && unchangedSections == deltas.filter { $0.state == .unchanged }.map(\.section)
+            && blockedSections == deltas.filter { $0.state == .blocker }.map(\.section)
+            && comparisonState == (blockedSections.isEmpty ? (changedSections.isEmpty ? "unchanged" : "changed") : "blocked")
+            && blockers == Array(NSOrderedSet(array: deltas.flatMap(\.blockerReasons))).compactMap { $0 as? String }.sorted()
+            && reportChecksum == Self.stableReportChecksum(
+                baselineAssessmentID: baselineAssessmentID,
+                followUpAssessmentID: followUpAssessmentID,
+                baselineGenerationID: baselineGenerationID,
+                followUpGenerationID: followUpGenerationID,
+                comparedAt: comparedAt,
+                deltas: deltas,
+                blockers: blockers
+            )
+            && comparisonDoesNotMutateAssessments
+            && operatorReviewOnly
+            && localRegistryStoreOnly
+            && redactedEvidenceOnly
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-1000"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-998"),
+            Identifier.constant("GH-999")
+        ],
+        releaseVersion: String = "v0.13.0",
+        assessmentID: Identifier,
+        baselineAssessmentID: Identifier,
+        followUpAssessmentID: Identifier,
+        baselineGenerationID: Identifier?,
+        followUpGenerationID: Identifier?,
+        comparedAt: Date,
+        baselineValidationState: String,
+        followUpValidationState: String,
+        deltas: [ReleaseV0130EvidenceLevelDiff],
+        comparisonDoesNotMutateAssessments: Bool = true,
+        operatorReviewOnly: Bool = true,
+        localRegistryStoreOnly: Bool = true,
+        redactedEvidenceOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) {
+        let orderedDeltas = ReleaseV0130EvidenceLevelDiffSection.allCases.compactMap { section in
+            deltas.first { $0.section == section }
+        }
+        let blockers = Array(NSOrderedSet(array: orderedDeltas.flatMap(\.blockerReasons)))
+            .compactMap { $0 as? String }
+            .sorted()
+
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs.sorted { $0.rawValue < $1.rawValue }
+        self.releaseVersion = releaseVersion
+        self.assessmentID = assessmentID
+        self.baselineAssessmentID = baselineAssessmentID
+        self.followUpAssessmentID = followUpAssessmentID
+        self.baselineGenerationID = baselineGenerationID
+        self.followUpGenerationID = followUpGenerationID
+        self.comparedAt = comparedAt
+        self.baselineValidationState = baselineValidationState
+        self.followUpValidationState = followUpValidationState
+        self.comparedSections = ReleaseV0130EvidenceLevelDiffSection.allCases
+        let changedSections = orderedDeltas.filter { $0.state == .changed }.map(\.section)
+        let unchangedSections = orderedDeltas.filter { $0.state == .unchanged }.map(\.section)
+        let blockedSections = orderedDeltas.filter { $0.state == .blocker }.map(\.section)
+        self.changedSections = changedSections
+        self.unchangedSections = unchangedSections
+        self.blockedSections = blockedSections
+        self.deltas = orderedDeltas
+        self.blockers = blockers
+        self.comparisonState = blockedSections.isEmpty ? (changedSections.isEmpty ? "unchanged" : "changed") : "blocked"
+        self.reportChecksum = Self.stableReportChecksum(
+            baselineAssessmentID: baselineAssessmentID,
+            followUpAssessmentID: followUpAssessmentID,
+            baselineGenerationID: baselineGenerationID,
+            followUpGenerationID: followUpGenerationID,
+            comparedAt: comparedAt,
+            deltas: orderedDeltas,
+            blockers: blockers
+        )
+        self.comparisonDoesNotMutateAssessments = comparisonDoesNotMutateAssessments
+        self.operatorReviewOnly = operatorReviewOnly
+        self.localRegistryStoreOnly = localRegistryStoreOnly
+        self.redactedEvidenceOnly = redactedEvidenceOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+    }
+
+    public static func stableReportChecksum(
+        baselineAssessmentID: Identifier,
+        followUpAssessmentID: Identifier,
+        baselineGenerationID: Identifier?,
+        followUpGenerationID: Identifier?,
+        comparedAt: Date,
+        deltas: [ReleaseV0130EvidenceLevelDiff],
+        blockers: [String]
+    ) -> String {
+        let parts = [
+            "GH-1000",
+            "v0.13.0",
+            baselineAssessmentID.rawValue,
+            followUpAssessmentID.rawValue,
+            baselineGenerationID?.rawValue ?? "missing-baseline-generation",
+            followUpGenerationID?.rawValue ?? "missing-followup-generation",
+            ISO8601DateFormatter().string(from: comparedAt),
+            blockers.sorted().joined(separator: ",")
+        ] + deltas.sorted { $0.section.rawValue < $1.section.rawValue }.map { delta in
+            [
+                delta.section.rawValue,
+                delta.state.rawValue,
+                delta.baselineFingerprint ?? "missing-baseline-fingerprint",
+                delta.followUpFingerprint ?? "missing-followup-fingerprint",
+                delta.evidenceLinkReasons.joined(separator: ","),
+                delta.blockerReasons.joined(separator: ",")
+            ].joined(separator: "=")
+        }
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
 /// ReleaseV0130LocalEvidenceArtifactProvenance 是 GH-996 从真实本地 artifact bytes
 /// 派生出的 manifest metadata。
 ///
@@ -1916,6 +2185,84 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
         )
     }
 
+    /// 执行 GH-1000 的 evidence-level readiness diff / compare。
+    ///
+    /// Compare 先复用 #998 evidence-chain validate。任一 assessment 出现 missing、stale、
+    /// tampered 或 inconsistent evidence 时，report 会进入 blocker state，而不是输出普通
+    /// changed / unchanged diff。该入口只写 follow-up assessment 的本地 comparison metadata；
+    /// registry document 必须保持字节语义不变。
+    @discardableResult
+    public func compareEvidenceLevelAssessments(
+        baselineAssessmentID: Identifier,
+        followUpAssessmentID: Identifier,
+        store: ReadinessAssessmentRegistryStore,
+        comparedAt: Date
+    ) throws -> ReleaseV0130EvidenceLevelComparisonReport {
+        let registryBefore = try store.load()
+        _ = try registryBefore.inspect(assessmentID: baselineAssessmentID)
+        let followUpEntry = try registryBefore.inspect(assessmentID: followUpAssessmentID)
+
+        let baselineValidation = try validateEvidenceChain(assessmentID: baselineAssessmentID, store: store)
+        let followUpValidation = try validateEvidenceChain(assessmentID: followUpAssessmentID, store: store)
+        let baselineEvidence = try Self.evidenceLevelFingerprints(
+            assessmentID: baselineAssessmentID,
+            validationReport: baselineValidation,
+            store: store
+        )
+        let followUpEvidence = try Self.evidenceLevelFingerprints(
+            assessmentID: followUpAssessmentID,
+            validationReport: followUpValidation,
+            store: store
+        )
+
+        let deltas = Self.evidenceLevelDeltas(
+            baselineValidation: baselineValidation,
+            followUpValidation: followUpValidation,
+            baselineEvidence: baselineEvidence,
+            followUpEvidence: followUpEvidence
+        )
+        let report = ReleaseV0130EvidenceLevelComparisonReport(
+            assessmentID: followUpAssessmentID,
+            baselineAssessmentID: baselineAssessmentID,
+            followUpAssessmentID: followUpAssessmentID,
+            baselineGenerationID: baselineValidation.generationID,
+            followUpGenerationID: followUpValidation.generationID,
+            comparedAt: comparedAt,
+            baselineValidationState: baselineValidation.validationState,
+            followUpValidationState: followUpValidation.validationState,
+            deltas: deltas
+        )
+        guard report.evidenceLevelComparisonHeld else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "evidenceLevelCompare:reportHeld=false"
+            )
+        }
+
+        let registryAfterCompare = try store.load()
+        guard registryAfterCompare == registryBefore else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "evidenceLevelCompare:registryMutated"
+            )
+        }
+
+        try Self.writeComparisonMetadata(report, followUpEntry: followUpEntry, store: store)
+        let registryAfterSidecar = try store.load()
+        guard registryAfterSidecar == registryBefore else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "evidenceLevelCompare:sidecarMutatedRegistry"
+            )
+        }
+
+        let postCompareValidation = try validateEvidenceChain(assessmentID: followUpAssessmentID, store: store)
+        guard postCompareValidation.exportComparisonIdentityConsistent else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "evidenceLevelCompare:comparisonIdentityInvalid"
+            )
+        }
+
+        return report
+    }
+
     /// 执行 GH-998 的完整 evidence-chain consistency check。
     ///
     /// 该入口只读取本地 registry store，逐项检查 registry entry、Manifest V2、Bundle V2、
@@ -2093,6 +2440,202 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
             exportComparisonIdentityConsistent: exportComparisonIdentityConsistent,
             failureReasons: orderedReasons
         )
+    }
+
+    private struct EvidenceLevelFingerprintSet {
+        let manifest: ReadinessAssessmentManifestV2
+        let bundle: ReadinessAssessmentBundleV2
+        let bundleManifest: ReadinessAssessmentBundleV2Manifest
+        let fingerprints: [ReleaseV0130EvidenceLevelDiffSection: String]
+        let evidenceLinkReasons: [ReleaseV0130EvidenceLevelDiffSection: [String]]
+    }
+
+    private static func evidenceLevelFingerprints(
+        assessmentID: Identifier,
+        validationReport: ReleaseV0130LocalEvidenceChainValidationReport,
+        store: ReadinessAssessmentRegistryStore
+    ) throws -> EvidenceLevelFingerprintSet? {
+        guard validationReport.evidenceChainCoherent else {
+            return nil
+        }
+        guard let generationID = validationReport.generationID else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "evidenceLevelCompare:generationIDMissing"
+            )
+        }
+
+        let registryEntry = try store.inspect(assessmentID: assessmentID)
+        let manifest = try store.readManifestV2(assessmentID: assessmentID)
+        let bundle = try store.readReadinessBundleV2(
+            assessmentID: assessmentID,
+            generationID: generationID
+        )
+        let bundleManifest = try store.readReadinessBundleV2Manifest(
+            assessmentID: assessmentID,
+            generationID: generationID
+        )
+        let artifactIDs = bundle.artifactSnapshots.map(\.artifactID.rawValue).sorted()
+        let artifactSHA256s = bundle.artifactSnapshots.map(\.artifactSHA256).sorted()
+        let contentChecksums = bundle.artifactSnapshots.map(\.contentValidationChecksum).sorted()
+        let artifactPaths = bundle.artifactSnapshots.map(\.artifactPath).sorted()
+
+        let fingerprints: [ReleaseV0130EvidenceLevelDiffSection: String] = [
+            .sourceData: evidenceFingerprint([
+                manifest.sourceCommit,
+                manifest.sourceRunIDs.map(\.rawValue).sorted().joined(separator: ",")
+            ]),
+            .policy: evidenceFingerprint(contentChecksums),
+            .riskPosture: evidenceFingerprint([
+                registryEntry.state.rawValue,
+                registryEntry.lifecycle.rawValue,
+                bundle.reviewState.rawValue,
+                "productionCapabilitiesDisabled=\(registryEntry.productionCapabilitiesDisabled)",
+                "bundleProductionCapabilitiesDisabled=\(bundle.productionCapabilitiesDisabled)"
+            ]),
+            .checksumChain: evidenceFingerprint([
+                manifest.manifestChecksum,
+                bundle.bundleChecksum,
+                bundleManifest.manifestChecksum,
+                bundleManifest.bundleJSONSHA256
+            ] + artifactSHA256s + contentChecksums),
+            .provenance: evidenceFingerprint([
+                manifest.sourceCommit,
+                manifest.producerVersion,
+                bundle.producerVersion,
+                manifest.generationID.rawValue,
+                bundle.generationID.rawValue
+            ] + manifest.sourceRunIDs.map(\.rawValue).sorted() + artifactIDs + artifactPaths),
+            .evidenceCompleteness: evidenceFingerprint([
+                validationReport.validationState,
+                "artifactSnapshots=\(bundle.artifactSnapshots.count)",
+                "artifactSnapshotsPresent=\(validationReport.artifactSnapshotsPresent)",
+                "artifactSnapshotsMatchManifest=\(validationReport.artifactSnapshotsMatchManifest)",
+                "contentValidationChecksumsPresent=\(validationReport.contentValidationChecksumsPresent)",
+                "exportComparisonIdentityConsistent=\(validationReport.exportComparisonIdentityConsistent)"
+            ])
+        ]
+        let reasons: [ReleaseV0130EvidenceLevelDiffSection: [String]] = [
+            .sourceData: ["source-data:sourceCommit+sourceRunIDs"],
+            .policy: ["policy:artifact-content-validation-checksums"],
+            .riskPosture: ["risk-posture:registry-state+lifecycle+bundle-review-state+production-disabled"],
+            .checksumChain: ["checksum-chain:manifest+bundle+bundle-manifest+artifact-snapshots"],
+            .provenance: ["provenance:sourceCommit+sourceRunIDs+generation+artifact-paths"],
+            .evidenceCompleteness: ["evidence-completeness:validate-report+artifact-count+identity"]
+        ]
+
+        return EvidenceLevelFingerprintSet(
+            manifest: manifest,
+            bundle: bundle,
+            bundleManifest: bundleManifest,
+            fingerprints: fingerprints,
+            evidenceLinkReasons: reasons
+        )
+    }
+
+    private static func evidenceLevelDeltas(
+        baselineValidation: ReleaseV0130LocalEvidenceChainValidationReport,
+        followUpValidation: ReleaseV0130LocalEvidenceChainValidationReport,
+        baselineEvidence: EvidenceLevelFingerprintSet?,
+        followUpEvidence: EvidenceLevelFingerprintSet?
+    ) -> [ReleaseV0130EvidenceLevelDiff] {
+        let validationBlockers = evidenceValidationBlockers(
+            prefix: "baseline",
+            report: baselineValidation
+        ) + evidenceValidationBlockers(
+            prefix: "follow-up",
+            report: followUpValidation
+        )
+        let staleBlockers = evidenceStaleInputBlockers(
+            baselineEvidence: baselineEvidence,
+            followUpEvidence: followUpEvidence
+        )
+
+        return ReleaseV0130EvidenceLevelDiffSection.allCases.map { section in
+            let sectionBlockers = validationBlockers + (section == .evidenceCompleteness ? staleBlockers : [])
+            let baselineFingerprint = baselineEvidence?.fingerprints[section]
+            let followUpFingerprint = followUpEvidence?.fingerprints[section]
+            let reasons = Array(NSOrderedSet(array:
+                (baselineEvidence?.evidenceLinkReasons[section] ?? [])
+                    + (followUpEvidence?.evidenceLinkReasons[section] ?? [])
+            )).compactMap { $0 as? String }
+
+            if sectionBlockers.isEmpty == false {
+                return ReleaseV0130EvidenceLevelDiff(
+                    section: section,
+                    state: .blocker,
+                    baselineFingerprint: baselineFingerprint,
+                    followUpFingerprint: followUpFingerprint,
+                    evidenceLinkReasons: reasons,
+                    blockerReasons: sectionBlockers
+                )
+            }
+            return ReleaseV0130EvidenceLevelDiff(
+                section: section,
+                state: baselineFingerprint == followUpFingerprint ? .unchanged : .changed,
+                baselineFingerprint: baselineFingerprint,
+                followUpFingerprint: followUpFingerprint,
+                evidenceLinkReasons: reasons,
+                blockerReasons: []
+            )
+        }
+    }
+
+    private static func evidenceValidationBlockers(
+        prefix: String,
+        report: ReleaseV0130LocalEvidenceChainValidationReport
+    ) -> [String] {
+        guard report.evidenceChainCoherent == false else {
+            return []
+        }
+        let reasons = report.failureReasons.isEmpty ? ["evidenceChain:invalid"] : report.failureReasons
+        return reasons.map { "\(prefix):\($0)" }
+    }
+
+    private static func evidenceStaleInputBlockers(
+        baselineEvidence: EvidenceLevelFingerprintSet?,
+        followUpEvidence: EvidenceLevelFingerprintSet?
+    ) -> [String] {
+        guard let baselineEvidence, let followUpEvidence else {
+            return []
+        }
+        guard followUpEvidence.manifest.createdAt > baselineEvidence.manifest.createdAt else {
+            return ["follow-up:stale-input:manifest-createdAt-not-newer-than-baseline"]
+        }
+        return []
+    }
+
+    private static func evidenceFingerprint(_ parts: [String]) -> String {
+        sha256Hex(Data(parts.joined(separator: "|").utf8))
+    }
+
+    private static func writeComparisonMetadata(
+        _ report: ReleaseV0130EvidenceLevelComparisonReport,
+        followUpEntry: ReadinessAssessmentRegistryEntry,
+        store: ReadinessAssessmentRegistryStore
+    ) throws {
+        let data = try exportEncoder.encode(report)
+        try writeStoreData(
+            data,
+            relativePath: followUpEntry.artifactPaths.comparisonMetadataJSONPath,
+            store: store,
+            isDirectory: false
+        )
+
+        let exportDirectoryURL = storeURL(
+            for: followUpEntry.artifactPaths.redactedExportDirectoryPath,
+            store: store,
+            isDirectory: true
+        )
+        var isDirectory: ObjCBool = false
+        if store.fileManager.fileExists(atPath: exportDirectoryURL.path, isDirectory: &isDirectory),
+           isDirectory.boolValue {
+            try writeStoreData(
+                data,
+                relativePath: "\(followUpEntry.artifactPaths.redactedExportDirectoryPath)/comparison.json",
+                store: store,
+                isDirectory: false
+            )
+        }
     }
 
     private func failureReport(
