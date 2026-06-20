@@ -5051,7 +5051,7 @@ swift test
 - fail-closed evidence: placeholder sourceCommit, old `gh-963-source-run`, checksum-derived `source-run-*` synthetic run IDs and explicit fixture-only evidence all fail closed before manifest write
 - documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #996 normal manifest provenance replacement and fixture isolation boundary
 - implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` and `Sources/MTPROCLI/main.swift` expose `ReleaseV0130LocalEvidenceBuildProvenance` and `readiness build-v013 <assessmentID> <evidenceRoot>`
-- dependency evidence: #996 is blocked by #995; #996 and #997 are complete, and #998 is the active validate gate after WIP=1 preflight
+- dependency evidence: #996 is blocked by #995; #996, #997 and #998 are complete, and #999 is the active redacted audit export package gate after WIP=1 preflight
 - forbidden scope: no diff / compare, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
 
 ## GH-997 Release v0.13.0 Build Pipeline Validation
@@ -5087,5 +5087,23 @@ swift test
 - fail-closed evidence: missing registry, tampered bundle bytes and artifact snapshot / Manifest V2 checksum mismatch return `validationState=blocked`, `evidenceChainCoherent=false` and explicit `failureReasons`
 - documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #998 complete evidence-chain validate behavior and fail-closed reasons
 - implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` exposes `ReleaseV0130LocalEvidenceChainValidationReport` and `validateEvidenceChain`; `Sources/MTPROCLI/main.swift` exposes validate output fields including `evidenceChainCoherent` and `failureReasons`
-- dependency evidence: #998 is blocked by #997; #999 through #1005 remain blocked until #998 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- dependency evidence: #998 is blocked by #997; #998 is complete and #999 is the next WIP=1 redacted audit export package gate
 - forbidden scope: no diff / compare, no redacted export package, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-999 Release v0.13.0 Redacted Audit Export Package Validation
+
+- GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE
+- TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE
+- V0130-006-REDACTED-AUDIT-EXPORT-PACKAGE
+- V0130-006-COMPLETE-AUDIT-PACKAGE
+- V0130-006-EXPORT-CHECKSUMS-MATCH-SOURCE
+- V0130-006-MISSING-EVIDENCE-FAILS-CLOSED
+- V0130-006-NO-SECRET-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH999ReleaseV0130ExportWritesCompleteRedactedAuditPackage`
+- CLI smoke: `swift run mtpro readiness export <assessmentID>` writes `assessment-summary.json`, `manifest-v2.json`, `bundle-v2.json`, `validation-report.json`, `provenance.json` and `comparison.json`, then reports `packageComplete=true`, `exportedChecksumsMatchSource=true`, `evidenceChainCoherent=true`, `redactedEvidenceOnly=true`, `noSecretValue=true`, `noEndpointPayload=true` and `noOrderPayload=true`
+- fail-closed evidence: export-before-coherent-validate, missing registry, missing bundle, tampered bundle bytes and identity-mismatched export / comparison metadata must return blocked behavior rather than partial package output
+- documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #999 redacted audit export package behavior and fail-closed reasons
+- implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` exposes `ReleaseV0130RedactedAuditExportPackageReport` and `writeRedactedAuditExportPackage`; `Sources/MTPROCLI/main.swift` exposes export output fields including `packageComplete` and `exportedChecksumsMatchSource`
+- dependency evidence: #999 is blocked by #998; #1000 through #1005 remain blocked until #999 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- forbidden scope: no diff / compare, no CLI lifecycle ordering, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order

@@ -38,6 +38,13 @@ set -euo pipefail
 # V0130-005-EXPORT-COMPARISON-IDENTITY
 # V0130-005-MISSING-STALE-TAMPERED-FAILS-CLOSED
 # V0130-005-NO-PRODUCTION-CUTOVER
+# GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE
+# TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE
+# V0130-006-REDACTED-AUDIT-EXPORT-PACKAGE
+# V0130-006-COMPLETE-AUDIT-PACKAGE
+# V0130-006-EXPORT-CHECKSUMS-MATCH-SOURCE
+# V0130-006-MISSING-EVIDENCE-FAILS-CLOSED
+# V0130-006-NO-SECRET-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -89,6 +96,7 @@ swift test --filter TargetGraphTests/testGH995ReleaseV0130LocalEvidenceIntakeMod
 swift test --filter TargetGraphTests/testGH996ReleaseV0130ProvenanceBuildRejectsSyntheticAndFixtureEvidence
 swift test --filter TargetGraphTests/testGH997ReleaseV0130BuildPipelineWritesManifestBundleRegistryAndPolicyReport
 swift test --filter TargetGraphTests/testGH998ReleaseV0130ValidateRejectsBrokenEvidenceChain
+swift test --filter TargetGraphTests/testGH999ReleaseV0130ExportWritesCompleteRedactedAuditPackage
 
 for anchor in \
   "GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT" \
@@ -185,6 +193,25 @@ for anchor in \
   require_file_contains "$TESTS" "$anchor"
 done
 
+for anchor in \
+  "GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE" \
+  "TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE" \
+  "V0130-006-REDACTED-AUDIT-EXPORT-PACKAGE" \
+  "V0130-006-COMPLETE-AUDIT-PACKAGE" \
+  "V0130-006-EXPORT-CHECKSUMS-MATCH-SOURCE" \
+  "V0130-006-MISSING-EVIDENCE-FAILS-CLOSED" \
+  "V0130-006-NO-SECRET-PRODUCTION-CUTOVER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$SOURCE" "$anchor"
+  require_file_contains "$CLI_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
 require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.13.0.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.13.0.sh"
 require_file_contains "$READINESS" "Release v0.13.0 local evidence-driven readiness engine contract anchor"
@@ -192,21 +219,25 @@ require_file_contains "$READINESS" "Release v0.13.0 local evidence intake model 
 require_file_contains "$READINESS" "Release v0.13.0 synthetic provenance rejection anchor"
 require_file_contains "$READINESS" "Release v0.13.0 build pipeline anchor"
 require_file_contains "$READINESS" "Release v0.13.0 evidence-chain validate anchor"
+require_file_contains "$READINESS" "Release v0.13.0 redacted audit export package anchor"
 require_file_contains "$PLAN" "GH-994 Release v0.13.0 Local Evidence-driven Readiness Engine Contract Validation"
 require_file_contains "$PLAN" "GH-995 Release v0.13.0 Local Evidence Intake Model Validation"
 require_file_contains "$PLAN" "GH-996 Release v0.13.0 Synthetic Provenance Rejection Validation"
 require_file_contains "$PLAN" "GH-997 Release v0.13.0 Build Pipeline Validation"
 require_file_contains "$PLAN" "GH-998 Release v0.13.0 Evidence-chain Validate Validation"
+require_file_contains "$PLAN" "GH-999 Release v0.13.0 Redacted Audit Export Package Validation"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-INTAKE-MODEL"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-BUILD-PIPELINE"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE"
 require_file_contains "$LATEST" "v0.13.0 local evidence-driven readiness engine contract"
 require_file_contains "$LATEST" "v0.13.0 local evidence intake model"
 require_file_contains "$LATEST" "v0.13.0 synthetic provenance rejection"
 require_file_contains "$LATEST" "v0.13.0 build pipeline"
 require_file_contains "$LATEST" "v0.13.0 evidence-chain validate"
+require_file_contains "$LATEST" "v0.13.0 redacted audit export package"
 require_file_contains "$ROADMAP" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
 require_file_contains "$GOAL" "release/v0.13.0"
 require_file_contains "$BLUEPRINT" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
@@ -224,6 +255,8 @@ require_file_contains "$SOURCE" "ReleaseV0130LocalEvidenceBuildPipelineResult"
 require_file_contains "$SOURCE" "buildPipeline("
 require_file_contains "$SOURCE" "ReleaseV0130LocalEvidenceChainValidationReport"
 require_file_contains "$SOURCE" "validateEvidenceChain("
+require_file_contains "$SOURCE" "ReleaseV0130RedactedAuditExportPackageReport"
+require_file_contains "$SOURCE" "writeRedactedAuditExportPackage("
 require_file_contains "$SOURCE" "syntheticSourceRunID"
 require_file_contains "$SOURCE" "fixtureOnlyEvidence"
 require_file_contains "$CLI_SOURCE" "readiness intake <evidenceRoot>"
@@ -237,6 +270,8 @@ require_file_contains "$CLI_SOURCE" "readinessBundleWritten=true"
 require_file_contains "$CLI_SOURCE" "registryEntryConfirmed=true"
 require_file_contains "$CLI_SOURCE" "evidenceChainCoherent="
 require_file_contains "$CLI_SOURCE" "failureReasons="
+require_file_contains "$CLI_SOURCE" "packageComplete="
+require_file_contains "$CLI_SOURCE" "exportedChecksumsMatchSource="
 
 for required_contract_string in \
   "artifact -> policy -> manifest -> bundle -> registry -> diff" \
@@ -379,6 +414,40 @@ printf '%s\n' "$validate_output" | grep -Fq "evidenceChainCoherent=true" || fail
 printf '%s\n' "$validate_output" | grep -Fq "failureReasons=none" || fail "readiness validate valid chain must report no failures"
 printf '%s\n' "$validate_output" | grep -Fq "validationState=valid" || fail "readiness validate valid chain must be valid"
 
+export_output="$(MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness export gh-996-assessment)"
+printf '%s\n' "$export_output" | grep -Fq "issue=GH-999" || fail "readiness export output must link GH-999"
+printf '%s\n' "$export_output" | grep -Fq "v013ValidationAnchor=GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE" || fail "readiness export must expose GH-999 anchor"
+printf '%s\n' "$export_output" | grep -Fq "exportFormat=redacted-audit-export-package" || fail "readiness export must write redacted audit package"
+printf '%s\n' "$export_output" | grep -Fq "packageComplete=true" || fail "readiness export package must be complete"
+printf '%s\n' "$export_output" | grep -Fq "exportedChecksumsMatchSource=true" || fail "readiness export must match source checksums"
+printf '%s\n' "$export_output" | grep -Fq "evidenceChainCoherent=true" || fail "readiness export must require coherent evidence chain"
+printf '%s\n' "$export_output" | grep -Fq "missingEvidenceFailsClosed=true" || fail "readiness export must fail closed on missing evidence"
+printf '%s\n' "$export_output" | grep -Fq "redactedEvidenceOnly=true" || fail "readiness export must remain redacted-only"
+printf '%s\n' "$export_output" | grep -Fq "noSecretValue=true" || fail "readiness export must not write secret values"
+printf '%s\n' "$export_output" | grep -Fq "noEndpointPayload=true" || fail "readiness export must not write endpoint payloads"
+printf '%s\n' "$export_output" | grep -Fq "noOrderPayload=true" || fail "readiness export must not write order payloads"
+printf '%s\n' "$export_output" | grep -Fq "productionCutoverAuthorized=false" || fail "readiness export must not authorize production cutover"
+gh999_export_dir="$gh996_store/assessments/gh-996-assessment/redacted-export"
+for export_file in \
+  "assessment-summary.json" \
+  "manifest-v2.json" \
+  "bundle-v2.json" \
+  "validation-report.json" \
+  "provenance.json" \
+  "comparison.json"; do
+  [[ -s "$gh999_export_dir/$export_file" ]] || fail "readiness export must write $export_file"
+  grep -Fq "gh-996-assessment" "$gh999_export_dir/$export_file" || fail "$export_file must bind assessmentID"
+done
+cmp -s "$gh996_store/assessments/gh-996-assessment/manifest-v2.json" "$gh999_export_dir/manifest-v2.json" \
+  || fail "exported manifest-v2.json must match source bytes"
+gh999_source_bundle="$(find "$gh996_store/assessments/gh-996-assessment/generations" -name readiness-bundle-v2.json -print -quit)"
+[[ -n "$gh999_source_bundle" ]] || fail "readiness export smoke must find source bundle"
+cmp -s "$gh999_source_bundle" "$gh999_export_dir/bundle-v2.json" \
+  || fail "exported bundle-v2.json must match source bytes"
+post_export_validate="$(MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness validate gh-996-assessment)"
+printf '%s\n' "$post_export_validate" | grep -Fq "exportComparisonIdentityConsistent=true" || fail "readiness validate must accept export/comparison identity after export"
+printf '%s\n' "$post_export_validate" | grep -Fq "evidenceChainCoherent=true" || fail "readiness validate must remain coherent after export"
+
 gh998_tamper_store="$gh996_root/gh998-tamper-store"
 MTPRO_READINESS_ROOT="$gh998_tamper_store" swift run mtpro readiness build-v013 gh-998-tamper "$gh996_valid_root" >/dev/null
 tamper_bundle="$(find "$gh998_tamper_store/assessments/gh-998-tamper/generations" -name readiness-bundle-v2.json -print -quit)"
@@ -388,6 +457,11 @@ tamper_validate_output="$(MTPRO_READINESS_ROOT="$gh998_tamper_store" swift run m
 printf '%s\n' "$tamper_validate_output" | grep -Fq "validationState=blocked" || fail "readiness validate must block tampered evidence"
 printf '%s\n' "$tamper_validate_output" | grep -Fq "evidenceChainCoherent=false" || fail "readiness validate must mark tampered chain incoherent"
 printf '%s\n' "$tamper_validate_output" | grep -Fq "failureReasons=bundleBytes:checksum-or-byte-count-mismatch" || fail "readiness validate must explain bundle byte tamper"
+if MTPRO_READINESS_ROOT="$gh998_tamper_store" swift run mtpro readiness export gh-998-tamper >/tmp/gh999-tampered-export.out 2>&1; then
+  fail "readiness export must fail closed when evidence chain is tampered"
+fi
+grep -Fq "redactedAuditExport:evidenceChainInvalid" /tmp/gh999-tampered-export.out \
+  || fail "tampered export failure must explain evidence-chain invalidity"
 
 gh997_auto_store="$gh996_root/gh997-auto-store"
 auto_registry_output="$(MTPRO_READINESS_ROOT="$gh997_auto_store" swift run mtpro readiness build-v013 gh-997-auto-assessment "$gh996_valid_root")"
