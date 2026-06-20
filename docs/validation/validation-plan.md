@@ -5035,3 +5035,21 @@ swift test
 - implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` and `Sources/MTPROCLI/main.swift` expose read-only local intake diagnostics
 - dependency evidence: #995 is blocked by #994; #996 through #1005 remain blocked until #995 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
 - forbidden scope: no registry write, no bundle build, no diff / compare, no assessment output write, no synthetic sourceRunID / sourceCommit / artifact metadata replacement, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-996 Release v0.13.0 Synthetic Provenance Rejection Validation
+
+- GH-996-VERIFY-V0130-SYNTHETIC-PROVENANCE-REJECTION
+- TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION
+- V0130-003-INTAKE-DERIVED-MANIFEST-PROVENANCE
+- V0130-003-SOURCECOMMIT-SOURCERUN-ARTIFACT-METADATA
+- V0130-003-SYNTHETIC-PROVENANCE-FAILS-CLOSED
+- V0130-003-FIXTURE-ONLY-ISOLATION
+- V0130-003-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH996ReleaseV0130ProvenanceBuildRejectsSyntheticAndFixtureEvidence`
+- CLI smoke: `swift run mtpro readiness build-v013 <assessmentID> <evidenceRoot>` creates a normal Manifest V2 only from #995 intake-derived sourceCommit, sourceRunIDs, artifact bytes and checksums
+- fail-closed evidence: placeholder sourceCommit, old `gh-963-source-run`, checksum-derived `source-run-*` synthetic run IDs and explicit fixture-only evidence all fail closed before manifest write
+- documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #996 normal manifest provenance replacement and fixture isolation boundary
+- implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` and `Sources/MTPROCLI/main.swift` expose `ReleaseV0130LocalEvidenceBuildProvenance` and `readiness build-v013 <assessmentID> <evidenceRoot>`
+- dependency evidence: #996 is blocked by #995; #997 through #1005 remain blocked until #996 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- forbidden scope: no readiness bundle write, no registry lifecycle advance, no diff / compare, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order

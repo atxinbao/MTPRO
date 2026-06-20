@@ -33931,6 +33931,199 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH996ReleaseV0130ProvenanceBuildRejectsSyntheticAndFixtureEvidence() throws {
+        // 测试场景：GH-996 要求 v0.13 normal manifest 的 sourceCommit、sourceRunID
+        // 和 artifact metadata 全部来自 #995 local evidence root，且 synthetic / fixture-only
+        // evidence 不能生成 normal manifest。
+        let fileManager = FileManager.default
+        let root = fileManager.temporaryDirectory.appendingPathComponent(
+            "mtpro-gh996-local-evidence-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        defer { try? fileManager.removeItem(at: root) }
+
+        let validCommit = "807211695eadba817408ca9e6b8f0bf3a1d080cd"
+
+        func evidenceRoot(_ name: String) -> URL {
+            root.appendingPathComponent(name, isDirectory: true)
+        }
+
+        func write(root evidenceRoot: URL, _ relativePath: String, _ payload: String) throws {
+            let url = relativePath.split(separator: "/").reduce(evidenceRoot) { partialURL, component in
+                partialURL.appendingPathComponent(String(component))
+            }
+            try fileManager.createDirectory(
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try Data(payload.utf8).write(to: url, options: .atomic)
+        }
+
+        func writeEvidenceRoot(
+            named name: String,
+            sourceRunID: String = "run-gh996",
+            sourceCommit: String = validCommit,
+            artifactIndexExtra: String = ""
+        ) throws -> URL {
+            let evidenceRoot = evidenceRoot(name)
+            for directory in ReleaseV0130LocalEvidenceIntakeModel.requiredDirectories {
+                try fileManager.createDirectory(
+                    at: evidenceRoot.appendingPathComponent(directory, isDirectory: true),
+                    withIntermediateDirectories: true
+                )
+            }
+            try write(
+                root: evidenceRoot,
+                "run-logs/run-journal.jsonl",
+                #"{"sourceRunID":"\#(sourceRunID)","sourceCommit":"\#(sourceCommit)","eventType":"run.completed","createdAt":"2026-06-20T00:00:00Z"}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "event-stream/events.jsonl",
+                #"{"eventID":"event-gh996","sourceRunID":"\#(sourceRunID)","eventType":"risk.accepted","occurredAt":"2026-06-20T00:00:01Z"}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "artifacts/readiness-summary.json",
+                #"{"summaryID":"artifact-gh996-summary","sourceRunID":"\#(sourceRunID)","sourceCommit":"\#(sourceCommit)","redactedEvidenceOnly":true,"productionTradingEnabledByDefault":false,"productionCutoverAuthorized":false}"#
+            )
+            let extra = artifactIndexExtra.isEmpty ? "" : ",\(artifactIndexExtra)"
+            try write(
+                root: evidenceRoot,
+                "artifacts/artifact-index.json",
+                #"{"sourceRunID":"\#(sourceRunID)","sourceCommit":"\#(sourceCommit)","artifacts":[{"id":"artifact-gh996","path":"artifacts/readiness-summary.json"}]\#(extra)}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "registry/registry.json",
+                #"{"registryVersion":"v0.13.0.local-evidence-intake","assessments":[{"assessmentID":"assessment-gh996"}]}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "prior-assessments/assessments-index.json",
+                #"{"assessmentIDs":["baseline-gh996","followup-gh996"],"sourceRunIDs":["\#(sourceRunID)"]}"#
+            )
+            return evidenceRoot
+        }
+
+        let model = ReleaseV0130LocalEvidenceIntakeModel(fileManager: fileManager)
+        let validRoot = try writeEvidenceRoot(named: "valid")
+        let provenance = try model.buildProvenance(evidenceRootURL: validRoot)
+
+        XCTAssertTrue(provenance.normalManifestEligible)
+        XCTAssertEqual(provenance.sourceCommit, validCommit)
+        XCTAssertEqual(provenance.sourceRunIDs.map(\.rawValue), ["run-gh996"])
+        XCTAssertEqual(provenance.artifactProvenances.map(\.relativePath), ["artifacts/readiness-summary.json"])
+        XCTAssertTrue(ReadinessAssessmentManifestV2.isValidSHA256Checksum(provenance.artifactSHA256))
+        XCTAssertGreaterThan(provenance.artifactBytes, 0)
+        XCTAssertTrue(provenance.syntheticProvenanceRejected)
+        XCTAssertFalse(provenance.fixtureOnly)
+        XCTAssertTrue(provenance.localEvidenceTraceable)
+        XCTAssertTrue(provenance.productionCapabilitiesDisabled)
+
+        let manifest = try ReadinessAssessmentManifestV2(
+            assessmentID: Identifier.constant("gh-996-assessment"),
+            generationID: Identifier.constant("gh-996-generation"),
+            sourceRunIDs: provenance.sourceRunIDs,
+            sourceCommit: provenance.sourceCommit,
+            artifactContentType: .jsonEvidence,
+            artifactSHA256: provenance.artifactSHA256,
+            artifactBytes: provenance.artifactBytes,
+            createdAt: Date(timeIntervalSince1970: 1_812_700_000),
+            producerVersion: "mtpro-v0.13.0-gh996"
+        )
+        XCTAssertTrue(manifest.manifestHeld)
+        XCTAssertEqual(manifest.sourceCommit, validCommit)
+        XCTAssertEqual(manifest.sourceRunIDs.map(\.rawValue), ["run-gh996"])
+
+        let placeholderRoot = try writeEvidenceRoot(
+            named: "placeholder-commit",
+            sourceCommit: "0123456789abcdef0123456789abcdef01234567"
+        )
+        XCTAssertThrowsError(try model.buildProvenance(evidenceRootURL: placeholderRoot)) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0130LocalEvidenceProvenanceError,
+                .invalidSourceCommit("0123456789abcdef0123456789abcdef01234567")
+            )
+        }
+
+        let oldSyntheticRoot = try writeEvidenceRoot(named: "old-synthetic-run", sourceRunID: "gh-963-source-run")
+        XCTAssertThrowsError(try model.buildProvenance(evidenceRootURL: oldSyntheticRoot)) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0130LocalEvidenceProvenanceError,
+                .syntheticSourceRunID("gh-963-source-run")
+            )
+        }
+
+        let checksumSyntheticRoot = try writeEvidenceRoot(
+            named: "checksum-synthetic-run",
+            sourceRunID: "source-run-aaaaaaaaaaaaaaaa"
+        )
+        XCTAssertThrowsError(try model.buildProvenance(evidenceRootURL: checksumSyntheticRoot)) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0130LocalEvidenceProvenanceError,
+                .syntheticSourceRunID("source-run-aaaaaaaaaaaaaaaa")
+            )
+        }
+
+        let fixtureRoot = try writeEvidenceRoot(
+            named: "fixture-only",
+            artifactIndexExtra: #""fixtureOnly":true"#
+        )
+        XCTAssertThrowsError(try model.buildProvenance(evidenceRootURL: fixtureRoot)) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0130LocalEvidenceProvenanceError,
+                .fixtureOnlyEvidence("explicit fixture-only marker")
+            )
+        }
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift")
+        let cli = try read("Sources/MTPROCLI/main.swift")
+        let verifier = try read("checks/verify-v0.13.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-996-VERIFY-V0130-SYNTHETIC-PROVENANCE-REJECTION",
+            "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION",
+            "V0130-003-INTAKE-DERIVED-MANIFEST-PROVENANCE",
+            "V0130-003-SOURCECOMMIT-SOURCERUN-ARTIFACT-METADATA",
+            "V0130-003-SYNTHETIC-PROVENANCE-FAILS-CLOSED",
+            "V0130-003-FIXTURE-ONLY-ISOLATION",
+            "V0130-003-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(ReleaseV0130LocalEvidenceProvenanceAnchors.validationAnchors.contains(anchor))
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-996 source")
+            XCTAssertTrue(cli.contains(anchor), "\(anchor) must stay in GH-996 CLI")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.13 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.13 contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        XCTAssertTrue(cli.contains("readiness build-v013 <assessmentID> <evidenceRoot>"))
+        XCTAssertTrue(cli.contains("syntheticProvenanceRejected="))
+        XCTAssertTrue(cli.contains("fixtureOnlyEvidenceRejected=true"))
+        XCTAssertTrue(source.contains("buildProvenance(evidenceRootURL:"))
+        XCTAssertTrue(source.contains("fixtureOnlyEvidence"))
+        XCTAssertTrue(source.contains("syntheticSourceRunID"))
+        XCTAssertTrue(verifier.contains("testGH996ReleaseV0130ProvenanceBuildRejectsSyntheticAndFixtureEvidence"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.13.0.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

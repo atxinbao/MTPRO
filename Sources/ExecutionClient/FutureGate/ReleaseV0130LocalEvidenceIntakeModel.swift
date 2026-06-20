@@ -1,3 +1,4 @@
+import Crypto
 import DomainModel
 import Foundation
 
@@ -16,6 +17,202 @@ public enum ReleaseV0130LocalEvidenceIntakeAnchors {
         "V0130-002-NO-PRODUCTION-ENDPOINT-SECRET-ORDER",
         "V0130-002-READ-ONLY-INTAKE"
     ]
+}
+
+/// ReleaseV0130LocalEvidenceProvenanceAnchors 固定 GH-996 的 v0.13 manifest provenance 替换锚点。
+///
+/// 这些锚点只证明 v0.13.0 normal readiness manifest 的 sourceCommit、sourceRunIDs
+/// 和 artifact metadata 必须来自显式 local evidence root；它们不授权 production
+/// cutover、secret read、endpoint / broker connection 或任何订单命令。
+public enum ReleaseV0130LocalEvidenceProvenanceAnchors {
+    public static let validationAnchors = [
+        "GH-996-VERIFY-V0130-SYNTHETIC-PROVENANCE-REJECTION",
+        "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION",
+        "V0130-003-INTAKE-DERIVED-MANIFEST-PROVENANCE",
+        "V0130-003-SOURCECOMMIT-SOURCERUN-ARTIFACT-METADATA",
+        "V0130-003-SYNTHETIC-PROVENANCE-FAILS-CLOSED",
+        "V0130-003-FIXTURE-ONLY-ISOLATION",
+        "V0130-003-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
+/// ReleaseV0130LocalEvidenceArtifactProvenance 是 GH-996 从真实本地 artifact bytes
+/// 派生出的 manifest metadata。
+///
+/// Artifact metadata 必须绑定 local evidence root 内的安全相对路径、实际 byte count
+/// 和 `sha256:<64 lowercase hex>`；不能使用固定 byte count、placeholder checksum 或
+/// 伪造 source-run fallback。
+public struct ReleaseV0130LocalEvidenceArtifactProvenance: Codable, Equatable, Sendable {
+    public let artifactID: Identifier
+    public let relativePath: String
+    public let sha256: String
+    public let byteCount: Int
+
+    public var provenanceHeld: Bool {
+        artifactID.rawValue.isEmpty == false
+            && ProductionReadinessArtifactDescriptor.isSafeRelativePath(relativePath)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(sha256)
+            && byteCount > 0
+    }
+
+    public init(
+        artifactID: Identifier,
+        relativePath: String,
+        sha256: String,
+        byteCount: Int
+    ) throws {
+        guard ProductionReadinessArtifactDescriptor.isSafeRelativePath(relativePath) else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.unsafeArtifactPath(relativePath)
+        }
+        self.artifactID = artifactID
+        self.relativePath = relativePath
+        self.sha256 = sha256
+        self.byteCount = byteCount
+
+        guard provenanceHeld else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("artifactProvenanceHeld=false")
+        }
+    }
+}
+
+/// ReleaseV0130LocalEvidenceBuildProvenance 汇总 GH-996 可写入 normal manifest 的 provenance。
+public struct ReleaseV0130LocalEvidenceBuildProvenance: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let releaseVersion: String
+    public let evidenceRootPath: String
+    public let evidenceClassification: String
+    public let sourceCommit: String
+    public let sourceRunIDs: [Identifier]
+    public let artifactProvenances: [ReleaseV0130LocalEvidenceArtifactProvenance]
+    public let artifactSHA256: String
+    public let artifactBytes: Int
+    public let syntheticProvenanceRejected: Bool
+    public let fixtureOnly: Bool
+    public let localEvidenceTraceable: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var normalManifestEligible: Bool {
+        issueID.rawValue == "GH-996"
+            && releaseVersion == "v0.13.0"
+            && evidenceClassification == "normal-local-evidence"
+            && ReadinessAssessmentManifestV2.isValidSourceCommit(sourceCommit)
+            && sourceRunIDs.isEmpty == false
+            && sourceRunIDs.map(\.rawValue) == sourceRunIDs.map(\.rawValue).sorted()
+            && sourceRunIDs.allSatisfy { ReadinessAssessmentManifestV2.forbiddenSourceRunIDPlaceholders.contains($0.rawValue) == false }
+            && sourceRunIDs.allSatisfy { $0.rawValue.hasPrefix("source-run-") == false }
+            && artifactProvenances.isEmpty == false
+            && artifactProvenances.allSatisfy(\.provenanceHeld)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(artifactSHA256)
+            && artifactBytes > 0
+            && syntheticProvenanceRejected
+            && fixtureOnly == false
+            && localEvidenceTraceable
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-996"),
+        releaseVersion: String = "v0.13.0",
+        evidenceRootPath: String,
+        evidenceClassification: String = "normal-local-evidence",
+        sourceCommit: String,
+        sourceRunIDs: [Identifier],
+        artifactProvenances: [ReleaseV0130LocalEvidenceArtifactProvenance],
+        artifactSHA256: String,
+        artifactBytes: Int,
+        syntheticProvenanceRejected: Bool = true,
+        fixtureOnly: Bool = false,
+        localEvidenceTraceable: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.releaseVersion = releaseVersion
+        self.evidenceRootPath = evidenceRootPath
+        self.evidenceClassification = evidenceClassification
+        self.sourceCommit = sourceCommit
+        self.sourceRunIDs = sourceRunIDs.sorted { $0.rawValue < $1.rawValue }
+        self.artifactProvenances = artifactProvenances.sorted { $0.relativePath < $1.relativePath }
+        self.artifactSHA256 = artifactSHA256
+        self.artifactBytes = artifactBytes
+        self.syntheticProvenanceRejected = syntheticProvenanceRejected
+        self.fixtureOnly = fixtureOnly
+        self.localEvidenceTraceable = localEvidenceTraceable
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard normalManifestEligible else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("normalManifestEligible=false")
+        }
+    }
+}
+
+/// ReleaseV0130LocalEvidenceProvenanceError 描述 GH-996 provenance build 的 fail-closed 原因。
+public enum ReleaseV0130LocalEvidenceProvenanceError: Error, Equatable, Sendable, CustomStringConvertible {
+    case intakeInvalid([String])
+    case missingField(String)
+    case conflictingSourceCommit([String])
+    case invalidSourceCommit(String)
+    case invalidSourceRunID(String)
+    case syntheticSourceRunID(String)
+    case fixtureOnlyEvidence(String)
+    case unsafeArtifactPath(String)
+    case missingArtifact(String)
+    case artifactMetadataMismatch(String)
+    case boundaryDrift(String)
+
+    public var description: String {
+        switch self {
+        case let .intakeInvalid(diagnostics):
+            "GH-996 v0.13 provenance build requires valid #995 intake evidence, diagnostics=\(diagnostics.joined(separator: " | "))"
+        case let .missingField(field):
+            "GH-996 v0.13 provenance build missing required field \(field)"
+        case let .conflictingSourceCommit(commits):
+            "GH-996 v0.13 provenance build rejects conflicting source commits \(commits.joined(separator: ","))"
+        case let .invalidSourceCommit(commit):
+            "GH-996 v0.13 provenance build rejects invalid sourceCommit \(commit)"
+        case let .invalidSourceRunID(runID):
+            "GH-996 v0.13 provenance build rejects invalid sourceRunID \(runID)"
+        case let .syntheticSourceRunID(runID):
+            "GH-996 v0.13 provenance build rejects synthetic sourceRunID \(runID)"
+        case let .fixtureOnlyEvidence(reason):
+            "GH-996 v0.13 provenance build rejects fixture-only evidence: \(reason)"
+        case let .unsafeArtifactPath(path):
+            "GH-996 v0.13 provenance build rejects unsafe artifact path \(path)"
+        case let .missingArtifact(path):
+            "GH-996 v0.13 provenance build fails closed because artifact is missing at \(path)"
+        case let .artifactMetadataMismatch(path):
+            "GH-996 v0.13 provenance build rejects artifact metadata mismatch at \(path)"
+        case let .boundaryDrift(field):
+            "GH-996 v0.13 provenance build boundary drift: \(field)"
+        }
+    }
 }
 
 /// ReleaseV0130LocalEvidenceCategory 是 #995 local evidence root 的目录级分类。
@@ -444,6 +641,85 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
         try discover(evidenceRootURL: evidenceRootURL)
     }
 
+    /// 从 #995 intake 已验证的 local evidence root 派生 normal manifest provenance。
+    ///
+    /// 该入口只读取本地 evidence 文件，并拒绝 placeholder sourceCommit、synthetic
+    /// sourceRunID、fixture-only marker 以及缺失 / mismatch 的 artifact metadata。
+    public func buildProvenance(evidenceRootURL: URL) throws -> ReleaseV0130LocalEvidenceBuildProvenance {
+        let report = try validate(evidenceRootURL: evidenceRootURL)
+        guard report.valid else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.intakeInvalid(report.diagnostics)
+        }
+
+        let runLogObjects = try jsonLines(relativePath: "run-logs/run-journal.jsonl", under: evidenceRootURL)
+        let eventObjects = try jsonLines(relativePath: "event-stream/events.jsonl", under: evidenceRootURL)
+        let artifactIndex = try jsonObject(relativePath: "artifacts/artifact-index.json", under: evidenceRootURL)
+        let registry = try jsonObject(relativePath: "registry/registry.json", under: evidenceRootURL)
+        let priorAssessments = try jsonObject(
+            relativePath: "prior-assessments/assessments-index.json",
+            under: evidenceRootURL
+        )
+
+        let allObjects: [Any] = runLogObjects + eventObjects + [artifactIndex, registry, priorAssessments]
+        if allObjects.contains(where: Self.containsFixtureOnlyMarker) {
+            throw ReleaseV0130LocalEvidenceProvenanceError.fixtureOnlyEvidence("explicit fixture-only marker")
+        }
+
+        let sourceCommits = Set(allObjects.flatMap(Self.sourceCommitValues))
+        guard sourceCommits.isEmpty == false else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.missingField("sourceCommit")
+        }
+        guard sourceCommits.count == 1, let sourceCommit = sourceCommits.first else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.conflictingSourceCommit(sourceCommits.sorted())
+        }
+        guard ReadinessAssessmentManifestV2.isValidSourceCommit(sourceCommit) else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.invalidSourceCommit(sourceCommit)
+        }
+
+        let rawSourceRunIDs = Set(allObjects.flatMap(Self.sourceRunIDValues)).sorted()
+        guard rawSourceRunIDs.isEmpty == false else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.missingField("sourceRunID")
+        }
+        let sourceRunIDs = try rawSourceRunIDs.map { rawValue in
+            guard ReadinessAssessmentManifestV2.forbiddenSourceRunIDPlaceholders.contains(rawValue) == false,
+                  rawValue.hasPrefix("source-run-") == false else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.syntheticSourceRunID(rawValue)
+            }
+            do {
+                return try Identifier(rawValue)
+            } catch {
+                throw ReleaseV0130LocalEvidenceProvenanceError.invalidSourceRunID(rawValue)
+            }
+        }
+
+        let artifacts = try artifactProvenances(from: artifactIndex, under: evidenceRootURL)
+        let manifestArtifactSHA256: String
+        let manifestArtifactBytes: Int
+        if artifacts.count == 1, let onlyArtifact = artifacts.first?.provenance {
+            manifestArtifactSHA256 = onlyArtifact.sha256
+            manifestArtifactBytes = onlyArtifact.byteCount
+        } else {
+            var aggregate = Data()
+            for artifact in artifacts.sorted(by: { $0.provenance.relativePath < $1.provenance.relativePath }) {
+                aggregate.append(Data(artifact.provenance.relativePath.utf8))
+                aggregate.append(Data("\n".utf8))
+                aggregate.append(artifact.data)
+                aggregate.append(Data("\n".utf8))
+            }
+            manifestArtifactSHA256 = Self.sha256Hex(aggregate)
+            manifestArtifactBytes = artifacts.reduce(0) { $0 + $1.provenance.byteCount }
+        }
+
+        return try ReleaseV0130LocalEvidenceBuildProvenance(
+            evidenceRootPath: evidenceRootURL.path,
+            sourceCommit: sourceCommit,
+            sourceRunIDs: sourceRunIDs,
+            artifactProvenances: artifacts.map(\.provenance),
+            artifactSHA256: manifestArtifactSHA256,
+            artifactBytes: manifestArtifactBytes
+        )
+    }
+
     private func failureReport(
         evidenceRootPath: String,
         diagnostics: [String]
@@ -598,6 +874,101 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
         }
     }
 
+    private struct ResolvedArtifact {
+        let provenance: ReleaseV0130LocalEvidenceArtifactProvenance
+        let data: Data
+    }
+
+    private func artifactProvenances(
+        from artifactIndex: [String: Any],
+        under root: URL
+    ) throws -> [ResolvedArtifact] {
+        guard let artifacts = artifactIndex["artifacts"] as? [[String: Any]],
+              artifacts.isEmpty == false else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.missingField("artifacts")
+        }
+
+        return try artifacts.enumerated().map { index, artifact in
+            guard let artifactID = Self.stringField(["id", "artifactID"], in: artifact),
+                  artifactID.isEmpty == false else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.missingField("artifacts[\(index)].id")
+            }
+            guard let relativePath = Self.stringField(["path", "relativePath"], in: artifact),
+                  relativePath.isEmpty == false else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.missingField("artifacts[\(index)].path")
+            }
+            guard ProductionReadinessArtifactDescriptor.isSafeRelativePath(relativePath) else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.unsafeArtifactPath(relativePath)
+            }
+
+            let artifactURL = url(for: relativePath, under: root)
+            guard fileManager.fileExists(atPath: artifactURL.path) else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.missingArtifact(relativePath)
+            }
+            let data = try Data(contentsOf: artifactURL)
+            guard data.isEmpty == false else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.missingArtifact(relativePath)
+            }
+            let sha256 = Self.sha256Hex(data)
+            let byteCount = data.count
+
+            if let expectedSHA256 = Self.stringField(["sha256", "artifactSHA256", "checksum"], in: artifact),
+               expectedSHA256 != sha256 {
+                throw ReleaseV0130LocalEvidenceProvenanceError.artifactMetadataMismatch(relativePath)
+            }
+            if let expectedBytes = Self.intField(["bytes", "artifactBytes", "byteCount"], in: artifact),
+               expectedBytes != byteCount {
+                throw ReleaseV0130LocalEvidenceProvenanceError.artifactMetadataMismatch(relativePath)
+            }
+
+            return try ResolvedArtifact(
+                provenance: ReleaseV0130LocalEvidenceArtifactProvenance(
+                    artifactID: try Identifier(artifactID),
+                    relativePath: relativePath,
+                    sha256: sha256,
+                    byteCount: byteCount
+                ),
+                data: data
+            )
+        }
+    }
+
+    private func jsonObject(relativePath: String, under root: URL) throws -> [String: Any] {
+        let data = try Data(contentsOf: url(for: relativePath, under: root))
+        let object = try JSONSerialization.jsonObject(with: data)
+        guard let dictionary = object as? [String: Any] else {
+            throw ReleaseV0130LocalEvidenceIntakeError.schemaViolation(
+                path: relativePath,
+                reason: "expected JSON object"
+            )
+        }
+        return dictionary
+    }
+
+    private func jsonLines(relativePath: String, under root: URL) throws -> [[String: Any]] {
+        let data = try Data(contentsOf: url(for: relativePath, under: root))
+        guard let string = String(data: data, encoding: .utf8) else {
+            throw ReleaseV0130LocalEvidenceIntakeError.malformedJSON(relativePath)
+        }
+        let lines = string.split(whereSeparator: \.isNewline)
+        guard lines.isEmpty == false else {
+            throw ReleaseV0130LocalEvidenceIntakeError.schemaViolation(
+                path: relativePath,
+                reason: "expected at least one JSON line"
+            )
+        }
+        return try lines.map { line in
+            let object = try JSONSerialization.jsonObject(with: Data(String(line).utf8))
+            guard let dictionary = object as? [String: Any] else {
+                throw ReleaseV0130LocalEvidenceIntakeError.schemaViolation(
+                    path: relativePath,
+                    reason: "expected JSON object per line"
+                )
+            }
+            return dictionary
+        }
+    }
+
     private func isDirectory(_ url: URL) -> Bool {
         var isDirectory: ObjCBool = false
         return fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory) && isDirectory.boolValue
@@ -615,5 +986,84 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
             .replacingOccurrences(of: "\n", with: "")
             .replacingOccurrences(of: "\t", with: "")
             .lowercased()
+    }
+
+    private static func sourceCommitValues(from object: Any) -> [String] {
+        stringValues(forKeys: ["sourceCommit"], in: object)
+    }
+
+    private static func sourceRunIDValues(from object: Any) -> [String] {
+        stringValues(forKeys: ["sourceRunID", "sourceRunIDs"], in: object)
+    }
+
+    private static func stringValues(forKeys keys: Set<String>, in object: Any) -> [String] {
+        if let dictionary = object as? [String: Any] {
+            var values: [String] = []
+            for (key, value) in dictionary {
+                if keys.contains(key) {
+                    if let string = value as? String {
+                        values.append(string)
+                    } else if let strings = value as? [String] {
+                        values.append(contentsOf: strings)
+                    }
+                }
+                values.append(contentsOf: stringValues(forKeys: keys, in: value))
+            }
+            return values
+        }
+        if let array = object as? [Any] {
+            return array.flatMap { stringValues(forKeys: keys, in: $0) }
+        }
+        return []
+    }
+
+    private static func containsFixtureOnlyMarker(_ object: Any) -> Bool {
+        if let dictionary = object as? [String: Any] {
+            if let fixtureOnly = dictionary["fixtureOnly"] as? Bool, fixtureOnly {
+                return true
+            }
+            if let testFixtureOnly = dictionary["testFixtureOnly"] as? Bool, testFixtureOnly {
+                return true
+            }
+            for key in ["evidenceClassification", "evidenceKind", "fixtureClassification"] {
+                if let value = dictionary[key] as? String,
+                   value.lowercased().contains("fixture") {
+                    return true
+                }
+            }
+            return dictionary.values.contains(where: containsFixtureOnlyMarker)
+        }
+        if let array = object as? [Any] {
+            return array.contains(where: containsFixtureOnlyMarker)
+        }
+        return false
+    }
+
+    private static func stringField(_ names: [String], in dictionary: [String: Any]) -> String? {
+        for name in names {
+            if let value = dictionary[name] as? String {
+                return value
+            }
+        }
+        return nil
+    }
+
+    private static func intField(_ names: [String], in dictionary: [String: Any]) -> Int? {
+        for name in names {
+            if let value = dictionary[name] as? Int {
+                return value
+            }
+            if let number = dictionary[name] as? NSNumber {
+                return number.intValue
+            }
+        }
+        return nil
+    }
+
+    private static func sha256Hex(_ data: Data) -> String {
+        let digest = SHA256.hash(data: data)
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
     }
 }
