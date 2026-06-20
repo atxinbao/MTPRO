@@ -34124,6 +34124,197 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.13.0.sh"))
     }
 
+    func testGH997ReleaseV0130BuildPipelineWritesManifestBundleRegistryAndPolicyReport() throws {
+        // 测试场景：GH-997 将 #995 / #996 的真实 local evidence root 升级为确定性
+        // build pipeline；schema、checksum、content policy、manifest、bundle 和 registry
+        // 必须全部可验证，且 raw endpoint marker 必须在 policy 阶段 fail closed。
+        let fileManager = FileManager.default
+        let root = fileManager.temporaryDirectory.appendingPathComponent(
+            "mtpro-gh997-build-pipeline-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        defer { try? fileManager.removeItem(at: root) }
+
+        let validCommit = "f8dcd7860cc0265fc2cae4fe350b3f22c2dcfd58"
+
+        func evidenceRoot(_ name: String) -> URL {
+            root.appendingPathComponent(name, isDirectory: true)
+        }
+
+        func write(root evidenceRoot: URL, _ relativePath: String, _ payload: String) throws {
+            let url = relativePath.split(separator: "/").reduce(evidenceRoot) { partialURL, component in
+                partialURL.appendingPathComponent(String(component))
+            }
+            try fileManager.createDirectory(
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try Data(payload.utf8).write(to: url, options: .atomic)
+        }
+
+        func writeEvidenceRoot(
+            named name: String,
+            artifactPayload: String,
+            sourceRunID: String = "run-gh997",
+            sourceCommit: String = validCommit
+        ) throws -> URL {
+            let evidenceRoot = evidenceRoot(name)
+            for directory in ReleaseV0130LocalEvidenceIntakeModel.requiredDirectories {
+                try fileManager.createDirectory(
+                    at: evidenceRoot.appendingPathComponent(directory, isDirectory: true),
+                    withIntermediateDirectories: true
+                )
+            }
+            try write(
+                root: evidenceRoot,
+                "run-logs/run-journal.jsonl",
+                #"{"sourceRunID":"\#(sourceRunID)","sourceCommit":"\#(sourceCommit)","eventType":"run.completed","createdAt":"2026-06-20T01:00:00Z"}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "event-stream/events.jsonl",
+                #"{"eventID":"event-gh997","sourceRunID":"\#(sourceRunID)","eventType":"policy.accepted","occurredAt":"2026-06-20T01:00:01Z"}"#
+            )
+            try write(root: evidenceRoot, "artifacts/readiness-summary.json", artifactPayload)
+            try write(
+                root: evidenceRoot,
+                "artifacts/artifact-index.json",
+                #"{"sourceRunID":"\#(sourceRunID)","sourceCommit":"\#(sourceCommit)","artifacts":[{"id":"artifact-gh997","path":"artifacts/readiness-summary.json"}]}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "registry/registry.json",
+                #"{"registryVersion":"v0.13.0.local-evidence-intake","assessments":[{"assessmentID":"assessment-gh997"}]}"#
+            )
+            try write(
+                root: evidenceRoot,
+                "prior-assessments/assessments-index.json",
+                #"{"assessmentIDs":["baseline-gh997"],"sourceRunIDs":["\#(sourceRunID)"]}"#
+            )
+            return evidenceRoot
+        }
+
+        let validArtifactPayload =
+            #"{"summaryID":"artifact-gh997-summary","sourceRunID":"run-gh997","sourceCommit":"\#(validCommit)","redactedEvidenceOnly":true,"noSecretValue":true,"noOrderPayload":true,"productionTradingEnabledByDefault":false,"productionCutoverAuthorized":false}"#
+        let validRoot = try writeEvidenceRoot(named: "valid", artifactPayload: validArtifactPayload)
+        let store = ReadinessAssessmentRegistryStore(
+            storageRootURL: root.appendingPathComponent("store", isDirectory: true),
+            fileManager: fileManager
+        )
+        let model = ReleaseV0130LocalEvidenceIntakeModel(fileManager: fileManager)
+        let result = try model.buildPipeline(
+            assessmentID: Identifier.constant("gh-997-assessment"),
+            generationID: Identifier.constant("gh-997-generation-1"),
+            evidenceRootURL: validRoot,
+            store: store,
+            createdAt: Date(timeIntervalSince1970: 1_813_000_000)
+        )
+
+        XCTAssertTrue(result.pipelineHeld)
+        XCTAssertTrue(result.registryEntryCreated)
+        XCTAssertEqual(result.registryEntry.state, .ready)
+        XCTAssertEqual(result.provenance.sourceCommit, validCommit)
+        XCTAssertEqual(result.provenance.sourceRunIDs.map(\.rawValue), ["run-gh997"])
+        XCTAssertTrue(result.manifest.manifestHeld)
+        XCTAssertEqual(try store.readManifestV2(assessmentID: result.registryEntry.assessmentID), result.manifest)
+        XCTAssertTrue(result.bundleWrite.bundle.bundleHeld)
+        XCTAssertEqual(
+            try store.readReadinessBundleV2(
+                assessmentID: result.registryEntry.assessmentID,
+                generationID: result.manifest.generationID
+            ),
+            result.bundleWrite.bundle
+        )
+        XCTAssertTrue(result.validationReport.reportHeld)
+        XCTAssertEqual(result.validationReport.issueID.rawValue, "GH-997")
+        XCTAssertEqual(result.validationReport.artifactValidations.count, 1)
+        XCTAssertEqual(
+            result.validationReport.artifactValidations[0].observedTopLevelJSONFields,
+            [
+                "noOrderPayload",
+                "noSecretValue",
+                "productionCutoverAuthorized",
+                "productionTradingEnabledByDefault",
+                "redactedEvidenceOnly",
+                "sourceCommit",
+                "sourceRunID",
+                "summaryID"
+            ]
+        )
+        XCTAssertTrue(result.validationReport.manifestWritten)
+        XCTAssertTrue(result.validationReport.readinessBundleWritten)
+        XCTAssertTrue(result.validationReport.registryEntryConfirmed)
+        XCTAssertTrue(result.validationReport.contentPolicyValidated)
+        XCTAssertFalse(result.validationReport.productionCutoverAuthorized)
+        XCTAssertFalse(result.validationReport.productionEndpointConnected)
+        XCTAssertFalse(result.validationReport.productionOrderSubmitted)
+
+        let endpointPayload =
+            #"{"summaryID":"artifact-gh997-endpoint","sourceRunID":"run-gh997","sourceCommit":"\#(validCommit)","redactedEvidenceOnly":true,"noSecretValue":true,"noOrderPayload":true,"diagnostic":"https://api.binance.com/api/v3/account","productionTradingEnabledByDefault":false,"productionCutoverAuthorized":false}"#
+        let endpointRoot = try writeEvidenceRoot(named: "endpoint-rejected", artifactPayload: endpointPayload)
+        let rejectedStore = ReadinessAssessmentRegistryStore(
+            storageRootURL: root.appendingPathComponent("rejected-store", isDirectory: true),
+            fileManager: fileManager
+        )
+        XCTAssertThrowsError(
+            try model.buildPipeline(
+                assessmentID: Identifier.constant("gh-997-rejected-assessment"),
+                generationID: Identifier.constant("gh-997-rejected-generation"),
+                evidenceRootURL: endpointRoot,
+                store: rejectedStore,
+                createdAt: Date(timeIntervalSince1970: 1_813_000_100)
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReadinessAssessmentRegistryStoreError,
+                .boundaryDrift("artifactContentPolicy:rejectedContent")
+            )
+        }
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift")
+        let cli = try read("Sources/MTPROCLI/main.swift")
+        let verifier = try read("checks/verify-v0.13.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-997-VERIFY-V0130-BUILD-PIPELINE",
+            "TVM-RELEASE-V0130-BUILD-PIPELINE",
+            "V0130-004-SCHEMA-CHECKSUM-POLICY-REGISTRY-FLOW",
+            "V0130-004-MANIFEST-BUNDLE-REGISTRY-WRITE",
+            "V0130-004-PROVENANCE-VALIDATION-REPORT",
+            "V0130-004-BUILD-FAILS-CLOSED",
+            "V0130-004-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(ReleaseV0130LocalEvidenceBuildPipelineAnchors.validationAnchors.contains(anchor))
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-997 source")
+            XCTAssertTrue(cli.contains(anchor), "\(anchor) must stay in GH-997 CLI")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.13 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.13 contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        XCTAssertTrue(cli.contains("validationReportChecksum="))
+        XCTAssertTrue(cli.contains("readinessBundleWritten=true"))
+        XCTAssertTrue(cli.contains("registryEntryConfirmed=true"))
+        XCTAssertTrue(verifier.contains("testGH997ReleaseV0130BuildPipelineWritesManifestBundleRegistryAndPolicyReport"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.13.0.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

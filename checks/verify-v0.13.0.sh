@@ -24,6 +24,13 @@ set -euo pipefail
 # V0130-003-SYNTHETIC-PROVENANCE-FAILS-CLOSED
 # V0130-003-FIXTURE-ONLY-ISOLATION
 # V0130-003-NO-PRODUCTION-CUTOVER
+# GH-997-VERIFY-V0130-BUILD-PIPELINE
+# TVM-RELEASE-V0130-BUILD-PIPELINE
+# V0130-004-SCHEMA-CHECKSUM-POLICY-REGISTRY-FLOW
+# V0130-004-MANIFEST-BUNDLE-REGISTRY-WRITE
+# V0130-004-PROVENANCE-VALIDATION-REPORT
+# V0130-004-BUILD-FAILS-CLOSED
+# V0130-004-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -73,6 +80,7 @@ ROADMAP="docs/roadmap.md"
 swift test --filter TargetGraphTests/testGH994ReleaseV0130LocalEvidenceReadinessEngineContract
 swift test --filter TargetGraphTests/testGH995ReleaseV0130LocalEvidenceIntakeModelDiscoversValidRootAndFailsClosed
 swift test --filter TargetGraphTests/testGH996ReleaseV0130ProvenanceBuildRejectsSyntheticAndFixtureEvidence
+swift test --filter TargetGraphTests/testGH997ReleaseV0130BuildPipelineWritesManifestBundleRegistryAndPolicyReport
 
 for anchor in \
   "GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT" \
@@ -131,20 +139,43 @@ for anchor in \
   require_file_contains "$TESTS" "$anchor"
 done
 
+for anchor in \
+  "GH-997-VERIFY-V0130-BUILD-PIPELINE" \
+  "TVM-RELEASE-V0130-BUILD-PIPELINE" \
+  "V0130-004-SCHEMA-CHECKSUM-POLICY-REGISTRY-FLOW" \
+  "V0130-004-MANIFEST-BUNDLE-REGISTRY-WRITE" \
+  "V0130-004-PROVENANCE-VALIDATION-REPORT" \
+  "V0130-004-BUILD-FAILS-CLOSED" \
+  "V0130-004-NO-PRODUCTION-CUTOVER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$SOURCE" "$anchor"
+  require_file_contains "$CLI_SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
 require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.13.0.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.13.0.sh"
 require_file_contains "$READINESS" "Release v0.13.0 local evidence-driven readiness engine contract anchor"
 require_file_contains "$READINESS" "Release v0.13.0 local evidence intake model anchor"
 require_file_contains "$READINESS" "Release v0.13.0 synthetic provenance rejection anchor"
+require_file_contains "$READINESS" "Release v0.13.0 build pipeline anchor"
 require_file_contains "$PLAN" "GH-994 Release v0.13.0 Local Evidence-driven Readiness Engine Contract Validation"
 require_file_contains "$PLAN" "GH-995 Release v0.13.0 Local Evidence Intake Model Validation"
 require_file_contains "$PLAN" "GH-996 Release v0.13.0 Synthetic Provenance Rejection Validation"
+require_file_contains "$PLAN" "GH-997 Release v0.13.0 Build Pipeline Validation"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-INTAKE-MODEL"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0130-BUILD-PIPELINE"
 require_file_contains "$LATEST" "v0.13.0 local evidence-driven readiness engine contract"
 require_file_contains "$LATEST" "v0.13.0 local evidence intake model"
 require_file_contains "$LATEST" "v0.13.0 synthetic provenance rejection"
+require_file_contains "$LATEST" "v0.13.0 build pipeline"
 require_file_contains "$ROADMAP" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
 require_file_contains "$GOAL" "release/v0.13.0"
 require_file_contains "$BLUEPRINT" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
@@ -158,6 +189,8 @@ require_file_contains "$SOURCE" "registry/registry.json"
 require_file_contains "$SOURCE" "prior-assessments/assessments-index.json"
 require_file_contains "$SOURCE" "ReleaseV0130LocalEvidenceBuildProvenance"
 require_file_contains "$SOURCE" "buildProvenance(evidenceRootURL:"
+require_file_contains "$SOURCE" "ReleaseV0130LocalEvidenceBuildPipelineResult"
+require_file_contains "$SOURCE" "buildPipeline("
 require_file_contains "$SOURCE" "syntheticSourceRunID"
 require_file_contains "$SOURCE" "fixtureOnlyEvidence"
 require_file_contains "$CLI_SOURCE" "readiness intake <evidenceRoot>"
@@ -166,6 +199,9 @@ require_file_contains "$CLI_SOURCE" "intakeValid="
 require_file_contains "$CLI_SOURCE" "failClosed="
 require_file_contains "$CLI_SOURCE" "syntheticProvenanceRejected="
 require_file_contains "$CLI_SOURCE" "fixtureOnlyEvidenceRejected=true"
+require_file_contains "$CLI_SOURCE" "validationReportChecksum="
+require_file_contains "$CLI_SOURCE" "readinessBundleWritten=true"
+require_file_contains "$CLI_SOURCE" "registryEntryConfirmed=true"
 
 for required_contract_string in \
   "artifact -> policy -> manifest -> bundle -> registry -> diff" \
@@ -265,8 +301,16 @@ gh996_commit="807211695eadba817408ca9e6b8f0bf3a1d080cd"
 write_gh996_evidence_root "$gh996_valid_root" "run-gh996" "$gh996_commit"
 MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness create gh-996-assessment >/dev/null
 build_output="$(MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness build-v013 gh-996-assessment "$gh996_valid_root")"
-printf '%s\n' "$build_output" | grep -Fq "issue=GH-996" || fail "build-v013 output must link GH-996"
+printf '%s\n' "$build_output" | grep -Fq "issue=GH-997" || fail "build-v013 output must link GH-997"
+printf '%s\n' "$build_output" | grep -Fq "provenanceIssue=GH-996" || fail "build-v013 output must keep GH-996 provenance link"
+printf '%s\n' "$build_output" | grep -Fq "schemaValidated=true" || fail "build-v013 must validate local evidence schema"
+printf '%s\n' "$build_output" | grep -Fq "checksumValidated=true" || fail "build-v013 must validate local evidence checksums"
+printf '%s\n' "$build_output" | grep -Fq "contentPolicyValidated=true" || fail "build-v013 must run artifact content policy"
+printf '%s\n' "$build_output" | grep -Fq "validationReportChecksum=sha256:" || fail "build-v013 must emit validation report checksum"
 printf '%s\n' "$build_output" | grep -Fq "manifestWritten=true" || fail "build-v013 must write normal manifest"
+printf '%s\n' "$build_output" | grep -Fq "readinessBundleWritten=true" || fail "build-v013 must write readiness bundle"
+printf '%s\n' "$build_output" | grep -Fq "registryEntryConfirmed=true" || fail "build-v013 must confirm registry entry"
+printf '%s\n' "$build_output" | grep -Fq "registryLifecycleWritten=true" || fail "build-v013 must execute registry lifecycle"
 printf '%s\n' "$build_output" | grep -Fq "normalManifestEligible=true" || fail "build-v013 must derive eligible normal manifest provenance"
 printf '%s\n' "$build_output" | grep -Fq "sourceCommit=$gh996_commit" || fail "build-v013 must use local evidence source commit"
 printf '%s\n' "$build_output" | grep -Fq "sourceRunIDs=run-gh996" || fail "build-v013 must use local evidence sourceRunID"
@@ -274,6 +318,11 @@ printf '%s\n' "$build_output" | grep -Fq "artifactRelativePaths=artifacts/readin
 printf '%s\n' "$build_output" | grep -Fq "syntheticProvenanceRejected=true" || fail "build-v013 must reject synthetic provenance by contract"
 printf '%s\n' "$build_output" | grep -Fq "fixtureOnly=false" || fail "build-v013 normal manifest must not be fixture-only"
 printf '%s\n' "$build_output" | grep -Fq "productionCutoverAuthorized=false" || fail "build-v013 must not authorize production cutover"
+
+gh997_auto_store="$gh996_root/gh997-auto-store"
+auto_registry_output="$(MTPRO_READINESS_ROOT="$gh997_auto_store" swift run mtpro readiness build-v013 gh-997-auto-assessment "$gh996_valid_root")"
+printf '%s\n' "$auto_registry_output" | grep -Fq "registryEntryCreated=true" || fail "build-v013 must create missing local registry entry"
+printf '%s\n' "$auto_registry_output" | grep -Fq "readinessBundleWritten=true" || fail "build-v013 missing-registry path must still write bundle"
 
 gh996_placeholder_root="$gh996_root/placeholder"
 write_gh996_evidence_root "$gh996_placeholder_root" "run-gh996" "0123456789abcdef0123456789abcdef01234567"
@@ -298,6 +347,16 @@ if MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness build-v013 gh-9
   fail "build-v013 must fail closed for fixture-only evidence"
 fi
 grep -Fq "fixture-only evidence" /tmp/gh996-fixture.out || fail "fixture failure must explain fixture-only rejection"
+
+gh997_endpoint_root="$gh996_root/endpoint"
+write_gh996_evidence_root "$gh997_endpoint_root" "run-gh996" "$gh996_commit"
+printf '%s\n' "{\"summaryID\":\"artifact-gh997-endpoint\",\"sourceRunID\":\"run-gh996\",\"sourceCommit\":\"$gh996_commit\",\"redactedEvidenceOnly\":true,\"noSecretValue\":true,\"noOrderPayload\":true,\"diagnostic\":\"https://api.binance.com/api/v3/account\",\"productionTradingEnabledByDefault\":false,\"productionCutoverAuthorized\":false}" \
+  >"$gh997_endpoint_root/artifacts/readiness-summary.json"
+MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness create gh-997-endpoint >/dev/null
+if MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness build-v013 gh-997-endpoint "$gh997_endpoint_root" >/tmp/gh997-endpoint.out 2>&1; then
+  fail "build-v013 must fail closed for artifact raw endpoint markers"
+fi
+grep -Fq "artifactContentPolicy:rejectedContent" /tmp/gh997-endpoint.out || fail "endpoint failure must explain content policy rejection"
 
 for forbidden in \
   "productionTradingEnabledByDefault=true" \

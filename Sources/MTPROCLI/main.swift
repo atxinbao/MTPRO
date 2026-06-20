@@ -2015,18 +2015,26 @@ private struct ReleaseV0130LocalEvidenceIntakeCLI {
     }
 }
 
-/// ReleaseV0130LocalEvidenceProvenanceBuildCLI 是 GH-996 的 normal manifest provenance build 入口。
+/// ReleaseV0130LocalEvidenceProvenanceBuildCLI 是 GH-997 的 deterministic build pipeline 入口。
 ///
 /// 该 binder 必须先消费 #995 已验证的显式 local evidence root，再把 sourceCommit、
-/// sourceRunIDs、artifact bytes 和 checksum 写入 Manifest V2。它不会从 assessmentID
-/// 伪造 source run，不生成 synthetic artifact metadata，不写 readiness bundle / diff，也不
-/// 授权 production secret、endpoint、broker 或订单能力。
+/// sourceRunIDs、artifact bytes 和 checksum 交给 #997 schema / checksum / policy /
+/// manifest / bundle / registry flow。它不会从 assessmentID 伪造 source run，不生成
+/// synthetic artifact metadata，不执行 diff，也不授权 production secret、endpoint、broker
+/// 或订单能力。
 private struct ReleaseV0130LocalEvidenceProvenanceBuildCLI {
     private static let readinessRootEnvironmentKey = "MTPRO_READINESS_ROOT"
-    private static let validationAnchor = "GH-996-VERIFY-V0130-SYNTHETIC-PROVENANCE-REJECTION"
-    private static let matrixAnchor = "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION"
+    private static let validationAnchor = "GH-997-VERIFY-V0130-BUILD-PIPELINE"
+    private static let matrixAnchor = "TVM-RELEASE-V0130-BUILD-PIPELINE"
     private static let producerVersion = "mtpro-cli-v0.13.0"
     private static let requiredAnchors = [
+        "V0130-004-SCHEMA-CHECKSUM-POLICY-REGISTRY-FLOW",
+        "V0130-004-MANIFEST-BUNDLE-REGISTRY-WRITE",
+        "V0130-004-PROVENANCE-VALIDATION-REPORT",
+        "V0130-004-BUILD-FAILS-CLOSED",
+        "V0130-004-NO-PRODUCTION-CUTOVER",
+        "GH-996-VERIFY-V0130-SYNTHETIC-PROVENANCE-REJECTION",
+        "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION",
         "V0130-003-INTAKE-DERIVED-MANIFEST-PROVENANCE",
         "V0130-003-SOURCECOMMIT-SOURCERUN-ARTIFACT-METADATA",
         "V0130-003-SYNTHETIC-PROVENANCE-FAILS-CLOSED",
@@ -2069,68 +2077,84 @@ private struct ReleaseV0130LocalEvidenceProvenanceBuildCLI {
     }
 
     func output() throws -> String {
-        let entry = try store.inspect(assessmentID: assessmentID)
-        let provenance = try model.buildProvenance(
-            evidenceRootURL: URL(fileURLWithPath: evidenceRootPath, isDirectory: true)
-        )
         let now = Date(timeIntervalSince1970: floor(Date().timeIntervalSince1970))
+        let evidenceRootURL = URL(fileURLWithPath: evidenceRootPath, isDirectory: true)
         let generationID = Identifier.constant(
-            "\(entry.assessmentID.rawValue)-v0130-generation-\(Int(now.timeIntervalSince1970))"
+            "\(assessmentID.rawValue)-v0130-generation-\(Int(now.timeIntervalSince1970))"
         )
-        let manifest = try ReadinessAssessmentManifestV2(
-            assessmentID: entry.assessmentID,
+        let result = try model.buildPipeline(
+            assessmentID: assessmentID,
             generationID: generationID,
-            sourceRunIDs: provenance.sourceRunIDs,
-            sourceCommit: provenance.sourceCommit,
-            artifactContentType: .jsonEvidence,
-            artifactSHA256: provenance.artifactSHA256,
-            artifactBytes: provenance.artifactBytes,
-            createdAt: now,
-            producerVersion: Self.producerVersion
+            evidenceRootURL: evidenceRootURL,
+            store: store,
+            createdAt: now
         )
-        _ = try store.writeManifestV2(manifest)
 
         let requiredAnchors = ([
             Self.validationAnchor,
             Self.matrixAnchor
         ] + Self.requiredAnchors).joined(separator: ",")
-        let artifactPaths = provenance.artifactProvenances.map(\.relativePath).joined(separator: ",")
-        let artifactChecksums = provenance.artifactProvenances
+        let artifactPaths = result.provenance.artifactProvenances.map(\.relativePath).joined(separator: ",")
+        let artifactChecksums = result.provenance.artifactProvenances
             .map { "\($0.relativePath)=\($0.sha256)" }
             .joined(separator: ",")
-        let artifactByteCounts = provenance.artifactProvenances
+        let artifactByteCounts = result.provenance.artifactProvenances
             .map { "\($0.relativePath)=\($0.byteCount)" }
+            .joined(separator: ",")
+        let contentValidationChecksums = result.contentValidations
+            .map { "\($0.artifactID.rawValue)=\($0.contentValidationChecksum)" }
+            .joined(separator: ",")
+        let policyChecksums = result.validationReport.artifactValidations
+            .map { "\($0.artifactID.rawValue)=\($0.policyChecksum)" }
+            .joined(separator: ",")
+        let observedFields = result.validationReport.artifactValidations
+            .map { "\($0.artifactID.rawValue)=\($0.observedTopLevelJSONFields.joined(separator: "+"))" }
             .joined(separator: ",")
 
         return [
             "mtpro readiness build-v013 v0.13.0",
-            "issue=GH-996",
+            "issue=GH-997",
+            "provenanceIssue=GH-996",
             "validationAnchor=\(Self.validationAnchor)",
             "matrixAnchor=\(Self.matrixAnchor)",
             "requiredAnchors=\(requiredAnchors)",
             "action=build-v013",
-            "assessmentID=\(entry.assessmentID.rawValue)",
-            "generationID=\(generationID.rawValue)",
-            "evidenceRoot=\(provenance.evidenceRootPath)",
-            "evidenceClassification=\(provenance.evidenceClassification)",
-            "sourceCommit=\(provenance.sourceCommit)",
-            "sourceRunIDs=\(provenance.sourceRunIDs.map(\.rawValue).joined(separator: ","))",
+            "assessmentID=\(result.registryEntry.assessmentID.rawValue)",
+            "generationID=\(result.manifest.generationID.rawValue)",
+            "evidenceRoot=\(result.provenance.evidenceRootPath)",
+            "evidenceClassification=\(result.provenance.evidenceClassification)",
+            "sourceCommit=\(result.provenance.sourceCommit)",
+            "sourceRunIDs=\(result.provenance.sourceRunIDs.map(\.rawValue).joined(separator: ","))",
             "artifactRelativePaths=\(artifactPaths)",
             "artifactChecksums=\(artifactChecksums)",
             "artifactByteCounts=\(artifactByteCounts)",
-            "manifestArtifactSHA256=\(manifest.artifactSHA256)",
-            "manifestArtifactBytes=\(manifest.artifactBytes)",
-            "manifestV2Path=\(manifest.manifestV2Path)",
-            "manifestChecksum=\(manifest.manifestChecksum)",
+            "schemaValidated=\(result.validationReport.schemaValidated)",
+            "checksumValidated=\(result.validationReport.checksumValidated)",
+            "contentPolicyValidated=\(result.validationReport.contentPolicyValidated)",
+            "policyChecksums=\(policyChecksums)",
+            "contentValidationChecksums=\(contentValidationChecksums)",
+            "observedTopLevelJSONFields=\(observedFields)",
+            "validationReportChecksum=\(result.validationReport.validationReportChecksum)",
+            "manifestArtifactSHA256=\(result.manifest.artifactSHA256)",
+            "manifestArtifactBytes=\(result.manifest.artifactBytes)",
+            "manifestV2Path=\(result.manifest.manifestV2Path)",
+            "manifestChecksum=\(result.manifest.manifestChecksum)",
             "manifestWritten=true",
-            "readinessBundleWritten=false",
-            "registryLifecycleWritten=false",
+            "readinessBundlePath=\(result.bundleWrite.bundle.bundlePath)",
+            "readinessBundleChecksum=\(result.bundleWrite.bundle.bundleChecksum)",
+            "readinessBundleManifestPath=\(result.bundleWrite.manifest.manifestPath)",
+            "readinessBundleManifestChecksum=\(result.bundleWrite.manifest.manifestChecksum)",
+            "readinessBundleWritten=true",
+            "registryEntryConfirmed=true",
+            "registryEntryCreated=\(result.registryEntryCreated)",
+            "registryChecksum=\(result.registryDocument.registryChecksum)",
+            "registryLifecycleWritten=true",
             "diffBuilt=false",
-            "syntheticProvenanceRejected=\(provenance.syntheticProvenanceRejected)",
-            "fixtureOnly=\(provenance.fixtureOnly)",
+            "syntheticProvenanceRejected=\(result.provenance.syntheticProvenanceRejected)",
+            "fixtureOnly=\(result.provenance.fixtureOnly)",
             "fixtureOnlyEvidenceRejected=true",
-            "localEvidenceTraceable=\(provenance.localEvidenceTraceable)",
-            "normalManifestEligible=\(provenance.normalManifestEligible)",
+            "localEvidenceTraceable=\(result.provenance.localEvidenceTraceable)",
+            "normalManifestEligible=\(result.provenance.normalManifestEligible)",
             "noSecretValue=true",
             "noEndpointPayload=true",
             "noOrderPayload=true",
@@ -2141,7 +2165,7 @@ private struct ReleaseV0130LocalEvidenceProvenanceBuildCLI {
             "productionOrderSubmitted=false",
             "testnetOrderSubmissionAllowed=false",
             "productionCutoverAuthorized=false",
-            "boundaryHeld=\(provenance.normalManifestEligible && provenance.productionCapabilitiesDisabled)"
+            "boundaryHeld=\(result.pipelineHeld)"
         ].joined(separator: "\n")
     }
 }

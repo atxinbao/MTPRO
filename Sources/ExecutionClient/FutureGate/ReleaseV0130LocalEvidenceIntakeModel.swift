@@ -36,6 +36,23 @@ public enum ReleaseV0130LocalEvidenceProvenanceAnchors {
     ]
 }
 
+/// ReleaseV0130LocalEvidenceBuildPipelineAnchors 固定 GH-997 的本地证据 build pipeline 锚点。
+///
+/// 这些锚点只证明 v0.13.0 readiness build 会按 schema -> checksum -> policy ->
+/// manifest -> bundle -> registry 的顺序处理真实本地证据；它们不授权 production
+/// cutover、secret read、endpoint / broker connection 或任何订单命令。
+public enum ReleaseV0130LocalEvidenceBuildPipelineAnchors {
+    public static let validationAnchors = [
+        "GH-997-VERIFY-V0130-BUILD-PIPELINE",
+        "TVM-RELEASE-V0130-BUILD-PIPELINE",
+        "V0130-004-SCHEMA-CHECKSUM-POLICY-REGISTRY-FLOW",
+        "V0130-004-MANIFEST-BUNDLE-REGISTRY-WRITE",
+        "V0130-004-PROVENANCE-VALIDATION-REPORT",
+        "V0130-004-BUILD-FAILS-CLOSED",
+        "V0130-004-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
 /// ReleaseV0130LocalEvidenceArtifactProvenance 是 GH-996 从真实本地 artifact bytes
 /// 派生出的 manifest metadata。
 ///
@@ -169,6 +186,434 @@ public struct ReleaseV0130LocalEvidenceBuildProvenance: Codable, Equatable, Send
 
         guard normalManifestEligible else {
             throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("normalManifestEligible=false")
+        }
+    }
+}
+
+/// ReleaseV0130LocalEvidenceArtifactPipelineValidation 记录 GH-997 对单个 artifact 的校验结果。
+///
+/// 它同时保留 #996 raw artifact provenance checksum 和 #997 content-policy canonical
+/// checksum，避免把格式化差异误当成 sourceRun 或 commit provenance。
+public struct ReleaseV0130LocalEvidenceArtifactPipelineValidation: Codable, Equatable, Sendable {
+    public let artifactID: Identifier
+    public let relativePath: String
+    public let rawArtifactSHA256: String
+    public let rawArtifactBytes: Int
+    public let canonicalArtifactSHA256: String
+    public let canonicalArtifactBytes: Int
+    public let observedTopLevelJSONFields: [String]
+    public let policyChecksum: String
+    public let contentValidationChecksum: String
+    public let schemaValidated: Bool
+    public let checksumValidated: Bool
+    public let policyValidated: Bool
+    public let noSecretValue: Bool
+    public let noEndpointPayload: Bool
+    public let noOrderPayload: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var validationHeld: Bool {
+        artifactID.rawValue.isEmpty == false
+            && ProductionReadinessArtifactDescriptor.isSafeRelativePath(relativePath)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(rawArtifactSHA256)
+            && rawArtifactBytes > 0
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(canonicalArtifactSHA256)
+            && canonicalArtifactBytes > 0
+            && observedTopLevelJSONFields.isEmpty == false
+            && observedTopLevelJSONFields == observedTopLevelJSONFields.sorted()
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(policyChecksum)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(contentValidationChecksum)
+            && schemaValidated
+            && checksumValidated
+            && policyValidated
+            && noSecretValue
+            && noEndpointPayload
+            && noOrderPayload
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        artifactID: Identifier,
+        relativePath: String,
+        rawArtifactSHA256: String,
+        rawArtifactBytes: Int,
+        canonicalArtifactSHA256: String,
+        canonicalArtifactBytes: Int,
+        observedTopLevelJSONFields: [String],
+        policyChecksum: String,
+        contentValidationChecksum: String,
+        schemaValidated: Bool = true,
+        checksumValidated: Bool = true,
+        policyValidated: Bool = true,
+        noSecretValue: Bool = true,
+        noEndpointPayload: Bool = true,
+        noOrderPayload: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.artifactID = artifactID
+        self.relativePath = relativePath
+        self.rawArtifactSHA256 = rawArtifactSHA256
+        self.rawArtifactBytes = rawArtifactBytes
+        self.canonicalArtifactSHA256 = canonicalArtifactSHA256
+        self.canonicalArtifactBytes = canonicalArtifactBytes
+        self.observedTopLevelJSONFields = observedTopLevelJSONFields.sorted()
+        self.policyChecksum = policyChecksum
+        self.contentValidationChecksum = contentValidationChecksum
+        self.schemaValidated = schemaValidated
+        self.checksumValidated = checksumValidated
+        self.policyValidated = policyValidated
+        self.noSecretValue = noSecretValue
+        self.noEndpointPayload = noEndpointPayload
+        self.noOrderPayload = noOrderPayload
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard validationHeld else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("artifactPipelineValidationHeld=false")
+        }
+    }
+}
+
+/// ReleaseV0130LocalEvidenceBuildValidationReport 汇总 GH-997 build pipeline 的可审计结果。
+public struct ReleaseV0130LocalEvidenceBuildValidationReport: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let assessmentID: Identifier
+    public let generationID: Identifier
+    public let evidenceRootPath: String
+    public let sourceCommit: String
+    public let sourceRunIDs: [Identifier]
+    public let artifactValidations: [ReleaseV0130LocalEvidenceArtifactPipelineValidation]
+    public let manifestChecksum: String
+    public let readinessBundleChecksum: String
+    public let readinessBundleManifestChecksum: String
+    public let registryChecksum: String
+    public let registryEntryConfirmed: Bool
+    public let registryEntryCreated: Bool
+    public let schemaValidated: Bool
+    public let checksumValidated: Bool
+    public let contentPolicyValidated: Bool
+    public let manifestWritten: Bool
+    public let readinessBundleWritten: Bool
+    public let validationReportChecksum: String
+    public let noSecretValue: Bool
+    public let noEndpointPayload: Bool
+    public let noOrderPayload: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var reportHeld: Bool {
+        issueID.rawValue == "GH-997"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-954", "GH-956", "GH-957", "GH-958", "GH-995", "GH-996"]
+            && releaseVersion == "v0.13.0"
+            && assessmentID.rawValue.isEmpty == false
+            && generationID.rawValue.isEmpty == false
+            && evidenceRootPath.isEmpty == false
+            && ReadinessAssessmentManifestV2.isValidSourceCommit(sourceCommit)
+            && sourceRunIDs.isEmpty == false
+            && sourceRunIDs.map(\.rawValue) == sourceRunIDs.map(\.rawValue).sorted()
+            && artifactValidations.isEmpty == false
+            && artifactValidations.allSatisfy(\.validationHeld)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(manifestChecksum)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(readinessBundleChecksum)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(readinessBundleManifestChecksum)
+            && ReadinessAssessmentManifestV2.isValidSHA256Checksum(registryChecksum)
+            && registryEntryConfirmed
+            && schemaValidated
+            && checksumValidated
+            && contentPolicyValidated
+            && manifestWritten
+            && readinessBundleWritten
+            && validationReportChecksum == Self.stableValidationReportChecksum(
+                assessmentID: assessmentID,
+                generationID: generationID,
+                sourceCommit: sourceCommit,
+                sourceRunIDs: sourceRunIDs,
+                artifactValidations: artifactValidations,
+                manifestChecksum: manifestChecksum,
+                readinessBundleChecksum: readinessBundleChecksum,
+                readinessBundleManifestChecksum: readinessBundleManifestChecksum,
+                registryChecksum: registryChecksum,
+                registryEntryCreated: registryEntryCreated
+            )
+            && noSecretValue
+            && noEndpointPayload
+            && noOrderPayload
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-997"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-954"),
+            Identifier.constant("GH-956"),
+            Identifier.constant("GH-957"),
+            Identifier.constant("GH-958"),
+            Identifier.constant("GH-995"),
+            Identifier.constant("GH-996")
+        ],
+        releaseVersion: String = "v0.13.0",
+        assessmentID: Identifier,
+        generationID: Identifier,
+        evidenceRootPath: String,
+        sourceCommit: String,
+        sourceRunIDs: [Identifier],
+        artifactValidations: [ReleaseV0130LocalEvidenceArtifactPipelineValidation],
+        manifestChecksum: String,
+        readinessBundleChecksum: String,
+        readinessBundleManifestChecksum: String,
+        registryChecksum: String,
+        registryEntryConfirmed: Bool = true,
+        registryEntryCreated: Bool,
+        schemaValidated: Bool = true,
+        checksumValidated: Bool = true,
+        contentPolicyValidated: Bool = true,
+        manifestWritten: Bool = true,
+        readinessBundleWritten: Bool = true,
+        validationReportChecksum: String? = nil,
+        noSecretValue: Bool = true,
+        noEndpointPayload: Bool = true,
+        noOrderPayload: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs.sorted { $0.rawValue < $1.rawValue }
+        self.releaseVersion = releaseVersion
+        self.assessmentID = assessmentID
+        self.generationID = generationID
+        self.evidenceRootPath = evidenceRootPath
+        self.sourceCommit = sourceCommit
+        self.sourceRunIDs = sourceRunIDs.sorted { $0.rawValue < $1.rawValue }
+        self.artifactValidations = artifactValidations.sorted { $0.relativePath < $1.relativePath }
+        self.manifestChecksum = manifestChecksum
+        self.readinessBundleChecksum = readinessBundleChecksum
+        self.readinessBundleManifestChecksum = readinessBundleManifestChecksum
+        self.registryChecksum = registryChecksum
+        self.registryEntryConfirmed = registryEntryConfirmed
+        self.registryEntryCreated = registryEntryCreated
+        self.schemaValidated = schemaValidated
+        self.checksumValidated = checksumValidated
+        self.contentPolicyValidated = contentPolicyValidated
+        self.manifestWritten = manifestWritten
+        self.readinessBundleWritten = readinessBundleWritten
+        self.validationReportChecksum = validationReportChecksum ?? Self.stableValidationReportChecksum(
+            assessmentID: assessmentID,
+            generationID: generationID,
+            sourceCommit: sourceCommit,
+            sourceRunIDs: sourceRunIDs,
+            artifactValidations: artifactValidations,
+            manifestChecksum: manifestChecksum,
+            readinessBundleChecksum: readinessBundleChecksum,
+            readinessBundleManifestChecksum: readinessBundleManifestChecksum,
+            registryChecksum: registryChecksum,
+            registryEntryCreated: registryEntryCreated
+        )
+        self.noSecretValue = noSecretValue
+        self.noEndpointPayload = noEndpointPayload
+        self.noOrderPayload = noOrderPayload
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+    }
+
+    public static func stableValidationReportChecksum(
+        assessmentID: Identifier,
+        generationID: Identifier,
+        sourceCommit: String,
+        sourceRunIDs: [Identifier],
+        artifactValidations: [ReleaseV0130LocalEvidenceArtifactPipelineValidation],
+        manifestChecksum: String,
+        readinessBundleChecksum: String,
+        readinessBundleManifestChecksum: String,
+        registryChecksum: String,
+        registryEntryCreated: Bool
+    ) -> String {
+        stableSHA256([
+            "GH-997",
+            "v0.13.0",
+            assessmentID.rawValue,
+            generationID.rawValue,
+            sourceCommit,
+            sourceRunIDs.map(\.rawValue).sorted().joined(separator: ","),
+            manifestChecksum,
+            readinessBundleChecksum,
+            readinessBundleManifestChecksum,
+            registryChecksum,
+            "registryEntryCreated=\(registryEntryCreated)",
+            "schemaValidated=true",
+            "checksumValidated=true",
+            "contentPolicyValidated=true",
+            "manifestWritten=true",
+            "readinessBundleWritten=true",
+            "noSecretValue=true",
+            "noEndpointPayload=true",
+            "noOrderPayload=true",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "testnetOrderSubmissionAllowed=false",
+            "productionCutoverAuthorized=false"
+        ] + artifactValidations.sorted { $0.relativePath < $1.relativePath }.map { validation in
+            [
+                validation.artifactID.rawValue,
+                validation.relativePath,
+                validation.rawArtifactSHA256,
+                validation.canonicalArtifactSHA256,
+                validation.policyChecksum,
+                validation.contentValidationChecksum
+            ].joined(separator: "=")
+        })
+    }
+
+    private static func stableSHA256(_ parts: [String]) -> String {
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
+/// ReleaseV0130LocalEvidenceBuildPipelineResult 是 GH-997 build pipeline 的内存返回值。
+public struct ReleaseV0130LocalEvidenceBuildPipelineResult: Equatable, Sendable {
+    public let issueID: Identifier
+    public let releaseVersion: String
+    public let registryEntry: ReadinessAssessmentRegistryEntry
+    public let registryDocument: ReadinessAssessmentRegistryDocument
+    public let provenance: ReleaseV0130LocalEvidenceBuildProvenance
+    public let manifest: ReadinessAssessmentManifestV2
+    public let contentValidations: [ReadinessAssessmentArtifactContentValidationResult]
+    public let bundleWrite: ReadinessAssessmentBundleV2SnapshotWriteResult
+    public let validationReport: ReleaseV0130LocalEvidenceBuildValidationReport
+    public let registryEntryCreated: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var pipelineHeld: Bool {
+        issueID.rawValue == "GH-997"
+            && releaseVersion == "v0.13.0"
+            && registryEntry.entryHeld
+            && registryDocument.documentHeld
+            && registryDocument.entries.contains(registryEntry)
+            && provenance.normalManifestEligible
+            && manifest.manifestHeld
+            && contentValidations.isEmpty == false
+            && contentValidations.allSatisfy(\.validationHeld)
+            && bundleWrite.bundle.bundleHeld
+            && bundleWrite.manifest.manifestHeld
+            && validationReport.reportHeld
+            && validationReport.registryEntryCreated == registryEntryCreated
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-997"),
+        releaseVersion: String = "v0.13.0",
+        registryEntry: ReadinessAssessmentRegistryEntry,
+        registryDocument: ReadinessAssessmentRegistryDocument,
+        provenance: ReleaseV0130LocalEvidenceBuildProvenance,
+        manifest: ReadinessAssessmentManifestV2,
+        contentValidations: [ReadinessAssessmentArtifactContentValidationResult],
+        bundleWrite: ReadinessAssessmentBundleV2SnapshotWriteResult,
+        validationReport: ReleaseV0130LocalEvidenceBuildValidationReport,
+        registryEntryCreated: Bool,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.releaseVersion = releaseVersion
+        self.registryEntry = registryEntry
+        self.registryDocument = registryDocument
+        self.provenance = provenance
+        self.manifest = manifest
+        self.contentValidations = contentValidations.sorted { $0.artifactID.rawValue < $1.artifactID.rawValue }
+        self.bundleWrite = bundleWrite
+        self.validationReport = validationReport
+        self.registryEntryCreated = registryEntryCreated
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard pipelineHeld else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("buildPipelineHeld=false")
         }
     }
 }
@@ -720,6 +1165,144 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
         )
     }
 
+    /// 执行 GH-997 的 schema、checksum、content policy、manifest、bundle 和 registry flow。
+    ///
+    /// 该入口复用 #995 / #996 的本地 evidence intake 与 provenance 约束，然后把每个
+    /// local artifact 送入 v0.12 registry store 的 content-policy / bundle writer。Registry
+    /// entry 缺失时只创建本地 readiness entry；不会读取 secret、连接 endpoint / broker、
+    /// 或发送任何 submit / cancel / replace 命令。
+    public func buildPipeline(
+        assessmentID: Identifier,
+        generationID: Identifier,
+        evidenceRootURL: URL,
+        store: ReadinessAssessmentRegistryStore,
+        createdAt: Date
+    ) throws -> ReleaseV0130LocalEvidenceBuildPipelineResult {
+        let provenance = try buildProvenance(evidenceRootURL: evidenceRootURL)
+        let (registryEntry, registryDocumentBeforeArtifacts, registryEntryCreated) = try ensureRegistryEntry(
+            assessmentID: assessmentID,
+            store: store,
+            createdAt: createdAt
+        )
+        let artifactIndex = try jsonObject(relativePath: "artifacts/artifact-index.json", under: evidenceRootURL)
+        let artifacts = try artifactProvenances(from: artifactIndex, under: evidenceRootURL)
+
+        let manifest = try ReadinessAssessmentManifestV2(
+            assessmentID: registryEntry.assessmentID,
+            generationID: generationID,
+            sourceRunIDs: provenance.sourceRunIDs,
+            sourceCommit: provenance.sourceCommit,
+            artifactContentType: .jsonEvidence,
+            artifactSHA256: provenance.artifactSHA256,
+            artifactBytes: provenance.artifactBytes,
+            createdAt: createdAt,
+            producerVersion: "mtpro-v0.13.0-gh997-build-pipeline"
+        )
+        _ = try store.writeManifestV2(manifest)
+
+        var contentValidations: [ReadinessAssessmentArtifactContentValidationResult] = []
+        var artifactValidations: [ReleaseV0130LocalEvidenceArtifactPipelineValidation] = []
+        var artifactSnapshots: [ReadinessAssessmentBundleV2ArtifactSnapshot] = []
+
+        for (index, artifact) in artifacts.sorted(by: { $0.provenance.relativePath < $1.provenance.relativePath }).enumerated() {
+            let canonicalData = try ProductionReadinessArtifactStore.canonicalJSONData(for: artifact.data)
+            let canonicalSHA256 = Self.sha256Hex(canonicalData)
+            let observedFields = try Self.topLevelJSONFields(in: canonicalData)
+            let contentPolicy = try ReadinessAssessmentArtifactContentPolicy(
+                policyVersion: "v0.13.0-gh997-local-evidence-policy.v1",
+                artifactID: artifact.provenance.artifactID,
+                allowedJSONFields: observedFields,
+                requiredJSONFields: observedFields
+            )
+            let artifactManifest = try ReadinessAssessmentManifestV2(
+                assessmentID: registryEntry.assessmentID,
+                generationID: generationID,
+                sourceRunIDs: provenance.sourceRunIDs,
+                sourceCommit: provenance.sourceCommit,
+                artifactContentType: .jsonEvidence,
+                artifactSHA256: canonicalSHA256,
+                artifactBytes: canonicalData.count,
+                createdAt: createdAt.addingTimeInterval(TimeInterval(index + 1)),
+                producerVersion: "mtpro-v0.13.0-gh997-content-policy"
+            )
+            let contentValidation = try store.validateArtifactContent(
+                data: artifact.data,
+                manifest: artifactManifest,
+                policy: contentPolicy,
+                validatedAt: createdAt.addingTimeInterval(TimeInterval(index + 2))
+            )
+            contentValidations.append(contentValidation)
+            artifactValidations.append(
+                try ReleaseV0130LocalEvidenceArtifactPipelineValidation(
+                    artifactID: artifact.provenance.artifactID,
+                    relativePath: artifact.provenance.relativePath,
+                    rawArtifactSHA256: artifact.provenance.sha256,
+                    rawArtifactBytes: artifact.provenance.byteCount,
+                    canonicalArtifactSHA256: canonicalSHA256,
+                    canonicalArtifactBytes: canonicalData.count,
+                    observedTopLevelJSONFields: observedFields,
+                    policyChecksum: contentPolicy.policyChecksum,
+                    contentValidationChecksum: contentValidation.contentValidationChecksum
+                )
+            )
+            artifactSnapshots.append(
+                try ReadinessAssessmentBundleV2ArtifactSnapshot(
+                    artifactID: artifact.provenance.artifactID,
+                    manifestChecksum: manifest.manifestChecksum,
+                    artifactSHA256: canonicalSHA256,
+                    contentValidationChecksum: contentValidation.contentValidationChecksum,
+                    artifactPath: Self.bundleArtifactPath(
+                        assessmentID: registryEntry.assessmentID,
+                        generationID: generationID,
+                        artifactID: artifact.provenance.artifactID
+                    )
+                )
+            )
+        }
+
+        let bundle = try ReadinessAssessmentBundleV2(
+            assessmentID: registryEntry.assessmentID,
+            generationID: generationID,
+            reviewState: .inReview,
+            sourceRunIDs: manifest.sourceRunIDs,
+            sourceCommit: manifest.sourceCommit,
+            artifactSnapshots: artifactSnapshots,
+            createdAt: createdAt.addingTimeInterval(TimeInterval(artifacts.count + 2)),
+            producerVersion: "mtpro-v0.13.0-gh997-build-pipeline"
+        )
+        let bundleWrite = try store.writeReadinessBundleV2ReviewSnapshot(bundle)
+        let registryDocument = try store.load()
+        let confirmedEntry = try registryDocument.inspect(assessmentID: registryEntry.assessmentID)
+        guard registryDocumentBeforeArtifacts.entries.contains(registryEntry) else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("buildPipelineRegistryEntryMissing")
+        }
+
+        let validationReport = ReleaseV0130LocalEvidenceBuildValidationReport(
+            assessmentID: confirmedEntry.assessmentID,
+            generationID: generationID,
+            evidenceRootPath: evidenceRootURL.path,
+            sourceCommit: provenance.sourceCommit,
+            sourceRunIDs: provenance.sourceRunIDs,
+            artifactValidations: artifactValidations,
+            manifestChecksum: manifest.manifestChecksum,
+            readinessBundleChecksum: bundleWrite.bundle.bundleChecksum,
+            readinessBundleManifestChecksum: bundleWrite.manifest.manifestChecksum,
+            registryChecksum: registryDocument.registryChecksum,
+            registryEntryCreated: registryEntryCreated
+        )
+
+        return try ReleaseV0130LocalEvidenceBuildPipelineResult(
+            registryEntry: confirmedEntry,
+            registryDocument: registryDocument,
+            provenance: provenance,
+            manifest: manifest,
+            contentValidations: contentValidations,
+            bundleWrite: bundleWrite,
+            validationReport: validationReport,
+            registryEntryCreated: registryEntryCreated
+        )
+    }
+
     private func failureReport(
         evidenceRootPath: String,
         diagnostics: [String]
@@ -877,6 +1460,34 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
     private struct ResolvedArtifact {
         let provenance: ReleaseV0130LocalEvidenceArtifactProvenance
         let data: Data
+    }
+
+    private func ensureRegistryEntry(
+        assessmentID: Identifier,
+        store: ReadinessAssessmentRegistryStore,
+        createdAt: Date
+    ) throws -> (ReadinessAssessmentRegistryEntry, ReadinessAssessmentRegistryDocument, Bool) {
+        do {
+            let document = try store.load()
+            return (try document.inspect(assessmentID: assessmentID), document, false)
+        } catch let error as ReadinessAssessmentRegistryStoreError {
+            switch error {
+            case .missingRegistry, .missingAssessmentID:
+                let document = try store.create(
+                    assessmentID: assessmentID,
+                    state: .ready,
+                    sourceReleaseVersion: "v0.13.0",
+                    sourcePatchVersion: "v0.12.1",
+                    assessedBy: "Codex",
+                    reason: "GH-997 deterministic local evidence build pipeline",
+                    createdAt: createdAt,
+                    updatedAt: createdAt
+                )
+                return (try document.inspect(assessmentID: assessmentID), document, true)
+            default:
+                throw error
+            }
+        }
     }
 
     private func artifactProvenances(
@@ -1058,6 +1669,26 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
             }
         }
         return nil
+    }
+
+    private static func topLevelJSONFields(in data: Data) throws -> [String] {
+        let object = try JSONSerialization.jsonObject(with: data)
+        guard let dictionary = object as? [String: Any] else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("buildPipeline:artifactJSONTopLevelObject")
+        }
+        let fields = dictionary.keys.sorted()
+        guard fields.isEmpty == false else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift("buildPipeline:artifactJSONTopLevelFields")
+        }
+        return fields
+    }
+
+    private static func bundleArtifactPath(
+        assessmentID: Identifier,
+        generationID: Identifier,
+        artifactID: Identifier
+    ) -> String {
+        ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/generations/\(generationID.rawValue)/artifacts/\(artifactID.rawValue).json"
     }
 
     private static func sha256Hex(_ data: Data) -> String {

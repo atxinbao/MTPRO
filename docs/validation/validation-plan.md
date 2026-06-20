@@ -5047,9 +5047,27 @@ swift test
 - V0130-003-NO-PRODUCTION-CUTOVER
 - focused verifier: `bash checks/verify-v0.13.0.sh`
 - focused test: `swift test --filter TargetGraphTests/testGH996ReleaseV0130ProvenanceBuildRejectsSyntheticAndFixtureEvidence`
-- CLI smoke: `swift run mtpro readiness build-v013 <assessmentID> <evidenceRoot>` creates a normal Manifest V2 only from #995 intake-derived sourceCommit, sourceRunIDs, artifact bytes and checksums
+- CLI smoke: `swift run mtpro readiness build-v013 <assessmentID> <evidenceRoot>` preserves #996 normal Manifest V2 provenance from #995 intake-derived sourceCommit, sourceRunIDs, artifact bytes and checksums
 - fail-closed evidence: placeholder sourceCommit, old `gh-963-source-run`, checksum-derived `source-run-*` synthetic run IDs and explicit fixture-only evidence all fail closed before manifest write
 - documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #996 normal manifest provenance replacement and fixture isolation boundary
 - implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` and `Sources/MTPROCLI/main.swift` expose `ReleaseV0130LocalEvidenceBuildProvenance` and `readiness build-v013 <assessmentID> <evidenceRoot>`
-- dependency evidence: #996 is blocked by #995; #997 through #1005 remain blocked until #996 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
-- forbidden scope: no readiness bundle write, no registry lifecycle advance, no diff / compare, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+- dependency evidence: #996 is blocked by #995; #996 is complete and #997 is the active next gate after WIP=1 preflight
+- forbidden scope: no diff / compare, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-997 Release v0.13.0 Build Pipeline Validation
+
+- GH-997-VERIFY-V0130-BUILD-PIPELINE
+- TVM-RELEASE-V0130-BUILD-PIPELINE
+- V0130-004-SCHEMA-CHECKSUM-POLICY-REGISTRY-FLOW
+- V0130-004-MANIFEST-BUNDLE-REGISTRY-WRITE
+- V0130-004-PROVENANCE-VALIDATION-REPORT
+- V0130-004-BUILD-FAILS-CLOSED
+- V0130-004-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH997ReleaseV0130BuildPipelineWritesManifestBundleRegistryAndPolicyReport`
+- CLI smoke: `swift run mtpro readiness build-v013 <assessmentID> <evidenceRoot>` validates #995 schema, preserves #996 provenance, validates artifact content policy, writes Manifest V2 and Bundle V2, confirms local registry entry and emits `validationReportChecksum`
+- fail-closed evidence: schema failure, artifact checksum mismatch, placeholder sourceCommit, synthetic sourceRunID, fixture-only evidence and raw endpoint markers all fail closed before accepting build output
+- documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #997 schema / checksum / policy / manifest / bundle / registry flow
+- implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` and `Sources/MTPROCLI/main.swift` expose `ReleaseV0130LocalEvidenceBuildPipelineResult` and the upgraded `readiness build-v013 <assessmentID> <evidenceRoot>` CLI
+- dependency evidence: #997 is blocked by #996; #998 through #1005 remain blocked until #997 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- forbidden scope: no diff / compare, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
