@@ -33792,7 +33792,7 @@ final class TargetGraphTests: XCTestCase {
             "compare-before-build",
             "export-before-validate",
             "synthetic readiness data",
-            "#995 至 #1005 必须继续被 #994 阻塞"
+            "#1002..#1005 继续 blocked"
         ] {
             XCTAssertTrue(contract.contains(requiredContractTerm), "\(requiredContractTerm) must be explicit in #994 contract")
         }
@@ -35041,6 +35041,167 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cli.contains("comparisonMetadataJSONPath="))
         XCTAssertTrue(source.contains("compareEvidenceLevelAssessments("))
         XCTAssertTrue(verifier.contains("testGH1000ReleaseV0130CompareBuildsEvidenceLevelDiffAndBlocksBrokenLinks"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.13.0.sh"))
+    }
+
+    func testGH1001ReleaseV0130TransactionRecoverySnapshotExplainsInterruptedAndStaleStaging() throws {
+        // 测试场景：GH-1001 为 v0.13 build / export / compare interrupted staging
+        // 写出本地 forensic snapshot。Partial writes 必须 fail-closed，不能被当成有效
+        // readiness assessment 输出；cleanup 也必须留下可审计 trace。
+        let fileManager = FileManager.default
+        let root = fileManager.temporaryDirectory.appendingPathComponent(
+            "mtpro-gh1001-transaction-recovery-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        defer { try? fileManager.removeItem(at: root) }
+
+        let store = ReadinessAssessmentRegistryStore(
+            storageRootURL: root.appendingPathComponent("store", isDirectory: true),
+            fileManager: fileManager
+        )
+        let model = ReleaseV0130LocalEvidenceIntakeModel(fileManager: fileManager)
+        let assessmentID = Identifier.constant("gh-1001-interrupted-assessment")
+        let transactionID = Identifier.constant("gh-1001-interrupted-tx")
+        let generationID = Identifier.constant("gh-1001-interrupted-generation")
+        let startedAt = Date(timeIntervalSince1970: 1_813_002_000)
+
+        let control = try store.stageAssessmentTransaction(
+            assessmentID: assessmentID,
+            transactionID: transactionID,
+            generationID: generationID,
+            expectedPreviousGenerationID: nil,
+            startedAt: startedAt
+        )
+        let recovery = try store.recoverInterruptedTransactions(
+            recoveredAt: startedAt.addingTimeInterval(120)
+        )
+        XCTAssertTrue(recovery.recoveryHeld)
+        XCTAssertTrue(
+            recovery.recoveredStagingDirectoryPaths.contains(
+                ".local/mtpro/readiness/staging/\(control.assessmentID.rawValue)/\(control.transactionID.rawValue)"
+            )
+        )
+
+        let intendedWrites = [
+            ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/metadata.json",
+            ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/readiness-bundle-v2.json",
+            ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/readiness-bundle-v2.manifest.json"
+        ]
+        let completedWrites = [
+            ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/metadata.json"
+        ]
+        let snapshot = try model.writeTransactionRecoverySnapshot(
+            assessmentID: assessmentID,
+            operation: .buildPipeline,
+            stagingState: .interrupted,
+            intendedWritePaths: intendedWrites,
+            completedWritePaths: completedWrites,
+            cleanupResult: .removedStagingArtifacts,
+            cleanupAuditPaths: recovery.recoveredStagingDirectoryPaths + recovery.recoveredAssessmentLockPaths,
+            failureReason: "operator observed interrupted readiness build after local staging cleanup",
+            staleStagingDetected: false,
+            store: store,
+            recordedAt: startedAt.addingTimeInterval(180)
+        )
+
+        XCTAssertTrue(snapshot.recoverySnapshotHeld)
+        XCTAssertEqual(snapshot.issueID.rawValue, "GH-1001")
+        XCTAssertEqual(snapshot.operation, .buildPipeline)
+        XCTAssertEqual(snapshot.stagingState, .interrupted)
+        XCTAssertEqual(snapshot.cleanupResult, .removedStagingArtifacts)
+        XCTAssertEqual(snapshot.intendedWritePaths, intendedWrites.sorted())
+        XCTAssertEqual(snapshot.completedWritePaths, completedWrites.sorted())
+        XCTAssertEqual(
+            snapshot.missingWritePaths,
+            Array(Set(intendedWrites).subtracting(Set(completedWrites))).sorted()
+        )
+        XCTAssertFalse(snapshot.staleStagingDetected)
+        XCTAssertTrue(snapshot.partialWritesRejectedAsAssessmentOutput)
+        XCTAssertTrue(snapshot.cleanupAuditTraceRecorded)
+        XCTAssertTrue(snapshot.localRegistryStoreOnly)
+        XCTAssertTrue(snapshot.redactedEvidenceOnly)
+        XCTAssertFalse(snapshot.productionTradingEnabledByDefault)
+        XCTAssertFalse(snapshot.productionSecretRead)
+        XCTAssertFalse(snapshot.productionEndpointConnected)
+        XCTAssertFalse(snapshot.brokerEndpointConnected)
+        XCTAssertFalse(snapshot.productionOrderSubmitted)
+        XCTAssertFalse(snapshot.testnetOrderSubmissionAllowed)
+        XCTAssertFalse(snapshot.productionCutoverAuthorized)
+
+        let snapshotURL = store.storageRootURL
+            .appendingPathComponent("assessments", isDirectory: true)
+            .appendingPathComponent(assessmentID.rawValue, isDirectory: true)
+            .appendingPathComponent("transaction-recovery-snapshot.json", isDirectory: false)
+        let snapshotJSON = try String(contentsOf: snapshotURL, encoding: .utf8)
+        XCTAssertTrue(snapshotJSON.contains("GH-1001"))
+        XCTAssertTrue(snapshotJSON.contains("interrupted"))
+        XCTAssertTrue(snapshotJSON.contains("operator observed interrupted readiness build"))
+        XCTAssertFalse(snapshotJSON.contains("productionTradingEnabledByDefault\" : true"))
+        XCTAssertFalse(snapshotJSON.contains("productionSecretRead\" : true"))
+        XCTAssertFalse(snapshotJSON.contains("productionOrderSubmitted\" : true"))
+
+        let staleAssessmentID = Identifier.constant("gh-1001-stale-assessment")
+        let staleSnapshot = try model.writeTransactionRecoverySnapshot(
+            assessmentID: staleAssessmentID,
+            operation: .evidenceLevelCompare,
+            stagingState: .stale,
+            intendedWritePaths: [
+                ".local/mtpro/readiness/assessments/\(staleAssessmentID.rawValue)/comparison-metadata.json"
+            ],
+            completedWritePaths: [],
+            cleanupResult: .noStagingArtifactsFound,
+            cleanupAuditPaths: [
+                ".local/mtpro/readiness/assessments/\(staleAssessmentID.rawValue)/transaction-recovery-snapshot.json"
+            ],
+            failureReason: "stale comparison staging detected before operator review",
+            staleStagingDetected: true,
+            store: store,
+            recordedAt: startedAt.addingTimeInterval(240)
+        )
+        XCTAssertTrue(staleSnapshot.recoverySnapshotHeld)
+        XCTAssertTrue(staleSnapshot.staleStagingDetected)
+        XCTAssertEqual(staleSnapshot.stagingState, .stale)
+        XCTAssertEqual(staleSnapshot.missingWritePaths.count, 1)
+        XCTAssertFalse(staleSnapshot.productionCutoverAuthorized)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift")
+        let verifier = try read("checks/verify-v0.13.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-1001-VERIFY-V0130-TRANSACTION-RECOVERY-SNAPSHOT",
+            "TVM-RELEASE-V0130-TRANSACTION-RECOVERY-SNAPSHOT",
+            "V0130-008-TRANSACTION-RECOVERY-SNAPSHOT",
+            "V0130-008-STAGING-STATE-INTENDED-COMPLETED-WRITES",
+            "V0130-008-CLEANUP-AUDIT-TRACE",
+            "V0130-008-PARTIAL-WRITES-FAIL-CLOSED",
+            "V0130-008-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(ReleaseV0130TransactionRecoverySnapshotAnchors.validationAnchors.contains(anchor))
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-1001 source")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.13 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.13 contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        XCTAssertTrue(source.contains("writeTransactionRecoverySnapshot("))
+        XCTAssertTrue(source.contains("transaction-recovery-snapshot.json"))
+        XCTAssertTrue(verifier.contains("testGH1001ReleaseV0130TransactionRecoverySnapshotExplainsInterruptedAndStaleStaging"))
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.13.0.sh"))
     }
 

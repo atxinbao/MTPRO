@@ -34,7 +34,7 @@ MTPRO 借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapte
 
 Production trading、production secret、production endpoint、production broker connection、testnet / production submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.12.0 授权。这里的“不授权 / 默认关闭”是当前阶段的 readiness gate，不是 MTPRO 的永久产品限制。MTPRO 的长期目标仍包含受控 Live trading；后续只能在 evidence-driven readiness、signed endpoint / credential、OMS、pre-trade / post-trade risk、kill switch、reconciliation、audit trail、operator runbook 和 Human approval 全部满足后，按唯一 live queue source 逐层启用。
 
-当前 live queue source 为 GitHub fallback `release/v0.13.0` issues `#994..#1005`。`#994` 已完成 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` contract gate；`#995` 已完成 local evidence intake model gate；`#996` 已完成 synthetic provenance rejection gate；`#997` 已完成 build pipeline gate；`#998` 已完成 evidence-chain validate gate；`#999` 已完成 redacted audit export package gate；`#1000` 是当前唯一 active evidence-level diff / compare gate；`#1001..#1005` 在 #1000 merged / checks success / closed done / main fast-forward 之前保持 blocked。
+当前 live queue source 为 GitHub fallback `release/v0.13.0` issues `#994..#1005`。`#994` 已完成 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` contract gate；`#995` 已完成 local evidence intake model gate；`#996` 已完成 synthetic provenance rejection gate；`#997` 已完成 build pipeline gate；`#998` 已完成 evidence-chain validate gate；`#999` 已完成 redacted audit export package gate；`#1000` 已完成 evidence-level diff / compare gate；`#1001` 是当前唯一 active transaction recovery forensic snapshot gate；`#1002..#1005` 在 #1001 merged / checks success / closed done / main fast-forward 之前保持 blocked。
 
 ## 必读入口
 

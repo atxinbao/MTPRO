@@ -5051,7 +5051,7 @@ swift test
 - fail-closed evidence: placeholder sourceCommit, old `gh-963-source-run`, checksum-derived `source-run-*` synthetic run IDs and explicit fixture-only evidence all fail closed before manifest write
 - documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #996 normal manifest provenance replacement and fixture isolation boundary
 - implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` and `Sources/MTPROCLI/main.swift` expose `ReleaseV0130LocalEvidenceBuildProvenance` and `readiness build-v013 <assessmentID> <evidenceRoot>`
-- dependency evidence: #996 is blocked by #995; #996, #997, #998 and #999 are complete, and #1000 is the active evidence-level diff / compare gate after WIP=1 preflight
+- dependency evidence: #996 is blocked by #995; #996, #997, #998, #999 and #1000 are complete, and #1001 is the active transaction recovery forensic snapshot gate after WIP=1 preflight
 - forbidden scope: no diff / compare, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
 
 ## GH-997 Release v0.13.0 Build Pipeline Validation
@@ -5125,5 +5125,24 @@ swift test
 - export validation evidence: comparison writes local `comparison-metadata.json`, updates export `comparison.json` when a redacted export directory exists, and preserves `exportComparisonIdentityConsistent=true` after compare
 - documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #1000 evidence-level diff / compare behavior and broken evidence link blockers
 - implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` exposes `ReleaseV0130EvidenceLevelComparisonReport` and `compareEvidenceLevelAssessments`; `Sources/MTPROCLI/main.swift` exposes evidence-level compare output fields
-- dependency evidence: #1000 is blocked by #999; #1001 through #1005 remain blocked until #1000 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- dependency evidence: #1000 is blocked by #999 and is complete; #1001 is the active transaction recovery forensic snapshot gate after fresh WIP=1 preflight
 - forbidden scope: no CLI lifecycle ordering, no transaction recovery snapshot, no generation collision-proofing, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-1001 Release v0.13.0 Transaction Recovery Forensic Snapshot Validation
+
+- GH-1001-VERIFY-V0130-TRANSACTION-RECOVERY-SNAPSHOT
+- TVM-RELEASE-V0130-TRANSACTION-RECOVERY-SNAPSHOT
+- V0130-008-TRANSACTION-RECOVERY-SNAPSHOT
+- V0130-008-STAGING-STATE-INTENDED-COMPLETED-WRITES
+- V0130-008-CLEANUP-AUDIT-TRACE
+- V0130-008-PARTIAL-WRITES-FAIL-CLOSED
+- V0130-008-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1001ReleaseV0130TransactionRecoverySnapshotExplainsInterruptedAndStaleStaging`
+- validation surface: snapshot records operation, staging state, intended writes / completed writes / missing writes, cleanup result, cleanup audit trace, stale staging flag, failure reason and stable checksum
+- fail-closed evidence: interrupted or stale staging must remain forensic sidecar evidence; partial writes cannot be treated as valid assessment output
+- cleanup evidence: staging cleanup leaves local audit trace and writes `transaction-recovery-snapshot.json` under the assessment directory
+- documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #1001 transaction recovery forensic snapshot behavior and partial writes fail-closed boundary
+- implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` exposes `ReleaseV0130TransactionRecoveryForensicSnapshot` and `writeTransactionRecoverySnapshot`
+- dependency evidence: #1001 is blocked by #1000; #1002 through #1005 remain blocked until #1001 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- forbidden scope: no CLI lifecycle ordering, no generation collision-proofing, no fixture suite, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
