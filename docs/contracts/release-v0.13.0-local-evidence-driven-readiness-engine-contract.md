@@ -105,11 +105,25 @@
 
 `V0130-007-NO-PRODUCTION-CUTOVER`
 
+`GH-1001-VERIFY-V0130-TRANSACTION-RECOVERY-SNAPSHOT`
+
+`TVM-RELEASE-V0130-TRANSACTION-RECOVERY-SNAPSHOT`
+
+`V0130-008-TRANSACTION-RECOVERY-SNAPSHOT`
+
+`V0130-008-STAGING-STATE-INTENDED-COMPLETED-WRITES`
+
+`V0130-008-CLEANUP-AUDIT-TRACE`
+
+`V0130-008-PARTIAL-WRITES-FAIL-CLOSED`
+
+`V0130-008-NO-PRODUCTION-CUTOVER`
+
 ## Contract Scope
 
 `v0.13.0` 定义 local evidence-driven readiness engine / 本地证据驱动就绪引擎。它承接 v0.12.0 readiness assessment sessions 和 v0.12.1 provenance hardening patch 的已完成事实，把 readiness assessment 从“可生成本地 assessment evidence”推进为“只能从真实本地 evidence root intake、校验、打包、登记、比较和导出”的 engine contract。
 
-本 contract 是 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。它只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；不实现 #995 之后的 evidence intake、build pipeline、validate、diff、CLI lifecycle 或 fixtures。#995 至 #1005 必须继续被 #994 阻塞，直到本 contract PR merged、required checks success、#994 closed / done、本地 `main == origin/main` 且 worktree clean。当前执行事实：#994、#995、#996、#997、#998 和 #999 已完成；#1000 在 fresh WIP=1 preflight 后作为唯一 active evidence-level diff / compare gate 执行。
+本 contract 起始于 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。#994 只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；后续 issue 按 WIP=1 逐项完成。当前执行事实：#994、#995、#996、#997、#998、#999 和 #1000 已完成；#1001 在 fresh WIP=1 preflight 后作为唯一 active transaction recovery forensic snapshot gate 执行；#1002..#1005 继续 blocked，直到 #1001 PR merged、required checks success、issue closed / done、本地 `main == origin/main` 且 worktree clean。
 
 ## Inputs
 
@@ -237,6 +251,33 @@ CLI 输出必须包含 `comparisonFormat=evidence-level-readiness-diff`、`compa
 
 #1000 不创建 CLI lifecycle ordering、不创建 transaction recovery snapshot、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace。
 
+## #1001 Transaction Recovery Forensic Snapshot
+
+Anchors:
+
+- `GH-1001-VERIFY-V0130-TRANSACTION-RECOVERY-SNAPSHOT`
+- `TVM-RELEASE-V0130-TRANSACTION-RECOVERY-SNAPSHOT`
+- `V0130-008-TRANSACTION-RECOVERY-SNAPSHOT`
+- `V0130-008-STAGING-STATE-INTENDED-COMPLETED-WRITES`
+- `V0130-008-CLEANUP-AUDIT-TRACE`
+- `V0130-008-PARTIAL-WRITES-FAIL-CLOSED`
+- `V0130-008-NO-PRODUCTION-CUTOVER`
+
+#1001 在 #1000 evidence-level diff / compare gate 完成后，新增 transaction recovery forensic snapshot。该 snapshot 只用于解释 interrupted / stale local readiness staging，不补写 Manifest V2、Bundle V2、registry entry、redacted export 或 comparison metadata。
+
+Snapshot 必须记录：
+
+- `operation`：被中断的本地 readiness 操作，如 build pipeline、redacted export 或 evidence-level compare。
+- `stagingState`：interrupted / stale / cleaned 等本地 staging 状态。
+- intended writes / completed writes / missing writes：让 operator 能区分计划写入、已经写入和缺失写入。
+- cleanup result 和 cleanup audit trace：staging cleanup 必须留下本地可审计路径，而不是只删除现场。
+- failure reason：必须解释中断原因或 stale 判断来源。
+- production-disabled flags：production trading、production secret read、production endpoint / broker endpoint connection、testnet / production order submission 和 production cutover authorization 必须保持 false。
+
+partial writes 不能被当作有效 assessment output。只要 intended writes 和 completed writes 不一致，snapshot 必须保留 missing writes，并把该状态视为 forensic / fail-closed evidence，而不是 normal build / export / compare 成功。Stale staging 也必须显式标记，不能被解释成可继续复用的 source evidence。
+
+#1001 不新增 CLI lifecycle ordering、不创建 generation collision-proofing、不创建 fixture suite、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace。
+
 Build pipeline 的固定顺序为：
 
 1. `schemaValidated=true`：run logs / event stream / artifacts / registry / prior assessments 必须通过 #995 schema gate。
@@ -309,7 +350,7 @@ CLI 或 automation 不得允许 compare-before-build、export-before-validate、
 | #998 | full evidence-chain consistency validate | blocked by #997 |
 | #999 | redacted audit export package | blocked by #998 |
 | #1000 | evidence-level diff / compare | blocked by #999 |
-| #1001 | transaction recovery forensic snapshot | blocked by #997 |
+| #1001 | transaction recovery forensic snapshot | blocked by #1000 |
 | #1002 | generation ID collision-proofing | blocked by #997 |
 | #1003 | ordered CLI execution lifecycle | blocked by #998, #999, #1000, #1001, #1002 |
 | #1004 | local evidence fixtures and regression suite | blocked by #1003 |
@@ -341,7 +382,7 @@ Fail-closed output must be actionable local diagnostic evidence. It must not sil
 
 ## Non-goals
 
-- 不实现 #1000 之后的 CLI lifecycle、transaction recovery snapshot、generation collision-proofing、fixture suite 或 stage audit。
+- 不实现 #1001 之后的 CLI lifecycle、generation collision-proofing、fixture suite 或 stage audit。
 - 不新增 runtime pipeline。
 - 不发布 v0.13.0 tag 或 GitHub Release。
 - 不移动、不覆盖、不重写 v0.12.0 tag / GitHub Release。

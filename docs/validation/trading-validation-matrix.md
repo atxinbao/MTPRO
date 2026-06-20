@@ -3119,7 +3119,7 @@
 - validation surface: #996 consumes #995 local evidence root and derives normal manifest sourceCommit, sourceRunIDs, artifact bytes and artifact checksums from real local files
 - CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` preserves Manifest V2 provenance only after source provenance is local, traceable and non-synthetic
 - fail-closed evidence: placeholder sourceCommit, `gh-963-source-run`, `source-run-*` synthetic run IDs, missing artifact file, artifact metadata mismatch and fixture-only evidence are rejected
-- dependency evidence: #996, #997, #998 and #999 are complete; #1000 is the active evidence-level diff / compare gate after fresh WIP=1 preflight
+- dependency evidence: #996, #997, #998, #999 and #1000 are complete; #1001 is the active transaction recovery forensic snapshot gate after fresh WIP=1 preflight
 - forbidden scope: no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
 
 ## TVM-RELEASE-V0130-BUILD-PIPELINE
@@ -3136,7 +3136,7 @@
 - validation surface: #997 consumes #995 local evidence root and #996 provenance, then validates schema, raw artifact checksum, content policy, Manifest V2, Bundle V2 and local registry entry consistency
 - CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` emits `validationReportChecksum`, writes Manifest V2, writes Bundle V2 and confirms the local registry entry
 - fail-closed evidence: schema failure, checksum mismatch, placeholder sourceCommit, synthetic sourceRunID, fixture-only evidence and raw endpoint marker evidence are rejected
-- dependency evidence: #997, #998 and #999 are complete; #1000 is the active evidence-level diff / compare gate after WIP=1 preflight
+- dependency evidence: #997, #998, #999 and #1000 are complete; #1001 is the active transaction recovery forensic snapshot gate after WIP=1 preflight
 - forbidden scope: no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
 
 ## TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE
@@ -3188,5 +3188,22 @@
 - CLI surface: `mtpro readiness compare <baselineAssessmentID> <followUpAssessmentID>` emits `comparisonFormat=evidence-level-readiness-diff`, `comparisonState`, `comparedSections`, `changedSections`, `unchangedSections`, `blockedSections`, `blockers`, `reportChecksum` and `comparisonMetadataJSONPath`
 - fail-closed evidence: broken evidence links, missing bundle bytes, tampered artifact snapshots or stale follow-up inputs produce `comparisonState=blocked` and section-level blockers instead of a normal changed diff
 - export validation evidence: comparison metadata remains local, binds baseline and follow-up assessment identity, and keeps `exportComparisonIdentityConsistent=true` after compare
-- dependency evidence: #1000 is blocked by #999; #1001 through #1005 remain blocked by #1000 until this evidence-level diff PR is merged and #1000 is closed / done
-- forbidden scope: no CLI lifecycle ordering, no transaction recovery snapshot, no generation collision-proofing, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+- dependency evidence: #1000 is complete; #1001 is the next WIP=1 transaction recovery forensic snapshot gate after fresh preflight
+- forbidden scope: no CLI lifecycle ordering, no generation collision-proofing, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0130-TRANSACTION-RECOVERY-SNAPSHOT
+
+- GH-1001-VERIFY-V0130-TRANSACTION-RECOVERY-SNAPSHOT
+- V0130-008-TRANSACTION-RECOVERY-SNAPSHOT
+- V0130-008-STAGING-STATE-INTENDED-COMPLETED-WRITES
+- V0130-008-CLEANUP-AUDIT-TRACE
+- V0130-008-PARTIAL-WRITES-FAIL-CLOSED
+- V0130-008-NO-PRODUCTION-CUTOVER
+- GH-1001 Release v0.13.0 Transaction Recovery Forensic Snapshot Validation
+- testGH1001ReleaseV0130TransactionRecoverySnapshotExplainsInterruptedAndStaleStaging
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: #1001 writes local `transaction-recovery-snapshot.json` evidence with operation, staging state, intended writes, completed writes, missing writes, cleanup result, cleanup audit trace, stale staging flag and failure reason
+- fail-closed evidence: interrupted or stale staging remains forensic evidence; partial writes are not promoted into a normal readiness assessment output
+- cleanup evidence: staging cleanup leaves explicit local audit paths so post-failure diagnosis does not rely on guessing
+- dependency evidence: #1001 is blocked by #1000; #1002 through #1005 remain blocked by #1001 until this PR is merged and #1001 is closed / done
+- forbidden scope: no CLI lifecycle ordering, no generation collision-proofing, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

@@ -105,6 +105,23 @@ public enum ReleaseV0130EvidenceLevelDiffAnchors {
     ]
 }
 
+/// ReleaseV0130TransactionRecoverySnapshotAnchors 固定 GH-1001 的 transaction recovery forensic snapshot 锚点。
+///
+/// 这些锚点只证明 interrupted / stale staging 可以被记录为本地 forensic evidence；
+/// snapshot 不会把 partial writes 当作有效 assessment 输出，也不会授权 production cutover、
+/// secret read、endpoint / broker connection 或任何订单命令。
+public enum ReleaseV0130TransactionRecoverySnapshotAnchors {
+    public static let validationAnchors = [
+        "GH-1001-VERIFY-V0130-TRANSACTION-RECOVERY-SNAPSHOT",
+        "TVM-RELEASE-V0130-TRANSACTION-RECOVERY-SNAPSHOT",
+        "V0130-008-TRANSACTION-RECOVERY-SNAPSHOT",
+        "V0130-008-STAGING-STATE-INTENDED-COMPLETED-WRITES",
+        "V0130-008-CLEANUP-AUDIT-TRACE",
+        "V0130-008-PARTIAL-WRITES-FAIL-CLOSED",
+        "V0130-008-NO-PRODUCTION-CUTOVER"
+    ]
+}
+
 /// v0.13.0 evidence-level compare 固定的审计维度。
 public enum ReleaseV0130EvidenceLevelDiffSection: String, Codable, CaseIterable, Equatable, Sendable {
     case sourceData = "source-data"
@@ -120,6 +137,27 @@ public enum ReleaseV0130EvidenceLevelDiffState: String, Codable, CaseIterable, E
     case unchanged
     case changed
     case blocker
+}
+
+/// v0.13 transaction recovery snapshot 记录的是哪个本地 readiness 操作被中断。
+public enum ReleaseV0130TransactionRecoveryOperation: String, Codable, CaseIterable, Equatable, Sendable {
+    case buildPipeline = "build-pipeline"
+    case redactedExport = "redacted-export"
+    case evidenceLevelCompare = "evidence-level-compare"
+}
+
+/// v0.13 transaction recovery snapshot 固定 staging 的可审计状态。
+public enum ReleaseV0130TransactionRecoveryStagingState: String, Codable, CaseIterable, Equatable, Sendable {
+    case interrupted
+    case stale
+    case cleaned
+}
+
+/// v0.13 transaction recovery snapshot 固定 cleanup 结果。
+public enum ReleaseV0130TransactionRecoveryCleanupResult: String, Codable, CaseIterable, Equatable, Sendable {
+    case removedStagingArtifacts = "removed-staging-artifacts"
+    case noStagingArtifactsFound = "no-staging-artifacts-found"
+    case cleanupFailedClosed = "cleanup-failed-closed"
 }
 
 /// ReleaseV0130EvidenceLevelDiff 记录某个审计维度的 baseline / follow-up 指纹。
@@ -164,6 +202,220 @@ public struct ReleaseV0130EvidenceLevelDiff: Codable, Equatable, Sendable {
         self.followUpFingerprint = followUpFingerprint
         self.evidenceLinkReasons = evidenceLinkReasons.sorted()
         self.blockerReasons = blockerReasons.sorted()
+    }
+}
+
+/// ReleaseV0130TransactionRecoveryForensicSnapshot 是 GH-1001 的本地 forensic sidecar。
+///
+/// Snapshot 记录 intended writes、completed writes、missing writes、staging state、cleanup
+/// audit trace 和失败原因。它只用于解释 interrupted / stale readiness write，不会创建
+/// registry entry、不会补写 manifest / bundle，也不会打开任何 trading 或 broker 能力。
+public struct ReleaseV0130TransactionRecoveryForensicSnapshot: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let assessmentID: Identifier
+    public let operation: ReleaseV0130TransactionRecoveryOperation
+    public let stagingState: ReleaseV0130TransactionRecoveryStagingState
+    public let intendedWritePaths: [String]
+    public let completedWritePaths: [String]
+    public let missingWritePaths: [String]
+    public let cleanupResult: ReleaseV0130TransactionRecoveryCleanupResult
+    public let cleanupAuditPaths: [String]
+    public let failureReason: String
+    public let recordedAt: Date
+    public let staleStagingDetected: Bool
+    public let snapshotJSONPath: String
+    public let snapshotChecksum: String
+    public let partialWritesRejectedAsAssessmentOutput: Bool
+    public let cleanupAuditTraceRecorded: Bool
+    public let localRegistryStoreOnly: Bool
+    public let redactedEvidenceOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let testnetOrderSubmissionAllowed: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var recoverySnapshotHeld: Bool {
+        issueID.rawValue == "GH-1001"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-997", "GH-998", "GH-999", "GH-1000"]
+            && releaseVersion == "v0.13.0"
+            && intendedWritePaths.isEmpty == false
+            && Set(completedWritePaths).isSubset(of: Set(intendedWritePaths))
+            && missingWritePaths == Array(Set(intendedWritePaths).subtracting(Set(completedWritePaths))).sorted()
+            && (missingWritePaths.isEmpty == false || staleStagingDetected)
+            && failureReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+            && snapshotJSONPath == ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/transaction-recovery-snapshot.json"
+            && snapshotChecksum == Self.stableSnapshotChecksum(
+                assessmentID: assessmentID,
+                operation: operation,
+                stagingState: stagingState,
+                intendedWritePaths: intendedWritePaths,
+                completedWritePaths: completedWritePaths,
+                missingWritePaths: missingWritePaths,
+                cleanupResult: cleanupResult,
+                cleanupAuditPaths: cleanupAuditPaths,
+                failureReason: failureReason,
+                recordedAt: recordedAt,
+                staleStagingDetected: staleStagingDetected
+            )
+            && partialWritesRejectedAsAssessmentOutput
+            && cleanupAuditTraceRecorded
+            && localRegistryStoreOnly
+            && redactedEvidenceOnly
+            && productionCapabilitiesDisabled
+    }
+
+    public var productionCapabilitiesDisabled: Bool {
+        productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && testnetOrderSubmissionAllowed == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-1001"),
+        upstreamIssueIDs: [Identifier] = [
+            Identifier.constant("GH-997"),
+            Identifier.constant("GH-998"),
+            Identifier.constant("GH-999"),
+            Identifier.constant("GH-1000")
+        ],
+        releaseVersion: String = "v0.13.0",
+        assessmentID: Identifier,
+        operation: ReleaseV0130TransactionRecoveryOperation,
+        stagingState: ReleaseV0130TransactionRecoveryStagingState,
+        intendedWritePaths: [String],
+        completedWritePaths: [String],
+        cleanupResult: ReleaseV0130TransactionRecoveryCleanupResult,
+        cleanupAuditPaths: [String],
+        failureReason: String,
+        recordedAt: Date,
+        staleStagingDetected: Bool,
+        partialWritesRejectedAsAssessmentOutput: Bool = true,
+        cleanupAuditTraceRecorded: Bool = true,
+        localRegistryStoreOnly: Bool = true,
+        redactedEvidenceOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        testnetOrderSubmissionAllowed: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(assessmentID)
+        let intendedWritePaths = try Self.normalizedRecoveryPaths(intendedWritePaths)
+        let completedWritePaths = try Self.normalizedRecoveryPaths(completedWritePaths)
+        let cleanupAuditPaths = try Self.normalizedRecoveryPaths(cleanupAuditPaths)
+        guard Set(completedWritePaths).isSubset(of: Set(intendedWritePaths)) else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "transactionRecoverySnapshot:completedWritesOutsideIntendedWrites"
+            )
+        }
+        let missingWritePaths = Array(Set(intendedWritePaths).subtracting(Set(completedWritePaths))).sorted()
+
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.assessmentID = assessmentID
+        self.operation = operation
+        self.stagingState = stagingState
+        self.intendedWritePaths = intendedWritePaths
+        self.completedWritePaths = completedWritePaths
+        self.missingWritePaths = missingWritePaths
+        self.cleanupResult = cleanupResult
+        self.cleanupAuditPaths = cleanupAuditPaths
+        self.failureReason = failureReason
+        self.recordedAt = recordedAt
+        self.staleStagingDetected = staleStagingDetected
+        self.snapshotJSONPath = ".local/mtpro/readiness/assessments/\(assessmentID.rawValue)/transaction-recovery-snapshot.json"
+        self.snapshotChecksum = Self.stableSnapshotChecksum(
+            assessmentID: assessmentID,
+            operation: operation,
+            stagingState: stagingState,
+            intendedWritePaths: intendedWritePaths,
+            completedWritePaths: completedWritePaths,
+            missingWritePaths: missingWritePaths,
+            cleanupResult: cleanupResult,
+            cleanupAuditPaths: cleanupAuditPaths,
+            failureReason: failureReason,
+            recordedAt: recordedAt,
+            staleStagingDetected: staleStagingDetected
+        )
+        self.partialWritesRejectedAsAssessmentOutput = partialWritesRejectedAsAssessmentOutput
+        self.cleanupAuditTraceRecorded = cleanupAuditTraceRecorded
+        self.localRegistryStoreOnly = localRegistryStoreOnly
+        self.redactedEvidenceOnly = redactedEvidenceOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.testnetOrderSubmissionAllowed = testnetOrderSubmissionAllowed
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard recoverySnapshotHeld else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "transactionRecoverySnapshotHeld=false"
+            )
+        }
+    }
+
+    public static func stableSnapshotChecksum(
+        assessmentID: Identifier,
+        operation: ReleaseV0130TransactionRecoveryOperation,
+        stagingState: ReleaseV0130TransactionRecoveryStagingState,
+        intendedWritePaths: [String],
+        completedWritePaths: [String],
+        missingWritePaths: [String],
+        cleanupResult: ReleaseV0130TransactionRecoveryCleanupResult,
+        cleanupAuditPaths: [String],
+        failureReason: String,
+        recordedAt: Date,
+        staleStagingDetected: Bool
+    ) -> String {
+        let parts = [
+            "GH-1001",
+            "v0.13.0",
+            assessmentID.rawValue,
+            operation.rawValue,
+            stagingState.rawValue,
+            intendedWritePaths.sorted().joined(separator: ","),
+            completedWritePaths.sorted().joined(separator: ","),
+            missingWritePaths.sorted().joined(separator: ","),
+            cleanupResult.rawValue,
+            cleanupAuditPaths.sorted().joined(separator: ","),
+            failureReason,
+            ISO8601DateFormatter().string(from: recordedAt),
+            staleStagingDetected ? "stale" : "not-stale"
+        ]
+        let digest = SHA256.hash(data: Data(parts.joined(separator: "|").utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+
+    private static func normalizedRecoveryPaths(_ paths: [String]) throws -> [String] {
+        try paths.map { path in
+            let trimmed = path.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard trimmed.isEmpty == false,
+                  trimmed.hasPrefix("/") == false,
+                  trimmed.hasPrefix("~") == false,
+                  trimmed.contains("..") == false,
+                  trimmed.contains("\\") == false else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                    "transactionRecoverySnapshot:unsafePath:\(path)"
+                )
+            }
+            return trimmed
+        }.sorted()
     }
 }
 
@@ -2261,6 +2513,65 @@ public struct ReleaseV0130LocalEvidenceIntakeModel {
         }
 
         return report
+    }
+
+    /// 写出 GH-1001 transaction recovery forensic snapshot。
+    ///
+    /// 该入口只把 interrupted / stale staging 的 intended writes、completed writes、
+    /// missing writes、cleanup result 和失败原因记录为 assessment sidecar JSON。它不会
+    /// 修复或补写 manifest / bundle / registry，也不会把 partial writes 伪装成有效
+    /// readiness assessment 输出。
+    @discardableResult
+    public func writeTransactionRecoverySnapshot(
+        assessmentID: Identifier,
+        operation: ReleaseV0130TransactionRecoveryOperation,
+        stagingState: ReleaseV0130TransactionRecoveryStagingState,
+        intendedWritePaths: [String],
+        completedWritePaths: [String],
+        cleanupResult: ReleaseV0130TransactionRecoveryCleanupResult,
+        cleanupAuditPaths: [String],
+        failureReason: String,
+        staleStagingDetected: Bool,
+        store: ReadinessAssessmentRegistryStore,
+        recordedAt: Date
+    ) throws -> ReleaseV0130TransactionRecoveryForensicSnapshot {
+        let registryBefore = try? store.load()
+        let snapshot = try ReleaseV0130TransactionRecoveryForensicSnapshot(
+            assessmentID: assessmentID,
+            operation: operation,
+            stagingState: stagingState,
+            intendedWritePaths: intendedWritePaths,
+            completedWritePaths: completedWritePaths,
+            cleanupResult: cleanupResult,
+            cleanupAuditPaths: cleanupAuditPaths,
+            failureReason: failureReason,
+            recordedAt: recordedAt,
+            staleStagingDetected: staleStagingDetected
+        )
+        guard snapshot.recoverySnapshotHeld else {
+            throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                "transactionRecoverySnapshot:held=false"
+            )
+        }
+
+        let data = try Self.exportEncoder.encode(snapshot)
+        try Self.writeStoreData(
+            data,
+            relativePath: snapshot.snapshotJSONPath,
+            store: store,
+            isDirectory: false
+        )
+
+        if let registryBefore {
+            let registryAfter = try store.load()
+            guard registryAfter == registryBefore else {
+                throw ReleaseV0130LocalEvidenceProvenanceError.boundaryDrift(
+                    "transactionRecoverySnapshot:registryMutated"
+                )
+            }
+        }
+
+        return snapshot
     }
 
     /// 执行 GH-998 的完整 evidence-chain consistency check。

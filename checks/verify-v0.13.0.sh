@@ -105,6 +105,7 @@ swift test --filter TargetGraphTests/testGH997ReleaseV0130BuildPipelineWritesMan
 swift test --filter TargetGraphTests/testGH998ReleaseV0130ValidateRejectsBrokenEvidenceChain
 swift test --filter TargetGraphTests/testGH999ReleaseV0130ExportWritesCompleteRedactedAuditPackage
 swift test --filter TargetGraphTests/testGH1000ReleaseV0130CompareBuildsEvidenceLevelDiffAndBlocksBrokenLinks
+swift test --filter TargetGraphTests/testGH1001ReleaseV0130TransactionRecoverySnapshotExplainsInterruptedAndStaleStaging
 
 for anchor in \
   "GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT" \
@@ -239,6 +240,24 @@ for anchor in \
   require_file_contains "$TESTS" "$anchor"
 done
 
+for anchor in \
+  "GH-1001-VERIFY-V0130-TRANSACTION-RECOVERY-SNAPSHOT" \
+  "TVM-RELEASE-V0130-TRANSACTION-RECOVERY-SNAPSHOT" \
+  "V0130-008-TRANSACTION-RECOVERY-SNAPSHOT" \
+  "V0130-008-STAGING-STATE-INTENDED-COMPLETED-WRITES" \
+  "V0130-008-CLEANUP-AUDIT-TRACE" \
+  "V0130-008-PARTIAL-WRITES-FAIL-CLOSED" \
+  "V0130-008-NO-PRODUCTION-CUTOVER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
 require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.13.0.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.13.0.sh"
 require_file_contains "$READINESS" "Release v0.13.0 local evidence-driven readiness engine contract anchor"
@@ -248,6 +267,7 @@ require_file_contains "$READINESS" "Release v0.13.0 build pipeline anchor"
 require_file_contains "$READINESS" "Release v0.13.0 evidence-chain validate anchor"
 require_file_contains "$READINESS" "Release v0.13.0 redacted audit export package anchor"
 require_file_contains "$READINESS" "Release v0.13.0 evidence-level diff anchor"
+require_file_contains "$READINESS" "Release v0.13.0 transaction recovery forensic snapshot anchor"
 require_file_contains "$PLAN" "GH-994 Release v0.13.0 Local Evidence-driven Readiness Engine Contract Validation"
 require_file_contains "$PLAN" "GH-995 Release v0.13.0 Local Evidence Intake Model Validation"
 require_file_contains "$PLAN" "GH-996 Release v0.13.0 Synthetic Provenance Rejection Validation"
@@ -255,6 +275,7 @@ require_file_contains "$PLAN" "GH-997 Release v0.13.0 Build Pipeline Validation"
 require_file_contains "$PLAN" "GH-998 Release v0.13.0 Evidence-chain Validate Validation"
 require_file_contains "$PLAN" "GH-999 Release v0.13.0 Redacted Audit Export Package Validation"
 require_file_contains "$PLAN" "GH-1000 Release v0.13.0 Evidence-level Diff Validation"
+require_file_contains "$PLAN" "GH-1001 Release v0.13.0 Transaction Recovery Forensic Snapshot Validation"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-INTAKE-MODEL"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION"
@@ -262,6 +283,7 @@ require_file_contains "$MATRIX" "TVM-RELEASE-V0130-BUILD-PIPELINE"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0130-TRANSACTION-RECOVERY-SNAPSHOT"
 require_file_contains "$LATEST" "v0.13.0 local evidence-driven readiness engine contract"
 require_file_contains "$LATEST" "v0.13.0 local evidence intake model"
 require_file_contains "$LATEST" "v0.13.0 synthetic provenance rejection"
@@ -269,6 +291,7 @@ require_file_contains "$LATEST" "v0.13.0 build pipeline"
 require_file_contains "$LATEST" "v0.13.0 evidence-chain validate"
 require_file_contains "$LATEST" "v0.13.0 redacted audit export package"
 require_file_contains "$LATEST" "v0.13.0 evidence-level diff"
+require_file_contains "$LATEST" "v0.13.0 transaction recovery forensic snapshot"
 require_file_contains "$ROADMAP" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
 require_file_contains "$GOAL" "release/v0.13.0"
 require_file_contains "$BLUEPRINT" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
@@ -290,6 +313,9 @@ require_file_contains "$SOURCE" "ReleaseV0130RedactedAuditExportPackageReport"
 require_file_contains "$SOURCE" "writeRedactedAuditExportPackage("
 require_file_contains "$SOURCE" "ReleaseV0130EvidenceLevelComparisonReport"
 require_file_contains "$SOURCE" "compareEvidenceLevelAssessments("
+require_file_contains "$SOURCE" "ReleaseV0130TransactionRecoveryForensicSnapshot"
+require_file_contains "$SOURCE" "writeTransactionRecoverySnapshot("
+require_file_contains "$SOURCE" "transaction-recovery-snapshot.json"
 require_file_contains "$SOURCE" "syntheticSourceRunID"
 require_file_contains "$SOURCE" "fixtureOnlyEvidence"
 require_file_contains "$CLI_SOURCE" "readiness intake <evidenceRoot>"
@@ -320,7 +346,7 @@ for required_contract_string in \
   "compare-before-build" \
   "export-before-validate" \
   "synthetic readiness data" \
-  "#995 至 #1005 必须继续被 #994 阻塞"; do
+  "#1002..#1005 继续 blocked"; do
   require_file_contains "$CONTRACT" "$required_contract_string"
 done
 
