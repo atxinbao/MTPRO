@@ -5146,3 +5146,21 @@ swift test
 - implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` exposes `ReleaseV0130TransactionRecoveryForensicSnapshot` and `writeTransactionRecoverySnapshot`
 - dependency evidence: #1001 is blocked by #1000; #1002 through #1005 remain blocked until #1001 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
 - forbidden scope: no CLI lifecycle ordering, no generation collision-proofing, no fixture suite, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-1002 Release v0.13.0 Generation ID Collision-proofing Validation
+
+- GH-1002-VERIFY-V0130-GENERATION-ID-COLLISION-PROOFING
+- TVM-RELEASE-V0130-GENERATION-ID-COLLISION-PROOFING
+- V0130-009-GENERATION-ID-COLLISION-PROOFING
+- V0130-009-SAME-SECOND-GENERATION-IDS
+- V0130-009-REGISTRY-LOOKUP-STABILITY
+- V0130-009-AUDITABLE-DETERMINISTIC-PREFIX
+- V0130-009-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1002ReleaseV0130GenerationIDCollisionProofingKeepsRegistryLookupStable`
+- validation surface: `ReleaseV0130GenerationIDFactory.makeGenerationID(...)` creates safe local generation IDs with assessmentID / scope / epoch prefix plus collision-resistant deterministic suffix
+- same-second regression evidence: two generations for the same assessment and same epoch must not collide, while explicit entropy replay remains deterministic
+- registry evidence: readiness registry lookup remains stable by assessmentID and entry checksum while latest Manifest V2 can advance to the second generationID
+- CLI evidence: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` and `mtpro readiness build <assessmentID>` must use the factory instead of second-level `-generation-\(Int(now.timeIntervalSince1970))`
+- dependency evidence: #1002 is blocked by #997 and starts only after #1001 closeout preflight; #1003 through #1005 remain blocked until #1002 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- forbidden scope: no ordered CLI lifecycle, no fixture suite, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order

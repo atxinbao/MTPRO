@@ -2079,8 +2079,14 @@ private struct ReleaseV0130LocalEvidenceProvenanceBuildCLI {
     func output() throws -> String {
         let now = Date(timeIntervalSince1970: floor(Date().timeIntervalSince1970))
         let evidenceRootURL = URL(fileURLWithPath: evidenceRootPath, isDirectory: true)
-        let generationID = Identifier.constant(
-            "\(assessmentID.rawValue)-v0130-generation-\(Int(now.timeIntervalSince1970))"
+        let generationID = try ReleaseV0130GenerationIDFactory.makeGenerationID(
+            assessmentID: assessmentID,
+            scope: "v0130-generation",
+            createdAt: now,
+            stableComponents: [
+                evidenceRootURL.standardizedFileURL.path,
+                Self.producerVersion
+            ]
         )
         let result = try model.buildPipeline(
             assessmentID: assessmentID,
@@ -2294,8 +2300,17 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
     private func buildOutput() throws -> String {
         let entry = try requiredEntry()
         let now = Self.canonicalNow()
-        let generationID = Identifier.constant("\(entry.assessmentID.rawValue)-generation-\(Int(now.timeIntervalSince1970))")
         let sourceCommit = try sourceCommitResolver()
+        let generationID = try ReleaseV0130GenerationIDFactory.makeGenerationID(
+            assessmentID: entry.assessmentID,
+            scope: "generation",
+            createdAt: now,
+            stableComponents: [
+                sourceCommit,
+                entry.entryChecksum,
+                Self.producerVersion
+            ]
+        )
         let localEvidenceArtifact = try writeLocalEvidenceArtifact(
             entry: entry,
             generationID: generationID,

@@ -19,6 +19,82 @@ public enum ReleaseV0130LocalEvidenceIntakeAnchors {
     ]
 }
 
+/// ReleaseV0130GenerationIDFactory 固定 GH-1002 的 generation ID collision-proofing 入口。
+///
+/// 它保留 assessmentID / scope / epoch 秒级前缀，方便 operator 人工追溯；同时把
+/// source context 和 per-call entropy 写入 SHA256 suffix，避免同一个 assessment 在同一秒
+/// 连续生成 readiness assessment generation 时发生本地路径碰撞。该 factory 只生成本地
+/// safe path component，不读取 secret、不连接 endpoint，也不授权任何 cutover / order 能力。
+public enum ReleaseV0130GenerationIDFactory {
+    public static let validationAnchors = [
+        "GH-1002-VERIFY-V0130-GENERATION-ID-COLLISION-PROOFING",
+        "TVM-RELEASE-V0130-GENERATION-ID-COLLISION-PROOFING",
+        "V0130-009-GENERATION-ID-COLLISION-PROOFING",
+        "V0130-009-SAME-SECOND-GENERATION-IDS",
+        "V0130-009-REGISTRY-LOOKUP-STABILITY",
+        "V0130-009-AUDITABLE-DETERMINISTIC-PREFIX",
+        "V0130-009-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static func makeGenerationID(
+        assessmentID: Identifier,
+        scope: String,
+        createdAt: Date,
+        stableComponents: [String],
+        entropy: String = UUID().uuidString.lowercased()
+    ) throws -> Identifier {
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(assessmentID)
+        let scopeID = Identifier.constant(scope)
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(scopeID)
+        let trimmedEntropy = entropy.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedEntropy.isEmpty == false else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("generationID:missingEntropy")
+        }
+
+        let epochSeconds = Int(floor(createdAt.timeIntervalSince1970))
+        let seed = ([
+            "release=v0.13.0",
+            "issue=GH-1002",
+            "assessmentID=\(assessmentID.rawValue)",
+            "scope=\(scope)",
+            "epochSeconds=\(epochSeconds)",
+            "entropy=\(trimmedEntropy)"
+        ] + stableComponents.enumerated().map { index, value in
+            "stableComponent\(index)=\(value)"
+        }).joined(separator: "|")
+        let digest = sha256Hex(Data(seed.utf8))
+        let suffix = String(digest.dropFirst("sha256:".count).prefix(16))
+        let generationID = Identifier.constant("\(assessmentID.rawValue)-\(scope)-\(epochSeconds)-\(suffix)")
+        try ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(generationID)
+        return generationID
+    }
+
+    public static func collisionProofingHeld(
+        ids: [Identifier],
+        assessmentID: Identifier,
+        scope: String,
+        createdAt: Date
+    ) -> Bool {
+        let epochSeconds = Int(floor(createdAt.timeIntervalSince1970))
+        let prefix = "\(assessmentID.rawValue)-\(scope)-\(epochSeconds)-"
+        let rawValues = ids.map(\.rawValue)
+        return ids.isEmpty == false
+            && Set(rawValues).count == rawValues.count
+            && rawValues.allSatisfy { $0.hasPrefix(prefix) }
+            && rawValues.allSatisfy { $0.count > prefix.count }
+            && rawValues.allSatisfy { value in
+                (try? ReadinessAssessmentRegistryArtifactPaths.validateAssessmentID(Identifier.constant(value))) != nil
+            }
+    }
+
+    private static func sha256Hex(_ data: Data) -> String {
+        let digest = SHA256.hash(data: data)
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "sha256:\(digest)"
+    }
+}
+
 /// ReleaseV0130LocalEvidenceProvenanceAnchors 固定 GH-996 的 v0.13 manifest provenance 替换锚点。
 ///
 /// 这些锚点只证明 v0.13.0 normal readiness manifest 的 sourceCommit、sourceRunIDs

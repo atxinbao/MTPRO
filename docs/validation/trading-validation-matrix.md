@@ -3207,3 +3207,21 @@
 - cleanup evidence: staging cleanup leaves explicit local audit paths so post-failure diagnosis does not rely on guessing
 - dependency evidence: #1001 is blocked by #1000; #1002 through #1005 remain blocked by #1001 until this PR is merged and #1001 is closed / done
 - forbidden scope: no CLI lifecycle ordering, no generation collision-proofing, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0130-GENERATION-ID-COLLISION-PROOFING
+
+- GH-1002-VERIFY-V0130-GENERATION-ID-COLLISION-PROOFING
+- V0130-009-GENERATION-ID-COLLISION-PROOFING
+- V0130-009-SAME-SECOND-GENERATION-IDS
+- V0130-009-REGISTRY-LOOKUP-STABILITY
+- V0130-009-AUDITABLE-DETERMINISTIC-PREFIX
+- V0130-009-NO-PRODUCTION-CUTOVER
+- GH-1002 Release v0.13.0 Generation ID Collision-proofing Validation
+- testGH1002ReleaseV0130GenerationIDCollisionProofingKeepsRegistryLookupStable
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: #1002 replaces second-level readiness generation IDs with assessmentID / scope / epoch prefix plus collision-resistant deterministic suffix
+- same-second evidence: two generations for the same assessment in the same epoch second must produce distinct generation IDs
+- registry evidence: registry lookup remains stable by assessmentID and entry checksum while latest Manifest V2 can advance to the newer generation ID
+- CLI evidence: readiness build commands use `ReleaseV0130GenerationIDFactory.makeGenerationID(...)` and must not retain `-generation-\(Int(now.timeIntervalSince1970))`
+- dependency evidence: #1002 is blocked by #997 and became active only after #1001 closeout; #1003 through #1005 remain blocked by #1002 until this PR is merged and #1002 is closed / done
+- forbidden scope: no ordered CLI lifecycle, no fixture suite, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

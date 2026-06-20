@@ -33792,7 +33792,7 @@ final class TargetGraphTests: XCTestCase {
             "compare-before-build",
             "export-before-validate",
             "synthetic readiness data",
-            "#1002..#1005 继续 blocked"
+            "#1003..#1005 继续 blocked"
         ] {
             XCTAssertTrue(contract.contains(requiredContractTerm), "\(requiredContractTerm) must be explicit in #994 contract")
         }
@@ -35203,6 +35203,139 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(source.contains("transaction-recovery-snapshot.json"))
         XCTAssertTrue(verifier.contains("testGH1001ReleaseV0130TransactionRecoverySnapshotExplainsInterruptedAndStaleStaging"))
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.13.0.sh"))
+    }
+
+    func testGH1002ReleaseV0130GenerationIDCollisionProofingKeepsRegistryLookupStable() throws {
+        // 测试场景：GH-1002 要求同一个 assessment 在同一秒连续生成 generation 时不发生
+        // path / registry collision，同时保留 assessmentID + scope + epoch 前缀，方便审计追溯。
+        // Anchors: GH-1002-VERIFY-V0130-GENERATION-ID-COLLISION-PROOFING,
+        // TVM-RELEASE-V0130-GENERATION-ID-COLLISION-PROOFING,
+        // V0130-009-GENERATION-ID-COLLISION-PROOFING,
+        // V0130-009-SAME-SECOND-GENERATION-IDS,
+        // V0130-009-REGISTRY-LOOKUP-STABILITY,
+        // V0130-009-AUDITABLE-DETERMINISTIC-PREFIX,
+        // V0130-009-NO-PRODUCTION-CUTOVER.
+        let createdAt = Date(timeIntervalSince1970: 1_813_200_900)
+        let assessmentID = Identifier.constant("gh-1002-assessment")
+        let stableComponents = [
+            "sourceCommit=807211695eadba817408ca9e6b8f0bf3a1d080cd",
+            "registryEntryChecksum=sha256:first"
+        ]
+        let firstGenerationID = try ReleaseV0130GenerationIDFactory.makeGenerationID(
+            assessmentID: assessmentID,
+            scope: "generation",
+            createdAt: createdAt,
+            stableComponents: stableComponents,
+            entropy: "same-second-first"
+        )
+        let secondGenerationID = try ReleaseV0130GenerationIDFactory.makeGenerationID(
+            assessmentID: assessmentID,
+            scope: "generation",
+            createdAt: createdAt,
+            stableComponents: stableComponents,
+            entropy: "same-second-second"
+        )
+        let deterministicReplayID = try ReleaseV0130GenerationIDFactory.makeGenerationID(
+            assessmentID: assessmentID,
+            scope: "generation",
+            createdAt: createdAt,
+            stableComponents: stableComponents,
+            entropy: "same-second-first"
+        )
+
+        XCTAssertNotEqual(firstGenerationID, secondGenerationID)
+        XCTAssertEqual(firstGenerationID, deterministicReplayID)
+        XCTAssertTrue(
+            ReleaseV0130GenerationIDFactory.collisionProofingHeld(
+                ids: [firstGenerationID, secondGenerationID],
+                assessmentID: assessmentID,
+                scope: "generation",
+                createdAt: createdAt
+            )
+        )
+        XCTAssertTrue(firstGenerationID.rawValue.contains("1813200900"))
+        XCTAssertTrue(secondGenerationID.rawValue.hasPrefix("gh-1002-assessment-generation-1813200900-"))
+
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("MTPRO-GH1002-GenerationID-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = ReadinessAssessmentRegistryStore(storageRootURL: root)
+        let document = try store.create(
+            assessmentID: assessmentID,
+            state: .baseline,
+            sourceReleaseVersion: "v0.13.0",
+            sourcePatchVersion: "v0.12.1",
+            assessedBy: "Codex",
+            reason: "GH-1002 generation ID collision-proofing",
+            createdAt: createdAt,
+            updatedAt: createdAt
+        )
+        let entryBefore = try document.inspect(assessmentID: assessmentID)
+
+        let sourceCommit = "807211695eadba817408ca9e6b8f0bf3a1d080cd"
+        let artifactSHA256 = "sha256:\(String(repeating: "a", count: 64))"
+        _ = try store.writeManifestV2(
+            ReadinessAssessmentManifestV2(
+                assessmentID: assessmentID,
+                generationID: firstGenerationID,
+                sourceRunIDs: [Identifier.constant("source-run-gh1002-first")],
+                sourceCommit: sourceCommit,
+                artifactContentType: .jsonEvidence,
+                artifactSHA256: artifactSHA256,
+                artifactBytes: 128,
+                createdAt: createdAt,
+                producerVersion: "mtpro-cli-v0.13.0"
+            )
+        )
+        _ = try store.writeManifestV2(
+            ReadinessAssessmentManifestV2(
+                assessmentID: assessmentID,
+                generationID: secondGenerationID,
+                sourceRunIDs: [Identifier.constant("source-run-gh1002-second")],
+                sourceCommit: sourceCommit,
+                artifactContentType: .jsonEvidence,
+                artifactSHA256: artifactSHA256,
+                artifactBytes: 128,
+                createdAt: createdAt,
+                producerVersion: "mtpro-cli-v0.13.0"
+            )
+        )
+
+        let entryAfter = try store.inspect(assessmentID: assessmentID)
+        XCTAssertEqual(entryAfter.assessmentID, entryBefore.assessmentID)
+        XCTAssertEqual(entryAfter.entryChecksum, entryBefore.entryChecksum)
+        XCTAssertEqual(try store.readManifestV2(assessmentID: assessmentID).generationID, secondGenerationID)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift")
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let verifier = try read("checks/verify-v0.13.0.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in ReleaseV0130GenerationIDFactory.validationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-1002 source")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.13 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.13 contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        XCTAssertTrue(source.contains("ReleaseV0130GenerationIDFactory"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0130GenerationIDFactory.makeGenerationID("))
+        XCTAssertFalse(cliSource.contains("-generation-\\(Int(now.timeIntervalSince1970))"))
+        XCTAssertTrue(verifier.contains("testGH1002ReleaseV0130GenerationIDCollisionProofingKeepsRegistryLookupStable"))
     }
 
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {

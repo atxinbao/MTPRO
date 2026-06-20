@@ -52,6 +52,20 @@ set -euo pipefail
 # V0130-007-BROKEN-EVIDENCE-LINK-BLOCKER
 # V0130-007-COMPARISON-EXPORT-VALIDATION
 # V0130-007-NO-PRODUCTION-CUTOVER
+# GH-1001-VERIFY-V0130-TRANSACTION-RECOVERY-SNAPSHOT
+# TVM-RELEASE-V0130-TRANSACTION-RECOVERY-SNAPSHOT
+# V0130-008-TRANSACTION-RECOVERY-SNAPSHOT
+# V0130-008-STAGING-STATE-INTENDED-COMPLETED-WRITES
+# V0130-008-CLEANUP-AUDIT-TRACE
+# V0130-008-PARTIAL-WRITES-FAIL-CLOSED
+# V0130-008-NO-PRODUCTION-CUTOVER
+# GH-1002-VERIFY-V0130-GENERATION-ID-COLLISION-PROOFING
+# TVM-RELEASE-V0130-GENERATION-ID-COLLISION-PROOFING
+# V0130-009-GENERATION-ID-COLLISION-PROOFING
+# V0130-009-SAME-SECOND-GENERATION-IDS
+# V0130-009-REGISTRY-LOOKUP-STABILITY
+# V0130-009-AUDITABLE-DETERMINISTIC-PREFIX
+# V0130-009-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -74,7 +88,7 @@ reject_file_contains() {
   local forbidden="$2"
 
   local matches
-  matches="$(grep -F "$forbidden" "$file" | grep -Fv 'reject_file_contains' || true)"
+  matches="$(grep -F -- "$forbidden" "$file" | grep -Fv 'reject_file_contains' || true)"
 
   if [[ -n "$matches" ]]; then
     printf 'release v0.13.0 local evidence readiness engine contract guard failed: %s must not contain: %s\n' "$file" "$forbidden" >&2
@@ -106,6 +120,7 @@ swift test --filter TargetGraphTests/testGH998ReleaseV0130ValidateRejectsBrokenE
 swift test --filter TargetGraphTests/testGH999ReleaseV0130ExportWritesCompleteRedactedAuditPackage
 swift test --filter TargetGraphTests/testGH1000ReleaseV0130CompareBuildsEvidenceLevelDiffAndBlocksBrokenLinks
 swift test --filter TargetGraphTests/testGH1001ReleaseV0130TransactionRecoverySnapshotExplainsInterruptedAndStaleStaging
+swift test --filter TargetGraphTests/testGH1002ReleaseV0130GenerationIDCollisionProofingKeepsRegistryLookupStable
 
 for anchor in \
   "GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT" \
@@ -258,6 +273,24 @@ for anchor in \
   require_file_contains "$TESTS" "$anchor"
 done
 
+for anchor in \
+  "GH-1002-VERIFY-V0130-GENERATION-ID-COLLISION-PROOFING" \
+  "TVM-RELEASE-V0130-GENERATION-ID-COLLISION-PROOFING" \
+  "V0130-009-GENERATION-ID-COLLISION-PROOFING" \
+  "V0130-009-SAME-SECOND-GENERATION-IDS" \
+  "V0130-009-REGISTRY-LOOKUP-STABILITY" \
+  "V0130-009-AUDITABLE-DETERMINISTIC-PREFIX" \
+  "V0130-009-NO-PRODUCTION-CUTOVER"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$SOURCE" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
 require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.13.0.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.13.0.sh"
 require_file_contains "$READINESS" "Release v0.13.0 local evidence-driven readiness engine contract anchor"
@@ -268,6 +301,7 @@ require_file_contains "$READINESS" "Release v0.13.0 evidence-chain validate anch
 require_file_contains "$READINESS" "Release v0.13.0 redacted audit export package anchor"
 require_file_contains "$READINESS" "Release v0.13.0 evidence-level diff anchor"
 require_file_contains "$READINESS" "Release v0.13.0 transaction recovery forensic snapshot anchor"
+require_file_contains "$READINESS" "Release v0.13.0 generation ID collision-proofing anchor"
 require_file_contains "$PLAN" "GH-994 Release v0.13.0 Local Evidence-driven Readiness Engine Contract Validation"
 require_file_contains "$PLAN" "GH-995 Release v0.13.0 Local Evidence Intake Model Validation"
 require_file_contains "$PLAN" "GH-996 Release v0.13.0 Synthetic Provenance Rejection Validation"
@@ -276,6 +310,7 @@ require_file_contains "$PLAN" "GH-998 Release v0.13.0 Evidence-chain Validate Va
 require_file_contains "$PLAN" "GH-999 Release v0.13.0 Redacted Audit Export Package Validation"
 require_file_contains "$PLAN" "GH-1000 Release v0.13.0 Evidence-level Diff Validation"
 require_file_contains "$PLAN" "GH-1001 Release v0.13.0 Transaction Recovery Forensic Snapshot Validation"
+require_file_contains "$PLAN" "GH-1002 Release v0.13.0 Generation ID Collision-proofing Validation"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-LOCAL-EVIDENCE-INTAKE-MODEL"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION"
@@ -284,6 +319,7 @@ require_file_contains "$MATRIX" "TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF"
 require_file_contains "$MATRIX" "TVM-RELEASE-V0130-TRANSACTION-RECOVERY-SNAPSHOT"
+require_file_contains "$MATRIX" "TVM-RELEASE-V0130-GENERATION-ID-COLLISION-PROOFING"
 require_file_contains "$LATEST" "v0.13.0 local evidence-driven readiness engine contract"
 require_file_contains "$LATEST" "v0.13.0 local evidence intake model"
 require_file_contains "$LATEST" "v0.13.0 synthetic provenance rejection"
@@ -292,6 +328,7 @@ require_file_contains "$LATEST" "v0.13.0 evidence-chain validate"
 require_file_contains "$LATEST" "v0.13.0 redacted audit export package"
 require_file_contains "$LATEST" "v0.13.0 evidence-level diff"
 require_file_contains "$LATEST" "v0.13.0 transaction recovery forensic snapshot"
+require_file_contains "$LATEST" "v0.13.0 generation ID collision-proofing"
 require_file_contains "$ROADMAP" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
 require_file_contains "$GOAL" "release/v0.13.0"
 require_file_contains "$BLUEPRINT" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
@@ -316,6 +353,9 @@ require_file_contains "$SOURCE" "compareEvidenceLevelAssessments("
 require_file_contains "$SOURCE" "ReleaseV0130TransactionRecoveryForensicSnapshot"
 require_file_contains "$SOURCE" "writeTransactionRecoverySnapshot("
 require_file_contains "$SOURCE" "transaction-recovery-snapshot.json"
+require_file_contains "$SOURCE" "ReleaseV0130GenerationIDFactory"
+require_file_contains "$SOURCE" "makeGenerationID("
+require_file_contains "$SOURCE" "collisionProofingHeld("
 require_file_contains "$SOURCE" "syntheticSourceRunID"
 require_file_contains "$SOURCE" "fixtureOnlyEvidence"
 require_file_contains "$CLI_SOURCE" "readiness intake <evidenceRoot>"
@@ -335,6 +375,8 @@ require_file_contains "$CLI_SOURCE" "comparisonFormat=evidence-level-readiness-d
 require_file_contains "$CLI_SOURCE" "comparisonState="
 require_file_contains "$CLI_SOURCE" "blockedSections="
 require_file_contains "$CLI_SOURCE" "comparisonMetadataJSONPath="
+require_file_contains "$CLI_SOURCE" "ReleaseV0130GenerationIDFactory.makeGenerationID("
+reject_file_contains "$CLI_SOURCE" '-generation-\(Int(now.timeIntervalSince1970))'
 
 for required_contract_string in \
   "artifact -> policy -> manifest -> bundle -> registry -> diff" \
@@ -346,8 +388,17 @@ for required_contract_string in \
   "compare-before-build" \
   "export-before-validate" \
   "synthetic readiness data" \
-  "#1002..#1005 继续 blocked"; do
+  "#1003..#1005 继续 blocked"; do
   require_file_contains "$CONTRACT" "$required_contract_string"
+done
+
+for required_generation_string in \
+  "generation ID collision-proofing" \
+  "same-second generation IDs" \
+  "collision-resistant deterministic suffix" \
+  "registry lookup remains stable" \
+  "auditable deterministic prefix"; do
+  require_file_contains "$CONTRACT" "$required_generation_string"
 done
 
 for required_intake_string in \
