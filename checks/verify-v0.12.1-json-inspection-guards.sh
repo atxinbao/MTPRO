@@ -70,6 +70,8 @@ MTPRO_READINESS_ROOT="$tmp_root" swift run mtpro readiness create "$baseline_id"
 MTPRO_READINESS_ROOT="$tmp_root" swift run mtpro readiness create "$followup_id" >/dev/null
 MTPRO_READINESS_ROOT="$tmp_root" MTPRO_READINESS_SOURCE_COMMIT="$VALID_COMMIT" swift run mtpro readiness build "$baseline_id" >/dev/null
 MTPRO_READINESS_ROOT="$tmp_root" MTPRO_READINESS_SOURCE_COMMIT="$VALID_COMMIT" swift run mtpro readiness build "$followup_id" >/dev/null
+MTPRO_READINESS_ROOT="$tmp_root" MTPRO_READINESS_SOURCE_COMMIT="$VALID_COMMIT" swift run mtpro readiness validate "$baseline_id" >/dev/null
+MTPRO_READINESS_ROOT="$tmp_root" MTPRO_READINESS_SOURCE_COMMIT="$VALID_COMMIT" swift run mtpro readiness validate "$followup_id" >/dev/null
 MTPRO_READINESS_ROOT="$tmp_root" MTPRO_READINESS_SOURCE_COMMIT="$VALID_COMMIT" swift run mtpro readiness export "$baseline_id" >"$export_output"
 MTPRO_READINESS_ROOT="$tmp_root" MTPRO_READINESS_SOURCE_COMMIT="$VALID_COMMIT" swift run mtpro readiness compare "$baseline_id" "$followup_id" >"$compare_output"
 

@@ -33792,7 +33792,7 @@ final class TargetGraphTests: XCTestCase {
             "compare-before-build",
             "export-before-validate",
             "synthetic readiness data",
-            "#1003..#1005 继续 blocked"
+            "#1004..#1005 继续 blocked"
         ] {
             XCTAssertTrue(contract.contains(requiredContractTerm), "\(requiredContractTerm) must be explicit in #994 contract")
         }
@@ -35336,6 +35336,95 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliSource.contains("ReleaseV0130GenerationIDFactory.makeGenerationID("))
         XCTAssertFalse(cliSource.contains("-generation-\\(Int(now.timeIntervalSince1970))"))
         XCTAssertTrue(verifier.contains("testGH1002ReleaseV0130GenerationIDCollisionProofingKeepsRegistryLookupStable"))
+    }
+
+    func testGH1003ReleaseV0130OrderedReadinessCLILifecycleRequiresMarkersAndNextActions() throws {
+        // 测试场景：GH-1003 要求 readiness CLI 成为严格 lifecycle 入口。
+        // validate / export / compare / archive 必须通过本地 marker 串联顺序，
+        // 不能只靠手工放置 manifest / bundle 文件绕过。
+        // Anchors: GH-1003-VERIFY-V0130-ORDERED-READINESS-CLI-LIFECYCLE,
+        // TVM-RELEASE-V0130-ORDERED-READINESS-CLI-LIFECYCLE,
+        // V0130-010-CREATE-BUILD-VALIDATE-EXPORT-COMPARE-ARCHIVE,
+        // V0130-010-VALIDATION-EXPORT-MARKERS,
+        // V0130-010-BYPASS-MANUAL-FILES-REJECTED,
+        // V0130-010-NO-PRODUCTION-CUTOVER.
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let verifier = try read("checks/verify-v0.13.0.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+
+        let anchors = [
+            "GH-1003-VERIFY-V0130-ORDERED-READINESS-CLI-LIFECYCLE",
+            "TVM-RELEASE-V0130-ORDERED-READINESS-CLI-LIFECYCLE",
+            "V0130-010-CREATE-BUILD-VALIDATE-EXPORT-COMPARE-ARCHIVE",
+            "V0130-010-VALIDATION-EXPORT-MARKERS",
+            "V0130-010-BYPASS-MANUAL-FILES-REJECTED",
+            "V0130-010-NO-PRODUCTION-CUTOVER"
+        ]
+
+        for anchor in anchors {
+            XCTAssertTrue(cliSource.contains(anchor), "\(anchor) must stay in readiness CLI output")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.13 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.13 contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        for requiredSourceTerm in [
+            "validation-state.json",
+            "export-state.json",
+            "validationMarkerWritten=\\(",
+            "exportMarkerWritten=true",
+            "baselineExportMarkerHeld=true",
+            "followUpValidationMarkerHeld=true",
+            "nextRequiredAction=",
+            "validationMarkerMissing",
+            "exportMarkerMissing",
+            "validationMarkerStale",
+            "exportMarkerStale",
+            "mtpro.readiness.lifecycle"
+        ] {
+            XCTAssertTrue(cliSource.contains(requiredSourceTerm), "\(requiredSourceTerm) must stay in CLI lifecycle gate")
+        }
+
+        for requiredVerifierTerm in [
+            "export-before-validate",
+            "compare-before-follow-up-validate",
+            "validation-state.json",
+            "export-state.json",
+            "nextRequiredAction=readiness validate",
+            "reason=validationMarkerMissing",
+            "baselineExportMarkerHeld=true",
+            "followUpValidationMarkerHeld=true",
+            "lifecycleOrderHeld=true"
+        ] {
+            XCTAssertTrue(verifier.contains(requiredVerifierTerm), "\(requiredVerifierTerm) must stay in verifier")
+        }
+
+        XCTAssertTrue(readme.contains("#1003"))
+        XCTAssertTrue(readme.contains("#1004..#1005"))
+        XCTAssertTrue(goal.contains("#1003"))
+        XCTAssertTrue(blueprint.contains("ordered CLI execution lifecycle"))
+        XCTAssertTrue(roadmap.contains("validation-state.json"))
+        XCTAssertTrue(roadmap.contains("export-state.json"))
+        XCTAssertTrue(latest.contains("v0.13.0 ordered CLI execution lifecycle"))
+        XCTAssertTrue(verifier.contains("testGH1003ReleaseV0130OrderedReadinessCLILifecycleRequiresMarkersAndNextActions"))
     }
 
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {

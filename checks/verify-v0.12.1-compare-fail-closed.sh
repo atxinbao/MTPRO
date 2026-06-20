@@ -98,10 +98,14 @@ if [[ "$missing_manifest_status" -eq 0 ]]; then
   printf '%s\n' "$missing_manifest_output" >&2
   fail "compare-before-build must fail closed when manifest/source evidence is missing"
 fi
-require_text_contains "$missing_manifest_output" "readinessCompare:missingManifest:$baseline_id"
+require_text_contains "$missing_manifest_output" "nextRequiredAction=readiness export $baseline_id"
+require_text_contains "$missing_manifest_output" "reason=exportMarkerMissing"
 
 MTPRO_READINESS_ROOT="$tmp_root" MTPRO_READINESS_SOURCE_COMMIT="$VALID_COMMIT" swift run mtpro readiness build "$baseline_id" >/dev/null
 MTPRO_READINESS_ROOT="$tmp_root" MTPRO_READINESS_SOURCE_COMMIT="$VALID_COMMIT" swift run mtpro readiness build "$followup_id" >/dev/null
+MTPRO_READINESS_ROOT="$tmp_root" MTPRO_READINESS_SOURCE_COMMIT="$VALID_COMMIT" swift run mtpro readiness validate "$baseline_id" >/dev/null
+MTPRO_READINESS_ROOT="$tmp_root" MTPRO_READINESS_SOURCE_COMMIT="$VALID_COMMIT" swift run mtpro readiness export "$baseline_id" >/dev/null
+MTPRO_READINESS_ROOT="$tmp_root" MTPRO_READINESS_SOURCE_COMMIT="$VALID_COMMIT" swift run mtpro readiness validate "$followup_id" >/dev/null
 
 compare_output="$(
   MTPRO_READINESS_ROOT="$tmp_root" \

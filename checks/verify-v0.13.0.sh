@@ -66,6 +66,12 @@ set -euo pipefail
 # V0130-009-REGISTRY-LOOKUP-STABILITY
 # V0130-009-AUDITABLE-DETERMINISTIC-PREFIX
 # V0130-009-NO-PRODUCTION-CUTOVER
+# GH-1003-VERIFY-V0130-ORDERED-READINESS-CLI-LIFECYCLE
+# TVM-RELEASE-V0130-ORDERED-READINESS-CLI-LIFECYCLE
+# V0130-010-CREATE-BUILD-VALIDATE-EXPORT-COMPARE-ARCHIVE
+# V0130-010-VALIDATION-EXPORT-MARKERS
+# V0130-010-BYPASS-MANUAL-FILES-REJECTED
+# V0130-010-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -121,6 +127,7 @@ swift test --filter TargetGraphTests/testGH999ReleaseV0130ExportWritesCompleteRe
 swift test --filter TargetGraphTests/testGH1000ReleaseV0130CompareBuildsEvidenceLevelDiffAndBlocksBrokenLinks
 swift test --filter TargetGraphTests/testGH1001ReleaseV0130TransactionRecoverySnapshotExplainsInterruptedAndStaleStaging
 swift test --filter TargetGraphTests/testGH1002ReleaseV0130GenerationIDCollisionProofingKeepsRegistryLookupStable
+swift test --filter TargetGraphTests/testGH1003ReleaseV0130OrderedReadinessCLILifecycleRequiresMarkersAndNextActions
 
 for anchor in \
   "GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT" \
@@ -388,7 +395,7 @@ for required_contract_string in \
   "compare-before-build" \
   "export-before-validate" \
   "synthetic readiness data" \
-  "#1003..#1005 继续 blocked"; do
+  "#1004..#1005 继续 blocked"; do
   require_file_contains "$CONTRACT" "$required_contract_string"
 done
 
@@ -511,9 +518,23 @@ printf '%s\n' "$build_output" | grep -Fq "artifactRelativePaths=artifacts/readin
 printf '%s\n' "$build_output" | grep -Fq "syntheticProvenanceRejected=true" || fail "build-v013 must reject synthetic provenance by contract"
 printf '%s\n' "$build_output" | grep -Fq "fixtureOnly=false" || fail "build-v013 normal manifest must not be fixture-only"
 printf '%s\n' "$build_output" | grep -Fq "productionCutoverAuthorized=false" || fail "build-v013 must not authorize production cutover"
+if MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness export gh-996-assessment >/tmp/gh1003-export-before-validate.out 2>&1; then
+  fail "readiness export must fail closed before readiness validate writes lifecycle marker"
+fi
+grep -Fq "nextRequiredAction=readiness validate gh-996-assessment" /tmp/gh1003-export-before-validate.out \
+  || fail "export-before-validate failure must state next required action"
+grep -Fq "reason=validationMarkerMissing" /tmp/gh1003-export-before-validate.out \
+  || fail "export-before-validate failure must explain missing validation marker"
 
 validate_output="$(MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness validate gh-996-assessment)"
 printf '%s\n' "$validate_output" | grep -Fq "issue=GH-998" || fail "readiness validate output must link GH-998"
+printf '%s\n' "$validate_output" | grep -Fq "lifecycleIssue=GH-1003" || fail "readiness validate output must link GH-1003 lifecycle order"
+printf '%s\n' "$validate_output" | grep -Fq "v013LifecycleAnchor=GH-1003-VERIFY-V0130-ORDERED-READINESS-CLI-LIFECYCLE" || fail "readiness validate output must expose GH-1003 lifecycle anchor"
+printf '%s\n' "$validate_output" | grep -Fq "v013LifecycleMatrixAnchor=TVM-RELEASE-V0130-ORDERED-READINESS-CLI-LIFECYCLE" || fail "readiness validate output must expose GH-1003 matrix anchor"
+printf '%s\n' "$validate_output" | grep -Fq "v013LifecycleOrderAnchor=V0130-010-CREATE-BUILD-VALIDATE-EXPORT-COMPARE-ARCHIVE" || fail "readiness validate output must expose ordered lifecycle anchor"
+printf '%s\n' "$validate_output" | grep -Fq "v013LifecycleMarkerAnchor=V0130-010-VALIDATION-EXPORT-MARKERS" || fail "readiness validate output must expose marker anchor"
+printf '%s\n' "$validate_output" | grep -Fq "v013LifecycleBypassAnchor=V0130-010-BYPASS-MANUAL-FILES-REJECTED" || fail "readiness validate output must expose bypass rejection anchor"
+printf '%s\n' "$validate_output" | grep -Fq "v013LifecycleNoCutoverAnchor=V0130-010-NO-PRODUCTION-CUTOVER" || fail "readiness validate output must expose no cutover anchor"
 printf '%s\n' "$validate_output" | grep -Fq "v013ValidationAnchor=GH-998-VERIFY-V0130-EVIDENCE-CHAIN-VALIDATE" || fail "readiness validate output must expose GH-998 anchor"
 printf '%s\n' "$validate_output" | grep -Fq "registryDocumentHeld=true" || fail "readiness validate must confirm registry document"
 printf '%s\n' "$validate_output" | grep -Fq "bundleV2Present=true" || fail "readiness validate must confirm Bundle V2 presence"
@@ -527,9 +548,14 @@ printf '%s\n' "$validate_output" | grep -Fq "exportComparisonIdentityConsistent=
 printf '%s\n' "$validate_output" | grep -Fq "evidenceChainCoherent=true" || fail "readiness validate must pass only coherent evidence chain"
 printf '%s\n' "$validate_output" | grep -Fq "failureReasons=none" || fail "readiness validate valid chain must report no failures"
 printf '%s\n' "$validate_output" | grep -Fq "validationState=valid" || fail "readiness validate valid chain must be valid"
+printf '%s\n' "$validate_output" | grep -Fq "validationMarkerWritten=true" || fail "readiness validate must write lifecycle validation marker"
+printf '%s\n' "$validate_output" | grep -Fq "validationMarkerHeld=true" || fail "readiness validate marker must be held"
+printf '%s\n' "$validate_output" | grep -Fq "nextRequiredAction=readiness export gh-996-assessment" || fail "readiness validate must state next required action"
+[[ -s "$gh996_store/assessments/gh-996-assessment/validation-state.json" ]] || fail "readiness validate must write validation-state.json"
 
 export_output="$(MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness export gh-996-assessment)"
 printf '%s\n' "$export_output" | grep -Fq "issue=GH-999" || fail "readiness export output must link GH-999"
+printf '%s\n' "$export_output" | grep -Fq "lifecycleIssue=GH-1003" || fail "readiness export output must link GH-1003 lifecycle order"
 printf '%s\n' "$export_output" | grep -Fq "v013ValidationAnchor=GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE" || fail "readiness export must expose GH-999 anchor"
 printf '%s\n' "$export_output" | grep -Fq "exportFormat=redacted-audit-export-package" || fail "readiness export must write redacted audit package"
 printf '%s\n' "$export_output" | grep -Fq "packageComplete=true" || fail "readiness export package must be complete"
@@ -541,6 +567,11 @@ printf '%s\n' "$export_output" | grep -Fq "noSecretValue=true" || fail "readines
 printf '%s\n' "$export_output" | grep -Fq "noEndpointPayload=true" || fail "readiness export must not write endpoint payloads"
 printf '%s\n' "$export_output" | grep -Fq "noOrderPayload=true" || fail "readiness export must not write order payloads"
 printf '%s\n' "$export_output" | grep -Fq "productionCutoverAuthorized=false" || fail "readiness export must not authorize production cutover"
+printf '%s\n' "$export_output" | grep -Fq "validationMarkerHeld=true" || fail "readiness export must require validation marker"
+printf '%s\n' "$export_output" | grep -Fq "exportMarkerWritten=true" || fail "readiness export must write export marker"
+printf '%s\n' "$export_output" | grep -Fq "exportMarkerHeld=true" || fail "readiness export marker must be held"
+printf '%s\n' "$export_output" | grep -Fq "nextRequiredAction=readiness compare/archive" || fail "readiness export must state compare/archive next action"
+[[ -s "$gh996_store/assessments/gh-996-assessment/export-state.json" ]] || fail "readiness export must write export-state.json"
 gh999_export_dir="$gh996_store/assessments/gh-996-assessment/redacted-export"
 for export_file in \
   "assessment-summary.json" \
@@ -565,8 +596,17 @@ printf '%s\n' "$post_export_validate" | grep -Fq "evidenceChainCoherent=true" ||
 gh1000_followup_root="$gh996_root/gh1000-followup"
 write_gh996_evidence_root "$gh1000_followup_root" "run-gh1000-followup" "$gh996_commit"
 MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness build-v013 gh-1000-followup "$gh1000_followup_root" >/dev/null
+if MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness compare gh-996-assessment gh-1000-followup >/tmp/gh1003-compare-before-followup-validate.out 2>&1; then
+  fail "readiness compare must fail closed before follow-up validate writes lifecycle marker"
+fi
+grep -Fq "nextRequiredAction=readiness validate gh-1000-followup" /tmp/gh1003-compare-before-followup-validate.out \
+  || fail "compare-before-follow-up-validate failure must state next required action"
+grep -Fq "reason=validationMarkerMissing" /tmp/gh1003-compare-before-followup-validate.out \
+  || fail "compare-before-follow-up-validate failure must explain missing marker"
+MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness validate gh-1000-followup >/dev/null
 compare_output="$(MTPRO_READINESS_ROOT="$gh996_store" swift run mtpro readiness compare gh-996-assessment gh-1000-followup)"
 printf '%s\n' "$compare_output" | grep -Fq "issue=GH-1000" || fail "readiness compare output must link GH-1000"
+printf '%s\n' "$compare_output" | grep -Fq "lifecycleIssue=GH-1003" || fail "readiness compare output must link GH-1003 lifecycle order"
 printf '%s\n' "$compare_output" | grep -Fq "v013ValidationAnchor=GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF" || fail "readiness compare must expose GH-1000 anchor"
 printf '%s\n' "$compare_output" | grep -Fq "comparisonFormat=evidence-level-readiness-diff" || fail "readiness compare must use evidence-level format for v0.13"
 printf '%s\n' "$compare_output" | grep -Fq "comparisonState=changed" || fail "readiness compare must report changed evidence"
@@ -576,6 +616,9 @@ printf '%s\n' "$compare_output" | grep -Fq "blockers=none" || fail "readiness co
 printf '%s\n' "$compare_output" | grep -Fq "compareDoesNotMutateAssessments=true" || fail "readiness compare must remain non-mutating"
 printf '%s\n' "$compare_output" | grep -Fq "operatorReviewOnly=true" || fail "readiness compare must remain operator-review-only"
 printf '%s\n' "$compare_output" | grep -Fq "comparisonMetadataJSONPath=.local/mtpro/readiness/assessments/gh-1000-followup/comparison-metadata.json" || fail "readiness compare must write comparison metadata"
+printf '%s\n' "$compare_output" | grep -Fq "baselineExportMarkerHeld=true" || fail "readiness compare must require baseline export marker"
+printf '%s\n' "$compare_output" | grep -Fq "followUpValidationMarkerHeld=true" || fail "readiness compare must require follow-up validation marker"
+printf '%s\n' "$compare_output" | grep -Fq "lifecycleOrderHeld=true" || fail "readiness compare must hold lifecycle order"
 [[ -s "$gh996_store/assessments/gh-1000-followup/comparison-metadata.json" ]] || fail "readiness compare must write comparison metadata JSON"
 grep -Fq "gh-1000-followup" "$gh996_store/assessments/gh-1000-followup/comparison-metadata.json" \
   || fail "comparison metadata must bind follow-up assessmentID"
@@ -584,9 +627,12 @@ printf '%s\n' "$post_compare_validate" | grep -Fq "exportComparisonIdentityConsi
 
 gh1000_block_store="$gh996_root/gh1000-block-store"
 MTPRO_READINESS_ROOT="$gh1000_block_store" swift run mtpro readiness build-v013 gh-1000-block-baseline "$gh996_valid_root" >/dev/null
+MTPRO_READINESS_ROOT="$gh1000_block_store" swift run mtpro readiness validate gh-1000-block-baseline >/dev/null
+MTPRO_READINESS_ROOT="$gh1000_block_store" swift run mtpro readiness export gh-1000-block-baseline >/dev/null
 gh1000_block_followup_root="$gh996_root/gh1000-block-followup"
 write_gh996_evidence_root "$gh1000_block_followup_root" "run-gh1000-block-followup" "$gh996_commit"
 MTPRO_READINESS_ROOT="$gh1000_block_store" swift run mtpro readiness build-v013 gh-1000-block-followup "$gh1000_block_followup_root" >/dev/null
+MTPRO_READINESS_ROOT="$gh1000_block_store" swift run mtpro readiness validate gh-1000-block-followup >/dev/null
 gh1000_block_bundle="$(find "$gh1000_block_store/assessments/gh-1000-block-followup/generations" -name readiness-bundle-v2.json -print -quit)"
 [[ -n "$gh1000_block_bundle" ]] || fail "readiness compare blocker smoke must find follow-up bundle"
 rm "$gh1000_block_bundle"
@@ -598,6 +644,7 @@ printf '%s\n' "$blocked_compare_output" | grep -Fq "follow-up:bundleV2:missing-o
 
 gh998_tamper_store="$gh996_root/gh998-tamper-store"
 MTPRO_READINESS_ROOT="$gh998_tamper_store" swift run mtpro readiness build-v013 gh-998-tamper "$gh996_valid_root" >/dev/null
+MTPRO_READINESS_ROOT="$gh998_tamper_store" swift run mtpro readiness validate gh-998-tamper >/dev/null
 tamper_bundle="$(find "$gh998_tamper_store/assessments/gh-998-tamper/generations" -name readiness-bundle-v2.json -print -quit)"
 [[ -n "$tamper_bundle" ]] || fail "readiness validate tamper smoke must find bundle JSON"
 printf '\n' >>"$tamper_bundle"

@@ -3225,3 +3225,19 @@
 - CLI evidence: readiness build commands use `ReleaseV0130GenerationIDFactory.makeGenerationID(...)` and must not retain `-generation-\(Int(now.timeIntervalSince1970))`
 - dependency evidence: #1002 is blocked by #997 and became active only after #1001 closeout; #1003 through #1005 remain blocked by #1002 until this PR is merged and #1002 is closed / done
 - forbidden scope: no ordered CLI lifecycle, no fixture suite, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0130-ORDERED-READINESS-CLI-LIFECYCLE
+
+- GH-1003-VERIFY-V0130-ORDERED-READINESS-CLI-LIFECYCLE
+- V0130-010-CREATE-BUILD-VALIDATE-EXPORT-COMPARE-ARCHIVE
+- V0130-010-VALIDATION-EXPORT-MARKERS
+- V0130-010-BYPASS-MANUAL-FILES-REJECTED
+- V0130-010-NO-PRODUCTION-CUTOVER
+- GH-1003 Release v0.13.0 Ordered Readiness CLI Lifecycle Validation
+- testGH1003ReleaseV0130OrderedReadinessCLILifecycleRequiresMarkersAndNextActions
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: readiness CLI enforces create -> build -> validate -> export -> compare/archive through local `validation-state.json` and `export-state.json` markers
+- CLI evidence: validate writes `validationMarkerWritten=true`; export writes `exportMarkerWritten=true`; compare emits `baselineExportMarkerHeld=true`, `followUpValidationMarkerHeld=true` and `lifecycleOrderHeld=true`; invalid order emits `nextRequiredAction`
+- fail-closed evidence: export-before-validate, compare-before-follow-up-validate, archive-before-export and stale marker attempts fail closed before writing new success output
+- dependency evidence: #1003 is blocked by #1002 and is the active WIP=1 gate; #1004 through #1005 remain blocked by #1003 until this PR is merged and #1003 is closed / done
+- forbidden scope: no fixture suite, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
