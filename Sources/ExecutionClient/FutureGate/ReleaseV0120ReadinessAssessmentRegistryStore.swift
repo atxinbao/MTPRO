@@ -712,6 +712,9 @@ public struct ReadinessAssessmentManifestV2: Codable, Equatable, Sendable {
         "0123456789abcdef0123456789abcdef01234567",
         "1111111111111111111111111111111111111111"
     ]
+    public static let forbiddenSourceRunIDPlaceholders: Set<String> = [
+        "gh-963-source-run"
+    ]
 
     public let issueID: Identifier
     public let upstreamIssueIDs: [Identifier]
@@ -748,6 +751,7 @@ public struct ReadinessAssessmentManifestV2: Codable, Equatable, Sendable {
             && generationID.rawValue.isEmpty == false
             && sourceRunIDs.isEmpty == false
             && sourceRunIDs.allSatisfy { $0.rawValue.isEmpty == false }
+            && sourceRunIDs.allSatisfy { Self.forbiddenSourceRunIDPlaceholders.contains($0.rawValue) == false }
             && sourceRunIDs.map(\.rawValue) == sourceRunIDs.map(\.rawValue).sorted()
             && Self.isValidSourceCommit(sourceCommit)
             && schemaVersion == Self.schemaVersion
@@ -1474,6 +1478,9 @@ public struct ReadinessAssessmentBundleV2: Codable, Equatable, Sendable {
             && sourceRunIDs.isEmpty == false
             && sourceRunIDs.map(\.rawValue) == sourceRunIDs.map(\.rawValue).sorted()
             && sourceRunIDs.allSatisfy { $0.rawValue.isEmpty == false }
+            && sourceRunIDs.allSatisfy {
+                ReadinessAssessmentManifestV2.forbiddenSourceRunIDPlaceholders.contains($0.rawValue) == false
+            }
             && ReadinessAssessmentManifestV2.isValidSourceCommit(sourceCommit)
             && artifactSnapshots.isEmpty == false
             && artifactSnapshots.allSatisfy(\.snapshotHeld)

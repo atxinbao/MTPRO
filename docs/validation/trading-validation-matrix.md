@@ -3011,3 +3011,18 @@
 - rejection evidence: fixed placeholder `0123456789abcdef0123456789abcdef01234567`, zero commit and empty provenance cannot pass readiness build / manifest validation
 - artifact evidence: accepted source commit is recorded in Manifest V2 and readiness bundle provenance fields
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
+
+## TVM-RELEASE-V0121-LOCAL-EVIDENCE-METADATA
+
+- GH-990-VERIFY-V0121-LOCAL-EVIDENCE-METADATA
+- V0121-003-LOCAL-EVIDENCE-SOURCERUNID
+- V0121-003-ARTIFACT-BYTES-CHECKSUM
+- V0121-003-MISSING-LOCAL-EVIDENCE-FAIL-CLOSED
+- TVM-RELEASE-V0121-LOCAL-EVIDENCE-METADATA
+- GH-990 Release v0.12.1 Local Evidence Metadata Validation
+- testGH990ReadinessLocalEvidenceMetadataBindsArtifactsAndSourceRunIDs
+- CLI local evidence file: `.local/mtpro/readiness/assessments/<assessmentID>/artifacts/readiness-summary.json`
+- source run evidence: Manifest V2 `sourceRunIDs` is derived from the evidence artifact sha256 prefix, not from a synthetic fixed run ID
+- artifact metadata evidence: Manifest V2 `artifactSHA256` and `artifactBytes` match the actual local evidence file
+- fail-closed evidence: missing or changed local artifact evidence makes readiness validation blocked instead of valid
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
