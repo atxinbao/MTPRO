@@ -2982,3 +2982,18 @@
 - Manifest V2 schema evidence: assessment / generation scoped provenance and checksum metadata
 - adversarial validation evidence: content-policy rejection, transaction crash recovery, immutable bundle guard, source snapshot mutation guard, approval quorum fail-closed coverage and Dashboard macOS adversarial CI
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no production OMS, no trading button, no order form, no live command, no tag / release movement, no next Project / Issue promotion
+
+## TVM-RELEASE-V0121-RELEASE-FACT-SYNC-GUARD
+
+- GH-988-VERIFY-V0121-RELEASE-FACT-STALE-WORDING-GUARD
+- V0121-001-RELEASE-FACT-SYNC-GUARD
+- V0121-001-FOUR-GATE-RELEASE-FLOW
+- TVM-RELEASE-V0121-RELEASE-FACT-SYNC-GUARD
+- GH-988 Release v0.12.1 Release Fact Sync / Stale Wording Guard Validation
+- testGH988ReleaseFactSyncGuardRejectsV0120StalePublicationWording
+- release fact: v0.12.0 stable GitHub Release URL `https://github.com/atxinbao/MTPRO/releases/tag/v0.12.0`
+- tag fact: v0.12.0 tag peeled commit `25e31afd351db9a372db62222226b0a3db26c93a`
+- publication fact: v0.12.0 publication timestamp `2026-06-20T01:11:22Z`
+- stale wording evidence: guard rejects `publication pending`, `release pending`, `tag pending`, `no public tag`, `no GitHub Release`, `未创建 release` and `待发布` wording for v0.12.0 unless the line is explicitly scoped to #965 construction closeout
+- historical closeout allowance: #965 / GH-965 / `V0120-014-NO-TAG-OR-RELEASE-MOVE` wording remains scoped to construction closeout and does not contradict the public release fact
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite

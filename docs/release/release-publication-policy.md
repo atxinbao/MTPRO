@@ -148,6 +148,14 @@ GH-945 / v0.11.1 stale wording guard 固定该 release fact：所有未限定为
 
 `V0120-ACTUAL-GITHUB-RELEASE`
 
+`GH-988-VERIFY-V0121-RELEASE-FACT-STALE-WORDING-GUARD`
+
+`V0121-001-RELEASE-FACT-SYNC-GUARD`
+
+`V0121-001-FOUR-GATE-RELEASE-FLOW`
+
+`TVM-RELEASE-V0121-RELEASE-FACT-SYNC-GUARD`
+
 v0.12.0 使用 `MTPRO Release v0.12.0 Readiness Assessment Sessions` 作为 release construction queue。#965 construction closeout 本身只收口 Stage Code Audit、release notes、operator runbook、root docs refresh、aggregate verifier guard 和 focused closeout test；它不授权 production cutover。
 
 v0.12.0 当前存在 public GitHub Release：
@@ -160,6 +168,8 @@ v0.12.0 当前存在 public GitHub Release：
 - publication timestamp：`2026-06-20T01:11:22Z`
 
 v0.12.0 的 construction closeout、Release Publication Gate、release fact sync / stale wording guard 和 production cutover 仍是独立 gate。已发布事实不授权 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实订单，不创建下一 Project / Issue，也不推进 v0.13.0。
+
+GH-988 / v0.12.1 stale wording guard 固定该 release fact：所有未限定为 #965 历史 closeout 的 v0.12.0 文档不得继续描述为 publication pending、tag pending、release not created、no public tag、no GitHub Release、未创建 release 或待发布。
 
 ## V0111-007-PATCH-AUDIT-RELEASE-NOTES
 

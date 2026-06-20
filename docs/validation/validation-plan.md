@@ -4900,3 +4900,21 @@ swift test
 - issue evidence: #952 through #964 are closed / done before #965 preflight; #965 owns closure docs and must close only after its PR merges with required checks success
 - PR evidence: PR #973 through PR #985 are merged with required `checks` SUCCESS; the #965 closure PR must also reach required `checks` SUCCESS before merge
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no production OMS, no trading button, no order form, no live command, no tag / release movement, no next Project / Issue promotion
+
+## GH-988 Release v0.12.1 Release Fact Sync / Stale Wording Guard Validation
+
+- GH-988-VERIFY-V0121-RELEASE-FACT-STALE-WORDING-GUARD
+- V0121-001-RELEASE-FACT-SYNC-GUARD
+- V0121-001-FOUR-GATE-RELEASE-FLOW
+- TVM-RELEASE-V0121-RELEASE-FACT-SYNC-GUARD
+- focused verifier: `bash checks/verify-v0.12.1-release-fact-sync.sh`
+- aggregate verifier carry-forward: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH988ReleaseFactSyncGuardRejectsV0120StalePublicationWording`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- release fact: `v0.12.0` stable GitHub Release is published at `https://github.com/atxinbao/MTPRO/releases/tag/v0.12.0`
+- immutable tag fact: tag peeled commit `25e31afd351db9a372db62222226b0a3db26c93a`
+- publication fact: publication timestamp `2026-06-20T01:11:22Z`
+- stale wording guard: root docs, release policy, v0.12.0 release notes, v0.12.0 stage audit, v0.12.0 runbook and validation docs must reject publication pending / no public tag / no GitHub Release wording for v0.12.0 unless the line is explicitly scoped to #965 construction closeout
+- allowed historical wording: #965 construction closeout wording may say that #965 itself did not move or create a tag / release, because the later Release Publication Gate published the immutable public release
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
