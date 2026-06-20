@@ -145,11 +145,41 @@
 
 `V0130-010-NO-PRODUCTION-CUTOVER`
 
+`GH-1004-VERIFY-V0130-LOCAL-EVIDENCE-FIXTURES`
+
+`TVM-RELEASE-V0130-LOCAL-EVIDENCE-FIXTURES`
+
+`V0130-011-MINIMAL-VALID-LOCAL-EVIDENCE-FIXTURE`
+
+`V0130-011-INVALID-TAMPERED-MISSING-FIXTURE-CASES`
+
+`V0130-011-BUILD-VALIDATE-EXPORT-COMPARE-RECOVERY-REGRESSION`
+
+`V0130-011-FIXTURE-RUNTIME-PATH-SEPARATION`
+
+`V0130-011-NO-PRODUCTION-CUTOVER`
+
+`GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
+
+`TVM-RELEASE-V0130-STAGE-AUDIT-RELEASE-DOCS`
+
+`V0130-012-STAGE-CODE-AUDIT`
+
+`V0130-012-RELEASE-NOTES`
+
+`V0130-012-ROOT-DOCS-REFRESH`
+
+`V0130-012-VALIDATION-SUMMARY`
+
+`V0130-012-NO-PRODUCTION-CUTOVER`
+
+`V0130-012-NO-TAG-OR-RELEASE-PUBLICATION`
+
 ## Contract Scope
 
 `v0.13.0` 定义 local evidence-driven readiness engine / 本地证据驱动就绪引擎。它承接 v0.12.0 readiness assessment sessions 和 v0.12.1 provenance hardening patch 的已完成事实，把 readiness assessment 从“可生成本地 assessment evidence”推进为“只能从真实本地 evidence root intake、校验、打包、登记、比较和导出”的 engine contract。
 
-本 contract 起始于 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。#994 只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；后续 issue 按 WIP=1 逐项完成。当前执行事实：#994、#995、#996、#997、#998、#999、#1000、#1001、#1002 和 #1003 已完成；#1004 在 fresh WIP=1 preflight 后作为唯一 active local evidence fixtures and regression suite gate 执行；#1005 继续 blocked，直到 #1004 PR merged、required checks success、issue closed / done、本地 `main == origin/main` 且 worktree clean。
+本 contract 起始于 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。#994 只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；后续 issue 按 WIP=1 逐项完成。历史 queue snapshot 要求 #1004 在 fresh WIP=1 preflight 后作为唯一 active，#1005 继续 blocked，直到 #1004 PR merged、required checks success、issue closed / done、本地 `main == origin/main` 且 worktree clean。当前执行事实：#994 至 #1004 已完成；#1005 已通过 fresh WIP=1 preflight，负责最终 Stage Code Audit、release notes、root docs refresh 和 validation summary closeout。
 
 ## Inputs
 
@@ -365,6 +395,23 @@ Build pipeline 的固定顺序为：
 
 #997 必须对 schema、checksum、policy、manifest、bundle 或 registry consistency 任一失败 fail closed。#997 不执行 diff / compare，不创建 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不授权 production cutover。
 
+## #1005 Stage Audit and Release Docs Closeout
+
+- `GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
+- `TVM-RELEASE-V0130-STAGE-AUDIT-RELEASE-DOCS`
+- `V0130-012-STAGE-CODE-AUDIT`
+- `V0130-012-RELEASE-NOTES`
+- `V0130-012-ROOT-DOCS-REFRESH`
+- `V0130-012-VALIDATION-SUMMARY`
+- `V0130-012-NO-PRODUCTION-CUTOVER`
+- `V0130-012-NO-TAG-OR-RELEASE-PUBLICATION`
+
+#1005 在 #1004 local evidence fixtures and regression suite 完成后，收口 v0.13.0 Stage Code Audit、release notes、root docs refresh 和 validation anchors。Stage Code Audit 必须覆盖 #994 至 #1005 issue completion evidence、PR / checks / merge evidence、local evidence-driven readiness chain、validation output、runtime boundary audit、known residual risk 和 next handoff。
+
+Release notes 必须明确 v0.13.0 是 local evidence-driven readiness engine construction closeout，不是 public GitHub Release publication、不是 testnet order execution、不是 production cutover、不是 production trading runtime。Root docs refresh 只同步已完成事实，不创建下一 Project / Issue，不推进下一 Todo。
+
+#1005 不创建 `v0.13.0` tag，不创建 GitHub Release，不移动、不覆盖、不重写既有 tag / release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order。
+
 ## Outputs
 
 v0.13.0 readiness engine 的输出必须仍是本地、redacted、readiness-only evidence：
@@ -458,7 +505,7 @@ Fail-closed output must be actionable local diagnostic evidence. It must not sil
 
 ## Non-goals
 
-- 不实现 #1001 之后的 CLI lifecycle、generation collision-proofing、fixture suite 或 stage audit。
+- 不新增 v0.13.0 之后的 runtime pipeline。
 - 不新增 runtime pipeline。
 - 不发布 v0.13.0 tag 或 GitHub Release。
 - 不移动、不覆盖、不重写 v0.12.0 tag / GitHub Release。

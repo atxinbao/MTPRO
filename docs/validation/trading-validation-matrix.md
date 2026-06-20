@@ -3255,5 +3255,22 @@
 - validation surface: static minimal fixture under `Tests/Fixtures/ReleaseV0130LocalEvidence/valid` plus generated invalid/tampered/missing cases
 - regression evidence: build / validate / export / compare / recovery paths consume copied fixture data in a temporary runtime store
 - fail-closed evidence: missing artifact index, synthetic sourceRunID, placeholder sourceCommit, fixture-only marker and tampered artifact snapshot are rejected
-- dependency evidence: #1004 is blocked by #1003 and is the active WIP=1 gate; #1005 remains blocked by #1004 until this PR is merged and #1004 is closed / done
+- dependency evidence: #1004 was blocked by #1003 and closed / done after PR #1023 merged with required checks success; #1005 starts only after #1004 closeout, main fast-forward and fresh WIP=1 preflight
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0130-STAGE-AUDIT-RELEASE-DOCS
+
+- GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS
+- V0130-012-STAGE-CODE-AUDIT
+- V0130-012-RELEASE-NOTES
+- V0130-012-ROOT-DOCS-REFRESH
+- V0130-012-VALIDATION-SUMMARY
+- V0130-012-NO-PRODUCTION-CUTOVER
+- V0130-012-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1005 Release v0.13.0 Stage Audit / Release Docs Validation
+- testGH1005ReleaseV0130StageAuditReleaseDocsCloseout
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: v0.13.0 stage audit and release notes close #994 through #1005 as local evidence-driven readiness engine construction evidence
+- queue evidence: #994 through #1004 are closed / done and PR #1012 through #1023 are merged with required checks SUCCESS before #1005 closeout
+- boundary evidence: v0.13.0 does not create tag / GitHub Release, does not authorize production cutover, and does not enable testnet or production orders
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

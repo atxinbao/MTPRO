@@ -79,6 +79,14 @@ set -euo pipefail
 # V0130-011-BUILD-VALIDATE-EXPORT-COMPARE-RECOVERY-REGRESSION
 # V0130-011-FIXTURE-RUNTIME-PATH-SEPARATION
 # V0130-011-NO-PRODUCTION-CUTOVER
+# GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS
+# TVM-RELEASE-V0130-STAGE-AUDIT-RELEASE-DOCS
+# V0130-012-STAGE-CODE-AUDIT
+# V0130-012-RELEASE-NOTES
+# V0130-012-ROOT-DOCS-REFRESH
+# V0130-012-VALIDATION-SUMMARY
+# V0130-012-NO-PRODUCTION-CUTOVER
+# V0130-012-NO-TAG-OR-RELEASE-PUBLICATION
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -124,6 +132,8 @@ README="README.md"
 GOAL="GOAL.md"
 BLUEPRINT="BLUEPRINT.md"
 ROADMAP="docs/roadmap.md"
+AUDIT="docs/audit/mtpro-release-v0.13.0-local-evidence-driven-readiness-engine-stage-code-audit.md"
+RELEASE_NOTES="docs/release/mtpro-release-v0.13.0-local-evidence-driven-readiness-engine-notes.md"
 
 swift test --filter TargetGraphTests/testGH994ReleaseV0130LocalEvidenceReadinessEngineContract
 swift test --filter TargetGraphTests/testGH995ReleaseV0130LocalEvidenceIntakeModelDiscoversValidRootAndFailsClosed
@@ -136,6 +146,7 @@ swift test --filter TargetGraphTests/testGH1001ReleaseV0130TransactionRecoverySn
 swift test --filter TargetGraphTests/testGH1002ReleaseV0130GenerationIDCollisionProofingKeepsRegistryLookupStable
 swift test --filter TargetGraphTests/testGH1003ReleaseV0130OrderedReadinessCLILifecycleRequiresMarkersAndNextActions
 swift test --filter TargetGraphTests/testGH1004ReleaseV0130LocalEvidenceFixturesAndRegressionSuiteCoversFailClosedFlow
+swift test --filter TargetGraphTests/testGH1005ReleaseV0130StageAuditReleaseDocsCloseout
 
 for anchor in \
   "GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT" \
@@ -339,6 +350,39 @@ for anchor in \
   require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
   require_file_contains "$TESTS" "$anchor"
 done
+
+for anchor in \
+  "GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS" \
+  "TVM-RELEASE-V0130-STAGE-AUDIT-RELEASE-DOCS" \
+  "V0130-012-STAGE-CODE-AUDIT" \
+  "V0130-012-RELEASE-NOTES" \
+  "V0130-012-ROOT-DOCS-REFRESH" \
+  "V0130-012-VALIDATION-SUMMARY" \
+  "V0130-012-NO-PRODUCTION-CUTOVER" \
+  "V0130-012-NO-TAG-OR-RELEASE-PUBLICATION"; do
+  require_file_contains "$CONTRACT" "$anchor"
+  require_file_contains "$AUDIT" "$anchor"
+  require_file_contains "$RELEASE_NOTES" "$anchor"
+  require_file_contains "$READINESS" "$anchor"
+  require_file_contains "$PLAN" "$anchor"
+  require_file_contains "$MATRIX" "$anchor"
+  require_file_contains "$LATEST" "$anchor"
+  require_file_contains "$AUTOMATION_SCRIPT" "$anchor"
+  require_file_contains "$TESTS" "$anchor"
+done
+
+require_file_contains "$AUDIT" "#994"
+require_file_contains "$AUDIT" "#1005"
+require_file_contains "$AUDIT" "#1023"
+require_file_contains "$AUDIT" "a386694234aefac640a7f12d8cbe84875903df5a"
+require_file_contains "$AUDIT" 'checks`, `linux-checks`, `dashboard-macos` SUCCESS'
+require_file_contains "$RELEASE_NOTES" "v0.13.0 是 local evidence-driven readiness engine construction closeout"
+require_file_contains "$RELEASE_NOTES" "不是 testnet order execution"
+require_file_contains "$RELEASE_NOTES" "不是 production cutover"
+require_file_contains "$README" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
+require_file_contains "$GOAL" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine complete"
+require_file_contains "$BLUEPRINT" "MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine"
+require_file_contains "$ROADMAP" "GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS"
 
 require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.13.0.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.13.0.sh"
