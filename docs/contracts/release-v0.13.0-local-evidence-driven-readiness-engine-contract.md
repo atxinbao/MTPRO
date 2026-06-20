@@ -133,11 +133,23 @@
 
 `V0130-009-NO-PRODUCTION-CUTOVER`
 
+`GH-1003-VERIFY-V0130-ORDERED-READINESS-CLI-LIFECYCLE`
+
+`TVM-RELEASE-V0130-ORDERED-READINESS-CLI-LIFECYCLE`
+
+`V0130-010-CREATE-BUILD-VALIDATE-EXPORT-COMPARE-ARCHIVE`
+
+`V0130-010-VALIDATION-EXPORT-MARKERS`
+
+`V0130-010-BYPASS-MANUAL-FILES-REJECTED`
+
+`V0130-010-NO-PRODUCTION-CUTOVER`
+
 ## Contract Scope
 
 `v0.13.0` 定义 local evidence-driven readiness engine / 本地证据驱动就绪引擎。它承接 v0.12.0 readiness assessment sessions 和 v0.12.1 provenance hardening patch 的已完成事实，把 readiness assessment 从“可生成本地 assessment evidence”推进为“只能从真实本地 evidence root intake、校验、打包、登记、比较和导出”的 engine contract。
 
-本 contract 起始于 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。#994 只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；后续 issue 按 WIP=1 逐项完成。当前执行事实：#994、#995、#996、#997、#998、#999、#1000 和 #1001 已完成；#1002 在 fresh WIP=1 preflight 后作为唯一 active generation ID collision-proofing gate 执行；#1003..#1005 继续 blocked，直到 #1002 PR merged、required checks success、issue closed / done、本地 `main == origin/main` 且 worktree clean。
+本 contract 起始于 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。#994 只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；后续 issue 按 WIP=1 逐项完成。当前执行事实：#994、#995、#996、#997、#998、#999、#1000、#1001 和 #1002 已完成；#1003 在 fresh WIP=1 preflight 后作为唯一 active ordered CLI execution lifecycle gate 执行；#1004..#1005 继续 blocked，直到 #1003 PR merged、required checks success、issue closed / done、本地 `main == origin/main` 且 worktree clean。
 
 ## Inputs
 
@@ -312,6 +324,21 @@ registry lookup remains stable：#1002 只能改变 generationID 的唯一性，
 
 #1002 不新增 ordered CLI lifecycle、不创建 fixture suite、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace，也不把 generation collision-proofing 解释为 production readiness approval。
 
+## #1003 Ordered CLI Execution Lifecycle
+
+- `GH-1003-VERIFY-V0130-ORDERED-READINESS-CLI-LIFECYCLE`
+- `TVM-RELEASE-V0130-ORDERED-READINESS-CLI-LIFECYCLE`
+- `V0130-010-CREATE-BUILD-VALIDATE-EXPORT-COMPARE-ARCHIVE`
+- `V0130-010-VALIDATION-EXPORT-MARKERS`
+- `V0130-010-BYPASS-MANUAL-FILES-REJECTED`
+- `V0130-010-NO-PRODUCTION-CUTOVER`
+
+#1003 在 #1002 generation ID collision-proofing 完成后，把 readiness CLI 固定为 create -> build -> validate -> export -> compare/archive 顺序。`readiness validate <assessmentID>` 必须只在 evidence chain coherent 时写出本地 `validation-state.json` marker；`readiness export <assessmentID>` 必须要求当前 marker 与 Manifest V2、Bundle V2、bundle manifest、artifact checksum、sourceRunIDs 和 sourceCommit 一致后才写出 export，并写出本地 `export-state.json` marker。
+
+`readiness compare <baselineAssessmentID> <followUpAssessmentID>` 必须要求 baseline 已完成 export marker、follow-up 已完成 validation marker，随后仍按 #1000 evidence-level compare 报告 broken evidence link blocker，不能把 marker 检查降级为普通 warning。`readiness archive <assessmentID>` 必须要求当前 export marker 与当前 validation marker 仍一致；archive-before-export、compare-before-follow-up-validate、export-before-validate 和 stale marker must fail closed，并输出 `nextRequiredAction` 与 explicit reason。
+
+#1003 不创建 fixture suite、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace，也不把本地 lifecycle marker 解释为 production readiness approval。
+
 Build pipeline 的固定顺序为：
 
 1. `schemaValidated=true`：run logs / event stream / artifacts / registry / prior assessments 必须通过 #995 schema gate。
@@ -372,7 +399,7 @@ v0.13.0 readiness engine 的 canonical lifecycle order 固定为：
 9. compare baseline / follow-up assessments without mutation。
 10. export redacted audit package。
 
-CLI 或 automation 不得允许 compare-before-build、export-before-validate、registry-write-before-policy-validation、bundle-before-manifest 或 diff-without-source-evidence。后续 #1003 必须把该顺序落实到 CLI guard；#994 只定义该顺序。
+CLI 或 automation 不得允许 compare-before-build、export-before-validate、registry-write-before-policy-validation、bundle-before-manifest 或 diff-without-source-evidence。#1003 已把该顺序落实为 CLI lifecycle marker guard；#994 只定义该顺序。
 
 ## v0.13.0 Queue Dependency Contract
 

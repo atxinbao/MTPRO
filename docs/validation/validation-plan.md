@@ -5164,3 +5164,21 @@ swift test
 - CLI evidence: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` and `mtpro readiness build <assessmentID>` must use the factory instead of second-level `-generation-\(Int(now.timeIntervalSince1970))`
 - dependency evidence: #1002 is blocked by #997 and starts only after #1001 closeout preflight; #1003 through #1005 remain blocked until #1002 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
 - forbidden scope: no ordered CLI lifecycle, no fixture suite, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-1003 Release v0.13.0 Ordered Readiness CLI Lifecycle Validation
+
+- GH-1003-VERIFY-V0130-ORDERED-READINESS-CLI-LIFECYCLE
+- TVM-RELEASE-V0130-ORDERED-READINESS-CLI-LIFECYCLE
+- V0130-010-CREATE-BUILD-VALIDATE-EXPORT-COMPARE-ARCHIVE
+- V0130-010-VALIDATION-EXPORT-MARKERS
+- V0130-010-BYPASS-MANUAL-FILES-REJECTED
+- V0130-010-NO-PRODUCTION-CUTOVER
+- GH-1003 Release v0.13.0 Ordered Readiness CLI Lifecycle Validation
+- testGH1003ReleaseV0130OrderedReadinessCLILifecycleRequiresMarkersAndNextActions
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- CLI surface: `mtpro readiness validate <assessmentID>` writes `validation-state.json`, `mtpro readiness export <assessmentID>` writes `export-state.json`, `mtpro readiness compare <baselineAssessmentID> <followUpAssessmentID>` requires baseline export marker and follow-up validation marker, and `mtpro readiness archive <assessmentID>` requires a current export marker
+- fail-closed evidence: export-before-validate, compare-before-follow-up-validate, archive-before-export and stale marker attempts return `mtpro.readiness.lifecycle` with explicit `nextRequiredAction`
+- documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #1003 ordered CLI lifecycle marker behavior and no-cutover boundary
+- implementation evidence: `Sources/MTPROCLI/main.swift` exposes `validation-state.json`, `export-state.json`, lifecycle marker validation and `nextRequiredAction`
+- dependency evidence: #1003 is blocked by #1002; #1004 through #1005 remain blocked until #1003 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- forbidden scope: no fixture suite, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order

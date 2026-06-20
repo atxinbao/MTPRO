@@ -2209,6 +2209,135 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
         "sourceRunManifestChecksum",
         "eventIDs"
     ]
+    private static let validationMarkerFileName = "validation-state.json"
+    private static let exportMarkerFileName = "export-state.json"
+
+    private struct ReadinessLifecycleSnapshot {
+        let generationID: Identifier
+        let manifestChecksum: String
+        let readinessBundleChecksum: String
+        let readinessBundleManifestChecksum: String
+        let artifactSHA256: String
+        let artifactBytes: Int
+        let sourceRunIDs: [String]
+        let sourceCommit: String
+        let producerVersion: String
+    }
+
+    private struct ReadinessLifecycleValidationMarker: Codable, Equatable {
+        let issueID: String
+        let assessmentID: String
+        let generationID: String
+        let validationState: String
+        let evidenceChainCoherent: Bool
+        let manifestChecksum: String
+        let readinessBundleChecksum: String
+        let readinessBundleManifestChecksum: String
+        let artifactSHA256: String
+        let artifactBytes: Int
+        let sourceRunIDs: [String]
+        let sourceCommit: String
+        let producerVersion: String
+        let validatedAtEpochSeconds: Int
+        let productionTradingEnabledByDefault: Bool
+        let productionSecretRead: Bool
+        let productionEndpointConnected: Bool
+        let brokerEndpointConnected: Bool
+        let productionOrderSubmitted: Bool
+        let productionCutoverAuthorized: Bool
+
+        var markerHeld: Bool {
+            issueID == "GH-1003"
+                && validationState == "valid"
+                && evidenceChainCoherent
+                && assessmentID.isEmpty == false
+                && generationID.isEmpty == false
+                && ReadinessAssessmentManifestV2.isValidSHA256Checksum(manifestChecksum)
+                && ReadinessAssessmentManifestV2.isValidSHA256Checksum(readinessBundleChecksum)
+                && ReadinessAssessmentManifestV2.isValidSHA256Checksum(readinessBundleManifestChecksum)
+                && ReadinessAssessmentManifestV2.isValidSHA256Checksum(artifactSHA256)
+                && artifactBytes > 0
+                && sourceRunIDs.isEmpty == false
+                && sourceRunIDs.allSatisfy { $0.isEmpty == false }
+                && ReadinessAssessmentManifestV2.isValidSourceCommit(sourceCommit)
+                && producerVersion.isEmpty == false
+                && productionTradingEnabledByDefault == false
+                && productionSecretRead == false
+                && productionEndpointConnected == false
+                && brokerEndpointConnected == false
+                && productionOrderSubmitted == false
+                && productionCutoverAuthorized == false
+        }
+
+        func matches(_ snapshot: ReadinessLifecycleSnapshot) -> Bool {
+            generationID == snapshot.generationID.rawValue
+                && manifestChecksum == snapshot.manifestChecksum
+                && readinessBundleChecksum == snapshot.readinessBundleChecksum
+                && readinessBundleManifestChecksum == snapshot.readinessBundleManifestChecksum
+                && artifactSHA256 == snapshot.artifactSHA256
+                && artifactBytes == snapshot.artifactBytes
+                && sourceRunIDs == snapshot.sourceRunIDs
+                && sourceCommit == snapshot.sourceCommit
+                && producerVersion == snapshot.producerVersion
+        }
+    }
+
+    private struct ReadinessLifecycleExportMarker: Codable, Equatable {
+        let issueID: String
+        let assessmentID: String
+        let generationID: String
+        let exportFormat: String
+        let exportDirectoryPath: String
+        let validationState: String
+        let evidenceChainCoherent: Bool
+        let manifestChecksum: String
+        let readinessBundleChecksum: String
+        let readinessBundleManifestChecksum: String
+        let validationMarkerPath: String
+        let exportedAtEpochSeconds: Int
+        let productionTradingEnabledByDefault: Bool
+        let productionSecretRead: Bool
+        let productionEndpointConnected: Bool
+        let brokerEndpointConnected: Bool
+        let productionOrderSubmitted: Bool
+        let productionCutoverAuthorized: Bool
+
+        var markerHeld: Bool {
+            issueID == "GH-1003"
+                && assessmentID.isEmpty == false
+                && generationID.isEmpty == false
+                && exportFormat.isEmpty == false
+                && exportDirectoryPath.isEmpty == false
+                && validationState == "valid"
+                && evidenceChainCoherent
+                && ReadinessAssessmentManifestV2.isValidSHA256Checksum(manifestChecksum)
+                && ReadinessAssessmentManifestV2.isValidSHA256Checksum(readinessBundleChecksum)
+                && ReadinessAssessmentManifestV2.isValidSHA256Checksum(readinessBundleManifestChecksum)
+                && validationMarkerPath.hasSuffix(Self.validationMarkerFileSuffix)
+                && productionTradingEnabledByDefault == false
+                && productionSecretRead == false
+                && productionEndpointConnected == false
+                && brokerEndpointConnected == false
+                && productionOrderSubmitted == false
+                && productionCutoverAuthorized == false
+        }
+
+        private static let validationMarkerFileSuffix = "/\(ReleaseV0120ReadinessAssessmentCLI.validationMarkerFileName)"
+
+        func matches(
+            validationMarker: ReadinessLifecycleValidationMarker,
+            snapshot: ReadinessLifecycleSnapshot
+        ) -> Bool {
+            validationMarker.markerHeld
+                && validationMarker.matches(snapshot)
+                && generationID == snapshot.generationID.rawValue
+                && validationState == validationMarker.validationState
+                && evidenceChainCoherent == validationMarker.evidenceChainCoherent
+                && manifestChecksum == snapshot.manifestChecksum
+                && readinessBundleChecksum == snapshot.readinessBundleChecksum
+                && readinessBundleManifestChecksum == snapshot.readinessBundleManifestChecksum
+        }
+    }
 
     let action: String
     let assessmentID: Identifier?
@@ -2416,8 +2545,14 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             assessmentID: entry.assessmentID,
             store: store
         )
+        let validationMarker = try writeValidationMarkerIfValid(
+            entry: entry,
+            evidenceChainReport: evidenceChainReport,
+            validatedAt: Self.canonicalNow()
+        )
         return (baseOutput(action: action, entry: entry, mutationApplied: false) + [
             "issue=GH-998",
+            "lifecycleIssue=GH-1003",
             "v013ValidationAnchor=GH-998-VERIFY-V0130-EVIDENCE-CHAIN-VALIDATE",
             "v013MatrixAnchor=TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE",
             "v013ConsistencyAnchor=V0130-005-REGISTRY-MANIFEST-BUNDLE-CONSISTENCY",
@@ -2448,6 +2583,11 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             "failureReasons=\(evidenceChainReport.failureReasons.isEmpty ? "none" : evidenceChainReport.failureReasons.joined(separator: ","))",
             "productionCapabilitiesDisabled=\(entry.productionCapabilitiesDisabled)",
             "validationState=\(evidenceChainReport.validationState)",
+            "validationMarkerWritten=\(validationMarker != nil)",
+            "validationMarkerHeld=\(validationMarker?.markerHeld ?? false)",
+            "validationMarkerPath=\(Self.lifecycleMarkerRelativePath(for: entry, fileName: Self.validationMarkerFileName))",
+            "lifecycleOrderHeld=\(validationMarker?.markerHeld ?? false)",
+            "nextRequiredAction=\(validationMarker?.markerHeld == true ? "readiness export \(entry.assessmentID.rawValue)" : "readiness build \(entry.assessmentID.rawValue)")",
             "invalidAssessmentIDsFailClosed=true",
             "localRegistryStoreOnly=true",
             "boundaryHeld=true"
@@ -2456,10 +2596,11 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
 
     private func exportOutput() throws -> String {
         let entry = try requiredEntry()
+        let validationMarker = try requireValidValidationMarker(entry: entry)
         guard try redactedAuditExportPackageEligible(entry: entry) else {
-            return try snapshotExportOutput(entry: entry)
+            return try snapshotExportOutput(entry: entry, validationMarker: validationMarker)
         }
-        return try redactedAuditExportPackageOutput(entry: entry)
+        return try redactedAuditExportPackageOutput(entry: entry, validationMarker: validationMarker)
     }
 
     /// #999 的 package writer 只接管 `build-v013` 产出的 v0.13 evidence-chain。
@@ -2471,13 +2612,30 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
         return manifest?.producerVersion.hasPrefix("mtpro-v0.13.0") == true
     }
 
-    private func snapshotExportOutput(entry: ReadinessAssessmentRegistryEntry) throws -> String {
+    private func snapshotExportOutput(
+        entry: ReadinessAssessmentRegistryEntry,
+        validationMarker: ReadinessLifecycleValidationMarker
+    ) throws -> String {
         let manifest = try? store.readManifestV2(assessmentID: entry.assessmentID)
+        let exportMarker = try writeExportMarker(
+            entry: entry,
+            validationMarker: validationMarker,
+            exportFormat: "redacted-readiness-assessment-summary",
+            exportDirectoryPath: entry.artifactPaths.redactedExportDirectoryPath,
+            exportedAt: Self.canonicalNow()
+        )
         return (baseOutput(action: action, entry: entry, mutationApplied: false) + [
+            "lifecycleIssue=GH-1003",
             "exportFormat=redacted-readiness-assessment-summary",
             "exportSnapshotOnly=true",
             "exportDirectoryPath=\(entry.artifactPaths.redactedExportDirectoryPath)",
             "manifestV2Present=\(manifest != nil)",
+            "validationMarkerHeld=\(validationMarker.markerHeld)",
+            "exportMarkerWritten=true",
+            "exportMarkerHeld=\(exportMarker.markerHeld)",
+            "exportMarkerPath=\(Self.lifecycleMarkerRelativePath(for: entry, fileName: Self.exportMarkerFileName))",
+            "lifecycleOrderHeld=\(validationMarker.markerHeld && exportMarker.markerHeld)",
+            "nextRequiredAction=readiness compare/archive",
             "redactedEvidenceOnly=true",
             "noSecretValue=true",
             "noOrderPayload=true",
@@ -2486,15 +2644,26 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
         ]).joined(separator: "\n")
     }
 
-    private func redactedAuditExportPackageOutput(entry: ReadinessAssessmentRegistryEntry) throws -> String {
+    private func redactedAuditExportPackageOutput(
+        entry: ReadinessAssessmentRegistryEntry,
+        validationMarker: ReadinessLifecycleValidationMarker
+    ) throws -> String {
         let report = try ReleaseV0130LocalEvidenceIntakeModel(
             fileManager: store.fileManager
         ).writeRedactedAuditExportPackage(
             assessmentID: entry.assessmentID,
             store: store
         )
+        let exportMarker = try writeExportMarker(
+            entry: entry,
+            validationMarker: validationMarker,
+            exportFormat: "redacted-audit-export-package",
+            exportDirectoryPath: report.exportDirectoryPath,
+            exportedAt: Self.canonicalNow()
+        )
         return (baseOutput(action: action, entry: entry, mutationApplied: false) + [
             "issue=GH-999",
+            "lifecycleIssue=GH-1003",
             "v013ValidationAnchor=GH-999-VERIFY-V0130-REDACTED-AUDIT-EXPORT-PACKAGE",
             "v013MatrixAnchor=TVM-RELEASE-V0130-REDACTED-AUDIT-EXPORT-PACKAGE",
             "v013ExportPackageAnchor=V0130-006-REDACTED-AUDIT-EXPORT-PACKAGE",
@@ -2512,6 +2681,12 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             "provenanceSummaryJSONPath=\(report.provenanceSummaryJSONPath)",
             "comparisonMetadataJSONPath=\(report.comparisonMetadataJSONPath)",
             "missingEvidenceFailsClosed=\(report.missingEvidenceFailsClosed)",
+            "validationMarkerHeld=\(validationMarker.markerHeld)",
+            "exportMarkerWritten=true",
+            "exportMarkerHeld=\(exportMarker.markerHeld)",
+            "exportMarkerPath=\(Self.lifecycleMarkerRelativePath(for: entry, fileName: Self.exportMarkerFileName))",
+            "lifecycleOrderHeld=\(validationMarker.markerHeld && exportMarker.markerHeld)",
+            "nextRequiredAction=readiness compare/archive",
             "redactedEvidenceOnly=true",
             "noSecretValue=true",
             "noEndpointPayload=true",
@@ -2530,13 +2705,18 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
 
     private func archiveOutput() throws -> String {
         let entry = try requiredEntry()
+        let exportMarker = try requireValidExportMarker(entry: entry)
         let now = Self.canonicalNow()
         let document = try store.archive(assessmentID: entry.assessmentID, updatedAt: now)
         let archivedEntry = try document.inspect(assessmentID: entry.assessmentID)
         return (baseOutput(action: action, entry: archivedEntry, mutationApplied: true) + [
+            "lifecycleIssue=GH-1003",
             "archived=true",
             "registryState=\(archivedEntry.state.rawValue)",
             "registryLifecycle=\(archivedEntry.lifecycle.rawValue)",
+            "exportMarkerHeld=\(exportMarker.markerHeld)",
+            "lifecycleOrderHeld=\(exportMarker.markerHeld)",
+            "nextRequiredAction=none",
             "localRegistryStoreOnly=true",
             "boundaryHeld=true"
         ]).joined(separator: "\n")
@@ -2552,6 +2732,8 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             )
         }
         let followUpEntry = try store.inspect(assessmentID: comparisonAssessmentID)
+        let baselineExportMarker = try requireExportMarkerPresence(entry: baselineEntry)
+        let followUpValidationMarker = try requireValidationMarkerPresence(entry: followUpEntry)
         if try evidenceLevelCompareEligible(
             baselineEntry: baselineEntry,
             followUpEntry: followUpEntry
@@ -2567,6 +2749,7 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             comparedAt: Self.canonicalNow()
         )
         return (baseOutput(action: action, entry: baselineEntry, mutationApplied: false) + [
+            "lifecycleIssue=GH-1003",
             "baselineAssessmentID=\(report.baselineAssessmentID.rawValue)",
             "followUpAssessmentID=\(report.followUpAssessmentID.rawValue)",
             "comparedSections=\(report.comparedSections.map(\.rawValue).joined(separator: ","))",
@@ -2576,6 +2759,10 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             "reportChecksum=\(report.reportChecksum)",
             "compareDoesNotMutateAssessments=\(report.compareDoesNotMutateAssessments)",
             "operatorReviewOnly=\(report.operatorReviewOnly)",
+            "baselineExportMarkerHeld=\(baselineExportMarker.markerHeld)",
+            "followUpValidationMarkerHeld=\(followUpValidationMarker.markerHeld)",
+            "lifecycleOrderHeld=\(baselineExportMarker.markerHeld && followUpValidationMarker.markerHeld)",
+            "nextRequiredAction=readiness archive \(baselineEntry.assessmentID.rawValue)",
             "localRegistryStoreOnly=true",
             "boundaryHeld=true"
         ]).joined(separator: "\n")
@@ -2603,6 +2790,7 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
         )
         return (baseOutput(action: action, entry: baselineEntry, mutationApplied: false) + [
             "issue=GH-1000",
+            "lifecycleIssue=GH-1003",
             "v013ValidationAnchor=GH-1000-VERIFY-V0130-EVIDENCE-LEVEL-DIFF",
             "v013MatrixAnchor=TVM-RELEASE-V0130-EVIDENCE-LEVEL-DIFF",
             "v013DiffAnchor=V0130-007-EVIDENCE-LEVEL-DIFF-COMPARE",
@@ -2626,6 +2814,10 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             "comparisonMetadataJSONPath=\(followUpEntry.artifactPaths.comparisonMetadataJSONPath)",
             "compareDoesNotMutateAssessments=\(report.comparisonDoesNotMutateAssessments)",
             "operatorReviewOnly=\(report.operatorReviewOnly)",
+            "baselineExportMarkerHeld=true",
+            "followUpValidationMarkerHeld=true",
+            "lifecycleOrderHeld=true",
+            "nextRequiredAction=readiness archive \(baselineEntry.assessmentID.rawValue)",
             "localRegistryStoreOnly=\(report.localRegistryStoreOnly)",
             "redactedEvidenceOnly=\(report.redactedEvidenceOnly)",
             "productionTradingEnabledByDefault=false",
@@ -2637,6 +2829,337 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             "testnetOrderSubmissionAllowed=false",
             "boundaryHeld=true"
         ]).joined(separator: "\n")
+    }
+
+    private func writeValidationMarkerIfValid(
+        entry: ReadinessAssessmentRegistryEntry,
+        evidenceChainReport: ReleaseV0130LocalEvidenceChainValidationReport,
+        validatedAt: Date
+    ) throws -> ReadinessLifecycleValidationMarker? {
+        guard evidenceChainReport.validationState == "valid",
+              evidenceChainReport.evidenceChainCoherent else {
+            return nil
+        }
+        let snapshot = try lifecycleSnapshot(entry: entry)
+        let marker = ReadinessLifecycleValidationMarker(
+            issueID: "GH-1003",
+            assessmentID: entry.assessmentID.rawValue,
+            generationID: snapshot.generationID.rawValue,
+            validationState: evidenceChainReport.validationState,
+            evidenceChainCoherent: evidenceChainReport.evidenceChainCoherent,
+            manifestChecksum: snapshot.manifestChecksum,
+            readinessBundleChecksum: snapshot.readinessBundleChecksum,
+            readinessBundleManifestChecksum: snapshot.readinessBundleManifestChecksum,
+            artifactSHA256: snapshot.artifactSHA256,
+            artifactBytes: snapshot.artifactBytes,
+            sourceRunIDs: snapshot.sourceRunIDs,
+            sourceCommit: snapshot.sourceCommit,
+            producerVersion: snapshot.producerVersion,
+            validatedAtEpochSeconds: Int(validatedAt.timeIntervalSince1970),
+            productionTradingEnabledByDefault: false,
+            productionSecretRead: false,
+            productionEndpointConnected: false,
+            brokerEndpointConnected: false,
+            productionOrderSubmitted: false,
+            productionCutoverAuthorized: false
+        )
+        guard marker.markerHeld else {
+            throw lifecycleOrderError(
+                entry: entry,
+                expectedAction: "readiness validate \(entry.assessmentID.rawValue)",
+                reason: "validationMarkerInvalid",
+                attemptedAction: "readiness validate \(entry.assessmentID.rawValue)"
+            )
+        }
+        try writeLifecycleMarker(marker, to: validationMarkerURL(for: entry))
+        return marker
+    }
+
+    private func requireValidValidationMarker(
+        entry: ReadinessAssessmentRegistryEntry
+    ) throws -> ReadinessLifecycleValidationMarker {
+        let marker = try requireValidationMarkerPresence(entry: entry)
+        let snapshot = try lifecycleSnapshot(entry: entry)
+        guard marker.matches(snapshot) else {
+            throw lifecycleOrderError(
+                entry: entry,
+                expectedAction: "readiness validate \(entry.assessmentID.rawValue)",
+                reason: "validationMarkerStale",
+                attemptedAction: "readiness \(action) \(entry.assessmentID.rawValue)"
+            )
+        }
+        return marker
+    }
+
+    private func requireValidationMarkerPresence(
+        entry: ReadinessAssessmentRegistryEntry
+    ) throws -> ReadinessLifecycleValidationMarker {
+        let url = validationMarkerURL(for: entry)
+        guard store.fileManager.fileExists(atPath: url.path) else {
+            throw lifecycleOrderError(
+                entry: entry,
+                expectedAction: "readiness validate \(entry.assessmentID.rawValue)",
+                reason: "validationMarkerMissing",
+                attemptedAction: "readiness \(action) \(entry.assessmentID.rawValue)"
+            )
+        }
+        let marker = try readLifecycleMarker(ReadinessLifecycleValidationMarker.self, from: url)
+        guard marker.markerHeld,
+              marker.assessmentID == entry.assessmentID.rawValue else {
+            throw lifecycleOrderError(
+                entry: entry,
+                expectedAction: "readiness validate \(entry.assessmentID.rawValue)",
+                reason: "validationMarkerInvalid",
+                attemptedAction: "readiness \(action) \(entry.assessmentID.rawValue)"
+            )
+        }
+        return marker
+    }
+
+    private func writeExportMarker(
+        entry: ReadinessAssessmentRegistryEntry,
+        validationMarker: ReadinessLifecycleValidationMarker,
+        exportFormat: String,
+        exportDirectoryPath: String,
+        exportedAt: Date
+    ) throws -> ReadinessLifecycleExportMarker {
+        let snapshot = try lifecycleSnapshot(entry: entry)
+        guard validationMarker.markerHeld,
+              validationMarker.matches(snapshot) else {
+            throw lifecycleOrderError(
+                entry: entry,
+                expectedAction: "readiness validate \(entry.assessmentID.rawValue)",
+                reason: "validationMarkerStale",
+                attemptedAction: "readiness export \(entry.assessmentID.rawValue)"
+            )
+        }
+        let marker = ReadinessLifecycleExportMarker(
+            issueID: "GH-1003",
+            assessmentID: entry.assessmentID.rawValue,
+            generationID: snapshot.generationID.rawValue,
+            exportFormat: exportFormat,
+            exportDirectoryPath: exportDirectoryPath,
+            validationState: validationMarker.validationState,
+            evidenceChainCoherent: validationMarker.evidenceChainCoherent,
+            manifestChecksum: snapshot.manifestChecksum,
+            readinessBundleChecksum: snapshot.readinessBundleChecksum,
+            readinessBundleManifestChecksum: snapshot.readinessBundleManifestChecksum,
+            validationMarkerPath: Self.lifecycleMarkerRelativePath(
+                for: entry,
+                fileName: Self.validationMarkerFileName
+            ),
+            exportedAtEpochSeconds: Int(exportedAt.timeIntervalSince1970),
+            productionTradingEnabledByDefault: false,
+            productionSecretRead: false,
+            productionEndpointConnected: false,
+            brokerEndpointConnected: false,
+            productionOrderSubmitted: false,
+            productionCutoverAuthorized: false
+        )
+        guard marker.markerHeld,
+              marker.matches(validationMarker: validationMarker, snapshot: snapshot) else {
+            throw lifecycleOrderError(
+                entry: entry,
+                expectedAction: "readiness export \(entry.assessmentID.rawValue)",
+                reason: "exportMarkerInvalid",
+                attemptedAction: "readiness export \(entry.assessmentID.rawValue)"
+            )
+        }
+        try writeLifecycleMarker(marker, to: exportMarkerURL(for: entry))
+        return marker
+    }
+
+    private func requireValidExportMarker(
+        entry: ReadinessAssessmentRegistryEntry
+    ) throws -> ReadinessLifecycleExportMarker {
+        let marker = try requireExportMarkerPresence(entry: entry)
+        let validationMarker = try requireValidValidationMarker(entry: entry)
+        let snapshot = try lifecycleSnapshot(entry: entry)
+        guard marker.matches(validationMarker: validationMarker, snapshot: snapshot) else {
+            throw lifecycleOrderError(
+                entry: entry,
+                expectedAction: "readiness export \(entry.assessmentID.rawValue)",
+                reason: "exportMarkerStale",
+                attemptedAction: "readiness \(action) \(entry.assessmentID.rawValue)"
+            )
+        }
+        return marker
+    }
+
+    private func requireExportMarkerPresence(
+        entry: ReadinessAssessmentRegistryEntry
+    ) throws -> ReadinessLifecycleExportMarker {
+        let url = exportMarkerURL(for: entry)
+        guard store.fileManager.fileExists(atPath: url.path) else {
+            throw lifecycleOrderError(
+                entry: entry,
+                expectedAction: "readiness export \(entry.assessmentID.rawValue)",
+                reason: "exportMarkerMissing",
+                attemptedAction: "readiness \(action) \(entry.assessmentID.rawValue)"
+            )
+        }
+        let marker = try readLifecycleMarker(ReadinessLifecycleExportMarker.self, from: url)
+        guard marker.markerHeld,
+              marker.assessmentID == entry.assessmentID.rawValue else {
+            throw lifecycleOrderError(
+                entry: entry,
+                expectedAction: "readiness export \(entry.assessmentID.rawValue)",
+                reason: "exportMarkerInvalid",
+                attemptedAction: "readiness \(action) \(entry.assessmentID.rawValue)"
+            )
+        }
+        return marker
+    }
+
+    private func lifecycleSnapshot(
+        entry: ReadinessAssessmentRegistryEntry
+    ) throws -> ReadinessLifecycleSnapshot {
+        let manifest = try requiredManifest(for: entry)
+        let bundle = try store.readReadinessBundleV2(
+            assessmentID: entry.assessmentID,
+            generationID: manifest.generationID
+        )
+        let bundleManifest = try store.readReadinessBundleV2Manifest(
+            assessmentID: entry.assessmentID,
+            generationID: manifest.generationID
+        )
+        let v012LocalEvidenceArtifact = try? localEvidenceArtifactMetadata(
+            entry: entry,
+            generationID: manifest.generationID,
+            artifactID: Self.localEvidenceArtifactID(for: entry)
+        )
+        let v013ArtifactSnapshotBytes = bundle.artifactSnapshots.compactMap { snapshot -> Data? in
+            guard snapshot.snapshotHeld,
+                  snapshot.manifestChecksum == manifest.manifestChecksum,
+                  ReadinessAssessmentManifestV2.isValidSHA256Checksum(snapshot.artifactSHA256),
+                  ReadinessAssessmentManifestV2.isValidSHA256Checksum(snapshot.contentValidationChecksum),
+                  snapshot.artifactPath.isEmpty == false else {
+                return nil
+            }
+            let url = Self.storeURL(for: snapshot.artifactPath, store: store, isDirectory: false)
+            guard store.fileManager.fileExists(atPath: url.path),
+                  let data = try? Data(contentsOf: url),
+                  ReleaseV060LocalRunJournalWriter.sha256Hex(data) == snapshot.artifactSHA256,
+                  data.isEmpty == false else {
+                return nil
+            }
+            return data
+        }
+        let v013ArtifactSnapshotsMatchManifest = bundle.artifactSnapshots.isEmpty == false
+            && v013ArtifactSnapshotBytes.count == bundle.artifactSnapshots.count
+        let v012LocalArtifactMatchesManifest = {
+            guard let v012LocalEvidenceArtifact else {
+                return false
+            }
+            return manifest.artifactSHA256 == v012LocalEvidenceArtifact.artifactSHA256
+                && manifest.artifactBytes == v012LocalEvidenceArtifact.artifactBytes
+                && manifest.sourceRunIDs == [v012LocalEvidenceArtifact.sourceRunID]
+        }()
+        guard (v012LocalArtifactMatchesManifest || v013ArtifactSnapshotsMatchManifest),
+              bundle.bundleChecksum == bundleManifest.bundleChecksum else {
+            throw lifecycleOrderError(
+                entry: entry,
+                expectedAction: "readiness build \(entry.assessmentID.rawValue)",
+                reason: "buildEvidenceMismatch",
+                attemptedAction: "readiness \(action) \(entry.assessmentID.rawValue)"
+            )
+        }
+        let lifecycleArtifactSHA256 = if let firstSnapshot = bundle.artifactSnapshots.sorted(by: { $0.artifactID.rawValue < $1.artifactID.rawValue }).first,
+                                         v013ArtifactSnapshotsMatchManifest {
+            firstSnapshot.artifactSHA256
+        } else {
+            manifest.artifactSHA256
+        }
+        let lifecycleArtifactBytes = if v013ArtifactSnapshotsMatchManifest {
+            v013ArtifactSnapshotBytes.reduce(0) { $0 + $1.count }
+        } else {
+            manifest.artifactBytes
+        }
+        return ReadinessLifecycleSnapshot(
+            generationID: manifest.generationID,
+            manifestChecksum: manifest.manifestChecksum,
+            readinessBundleChecksum: bundle.bundleChecksum,
+            readinessBundleManifestChecksum: bundleManifest.manifestChecksum,
+            artifactSHA256: lifecycleArtifactSHA256,
+            artifactBytes: lifecycleArtifactBytes,
+            sourceRunIDs: manifest.sourceRunIDs.map(\.rawValue),
+            sourceCommit: manifest.sourceCommit,
+            producerVersion: manifest.producerVersion
+        )
+    }
+
+    private static func storeURL(
+        for relativePath: String,
+        store: ReadinessAssessmentRegistryStore,
+        isDirectory: Bool
+    ) -> URL {
+        let normalizedPath = relativePath.replacingOccurrences(
+            of: "\(ReadinessAssessmentRegistryStore.defaultRelativeRoot)/",
+            with: ""
+        )
+        return store.storageRootURL.appendingPathComponent(normalizedPath, isDirectory: isDirectory)
+    }
+
+    private func validationMarkerURL(for entry: ReadinessAssessmentRegistryEntry) -> URL {
+        lifecycleMarkerURL(for: entry, fileName: Self.validationMarkerFileName)
+    }
+
+    private func exportMarkerURL(for entry: ReadinessAssessmentRegistryEntry) -> URL {
+        lifecycleMarkerURL(for: entry, fileName: Self.exportMarkerFileName)
+    }
+
+    private func lifecycleMarkerURL(
+        for entry: ReadinessAssessmentRegistryEntry,
+        fileName: String
+    ) -> URL {
+        store.storageRootURL
+            .appendingPathComponent("assessments", isDirectory: true)
+            .appendingPathComponent(entry.assessmentID.rawValue, isDirectory: true)
+            .appendingPathComponent(fileName, isDirectory: false)
+    }
+
+    private static func lifecycleMarkerRelativePath(
+        for entry: ReadinessAssessmentRegistryEntry,
+        fileName: String
+    ) -> String {
+        "\(entry.artifactPaths.assessmentDirectoryPath)/\(fileName)"
+    }
+
+    private func writeLifecycleMarker<T: Encodable>(_ marker: T, to url: URL) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        encoder.dateEncodingStrategy = .secondsSince1970
+        let data = try encoder.encode(marker)
+        let parentURL = url.deletingLastPathComponent()
+        try store.fileManager.createDirectory(
+            at: parentURL,
+            withIntermediateDirectories: true,
+            attributes: [.posixPermissions: ReadinessAssessmentRegistryStore.ownerOnlyDirectoryPermissions]
+        )
+        try data.write(to: url, options: .atomic)
+        try store.fileManager.setAttributes(
+            [.posixPermissions: ReadinessAssessmentRegistryStore.ownerOnlyFilePermissions],
+            ofItemAtPath: url.path
+        )
+    }
+
+    private func readLifecycleMarker<T: Decodable>(_ markerType: T.Type, from url: URL) throws -> T {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        return try decoder.decode(markerType, from: Data(contentsOf: url))
+    }
+
+    private func lifecycleOrderError(
+        entry: ReadinessAssessmentRegistryEntry,
+        expectedAction: String,
+        reason: String,
+        attemptedAction: String
+    ) -> MTPROCLIParserError {
+        MTPROCLIParserError.invalidArguments(
+            field: "mtpro.readiness.lifecycle",
+            expected: "nextRequiredAction=\(expectedAction); reason=\(reason)",
+            actual: attemptedAction
+        )
     }
 
     private func requiredEntry() throws -> ReadinessAssessmentRegistryEntry {
@@ -2870,6 +3393,12 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             "validationAnchor=\(MTPROStrictCLI.readinessAssessmentCLILifecycleValidationAnchor)",
             "verificationAnchor=\(MTPROStrictCLI.readinessAssessmentCLILifecycleVerificationAnchor)",
             "requiredAnchors=\(MTPROStrictCLI.readinessAssessmentCLILifecycleRequiredAnchors.joined(separator: ","))",
+            "v013LifecycleAnchor=GH-1003-VERIFY-V0130-ORDERED-READINESS-CLI-LIFECYCLE",
+            "v013LifecycleMatrixAnchor=TVM-RELEASE-V0130-ORDERED-READINESS-CLI-LIFECYCLE",
+            "v013LifecycleOrderAnchor=V0130-010-CREATE-BUILD-VALIDATE-EXPORT-COMPARE-ARCHIVE",
+            "v013LifecycleMarkerAnchor=V0130-010-VALIDATION-EXPORT-MARKERS",
+            "v013LifecycleBypassAnchor=V0130-010-BYPASS-MANUAL-FILES-REJECTED",
+            "v013LifecycleNoCutoverAnchor=V0130-010-NO-PRODUCTION-CUTOVER",
             "assessmentSessionContract=v0.12.0",
             "assessmentID=\(entry.assessmentID.rawValue)",
             "registryPath=.local/mtpro/readiness/registry.json",
