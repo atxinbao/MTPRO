@@ -9757,4 +9757,18 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 local evidence metadata guard anchor"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH990ReadinessLocalEvidenceMetadataBindsArtifactsAndSourceRunIDs"
 
+require_file "checks/verify-v0.12.1-compare-fail-closed.sh"
+require_contains "checks/verify-v0.12.1-compare-fail-closed.sh" "GH-991-VERIFY-V0121-COMPARE-FAIL-CLOSED"
+require_contains "checks/verify-v0.12.1-compare-fail-closed.sh" "V0121-004-READINESS-COMPARE-FAIL-CLOSED"
+require_contains "checks/verify-v0.12.1-compare-fail-closed.sh" "V0121-004-MISSING-SOURCE-RUN-EVIDENCE"
+require_contains "checks/verify-v0.12.1-compare-fail-closed.sh" "V0121-004-NO-FABRICATED-COMPARE-EVIDENCE"
+require_contains "checks/verify-v0.12.1-compare-fail-closed.sh" "TVM-RELEASE-V0121-COMPARE-FAIL-CLOSED"
+require_contains "checks/verify-v0.12.0.sh" "bash checks/verify-v0.12.1-compare-fail-closed.sh"
+require_contains "checks/run.sh" "bash checks/verify-v0.12.1-compare-fail-closed.sh"
+require_contains "docs/validation/latest-verification-summary.md" "v0.12.1 compare fail-closed guard"
+require_contains "docs/validation/validation-plan.md" "GH-991 Release v0.12.1 Compare Fail-Closed Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0121-COMPARE-FAIL-CLOSED"
+require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 compare fail-closed guard anchor"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH991ReadinessCompareFailsClosedWithoutSourceRunEvidence"
+
 printf 'MTPRO automation readiness checks passed.\n'

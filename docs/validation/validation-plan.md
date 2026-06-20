@@ -4951,3 +4951,21 @@ swift test
 - metadata binding: Manifest V2 `sourceRunIDs`, `artifactSHA256` and `artifactBytes` are derived from the actual local evidence file bytes
 - fail-closed evidence: removing or tampering with the local artifact makes `mtpro readiness validate <assessmentID>` return `artifactEvidenceMatchesManifest=false` and `validationState=blocked`
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
+
+## GH-991 Release v0.12.1 Compare Fail-Closed Validation
+
+- GH-991-VERIFY-V0121-COMPARE-FAIL-CLOSED
+- V0121-004-READINESS-COMPARE-FAIL-CLOSED
+- V0121-004-MISSING-SOURCE-RUN-EVIDENCE
+- V0121-004-NO-FABRICATED-COMPARE-EVIDENCE
+- TVM-RELEASE-V0121-COMPARE-FAIL-CLOSED
+- focused verifier: `bash checks/verify-v0.12.1-compare-fail-closed.sh`
+- aggregate verifier carry-forward: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH991ReadinessCompareFailsClosedWithoutSourceRunEvidence`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- compare-before-build evidence: `mtpro readiness compare <baselineAssessmentID> <followUpAssessmentID>` fails closed with `readinessCompare:missingManifest:<assessmentID>` when Manifest V2 evidence does not exist
+- source-run evidence binding: compare reads `sourceRunManifestChecksum`, `eventIDs`, `riskDecisionIDs`, `omsDryRunLifecycleIDs`, `portfolioProjectionChecksum` and `reconciliationChecksum` from the local redacted artifact written by readiness build
+- no fabricated compare evidence: compare no longer creates sourceRunID / event / risk / OMS evidence from `assessmentID` fallback strings
+- missing artifact evidence: removing `.local/mtpro/readiness/assessments/<assessmentID>/artifacts/readiness-summary.json` makes compare fail closed instead of fabricating source-run-like fallback evidence
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite

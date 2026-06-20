@@ -1885,7 +1885,17 @@ private struct ReleaseV0121ReadinessLocalEvidenceArtifactMetadata {
     let sourceRunID: Identifier
 }
 
+private struct ReleaseV0121ReadinessLocalSourceRunEvidence: Decodable {
+    let sourceRunManifestChecksum: String
+    let eventIDs: [String]
+    let riskDecisionIDs: [String]
+    let omsDryRunLifecycleIDs: [String]
+    let portfolioProjectionChecksum: String
+    let reconciliationChecksum: String
+}
+
 private typealias LocalEvidenceArtifactMetadata = ReleaseV0121ReadinessLocalEvidenceArtifactMetadata
+private typealias LocalSourceRunEvidence = ReleaseV0121ReadinessLocalSourceRunEvidence
 
 private struct ReleaseV0120ReadinessAssessmentCLI {
     private static let readinessRootEnvironmentKey = "MTPRO_READINESS_ROOT"
@@ -1904,6 +1914,8 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
         "localOnly",
         "noOrderPayload",
         "noSecretValue",
+        "omsDryRunLifecycleIDs",
+        "portfolioProjectionChecksum",
         "producerVersion",
         "productionCutoverAuthorized",
         "productionEndpointConnected",
@@ -1911,8 +1923,12 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
         "productionSecretRead",
         "productionTradingEnabledByDefault",
         "redactedEvidenceOnly",
+        "reconciliationChecksum",
         "registryEntryChecksum",
-        "sourceCommit"
+        "riskDecisionIDs",
+        "sourceCommit",
+        "sourceRunManifestChecksum",
+        "eventIDs"
     ]
 
     let action: String
@@ -2208,10 +2224,13 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             "brokerEndpointConnected": false,
             "createdAtEpochSeconds": Int(createdAt.timeIntervalSince1970),
             "evidenceKind": "readiness-local-summary",
+            "eventIDs": [Self.localEvidenceEventID(for: entry).rawValue],
             "generationID": generationID.rawValue,
             "localOnly": true,
             "noOrderPayload": true,
             "noSecretValue": true,
+            "omsDryRunLifecycleIDs": [Self.localEvidenceOMSDryRunLifecycleID(for: entry).rawValue],
+            "portfolioProjectionChecksum": Self.stableChecksum("portfolio-\(entry.assessmentID.rawValue)-\(generationID.rawValue)"),
             "producerVersion": Self.producerVersion,
             "productionCutoverAuthorized": false,
             "productionEndpointConnected": false,
@@ -2219,8 +2238,11 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
             "productionSecretRead": false,
             "productionTradingEnabledByDefault": false,
             "redactedEvidenceOnly": true,
+            "reconciliationChecksum": Self.stableChecksum("reconciliation-\(entry.assessmentID.rawValue)-\(generationID.rawValue)"),
             "registryEntryChecksum": entry.entryChecksum,
-            "sourceCommit": sourceCommit
+            "riskDecisionIDs": [Self.localEvidenceRiskDecisionID(for: entry).rawValue],
+            "sourceCommit": sourceCommit,
+            "sourceRunManifestChecksum": Self.stableChecksum("source-run-manifest-\(entry.assessmentID.rawValue)-\(generationID.rawValue)")
         ]
         let data = try Self.canonicalJSONData(payload)
         try writeLocalEvidenceData(data, to: artifactURL)
@@ -2291,6 +2313,18 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
         Identifier.constant("\(entry.assessmentID.rawValue)-readiness-summary")
     }
 
+    private static func localEvidenceEventID(for entry: ReadinessAssessmentRegistryEntry) -> Identifier {
+        Identifier.constant("\(entry.assessmentID.rawValue)-local-evidence-event")
+    }
+
+    private static func localEvidenceRiskDecisionID(for entry: ReadinessAssessmentRegistryEntry) -> Identifier {
+        Identifier.constant("\(entry.assessmentID.rawValue)-local-evidence-risk-decision")
+    }
+
+    private static func localEvidenceOMSDryRunLifecycleID(for entry: ReadinessAssessmentRegistryEntry) -> Identifier {
+        Identifier.constant("\(entry.assessmentID.rawValue)-local-evidence-oms-lifecycle")
+    }
+
     private static func localEvidenceArtifactRelativePath(for entry: ReadinessAssessmentRegistryEntry) -> String {
         "\(entry.artifactPaths.assessmentDirectoryPath)/artifacts/\(localEvidenceArtifactFileName)"
     }
@@ -2316,28 +2350,72 @@ private struct ReleaseV0120ReadinessAssessmentCLI {
     private func comparisonSnapshot(
         for entry: ReadinessAssessmentRegistryEntry
     ) throws -> ReadinessAssessmentComparisonSnapshot {
-        let manifest = try? store.readManifestV2(assessmentID: entry.assessmentID)
-        let generationID = manifest?.generationID
-            ?? Identifier.constant("\(entry.assessmentID.rawValue)-generation-not-built")
+        let manifest = try requiredManifest(for: entry)
+        let localEvidenceArtifact = try localEvidenceArtifactMetadata(
+            entry: entry,
+            generationID: manifest.generationID,
+            artifactID: Self.localEvidenceArtifactID(for: entry)
+        )
+        guard manifest.artifactSHA256 == localEvidenceArtifact.artifactSHA256,
+              manifest.artifactBytes == localEvidenceArtifact.artifactBytes,
+              manifest.sourceRunIDs == [localEvidenceArtifact.sourceRunID] else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessCompare:localEvidenceManifestMismatch")
+        }
+        let localSourceRunEvidence = try localSourceRunEvidence(from: localEvidenceArtifact)
         let sourceRunSnapshot = try ReleaseV0120ShadowParitySourceRunSnapshot(
-            runID: Identifier.constant("\(entry.assessmentID.rawValue)-source-run"),
-            sourceRunManifestChecksum: Self.stableChecksum("source-run-manifest-\(entry.assessmentID.rawValue)"),
-            eventIDs: [Identifier.constant("\(entry.assessmentID.rawValue)-event")],
-            riskDecisionIDs: [Identifier.constant("\(entry.assessmentID.rawValue)-risk")],
-            omsDryRunLifecycleIDs: [Identifier.constant("\(entry.assessmentID.rawValue)-oms")],
-            portfolioProjectionChecksum: Self.stableChecksum("portfolio-\(entry.assessmentID.rawValue)"),
-            reconciliationChecksum: Self.stableChecksum("reconciliation-\(entry.assessmentID.rawValue)")
+            runID: localEvidenceArtifact.sourceRunID,
+            sourceRunManifestChecksum: localSourceRunEvidence.sourceRunManifestChecksum,
+            eventIDs: try localSourceRunEvidence.eventIDs.map { try Identifier($0) },
+            riskDecisionIDs: try localSourceRunEvidence.riskDecisionIDs.map { try Identifier($0) },
+            omsDryRunLifecycleIDs: try localSourceRunEvidence.omsDryRunLifecycleIDs.map { try Identifier($0) },
+            portfolioProjectionChecksum: localSourceRunEvidence.portfolioProjectionChecksum,
+            reconciliationChecksum: localSourceRunEvidence.reconciliationChecksum
         )
         return try ReadinessAssessmentComparisonSnapshot(
             assessmentID: entry.assessmentID,
-            generationID: generationID,
+            generationID: manifest.generationID,
             policyChecksum: Self.stableChecksum("policy-v0.12.0"),
-            artifactBundleChecksum: manifest?.manifestChecksum ?? entry.entryChecksum,
+            artifactBundleChecksum: manifest.manifestChecksum,
             riskLimitChecksum: Self.stableChecksum("risk-limits-v0.12.0"),
             killSwitchStateChecksum: Self.stableChecksum("kill-switch-\(entry.assessmentID.rawValue)"),
             approvalStateChecksum: Self.stableChecksum("approval-\(entry.assessmentID.rawValue)"),
             sourceRunSnapshot: sourceRunSnapshot
         )
+    }
+
+    private func requiredManifest(
+        for entry: ReadinessAssessmentRegistryEntry
+    ) throws -> ReadinessAssessmentManifestV2 {
+        let manifestURL = store.storageRootURL
+            .appendingPathComponent("assessments", isDirectory: true)
+            .appendingPathComponent(entry.assessmentID.rawValue, isDirectory: true)
+            .appendingPathComponent("manifest-v2.json", isDirectory: false)
+        guard store.fileManager.fileExists(atPath: manifestURL.path) else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift(
+                "readinessCompare:missingManifest:\(entry.assessmentID.rawValue)"
+            )
+        }
+        return try store.readManifestV2(assessmentID: entry.assessmentID)
+    }
+
+    private func localSourceRunEvidence(
+        from artifact: LocalEvidenceArtifactMetadata
+    ) throws -> LocalSourceRunEvidence {
+        let evidence: LocalSourceRunEvidence
+        do {
+            evidence = try JSONDecoder().decode(LocalSourceRunEvidence.self, from: artifact.data)
+        } catch {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessCompare:missingSourceRunEvidence")
+        }
+        guard ReadinessAssessmentManifestV2.isValidSHA256Checksum(evidence.sourceRunManifestChecksum),
+              evidence.eventIDs.isEmpty == false,
+              evidence.riskDecisionIDs.isEmpty == false,
+              evidence.omsDryRunLifecycleIDs.isEmpty == false,
+              ReadinessAssessmentManifestV2.isValidSHA256Checksum(evidence.portfolioProjectionChecksum),
+              ReadinessAssessmentManifestV2.isValidSHA256Checksum(evidence.reconciliationChecksum) else {
+            throw ReadinessAssessmentRegistryStoreError.boundaryDrift("readinessCompare:missingSourceRunEvidence")
+        }
+        return evidence
     }
 
     private func baseOutput(

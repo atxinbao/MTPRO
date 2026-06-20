@@ -33435,6 +33435,94 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH991ReadinessCompareFailsClosedWithoutSourceRunEvidence() throws {
+        // 测试场景：GH-991 要求 readiness compare 只消费真实 Manifest V2 和本地 source-run artifact；
+        // compare-before-build 或缺失 source-run evidence 时必须 fail closed，不能再从 assessmentID 伪造证据。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let compareVerifier = try read("checks/verify-v0.12.1-compare-fail-closed.sh")
+        let v0120Verifier = try read("checks/verify-v0.12.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-991-VERIFY-V0121-COMPARE-FAIL-CLOSED",
+            "V0121-004-READINESS-COMPARE-FAIL-CLOSED",
+            "V0121-004-MISSING-SOURCE-RUN-EVIDENCE",
+            "V0121-004-NO-FABRICATED-COMPARE-EVIDENCE",
+            "TVM-RELEASE-V0121-COMPARE-FAIL-CLOSED"
+        ] {
+            XCTAssertTrue(compareVerifier.contains(anchor), "\(anchor) must be enforced by the focused guard")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be covered by automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be summarized in latest verification")
+        }
+
+        XCTAssertTrue(cliSource.contains("requiredManifest(for:"))
+        XCTAssertTrue(cliSource.contains("readinessCompare:missingManifest"))
+        XCTAssertTrue(cliSource.contains("readinessCompare:missingSourceRunEvidence"))
+        XCTAssertTrue(cliSource.contains("localSourceRunEvidence(from:"))
+        XCTAssertTrue(cliSource.contains("sourceRunManifestChecksum"))
+        XCTAssertTrue(cliSource.contains("eventIDs"))
+        XCTAssertTrue(cliSource.contains("riskDecisionIDs"))
+        XCTAssertTrue(cliSource.contains("omsDryRunLifecycleIDs"))
+        XCTAssertFalse(cliSource.contains("Identifier.constant(\"\\(entry.assessmentID.rawValue)-source-run\")"))
+        XCTAssertFalse(cliSource.contains("source-run-manifest-\\(entry.assessmentID.rawValue)\""))
+        XCTAssertTrue(v0120Verifier.contains("bash checks/verify-v0.12.1-compare-fail-closed.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.12.1-compare-fail-closed.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.12.1-compare-fail-closed.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.12.1 compare fail-closed guard anchor"))
+        XCTAssertTrue(latest.contains("v0.12.1 compare fail-closed guard"))
+
+        let baselineID = Identifier.constant("gh-991-baseline")
+        let followUpID = Identifier.constant("gh-991-followup")
+        let baselineSnapshot = try ReadinessAssessmentComparisonSnapshot(
+            assessmentID: baselineID,
+            generationID: Identifier.constant("gh-991-baseline-generation"),
+            policyChecksum: "sha256:\(String(repeating: "a", count: 64))",
+            artifactBundleChecksum: "sha256:\(String(repeating: "b", count: 64))",
+            riskLimitChecksum: "sha256:\(String(repeating: "c", count: 64))",
+            killSwitchStateChecksum: "sha256:\(String(repeating: "d", count: 64))",
+            approvalStateChecksum: "sha256:\(String(repeating: "e", count: 64))",
+            sourceRunSnapshot: try ReleaseV0120ShadowParitySourceRunSnapshot(
+                runID: Identifier.constant("source-run-gh991baseline"),
+                sourceRunManifestChecksum: "sha256:\(String(repeating: "f", count: 64))",
+                eventIDs: [Identifier.constant("gh-991-event")],
+                riskDecisionIDs: [Identifier.constant("gh-991-risk")],
+                omsDryRunLifecycleIDs: [Identifier.constant("gh-991-oms")],
+                portfolioProjectionChecksum: "sha256:\(String(repeating: "1", count: 64))",
+                reconciliationChecksum: "sha256:\(String(repeating: "2", count: 64))"
+            )
+        )
+        let followUpSnapshot = try ReadinessAssessmentComparisonSnapshot(
+            assessmentID: followUpID,
+            generationID: Identifier.constant("gh-991-followup-generation"),
+            policyChecksum: baselineSnapshot.policyChecksum,
+            artifactBundleChecksum: "sha256:\(String(repeating: "3", count: 64))",
+            riskLimitChecksum: baselineSnapshot.riskLimitChecksum,
+            killSwitchStateChecksum: baselineSnapshot.killSwitchStateChecksum,
+            approvalStateChecksum: baselineSnapshot.approvalStateChecksum,
+            sourceRunSnapshot: baselineSnapshot.sourceRunSnapshot
+        )
+        let report = try ReadinessAssessmentComparisonReport(
+            baselineSnapshot: baselineSnapshot,
+            followUpSnapshot: followUpSnapshot,
+            comparedAt: Date(timeIntervalSince1970: 1_812_600_000)
+        )
+        XCTAssertTrue(report.reportHeld)
+        XCTAssertTrue(report.compareDoesNotMutateAssessments)
+        XCTAssertEqual(report.changedSections, [.artifacts])
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
