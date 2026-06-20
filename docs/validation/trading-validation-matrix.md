@@ -3026,3 +3026,18 @@
 - artifact metadata evidence: Manifest V2 `artifactSHA256` and `artifactBytes` match the actual local evidence file
 - fail-closed evidence: missing or changed local artifact evidence makes readiness validation blocked instead of valid
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
+
+## TVM-RELEASE-V0121-COMPARE-FAIL-CLOSED
+
+- GH-991-VERIFY-V0121-COMPARE-FAIL-CLOSED
+- V0121-004-READINESS-COMPARE-FAIL-CLOSED
+- V0121-004-MISSING-SOURCE-RUN-EVIDENCE
+- V0121-004-NO-FABRICATED-COMPARE-EVIDENCE
+- TVM-RELEASE-V0121-COMPARE-FAIL-CLOSED
+- GH-991 Release v0.12.1 Compare Fail-Closed Validation
+- testGH991ReadinessCompareFailsClosedWithoutSourceRunEvidence
+- compare-before-build evidence: missing Manifest V2 blocks local compare with an explicit `readinessCompare:missingManifest:<assessmentID>` reason
+- source-run evidence input: local compare reads source-run manifest checksum, event IDs, risk decision IDs, OMS dry-run lifecycle IDs, portfolio projection checksum and reconciliation checksum from the redacted local artifact
+- no fabricated evidence: compare cannot synthesize sourceRunID, event, risk, OMS or artifact evidence from assessmentID fallback strings
+- missing artifact evidence: deleting the local source-run artifact makes compare fail closed before a report is emitted
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
