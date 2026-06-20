@@ -119,11 +119,25 @@
 
 `V0130-008-NO-PRODUCTION-CUTOVER`
 
+`GH-1002-VERIFY-V0130-GENERATION-ID-COLLISION-PROOFING`
+
+`TVM-RELEASE-V0130-GENERATION-ID-COLLISION-PROOFING`
+
+`V0130-009-GENERATION-ID-COLLISION-PROOFING`
+
+`V0130-009-SAME-SECOND-GENERATION-IDS`
+
+`V0130-009-REGISTRY-LOOKUP-STABILITY`
+
+`V0130-009-AUDITABLE-DETERMINISTIC-PREFIX`
+
+`V0130-009-NO-PRODUCTION-CUTOVER`
+
 ## Contract Scope
 
 `v0.13.0` 定义 local evidence-driven readiness engine / 本地证据驱动就绪引擎。它承接 v0.12.0 readiness assessment sessions 和 v0.12.1 provenance hardening patch 的已完成事实，把 readiness assessment 从“可生成本地 assessment evidence”推进为“只能从真实本地 evidence root intake、校验、打包、登记、比较和导出”的 engine contract。
 
-本 contract 起始于 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。#994 只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；后续 issue 按 WIP=1 逐项完成。当前执行事实：#994、#995、#996、#997、#998、#999 和 #1000 已完成；#1001 在 fresh WIP=1 preflight 后作为唯一 active transaction recovery forensic snapshot gate 执行；#1002..#1005 继续 blocked，直到 #1001 PR merged、required checks success、issue closed / done、本地 `main == origin/main` 且 worktree clean。
+本 contract 起始于 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine` queue 的第一个 gate。#994 只定义输入、输出、证据根、schema contract、生命周期顺序和 fail-closed behavior；后续 issue 按 WIP=1 逐项完成。当前执行事实：#994、#995、#996、#997、#998、#999、#1000 和 #1001 已完成；#1002 在 fresh WIP=1 preflight 后作为唯一 active generation ID collision-proofing gate 执行；#1003..#1005 继续 blocked，直到 #1002 PR merged、required checks success、issue closed / done、本地 `main == origin/main` 且 worktree clean。
 
 ## Inputs
 
@@ -278,6 +292,26 @@ partial writes 不能被当作有效 assessment output。只要 intended writes 
 
 #1001 不新增 CLI lifecycle ordering、不创建 generation collision-proofing、不创建 fixture suite、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace。
 
+## #1002 Generation ID Collision-proofing
+
+Anchors:
+
+- `GH-1002-VERIFY-V0130-GENERATION-ID-COLLISION-PROOFING`
+- `TVM-RELEASE-V0130-GENERATION-ID-COLLISION-PROOFING`
+- `V0130-009-GENERATION-ID-COLLISION-PROOFING`
+- `V0130-009-SAME-SECOND-GENERATION-IDS`
+- `V0130-009-REGISTRY-LOOKUP-STABILITY`
+- `V0130-009-AUDITABLE-DETERMINISTIC-PREFIX`
+- `V0130-009-NO-PRODUCTION-CUTOVER`
+
+#1002 在 #1001 transaction recovery forensic snapshot gate 完成后，修复 readiness generation ID 的秒级碰撞风险。旧实现把 `assessmentID + scope + Int(now.timeIntervalSince1970)` 直接作为 generation ID，同一个 assessment 在同一秒内连续 build / export / compare 时可能覆盖 local Manifest V2、Bundle V2、registry latest manifest 或 recovery evidence。
+
+新的 generation ID collision-proofing 必须保留 auditable deterministic prefix：`assessmentID`、scope 和 epoch seconds 仍在 ID 前缀中，方便 operator 从文件名追溯 assessment 与操作范围；同时增加 collision-resistant deterministic suffix。suffix 必须由 release / issue / assessmentID / scope / epoch seconds / stable source components / per-call entropy 组成的 canonical seed 计算得出，确保 same-second generation IDs 不会碰撞，并且在显式传入相同 entropy 的回放场景下可复现。
+
+registry lookup remains stable：#1002 只能改变 generationID 的唯一性，不得改变 assessmentID、registry entry checksum、sourceCommit、sourceRunIDs、artifact checksum、Manifest V2 / Bundle V2 schema 或 readiness validation semantics。连续写入两个同秒 generation 时，latest manifest 可以前进到第二个 generation，但 registry entry identity 和 assessment lookup 必须保持稳定。
+
+#1002 不新增 ordered CLI lifecycle、不创建 fixture suite、不发布 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace，也不把 generation collision-proofing 解释为 production readiness approval。
+
 Build pipeline 的固定顺序为：
 
 1. `schemaValidated=true`：run logs / event stream / artifacts / registry / prior assessments 必须通过 #995 schema gate。
@@ -302,6 +336,7 @@ v0.13.0 readiness engine 的输出必须仍是本地、redacted、readiness-only
 - non-mutating readiness diff / compare report。
 - redacted audit export package。
 - transaction recovery forensic snapshot。
+- collision-proof readiness generation IDs。
 
 这些输出只能说明 local readiness evidence chain 是否一致、完整、可追溯；不能被解释为 production readiness approval、production cutover authorization、broker connection authorization、testnet order permission 或 production order permission。
 
