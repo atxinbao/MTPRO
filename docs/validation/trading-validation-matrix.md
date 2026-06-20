@@ -3104,3 +3104,20 @@
 - CLI surface: `mtpro readiness intake <evidenceRoot>` reports `intakeValid`, `failClosed`, category states and diagnostics without writing assessment output
 - dependency evidence: #996 through #1005 remain blocked by #995 until this intake PR is merged and #995 is closed / done
 - forbidden scope: no registry write, no bundle build, no diff / compare, no synthetic sourceRunID / sourceCommit replacement, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION
+
+- GH-996-VERIFY-V0130-SYNTHETIC-PROVENANCE-REJECTION
+- V0130-003-INTAKE-DERIVED-MANIFEST-PROVENANCE
+- V0130-003-SOURCECOMMIT-SOURCERUN-ARTIFACT-METADATA
+- V0130-003-SYNTHETIC-PROVENANCE-FAILS-CLOSED
+- V0130-003-FIXTURE-ONLY-ISOLATION
+- V0130-003-NO-PRODUCTION-CUTOVER
+- GH-996 Release v0.13.0 Synthetic Provenance Rejection Validation
+- testGH996ReleaseV0130ProvenanceBuildRejectsSyntheticAndFixtureEvidence
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- validation surface: #996 consumes #995 local evidence root and derives normal manifest sourceCommit, sourceRunIDs, artifact bytes and artifact checksums from real local files
+- CLI surface: `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` writes Manifest V2 only after source provenance is local, traceable and non-synthetic
+- fail-closed evidence: placeholder sourceCommit, `gh-963-source-run`, `source-run-*` synthetic run IDs, missing artifact file, artifact metadata mismatch and fixture-only evidence are rejected
+- dependency evidence: #997 through #1005 remain blocked by #996 until this provenance PR is merged and #996 is closed / done
+- forbidden scope: no readiness bundle write, no registry lifecycle advance, no diff / compare, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

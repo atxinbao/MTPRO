@@ -131,6 +131,7 @@ private enum MTPROStrictCLI {
         "readiness validate",
         "readiness export",
         "readiness approval-status",
+        "readiness build-v013 <assessmentID> <evidenceRoot>",
         "readiness intake <evidenceRoot>"
     ]
     static let readinessAssessmentSupportedActionCommands = [
@@ -289,6 +290,20 @@ private enum MTPROStrictCLI {
             return try ReleaseV0130LocalEvidenceIntakeCLI(evidenceRootPath: arguments[2]).output()
         }
 
+        if action == "build-v013" {
+            guard arguments.count == 4 else {
+                throw MTPROCLIParserError.invalidArguments(
+                    field: "mtpro.readiness.arguments",
+                    expected: "readiness build-v013 <assessmentID> <evidenceRoot>",
+                    actual: arguments.joined(separator: " ")
+                )
+            }
+            return try ReleaseV0130LocalEvidenceProvenanceBuildCLI(
+                assessmentID: try readinessAssessmentID(arguments[2]),
+                evidenceRootPath: arguments[3]
+            ).output()
+        }
+
         if action == "create" {
             guard arguments.count == 2 || arguments.count == 3 else {
                 throw MTPROCLIParserError.invalidArguments(
@@ -335,10 +350,10 @@ private enum MTPROStrictCLI {
             ).output()
         }
 
-        guard ["help", "build", "status", "validate", "export", "approval-status"].contains(action) else {
+        guard ["help", "build", "status", "validate", "export", "approval-status", "build-v013"].contains(action) else {
             throw MTPROCLIParserError.invalidArguments(
                 field: "mtpro.readiness.action",
-                expected: "help,build,status,validate,export,approval-status,intake,create,archive,compare",
+                expected: "help,build,status,validate,export,approval-status,build-v013,intake,create,archive,compare",
                 actual: arguments.joined(separator: " ")
             )
         }
@@ -1996,6 +2011,137 @@ private struct ReleaseV0130LocalEvidenceIntakeCLI {
             "testnetOrderSubmissionAllowed=false",
             "productionCutoverAuthorized=false",
             "boundaryHeld=\(report.localFileURLOnly && report.productionCapabilitiesDisabled)"
+        ].joined(separator: "\n")
+    }
+}
+
+/// ReleaseV0130LocalEvidenceProvenanceBuildCLI 是 GH-996 的 normal manifest provenance build 入口。
+///
+/// 该 binder 必须先消费 #995 已验证的显式 local evidence root，再把 sourceCommit、
+/// sourceRunIDs、artifact bytes 和 checksum 写入 Manifest V2。它不会从 assessmentID
+/// 伪造 source run，不生成 synthetic artifact metadata，不写 readiness bundle / diff，也不
+/// 授权 production secret、endpoint、broker 或订单能力。
+private struct ReleaseV0130LocalEvidenceProvenanceBuildCLI {
+    private static let readinessRootEnvironmentKey = "MTPRO_READINESS_ROOT"
+    private static let validationAnchor = "GH-996-VERIFY-V0130-SYNTHETIC-PROVENANCE-REJECTION"
+    private static let matrixAnchor = "TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION"
+    private static let producerVersion = "mtpro-cli-v0.13.0"
+    private static let requiredAnchors = [
+        "V0130-003-INTAKE-DERIVED-MANIFEST-PROVENANCE",
+        "V0130-003-SOURCECOMMIT-SOURCERUN-ARTIFACT-METADATA",
+        "V0130-003-SYNTHETIC-PROVENANCE-FAILS-CLOSED",
+        "V0130-003-FIXTURE-ONLY-ISOLATION",
+        "V0130-003-NO-PRODUCTION-CUTOVER"
+    ]
+
+    let assessmentID: Identifier
+    let evidenceRootPath: String
+    let store: ReadinessAssessmentRegistryStore
+    private let model: ReleaseV0130LocalEvidenceIntakeModel
+
+    init(
+        assessmentID: Identifier,
+        evidenceRootPath: String,
+        storageRootURL: URL? = nil,
+        fileManager: FileManager = .default,
+        model: ReleaseV0130LocalEvidenceIntakeModel = ReleaseV0130LocalEvidenceIntakeModel()
+    ) {
+        self.assessmentID = assessmentID
+        self.evidenceRootPath = evidenceRootPath
+        self.model = model
+        if let storageRootURL {
+            self.store = ReadinessAssessmentRegistryStore(storageRootURL: storageRootURL, fileManager: fileManager)
+        } else if let override = ProcessInfo.processInfo.environment[Self.readinessRootEnvironmentKey],
+                  override.isEmpty == false {
+            self.store = ReadinessAssessmentRegistryStore(
+                storageRootURL: URL(fileURLWithPath: override, isDirectory: true),
+                fileManager: fileManager
+            )
+        } else {
+            self.store = ReadinessAssessmentRegistryStore(
+                storageRootURL: URL(
+                    fileURLWithPath: ReadinessAssessmentRegistryStore.defaultRelativeRoot,
+                    isDirectory: true
+                ),
+                fileManager: fileManager
+            )
+        }
+    }
+
+    func output() throws -> String {
+        let entry = try store.inspect(assessmentID: assessmentID)
+        let provenance = try model.buildProvenance(
+            evidenceRootURL: URL(fileURLWithPath: evidenceRootPath, isDirectory: true)
+        )
+        let now = Date(timeIntervalSince1970: floor(Date().timeIntervalSince1970))
+        let generationID = Identifier.constant(
+            "\(entry.assessmentID.rawValue)-v0130-generation-\(Int(now.timeIntervalSince1970))"
+        )
+        let manifest = try ReadinessAssessmentManifestV2(
+            assessmentID: entry.assessmentID,
+            generationID: generationID,
+            sourceRunIDs: provenance.sourceRunIDs,
+            sourceCommit: provenance.sourceCommit,
+            artifactContentType: .jsonEvidence,
+            artifactSHA256: provenance.artifactSHA256,
+            artifactBytes: provenance.artifactBytes,
+            createdAt: now,
+            producerVersion: Self.producerVersion
+        )
+        _ = try store.writeManifestV2(manifest)
+
+        let requiredAnchors = ([
+            Self.validationAnchor,
+            Self.matrixAnchor
+        ] + Self.requiredAnchors).joined(separator: ",")
+        let artifactPaths = provenance.artifactProvenances.map(\.relativePath).joined(separator: ",")
+        let artifactChecksums = provenance.artifactProvenances
+            .map { "\($0.relativePath)=\($0.sha256)" }
+            .joined(separator: ",")
+        let artifactByteCounts = provenance.artifactProvenances
+            .map { "\($0.relativePath)=\($0.byteCount)" }
+            .joined(separator: ",")
+
+        return [
+            "mtpro readiness build-v013 v0.13.0",
+            "issue=GH-996",
+            "validationAnchor=\(Self.validationAnchor)",
+            "matrixAnchor=\(Self.matrixAnchor)",
+            "requiredAnchors=\(requiredAnchors)",
+            "action=build-v013",
+            "assessmentID=\(entry.assessmentID.rawValue)",
+            "generationID=\(generationID.rawValue)",
+            "evidenceRoot=\(provenance.evidenceRootPath)",
+            "evidenceClassification=\(provenance.evidenceClassification)",
+            "sourceCommit=\(provenance.sourceCommit)",
+            "sourceRunIDs=\(provenance.sourceRunIDs.map(\.rawValue).joined(separator: ","))",
+            "artifactRelativePaths=\(artifactPaths)",
+            "artifactChecksums=\(artifactChecksums)",
+            "artifactByteCounts=\(artifactByteCounts)",
+            "manifestArtifactSHA256=\(manifest.artifactSHA256)",
+            "manifestArtifactBytes=\(manifest.artifactBytes)",
+            "manifestV2Path=\(manifest.manifestV2Path)",
+            "manifestChecksum=\(manifest.manifestChecksum)",
+            "manifestWritten=true",
+            "readinessBundleWritten=false",
+            "registryLifecycleWritten=false",
+            "diffBuilt=false",
+            "syntheticProvenanceRejected=\(provenance.syntheticProvenanceRejected)",
+            "fixtureOnly=\(provenance.fixtureOnly)",
+            "fixtureOnlyEvidenceRejected=true",
+            "localEvidenceTraceable=\(provenance.localEvidenceTraceable)",
+            "normalManifestEligible=\(provenance.normalManifestEligible)",
+            "noSecretValue=true",
+            "noEndpointPayload=true",
+            "noOrderPayload=true",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "testnetOrderSubmissionAllowed=false",
+            "productionCutoverAuthorized=false",
+            "boundaryHeld=\(provenance.normalManifestEligible && provenance.productionCapabilitiesDisabled)"
         ].joined(separator: "\n")
     }
 }

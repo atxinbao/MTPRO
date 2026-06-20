@@ -35,6 +35,20 @@
 
 `V0130-002-READ-ONLY-INTAKE`
 
+`GH-996-VERIFY-V0130-SYNTHETIC-PROVENANCE-REJECTION`
+
+`TVM-RELEASE-V0130-SYNTHETIC-PROVENANCE-REJECTION`
+
+`V0130-003-INTAKE-DERIVED-MANIFEST-PROVENANCE`
+
+`V0130-003-SOURCECOMMIT-SOURCERUN-ARTIFACT-METADATA`
+
+`V0130-003-SYNTHETIC-PROVENANCE-FAILS-CLOSED`
+
+`V0130-003-FIXTURE-ONLY-ISOLATION`
+
+`V0130-003-NO-PRODUCTION-CUTOVER`
+
 ## Contract Scope
 
 `v0.13.0` 定义 local evidence-driven readiness engine / 本地证据驱动就绪引擎。它承接 v0.12.0 readiness assessment sessions 和 v0.12.1 provenance hardening patch 的已完成事实，把 readiness assessment 从“可生成本地 assessment evidence”推进为“只能从真实本地 evidence root intake、校验、打包、登记、比较和导出”的 engine contract。
@@ -72,6 +86,14 @@ Canonical layout：
 CLI surface 固定为 `readiness intake <evidenceRoot>`。该命令只能输出 read-only local intake diagnostics，包括 `intakeValid`、`failClosed`、missing evidence diagnostic、malformed JSON / JSONL diagnostic 和 forbidden production marker diagnostic。它不写 registry、不生成 bundle、不执行 diff，不创建 assessment output，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace。
 
 #995 必须对 missing local evidence root、缺失 required directory、缺失 required file、malformed JSON / JSONL、schema field 缺失、production endpoint marker、secret / listenKey marker、signed endpoint payload、account endpoint payload 和 order endpoint payload fail closed。失败输出必须是 actionable local diagnostic evidence，不能补造 sourceRunID、sourceCommit、artifact metadata、registry entry、bundle 或 diff。
+
+## #996 Synthetic Provenance Rejection
+
+#996 在 #995 intake gate 完成后，把 v0.13 normal manifest provenance 绑定到显式 local evidence root。CLI surface 固定为 `readiness build-v013 <assessmentID> <evidenceRoot>`；该命令必须先读取既有 local assessment entry，再调用 #995 intake model，最后只把 intake-derived sourceCommit、sourceRunIDs、artifact bytes 和 artifact checksums 写入 Manifest V2。
+
+`readiness build-v013 <assessmentID> <evidenceRoot>` 不得从 assessmentID、generationID、固定字符串或 artifact checksum fallback 伪造 sourceRunID。它必须拒绝 placeholder sourceCommit、zero / demo commit、`gh-963-source-run`、`source-run-*` synthetic sourceRunID、缺失 artifact file、artifact byte / checksum mismatch，以及显式 `fixtureOnly=true` 或 `evidenceClassification=fixture` 的 fixture-only evidence。
+
+Normal manifest 只能在 `normalManifestEligible=true`、`syntheticProvenanceRejected=true`、`fixtureOnly=false`、`localEvidenceTraceable=true` 时生成。#996 仍不写 readiness bundle、不推进 registry lifecycle、不执行 diff、不读取 production secret、不连接 production endpoint / broker endpoint、不发送 submit / cancel / replace，也不授权 production cutover。
 
 ## Outputs
 
@@ -151,6 +173,8 @@ v0.13.0 readiness engine must fail closed for:
 - sourceRunID missing or fabricated。
 - sourceCommit placeholder or zero value。
 - synthetic readiness data。
+- synthetic sourceRunID。
+- fixture-only evidence。
 - stale registry generation。
 - transaction collision。
 - compare-before-build。
@@ -163,7 +187,7 @@ Fail-closed output must be actionable local diagnostic evidence. It must not sil
 
 ## Non-goals
 
-- 不实现 #995 之后的 evidence intake runtime。
+- 不实现 #997 之后的 build pipeline、bundle、registry lifecycle、diff、fixture suite 或 stage audit。
 - 不新增 runtime pipeline。
 - 不发布 v0.13.0 tag 或 GitHub Release。
 - 不移动、不覆盖、不重写 v0.12.0 tag / GitHub Release。
