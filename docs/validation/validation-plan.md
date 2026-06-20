@@ -4969,3 +4969,20 @@ swift test
 - no fabricated compare evidence: compare no longer creates sourceRunID / event / risk / OMS evidence from `assessmentID` fallback strings
 - missing artifact evidence: removing `.local/mtpro/readiness/assessments/<assessmentID>/artifacts/readiness-summary.json` makes compare fail closed instead of fabricating source-run-like fallback evidence
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite
+
+## GH-992 Release v0.12.1 JSON Inspection Guard Validation
+
+- GH-992-VERIFY-V0121-JSON-INSPECTION-GUARDS
+- V0121-005-READINESS-JSON-INSPECTION
+- V0121-005-GENERATED-EVIDENCE-PROVENANCE
+- V0121-005-PLACEHOLDER-AND-PRODUCTION-FLAG-REJECTION
+- TVM-RELEASE-V0121-JSON-INSPECTION-GUARD
+- focused verifier: `bash checks/verify-v0.12.1-json-inspection-guards.sh`
+- aggregate verifier carry-forward: `bash checks/verify-v0.12.0.sh`
+- focused test: `testGH992ReadinessJSONInspectionGuardsValidateGeneratedEvidence`
+- automation gate: `bash checks/automation-readiness.sh`
+- full gate: `bash checks/run.sh`
+- JSON evidence inspected: generated `.local/mtpro/readiness/registry.json`, `manifest-v2.json`, `artifacts/readiness-summary.json`, `readiness-bundle-v2.json`, `readiness-bundle-v2.manifest.json`, plus export / compare output fields
+- provenance checks: manifest `sourceCommit`, sourceRunID, artifact sha / bytes, bundle snapshot checksum chain and bundle manifest byte / sha evidence must match generated local files
+- fail-closed checks: tampered placeholder commit, synthetic `gh-963-source-run`, fixed `artifactBytes=512`, missing checksum chain and production-enabled flags must be rejected by the guard
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order, no tag rewrite, no release overwrite

@@ -33523,6 +33523,109 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(report.changedSections, [.artifacts])
     }
 
+    func testGH992ReadinessJSONInspectionGuardsValidateGeneratedEvidence() throws {
+        // 测试场景：GH-992 要求 v0.12.1 guard 直接读取生成后的 readiness JSON，
+        // 防止只靠源码锚点而漏掉 placeholder、synthetic evidence 或 production-enabled flag 漂移。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let jsonInspectionVerifier = try read("checks/verify-v0.12.1-json-inspection-guards.sh")
+        let v0120Verifier = try read("checks/verify-v0.12.0.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in [
+            "GH-992-VERIFY-V0121-JSON-INSPECTION-GUARDS",
+            "V0121-005-READINESS-JSON-INSPECTION",
+            "V0121-005-GENERATED-EVIDENCE-PROVENANCE",
+            "V0121-005-PLACEHOLDER-AND-PRODUCTION-FLAG-REJECTION",
+            "TVM-RELEASE-V0121-JSON-INSPECTION-GUARD"
+        ] {
+            XCTAssertTrue(jsonInspectionVerifier.contains(anchor), "\(anchor) must be enforced by the focused guard")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be covered by automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be summarized in latest verification")
+        }
+
+        XCTAssertTrue(v0120Verifier.contains("bash checks/verify-v0.12.1-json-inspection-guards.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.12.1-json-inspection-guards.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.12.1-json-inspection-guards.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.12.1 JSON inspection guard anchor"))
+        XCTAssertTrue(latest.contains("v0.12.1 JSON inspection guard"))
+
+        for generatedEvidencePath in [
+            "registry.json",
+            "manifest-v2.json",
+            "readiness-summary.json",
+            "readiness-bundle-v2.json",
+            "readiness-bundle-v2.manifest.json"
+        ] {
+            XCTAssertTrue(
+                jsonInspectionVerifier.contains(generatedEvidencePath),
+                "\(generatedEvidencePath) must be inspected as generated evidence"
+            )
+        }
+
+        for requiredJSONBinding in [
+            "sourceCommit",
+            "sourceRunIDs",
+            "artifactSHA256",
+            "artifactBytes",
+            "sourceRunManifestChecksum",
+            "bundleChecksum",
+            "bundleJSONSHA256",
+            "compareDoesNotMutateAssessments"
+        ] {
+            XCTAssertTrue(
+                jsonInspectionVerifier.contains(requiredJSONBinding),
+                "\(requiredJSONBinding) must be validated from generated JSON or command output"
+            )
+        }
+
+        for rejectionCase in [
+            "placeholder source commit",
+            "synthetic sourceRunID",
+            "fixed artifact bytes",
+            "missing manifest checksum",
+            "production cutover true",
+            "production endpoint true",
+            "bundle source run mismatch",
+            "missing bundle checksum chain"
+        ] {
+            XCTAssertTrue(
+                jsonInspectionVerifier.contains(rejectionCase),
+                "\(rejectionCase) tamper case must fail closed"
+            )
+        }
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "testnetOrderRoutingAllowed=true"
+        ] {
+            XCTAssertTrue(
+                jsonInspectionVerifier.contains(forbiddenAuthorization),
+                "\(forbiddenAuthorization) must be rejected in generated evidence"
+            )
+            XCTAssertFalse(
+                readiness.contains("\(forbiddenAuthorization) allowed"),
+                "\(forbiddenAuthorization) must not be described as allowed"
+            )
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
