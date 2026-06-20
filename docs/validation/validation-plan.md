@@ -5051,7 +5051,7 @@ swift test
 - fail-closed evidence: placeholder sourceCommit, old `gh-963-source-run`, checksum-derived `source-run-*` synthetic run IDs and explicit fixture-only evidence all fail closed before manifest write
 - documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #996 normal manifest provenance replacement and fixture isolation boundary
 - implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` and `Sources/MTPROCLI/main.swift` expose `ReleaseV0130LocalEvidenceBuildProvenance` and `readiness build-v013 <assessmentID> <evidenceRoot>`
-- dependency evidence: #996 is blocked by #995; #996 is complete and #997 is the active next gate after WIP=1 preflight
+- dependency evidence: #996 is blocked by #995; #996 and #997 are complete, and #998 is the active validate gate after WIP=1 preflight
 - forbidden scope: no diff / compare, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
 
 ## GH-997 Release v0.13.0 Build Pipeline Validation
@@ -5071,3 +5071,21 @@ swift test
 - implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` and `Sources/MTPROCLI/main.swift` expose `ReleaseV0130LocalEvidenceBuildPipelineResult` and the upgraded `readiness build-v013 <assessmentID> <evidenceRoot>` CLI
 - dependency evidence: #997 is blocked by #996; #998 through #1005 remain blocked until #997 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
 - forbidden scope: no diff / compare, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-998 Release v0.13.0 Evidence-chain Validate Validation
+
+- GH-998-VERIFY-V0130-EVIDENCE-CHAIN-VALIDATE
+- TVM-RELEASE-V0130-EVIDENCE-CHAIN-VALIDATE
+- V0130-005-REGISTRY-MANIFEST-BUNDLE-CONSISTENCY
+- V0130-005-ARTIFACT-POLICY-CHECKSUM-PROVENANCE
+- V0130-005-EXPORT-COMPARISON-IDENTITY
+- V0130-005-MISSING-STALE-TAMPERED-FAILS-CLOSED
+- V0130-005-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH998ReleaseV0130ValidateRejectsBrokenEvidenceChain`
+- CLI smoke: `swift run mtpro readiness validate <assessmentID>` confirms registry document, registry entry, Manifest V2, Bundle V2, bundle manifest, bundle bytes, artifact snapshots, content validation checksums, source provenance and optional export / comparison identity are coherent before returning `validationState=valid`
+- fail-closed evidence: missing registry, tampered bundle bytes and artifact snapshot / Manifest V2 checksum mismatch return `validationState=blocked`, `evidenceChainCoherent=false` and explicit `failureReasons`
+- documentation evidence: `docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md` defines #998 complete evidence-chain validate behavior and fail-closed reasons
+- implementation evidence: `Sources/ExecutionClient/FutureGate/ReleaseV0130LocalEvidenceIntakeModel.swift` exposes `ReleaseV0130LocalEvidenceChainValidationReport` and `validateEvidenceChain`; `Sources/MTPROCLI/main.swift` exposes validate output fields including `evidenceChainCoherent` and `failureReasons`
+- dependency evidence: #998 is blocked by #997; #999 through #1005 remain blocked until #998 is merged, checks pass, issue is closed / done, local main is fast-forwarded and WIP=1 preflight is rerun
+- forbidden scope: no diff / compare, no redacted export package, no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
