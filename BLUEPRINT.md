@@ -101,7 +101,7 @@ Historical release line anchor retained：Release line 已推进到 v0.8.0 persi
 Historical release line anchor retained：Release line 已推进到 v0.7.0 operator runtime session + real testnet read-only connectivity。
 Historical release line anchor retained：Release line 已推进到 v0.6.0 local operational runtime + testnet read-only probe hardening。
 
-Future / gated capability 必须独立规划：实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制、OMS / broker integration、real portfolio / account、deployment / operations 和 advanced research platform。
+Future / gated capability 必须独立规划：实盘交易基础边界、实盘监控台、实盘执行控制、实盘风险控制、实盘审计 / 事故回放 / 停机控制、OMS / broker integration、real portfolio / account、deployment / operations 和 advanced research platform。这些能力是受控启用路线，不是永久禁区；进入任何实盘能力前必须先证明 readiness evidence、credential / signed endpoint policy、OMS、pre-trade / post-trade risk、kill switch、reconciliation、audit trail、operator runbook 和 rollback gate。
 
 ## Product Workflow Blueprint
 
@@ -111,7 +111,7 @@ Market Data -> Research -> Backtest -> Report -> Paper Session
 -> Future gated Live trading foundation
 -> Completed read-model-only Live monitoring
 -> Future gated live execution control / risk control / audit
--> Stage Audit -> Future gated Live decision
+-> Stage Audit -> Controlled Live enablement decision
 ```
 
 Workbench 的主导航以 evidence navigation 为中心，不以交易按钮为中心。用户看到的是工作区、状态、证据、回放和阻断原因；不能看到可执行的实盘下单入口。Figma / product / design 文档只作为产品、交互、布局、视觉和 dashboard 参考，不是 SwiftUI 实现稿、组件库、Live PRO Console、实盘操作台或 Linear execution 授权。
@@ -169,13 +169,13 @@ Strategy signal -> Live risk decision -> Real order intent
 -> Audit / incident replay / stop controls
 ```
 
-Future live 能力必须作为独立 Project Definition 和独立 execution contract 进入，不能从 paper-only 类型、命令或 ViewModel 偷渡。
+Future live 能力必须作为独立 Project Definition 和独立 execution contract 进入，不能从 paper-only 类型、命令或 ViewModel 偷渡。Default-off 是当前安全姿态；满足 gate 后可以按 testnet closed loop、production read-only、shadow live、controlled canary 的顺序受控启用。
 
 ## Live Gate Blueprint / 实盘准入蓝图
 
 进入 Live 前必须至少满足 Human 独立确认、独立 Project Definition、API key / secret policy、signed endpoint / account endpoint / listenKey capability contract、broker / exchange adapter capability contract、real order submit / cancel / replace contract、live risk gate、熔断、禁交易状态、stop controls、execution reconciliation、account / position sync、incident replay、operations readiness、monitoring、rollback / shutdown policy。
 
-任何缺少上述 gate 的变更都只能作为 Future Construction Zone 记录在蓝图中，不能进入 Linear execution。
+任何缺少上述 gate 的变更都只能作为 Future Construction Zone 记录在蓝图中，不能进入 execution。通过 gate 后，Live trading 可以作为后续版本的受控能力进入唯一 live queue source；未通过 gate 时继续保持 fail-closed。
 
 ## Current / Future Boundary / 当前与未来边界
 
@@ -187,6 +187,8 @@ Future live 能力必须作为独立 Project Definition 和独立 execution cont
 - Engine Maturity Roadmap Progress：4 / 4（100%）
 
 当前完成事实压缩为阶段族，详细证据以 `docs/audit/`、`docs/roadmap.md` 和 `docs/validation/latest-verification-summary.md` 为准。
+
+下表“仍不授权”表示当前阶段 / 当前 release line 不授权，不表示该能力被永久禁止。Live trading、signed endpoint、OMS、broker gateway、account / position sync 和 real order lifecycle 都属于受控启用能力；它们必须在独立 planning、GitHub / Linear live queue、WIP=1 preflight、Human approval 和 release validation 后逐层放开。
 
 | 阶段族 | 已完成事实 | 仍不授权 |
 | --- | --- | --- |
