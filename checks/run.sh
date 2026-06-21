@@ -145,6 +145,7 @@ bash checks/verify-v0.12.1-patch-audit-release-notes.sh
 bash checks/verify-v0.12.0-dashboard-macos-guards.sh
 bash checks/verify-v0.13.0.sh
 bash checks/verify-v0.14.0.sh
+bash checks/verify-v0.14.0-order-lifecycle.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
