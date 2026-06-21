@@ -157,6 +157,7 @@ bash checks/verify-v0.14.0-pretrade-risk-engine-gate.sh
 bash checks/verify-v0.14.0-global-kill-switch.sh
 bash checks/verify-v0.14.0-reconciliation-engine.sh
 bash checks/verify-v0.14.0-signal-to-execution-pipeline.sh
+bash checks/verify-v0.14.0-full-e2e-testnet-suite.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
