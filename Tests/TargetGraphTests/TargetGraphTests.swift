@@ -39207,6 +39207,91 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1041DashboardReadOnlyExecutionSurfaceIsAnchoredInV0140Guards() throws {
+        // 测试场景：GH-1041 只把 GH-1040 execution event log 摘要投影为 Dashboard 只读状态面。
+        // 验证目的：Dashboard target 不依赖 ExecutionEngine，不出现 endpoint / secret / HMAC /
+        // URL request 等运行时接入能力，并保留 focused verifier 与 run.sh gate。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/Dashboard/Report/ReleaseV0140ReadOnlyExecutionDashboardSurface.swift")
+        let shell = try read("Sources/Dashboard/DashboardShell.swift")
+        let appTests = try read("Tests/AppTests/AppTests.swift")
+        let contract = try read("docs/contracts/release-v0.14.0-read-only-execution-dashboard.md")
+        let verifier = try read("checks/verify-v0.14.0-read-only-execution-dashboard.sh")
+        let runScript = try read("checks/run.sh")
+        let package = try read("Package.swift")
+
+        let surface = ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.deterministicFixture
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.issueID, "GH-1041")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-1040"])
+        XCTAssertEqual(surface.rows.map(\.stage), ReleaseV0140ReadOnlyExecutionDashboardStage.allCases)
+        XCTAssertEqual(surface.rows.map(\.sequence), Array(1...7))
+        XCTAssertTrue(surface.rows.allSatisfy(\.rowHeld))
+        XCTAssertTrue(surface.logInput.inputHeld)
+        XCTAssertEqual(surface.logInput.sourceEvidenceType, "ReleaseV0140ExecutionEventLogReport")
+        XCTAssertEqual(surface.logInput.entryCount, 7)
+        XCTAssertFalse(surface.dashboardDependsOnExecutionEngineTarget)
+        XCTAssertFalse(surface.dashboardCommandSurfaceEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        for anchor in ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in Dashboard source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+
+        for requiredString in [
+            "ReleaseV0140ReadOnlyExecutionDashboardStage",
+            "ReleaseV0140ReadOnlyExecutionDashboardLogInput",
+            "ReleaseV0140ReadOnlyExecutionDashboardRow",
+            "ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel",
+            "ReleaseV0140ExecutionEventLogReport",
+            "dashboardCommandSurfaceEnabled",
+            "submitCancelReplaceEnabled",
+            "productionSubmitCancelReplaceEnabled"
+        ] {
+            XCTAssertTrue(source.contains(requiredString), "\(requiredString) must stay in GH-1041 source")
+        }
+
+        XCTAssertTrue(shell.contains("releaseV0140ReadOnlyExecutionDashboardSurface"))
+        XCTAssertTrue(shell.contains("releaseV0140ExecutionDashboardRows"))
+        XCTAssertTrue(appTests.contains("testGH1041DashboardReadOnlyExecutionSurfaceShowsClosedLoopEvidenceWithoutCommands"))
+        XCTAssertTrue(verifier.contains("testGH1041DashboardReadOnlyExecutionSurfaceShowsClosedLoopEvidenceWithoutCommands"))
+        XCTAssertTrue(verifier.contains("testGH1041DashboardReadOnlyExecutionSurfaceIsAnchoredInV0140Guards"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-read-only-execution-dashboard.sh"))
+        XCTAssertTrue(package.contains("name: \"Dashboard\","))
+        XCTAssertTrue(package.contains("dependencies: [\"Core\", \"Persistence\", \"Portfolio\"]"))
+        XCTAssertFalse(source.contains("import ExecutionEngine"))
+
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1041 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

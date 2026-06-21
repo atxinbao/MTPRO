@@ -3513,6 +3513,79 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH1041DashboardReadOnlyExecutionSurfaceShowsClosedLoopEvidenceWithoutCommands() throws {
+        // 测试场景：GH-1041 Dashboard 只展示 GH-1040 execution event log 派生的执行闭环状态。
+        // 验证目的：Strategy Signal -> OrderIntent -> Risk -> testnet execution -> OMS event log
+        // -> reconciliation -> Dashboard status 全部可见，但 Dashboard 不能提供任何交易命令。
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV0140ReadOnlyExecutionDashboardSurface
+
+        XCTAssertEqual(surface.issueID, "GH-1041")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-1040"])
+        XCTAssertEqual(surface.previousIssueID, "GH-1040")
+        XCTAssertEqual(surface.releaseVersion, "v0.14.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertTrue(surface.logInput.inputHeld)
+        XCTAssertEqual(surface.logInput.sourceEvidenceType, "ReleaseV0140ExecutionEventLogReport")
+        XCTAssertEqual(surface.logInput.entryCount, 7)
+        XCTAssertEqual(surface.logInput.productTypes, ["spot", "usd-m-perpetual"])
+        XCTAssertEqual(surface.logInput.strategyScopeLabels, ["ema", "rsi"])
+        XCTAssertEqual(surface.rows.map(\.stage), ReleaseV0140ReadOnlyExecutionDashboardStage.allCases)
+        XCTAssertEqual(surface.rows.map(\.sequence), Array(1...7))
+        XCTAssertTrue(surface.rows.allSatisfy(\.rowHeld))
+        XCTAssertEqual(surface.visibleRowCount, 7)
+        XCTAssertTrue(surface.closedLoopStagesVisible)
+        XCTAssertTrue(surface.orderLifecycleVisible)
+        XCTAssertTrue(surface.reconciliationVisible)
+        XCTAssertTrue(surface.eventLogEvidenceVisible)
+        XCTAssertTrue(surface.readOnly)
+        XCTAssertFalse(surface.dashboardDependsOnExecutionEngineTarget)
+        XCTAssertFalse(surface.dashboardCommandSurfaceEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        XCTAssertEqual(metricValue("v0.14 execution dashboard rows", in: surface.metrics), "7")
+        XCTAssertEqual(metricValue("v0.14 execution log entries", in: surface.metrics), "7")
+        XCTAssertEqual(metricValue("v0.14 order intents", in: surface.metrics), "1")
+        XCTAssertEqual(metricValue("v0.14 reconciliation", in: surface.metrics), "gh-1036-reconciliation-report")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Dashboard command surface: none"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0140ExecutionDashboardRows=7"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0140ExecutionLogEntries=7"))
+        XCTAssertTrue(
+            snapshot.smokeSummary.contains(
+                "releaseV0140ExecutionDashboardReconciliation=gh-1036-reconciliation-report"
+            )
+        )
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0140ExecutionDashboardBoundary=confirmed"))
+
+        let encoded = try JSONEncoder().encode(surface)
+        let decoded = try JSONDecoder().decode(
+            ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.self,
+            from: encoded
+        )
+        XCTAssertEqual(decoded, surface)
+
+        for anchor in ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-1041 surface")
+        }
+    }
+
     func testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands() throws {
         // 测试场景：GH-890 Dashboard 只能展示 v0.10.0 production readiness evidence center。
         // Readiness Overview / Environment / Secret / Endpoint / Risk / Kill Switch /
