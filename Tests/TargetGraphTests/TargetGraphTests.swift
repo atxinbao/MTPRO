@@ -39132,6 +39132,81 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1040ReleaseV0140ExecutionEventLogLinksRunOrderIntentAndReconciliationEvidence() throws {
+        // 测试场景：GH-1040 从已通过的 v0.14.0 pipeline report 生成只读 execution event log。
+        // 验证目的：日志必须覆盖 run / order intent / risk / adapter / OMS / event stream /
+        // reconciliation 的 evidence ID 链路，并保持 redacted read-only production boundary。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0140ExecutionEventLog.swift")
+        let contract = try read("docs/contracts/release-v0.14.0-execution-event-log.md")
+        let verifier = try read("checks/verify-v0.14.0-execution-event-log.sh")
+        let runScript = try read("checks/run.sh")
+
+        let builder = try ReleaseV0140ExecutionEventLog()
+        let report = try builder.build()
+
+        XCTAssertTrue(builder.boundaryHeld)
+        XCTAssertTrue(report.boundaryHeld)
+        XCTAssertEqual(report.entryKindsCovered, ReleaseV0140ExecutionEventLogReport.requiredEventKinds)
+        XCTAssertEqual(report.entries.map(\.sequence), ReleaseV0140ExecutionEventLogReport.expectedSequences)
+        XCTAssertEqual(report.entries.count, 7)
+        XCTAssertTrue(report.entries.allSatisfy(\.boundaryHeld))
+        XCTAssertTrue(report.entries.allSatisfy(\.readOptimized))
+        XCTAssertTrue(report.entries.allSatisfy(\.independentlyInspectable))
+        XCTAssertTrue(report.entries.allSatisfy(\.redactedEvidenceOnly))
+        XCTAssertTrue(report.entries.allSatisfy(\.testnetEvidenceOnly))
+        XCTAssertTrue(report.entries.allSatisfy(\.linkBackComplete))
+        XCTAssertTrue(report.entries.allSatisfy { $0.runID == report.runID })
+        XCTAssertTrue(report.entries.allSatisfy { $0.sourcePipelineReportID == report.sourcePipelineReportID })
+        XCTAssertFalse(report.orderIntentIDs.isEmpty)
+        XCTAssertFalse(report.localOrderIDs.isEmpty)
+        XCTAssertFalse(report.riskDecisionIDs.isEmpty)
+        XCTAssertFalse(report.adapterEvidenceIDs.isEmpty)
+        XCTAssertFalse(report.omsStoreIDs.isEmpty)
+        XCTAssertFalse(report.stateSnapshotIDs.isEmpty)
+        XCTAssertEqual(report.reconciliationReportIDs, [report.sourceReconciliationReportID])
+        XCTAssertEqual(report.entry(for: .orderEventLog)?.orderEventStreamID, report.sourceOrderEventStreamID)
+        XCTAssertEqual(report.entry(for: .reconciliation)?.reconciliationReportID, report.sourceReconciliationReportID)
+        XCTAssertFalse(report.productionTradingEnabledByDefault)
+        XCTAssertFalse(report.productionSecretRead)
+        XCTAssertFalse(report.productionEndpointConnected)
+        XCTAssertFalse(report.productionSubmitCancelReplace)
+        XCTAssertFalse(report.productionCutoverAuthorized)
+
+        let encoded = try JSONEncoder().encode(report)
+        let decoded = try JSONDecoder().decode(ReleaseV0140ExecutionEventLogReport.self, from: encoded)
+        XCTAssertEqual(decoded, report)
+
+        XCTAssertThrowsError(try ReleaseV0140ExecutionEventLog(productionEndpointConnected: true))
+        XCTAssertThrowsError(try ReleaseV0140ExecutionEventLog(productionSubmitCancelReplace: true))
+
+        for anchor in ReleaseV0140ExecutionEventLogReport.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1040ReleaseV0140ExecutionEventLogLinksRunOrderIntentAndReconciliationEvidence"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-execution-event-log.sh"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1040 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
