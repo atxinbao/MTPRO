@@ -480,6 +480,8 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         ReleaseV0100DashboardProductionReadinessCenterViewModel
     public let releaseV0120AssessmentHistorySurface:
         ReleaseV0120DashboardAssessmentHistorySurfaceViewModel
+    public let releaseV0140ReadOnlyExecutionDashboardSurface:
+        ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel
     public let releaseV080SafeLocalControlsSurface:
         ReleaseV080DashboardSafeLocalControlsSurfaceViewModel
     public let sections: [DashboardShellSectionSnapshot]
@@ -498,6 +500,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         self.releaseV090OperatorUXSurface = .deterministicFixture
         self.releaseV0100ProductionReadinessCenter = .deterministicFixture
         self.releaseV0120AssessmentHistorySurface = .deterministicFixture
+        self.releaseV0140ReadOnlyExecutionDashboardSurface = .deterministicFixture
         self.releaseV080SafeLocalControlsSurface = .deterministicFixture
         self.sections = viewModel.sections.map { section in
             Self.makeSectionSnapshot(for: section, viewModel: viewModel)
@@ -514,6 +517,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
                 releaseV090OperatorUXSurface.source,
                 releaseV0100ProductionReadinessCenter.source,
                 releaseV0120AssessmentHistorySurface.source,
+                releaseV0140ReadOnlyExecutionDashboardSurface.source,
                 releaseV080SafeLocalControlsSurface.source
             ]
     }
@@ -527,6 +531,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             && releaseV090OperatorUXSurface.boundaryHeld
             && releaseV0100ProductionReadinessCenter.boundaryHeld
             && releaseV0120AssessmentHistorySurface.boundaryHeld
+            && releaseV0140ReadOnlyExecutionDashboardSurface.boundaryHeld
             && releaseV080SafeLocalControlsSurface.boundaryHeld
     }
 
@@ -727,6 +732,22 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
             "Boundary",
             in: releaseV080SafeLocalControlsSurface.metrics
         )
+        let releaseV0140ExecutionDashboardRows = Self.metricValue(
+            "v0.14 execution dashboard rows",
+            in: releaseV0140ReadOnlyExecutionDashboardSurface.metrics
+        )
+        let releaseV0140ExecutionLogEntries = Self.metricValue(
+            "v0.14 execution log entries",
+            in: releaseV0140ReadOnlyExecutionDashboardSurface.metrics
+        )
+        let releaseV0140ExecutionDashboardReconciliation = Self.metricValue(
+            "v0.14 reconciliation",
+            in: releaseV0140ReadOnlyExecutionDashboardSurface.metrics
+        )
+        let releaseV0140ExecutionDashboardBoundary = Self.metricValue(
+            "Boundary",
+            in: releaseV0140ReadOnlyExecutionDashboardSurface.metrics
+        )
         let reportMetrics = sections.first { $0.section == .report }?.metrics ?? []
         let paperRuntimeEvidence = Self.metricValue("Runtime", in: reportMetrics)
         let paperWorkflowEvidence = Self.metricValue("Exec workflow", in: reportMetrics)
@@ -735,7 +756,7 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         let releaseCommandSurface = Self.metricValue("Release commands", in: reportMetrics)
         let releaseV020DashboardSurface = Self.metricValue("Release v0.2 dashboard", in: reportMetrics)
         let releaseKillSwitch = Self.metricValue("Release kill switch", in: reportMetrics)
-        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); releaseLiveMonitoringSurface=\(releaseLiveMonitoringSurface); releaseCommandSurface=\(releaseCommandSurface); releaseV020DashboardSurface=\(releaseV020DashboardSurface); releaseKillSwitch=\(releaseKillSwitch); releaseV070RunOperations=\(releaseV070RunOperations); releaseV070RunOperationControls=\(releaseV070RunOperationControls); releaseV070RunOperationProbes=\(releaseV070RunOperationProbes); releaseV070RunOperationBoundary=\(releaseV070RunOperationBoundary); releaseV080TestnetMonitorRows=\(releaseV080TestnetMonitorRows); releaseV080TestnetMonitorStates=\(releaseV080TestnetMonitorStates); releaseV080TestnetMonitorBoundary=\(releaseV080TestnetMonitorBoundary); releaseV090ObservabilityTimelineEvents=\(releaseV090ObservabilityTimelineEvents); releaseV090ObservabilitySnapshotTimeline=\(releaseV090ObservabilitySnapshotTimeline); releaseV090ObservabilityStreamTimeline=\(releaseV090ObservabilityStreamTimeline); releaseV090ObservabilityLastEvent=\(releaseV090ObservabilityLastEvent); releaseV090ObservabilityBoundary=\(releaseV090ObservabilityBoundary); releaseV090OperatorUXControls=\(releaseV090OperatorUXControls); releaseV090OperatorUXCommands=\(releaseV090OperatorUXCommands); releaseV090OperatorUXDashboardSurfaces=\(releaseV090OperatorUXDashboardSurfaces); releaseV090OperatorUXExportStatus=\(releaseV090OperatorUXExportStatus); releaseV090OperatorUXBoundary=\(releaseV090OperatorUXBoundary); releaseV0100ReadinessCenterCards=\(releaseV0100ReadinessCenterCards); releaseV0100ReadinessCenterPanels=\(releaseV0100ReadinessCenterPanels); releaseV0100ReadinessCenterEvidence=\(releaseV0100ReadinessCenterEvidence); releaseV0100ReadinessCenterBoundary=\(releaseV0100ReadinessCenterBoundary); releaseV0120AssessmentHistoryRows=\(releaseV0120AssessmentHistoryRows); releaseV0120AssessmentHistoryGenerations=\(releaseV0120AssessmentHistoryGenerations); releaseV0120AssessmentHistoryAdversarialCases=\(releaseV0120AssessmentHistoryAdversarialCases); releaseV0120AssessmentHistoryBoundary=\(releaseV0120AssessmentHistoryBoundary); releaseV080SafeLocalControls=\(releaseV080SafeLocalControls); releaseV080SafeLocalControlNames=\(releaseV080SafeLocalControlNames); releaseV080SafeLocalControlBindings=\(releaseV080SafeLocalControlBindings); releaseV080SafeLocalControlBoundary=\(releaseV080SafeLocalControlBoundary); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
+        return "Dashboard smoke: sections=\(sections.count); readModelOnly=\(isReadModelOnly); dashboardReadModelOnly=\(readModelSurface.readModelOnlyBoundaryHeld); controls=\(controls); timelineItems=\(timelineItems); scenarioReplayEvidence=\(scenarioReplayEvidence); scenarioQualityGates=\(scenarioQualityGates); simulatedParityEvidence=\(simulatedParityEvidence); accountPositionBalanceEvidence=\(accountPositionBalanceEvidence); privateStreamSimulationGateEvidence=\(privateStreamSimulationGateEvidence); liveMonitoringReadOnlyConsoleV2Surface=\(liveMonitoringReadOnlyConsoleV2Surface); strategyTraderReadinessSurface=\(strategyTraderReadinessSurface); defaultDemoState=\(defaultDemoState); defaultDemoScenario=\(defaultDemoScenario); betaFirstRunFallbacks=\(betaFallbacks); betaAcceptancePaths=\(betaAcceptancePaths); betaAcceptanceScenario=\(betaAcceptanceScenario); betaAcceptanceTrace=\(betaAcceptanceTrace); paperRuntimeEvidence=\(paperRuntimeEvidence); paperWorkflowEvidence=\(paperWorkflowEvidence); paperPortfolioImpact=\(paperPortfolioImpact); releaseLiveMonitoringSurface=\(releaseLiveMonitoringSurface); releaseCommandSurface=\(releaseCommandSurface); releaseV020DashboardSurface=\(releaseV020DashboardSurface); releaseKillSwitch=\(releaseKillSwitch); releaseV070RunOperations=\(releaseV070RunOperations); releaseV070RunOperationControls=\(releaseV070RunOperationControls); releaseV070RunOperationProbes=\(releaseV070RunOperationProbes); releaseV070RunOperationBoundary=\(releaseV070RunOperationBoundary); releaseV080TestnetMonitorRows=\(releaseV080TestnetMonitorRows); releaseV080TestnetMonitorStates=\(releaseV080TestnetMonitorStates); releaseV080TestnetMonitorBoundary=\(releaseV080TestnetMonitorBoundary); releaseV090ObservabilityTimelineEvents=\(releaseV090ObservabilityTimelineEvents); releaseV090ObservabilitySnapshotTimeline=\(releaseV090ObservabilitySnapshotTimeline); releaseV090ObservabilityStreamTimeline=\(releaseV090ObservabilityStreamTimeline); releaseV090ObservabilityLastEvent=\(releaseV090ObservabilityLastEvent); releaseV090ObservabilityBoundary=\(releaseV090ObservabilityBoundary); releaseV090OperatorUXControls=\(releaseV090OperatorUXControls); releaseV090OperatorUXCommands=\(releaseV090OperatorUXCommands); releaseV090OperatorUXDashboardSurfaces=\(releaseV090OperatorUXDashboardSurfaces); releaseV090OperatorUXExportStatus=\(releaseV090OperatorUXExportStatus); releaseV090OperatorUXBoundary=\(releaseV090OperatorUXBoundary); releaseV0100ReadinessCenterCards=\(releaseV0100ReadinessCenterCards); releaseV0100ReadinessCenterPanels=\(releaseV0100ReadinessCenterPanels); releaseV0100ReadinessCenterEvidence=\(releaseV0100ReadinessCenterEvidence); releaseV0100ReadinessCenterBoundary=\(releaseV0100ReadinessCenterBoundary); releaseV0120AssessmentHistoryRows=\(releaseV0120AssessmentHistoryRows); releaseV0120AssessmentHistoryGenerations=\(releaseV0120AssessmentHistoryGenerations); releaseV0120AssessmentHistoryAdversarialCases=\(releaseV0120AssessmentHistoryAdversarialCases); releaseV0120AssessmentHistoryBoundary=\(releaseV0120AssessmentHistoryBoundary); releaseV0140ExecutionDashboardRows=\(releaseV0140ExecutionDashboardRows); releaseV0140ExecutionLogEntries=\(releaseV0140ExecutionLogEntries); releaseV0140ExecutionDashboardReconciliation=\(releaseV0140ExecutionDashboardReconciliation); releaseV0140ExecutionDashboardBoundary=\(releaseV0140ExecutionDashboardBoundary); releaseV080SafeLocalControls=\(releaseV080SafeLocalControls); releaseV080SafeLocalControlNames=\(releaseV080SafeLocalControlNames); releaseV080SafeLocalControlBindings=\(releaseV080SafeLocalControlBindings); releaseV080SafeLocalControlBoundary=\(releaseV080SafeLocalControlBoundary); liveBlockedGates=\(liveBlockedGates); liveExecutionControlGates=\(liveExecutionControlGates); liveRiskGates=\(liveRiskGates); liveIncidentStopGates=\(liveIncidentStopGates); liveReadOnlyDashboardBoundary=\(liveReadOnlyDashboardBoundary); liveMonitoringHealth=\(liveMonitoringHealth); liveMonitoringErrors=\(liveMonitoringErrors); sections=\(sectionNames)"
     }
 
     private static func makeSectionSnapshot(
@@ -2231,6 +2252,9 @@ public struct DashboardShellView: View {
                 DashboardReleaseV0120AssessmentHistoryPanel(
                     surface: snapshot.releaseV0120AssessmentHistorySurface
                 )
+                DashboardReleaseV0140ReadOnlyExecutionPanel(
+                    surface: snapshot.releaseV0140ReadOnlyExecutionDashboardSurface
+                )
                 DashboardReleaseV080SafeLocalControlsPanel(surface: snapshot.releaseV080SafeLocalControlsSurface)
 
                 LazyVGrid(
@@ -2355,6 +2379,20 @@ private struct DashboardReleaseV0120AssessmentHistoryPanel: View {
             details: surface.details
         )
         .help("Read-only assessment history and adversarial validation evidence; no order, endpoint, broker, or cutover")
+    }
+}
+
+private struct DashboardReleaseV0140ReadOnlyExecutionPanel: View {
+    let surface: ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel
+
+    var body: some View {
+        DashboardReadModelDetailGroup(
+            title: "Release v0.14 Execution Status",
+            systemImage: "list.bullet.rectangle",
+            metrics: surface.metrics,
+            details: surface.details
+        )
+        .help("Read-only execution closed-loop status; no trading button, order form, command or cutover")
     }
 }
 
