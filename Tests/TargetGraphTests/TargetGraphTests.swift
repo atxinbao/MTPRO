@@ -38100,6 +38100,253 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1034ReleaseV0140PreTradeRiskEngineGateBlocksRejectedIntentsBeforeSubmit() throws {
+        // 测试场景：GH-1034 为 v0.14.0 OrderIntent 增加 RiskEngine pre-trade gate。
+        // 验证目的：accepted intent 才能进入后续 ExecutionEngine / testnet mapping；
+        // rejected / blocked intent 必须在 adapter submit 前 fail closed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/RiskEngine/LiveGate/ReleaseV0140PreTradeRiskEngineGate.swift")
+        let verifier = try read("checks/verify-v0.14.0-pretrade-risk-engine-gate.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.14.0-pretrade-risk-engine-gate.md")
+
+        func makeIntent(
+            productType: ProductType = .spot,
+            strategy: OrderIntentStrategyKind = .ema,
+            quantityValue: Double = 0.05,
+            sequence: Int
+        ) throws -> OrderIntent {
+            let instrument = InstrumentIdentity.binance(
+                productType: productType,
+                symbol: Symbol.constant("BTCUSDT")
+            )
+            let quantity = try Quantity(quantityValue, field: "gh1034.quantity")
+            let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+            let correlation = try OrderIntentCorrelationMetadata(
+                correlationID: .constant("gh-1034-correlation-\(sequence)"),
+                strategySignalID: .constant("gh-1034-signal-\(sequence)"),
+                sourceMessageID: .constant("gh-1034-message-\(sequence)"),
+                strategyRunID: .constant("gh-1034-run-\(sequence)"),
+                sourceSequence: sequence
+            )
+            return try OrderIntent(
+                intentID: OrderIntent.deterministicID(
+                    instrument: instrument,
+                    side: .buy,
+                    quantity: quantity,
+                    strategy: strategy,
+                    policy: policy,
+                    correlation: correlation
+                ),
+                instrument: instrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: strategy,
+                policy: policy,
+                correlation: correlation,
+                createdAt: Date(timeIntervalSince1970: TimeInterval(sequence))
+            )
+        }
+
+        let acceptedIntent = try makeIntent(sequence: 1034)
+        let gate = try ReleaseV0140PreTradeRiskEngineGate.deterministicFixture()
+        XCTAssertTrue(gate.boundaryHeld)
+        XCTAssertTrue(gate.runsBeforeExecutionEngineSubmit)
+        XCTAssertFalse(gate.productionTradingEnabledByDefault)
+        XCTAssertFalse(gate.productionSecretRead)
+        XCTAssertFalse(gate.productionEndpointConnected)
+        XCTAssertFalse(gate.productionSubmitCancelReplace)
+
+        let accepted = try gate.evaluate(intent: acceptedIntent, referencePrice: 1_000)
+        XCTAssertTrue(accepted.boundaryHeld)
+        XCTAssertEqual(accepted.outcome, .accepted)
+        XCTAssertEqual(accepted.rejectReasons, [.none])
+        XCTAssertEqual(accepted.nextLifecycleState, .riskAccepted)
+        XCTAssertTrue(accepted.forwardsToExecutionEngine)
+        XCTAssertTrue(accepted.adapterSubmitEligible)
+        XCTAssertFalse(accepted.rejectedIntentReachedAdapterSubmit)
+
+        let acceptedMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: acceptedIntent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: accepted.nextLifecycleState
+            ),
+            intent: acceptedIntent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: accepted.nextLifecycleState
+        )
+        XCTAssertTrue(acceptedMapping.boundaryHeld)
+        XCTAssertEqual(acceptedMapping.lifecycleState, .riskAccepted)
+
+        let quantityRejected = try gate.evaluate(
+            intent: makeIntent(quantityValue: 2.0, sequence: 1035),
+            referencePrice: 1_000
+        )
+        XCTAssertEqual(quantityRejected.outcome, .rejected)
+        XCTAssertEqual(quantityRejected.rejectReasons, [.quantityLimitExceeded])
+        XCTAssertFalse(quantityRejected.forwardsToExecutionEngine)
+        XCTAssertFalse(quantityRejected.adapterSubmitEligible)
+        XCTAssertEqual(quantityRejected.nextLifecycleState, .riskRejected)
+
+        let notionalRejected = try gate.evaluate(intent: acceptedIntent, referencePrice: 2_000_000)
+        XCTAssertEqual(notionalRejected.outcome, .rejected)
+        XCTAssertEqual(notionalRejected.rejectReasons, [.notionalLimitExceeded])
+        XCTAssertFalse(notionalRejected.adapterSubmitEligible)
+
+        let modeBlocked = try gate.evaluate(
+            intent: acceptedIntent,
+            referencePrice: 1_000,
+            explicitTestnetMode: false
+        )
+        XCTAssertEqual(modeBlocked.outcome, .blocked)
+        XCTAssertEqual(modeBlocked.rejectReasons, [.modeGateFailed])
+        XCTAssertEqual(modeBlocked.nextLifecycleState, .failedClosed)
+        XCTAssertFalse(modeBlocked.adapterSubmitEligible)
+
+        let noTradeBlocked = try gate.evaluate(
+            intent: acceptedIntent,
+            referencePrice: 1_000,
+            noTradeStateActive: true
+        )
+        XCTAssertEqual(noTradeBlocked.outcome, .blocked)
+        XCTAssertEqual(noTradeBlocked.rejectReasons, [.noTradeStateActive])
+        XCTAssertFalse(noTradeBlocked.adapterSubmitEligible)
+
+        let killSwitchBlocked = try gate.evaluate(
+            intent: acceptedIntent,
+            referencePrice: 1_000,
+            killSwitchActive: true
+        )
+        XCTAssertEqual(killSwitchBlocked.outcome, .blocked)
+        XCTAssertEqual(killSwitchBlocked.rejectReasons, [.killSwitchActive])
+        XCTAssertFalse(killSwitchBlocked.adapterSubmitEligible)
+
+        let spotOnlyGate = try ReleaseV0140PreTradeRiskEngineGate(
+            policyProfile: .deterministicFixture(allowedProductTypes: [.spot])
+        )
+        let productRejected = try spotOnlyGate.evaluate(
+            intent: makeIntent(productType: .usdsPerpetual, sequence: 1036),
+            referencePrice: 1_000
+        )
+        XCTAssertEqual(productRejected.outcome, .rejected)
+        XCTAssertEqual(productRejected.rejectReasons, [.productNotAllowed])
+        XCTAssertFalse(productRejected.adapterSubmitEligible)
+
+        let emaOnlyGate = try ReleaseV0140PreTradeRiskEngineGate(
+            policyProfile: .deterministicFixture(allowedStrategies: [.ema])
+        )
+        let strategyRejected = try emaOnlyGate.evaluate(
+            intent: makeIntent(strategy: .rsi, sequence: 1037),
+            referencePrice: 1_000
+        )
+        XCTAssertEqual(strategyRejected.outcome, .rejected)
+        XCTAssertEqual(strategyRejected.rejectReasons, [.strategyNotAllowed])
+        XCTAssertFalse(strategyRejected.adapterSubmitEligible)
+
+        let productionBlocked = try gate.evaluate(
+            intent: acceptedIntent,
+            referencePrice: 1_000,
+            productionTradingRequested: true
+        )
+        XCTAssertEqual(productionBlocked.outcome, .blocked)
+        XCTAssertEqual(productionBlocked.rejectReasons, [.productionTradingRequested])
+        XCTAssertFalse(productionBlocked.adapterSubmitEligible)
+
+        let evidence = try gate.deterministicEvidence(acceptedIntent: acceptedIntent, referencePrice: 1_000)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(Set(evidence.decisions.map(\.outcome)), Set(ReleaseV0140PreTradeRiskOutcome.allCases))
+        XCTAssertTrue(evidence.decisions.filter { $0.outcome != .accepted }.allSatisfy { $0.adapterSubmitEligible == false })
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(ReleaseV0140PreTradeRiskGateEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertThrowsError(
+            try ReleaseV0140PreTradeRiskPolicyProfile(
+                releaseVenueID: .constant("coinbase"),
+                maxQuantity: Quantity(1, field: "gh1034.badVenue.quantity"),
+                maxSpotNotional: 50_000,
+                maxPerpetualNotional: 25_000
+            )
+        )
+        XCTAssertThrowsError(try gate.evaluate(
+            intent: acceptedIntent,
+            referencePrice: 1_000,
+            executionSubmitAlreadyAttempted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0140PreTradeRiskEngineGate(
+            policyProfile: .deterministicFixture(),
+            productionTradingEnabledByDefault: true
+        ))
+        XCTAssertThrowsError(
+            try ReleaseV0140PreTradeRiskDecision(
+                decisionID: ReleaseV0140PreTradeRiskDecision.deterministicID(
+                    profileID: gate.policyProfile.profileID,
+                    intentID: acceptedIntent.intentID,
+                    outcome: .rejected,
+                    rejectReasons: [.quantityLimitExceeded]
+                ),
+                profileID: gate.policyProfile.profileID,
+                intent: acceptedIntent,
+                outcome: .rejected,
+                rejectReasons: [.quantityLimitExceeded],
+                referencePrice: 1_000,
+                notional: 1_000,
+                nextLifecycleState: .riskRejected,
+                forwardsToExecutionEngine: false,
+                adapterSubmitEligible: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140PreTradeRiskDecision(
+                decisionID: ReleaseV0140PreTradeRiskDecision.deterministicID(
+                    profileID: gate.policyProfile.profileID,
+                    intentID: acceptedIntent.intentID,
+                    outcome: .blocked,
+                    rejectReasons: [.killSwitchActive]
+                ),
+                profileID: gate.policyProfile.profileID,
+                intent: acceptedIntent,
+                outcome: .blocked,
+                rejectReasons: [.killSwitchActive],
+                referencePrice: 1_000,
+                notional: 1_000,
+                nextLifecycleState: .failedClosed,
+                forwardsToExecutionEngine: false,
+                adapterSubmitEligible: false,
+                rejectedIntentReachedAdapterSubmit: true
+            )
+        )
+
+        for anchor in ReleaseV0140PreTradeRiskEngineGate.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1034ReleaseV0140PreTradeRiskEngineGateBlocksRejectedIntentsBeforeSubmit"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-pretrade-risk-engine-gate.sh"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1034 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
