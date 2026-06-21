@@ -39048,6 +39048,90 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1039ReleaseV0140FailureSimulationSuiteCoversSixFailClosedModes() throws {
+        // 测试场景：GH-1039 在 v0.14.0 testnet closed loop 上运行六类失败路径模拟。
+        // 验证目的：adapter rejection、risk rejection、invalid transition、reconciliation mismatch、
+        // timeout 和 kill switch 全部生成审计证据并 fail closed，且没有 production fallback。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0140FailureSimulationSuite.swift")
+        let contract = try read("docs/contracts/release-v0.14.0-failure-simulation-suite.md")
+        let verifier = try read("checks/verify-v0.14.0-failure-simulation-suite.sh")
+        let runScript = try read("checks/run.sh")
+
+        let suite = try ReleaseV0140FailureSimulationSuite()
+        let report = try suite.run()
+
+        XCTAssertTrue(suite.boundaryHeld)
+        XCTAssertTrue(report.boundaryHeld)
+        XCTAssertEqual(report.modesCovered, ReleaseV0140FailureSimulationSuiteReport.requiredModes)
+        XCTAssertEqual(report.evidence.count, 6)
+        XCTAssertEqual(Set(report.evidence.map(\.mode)), Set(ReleaseV0140FailureSimulationSuiteReport.requiredModes))
+        XCTAssertTrue(report.allFailuresFailClosed)
+        XCTAssertTrue(report.allFailuresAudited)
+        XCTAssertTrue(report.productionBoundaryHeld)
+        XCTAssertTrue(report.evidence.allSatisfy(\.failClosed))
+        XCTAssertTrue(report.evidence.allSatisfy(\.auditEvidenceEmitted))
+        XCTAssertTrue(report.evidence.allSatisfy(\.boundaryHeld))
+        XCTAssertTrue(report.evidence.allSatisfy { $0.fallbackToProductionEndpoint == false })
+        XCTAssertTrue(report.evidence.allSatisfy { $0.productionTradingEnabledByDefault == false })
+        XCTAssertTrue(report.evidence.allSatisfy { $0.productionSecretRead == false })
+        XCTAssertTrue(report.evidence.allSatisfy { $0.productionEndpointConnected == false })
+        XCTAssertTrue(report.evidence.allSatisfy { $0.productionSubmitCancelReplace == false })
+
+        let byMode = Dictionary(uniqueKeysWithValues: report.evidence.map { ($0.mode, $0) })
+        XCTAssertEqual(byMode[.riskRejection]?.pipelineStatus, .failedClosed)
+        XCTAssertEqual(byMode[.riskRejection]?.riskOutcome, .rejected)
+        XCTAssertFalse(try XCTUnwrap(byMode[.riskRejection]).adapterSubmitAttempted)
+        XCTAssertEqual(byMode[.killSwitch]?.pipelineStatus, .failedClosed)
+        XCTAssertEqual(byMode[.killSwitch]?.riskOutcome, .blocked)
+        XCTAssertFalse(try XCTUnwrap(byMode[.killSwitch]).omsEventLogCreated)
+        XCTAssertEqual(byMode[.reconciliationMismatch]?.reconciliationStatus, .failed)
+        XCTAssertTrue(
+            try XCTUnwrap(byMode[.reconciliationMismatch])
+                .reconciliationFailureReasons
+                .contains(.lifecycleStateMismatch)
+        )
+        XCTAssertTrue(try XCTUnwrap(byMode[.reconciliationMismatch]).adapterSubmitAttempted)
+        XCTAssertTrue(try XCTUnwrap(byMode[.reconciliationMismatch]).omsEventLogCreated)
+        XCTAssertTrue(try XCTUnwrap(byMode[.reconciliationMismatch]).reconciliationCompleted)
+        XCTAssertFalse(try XCTUnwrap(byMode[.adapterRejection]).adapterSubmitAttempted)
+        XCTAssertFalse(try XCTUnwrap(byMode[.invalidTransition]).reconciliationCompleted)
+        XCTAssertFalse(try XCTUnwrap(byMode[.timeout]).adapterSubmitAttempted)
+
+        let encoded = try JSONEncoder().encode(report)
+        let decoded = try JSONDecoder().decode(ReleaseV0140FailureSimulationSuiteReport.self, from: encoded)
+        XCTAssertEqual(decoded, report)
+
+        XCTAssertThrowsError(try ReleaseV0140FailureSimulationSuite(productionEndpointConnected: true))
+        XCTAssertThrowsError(try ReleaseV0140FailureSimulationSuite(productionSubmitCancelReplace: true))
+
+        for anchor in ReleaseV0140FailureSimulationSuiteReport.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1039ReleaseV0140FailureSimulationSuiteCoversSixFailClosedModes"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-failure-simulation-suite.sh"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1039 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
