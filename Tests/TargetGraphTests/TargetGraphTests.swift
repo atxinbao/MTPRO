@@ -36378,6 +36378,118 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-execution-contract.sh"))
     }
 
+    func testGH1028ReleaseV0140BinanceTestnetAdapterBoundaryRejectsProductionAndNetworkSubmit() throws {
+        // 测试场景：GH-1028 定义 Binance testnet adapter boundary，不实现真实网络 submit。
+        // 验证目的：Spot / USDⓈ-M Perpetual endpoint policy、EMA / RSI 策略范围和
+        // no-network-submit boundary 必须同时成立。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0140BinanceTestnetAdapterBoundary.swift")
+        let verifier = try read("checks/verify-v0.14.0-binance-testnet-adapter-boundary.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.14.0-binance-testnet-adapter-boundary.md")
+
+        let spotEndpoint = try ReleaseV0140BinanceTestnetEndpointReference.fixture(productType: .spot)
+        let perpEndpoint = try ReleaseV0140BinanceTestnetEndpointReference.fixture(productType: .usdsPerpetual)
+        XCTAssertTrue(spotEndpoint.boundaryHeld)
+        XCTAssertTrue(perpEndpoint.boundaryHeld)
+        XCTAssertEqual(spotEndpoint.baseURL.absoluteString, "https://testnet.binance.vision")
+        XCTAssertEqual(perpEndpoint.baseURL.absoluteString, "https://testnet.binancefuture.com")
+        XCTAssertFalse(spotEndpoint.networkSubmitAllowed)
+        XCTAssertFalse(perpEndpoint.productionEndpoint)
+
+        let boundary = try ReleaseV0140BinanceTestnetAdapterBoundary()
+        XCTAssertTrue(boundary.boundaryHeld)
+        XCTAssertEqual(boundary.venue, "binance")
+        XCTAssertEqual(boundary.mode, .binanceTestnet)
+        XCTAssertEqual(boundary.productTypes, [.spot, .usdsPerpetual])
+        XCTAssertEqual(boundary.strategyKinds, [.ema, .rsi])
+        XCTAssertEqual(boundary.endpoints, [spotEndpoint, perpEndpoint])
+        XCTAssertTrue(boundary.requestMappingAllowed)
+        XCTAssertFalse(boundary.networkSubmitAllowed)
+        XCTAssertFalse(boundary.networkCancelReplaceAllowed)
+        XCTAssertFalse(boundary.productionTradingEnabledByDefault)
+        XCTAssertFalse(boundary.productionSecretRead)
+        XCTAssertFalse(boundary.productionEndpointConnected)
+        XCTAssertFalse(boundary.productionCutoverAuthorized)
+
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetEndpointReference(
+                endpointID: .constant("gh-1028-production-host"),
+                productType: .spot,
+                baseURL: URL(string: "https://api.binance.com")!
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetEndpointReference(
+                endpointID: .constant("gh-1028-non-https"),
+                productType: .spot,
+                baseURL: URL(string: "http://testnet.binance.vision")!
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetEndpointReference(
+                endpointID: .constant("gh-1028-userinfo"),
+                productType: .spot,
+                baseURL: URL(string: "https://user:test@testnet.binance.vision")!
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetEndpointReference(
+                endpointID: .constant("gh-1028-path"),
+                productType: .spot,
+                baseURL: URL(string: "https://testnet.binance.vision/api/v3/order")!
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetEndpointReference(
+                endpointID: .constant("gh-1028-query"),
+                productType: .usdsPerpetual,
+                baseURL: URL(string: "https://testnet.binancefuture.com?signature=forbidden")!
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetEndpointReference(
+                endpointID: .constant("gh-1028-missing-mode"),
+                productType: .spot,
+                baseURL: URL(string: "https://testnet.binance.vision")!,
+                explicitTestnetMode: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetEndpointReference(
+                endpointID: .constant("gh-1028-network-submit"),
+                productType: .spot,
+                baseURL: URL(string: "https://testnet.binance.vision")!,
+                networkSubmitAllowed: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetAdapterBoundary(networkSubmitAllowed: true)
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetAdapterBoundary(productionEndpointConnected: true)
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetAdapterBoundary(strategyKinds: [.ema])
+        )
+
+        for anchor in ReleaseV0140BinanceTestnetAdapterBoundary.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1028ReleaseV0140BinanceTestnetAdapterBoundaryRejectsProductionAndNetworkSubmit"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-binance-testnet-adapter-boundary.sh"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("func submit"))
+        XCTAssertFalse(source.contains("func cancel"))
+        XCTAssertFalse(source.contains("func replace"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
