@@ -148,6 +148,7 @@ bash checks/verify-v0.14.0.sh
 bash checks/verify-v0.14.0-order-lifecycle.sh
 bash checks/verify-v0.14.0-execution-contract.sh
 bash checks/verify-v0.14.0-binance-testnet-adapter-boundary.sh
+bash checks/verify-v0.14.0-binance-testnet-submit.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
