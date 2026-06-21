@@ -37898,6 +37898,208 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1033ReleaseV0140OMSStateSyncEngineDerivesCurrentStateFromEvents() throws {
+        // 测试场景：GH-1033 从 GH-1032 order event sourcing stream 同步当前本地 OMS state。
+        // 验证目的：当前状态只能来自 append-only events 的 replay；空事件、缺失 append、
+        // 缺失中间 lifecycle event 和 projection drift 都必须 fail closed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0140OMSStateSyncEngine.swift")
+        let verifier = try read("checks/verify-v0.14.0-oms-state-sync-engine.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.14.0-oms-state-sync-engine.md")
+
+        let localOrderID: Identifier = .constant("gh-1033-local-order")
+        let correlationID: Identifier = .constant("gh-1033-correlation")
+        let orderIntentID: Identifier = .constant("gh-1033-order-intent")
+        let riskEvidenceID: Identifier = .constant("gh-1033-risk-evidence")
+        let symbol = Symbol.constant("BTCUSDT")
+
+        func makeEvent(
+            sequence: Int,
+            kind: ReleaseV0140OrderEventSourcingEventKind,
+            fromState: OrderLifecycleState,
+            toState: OrderLifecycleState,
+            causationID: Identifier,
+            omsEvidenceID: Identifier,
+            executionEvidenceID: Identifier?,
+            adapterEvidenceID: Identifier?
+        ) throws -> ReleaseV0140OrderEventSourcingEvent {
+            let eventID = ReleaseV0140OrderEventSourcingEvent.deterministicID(
+                sequence: sequence,
+                kind: kind,
+                localOrderID: localOrderID,
+                toState: toState,
+                correlationID: correlationID,
+                causationID: causationID,
+                omsEvidenceID: omsEvidenceID
+            )
+            return try ReleaseV0140OrderEventSourcingEvent(
+                eventID: eventID,
+                sequence: sequence,
+                kind: kind,
+                localOrderID: localOrderID,
+                productType: .spot,
+                symbol: symbol,
+                fromState: fromState,
+                toState: toState,
+                correlationID: correlationID,
+                causationID: causationID,
+                orderIntentID: orderIntentID,
+                riskEvidenceID: riskEvidenceID,
+                executionEvidenceID: executionEvidenceID,
+                omsEvidenceID: omsEvidenceID,
+                adapterEvidenceID: adapterEvidenceID,
+                sourceOMSStoreEventID: omsEvidenceID
+            )
+        }
+
+        let appendEvent = try makeEvent(
+            sequence: 1,
+            kind: .orderAppended,
+            fromState: .accepted,
+            toState: .accepted,
+            causationID: .constant("gh-1033-submit-causation"),
+            omsEvidenceID: .constant("gh-1033-oms-append"),
+            executionEvidenceID: .constant("gh-1033-submit-response"),
+            adapterEvidenceID: .constant("gh-1033-submit-adapter")
+        )
+        let partialFillEvent = try makeEvent(
+            sequence: 2,
+            kind: .lifecycleChanged,
+            fromState: .accepted,
+            toState: .partiallyFilled,
+            causationID: .constant("gh-1033-partial-fill-causation"),
+            omsEvidenceID: .constant("gh-1033-oms-partial-fill"),
+            executionEvidenceID: .constant("gh-1033-partial-fill-execution"),
+            adapterEvidenceID: Optional<Identifier>.none
+        )
+        let cancelRequestedEvent = try makeEvent(
+            sequence: 3,
+            kind: .lifecycleChanged,
+            fromState: .partiallyFilled,
+            toState: .cancelRequested,
+            causationID: .constant("gh-1033-cancel-request-causation"),
+            omsEvidenceID: .constant("gh-1033-oms-cancel-request"),
+            executionEvidenceID: .constant("gh-1033-cancel-request-execution"),
+            adapterEvidenceID: .constant("gh-1033-cancel-request-adapter")
+        )
+        let stream = try ReleaseV0140OrderEventSourcingStream.replay(
+            events: [appendEvent, partialFillEvent, cancelRequestedEvent]
+        )
+        let engine = try ReleaseV0140OMSStateSyncEngine()
+        XCTAssertTrue(engine.boundaryHeld)
+        XCTAssertTrue(engine.derivedFromEventsOnly)
+        XCTAssertTrue(engine.missingEventsFailClosed)
+        XCTAssertFalse(engine.hiddenRuntimeStateMutated)
+        XCTAssertFalse(engine.networkOrderActionPerformed)
+        XCTAssertFalse(engine.productionTradingEnabledByDefault)
+
+        let snapshot = try engine.sync(stream: stream)
+        XCTAssertTrue(snapshot.boundaryHeld)
+        XCTAssertEqual(snapshot.sourceStreamID, stream.streamID)
+        XCTAssertEqual(snapshot.sourceEventIDs, stream.events.map(\.eventID))
+        XCTAssertEqual(snapshot.sourceProjectionCount, stream.projections.count)
+        XCTAssertTrue(snapshot.derivedFromEventsOnly)
+        XCTAssertTrue(snapshot.replayVerified)
+        XCTAssertTrue(snapshot.missingEventsFailClosed)
+        XCTAssertFalse(snapshot.hiddenRuntimeStateMutated)
+        XCTAssertFalse(snapshot.productionSecretRead)
+        XCTAssertFalse(snapshot.productionEndpointConnected)
+        XCTAssertEqual(snapshot.records.count, 1)
+
+        let record = try XCTUnwrap(snapshot.record(for: localOrderID))
+        XCTAssertTrue(record.boundaryHeld)
+        XCTAssertEqual(record.localOrderID, localOrderID)
+        XCTAssertEqual(record.productType, .spot)
+        XCTAssertEqual(record.symbol, symbol)
+        XCTAssertEqual(record.currentState, OrderLifecycleState.cancelRequested)
+        XCTAssertEqual(record.lastEventID, cancelRequestedEvent.eventID)
+        XCTAssertEqual(record.eventIDs, stream.events.map(\.eventID))
+        XCTAssertEqual(record.correlationIDs, [correlationID])
+        XCTAssertEqual(record.causationIDs, stream.events.map(\.causationID))
+        XCTAssertEqual(record.orderIntentID, orderIntentID)
+        XCTAssertEqual(record.riskEvidenceIDs, [riskEvidenceID])
+        XCTAssertEqual(
+            record.executionEvidenceIDs,
+            [
+                Identifier.constant("gh-1033-submit-response"),
+                Identifier.constant("gh-1033-partial-fill-execution"),
+                Identifier.constant("gh-1033-cancel-request-execution")
+            ]
+        )
+        XCTAssertEqual(record.omsEvidenceIDs, stream.events.map(\.omsEvidenceID))
+        XCTAssertEqual(
+            record.adapterEvidenceIDs,
+            [
+                Identifier.constant("gh-1033-submit-adapter"),
+                Identifier.constant("gh-1033-cancel-request-adapter")
+            ]
+        )
+        XCTAssertTrue(record.derivedFromEventsOnly)
+        XCTAssertFalse(record.hiddenRuntimeStateMutated)
+        XCTAssertFalse(record.rawBrokerPayloadIncluded)
+        XCTAssertFalse(record.brokerFillIncluded)
+        XCTAssertFalse(record.reconciliationIncluded)
+
+        let eventOnlySnapshot = try engine.sync(events: stream.events)
+        XCTAssertEqual(eventOnlySnapshot, snapshot)
+
+        let driftedStream = try ReleaseV0140OrderEventSourcingStream(
+            events: stream.events,
+            projections: [try ReleaseV0140OrderEventSourcingProjection(firstEvent: appendEvent)]
+        )
+        XCTAssertThrowsError(try engine.sync(stream: driftedStream))
+        XCTAssertThrowsError(try engine.sync(events: []))
+        XCTAssertThrowsError(try engine.sync(events: [partialFillEvent]))
+        XCTAssertThrowsError(try engine.sync(events: [appendEvent, cancelRequestedEvent]))
+        XCTAssertThrowsError(try ReleaseV0140OMSStateSyncEngine(hiddenRuntimeStateMutated: true))
+        XCTAssertThrowsError(try ReleaseV0140OMSStateSyncEngine(networkOrderActionPerformed: true))
+        XCTAssertThrowsError(try ReleaseV0140OMSStateSyncRecord(projection: stream.projections[0], hiddenRuntimeStateMutated: true))
+        XCTAssertThrowsError(
+            try ReleaseV0140OMSStateSyncSnapshot(
+                sourceStreamID: stream.streamID,
+                records: snapshot.records,
+                sourceEventIDs: [],
+                sourceProjectionCount: snapshot.sourceProjectionCount
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140OMSStateSyncSnapshot(
+                sourceStreamID: stream.streamID,
+                records: snapshot.records,
+                sourceEventIDs: snapshot.sourceEventIDs,
+                sourceProjectionCount: snapshot.sourceProjectionCount,
+                brokerFillIncluded: true
+            )
+        )
+
+        for anchor in ReleaseV0140OMSStateSyncSnapshot.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1033ReleaseV0140OMSStateSyncEngineDerivesCurrentStateFromEvents"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-oms-state-sync-engine.sh"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1033 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
