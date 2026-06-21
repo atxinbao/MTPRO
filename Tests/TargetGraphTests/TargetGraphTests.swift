@@ -36004,6 +36004,166 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0.sh"))
     }
 
+    func testGH1026ReleaseV0140OrderLifecycleStateMachineFailsClosedInvalidTransitions() throws {
+        // 测试场景：GH-1026 定义 v0.14.0 testnet / dry-run 本地订单生命周期状态机。
+        // 验证目的：状态覆盖完整、有效迁移可审计、非法迁移 fail closed，且不授权生产交易。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let packageSource = try read("Package.swift")
+        let verifier = try read("checks/verify-v0.14.0-order-lifecycle.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.14.0-order-lifecycle-state-machine-contract.md")
+
+        let stateMachine = try OrderLifecycleStateMachine()
+
+        XCTAssertTrue(stateMachine.boundaryHeld)
+        XCTAssertFalse(stateMachine.productionTradingEnabledByDefault)
+        XCTAssertTrue(stateMachine.testnetOnly)
+        XCTAssertFalse(stateMachine.authorizesProductionTrading)
+        XCTAssertFalse(stateMachine.touchesProductionBrokerEndpoint)
+        XCTAssertEqual(OrderLifecycleStateMachine.lifecycleVenue, OrderIntent.activeVenue)
+        XCTAssertEqual(OrderLifecycleStateMachine.lifecycleVenueID, OrderIntent.activeVenueID)
+        XCTAssertEqual(OrderLifecycleStateMachine.lifecycleProductTypes, OrderIntent.activeProductTypes)
+        XCTAssertEqual(OrderLifecycleStateMachine.lifecycleStrategies, OrderIntent.activeStrategies)
+
+        let requiredStates: Set<OrderLifecycleState> = [
+            .created,
+            .riskAccepted,
+            .riskRejected,
+            .submittedTestnet,
+            .submittedDryRun,
+            .accepted,
+            .partiallyFilled,
+            .filled,
+            .cancelRequested,
+            .cancelled,
+            .replaceRequested,
+            .replaced,
+            .rejected,
+            .expired,
+            .failedClosed
+        ]
+        XCTAssertEqual(Set(OrderLifecycleState.allCases), requiredStates)
+
+        let validTransitions: [(OrderLifecycleState, OrderLifecycleState)] = [
+            (.created, .riskAccepted),
+            (.created, .riskRejected),
+            (.created, .failedClosed),
+            (.riskAccepted, .submittedTestnet),
+            (.riskAccepted, .submittedDryRun),
+            (.riskAccepted, .failedClosed),
+            (.riskRejected, .failedClosed),
+            (.submittedTestnet, .accepted),
+            (.submittedTestnet, .rejected),
+            (.submittedTestnet, .expired),
+            (.submittedTestnet, .failedClosed),
+            (.submittedDryRun, .accepted),
+            (.submittedDryRun, .rejected),
+            (.submittedDryRun, .expired),
+            (.submittedDryRun, .failedClosed),
+            (.accepted, .partiallyFilled),
+            (.accepted, .filled),
+            (.accepted, .cancelRequested),
+            (.accepted, .replaceRequested),
+            (.accepted, .rejected),
+            (.accepted, .expired),
+            (.accepted, .failedClosed),
+            (.partiallyFilled, .filled),
+            (.partiallyFilled, .cancelRequested),
+            (.partiallyFilled, .replaceRequested),
+            (.partiallyFilled, .expired),
+            (.partiallyFilled, .failedClosed),
+            (.cancelRequested, .cancelled),
+            (.cancelRequested, .failedClosed),
+            (.replaceRequested, .replaced),
+            (.replaceRequested, .failedClosed),
+            (.replaced, .accepted),
+            (.replaced, .partiallyFilled),
+            (.replaced, .filled),
+            (.replaced, .cancelRequested),
+            (.replaced, .replaceRequested),
+            (.replaced, .expired),
+            (.replaced, .failedClosed)
+        ]
+
+        for transition in validTransitions {
+            XCTAssertTrue(
+                OrderLifecycleStateMachine.canTransition(from: transition.0, to: transition.1),
+                "\(transition.0.rawValue) -> \(transition.1.rawValue) must be valid"
+            )
+            let evidence = try stateMachine.transition(
+                from: transition.0,
+                to: transition.1,
+                reason: "gh-1026-valid-\(transition.0.rawValue)-\(transition.1.rawValue)"
+            )
+            XCTAssertEqual(evidence.from, transition.0)
+            XCTAssertEqual(evidence.to, transition.1)
+            XCTAssertTrue(evidence.boundaryHeld)
+            XCTAssertTrue(evidence.testnetScoped)
+            XCTAssertFalse(evidence.authorizesProductionTrading)
+            XCTAssertFalse(evidence.touchesProductionBrokerEndpoint)
+        }
+
+        for invalidTransition in [
+            (OrderLifecycleState.created, OrderLifecycleState.submittedTestnet),
+            (.created, .submittedDryRun),
+            (.riskRejected, .submittedTestnet),
+            (.submittedTestnet, .submittedDryRun),
+            (.submittedDryRun, .submittedTestnet),
+            (.filled, .cancelRequested),
+            (.cancelled, .replaceRequested),
+            (.rejected, .accepted),
+            (.expired, .accepted),
+            (.failedClosed, .accepted)
+        ] {
+            XCTAssertFalse(
+                OrderLifecycleStateMachine.canTransition(from: invalidTransition.0, to: invalidTransition.1),
+                "\(invalidTransition.0.rawValue) -> \(invalidTransition.1.rawValue) must fail closed"
+            )
+            XCTAssertThrowsError(
+                try stateMachine.transition(
+                    from: invalidTransition.0,
+                    to: invalidTransition.1,
+                    reason: "gh-1026-invalid-transition"
+                )
+            ) { error in
+                XCTAssertTrue(String(describing: error).contains("Order lifecycle transition is invalid"))
+            }
+        }
+
+        XCTAssertThrowsError(
+            try OrderLifecycleTransition(
+                from: .created,
+                to: .riskAccepted,
+                reason: "gh-1026-production-auth",
+                authorizesProductionTrading: true
+            )
+        )
+        XCTAssertThrowsError(
+            try OrderLifecycleTransition(
+                from: .created,
+                to: .riskAccepted,
+                reason: "gh-1026-production-endpoint",
+                touchesProductionBrokerEndpoint: true
+            )
+        )
+        XCTAssertThrowsError(
+            try OrderLifecycleStateMachine(productionTradingEnabledByDefault: true)
+        )
+
+        for anchor in OrderLifecycleStateMachine.requiredValidationAnchors {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+            XCTAssertTrue(verifier.contains(anchor) || anchor == "TVM-RELEASE-V0140-ORDER-LIFECYCLE-STATE-MACHINE")
+        }
+        XCTAssertTrue(packageSource.contains("\"OrderLifecycle.swift\""))
+        XCTAssertTrue(packageSource.contains("\"DomainModel/OrderLifecycle.swift\""))
+        XCTAssertTrue(verifier.contains("testGH1026ReleaseV0140OrderLifecycleStateMachineFailsClosedInvalidTransitions"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-order-lifecycle.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
