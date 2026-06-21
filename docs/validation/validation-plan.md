@@ -5199,5 +5199,24 @@ swift test
 - regression evidence: tests cover intake, build, validate, export, compare and transaction recovery with valid fixture data
 - fail-closed evidence: missing artifact index, synthetic sourceRunID, placeholder sourceCommit, fixture-only marker and tampered artifact snapshot must fail closed
 - path separation evidence: fixture paths remain under `Tests/Fixtures`; runtime-facing evidence is written only to a temporary readiness registry store
-- dependency evidence: #1004 is blocked by #1003 and is the active WIP=1 gate; #1005 remains blocked by #1004 until this PR is merged and #1004 is closed / done
+- dependency evidence: #1004 was blocked by #1003 and closed / done after PR #1023 merged with required checks success; #1005 starts only after #1004 closeout, main fast-forward and fresh WIP=1 preflight
 - forbidden scope: no tag / GitHub Release publication, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-1005 Release v0.13.0 Stage Audit / Release Docs Validation
+
+- GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS
+- TVM-RELEASE-V0130-STAGE-AUDIT-RELEASE-DOCS
+- V0130-012-STAGE-CODE-AUDIT
+- V0130-012-RELEASE-NOTES
+- V0130-012-ROOT-DOCS-REFRESH
+- V0130-012-VALIDATION-SUMMARY
+- V0130-012-NO-PRODUCTION-CUTOVER
+- V0130-012-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1005 Release v0.13.0 Stage Audit / Release Docs Validation
+- testGH1005ReleaseV0130StageAuditReleaseDocsCloseout
+- focused verifier: `bash checks/verify-v0.13.0.sh`
+- audit evidence: `docs/audit/mtpro-release-v0.13.0-local-evidence-driven-readiness-engine-stage-code-audit.md` records #994 through #1005 issue completion, PR / checks / merge evidence, boundary audit, validation evidence and next handoff
+- release notes evidence: `docs/release/mtpro-release-v0.13.0-local-evidence-driven-readiness-engine-notes.md` distinguishes v0.13.0 local evidence engine from testnet order execution, production cutover and public release publication
+- root docs evidence: README / GOAL / BLUEPRINT / roadmap / latest verification summary reflect v0.13.0 completed construction facts only
+- dependency evidence: #1005 is blocked by #1004 and starts only after PR #1023 merged, required checks passed, #1004 closed / done, local main fast-forwarded and WIP=1 preflight passed
+- forbidden scope: no tag / GitHub Release publication, no next Project / Issue, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
