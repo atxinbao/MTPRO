@@ -36490,6 +36490,340 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("func replace"))
     }
 
+    func testGH1029ReleaseV0140BinanceTestnetSubmitPathIsOperatorGatedAndRedacted() throws {
+        // 测试场景：GH-1029 增加 Binance testnet submit path 的可审计证据。
+        // 验证目的：submit evidence 必须由 riskAccepted mapping、operator gate、testnet
+        // endpoint 和脱敏 request / response 串起来，同时不执行网络 submit、不混入 cancel / replace。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0140BinanceTestnetSubmitPath.swift")
+        let verifier = try read("checks/verify-v0.14.0-binance-testnet-submit.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.14.0-binance-testnet-submit-path.md")
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spotInstrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perpInstrument = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let quantity = try Quantity(0.05, field: "gh1029.quantity")
+        let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let correlation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1029-correlation"),
+            strategySignalID: .constant("gh-1029-signal"),
+            sourceMessageID: .constant("gh-1029-message"),
+            strategyRunID: .constant("gh-1029-run"),
+            sourceSequence: 1029
+        )
+        let spotIntent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: spotInstrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation
+            ),
+            instrument: spotInstrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_029)
+        )
+
+        let submitMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: spotIntent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: spotIntent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let spotEndpoint = try ReleaseV0140BinanceTestnetEndpointReference.fixture(productType: .spot)
+        let operatorGate = try ReleaseV0140BinanceTestnetSubmitOperatorGate.fixture(correlation: correlation)
+        XCTAssertTrue(operatorGate.boundaryHeld)
+        XCTAssertEqual(operatorGate.strategyRunID, correlation.strategyRunID)
+        XCTAssertFalse(operatorGate.productionSecretRead)
+
+        let request = try ReleaseV0140BinanceTestnetSubmitRequestEvidence(
+            requestID: ReleaseV0140BinanceTestnetSubmitRequestEvidence.deterministicID(
+                mappingID: submitMapping.mappingID,
+                productType: .spot,
+                sourceSequence: correlation.sourceSequence
+            ),
+            intent: spotIntent,
+            mapping: submitMapping,
+            endpoint: spotEndpoint,
+            operatorGate: operatorGate
+        )
+        XCTAssertTrue(request.boundaryHeld)
+        XCTAssertEqual(request.mappingID, submitMapping.mappingID)
+        XCTAssertEqual(request.intentID, spotIntent.intentID)
+        XCTAssertEqual(request.strategyRunID, correlation.strategyRunID)
+        XCTAssertEqual(request.sourceSequence, 1029)
+        XCTAssertEqual(request.productType, .spot)
+        XCTAssertEqual(request.symbol, symbol)
+        XCTAssertEqual(request.side, .buy)
+        XCTAssertEqual(request.quantityText, "0.05000000")
+        XCTAssertEqual(request.timeInForce, .goodTillCanceled)
+        XCTAssertEqual(request.endpointHost, "testnet.binance.vision")
+        XCTAssertEqual(request.endpointPath, "/api/v3/order")
+        XCTAssertEqual(request.operatorGateID, operatorGate.gateID)
+        XCTAssertTrue(request.explicitTestnetMode)
+        XCTAssertTrue(request.testnetOnly)
+        XCTAssertTrue(request.testnetSubmitEvidenceAllowed)
+        XCTAssertTrue(request.requestBodyRedacted)
+        XCTAssertTrue(request.credentialMaterialRedacted)
+        XCTAssertFalse(request.networkSubmitPerformed)
+        XCTAssertFalse(request.cancelReplaceIncluded)
+        XCTAssertFalse(request.productionTradingEnabledByDefault)
+        XCTAssertFalse(request.productionSecretRead)
+        XCTAssertFalse(request.productionEndpointConnected)
+        XCTAssertFalse(request.productionCutoverAuthorized)
+
+        let result = try ExecutionContractSubmissionResult(
+            resultID: ExecutionContractSubmissionResult.deterministicID(
+                mappingID: submitMapping.mappingID,
+                state: submitMapping.targetLifecycleState
+            ),
+            mapping: submitMapping
+        )
+        let acknowledgement = try ExecutionContractAcknowledgement(
+            acknowledgementID: ExecutionContractAcknowledgement.deterministicID(resultID: result.resultID),
+            result: result
+        )
+        let response = try ReleaseV0140BinanceTestnetSubmitResponseEvidence(
+            responseID: ReleaseV0140BinanceTestnetSubmitResponseEvidence.deterministicID(
+                requestID: request.requestID,
+                resultID: result.resultID,
+                acknowledgementID: acknowledgement.acknowledgementID
+            ),
+            request: request,
+            result: result,
+            acknowledgement: acknowledgement
+        )
+        XCTAssertTrue(response.boundaryHeld)
+        XCTAssertEqual(response.requestID, request.requestID)
+        XCTAssertEqual(response.mappingID, submitMapping.mappingID)
+        XCTAssertEqual(response.resultID, result.resultID)
+        XCTAssertEqual(response.acknowledgementID, acknowledgement.acknowledgementID)
+        XCTAssertEqual(response.lifecycleState, .accepted)
+        XCTAssertTrue(response.acceptedByAdapter)
+        XCTAssertTrue(response.exchangeOrderIDRedacted)
+        XCTAssertTrue(response.responseBodyRedacted)
+        XCTAssertFalse(response.networkSubmitPerformed)
+        XCTAssertFalse(response.productionEndpointConnected)
+
+        let boundary = try ReleaseV0140BinanceTestnetAdapterBoundary()
+        let path = try ReleaseV0140BinanceTestnetSubmitPath(
+            pathID: ReleaseV0140BinanceTestnetSubmitPath.deterministicID(
+                requestID: request.requestID,
+                responseID: response.responseID
+            ),
+            boundary: boundary,
+            operatorGate: operatorGate,
+            request: request,
+            result: result,
+            acknowledgement: acknowledgement,
+            response: response
+        )
+        XCTAssertTrue(path.boundaryHeld)
+        XCTAssertEqual(path.boundaryID, boundary.boundaryID)
+        XCTAssertEqual(path.operatorGateID, operatorGate.gateID)
+        XCTAssertEqual(path.requestID, request.requestID)
+        XCTAssertEqual(path.responseID, response.responseID)
+        XCTAssertTrue(path.testnetSubmitPathAllowed)
+        XCTAssertTrue(path.testnetSubmitEvidenceOnly)
+        XCTAssertFalse(path.networkSubmitPerformed)
+        XCTAssertFalse(path.cancelReplaceIncluded)
+        XCTAssertFalse(path.productionTradingEnabledByDefault)
+        XCTAssertFalse(path.productionSecretRead)
+        XCTAssertFalse(path.productionEndpointConnected)
+        XCTAssertFalse(path.productionCutoverAuthorized)
+
+        let perpCorrelation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1029-perp-correlation"),
+            strategySignalID: .constant("gh-1029-perp-signal"),
+            sourceMessageID: .constant("gh-1029-perp-message"),
+            strategyRunID: .constant("gh-1029-perp-run"),
+            sourceSequence: 1030
+        )
+        let perpPolicy = try OrderIntentPolicy(timeInForce: .immediateOrCancel)
+        let perpIntent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: perpInstrument,
+                side: .sell,
+                quantity: quantity,
+                strategy: .rsi,
+                policy: perpPolicy,
+                correlation: perpCorrelation
+            ),
+            instrument: perpInstrument,
+            side: .sell,
+            quantity: quantity,
+            strategy: .rsi,
+            policy: perpPolicy,
+            correlation: perpCorrelation,
+            createdAt: Date(timeIntervalSince1970: 1_030)
+        )
+        let perpMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: perpIntent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: perpIntent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let perpRequest = try ReleaseV0140BinanceTestnetSubmitRequestEvidence(
+            requestID: ReleaseV0140BinanceTestnetSubmitRequestEvidence.deterministicID(
+                mappingID: perpMapping.mappingID,
+                productType: .usdsPerpetual,
+                sourceSequence: perpCorrelation.sourceSequence
+            ),
+            intent: perpIntent,
+            mapping: perpMapping,
+            endpoint: try ReleaseV0140BinanceTestnetEndpointReference.fixture(productType: .usdsPerpetual),
+            operatorGate: try ReleaseV0140BinanceTestnetSubmitOperatorGate.fixture(correlation: perpCorrelation)
+        )
+        XCTAssertTrue(perpRequest.boundaryHeld)
+        XCTAssertEqual(perpRequest.productType, .usdsPerpetual)
+        XCTAssertEqual(perpRequest.strategyRunID, perpCorrelation.strategyRunID)
+        XCTAssertEqual(perpRequest.endpointHost, "testnet.binancefuture.com")
+        XCTAssertEqual(perpRequest.endpointPath, "/fapi/v1/order")
+        XCTAssertEqual(perpRequest.timeInForce, .immediateOrCancel)
+
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetSubmitOperatorGate(
+                gateID: .constant("gh-1029-bad-gate"),
+                operatorConfirmationID: .constant("gh-1029-bad-confirmation"),
+                strategyRunID: correlation.strategyRunID,
+                explicitTestnetMode: false
+            )
+        )
+
+        let dryRunMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: spotIntent.intentID,
+                operation: .submit,
+                mode: .dryRun,
+                lifecycleState: .riskAccepted
+            ),
+            intent: spotIntent,
+            operation: .submit,
+            mode: .dryRun,
+            lifecycleState: .riskAccepted
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetSubmitRequestEvidence(
+                requestID: ReleaseV0140BinanceTestnetSubmitRequestEvidence.deterministicID(
+                    mappingID: dryRunMapping.mappingID,
+                    productType: .spot,
+                    sourceSequence: correlation.sourceSequence
+                ),
+                intent: spotIntent,
+                mapping: dryRunMapping,
+                endpoint: spotEndpoint,
+                operatorGate: operatorGate
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetSubmitRequestEvidence(
+                requestID: ReleaseV0140BinanceTestnetSubmitRequestEvidence.deterministicID(
+                    mappingID: submitMapping.mappingID,
+                    productType: .usdsPerpetual,
+                    sourceSequence: correlation.sourceSequence
+                ),
+                intent: spotIntent,
+                mapping: submitMapping,
+                endpoint: try ReleaseV0140BinanceTestnetEndpointReference.fixture(productType: .usdsPerpetual),
+                operatorGate: operatorGate
+            )
+        )
+
+        let mismatchedCorrelation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1029-mismatch-correlation"),
+            strategySignalID: .constant("gh-1029-mismatch-signal"),
+            sourceMessageID: .constant("gh-1029-mismatch-message"),
+            strategyRunID: .constant("gh-1029-mismatch-run"),
+            sourceSequence: 2048
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetSubmitRequestEvidence(
+                requestID: request.requestID,
+                intent: spotIntent,
+                mapping: submitMapping,
+                endpoint: spotEndpoint,
+                operatorGate: try ReleaseV0140BinanceTestnetSubmitOperatorGate.fixture(correlation: mismatchedCorrelation)
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetSubmitRequestEvidence(
+                requestID: request.requestID,
+                intent: spotIntent,
+                mapping: submitMapping,
+                endpoint: spotEndpoint,
+                operatorGate: operatorGate,
+                requestBodyRedacted: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetSubmitResponseEvidence(
+                responseID: response.responseID,
+                request: request,
+                result: result,
+                acknowledgement: acknowledgement,
+                exchangeOrderIDRedacted: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetSubmitPath(
+                pathID: path.pathID,
+                boundary: boundary,
+                operatorGate: operatorGate,
+                request: request,
+                result: result,
+                acknowledgement: acknowledgement,
+                response: response,
+                cancelReplaceIncluded: true
+            )
+        )
+
+        for anchor in ReleaseV0140BinanceTestnetSubmitPath.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1029ReleaseV0140BinanceTestnetSubmitPathIsOperatorGatedAndRedacted"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-binance-testnet-submit.sh"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1029 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
