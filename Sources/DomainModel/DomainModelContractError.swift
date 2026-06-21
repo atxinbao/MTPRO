@@ -20,6 +20,7 @@ public enum DomainModelContractError: Error, Equatable, Sendable, CustomStringCo
     case invalidPerpetualContract(String)
     case invalidTargetExposureIntent(String)
     case invalidProductAwareOrderIntent(String)
+    case invalidOrderIntent(String)
 
     public var description: String {
         switch self {
@@ -49,6 +50,8 @@ public enum DomainModelContractError: Error, Equatable, Sendable, CustomStringCo
             "Target exposure intent is invalid: \(value)"
         case let .invalidProductAwareOrderIntent(value):
             "Product-aware order intent is invalid: \(value)"
+        case let .invalidOrderIntent(value):
+            "Order intent is invalid: \(value)"
         }
     }
 }
