@@ -38608,6 +38608,231 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1036ReleaseV0140ReconciliationEngineSurfacesMismatchesAsFailures() throws {
+        // 测试场景：GH-1036 对齐本地 OMS state sync、append-only event log 和 testnet ack / fill evidence。
+        // 验证目的：一致 evidence 生成 passed report；状态或 coverage mismatch 必须进入 failed report，
+        // 不能被 reconciliation 静默接受。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0140ReconciliationEngine.swift")
+        let verifier = try read("checks/verify-v0.14.0-reconciliation-engine.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.14.0-reconciliation-engine.md")
+
+        let localOrderID: Identifier = .constant("gh-1036-local-order")
+        let correlationID: Identifier = .constant("gh-1036-correlation")
+        let orderIntentID: Identifier = .constant("gh-1036-order-intent")
+        let riskEvidenceID: Identifier = .constant("gh-1036-risk-evidence")
+        let symbol = Symbol.constant("BTCUSDT")
+
+        func makeEvent(
+            sequence: Int,
+            kind: ReleaseV0140OrderEventSourcingEventKind,
+            fromState: OrderLifecycleState,
+            toState: OrderLifecycleState,
+            causationID: Identifier,
+            omsEvidenceID: Identifier,
+            executionEvidenceID: Identifier?,
+            adapterEvidenceID: Identifier?
+        ) throws -> ReleaseV0140OrderEventSourcingEvent {
+            let eventID = ReleaseV0140OrderEventSourcingEvent.deterministicID(
+                sequence: sequence,
+                kind: kind,
+                localOrderID: localOrderID,
+                toState: toState,
+                correlationID: correlationID,
+                causationID: causationID,
+                omsEvidenceID: omsEvidenceID
+            )
+            return try ReleaseV0140OrderEventSourcingEvent(
+                eventID: eventID,
+                sequence: sequence,
+                kind: kind,
+                localOrderID: localOrderID,
+                productType: .spot,
+                symbol: symbol,
+                fromState: fromState,
+                toState: toState,
+                correlationID: correlationID,
+                causationID: causationID,
+                orderIntentID: orderIntentID,
+                riskEvidenceID: riskEvidenceID,
+                executionEvidenceID: executionEvidenceID,
+                omsEvidenceID: omsEvidenceID,
+                adapterEvidenceID: adapterEvidenceID,
+                sourceOMSStoreEventID: omsEvidenceID
+            )
+        }
+
+        func makeObservation(
+            kind: ReleaseV0140ReconciliationObservationKind,
+            event: ReleaseV0140OrderEventSourcingEvent,
+            targetState: OrderLifecycleState? = nil
+        ) throws -> ReleaseV0140TestnetExecutionObservation {
+            let executionEvidenceID = try XCTUnwrap(event.executionEvidenceID)
+            let resolvedTargetState = targetState ?? event.toState
+            return try ReleaseV0140TestnetExecutionObservation(
+                observationID: ReleaseV0140TestnetExecutionObservation.deterministicID(
+                    kind: kind,
+                    localOrderID: event.localOrderID,
+                    sourceEventID: event.eventID,
+                    executionEvidenceID: executionEvidenceID
+                ),
+                kind: kind,
+                localOrderID: event.localOrderID,
+                productType: event.productType,
+                symbol: event.symbol,
+                orderIntentID: event.orderIntentID,
+                sourceEventID: event.eventID,
+                targetLifecycleState: resolvedTargetState,
+                executionEvidenceID: executionEvidenceID,
+                adapterEvidenceID: event.adapterEvidenceID
+            )
+        }
+
+        let acceptedEvent = try makeEvent(
+            sequence: 1,
+            kind: .orderAppended,
+            fromState: .accepted,
+            toState: .accepted,
+            causationID: .constant("gh-1036-submit-causation"),
+            omsEvidenceID: .constant("gh-1036-oms-accepted"),
+            executionEvidenceID: .constant("gh-1036-submit-response"),
+            adapterEvidenceID: .constant("gh-1036-submit-adapter")
+        )
+        let partialFillEvent = try makeEvent(
+            sequence: 2,
+            kind: .lifecycleChanged,
+            fromState: .accepted,
+            toState: .partiallyFilled,
+            causationID: .constant("gh-1036-partial-fill-causation"),
+            omsEvidenceID: .constant("gh-1036-oms-partial-fill"),
+            executionEvidenceID: .constant("gh-1036-partial-fill-execution"),
+            adapterEvidenceID: nil
+        )
+        let cancelRequestedEvent = try makeEvent(
+            sequence: 3,
+            kind: .lifecycleChanged,
+            fromState: .partiallyFilled,
+            toState: .cancelRequested,
+            causationID: .constant("gh-1036-cancel-request-causation"),
+            omsEvidenceID: .constant("gh-1036-oms-cancel-request"),
+            executionEvidenceID: .constant("gh-1036-cancel-request-execution"),
+            adapterEvidenceID: .constant("gh-1036-cancel-request-adapter")
+        )
+        let cancelledEvent = try makeEvent(
+            sequence: 4,
+            kind: .lifecycleChanged,
+            fromState: .cancelRequested,
+            toState: .cancelled,
+            causationID: .constant("gh-1036-cancel-ack-causation"),
+            omsEvidenceID: .constant("gh-1036-oms-cancelled"),
+            executionEvidenceID: .constant("gh-1036-cancel-ack-execution"),
+            adapterEvidenceID: .constant("gh-1036-cancel-ack-adapter")
+        )
+
+        let stream = try ReleaseV0140OrderEventSourcingStream.replay(
+            events: [acceptedEvent, partialFillEvent, cancelRequestedEvent, cancelledEvent]
+        )
+        let stateSync = try ReleaseV0140OMSStateSyncEngine()
+        let snapshot = try stateSync.sync(stream: stream)
+        let engine = try ReleaseV0140ReconciliationEngine()
+        XCTAssertTrue(engine.boundaryHeld)
+        XCTAssertTrue(engine.mismatchesFailClosed)
+        XCTAssertTrue(engine.testnetDryRunScoped)
+        XCTAssertFalse(engine.networkOrderActionPerformed)
+        XCTAssertFalse(engine.productionTradingEnabledByDefault)
+
+        let submitObservation = try makeObservation(kind: .submitAcknowledgement, event: acceptedEvent)
+        let partialFillObservation = try makeObservation(kind: .partialFill, event: partialFillEvent)
+        let cancelObservation = try makeObservation(kind: .cancelAcknowledgement, event: cancelledEvent)
+        let passedReport = try engine.reconcile(
+            snapshot: snapshot,
+            stream: stream,
+            observations: [submitObservation, partialFillObservation, cancelObservation]
+        )
+        XCTAssertTrue(passedReport.boundaryHeld)
+        XCTAssertEqual(passedReport.status, .passed)
+        XCTAssertTrue(passedReport.failures.isEmpty)
+        XCTAssertTrue(passedReport.evidenceCoverageComplete)
+        XCTAssertEqual(passedReport.sourceSnapshotID, snapshot.snapshotID)
+        XCTAssertEqual(passedReport.sourceEventIDs, stream.events.map(\.eventID))
+        XCTAssertEqual(
+            passedReport.observationIDs,
+            [submitObservation.observationID, partialFillObservation.observationID, cancelObservation.observationID]
+        )
+
+        let mismatchedFillObservation = try makeObservation(
+            kind: .fullFill,
+            event: partialFillEvent,
+            targetState: .filled
+        )
+        let failedStateReport = try engine.reconcile(
+            snapshot: snapshot,
+            stream: stream,
+            observations: [submitObservation, mismatchedFillObservation, cancelObservation]
+        )
+        XCTAssertEqual(failedStateReport.status, .failed)
+        XCTAssertFalse(failedStateReport.evidenceCoverageComplete)
+        XCTAssertTrue(failedStateReport.mismatchesFailClosed)
+        XCTAssertTrue(failedStateReport.failures.contains { $0.reason == .lifecycleStateMismatch })
+        XCTAssertTrue(failedStateReport.failures.allSatisfy(\.failClosed))
+
+        let failedCoverageReport = try engine.reconcile(
+            snapshot: snapshot,
+            stream: stream,
+            observations: [submitObservation, partialFillObservation]
+        )
+        XCTAssertEqual(failedCoverageReport.status, .failed)
+        XCTAssertTrue(failedCoverageReport.failures.contains { $0.reason == .observationCoverageMismatch })
+
+        XCTAssertThrowsError(try ReleaseV0140ReconciliationEngine(networkOrderActionPerformed: true))
+        XCTAssertThrowsError(try ReleaseV0140ReconciliationEngine(productionTradingEnabledByDefault: true))
+        XCTAssertThrowsError(try ReleaseV0140TestnetExecutionObservation(
+            observationID: ReleaseV0140TestnetExecutionObservation.deterministicID(
+                kind: .submitAcknowledgement,
+                localOrderID: acceptedEvent.localOrderID,
+                sourceEventID: acceptedEvent.eventID,
+                executionEvidenceID: try XCTUnwrap(acceptedEvent.executionEvidenceID)
+            ),
+            kind: .submitAcknowledgement,
+            localOrderID: acceptedEvent.localOrderID,
+            productType: acceptedEvent.productType,
+            symbol: acceptedEvent.symbol,
+            orderIntentID: acceptedEvent.orderIntentID,
+            sourceEventID: acceptedEvent.eventID,
+            targetLifecycleState: .accepted,
+            executionEvidenceID: try XCTUnwrap(acceptedEvent.executionEvidenceID),
+            adapterEvidenceID: acceptedEvent.adapterEvidenceID,
+            rawExecutionPayloadIncluded: true
+        ))
+
+        for anchor in ReleaseV0140ReconciliationReport.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1036ReleaseV0140ReconciliationEngineSurfacesMismatchesAsFailures"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-reconciliation-engine.sh"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1036 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
