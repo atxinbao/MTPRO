@@ -37590,6 +37590,314 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1032ReleaseV0140OrderEventSourcingAppendsAndReplaysCorrelatedLifecycleEvidence() throws {
+        // 测试场景：GH-1032 在 GH-1031 本地 OMS store 之上增加 order event sourcing。
+        // 验证目的：每个 order lifecycle change 都必须形成 append-only event，保留
+        // correlation / causation / OrderIntent / risk / execution / OMS / adapter evidence ID，并且可 replay。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0140OrderEventSourcing.swift")
+        let verifier = try read("checks/verify-v0.14.0-order-event-sourcing.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.14.0-order-event-sourcing.md")
+
+        func makeSubmitEvidence(
+            productType: ProductType,
+            strategy: OrderIntentStrategyKind,
+            side: OrderIntentSide,
+            timeInForce: OrderIntentTimeInForce,
+            sourceSequence: Int
+        ) throws -> (
+            intent: OrderIntent,
+            request: ReleaseV0140BinanceTestnetSubmitRequestEvidence,
+            response: ReleaseV0140BinanceTestnetSubmitResponseEvidence,
+            path: ReleaseV0140BinanceTestnetSubmitPath
+        ) {
+            let symbol = Symbol.constant("BTCUSDT")
+            let instrument = InstrumentIdentity.binance(productType: productType, symbol: symbol)
+            let quantity = try Quantity(0.05, field: "gh1032.quantity")
+            let policy = try OrderIntentPolicy(timeInForce: timeInForce)
+            let correlation = try OrderIntentCorrelationMetadata(
+                correlationID: .constant("gh-1032-correlation-\(productType.rawValue)-\(sourceSequence)"),
+                strategySignalID: .constant("gh-1032-signal-\(productType.rawValue)-\(sourceSequence)"),
+                sourceMessageID: .constant("gh-1032-message-\(productType.rawValue)-\(sourceSequence)"),
+                strategyRunID: .constant("gh-1032-run-\(productType.rawValue)-\(sourceSequence)"),
+                sourceSequence: sourceSequence
+            )
+            let intent = try OrderIntent(
+                intentID: OrderIntent.deterministicID(
+                    instrument: instrument,
+                    side: side,
+                    quantity: quantity,
+                    strategy: strategy,
+                    policy: policy,
+                    correlation: correlation
+                ),
+                instrument: instrument,
+                side: side,
+                quantity: quantity,
+                strategy: strategy,
+                policy: policy,
+                correlation: correlation,
+                createdAt: Date(timeIntervalSince1970: TimeInterval(sourceSequence))
+            )
+            let submitMapping = try ExecutionContractRequestMapping(
+                mappingID: ExecutionContractRequestMapping.deterministicID(
+                    intentID: intent.intentID,
+                    operation: .submit,
+                    mode: .binanceTestnet,
+                    lifecycleState: .riskAccepted
+                ),
+                intent: intent,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            )
+            let endpoint = try ReleaseV0140BinanceTestnetEndpointReference.fixture(productType: productType)
+            let operatorGate = try ReleaseV0140BinanceTestnetSubmitOperatorGate.fixture(correlation: correlation)
+            let request = try ReleaseV0140BinanceTestnetSubmitRequestEvidence(
+                requestID: ReleaseV0140BinanceTestnetSubmitRequestEvidence.deterministicID(
+                    mappingID: submitMapping.mappingID,
+                    productType: productType,
+                    sourceSequence: correlation.sourceSequence
+                ),
+                intent: intent,
+                mapping: submitMapping,
+                endpoint: endpoint,
+                operatorGate: operatorGate
+            )
+            let result = try ExecutionContractSubmissionResult(
+                resultID: ExecutionContractSubmissionResult.deterministicID(
+                    mappingID: submitMapping.mappingID,
+                    state: submitMapping.targetLifecycleState
+                ),
+                mapping: submitMapping
+            )
+            let acknowledgement = try ExecutionContractAcknowledgement(
+                acknowledgementID: ExecutionContractAcknowledgement.deterministicID(resultID: result.resultID),
+                result: result
+            )
+            let response = try ReleaseV0140BinanceTestnetSubmitResponseEvidence(
+                responseID: ReleaseV0140BinanceTestnetSubmitResponseEvidence.deterministicID(
+                    requestID: request.requestID,
+                    resultID: result.resultID,
+                    acknowledgementID: acknowledgement.acknowledgementID
+                ),
+                request: request,
+                result: result,
+                acknowledgement: acknowledgement
+            )
+            let path = try ReleaseV0140BinanceTestnetSubmitPath(
+                pathID: ReleaseV0140BinanceTestnetSubmitPath.deterministicID(
+                    requestID: request.requestID,
+                    responseID: response.responseID
+                ),
+                boundary: try ReleaseV0140BinanceTestnetAdapterBoundary(),
+                operatorGate: operatorGate,
+                request: request,
+                result: result,
+                acknowledgement: acknowledgement,
+                response: response
+            )
+            return (intent, request, response, path)
+        }
+
+        let submit = try makeSubmitEvidence(
+            productType: .spot,
+            strategy: .ema,
+            side: .buy,
+            timeInForce: .goodTillCanceled,
+            sourceSequence: 1032
+        )
+        let localOrder = try ReleaseV0140LocalOMSOrderIdentity(
+            localOrderID: ReleaseV0140LocalOMSOrderIdentity.deterministicID(
+                responseID: submit.response.responseID,
+                lifecycleState: .accepted
+            ),
+            submitRequest: submit.request,
+            submitResponse: submit.response,
+            submitPath: submit.path
+        )
+        let appendedStore = try ReleaseV0140OMSLocalOrderStore().append(localOrder: localOrder)
+        let partiallyFilledStore = try appendedStore.update(
+            localOrderID: localOrder.localOrderID,
+            to: .partiallyFilled,
+            reason: "gh-1032-testnet-partial-fill-local-event",
+            sourceEvidenceID: .constant("gh-1032-partial-fill-causation")
+        )
+        let cancelRequestedStore = try partiallyFilledStore.update(
+            localOrderID: localOrder.localOrderID,
+            to: .cancelRequested,
+            reason: "gh-1032-testnet-cancel-request-local-event",
+            sourceEvidenceID: .constant("gh-1032-cancel-request-causation")
+        )
+
+        let correlationID = submit.intent.correlation.correlationID
+        let riskEvidenceID: Identifier = .constant("gh-1032-risk-accepted-evidence")
+        let adapterEvidenceID: Identifier = submit.path.pathID
+        let emptyStream = try ReleaseV0140OrderEventSourcingStream()
+        XCTAssertTrue(emptyStream.boundaryHeld)
+        XCTAssertEqual(emptyStream.nextSequence, 1)
+        XCTAssertTrue(emptyStream.events.isEmpty)
+        XCTAssertTrue(emptyStream.projections.isEmpty)
+        XCTAssertTrue(emptyStream.appendOnly)
+        XCTAssertTrue(emptyStream.replayable)
+        XCTAssertTrue(emptyStream.testnetEvidenceOnly)
+        XCTAssertFalse(emptyStream.rawBrokerPayloadIncluded)
+        XCTAssertFalse(emptyStream.brokerFillIncluded)
+        XCTAssertFalse(emptyStream.reconciliationIncluded)
+        XCTAssertFalse(emptyStream.networkOrderActionPerformed)
+        XCTAssertFalse(emptyStream.productionTradingEnabledByDefault)
+
+        let appendedStream = try emptyStream.append(
+            omsEvent: appendedStore.events[0],
+            correlationID: correlationID,
+            riskEvidenceID: riskEvidenceID,
+            executionEvidenceID: submit.response.responseID,
+            adapterEvidenceID: adapterEvidenceID
+        )
+        XCTAssertTrue(appendedStream.boundaryHeld)
+        XCTAssertEqual(appendedStream.events.count, 1)
+        XCTAssertEqual(appendedStream.nextSequence, 2)
+        XCTAssertEqual(appendedStream.events[0].kind, ReleaseV0140OrderEventSourcingEventKind.orderAppended)
+        XCTAssertEqual(appendedStream.events[0].sequence, 1)
+        XCTAssertEqual(appendedStream.events[0].localOrderID, localOrder.localOrderID)
+        XCTAssertEqual(appendedStream.events[0].fromState, OrderLifecycleState.accepted)
+        XCTAssertEqual(appendedStream.events[0].toState, OrderLifecycleState.accepted)
+        XCTAssertEqual(appendedStream.events[0].correlationID, correlationID)
+        XCTAssertEqual(appendedStream.events[0].causationID, appendedStore.events[0].sourceEvidenceID)
+        XCTAssertEqual(appendedStream.events[0].orderIntentID, submit.intent.intentID)
+        XCTAssertEqual(appendedStream.events[0].riskEvidenceID, riskEvidenceID)
+        XCTAssertEqual(appendedStream.events[0].executionEvidenceID, submit.response.responseID)
+        XCTAssertEqual(appendedStream.events[0].omsEvidenceID, appendedStore.events[0].eventID)
+        XCTAssertEqual(appendedStream.events[0].adapterEvidenceID, submit.path.pathID)
+        XCTAssertFalse(appendedStream.events[0].networkOrderActionPerformed)
+        XCTAssertFalse(appendedStream.events[0].productionEndpointConnected)
+        XCTAssertEqual(appendedStream.projection(for: localOrder.localOrderID)?.currentState, OrderLifecycleState.accepted)
+        XCTAssertEqual(appendedStream.projection(for: localOrder.localOrderID)?.eventIDs, [appendedStream.events[0].eventID])
+
+        let partialFillStream = try appendedStream.append(
+            omsEvent: partiallyFilledStore.events[1],
+            correlationID: correlationID,
+            riskEvidenceID: riskEvidenceID,
+            executionEvidenceID: Identifier.constant("gh-1032-partial-fill-execution-evidence"),
+            adapterEvidenceID: Optional<Identifier>.none
+        )
+        XCTAssertTrue(partialFillStream.boundaryHeld)
+        XCTAssertEqual(partialFillStream.events.count, 2)
+        XCTAssertEqual(partialFillStream.events[1].kind, ReleaseV0140OrderEventSourcingEventKind.lifecycleChanged)
+        XCTAssertEqual(partialFillStream.events[1].fromState, OrderLifecycleState.accepted)
+        XCTAssertEqual(partialFillStream.events[1].toState, OrderLifecycleState.partiallyFilled)
+        XCTAssertEqual(partialFillStream.events[1].causationID, Identifier.constant("gh-1032-partial-fill-causation"))
+        XCTAssertNil(partialFillStream.events[1].adapterEvidenceID)
+        XCTAssertEqual(partialFillStream.projection(for: localOrder.localOrderID)?.currentState, OrderLifecycleState.partiallyFilled)
+
+        let cancelRequestStream = try partialFillStream.append(
+            omsEvent: cancelRequestedStore.events[2],
+            correlationID: correlationID,
+            riskEvidenceID: riskEvidenceID,
+            executionEvidenceID: Identifier.constant("gh-1032-cancel-request-execution-evidence"),
+            adapterEvidenceID: Identifier.constant("gh-1032-testnet-cancel-adapter-evidence")
+        )
+        XCTAssertTrue(cancelRequestStream.boundaryHeld)
+        XCTAssertEqual(cancelRequestStream.events.map { $0.sequence }, [1, 2, 3])
+        XCTAssertEqual(cancelRequestStream.events.map { $0.localOrderID }, [localOrder.localOrderID, localOrder.localOrderID, localOrder.localOrderID])
+        XCTAssertEqual(cancelRequestStream.projections.count, 1)
+        let projection: ReleaseV0140OrderEventSourcingProjection = try XCTUnwrap(cancelRequestStream.projection(for: localOrder.localOrderID))
+        XCTAssertTrue(projection.boundaryHeld)
+        XCTAssertEqual(projection.currentState, OrderLifecycleState.cancelRequested)
+        XCTAssertEqual(projection.eventIDs, cancelRequestStream.events.map { $0.eventID })
+        XCTAssertEqual(projection.correlationIDs, [correlationID])
+        XCTAssertEqual(projection.causationIDs, cancelRequestStream.events.map { $0.causationID })
+        XCTAssertEqual(projection.orderIntentID, submit.intent.intentID)
+        XCTAssertEqual(projection.riskEvidenceIDs, [riskEvidenceID])
+        XCTAssertEqual(
+            projection.executionEvidenceIDs,
+            [
+                submit.response.responseID,
+                Identifier.constant("gh-1032-partial-fill-execution-evidence"),
+                Identifier.constant("gh-1032-cancel-request-execution-evidence")
+            ]
+        )
+        XCTAssertEqual(projection.omsEvidenceIDs, cancelRequestedStore.events.map { $0.eventID })
+        XCTAssertEqual(
+            projection.adapterEvidenceIDs,
+            [
+                submit.path.pathID,
+                Identifier.constant("gh-1032-testnet-cancel-adapter-evidence")
+            ]
+        )
+        XCTAssertFalse(projection.productionTradingEnabledByDefault)
+        XCTAssertFalse(projection.productionSecretRead)
+        XCTAssertFalse(projection.productionEndpointConnected)
+
+        let replayed = try ReleaseV0140OrderEventSourcingStream.replay(events: cancelRequestStream.events)
+        XCTAssertTrue(replayed.boundaryHeld)
+        XCTAssertEqual(replayed.events, cancelRequestStream.events)
+        XCTAssertEqual(replayed.projections, cancelRequestStream.projections)
+        XCTAssertEqual(replayed.nextSequence, cancelRequestStream.nextSequence)
+
+        XCTAssertThrowsError(
+            try ReleaseV0140OrderEventSourcingStream.replay(events: Array(cancelRequestStream.events.reversed()))
+        )
+        XCTAssertThrowsError(
+            try emptyStream.append(
+                omsEvent: partiallyFilledStore.events[1],
+                correlationID: correlationID,
+                riskEvidenceID: riskEvidenceID,
+                executionEvidenceID: Identifier.constant("gh-1032-missing-append-execution"),
+                adapterEvidenceID: Optional<Identifier>.none
+            )
+        )
+        XCTAssertThrowsError(
+            try appendedStream.append(
+                omsEvent: appendedStore.events[0],
+                correlationID: correlationID,
+                riskEvidenceID: riskEvidenceID,
+                executionEvidenceID: submit.response.responseID,
+                adapterEvidenceID: adapterEvidenceID
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140OrderEventSourcingEvent.fromOMSStoreEvent(
+                sequence: 1,
+                omsEvent: appendedStore.events[0],
+                correlationID: correlationID,
+                riskEvidenceID: nil,
+                executionEvidenceID: submit.response.responseID,
+                adapterEvidenceID: adapterEvidenceID
+            )
+        )
+        XCTAssertThrowsError(try ReleaseV0140OrderEventSourcingStream(rawBrokerPayloadIncluded: true))
+        XCTAssertThrowsError(try ReleaseV0140OrderEventSourcingStream(networkOrderActionPerformed: true))
+        XCTAssertThrowsError(try ReleaseV0140OrderEventSourcingStream(productionTradingEnabledByDefault: true))
+
+        for anchor in ReleaseV0140OrderEventSourcingStream.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1032ReleaseV0140OrderEventSourcingAppendsAndReplaysCorrelatedLifecycleEvidence"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-order-event-sourcing.sh"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1032 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
