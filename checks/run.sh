@@ -154,6 +154,7 @@ bash checks/verify-v0.14.0-oms-local-order-store.sh
 bash checks/verify-v0.14.0-order-event-sourcing.sh
 bash checks/verify-v0.14.0-oms-state-sync-engine.sh
 bash checks/verify-v0.14.0-pretrade-risk-engine-gate.sh
+bash checks/verify-v0.14.0-global-kill-switch.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

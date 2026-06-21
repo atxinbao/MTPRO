@@ -38347,6 +38347,267 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1035ReleaseV0140GlobalKillSwitchBlocksSubmitCancelReplaceAndAudits() throws {
+        // 测试场景：GH-1035 为 v0.14.0 closed loop 增加全局 kill switch。
+        // 验证目的：kill switch / no-trade active 时 submit、cancel、replace 必须在
+        // request mapping / adapter action 前 fail closed，并且输出 audit evidence。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/RiskEngine/LiveGate/ReleaseV0140GlobalKillSwitch.swift")
+        let verifier = try read("checks/verify-v0.14.0-global-kill-switch.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.14.0-global-kill-switch.md")
+
+        func makeIntent(
+            quantityValue: Double = 0.05,
+            sequence: Int
+        ) throws -> OrderIntent {
+            let instrument = InstrumentIdentity.binance(
+                productType: .spot,
+                symbol: Symbol.constant("BTCUSDT")
+            )
+            let quantity = try Quantity(quantityValue, field: "gh1035.quantity")
+            let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+            let correlation = try OrderIntentCorrelationMetadata(
+                correlationID: .constant("gh-1035-correlation-\(sequence)"),
+                strategySignalID: .constant("gh-1035-signal-\(sequence)"),
+                sourceMessageID: .constant("gh-1035-message-\(sequence)"),
+                strategyRunID: .constant("gh-1035-run-\(sequence)"),
+                sourceSequence: sequence
+            )
+            return try OrderIntent(
+                intentID: OrderIntent.deterministicID(
+                    instrument: instrument,
+                    side: .buy,
+                    quantity: quantity,
+                    strategy: .ema,
+                    policy: policy,
+                    correlation: correlation
+                ),
+                instrument: instrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation,
+                createdAt: Date(timeIntervalSince1970: TimeInterval(sequence))
+            )
+        }
+
+        let intent = try makeIntent(sequence: 1035)
+        let preTradeGate = try ReleaseV0140PreTradeRiskEngineGate.deterministicFixture()
+        let acceptedRisk = try preTradeGate.evaluate(intent: intent, referencePrice: 1_000)
+        XCTAssertEqual(acceptedRisk.outcome, .accepted)
+        XCTAssertTrue(acceptedRisk.adapterSubmitEligible)
+
+        let localOrderID = Identifier.constant(
+            "gh-1035-local-oms-order",
+            field: "releaseV0140GlobalKillSwitch.localOrderID"
+        )
+        let activeGate = try ReleaseV0140GlobalKillSwitch.deterministicFixture()
+        XCTAssertTrue(activeGate.boundaryHeld)
+        XCTAssertTrue(activeGate.policy.killSwitchActive)
+
+        let blockedSubmit = try activeGate.evaluateSubmit(riskDecision: acceptedRisk)
+        XCTAssertEqual(blockedSubmit.command, .submit)
+        XCTAssertEqual(blockedSubmit.outcome, .blocked)
+        XCTAssertEqual(blockedSubmit.blockReasons, [.killSwitchActive])
+        XCTAssertFalse(blockedSubmit.requestMappingAllowed)
+        XCTAssertFalse(blockedSubmit.adapterActionAllowed)
+        XCTAssertTrue(blockedSubmit.auditEvidenceEmitted)
+        XCTAssertEqual(blockedSubmit.nextLifecycleState, .failedClosed)
+        XCTAssertNil(blockedSubmit.localOrderID)
+
+        let blockedCancel = try activeGate.evaluateCancelOrReplace(
+            command: .cancel,
+            intentID: acceptedRisk.intentID,
+            strategyRunID: acceptedRisk.strategyRunID,
+            sourceSequence: acceptedRisk.sourceSequence + 1,
+            localOrderID: localOrderID,
+            currentLifecycleState: .accepted
+        )
+        XCTAssertEqual(blockedCancel.command, .cancel)
+        XCTAssertEqual(blockedCancel.blockReasons, [.killSwitchActive])
+        XCTAssertFalse(blockedCancel.requestMappingAllowed)
+        XCTAssertFalse(blockedCancel.adapterActionAllowed)
+        XCTAssertEqual(blockedCancel.localOrderID, localOrderID)
+
+        let blockedReplace = try activeGate.evaluateCancelOrReplace(
+            command: .replace,
+            intentID: acceptedRisk.intentID,
+            strategyRunID: acceptedRisk.strategyRunID,
+            sourceSequence: acceptedRisk.sourceSequence + 2,
+            localOrderID: localOrderID,
+            currentLifecycleState: .accepted
+        )
+        XCTAssertEqual(blockedReplace.command, .replace)
+        XCTAssertEqual(blockedReplace.blockReasons, [.killSwitchActive])
+        XCTAssertFalse(blockedReplace.requestMappingAllowed)
+        XCTAssertFalse(blockedReplace.adapterActionAllowed)
+
+        let missingIdentityCancel = try activeGate.evaluateCancelOrReplace(
+            command: .cancel,
+            intentID: acceptedRisk.intentID,
+            strategyRunID: acceptedRisk.strategyRunID,
+            sourceSequence: acceptedRisk.sourceSequence + 3,
+            localOrderID: nil,
+            currentLifecycleState: .accepted
+        )
+        XCTAssertEqual(missingIdentityCancel.outcome, .blocked)
+        XCTAssertTrue(missingIdentityCancel.blockReasons.contains(.killSwitchActive))
+        XCTAssertTrue(missingIdentityCancel.blockReasons.contains(.missingLocalOMSOrderIdentity))
+        XCTAssertFalse(missingIdentityCancel.adapterActionAllowed)
+
+        let noTradeGate = try ReleaseV0140GlobalKillSwitch(
+            policy: .deterministicFixture(killSwitchActive: false, noTradeStateActive: true)
+        )
+        let noTradeBlockedSubmit = try noTradeGate.evaluateSubmit(riskDecision: acceptedRisk)
+        XCTAssertEqual(noTradeBlockedSubmit.outcome, .blocked)
+        XCTAssertEqual(noTradeBlockedSubmit.blockReasons, [.noTradeStateActive])
+        XCTAssertFalse(noTradeBlockedSubmit.adapterActionAllowed)
+
+        let inactiveGate = try ReleaseV0140GlobalKillSwitch(
+            policy: .deterministicFixture(killSwitchActive: false, noTradeStateActive: false)
+        )
+        let allowedSubmit = try inactiveGate.evaluateSubmit(riskDecision: acceptedRisk)
+        XCTAssertEqual(allowedSubmit.outcome, .allowed)
+        XCTAssertEqual(allowedSubmit.blockReasons, [.none])
+        XCTAssertTrue(allowedSubmit.requestMappingAllowed)
+        XCTAssertTrue(allowedSubmit.adapterActionAllowed)
+        XCTAssertEqual(allowedSubmit.nextLifecycleState, .riskAccepted)
+
+        let allowedCancel = try inactiveGate.evaluateCancelOrReplace(
+            command: .cancel,
+            intentID: acceptedRisk.intentID,
+            strategyRunID: acceptedRisk.strategyRunID,
+            sourceSequence: acceptedRisk.sourceSequence + 4,
+            localOrderID: localOrderID,
+            currentLifecycleState: .accepted
+        )
+        XCTAssertEqual(allowedCancel.outcome, .allowed)
+        XCTAssertEqual(allowedCancel.blockReasons, [.none])
+        XCTAssertTrue(allowedCancel.requestMappingAllowed)
+        XCTAssertTrue(allowedCancel.adapterActionAllowed)
+
+        let rejectedRisk = try preTradeGate.evaluate(
+            intent: makeIntent(quantityValue: 2.0, sequence: 1036),
+            referencePrice: 1_000
+        )
+        XCTAssertEqual(rejectedRisk.outcome, .rejected)
+        let missingRiskBlocked = try inactiveGate.evaluateSubmit(riskDecision: rejectedRisk)
+        XCTAssertEqual(missingRiskBlocked.outcome, .blocked)
+        XCTAssertEqual(missingRiskBlocked.blockReasons, [.missingRiskAcceptedDecision])
+        XCTAssertFalse(missingRiskBlocked.adapterActionAllowed)
+
+        let evidence = try activeGate.deterministicEvidence(
+            riskDecision: acceptedRisk,
+            localOrderID: localOrderID
+        )
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(Set(evidence.decisions.map(\.command)), Set(ReleaseV0140GlobalKillSwitchCommandKind.allCases))
+        XCTAssertTrue(evidence.decisions.allSatisfy { $0.outcome == .blocked })
+        XCTAssertTrue(evidence.decisions.allSatisfy(\.auditEvidenceEmitted))
+        XCTAssertTrue(evidence.decisions.allSatisfy { $0.requestMappingAllowed == false && $0.adapterActionAllowed == false })
+        let encoded = try JSONEncoder().encode(evidence)
+        let decoded = try JSONDecoder().decode(ReleaseV0140GlobalKillSwitchEvidence.self, from: encoded)
+        XCTAssertEqual(decoded, evidence)
+
+        XCTAssertThrowsError(try ReleaseV0140GlobalKillSwitchPolicy(coveredCommands: [.submit]))
+        XCTAssertThrowsError(try ReleaseV0140GlobalKillSwitchPolicy(productionTradingEnabledByDefault: true))
+        XCTAssertThrowsError(try ReleaseV0140GlobalKillSwitchPolicy(productionSecretRead: true))
+        XCTAssertThrowsError(try ReleaseV0140GlobalKillSwitchPolicy(productionEndpointConnected: true))
+        XCTAssertThrowsError(try ReleaseV0140GlobalKillSwitchPolicy(productionSubmitCancelReplace: true))
+        XCTAssertThrowsError(try activeGate.evaluateCancelOrReplace(
+            command: .submit,
+            intentID: acceptedRisk.intentID,
+            strategyRunID: acceptedRisk.strategyRunID,
+            sourceSequence: acceptedRisk.sourceSequence + 5,
+            localOrderID: localOrderID,
+            currentLifecycleState: .accepted
+        ))
+        XCTAssertThrowsError(
+            try ReleaseV0140GlobalKillSwitchDecision(
+                decisionID: ReleaseV0140GlobalKillSwitchDecision.deterministicID(
+                    policyID: activeGate.policy.policyID,
+                    command: .submit,
+                    intentID: acceptedRisk.intentID,
+                    sourceSequence: acceptedRisk.sourceSequence + 6,
+                    outcome: .blocked
+                ),
+                policyID: activeGate.policy.policyID,
+                command: .submit,
+                intentID: acceptedRisk.intentID,
+                strategyRunID: acceptedRisk.strategyRunID,
+                sourceSequence: acceptedRisk.sourceSequence + 6,
+                localOrderID: nil,
+                inputLifecycleState: .riskAccepted,
+                outcome: .blocked,
+                blockReasons: [.killSwitchActive],
+                requestMappingAllowed: true,
+                adapterActionAllowed: false,
+                nextLifecycleState: .failedClosed
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140GlobalKillSwitchDecision(
+                decisionID: ReleaseV0140GlobalKillSwitchDecision.deterministicID(
+                    policyID: activeGate.policy.policyID,
+                    command: .replace,
+                    intentID: acceptedRisk.intentID,
+                    sourceSequence: acceptedRisk.sourceSequence + 7,
+                    outcome: .allowed
+                ),
+                policyID: activeGate.policy.policyID,
+                command: .replace,
+                intentID: acceptedRisk.intentID,
+                strategyRunID: acceptedRisk.strategyRunID,
+                sourceSequence: acceptedRisk.sourceSequence + 7,
+                localOrderID: nil,
+                inputLifecycleState: .accepted,
+                outcome: .allowed,
+                blockReasons: [.none],
+                requestMappingAllowed: true,
+                adapterActionAllowed: true,
+                nextLifecycleState: .accepted
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140GlobalKillSwitchEvidence(
+                evidenceID: ReleaseV0140GlobalKillSwitchEvidence.deterministicID(
+                    policyID: activeGate.policy.policyID,
+                    decisions: [blockedSubmit, blockedCancel]
+                ),
+                policyID: activeGate.policy.policyID,
+                decisions: [blockedSubmit, blockedCancel]
+            )
+        )
+
+        for anchor in ReleaseV0140GlobalKillSwitch.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1035ReleaseV0140GlobalKillSwitchBlocksSubmitCancelReplaceAndAudits"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-global-kill-switch.sh"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1035 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
