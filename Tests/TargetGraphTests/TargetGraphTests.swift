@@ -38977,6 +38977,77 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1038ReleaseV0140FullE2ETestnetSuiteCoversSpotPerpEMAAndRSIWithProductionGuard() throws {
+        // 测试场景：GH-1038 在 GH-1037 pipeline 上方运行完整 release-level E2E testnet 矩阵。
+        // 验证目的：Spot / USDⓈ-M Perpetual 与 EMA / RSI 四个组合全部形成本地闭环证据，
+        // 同时 production requested guard 必须 fail closed，不能进入 adapter、OMS 或 reconciliation。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0140FullE2ETestnetSuite.swift")
+        let contract = try read("docs/contracts/release-v0.14.0-full-e2e-testnet-suite.md")
+        let verifier = try read("checks/verify-v0.14.0-full-e2e-testnet-suite.sh")
+        let runScript = try read("checks/run.sh")
+
+        let suite = try ReleaseV0140FullE2ETestnetSuite()
+        let report = try suite.run()
+
+        XCTAssertTrue(suite.boundaryHeld)
+        XCTAssertTrue(report.boundaryHeld)
+        XCTAssertEqual(report.productTypesCovered, [.spot, .usdsPerpetual])
+        XCTAssertEqual(report.strategiesCovered, [.ema, .rsi])
+        XCTAssertEqual(report.acceptedCaseCount, 4)
+        XCTAssertEqual(report.matrixCases.count, 4)
+        XCTAssertEqual(Set(report.matrixCases.map(\.productType)), Set([.spot, .usdsPerpetual]))
+        XCTAssertEqual(Set(report.matrixCases.map(\.strategy)), Set([.ema, .rsi]))
+        XCTAssertEqual(
+            Set(report.matrixCases.map { "\($0.productType.rawValue):\($0.strategy.rawValue)" }),
+            Set(ReleaseV0140FullE2ETestnetSuiteReport.requiredComboKeys)
+        )
+        XCTAssertTrue(report.matrixCases.allSatisfy(\.boundaryHeld))
+        XCTAssertTrue(report.matrixCases.allSatisfy { $0.completedStages == ReleaseV0140SignalToExecutionPipelineReport.requiredPassedStages })
+        XCTAssertTrue(report.matrixCases.allSatisfy { $0.riskOutcome == .accepted })
+        XCTAssertTrue(report.matrixCases.allSatisfy { $0.reconciliationStatus == .passed })
+        XCTAssertTrue(report.productionGuardFailedClosed)
+        XCTAssertTrue(report.productionGuardStoppedBeforeAdapter)
+        XCTAssertTrue(report.readOnlyDashboardInputReady)
+        XCTAssertFalse(report.productionTradingEnabledByDefault)
+        XCTAssertFalse(report.productionSecretRead)
+        XCTAssertFalse(report.productionEndpointConnected)
+        XCTAssertFalse(report.productionSubmitCancelReplace)
+
+        let encoded = try JSONEncoder().encode(report)
+        let decoded = try JSONDecoder().decode(ReleaseV0140FullE2ETestnetSuiteReport.self, from: encoded)
+        XCTAssertEqual(decoded, report)
+
+        XCTAssertThrowsError(try ReleaseV0140FullE2ETestnetSuite(productionEndpointConnected: true))
+        XCTAssertThrowsError(try ReleaseV0140FullE2ETestnetSuite(productionSubmitCancelReplace: true))
+
+        for anchor in ReleaseV0140FullE2ETestnetSuiteReport.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1038ReleaseV0140FullE2ETestnetSuiteCoversSpotPerpEMAAndRSIWithProductionGuard"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-full-e2e-testnet-suite.sh"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1038 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
