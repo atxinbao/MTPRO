@@ -226,6 +226,7 @@ let package = Package(
             path: "Sources/ExecutionClient",
             sources: [
                 "BrokerCapabilityMatrix",
+                "ExecutionContract",
                 "FutureGate",
                 "TargetGraph/ExecutionClientTargetBoundary.swift"
             ]
@@ -340,6 +341,7 @@ let package = Package(
                 "DomainModel/TargetExposureIntent.swift",
                 "DomainModel/TargetGraph",
                 "ExecutionClient/BrokerCapabilityMatrix",
+                "ExecutionClient/ExecutionContract",
                 "ExecutionClient/FutureGate",
                 "ExecutionClient/TargetGraph",
                 "ExecutionEngine/OMSFutureGate",

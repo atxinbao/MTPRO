@@ -36164,6 +36164,220 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-order-lifecycle.sh"))
     }
 
+    func testGH1027ReleaseV0140ExecutionContractInterfaceSeparatesAdapterStages() throws {
+        // 测试场景：GH-1027 定义 ExecutionEngine 消费、dry-run / Binance testnet adapter 实现的接口合同。
+        // 验证目的：intent、request mapping、submission result、ack/reject/cancel/replace/audit evidence
+        // 必须分离，并且 production adapter implementation 仍然缺席。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let packageSource = try read("Package.swift")
+        let source = try read("Sources/ExecutionClient/ExecutionContract/ExecutionContractInterface.swift")
+        let verifier = try read("checks/verify-v0.14.0-execution-contract.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.14.0-execution-contract-interface.md")
+
+        let interface = try ExecutionContractInterface()
+        XCTAssertTrue(interface.boundaryHeld)
+        XCTAssertEqual(interface.consumedBy, "ExecutionEngine")
+        XCTAssertEqual(interface.implementedByModes, [.dryRun, .binanceTestnet])
+        XCTAssertEqual(interface.stages, ExecutionContractInterface.requiredStages)
+        XCTAssertFalse(interface.productionAdapterImplementationPresent)
+        XCTAssertFalse(interface.productionTradingEnabledByDefault)
+        XCTAssertFalse(interface.authorizesProductionTrading)
+        XCTAssertFalse(interface.touchesProductionEndpoint)
+
+        XCTAssertEqual(ExecutionContractInterface.requiredStages, [
+            .intent,
+            .requestMapping,
+            .submissionResult,
+            .acknowledgement,
+            .rejection,
+            .cancel,
+            .replace,
+            .auditEvidence
+        ])
+        XCTAssertEqual(ExecutionContractAdapterMode.dryRun.submissionLifecycleState, .submittedDryRun)
+        XCTAssertEqual(ExecutionContractAdapterMode.binanceTestnet.submissionLifecycleState, .submittedTestnet)
+        XCTAssertFalse(ExecutionContractAdapterMode.dryRun.authorizesProductionTrading)
+        XCTAssertFalse(ExecutionContractAdapterMode.binanceTestnet.touchesProductionEndpoint)
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let instrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let quantity = try Quantity(0.05, field: "executionContract.quantity")
+        let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let correlation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1027-correlation"),
+            strategySignalID: .constant("gh-1027-signal"),
+            sourceMessageID: .constant("gh-1027-message"),
+            strategyRunID: .constant("gh-1027-run"),
+            sourceSequence: 1027
+        )
+        let intentID = OrderIntent.deterministicID(
+            instrument: instrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation
+        )
+        let intent = try OrderIntent(
+            intentID: intentID,
+            instrument: instrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_027)
+        )
+
+        let submitMappingID = ExecutionContractRequestMapping.deterministicID(
+            intentID: intent.intentID,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let submitMapping = try ExecutionContractRequestMapping(
+            mappingID: submitMappingID,
+            intent: intent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        XCTAssertTrue(submitMapping.boundaryHeld)
+        XCTAssertEqual(submitMapping.targetLifecycleState, .submittedTestnet)
+        XCTAssertFalse(submitMapping.carriesEndpointPath)
+        XCTAssertFalse(submitMapping.carriesCredentialMaterial)
+
+        let submitResultID = ExecutionContractSubmissionResult.deterministicID(
+            mappingID: submitMapping.mappingID,
+            state: submitMapping.targetLifecycleState
+        )
+        let submitResult = try ExecutionContractSubmissionResult(
+            resultID: submitResultID,
+            mapping: submitMapping
+        )
+        XCTAssertTrue(submitResult.boundaryHeld)
+        XCTAssertEqual(submitResult.lifecycleState, .submittedTestnet)
+
+        let acknowledgement = try ExecutionContractAcknowledgement(
+            acknowledgementID: .constant("execution-contract-ack:\(submitResult.resultID.rawValue)", field: "executionContract.acknowledgementID"),
+            result: submitResult
+        )
+        XCTAssertEqual(acknowledgement.lifecycleState, .accepted)
+        XCTAssertFalse(acknowledgement.authorizesProductionTrading)
+
+        let rejection = try ExecutionContractRejection(
+            rejectionID: ExecutionContractRejection.deterministicID(mappingID: submitMapping.mappingID, state: .rejected),
+            mapping: submitMapping,
+            reason: "gh-1027-testnet-rejection-evidence"
+        )
+        XCTAssertEqual(rejection.lifecycleState, .rejected)
+
+        let cancelMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .cancel,
+                mode: .dryRun,
+                lifecycleState: .accepted
+            ),
+            intent: intent,
+            operation: .cancel,
+            mode: .dryRun,
+            lifecycleState: .accepted
+        )
+        let cancel = try ExecutionContractCancel(
+            cancelID: ExecutionContractCancel.deterministicID(mappingID: cancelMapping.mappingID, state: .cancelRequested),
+            mapping: cancelMapping
+        )
+        XCTAssertEqual(cancel.lifecycleState, .cancelRequested)
+        XCTAssertFalse(cancel.touchesProductionEndpoint)
+
+        let replaceMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .replace,
+                mode: .dryRun,
+                lifecycleState: .partiallyFilled
+            ),
+            intent: intent,
+            operation: .replace,
+            mode: .dryRun,
+            lifecycleState: .partiallyFilled
+        )
+        let replace = try ExecutionContractReplace(
+            replaceID: ExecutionContractReplace.deterministicID(mappingID: replaceMapping.mappingID, state: .replaceRequested),
+            mapping: replaceMapping
+        )
+        XCTAssertEqual(replace.lifecycleState, .replaceRequested)
+        XCTAssertFalse(replace.authorizesProductionTrading)
+
+        let audit = try ExecutionContractAuditEvidence(
+            evidenceID: ExecutionContractAuditEvidence.deterministicID(
+                coveredStages: ExecutionContractInterface.requiredStages,
+                adapterModes: ExecutionContractInterface.requiredAdapterModes
+            )
+        )
+        XCTAssertTrue(audit.boundaryHeld)
+        XCTAssertEqual(audit.coveredStages, ExecutionContractInterface.requiredStages)
+        XCTAssertEqual(audit.adapterModes, [.dryRun, .binanceTestnet])
+
+        XCTAssertThrowsError(
+            try ExecutionContractInterface(productionAdapterImplementationPresent: true)
+        )
+        XCTAssertThrowsError(
+            try ExecutionContractInterface(productionTradingEnabledByDefault: true)
+        )
+        XCTAssertThrowsError(
+            try ExecutionContractRequestMapping(
+                mappingID: submitMappingID,
+                intent: intent,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .created
+            )
+        )
+        XCTAssertThrowsError(
+            try ExecutionContractRequestMapping(
+                mappingID: submitMappingID,
+                intent: intent,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted,
+                carriesEndpointPath: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ExecutionContractSubmissionResult(
+                resultID: submitResultID,
+                mapping: submitMapping,
+                authorizesProductionTrading: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ExecutionContractAcknowledgement(
+                acknowledgementID: ExecutionContractAcknowledgement.deterministicID(resultID: submitResult.resultID),
+                result: submitResult,
+                lifecycleState: .filled
+            )
+        )
+
+        for anchor in ExecutionContractInterface.requiredValidationAnchors {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+        }
+        XCTAssertTrue(packageSource.contains("\"ExecutionContract\""))
+        XCTAssertTrue(source.contains("public protocol ExecutionContractAdapter"))
+        XCTAssertTrue(source.contains("public struct ExecutionContractRequestMapping"))
+        XCTAssertTrue(source.contains("public struct ExecutionContractAuditEvidence"))
+        XCTAssertFalse(source.contains("ProductionExecutionContractAdapter"))
+        XCTAssertTrue(verifier.contains("testGH1027ReleaseV0140ExecutionContractInterfaceSeparatesAdapterStages"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-execution-contract.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
