@@ -35819,6 +35819,191 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1025ReleaseV0140OrderIntentCanonicalContractRequiresRiskGateAndBoundary() throws {
+        // 测试场景：GH-1025 定义 v0.14.0 OrderIntent canonical contract。
+        // 该合同只允许 Binance Spot / USDⓈ-M Perpetual、EMA / RSI、pre-RiskEngine
+        // intent evidence，不允许生产订单、direct execution 或 broker endpoint 触达。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let packageSource = try read("Package.swift")
+        let verifier = try read("checks/verify-v0.14.0.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.14.0-order-intent-contract.md")
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let spot = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let perp = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let quantity = try Quantity(0.025, field: "orderIntent.quantity")
+        let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let correlation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1025-correlation"),
+            strategySignalID: .constant("gh-1025-signal"),
+            sourceMessageID: .constant("gh-1025-message"),
+            strategyRunID: .constant("gh-1025-run"),
+            sourceSequence: 1025
+        )
+        let intentID = OrderIntent.deterministicID(
+            instrument: spot,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation
+        )
+
+        let intent = try OrderIntent(
+            intentID: intentID,
+            instrument: spot,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_025)
+        )
+
+        XCTAssertEqual(intent.intentID, intentID)
+        XCTAssertEqual(intent.instrument, spot)
+        XCTAssertEqual(intent.side, .buy)
+        XCTAssertEqual(intent.quantity, quantity)
+        XCTAssertEqual(intent.strategy, .ema)
+        XCTAssertEqual(intent.policy.timeInForce, .goodTillCanceled)
+        XCTAssertEqual(intent.correlation.sourceSequence, 1025)
+        XCTAssertTrue(intent.isPreRiskEngineIntent)
+        XCTAssertTrue(intent.policy.requiresRiskEngineApproval)
+        XCTAssertTrue(intent.policy.testnetOnly)
+        XCTAssertFalse(intent.policy.authorizesProductionTrading)
+        XCTAssertFalse(intent.policy.authorizesDirectExecution)
+        XCTAssertFalse(intent.policy.productionTradingEnabledByDefault)
+        XCTAssertFalse(intent.representsProductionOrder)
+        XCTAssertFalse(intent.bypassesRiskEngine)
+        XCTAssertFalse(intent.touchesBrokerEndpoint)
+        XCTAssertEqual(OrderIntent.activeVenue, "Binance")
+        XCTAssertEqual(OrderIntent.activeVenueID.rawValue, "binance")
+        XCTAssertEqual(OrderIntent.activeProductTypes, [.spot, .usdsPerpetual])
+        XCTAssertEqual(OrderIntent.activeStrategies, [.ema, .rsi])
+
+        let perpSellID = OrderIntent.deterministicID(
+            instrument: perp,
+            side: .sell,
+            quantity: quantity,
+            strategy: .rsi,
+            policy: policy,
+            correlation: correlation
+        )
+        let perpSell = try OrderIntent(
+            intentID: perpSellID,
+            instrument: perp,
+            side: .sell,
+            quantity: quantity,
+            strategy: .rsi,
+            policy: policy,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_026)
+        )
+        XCTAssertEqual(perpSell.instrument.productType, .usdsPerpetual)
+        XCTAssertEqual(perpSell.strategy, .rsi)
+
+        XCTAssertThrowsError(
+            try OrderIntent(
+                intentID: .constant("gh-1025-nondeterministic"),
+                instrument: spot,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation,
+                createdAt: Date(timeIntervalSince1970: 1_025)
+            )
+        )
+        XCTAssertThrowsError(
+            try OrderIntentPolicy(
+                timeInForce: .immediateOrCancel,
+                authorizesProductionTrading: true
+            )
+        )
+        XCTAssertThrowsError(
+            try OrderIntentPolicy(
+                timeInForce: .immediateOrCancel,
+                authorizesDirectExecution: true
+            )
+        )
+        XCTAssertThrowsError(
+            try OrderIntentCorrelationMetadata(
+                correlationID: .constant("gh-1025-bad-correlation"),
+                strategySignalID: .constant("gh-1025-bad-signal"),
+                sourceMessageID: .constant("gh-1025-bad-message"),
+                strategyRunID: .constant("gh-1025-bad-run"),
+                sourceSequence: 0
+            )
+        )
+
+        let zeroQuantity = try Quantity(0, field: "orderIntent.zeroQuantity")
+        XCTAssertThrowsError(
+            try OrderIntent(
+                intentID: OrderIntent.deterministicID(
+                    instrument: spot,
+                    side: .buy,
+                    quantity: zeroQuantity,
+                    strategy: .ema,
+                    policy: policy,
+                    correlation: correlation
+                ),
+                instrument: spot,
+                side: .buy,
+                quantity: zeroQuantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation,
+                createdAt: Date(timeIntervalSince1970: 1_025)
+            )
+        )
+
+        let nonBinanceInstrument = try InstrumentIdentity(
+            venue: "coinbase",
+            productType: .spot,
+            symbol: symbol
+        )
+        XCTAssertThrowsError(
+            try OrderIntent(
+                intentID: OrderIntent.deterministicID(
+                    instrument: nonBinanceInstrument,
+                    side: .buy,
+                    quantity: quantity,
+                    strategy: .ema,
+                    policy: policy,
+                    correlation: correlation
+                ),
+                instrument: nonBinanceInstrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation,
+                createdAt: Date(timeIntervalSince1970: 1_025)
+            )
+        )
+
+        for expected in [
+            "\"OrderIntent.swift\"",
+            "\"ProductAwareOrderIntent.swift\""
+        ] {
+            XCTAssertTrue(packageSource.contains(expected), "DomainModel target must compile \(expected)")
+        }
+        for anchor in [
+            "GH-1025-ORDERINTENT-CANONICAL-CONTRACT",
+            "GH-1025-ORDERINTENT-RISK-GATE-BOUNDARY",
+            "GH-1025-ORDERINTENT-ACTIVE-SCOPE"
+        ] {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented in v0.14 contract")
+        }
+        XCTAssertTrue(verifier.contains("testGH1025ReleaseV0140OrderIntentCanonicalContractRequiresRiskGateAndBoundary"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
