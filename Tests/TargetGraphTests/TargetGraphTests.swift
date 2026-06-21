@@ -38833,6 +38833,150 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1037ReleaseV0140SignalToExecutionPipelineLinksAcceptedSignalAndFailsClosedRejectedSignal() throws {
+        // 测试场景：GH-1037 串联 Strategy Signal -> OrderIntent -> RiskEngine -> ExecutionContract
+        // -> Binance testnet evidence -> OMS event log -> state sync -> reconciliation。
+        // 验证目的：accepted signal 形成完整本地证据链；kill switch / no-trade 等 blocked signal
+        // 必须停在 RiskEngine，不能触达 adapter、OMS 或 reconciliation。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0140SignalToExecutionPipeline.swift")
+        let contract = try read("docs/contracts/release-v0.14.0-signal-to-execution-pipeline.md")
+        let verifier = try read("checks/verify-v0.14.0-signal-to-execution-pipeline.sh")
+        let runScript = try read("checks/run.sh")
+        let strategyRegistry = try read("Sources/Trader/Strategies/StrategyRegistry.swift")
+
+        let instrument = InstrumentIdentity.binance(
+            productType: .spot,
+            symbol: Symbol.constant("BTCUSDT")
+        )
+        let productAwareIntent = try ProductAwareOrderIntent(
+            intentID: .constant("gh-1037-product-aware-ema"),
+            instrument: instrument,
+            targetExposure: .targetLong,
+            quantity: Quantity(0.025, field: "gh1037.quantity"),
+            referencePrice: Price(1_000, field: "gh1037.referencePrice"),
+            createdAt: Date(timeIntervalSince1970: 1_037)
+        )
+        let signal = try ReleaseV0140StrategySignalEnvelope(
+            signalID: ReleaseV0140StrategySignalEnvelope.deterministicID(
+                productAwareIntentID: productAwareIntent.intentID,
+                strategy: .ema,
+                sourceMessageID: .constant("gh-1037-message"),
+                strategyRunID: .constant("gh-1037-run"),
+                sourceSequence: 1_037
+            ),
+            productAwareOrderIntent: productAwareIntent,
+            strategy: .ema,
+            sourceMessageID: .constant("gh-1037-message"),
+            strategyRunID: .constant("gh-1037-run"),
+            sourceSequence: 1_037,
+            emittedAt: Date(timeIntervalSince1970: 1_037)
+        )
+        let pipeline = try ReleaseV0140SignalToExecutionPipeline()
+        let accepted = try pipeline.run(
+            signal: signal,
+            referencePrice: 1_000,
+            riskGate: .deterministicFixture()
+        )
+
+        XCTAssertTrue(signal.boundaryHeld)
+        XCTAssertTrue(pipeline.boundaryHeld)
+        XCTAssertTrue(accepted.boundaryHeld)
+        XCTAssertEqual(accepted.status, .passed)
+        XCTAssertEqual(accepted.completedStages, ReleaseV0140SignalToExecutionPipelineReport.requiredPassedStages)
+        XCTAssertEqual(accepted.riskOutcome, .accepted)
+        XCTAssertNotNil(accepted.executionMappingID)
+        XCTAssertNotNil(accepted.submitPathID)
+        XCTAssertNotNil(accepted.localOrderID)
+        XCTAssertNotNil(accepted.eventStreamID)
+        XCTAssertNotNil(accepted.stateSnapshotID)
+        XCTAssertNotNil(accepted.reconciliationReportID)
+        XCTAssertEqual(accepted.reconciliationStatus, .passed)
+        XCTAssertTrue(accepted.testnetSubmitEvidenceCreated)
+        XCTAssertTrue(accepted.adapterSubmitAttempted)
+        XCTAssertTrue(accepted.omsEventLogCreated)
+        XCTAssertTrue(accepted.reconciliationCompleted)
+        XCTAssertTrue(accepted.strategiesNeverCallExecutionClient)
+        XCTAssertFalse(accepted.productionTradingEnabledByDefault)
+        XCTAssertFalse(accepted.productionSecretRead)
+        XCTAssertFalse(accepted.productionEndpointConnected)
+        XCTAssertFalse(accepted.productionSubmitCancelReplace)
+
+        let blocked = try pipeline.run(
+            signal: signal,
+            referencePrice: 1_000,
+            riskGate: .deterministicFixture(),
+            killSwitchActive: true
+        )
+        XCTAssertTrue(blocked.boundaryHeld)
+        XCTAssertEqual(blocked.status, .failedClosed)
+        XCTAssertEqual(blocked.completedStages, ReleaseV0140SignalToExecutionPipelineReport.requiredFailedClosedStages)
+        XCTAssertEqual(blocked.riskOutcome, .blocked)
+        XCTAssertNil(blocked.executionMappingID)
+        XCTAssertNil(blocked.submitPathID)
+        XCTAssertNil(blocked.localOrderID)
+        XCTAssertNil(blocked.eventStreamID)
+        XCTAssertNil(blocked.stateSnapshotID)
+        XCTAssertNil(blocked.reconciliationReportID)
+        XCTAssertNil(blocked.reconciliationStatus)
+        XCTAssertFalse(blocked.testnetSubmitEvidenceCreated)
+        XCTAssertFalse(blocked.adapterSubmitAttempted)
+        XCTAssertFalse(blocked.omsEventLogCreated)
+        XCTAssertFalse(blocked.reconciliationCompleted)
+
+        let encoded = try JSONEncoder().encode(accepted)
+        let decoded = try JSONDecoder().decode(ReleaseV0140SignalToExecutionPipelineReport.self, from: encoded)
+        XCTAssertEqual(decoded, accepted)
+
+        XCTAssertThrowsError(
+            try ReleaseV0140StrategySignalEnvelope(
+                signalID: ReleaseV0140StrategySignalEnvelope.deterministicID(
+                    productAwareIntentID: productAwareIntent.intentID,
+                    strategy: .ema,
+                    sourceMessageID: .constant("gh-1037-direct-message"),
+                    strategyRunID: .constant("gh-1037-direct-run"),
+                    sourceSequence: 1_038
+                ),
+                productAwareOrderIntent: productAwareIntent,
+                strategy: .ema,
+                sourceMessageID: .constant("gh-1037-direct-message"),
+                strategyRunID: .constant("gh-1037-direct-run"),
+                sourceSequence: 1_038,
+                emittedAt: Date(timeIntervalSince1970: 1_038),
+                strategyCallsExecutionClient: true
+            )
+        )
+        XCTAssertThrowsError(try ReleaseV0140SignalToExecutionPipeline(productionSubmitCancelReplace: true))
+
+        for anchor in ReleaseV0140SignalToExecutionPipelineReport.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1037ReleaseV0140SignalToExecutionPipelineLinksAcceptedSignalAndFailsClosedRejectedSignal"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-signal-to-execution-pipeline.sh"))
+        XCTAssertFalse(strategyRegistry.contains("import ExecutionClient"))
+        XCTAssertFalse(strategyRegistry.contains("ExecutionClient."))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1037 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
