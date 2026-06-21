@@ -36824,6 +36824,479 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1030ReleaseV0140BinanceTestnetCancelReplaceRequiresLocalOMSIdentity() throws {
+        // 测试场景：GH-1030 在 GH-1029 submit evidence 之后增加 Binance testnet cancel / replace evidence。
+        // 验证目的：cancel / replace 必须绑定已有本地 OMS order identity 和 testnet adapter approval，
+        // 同时保持 request / response redacted，不执行网络 cancel / replace，不触碰 production capability。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0140BinanceTestnetCancelReplacePath.swift")
+        let verifier = try read("checks/verify-v0.14.0-binance-testnet-cancel-replace.sh")
+        let runScript = try read("checks/run.sh")
+        let contract = try read("docs/contracts/release-v0.14.0-binance-testnet-cancel-replace-path.md")
+
+        func makeSubmitEvidence(
+            productType: ProductType,
+            strategy: OrderIntentStrategyKind,
+            side: OrderIntentSide,
+            timeInForce: OrderIntentTimeInForce,
+            sourceSequence: Int
+        ) throws -> (
+            intent: OrderIntent,
+            request: ReleaseV0140BinanceTestnetSubmitRequestEvidence,
+            response: ReleaseV0140BinanceTestnetSubmitResponseEvidence,
+            path: ReleaseV0140BinanceTestnetSubmitPath
+        ) {
+            let symbol = Symbol.constant("BTCUSDT")
+            let instrument = InstrumentIdentity.binance(productType: productType, symbol: symbol)
+            let quantity = try Quantity(0.05, field: "gh1030.quantity")
+            let policy = try OrderIntentPolicy(timeInForce: timeInForce)
+            let correlation = try OrderIntentCorrelationMetadata(
+                correlationID: .constant("gh-1030-correlation-\(productType.rawValue)-\(sourceSequence)"),
+                strategySignalID: .constant("gh-1030-signal-\(productType.rawValue)-\(sourceSequence)"),
+                sourceMessageID: .constant("gh-1030-message-\(productType.rawValue)-\(sourceSequence)"),
+                strategyRunID: .constant("gh-1030-run-\(productType.rawValue)-\(sourceSequence)"),
+                sourceSequence: sourceSequence
+            )
+            let intent = try OrderIntent(
+                intentID: OrderIntent.deterministicID(
+                    instrument: instrument,
+                    side: side,
+                    quantity: quantity,
+                    strategy: strategy,
+                    policy: policy,
+                    correlation: correlation
+                ),
+                instrument: instrument,
+                side: side,
+                quantity: quantity,
+                strategy: strategy,
+                policy: policy,
+                correlation: correlation,
+                createdAt: Date(timeIntervalSince1970: TimeInterval(sourceSequence))
+            )
+            let submitMapping = try ExecutionContractRequestMapping(
+                mappingID: ExecutionContractRequestMapping.deterministicID(
+                    intentID: intent.intentID,
+                    operation: .submit,
+                    mode: .binanceTestnet,
+                    lifecycleState: .riskAccepted
+                ),
+                intent: intent,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            )
+            let endpoint = try ReleaseV0140BinanceTestnetEndpointReference.fixture(productType: productType)
+            let operatorGate = try ReleaseV0140BinanceTestnetSubmitOperatorGate.fixture(correlation: correlation)
+            let request = try ReleaseV0140BinanceTestnetSubmitRequestEvidence(
+                requestID: ReleaseV0140BinanceTestnetSubmitRequestEvidence.deterministicID(
+                    mappingID: submitMapping.mappingID,
+                    productType: productType,
+                    sourceSequence: correlation.sourceSequence
+                ),
+                intent: intent,
+                mapping: submitMapping,
+                endpoint: endpoint,
+                operatorGate: operatorGate
+            )
+            let result = try ExecutionContractSubmissionResult(
+                resultID: ExecutionContractSubmissionResult.deterministicID(
+                    mappingID: submitMapping.mappingID,
+                    state: submitMapping.targetLifecycleState
+                ),
+                mapping: submitMapping
+            )
+            let acknowledgement = try ExecutionContractAcknowledgement(
+                acknowledgementID: ExecutionContractAcknowledgement.deterministicID(resultID: result.resultID),
+                result: result
+            )
+            let response = try ReleaseV0140BinanceTestnetSubmitResponseEvidence(
+                responseID: ReleaseV0140BinanceTestnetSubmitResponseEvidence.deterministicID(
+                    requestID: request.requestID,
+                    resultID: result.resultID,
+                    acknowledgementID: acknowledgement.acknowledgementID
+                ),
+                request: request,
+                result: result,
+                acknowledgement: acknowledgement
+            )
+            let path = try ReleaseV0140BinanceTestnetSubmitPath(
+                pathID: ReleaseV0140BinanceTestnetSubmitPath.deterministicID(
+                    requestID: request.requestID,
+                    responseID: response.responseID
+                ),
+                boundary: try ReleaseV0140BinanceTestnetAdapterBoundary(),
+                operatorGate: operatorGate,
+                request: request,
+                result: result,
+                acknowledgement: acknowledgement,
+                response: response
+            )
+            return (intent, request, response, path)
+        }
+
+        let submit = try makeSubmitEvidence(
+            productType: .spot,
+            strategy: .ema,
+            side: .buy,
+            timeInForce: .goodTillCanceled,
+            sourceSequence: 1030
+        )
+        let localOrder = try ReleaseV0140LocalOMSOrderIdentity(
+            localOrderID: ReleaseV0140LocalOMSOrderIdentity.deterministicID(
+                responseID: submit.response.responseID,
+                lifecycleState: .accepted
+            ),
+            submitRequest: submit.request,
+            submitResponse: submit.response,
+            submitPath: submit.path
+        )
+        XCTAssertTrue(localOrder.boundaryHeld)
+        XCTAssertEqual(localOrder.intentID, submit.intent.intentID)
+        XCTAssertEqual(localOrder.strategyRunID, submit.intent.correlation.strategyRunID)
+        XCTAssertEqual(localOrder.productType, .spot)
+        XCTAssertEqual(localOrder.lifecycleState, .accepted)
+        XCTAssertTrue(localOrder.exchangeOrderIDRedacted)
+        XCTAssertTrue(localOrder.localOMSOrderIdentityOnly)
+        XCTAssertFalse(localOrder.brokerFillIncluded)
+        XCTAssertFalse(localOrder.reconciliationIncluded)
+        XCTAssertFalse(localOrder.productionEndpointConnected)
+
+        let spotEndpoint = try ReleaseV0140BinanceTestnetEndpointReference.fixture(productType: .spot)
+        let approval = try ReleaseV0140BinanceTestnetCancelReplaceAdapterApproval(
+            approvalID: ReleaseV0140BinanceTestnetCancelReplaceAdapterApproval.deterministicID(
+                localOrderID: localOrder.localOrderID,
+                productType: .spot
+            ),
+            localOrder: localOrder,
+            endpoint: spotEndpoint
+        )
+        XCTAssertTrue(approval.boundaryHeld)
+        XCTAssertEqual(approval.localOrderID, localOrder.localOrderID)
+        XCTAssertEqual(approval.endpointHost, "testnet.binance.vision")
+        XCTAssertTrue(approval.cancelAllowed)
+        XCTAssertTrue(approval.replaceAllowed)
+        XCTAssertTrue(approval.localOMSOrderIdentityRequired)
+        XCTAssertTrue(approval.adapterApprovalRedacted)
+        XCTAssertFalse(approval.networkCancelReplacePerformed)
+        XCTAssertFalse(approval.productionSecretRead)
+
+        let cancelMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: submit.intent.intentID,
+                operation: .cancel,
+                mode: .binanceTestnet,
+                lifecycleState: .accepted
+            ),
+            intent: submit.intent,
+            operation: .cancel,
+            mode: .binanceTestnet,
+            lifecycleState: .accepted
+        )
+        let cancelRequest = try ReleaseV0140BinanceTestnetCancelReplaceRequestEvidence(
+            requestID: ReleaseV0140BinanceTestnetCancelReplaceRequestEvidence.deterministicID(
+                mappingID: cancelMapping.mappingID,
+                operation: .cancel,
+                localOrderID: localOrder.localOrderID
+            ),
+            mapping: cancelMapping,
+            localOrder: localOrder,
+            endpoint: spotEndpoint,
+            approval: approval
+        )
+        XCTAssertTrue(cancelRequest.boundaryHeld)
+        XCTAssertEqual(cancelRequest.operation, .cancel)
+        XCTAssertEqual(cancelRequest.lifecycleState, .accepted)
+        XCTAssertEqual(cancelRequest.targetLifecycleState, .cancelRequested)
+        XCTAssertEqual(cancelRequest.endpointPath, "/api/v3/order")
+        XCTAssertTrue(cancelRequest.existingLocalOMSOrderIdentityRequired)
+        XCTAssertTrue(cancelRequest.testnetCancelReplaceEvidenceAllowed)
+        XCTAssertTrue(cancelRequest.requestBodyRedacted)
+        XCTAssertTrue(cancelRequest.credentialMaterialRedacted)
+        XCTAssertFalse(cancelRequest.networkCancelReplacePerformed)
+        XCTAssertFalse(cancelRequest.productionCutoverAuthorized)
+
+        let cancel = try ExecutionContractCancel(
+            cancelID: ExecutionContractCancel.deterministicID(mappingID: cancelMapping.mappingID, state: .cancelRequested),
+            mapping: cancelMapping
+        )
+        let cancelAction = try ReleaseV0140BinanceTestnetCancelReplaceActionEvidence(
+            actionID: ReleaseV0140BinanceTestnetCancelReplaceActionEvidence.deterministicID(
+                requestID: cancelRequest.requestID,
+                contractActionID: cancel.cancelID,
+                operation: .cancel
+            ),
+            request: cancelRequest,
+            cancel: cancel
+        )
+        XCTAssertTrue(cancelAction.boundaryHeld)
+        XCTAssertEqual(cancelAction.operation, .cancel)
+        XCTAssertEqual(cancelAction.lifecycleState, .cancelRequested)
+        XCTAssertTrue(cancelAction.exchangeOrderIDRedacted)
+        XCTAssertTrue(cancelAction.responseBodyRedacted)
+        XCTAssertFalse(cancelAction.networkCancelReplacePerformed)
+        XCTAssertFalse(cancelAction.brokerFillIncluded)
+        XCTAssertFalse(cancelAction.reconciliationIncluded)
+
+        let replaceMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: submit.intent.intentID,
+                operation: .replace,
+                mode: .binanceTestnet,
+                lifecycleState: .accepted
+            ),
+            intent: submit.intent,
+            operation: .replace,
+            mode: .binanceTestnet,
+            lifecycleState: .accepted
+        )
+        let replaceRequest = try ReleaseV0140BinanceTestnetCancelReplaceRequestEvidence(
+            requestID: ReleaseV0140BinanceTestnetCancelReplaceRequestEvidence.deterministicID(
+                mappingID: replaceMapping.mappingID,
+                operation: .replace,
+                localOrderID: localOrder.localOrderID
+            ),
+            mapping: replaceMapping,
+            localOrder: localOrder,
+            endpoint: spotEndpoint,
+            approval: approval
+        )
+        XCTAssertTrue(replaceRequest.boundaryHeld)
+        XCTAssertEqual(replaceRequest.operation, .replace)
+        XCTAssertEqual(replaceRequest.targetLifecycleState, .replaceRequested)
+        XCTAssertEqual(replaceRequest.endpointPath, "/api/v3/order/cancelReplace")
+
+        let replace = try ExecutionContractReplace(
+            replaceID: ExecutionContractReplace.deterministicID(mappingID: replaceMapping.mappingID, state: .replaceRequested),
+            mapping: replaceMapping
+        )
+        let replaceAction = try ReleaseV0140BinanceTestnetCancelReplaceActionEvidence(
+            actionID: ReleaseV0140BinanceTestnetCancelReplaceActionEvidence.deterministicID(
+                requestID: replaceRequest.requestID,
+                contractActionID: replace.replaceID,
+                operation: .replace
+            ),
+            request: replaceRequest,
+            replace: replace
+        )
+        XCTAssertTrue(replaceAction.boundaryHeld)
+        XCTAssertEqual(replaceAction.operation, .replace)
+        XCTAssertEqual(replaceAction.lifecycleState, .replaceRequested)
+
+        let path = try ReleaseV0140BinanceTestnetCancelReplacePath(
+            pathID: ReleaseV0140BinanceTestnetCancelReplacePath.deterministicID(
+                localOrderID: localOrder.localOrderID,
+                cancelActionID: cancelAction.actionID,
+                replaceActionID: replaceAction.actionID
+            ),
+            boundary: try ReleaseV0140BinanceTestnetAdapterBoundary(),
+            localOrder: localOrder,
+            approval: approval,
+            cancelRequest: cancelRequest,
+            cancelAction: cancelAction,
+            replaceRequest: replaceRequest,
+            replaceAction: replaceAction
+        )
+        XCTAssertTrue(path.boundaryHeld)
+        XCTAssertEqual(path.localOrderID, localOrder.localOrderID)
+        XCTAssertEqual(path.adapterApprovalID, approval.approvalID)
+        XCTAssertEqual(path.cancelRequestID, cancelRequest.requestID)
+        XCTAssertEqual(path.cancelActionID, cancelAction.actionID)
+        XCTAssertEqual(path.replaceRequestID, replaceRequest.requestID)
+        XCTAssertEqual(path.replaceActionID, replaceAction.actionID)
+        XCTAssertTrue(path.existingLocalOMSOrderIdentityRequired)
+        XCTAssertTrue(path.testnetCancelReplaceEvidenceOnly)
+        XCTAssertFalse(path.networkCancelReplacePerformed)
+        XCTAssertFalse(path.productionTradingEnabledByDefault)
+        XCTAssertFalse(path.productionSecretRead)
+        XCTAssertFalse(path.productionEndpointConnected)
+        XCTAssertFalse(path.productionCutoverAuthorized)
+
+        let perpSubmit = try makeSubmitEvidence(
+            productType: .usdsPerpetual,
+            strategy: .rsi,
+            side: .sell,
+            timeInForce: .immediateOrCancel,
+            sourceSequence: 10_300
+        )
+        let perpLocalOrder = try ReleaseV0140LocalOMSOrderIdentity(
+            localOrderID: ReleaseV0140LocalOMSOrderIdentity.deterministicID(
+                responseID: perpSubmit.response.responseID,
+                lifecycleState: .partiallyFilled
+            ),
+            submitRequest: perpSubmit.request,
+            submitResponse: perpSubmit.response,
+            submitPath: perpSubmit.path,
+            lifecycleState: .partiallyFilled
+        )
+        let perpEndpoint = try ReleaseV0140BinanceTestnetEndpointReference.fixture(productType: .usdsPerpetual)
+        let perpApproval = try ReleaseV0140BinanceTestnetCancelReplaceAdapterApproval(
+            approvalID: ReleaseV0140BinanceTestnetCancelReplaceAdapterApproval.deterministicID(
+                localOrderID: perpLocalOrder.localOrderID,
+                productType: .usdsPerpetual
+            ),
+            localOrder: perpLocalOrder,
+            endpoint: perpEndpoint
+        )
+        let perpReplaceMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: perpSubmit.intent.intentID,
+                operation: .replace,
+                mode: .binanceTestnet,
+                lifecycleState: .partiallyFilled
+            ),
+            intent: perpSubmit.intent,
+            operation: .replace,
+            mode: .binanceTestnet,
+            lifecycleState: .partiallyFilled
+        )
+        let perpReplaceRequest = try ReleaseV0140BinanceTestnetCancelReplaceRequestEvidence(
+            requestID: ReleaseV0140BinanceTestnetCancelReplaceRequestEvidence.deterministicID(
+                mappingID: perpReplaceMapping.mappingID,
+                operation: .replace,
+                localOrderID: perpLocalOrder.localOrderID
+            ),
+            mapping: perpReplaceMapping,
+            localOrder: perpLocalOrder,
+            endpoint: perpEndpoint,
+            approval: perpApproval
+        )
+        XCTAssertTrue(perpReplaceRequest.boundaryHeld)
+        XCTAssertEqual(perpReplaceRequest.productType, .usdsPerpetual)
+        XCTAssertEqual(perpReplaceRequest.endpointHost, "testnet.binancefuture.com")
+        XCTAssertEqual(perpReplaceRequest.endpointPath, "/fapi/v1/order")
+
+        XCTAssertThrowsError(
+            try ReleaseV0140LocalOMSOrderIdentity(
+                localOrderID: ReleaseV0140LocalOMSOrderIdentity.deterministicID(
+                    responseID: submit.response.responseID,
+                    lifecycleState: .filled
+                ),
+                submitRequest: submit.request,
+                submitResponse: submit.response,
+                submitPath: submit.path,
+                lifecycleState: .filled
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetCancelReplaceAdapterApproval(
+                approvalID: approval.approvalID,
+                localOrder: localOrder,
+                endpoint: spotEndpoint,
+                explicitTestnetMode: false
+            )
+        )
+
+        let dryRunCancelMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: submit.intent.intentID,
+                operation: .cancel,
+                mode: .dryRun,
+                lifecycleState: .accepted
+            ),
+            intent: submit.intent,
+            operation: .cancel,
+            mode: .dryRun,
+            lifecycleState: .accepted
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetCancelReplaceRequestEvidence(
+                requestID: ReleaseV0140BinanceTestnetCancelReplaceRequestEvidence.deterministicID(
+                    mappingID: dryRunCancelMapping.mappingID,
+                    operation: .cancel,
+                    localOrderID: localOrder.localOrderID
+                ),
+                mapping: dryRunCancelMapping,
+                localOrder: localOrder,
+                endpoint: spotEndpoint,
+                approval: approval
+            )
+        )
+
+        let mismatchedLifecycleMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: submit.intent.intentID,
+                operation: .replace,
+                mode: .binanceTestnet,
+                lifecycleState: .partiallyFilled
+            ),
+            intent: submit.intent,
+            operation: .replace,
+            mode: .binanceTestnet,
+            lifecycleState: .partiallyFilled
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetCancelReplaceRequestEvidence(
+                requestID: ReleaseV0140BinanceTestnetCancelReplaceRequestEvidence.deterministicID(
+                    mappingID: mismatchedLifecycleMapping.mappingID,
+                    operation: .replace,
+                    localOrderID: localOrder.localOrderID
+                ),
+                mapping: mismatchedLifecycleMapping,
+                localOrder: localOrder,
+                endpoint: spotEndpoint,
+                approval: approval
+            )
+        )
+
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetCancelReplaceRequestEvidence(
+                requestID: cancelRequest.requestID,
+                mapping: cancelMapping,
+                localOrder: localOrder,
+                endpoint: spotEndpoint,
+                approval: approval,
+                requestBodyRedacted: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetCancelReplaceActionEvidence(
+                actionID: cancelAction.actionID,
+                request: cancelRequest,
+                replace: replace
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140BinanceTestnetCancelReplacePath(
+                pathID: path.pathID,
+                boundary: try ReleaseV0140BinanceTestnetAdapterBoundary(),
+                localOrder: localOrder,
+                approval: approval,
+                cancelRequest: cancelRequest,
+                cancelAction: cancelAction,
+                replaceRequest: replaceRequest,
+                replaceAction: replaceAction,
+                networkCancelReplacePerformed: true
+            )
+        )
+
+        for anchor in ReleaseV0140BinanceTestnetCancelReplacePath.requiredValidationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+        }
+        XCTAssertTrue(verifier.contains("testGH1030ReleaseV0140BinanceTestnetCancelReplaceRequiresLocalOMSIdentity"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-binance-testnet-cancel-replace.sh"))
+        for forbidden in [
+            "URLSession",
+            "URLRequest",
+            "CryptoKit",
+            "HMAC",
+            "API_KEY",
+            "SECRET",
+            "signature",
+            "listenKey",
+            "api.binance.com",
+            "fapi.binance.com",
+            "dapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbidden), "\(forbidden) must not be present in GH-1030 source")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
