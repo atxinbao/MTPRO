@@ -6,6 +6,23 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST
+
+- TVM-RELEASE-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST
+- GH-1067-VERIFY-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST
+- V0150-002-CREDENTIAL-REFERENCE
+- V0150-002-HMAC-SHA256-SIGNED-REQUEST
+- V0150-002-BINANCE-SPOT-TESTNET-ONLY
+- V0150-002-NO-PRODUCTION-SECRET-AUTO-READ
+- V0150-002-PRODUCTION-ENDPOINT-BLOCKED
+- V0150-002-REDACTED-EVIDENCE
+- V0150-002-NO-NETWORK-ACTION
+- GH-1067 Release v0.15.0 Testnet Credential / Signed Request Builder
+- `bash checks/verify-v0.15.0-testnet-credential-signed-request.sh`
+- `swift test --filter TargetGraphTests/testGH1067ReleaseV0150SpotTestnetSignedRequestBuilderIsRedactedAndDeterministic`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift`、`docs/contracts/release-v0.15.0-testnet-credential-provider-signed-request-builder-contract.md`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.15.0-testnet-credential-signed-request.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-1067 只允许 Spot Testnet signed request construction evidence。`activeVenue == Binance`，`v0150ExecutionProductScope == Binance Spot Testnet only`，`endpointHost == testnet.binance.vision`，`productionTradingEnabledByDefault=false`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`；不授权 production cutover，不执行 network action。
+
 ## TVM-RELEASE-V0150-CONTRACT-PREFLIGHT
 
 - TVM-RELEASE-V0150-CONTRACT-PREFLIGHT

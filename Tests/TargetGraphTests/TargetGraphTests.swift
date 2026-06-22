@@ -40030,6 +40030,139 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1067ReleaseV0150SpotTestnetSignedRequestBuilderIsRedactedAndDeterministic() throws {
+        // 测试场景：GH-1067 增加 Binance Spot Testnet credential reference 与 signed request builder。
+        // 验证目的：HMAC query 构造必须 deterministic，credential material 必须脱敏，且 evidence 不能执行网络 submit。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift")
+        let contract = try read("docs/contracts/release-v0.15.0-testnet-credential-provider-signed-request-builder-contract.md")
+        let verifier = try read("checks/verify-v0.15.0-testnet-credential-signed-request.sh")
+        let runScript = try read("checks/run.sh")
+        let anchors = [
+            "GH-1067-VERIFY-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST",
+            "TVM-RELEASE-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST",
+            "V0150-002-CREDENTIAL-REFERENCE",
+            "V0150-002-HMAC-SHA256-SIGNED-REQUEST",
+            "V0150-002-BINANCE-SPOT-TESTNET-ONLY",
+            "V0150-002-NO-PRODUCTION-SECRET-AUTO-READ",
+            "V0150-002-PRODUCTION-ENDPOINT-BLOCKED",
+            "V0150-002-REDACTED-EVIDENCE",
+            "V0150-002-NO-NETWORK-ACTION"
+        ]
+
+        let reference = try ReleaseV0150BinanceSpotTestnetCredentialReference.deterministicFixture()
+        XCTAssertTrue(reference.boundaryHeld)
+        XCTAssertEqual(reference.redactionPolicy, "redactedIdentifierOnly")
+        XCTAssertTrue(reference.operatorConfirmationRequired)
+        XCTAssertFalse(reference.productionSecretAutoRead)
+        XCTAssertFalse(reference.productionSecretValueRead)
+        XCTAssertFalse(reference.productionEndpointConnected)
+        XCTAssertFalse(reference.brokerEndpointConnected)
+
+        let credential = try ReleaseV0150BinanceSpotTestnetCredentialMaterial(
+            reference: reference,
+            apiKeyHeaderValue: "gh-1067-testnet-api-key",
+            signingSecretValue: "gh-1067-testnet-secret"
+        )
+        XCTAssertEqual(credential.binanceAPIKeyHeaderValue(), "gh-1067-testnet-api-key")
+        XCTAssertFalse(String(describing: credential).contains("gh-1067-testnet-api-key"))
+        XCTAssertFalse(String(describing: credential).contains("gh-1067-testnet-secret"))
+
+        let builder = try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder()
+        XCTAssertTrue(builder.boundaryHeld)
+        XCTAssertEqual(builder.productType, .spot)
+        XCTAssertEqual(builder.baseURL.absoluteString, "https://testnet.binance.vision")
+
+        let request = try builder.buildMarketSubmitRequest(
+            credential: credential,
+            symbol: .constant("BTCUSDT"),
+            side: .buy,
+            quantity: try Quantity(0.05, field: "gh1067.quantity"),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+
+        XCTAssertTrue(request.boundaryHeld)
+        XCTAssertEqual(request.productType, .spot)
+        XCTAssertEqual(request.symbol, .constant("BTCUSDT"))
+        XCTAssertEqual(request.side, .buy)
+        XCTAssertEqual(request.orderType, "MARKET")
+        XCTAssertEqual(request.quantityText, "0.05000000")
+        XCTAssertEqual(request.timestampMilliseconds, 1_704_067_200_000)
+        XCTAssertEqual(request.receiveWindowMilliseconds, 5_000)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.endpointHost, "testnet.binance.vision")
+        XCTAssertEqual(request.endpointPath, "/api/v3/order")
+        XCTAssertEqual(request.apiKeyHeaderName, "X-MBX-APIKEY")
+        XCTAssertTrue(request.apiKeyHeaderValueRedacted)
+        XCTAssertEqual(
+            request.unsignedQueryString,
+            "symbol=BTCUSDT&side=BUY&type=MARKET&quantity=0.05000000&timestamp=1704067200000&recvWindow=5000"
+        )
+        XCTAssertEqual(
+            request.signature,
+            "a78819b93b981c0bbab0ed9f685bb76929b6c06faf1c213e87338e843a0644e5"
+        )
+        XCTAssertEqual(request.signedQueryString, "\(request.unsignedQueryString)&signature=\(request.signature)")
+        XCTAssertTrue(request.credentialReferenceRedacted.contains("<redacted>"))
+        XCTAssertFalse(request.networkSubmitPerformed)
+        XCTAssertFalse(request.productionTradingEnabledByDefault)
+        XCTAssertFalse(request.productionSecretRead)
+        XCTAssertFalse(request.productionEndpointConnected)
+        XCTAssertFalse(request.brokerEndpointConnected)
+        XCTAssertFalse(request.productionOrderSubmitted)
+        XCTAssertFalse(request.productionCutoverAuthorized)
+        XCTAssertFalse(String(describing: request).contains("gh-1067-testnet-api-key"))
+        XCTAssertFalse(String(describing: request).contains("gh-1067-testnet-secret"))
+
+        XCTAssertEqual(ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.requiredValidationAnchors, anchors)
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be documented")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be wired into verifier")
+        }
+        XCTAssertTrue(verifier.contains("testGH1067ReleaseV0150SpotTestnetSignedRequestBuilderIsRedactedAndDeterministic"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-testnet-credential-signed-request.sh"))
+
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(
+                baseURL: URL(string: "https://api.binance.com")
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(productType: .usdsPerpetual)
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(productionSecretAutoRead: true)
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetCredentialReference(
+                referenceID: .constant("gh-1067-bad-reference"),
+                providerKind: .operatorProvidedReference,
+                productionSecretValueStored: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetCredentialMaterial(
+                reference: reference,
+                apiKeyHeaderValue: "",
+                signingSecretValue: "gh-1067-testnet-secret"
+            )
+        )
+        XCTAssertThrowsError(
+            try builder.buildMarketSubmitRequest(
+                credential: credential,
+                symbol: .constant("BTCUSDT"),
+                side: .sell,
+                quantity: try Quantity(0, field: "gh1067.zeroQuantity"),
+                timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+            )
+        )
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

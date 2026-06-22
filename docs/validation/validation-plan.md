@@ -6,6 +6,22 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1067 Release v0.15.0 Testnet Credential / Signed Request Builder
+
+- `GH-1067-VERIFY-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST`
+- `TVM-RELEASE-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST`
+- `V0150-002-CREDENTIAL-REFERENCE`
+- `V0150-002-HMAC-SHA256-SIGNED-REQUEST`
+- `V0150-002-BINANCE-SPOT-TESTNET-ONLY`
+- `V0150-002-NO-PRODUCTION-SECRET-AUTO-READ`
+- `V0150-002-PRODUCTION-ENDPOINT-BLOCKED`
+- `V0150-002-REDACTED-EVIDENCE`
+- `V0150-002-NO-NETWORK-ACTION`
+- Required command: `bash checks/verify-v0.15.0-testnet-credential-signed-request.sh`
+- Focused test: `testGH1067ReleaseV0150SpotTestnetSignedRequestBuilderIsRedactedAndDeterministic`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift`、`docs/contracts/release-v0.15.0-testnet-credential-provider-signed-request-builder-contract.md`、`checks/verify-v0.15.0-testnet-credential-signed-request.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1067 只允许 Binance Spot Testnet credential reference、短生命周期 credential material 和 HMAC-SHA256 signed request construction evidence；`endpointHost == testnet.binance.vision`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`；不构造网络请求对象，不执行 network action，不授权 production cutover。
+
 ## GH-1066 Release v0.15.0 Contract / v0.14.1 Preflight Gate
 
 - `GH-1066-VERIFY-V0150-CONTRACT-PREFLIGHT`
