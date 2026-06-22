@@ -41716,6 +41716,145 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-dashboard-testnet-execution-status.sh"))
     }
 
+    func testGH1075ReleaseV0150FailureSimulationCoversSignedTransportAndReconciliationFailures() throws {
+        // 测试场景：GH-1075 对 v0.15.0 real signed Spot Testnet transport 增加本地 failure simulation。
+        // 验证目的：rejected request、timeout、rate-limit、stale credential、bad signature、
+        // cancel-not-found 和 reconciliation mismatch 都必须 deterministic、redacted、append-only 且 fail closed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetFailureSimulation.swift")
+        let contract = try read("docs/contracts/release-v0.15.0-failure-simulation-real-signed-transport-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.15.0-failure-simulation-real-signed-transport.sh")
+        let runScript = try read("checks/run.sh")
+
+        let suite = try ReleaseV0150BinanceSpotTestnetFailureSimulationSuite()
+        let report = try suite.run()
+        let anchors = ReleaseV0150BinanceSpotTestnetFailureSimulationEvidence.requiredValidationAnchors
+
+        XCTAssertTrue(suite.boundaryHeld)
+        XCTAssertTrue(report.boundaryHeld)
+        XCTAssertEqual(report.failureCasesCovered, ReleaseV0150BinanceSpotTestnetFailureSimulationReport.requiredFailureCases)
+        XCTAssertEqual(report.evidence.count, 7)
+        XCTAssertEqual(Set(report.evidence.map(\.simulationCase)), Set(ReleaseV0150BinanceSpotTestnetFailureSimulationCase.allCases))
+        XCTAssertEqual(report.evidence.map(\.sequenceNumber), Array(1...7))
+        XCTAssertTrue(report.evidence.allSatisfy(\.boundaryHeld))
+        XCTAssertTrue(report.evidence.allSatisfy(\.appendOnlyFailureEvidence))
+        XCTAssertTrue(report.evidence.allSatisfy(\.deterministicFailureSimulation))
+        XCTAssertTrue(report.evidence.allSatisfy(\.redactedRequestIdentity))
+        XCTAssertTrue(report.evidence.allSatisfy(\.redactedResponseIdentity))
+        XCTAssertTrue(report.evidence.allSatisfy(\.omsStateExplainable))
+        XCTAssertTrue(report.appendOnlyChecksumChainVerified)
+        XCTAssertTrue(report.allFailuresFailClosed)
+        XCTAssertTrue(report.redactedFailureEvidence)
+        XCTAssertTrue(report.signedTransportFailuresCovered)
+        XCTAssertTrue(report.cancelNotFoundCovered)
+        XCTAssertTrue(report.reconciliationMismatchCovered)
+        XCTAssertTrue(report.omsStatesExplainable)
+        XCTAssertFalse(report.productionTradingEnabledByDefault)
+        XCTAssertFalse(report.productionSecretAutoRead)
+        XCTAssertFalse(report.productionEndpointConnected)
+        XCTAssertFalse(report.brokerEndpointConnected)
+        XCTAssertFalse(report.productionOrderSubmitted)
+        XCTAssertFalse(report.productionCutoverAuthorized)
+        XCTAssertEqual(anchors, [
+            "GH-1075-VERIFY-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT",
+            "TVM-RELEASE-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT",
+            "V0150-010-REJECTED-TIMEOUT-RATELIMIT",
+            "V0150-010-CREDENTIAL-SIGNATURE-FAILURES",
+            "V0150-010-CANCEL-NOT-FOUND",
+            "V0150-010-RECONCILIATION-MISMATCH",
+            "V0150-010-APPEND-ONLY-REDACTED-FAILURE-EVIDENCE",
+            "V0150-010-NO-PRODUCTION-CUTOVER"
+        ])
+
+        let byCase = Dictionary(uniqueKeysWithValues: report.evidence.map { ($0.simulationCase, $0) })
+        XCTAssertEqual(byCase[.rejectedRequest]?.simulatedHTTPStatusCode, 400)
+        XCTAssertEqual(byCase[.rejectedRequest]?.expectedLifecycleState, .rejected)
+        XCTAssertNil(byCase[.timeout]?.simulatedHTTPStatusCode)
+        XCTAssertEqual(byCase[.timeout]?.expectedLifecycleState, .failedClosed)
+        XCTAssertEqual(byCase[.rateLimit]?.simulatedHTTPStatusCode, 429)
+        XCTAssertEqual(byCase[.staleCredential]?.simulatedHTTPStatusCode, 401)
+        XCTAssertEqual(byCase[.badSignature]?.expectedLifecycleState, .rejected)
+        XCTAssertEqual(byCase[.cancelNotFound]?.actionKind, .cancel)
+        XCTAssertEqual(byCase[.cancelNotFound]?.expectedLifecycleState, .failedClosed)
+        XCTAssertEqual(byCase[.reconciliationMismatch]?.actionKind, .cancelReplace)
+        XCTAssertEqual(byCase[.reconciliationMismatch]?.reconciliationFailureReason, .lifecycleStateMismatch)
+
+        try ReleaseV0150BinanceSpotTestnetFailureSimulationReport.validateAppendOnlyChain(report.evidence)
+        let encoded = try JSONEncoder().encode(report)
+        let decoded = try JSONDecoder().decode(ReleaseV0150BinanceSpotTestnetFailureSimulationReport.self, from: encoded)
+        XCTAssertEqual(decoded, report)
+        XCTAssertFalse(String(describing: report.evidence[0]).contains("secret"))
+        XCTAssertFalse(String(describing: report.evidence[0]).contains("api-key"))
+
+        XCTAssertThrowsError(try ReleaseV0150BinanceSpotTestnetFailureSimulationSuite(productionEndpointConnected: true))
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetFailureSimulationReport(
+                reportID: report.reportID,
+                evidence: report.evidence,
+                productionOrderSubmitted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetFailureSimulationEvidence(
+                evidenceID: report.evidence[0].evidenceID,
+                sequenceNumber: 1,
+                simulationCase: .rejectedRequest,
+                sourceSignedRequestID: report.evidence[0].sourceSignedRequestID,
+                sourceCredentialReferenceID: report.evidence[0].sourceCredentialReferenceID,
+                redactedRequestDigest: report.evidence[0].redactedRequestDigest,
+                redactedResponseDigest: report.evidence[0].redactedResponseDigest,
+                observedAtMilliseconds: report.evidence[0].observedAtMilliseconds,
+                previousFailureChecksum: nil,
+                failureChecksum: report.evidence[0].failureChecksum,
+                expectedLifecycleState: .accepted
+            )
+        )
+
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be anchored in contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be anchored in readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be anchored in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be anchored in latest summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must be anchored in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must be anchored in trading matrix")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be anchored in verifier")
+        }
+
+        for requiredString in [
+            "ReleaseV0150BinanceSpotTestnetFailureSimulationCase",
+            "ReleaseV0150BinanceSpotTestnetFailureSimulationEvidence",
+            "ReleaseV0150BinanceSpotTestnetFailureSimulationReport",
+            "ReleaseV0150BinanceSpotTestnetFailureSimulationSuite",
+            "failureSimulationOnly=true",
+            "deterministicFailureSimulation=true",
+            "appendOnlyFailureEvidence=true",
+            "redactedRequestIdentity=true",
+            "redactedResponseIdentity=true",
+            "omsStateExplainable=true",
+            "reconciliationMismatchFailClosed=true",
+            "rawSecretPersisted=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretAutoRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false"
+        ] {
+            XCTAssertTrue(source.contains(requiredString), "\(requiredString) must stay in source")
+            XCTAssertTrue(contract.contains(requiredString), "\(requiredString) must stay in contract")
+        }
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-failure-simulation-real-signed-transport.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

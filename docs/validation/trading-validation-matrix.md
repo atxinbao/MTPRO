@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT
+
+- TVM-RELEASE-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT
+- GH-1075-VERIFY-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT
+- V0150-010-REJECTED-TIMEOUT-RATELIMIT
+- V0150-010-CREDENTIAL-SIGNATURE-FAILURES
+- V0150-010-CANCEL-NOT-FOUND
+- V0150-010-RECONCILIATION-MISMATCH
+- V0150-010-APPEND-ONLY-REDACTED-FAILURE-EVIDENCE
+- V0150-010-NO-PRODUCTION-CUTOVER
+- GH-1075 Release v0.15.0 Failure Simulation for Real Signed Transport
+- `bash checks/verify-v0.15.0-failure-simulation-real-signed-transport.sh`
+- `swift test --filter TargetGraphTests/testGH1075ReleaseV0150FailureSimulationCoversSignedTransportAndReconciliationFailures`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetFailureSimulation.swift`、`docs/contracts/release-v0.15.0-failure-simulation-real-signed-transport-contract.md`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.15.0-failure-simulation-real-signed-transport.sh`、`docs/automation/automation-readiness.md`、`docs/validation/validation-plan.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1075 允许且只允许本地 deterministic failure simulation，覆盖 rejected request、timeout、rate-limit、stale credential、bad signature、cancel-not-found 和 reconciliation mismatch。`failureSimulationOnly=true`，`deterministicFailureSimulation=true`，`appendOnlyFailureEvidence=true`，`redactedRequestIdentity=true`，`redactedResponseIdentity=true`，`omsStateExplainable=true`，`reconciliationMismatchFailClosed=true`；`rawSecretPersisted=false`，`productionTradingEnabledByDefault=false`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`；不授权 network action execution、production cutover、production order 或 broker endpoint。
+
 ## TVM-RELEASE-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS
 
 - TVM-RELEASE-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS
