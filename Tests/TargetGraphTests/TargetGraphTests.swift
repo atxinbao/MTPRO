@@ -38897,7 +38897,9 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertNotNil(accepted.reconciliationReportID)
         XCTAssertEqual(accepted.reconciliationStatus, .passed)
         XCTAssertTrue(accepted.testnetSubmitEvidenceCreated)
-        XCTAssertTrue(accepted.adapterSubmitAttempted)
+        XCTAssertTrue(accepted.adapterSubmitEvidenceCreated)
+        XCTAssertFalse(accepted.networkSubmitAttempted)
+        XCTAssertFalse(accepted.networkCancelReplaceAttempted)
         XCTAssertTrue(accepted.omsEventLogCreated)
         XCTAssertTrue(accepted.reconciliationCompleted)
         XCTAssertTrue(accepted.strategiesNeverCallExecutionClient)
@@ -38924,7 +38926,9 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertNil(blocked.reconciliationReportID)
         XCTAssertNil(blocked.reconciliationStatus)
         XCTAssertFalse(blocked.testnetSubmitEvidenceCreated)
-        XCTAssertFalse(blocked.adapterSubmitAttempted)
+        XCTAssertFalse(blocked.adapterSubmitEvidenceCreated)
+        XCTAssertFalse(blocked.networkSubmitAttempted)
+        XCTAssertFalse(blocked.networkCancelReplaceAttempted)
         XCTAssertFalse(blocked.omsEventLogCreated)
         XCTAssertFalse(blocked.reconciliationCompleted)
 
@@ -38960,6 +38964,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-signal-to-execution-pipeline.sh"))
         XCTAssertFalse(strategyRegistry.contains("import ExecutionClient"))
         XCTAssertFalse(strategyRegistry.contains("ExecutionClient."))
+        XCTAssertTrue(source.contains("adapterSubmitEvidenceCreated"))
+        XCTAssertTrue(source.contains("networkSubmitAttempted"))
+        XCTAssertTrue(source.contains("networkCancelReplaceAttempted"))
+        XCTAssertFalse(source.contains("adapterSubmit" + "Attempted"))
         for forbidden in [
             "URLSession",
             "URLRequest",
@@ -39081,11 +39089,13 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(report.evidence.allSatisfy { $0.productionSecretRead == false })
         XCTAssertTrue(report.evidence.allSatisfy { $0.productionEndpointConnected == false })
         XCTAssertTrue(report.evidence.allSatisfy { $0.productionSubmitCancelReplace == false })
+        XCTAssertTrue(report.evidence.allSatisfy { $0.networkSubmitAttempted == false })
+        XCTAssertTrue(report.evidence.allSatisfy { $0.networkCancelReplaceAttempted == false })
 
         let byMode = Dictionary(uniqueKeysWithValues: report.evidence.map { ($0.mode, $0) })
         XCTAssertEqual(byMode[.riskRejection]?.pipelineStatus, .failedClosed)
         XCTAssertEqual(byMode[.riskRejection]?.riskOutcome, .rejected)
-        XCTAssertFalse(try XCTUnwrap(byMode[.riskRejection]).adapterSubmitAttempted)
+        XCTAssertFalse(try XCTUnwrap(byMode[.riskRejection]).adapterSubmitEvidenceCreated)
         XCTAssertEqual(byMode[.killSwitch]?.pipelineStatus, .failedClosed)
         XCTAssertEqual(byMode[.killSwitch]?.riskOutcome, .blocked)
         XCTAssertFalse(try XCTUnwrap(byMode[.killSwitch]).omsEventLogCreated)
@@ -39095,12 +39105,14 @@ final class TargetGraphTests: XCTestCase {
                 .reconciliationFailureReasons
                 .contains(.lifecycleStateMismatch)
         )
-        XCTAssertTrue(try XCTUnwrap(byMode[.reconciliationMismatch]).adapterSubmitAttempted)
+        XCTAssertTrue(try XCTUnwrap(byMode[.reconciliationMismatch]).adapterSubmitEvidenceCreated)
+        XCTAssertFalse(try XCTUnwrap(byMode[.reconciliationMismatch]).networkSubmitAttempted)
+        XCTAssertFalse(try XCTUnwrap(byMode[.reconciliationMismatch]).networkCancelReplaceAttempted)
         XCTAssertTrue(try XCTUnwrap(byMode[.reconciliationMismatch]).omsEventLogCreated)
         XCTAssertTrue(try XCTUnwrap(byMode[.reconciliationMismatch]).reconciliationCompleted)
-        XCTAssertFalse(try XCTUnwrap(byMode[.adapterRejection]).adapterSubmitAttempted)
+        XCTAssertFalse(try XCTUnwrap(byMode[.adapterRejection]).adapterSubmitEvidenceCreated)
         XCTAssertFalse(try XCTUnwrap(byMode[.invalidTransition]).reconciliationCompleted)
-        XCTAssertFalse(try XCTUnwrap(byMode[.timeout]).adapterSubmitAttempted)
+        XCTAssertFalse(try XCTUnwrap(byMode[.timeout]).adapterSubmitEvidenceCreated)
 
         let encoded = try JSONEncoder().encode(report)
         let decoded = try JSONDecoder().decode(ReleaseV0140FailureSimulationSuiteReport.self, from: encoded)
@@ -39115,6 +39127,10 @@ final class TargetGraphTests: XCTestCase {
         }
         XCTAssertTrue(verifier.contains("testGH1039ReleaseV0140FailureSimulationSuiteCoversSixFailClosedModes"))
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-failure-simulation-suite.sh"))
+        XCTAssertTrue(source.contains("adapterSubmitEvidenceCreated"))
+        XCTAssertTrue(source.contains("networkSubmitAttempted"))
+        XCTAssertTrue(source.contains("networkCancelReplaceAttempted"))
+        XCTAssertFalse(source.contains("adapterSubmit" + "Attempted"))
         for forbidden in [
             "URLSession",
             "URLRequest",

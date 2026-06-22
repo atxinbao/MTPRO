@@ -48,6 +48,9 @@ for needle in \
   "ReleaseV0140OrderEventSourcingStream" \
   "ReleaseV0140OMSStateSyncEngine" \
   "ReleaseV0140ReconciliationEngine" \
+  "adapterSubmitEvidenceCreated" \
+  "networkSubmitAttempted" \
+  "networkCancelReplaceAttempted" \
   "failedClosed"; do
   require_file_contains "$SOURCE" "$needle"
 done
@@ -72,6 +75,7 @@ done
 
 require_file_not_contains_regex "$STRATEGY_REGISTRY" "import ExecutionClient"
 require_file_not_contains_regex "$STRATEGY_REGISTRY" "ExecutionClient\\."
+require_file_not_contains_regex "$SOURCE" "adapterSubmitAttempted"
 
 swift test --filter TargetGraphTests/testGH1037ReleaseV0140SignalToExecutionPipelineLinksAcceptedSignalAndFailsClosedRejectedSignal
 

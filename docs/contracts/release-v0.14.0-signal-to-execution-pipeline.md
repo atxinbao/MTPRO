@@ -14,7 +14,7 @@ Strategy Signal -> OrderIntent -> RiskEngine -> ExecutionContract -> Binance tes
 ## Rules
 
 - `GH-1037-STRATEGY-NO-DIRECT-EXECUTIONCLIENT`：EMA / RSI strategy signal 只能生成 pre-risk `OrderIntent`，不能直连 `ExecutionClient`、OMS、broker command 或 production endpoint。
-- `GH-1037-RISK-TO-RECONCILIATION-EVIDENCE`：只有 RiskEngine accepted decision 才能继续进入 ExecutionContract、testnet submit evidence、OMS event log、state sync 和 reconciliation。
+- `GH-1037-RISK-TO-RECONCILIATION-EVIDENCE`：只有 RiskEngine accepted decision 才能继续进入 ExecutionContract、testnet submit evidence creation、OMS event log、state sync 和 reconciliation。
 - rejected / blocked decision 必须停在 RiskEngine，report 为 `failedClosed`，且不得产生 adapter / OMS / reconciliation evidence ID。
 - passed report 必须覆盖全部 pipeline stage，并且 reconciliation report status 必须为 `passed`。
 
@@ -24,7 +24,8 @@ Strategy Signal -> OrderIntent -> RiskEngine -> ExecutionContract -> Binance tes
 - `productionSecretRead=false`
 - `productionEndpointConnected=false`
 - `productionSubmitCancelReplace=false`
-- testnet submit 只生成 redacted evidence；`networkOrderActionPerformed` 保持 false。
+- testnet submit 只生成 redacted local adapter submit evidence；`adapterSubmitEvidenceCreated` 表示本地 evidence 已创建，不代表网络 submit。
+- `networkSubmitAttempted=false`，`networkCancelReplaceAttempted=false`，`networkOrderActionPerformed` 保持 false。
 - 不新增 Dashboard trading button、order form、production cutover 或 real-money order path。
 
 ## Validation Anchors

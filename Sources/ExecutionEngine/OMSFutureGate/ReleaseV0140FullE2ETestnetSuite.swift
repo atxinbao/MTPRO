@@ -209,7 +209,7 @@ public struct ReleaseV0140FullE2ETestnetSuiteReport: Codable, Equatable, Sendabl
               productionGuardReport.submitPathID == nil,
               productionGuardReport.localOrderID == nil,
               productionGuardReport.reconciliationReportID == nil,
-              productionGuardReport.adapterSubmitAttempted == false,
+              productionGuardReport.adapterSubmitEvidenceCreated == false,
               productionGuardReport.omsEventLogCreated == false,
               productionGuardReport.reconciliationCompleted == false else {
             throw CoreError.liveTradingBoundaryContractMismatch(

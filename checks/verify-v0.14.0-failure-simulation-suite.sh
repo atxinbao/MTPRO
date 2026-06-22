@@ -51,6 +51,9 @@ for needle in \
   "fallbackToProductionEndpoint" \
   "ReleaseV0140ReconciliationEngine" \
   "OrderLifecycleTransition" \
+  "adapterSubmitEvidenceCreated" \
+  "networkSubmitAttempted" \
+  "networkCancelReplaceAttempted" \
   "networkSubmitAllowed: true" \
   "killSwitchActive: true"; do
   require_file_contains "$SOURCE" "$needle"
@@ -73,6 +76,7 @@ for forbidden in \
   "dapi\\.binance\\.com"; do
   require_file_not_contains_regex "$SOURCE" "$forbidden"
 done
+require_file_not_contains_regex "$SOURCE" "adapterSubmitAttempted"
 
 swift test --filter TargetGraphTests/testGH1039ReleaseV0140FailureSimulationSuiteCoversSixFailClosedModes
 
