@@ -31,7 +31,9 @@ public struct ReleaseV0140FailureSimulationEvidence: Codable, Equatable, Sendabl
     public let reconciliationFailureReasons: [ReleaseV0140ReconciliationFailureReason]
     public let failClosed: Bool
     public let auditEvidenceEmitted: Bool
-    public let adapterSubmitAttempted: Bool
+    public let adapterSubmitEvidenceCreated: Bool
+    public let networkSubmitAttempted: Bool
+    public let networkCancelReplaceAttempted: Bool
     public let omsEventLogCreated: Bool
     public let reconciliationCompleted: Bool
     public let fallbackToProductionEndpoint: Bool
@@ -51,7 +53,9 @@ public struct ReleaseV0140FailureSimulationEvidence: Codable, Equatable, Sendabl
         reconciliationFailureReasons: [ReleaseV0140ReconciliationFailureReason] = [],
         failClosed: Bool = true,
         auditEvidenceEmitted: Bool = true,
-        adapterSubmitAttempted: Bool = false,
+        adapterSubmitEvidenceCreated: Bool = false,
+        networkSubmitAttempted: Bool = false,
+        networkCancelReplaceAttempted: Bool = false,
         omsEventLogCreated: Bool = false,
         reconciliationCompleted: Bool = false,
         fallbackToProductionEndpoint: Bool = false,
@@ -75,6 +79,8 @@ public struct ReleaseV0140FailureSimulationEvidence: Codable, Equatable, Sendabl
         try Self.forbid(productionSecretRead, "productionSecretRead")
         try Self.forbid(productionEndpointConnected, "productionEndpointConnected")
         try Self.forbid(productionSubmitCancelReplace, "productionSubmitCancelReplace")
+        try Self.forbid(networkSubmitAttempted, "networkSubmitAttempted")
+        try Self.forbid(networkCancelReplaceAttempted, "networkCancelReplaceAttempted")
 
         switch mode {
         case .adapterRejection, .invalidTransition, .timeout:
@@ -82,20 +88,24 @@ public struct ReleaseV0140FailureSimulationEvidence: Codable, Equatable, Sendabl
                   riskOutcome == nil,
                   reconciliationStatus == nil,
                   reconciliationFailureReasons.isEmpty,
-                  adapterSubmitAttempted == false,
+                  adapterSubmitEvidenceCreated == false,
+                  networkSubmitAttempted == false,
+                  networkCancelReplaceAttempted == false,
                   omsEventLogCreated == false,
                   reconciliationCompleted == false else {
                 throw CoreError.liveTradingBoundaryContractMismatch(
                     field: "releaseV0140FailureSimulation.prePipelineFailure",
                     expected: "stopped before adapter / OMS / reconciliation",
-                    actual: "\(String(describing: pipelineStatus)):\(adapterSubmitAttempted):\(omsEventLogCreated):\(reconciliationCompleted)"
+                    actual: "\(String(describing: pipelineStatus)):\(adapterSubmitEvidenceCreated):\(omsEventLogCreated):\(reconciliationCompleted)"
                 )
             }
         case .riskRejection:
             guard pipelineStatus == .failedClosed,
                   riskOutcome == .rejected,
                   reconciliationStatus == nil,
-                  adapterSubmitAttempted == false,
+                  adapterSubmitEvidenceCreated == false,
+                  networkSubmitAttempted == false,
+                  networkCancelReplaceAttempted == false,
                   omsEventLogCreated == false,
                   reconciliationCompleted == false else {
                 throw CoreError.liveTradingBoundaryContractMismatch(
@@ -108,7 +118,9 @@ public struct ReleaseV0140FailureSimulationEvidence: Codable, Equatable, Sendabl
             guard pipelineStatus == .failedClosed,
                   riskOutcome == .blocked,
                   reconciliationStatus == nil,
-                  adapterSubmitAttempted == false,
+                  adapterSubmitEvidenceCreated == false,
+                  networkSubmitAttempted == false,
+                  networkCancelReplaceAttempted == false,
                   omsEventLogCreated == false,
                   reconciliationCompleted == false else {
                 throw CoreError.liveTradingBoundaryContractMismatch(
@@ -122,7 +134,9 @@ public struct ReleaseV0140FailureSimulationEvidence: Codable, Equatable, Sendabl
                   riskOutcome == nil,
                   reconciliationStatus == .failed,
                   reconciliationFailureReasons.contains(.lifecycleStateMismatch),
-                  adapterSubmitAttempted,
+                  adapterSubmitEvidenceCreated,
+                  networkSubmitAttempted == false,
+                  networkCancelReplaceAttempted == false,
                   omsEventLogCreated,
                   reconciliationCompleted else {
                 throw CoreError.liveTradingBoundaryContractMismatch(
@@ -151,7 +165,9 @@ public struct ReleaseV0140FailureSimulationEvidence: Codable, Equatable, Sendabl
         self.reconciliationFailureReasons = reconciliationFailureReasons
         self.failClosed = failClosed
         self.auditEvidenceEmitted = auditEvidenceEmitted
-        self.adapterSubmitAttempted = adapterSubmitAttempted
+        self.adapterSubmitEvidenceCreated = adapterSubmitEvidenceCreated
+        self.networkSubmitAttempted = networkSubmitAttempted
+        self.networkCancelReplaceAttempted = networkCancelReplaceAttempted
         self.omsEventLogCreated = omsEventLogCreated
         self.reconciliationCompleted = reconciliationCompleted
         self.fallbackToProductionEndpoint = fallbackToProductionEndpoint
@@ -170,6 +186,8 @@ public struct ReleaseV0140FailureSimulationEvidence: Codable, Equatable, Sendabl
             && productionSecretRead == false
             && productionEndpointConnected == false
             && productionSubmitCancelReplace == false
+            && networkSubmitAttempted == false
+            && networkCancelReplaceAttempted == false
     }
 
     public static func deterministicID(
@@ -392,7 +410,7 @@ public struct ReleaseV0140FailureSimulationSuite: Codable, Equatable, Sendable {
             failureDetail: "RiskEngine rejected over-limit quantity before adapter submit.",
             pipelineStatus: report.status,
             riskOutcome: report.riskOutcome,
-            adapterSubmitAttempted: report.adapterSubmitAttempted,
+            adapterSubmitEvidenceCreated: report.adapterSubmitEvidenceCreated,
             omsEventLogCreated: report.omsEventLogCreated,
             reconciliationCompleted: report.reconciliationCompleted
         )
@@ -430,7 +448,7 @@ public struct ReleaseV0140FailureSimulationSuite: Codable, Equatable, Sendable {
             failureDetail: "Reconciliation mismatch emitted failed report with lifecycle mismatch.",
             reconciliationStatus: report.status,
             reconciliationFailureReasons: report.failures.map(\.reason),
-            adapterSubmitAttempted: true,
+            adapterSubmitEvidenceCreated: true,
             omsEventLogCreated: true,
             reconciliationCompleted: true
         )
@@ -473,7 +491,7 @@ public struct ReleaseV0140FailureSimulationSuite: Codable, Equatable, Sendable {
             failureDetail: "Global kill switch blocked testnet submit before adapter / OMS / reconciliation.",
             pipelineStatus: report.status,
             riskOutcome: report.riskOutcome,
-            adapterSubmitAttempted: report.adapterSubmitAttempted,
+            adapterSubmitEvidenceCreated: report.adapterSubmitEvidenceCreated,
             omsEventLogCreated: report.omsEventLogCreated,
             reconciliationCompleted: report.reconciliationCompleted
         )

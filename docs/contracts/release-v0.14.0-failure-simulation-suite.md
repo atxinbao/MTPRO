@@ -39,11 +39,11 @@ GH-1039 增加 `ReleaseV0140FailureSimulationSuite`，用于在 v0.14.0 testnet 
 
 adapter rejection 通过现有 Binance testnet adapter boundary 的 fail-closed constructor 证明 forbidden adapter capability 不会继续进入 request / OMS / reconciliation。
 
-risk rejection 通过现有 `ReleaseV0140SignalToExecutionPipeline` 证明 over-limit intent 在 RiskEngine 被 rejected，且 adapter submit / OMS / reconciliation 均未触达。
+risk rejection 通过现有 `ReleaseV0140SignalToExecutionPipeline` 证明 over-limit intent 在 RiskEngine 被 rejected，且 adapter submit evidence / OMS / reconciliation 均未触达。
 
 invalid transition 通过 `OrderLifecycleTransition` 的状态机校验证明非法状态迁移抛错并 fail closed。
 
-reconciliation mismatch 通过现有 `ReleaseV0140ReconciliationEngine` 生成 failed report，并显式包含 `lifecycleStateMismatch`。
+reconciliation mismatch 通过现有 `ReleaseV0140ReconciliationEngine` 生成 failed report，并显式包含 `lifecycleStateMismatch`。该 mode 只允许 `adapterSubmitEvidenceCreated=true` 表示本地 adapter evidence 已创建，仍必须保持 `networkSubmitAttempted=false` 和 `networkCancelReplaceAttempted=false`。
 
 timeout 是本地 deterministic timeout evidence，只表示 testnet acknowledgement timeout 被记录并 fail closed，不触发 retry fallback 或 production endpoint。
 
@@ -71,4 +71,4 @@ bash checks/run.sh
 
 ## Boundary Evidence
 
-该 suite 只生成本地 Codex / CI 可复放证据。它不创建 `URLSession` / `URLRequest`，不保存 API key / secret，不使用 HMAC / signature，不创建 listenKey，不包含 Binance production host，也不执行 submit / cancel / replace 网络动作。
+该 suite 只生成本地 Codex / CI 可复放证据。它不创建 `URLSession` / `URLRequest`，不保存 API key / secret，不使用 HMAC / signature，不创建 listenKey，不包含 Binance production host，也不执行 submit / cancel / replace 网络动作；`networkSubmitAttempted` 与 `networkCancelReplaceAttempted` 必须始终为 false。

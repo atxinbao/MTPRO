@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1061 Release v0.14.1 Submit Evidence Network Guards
+
+- `GH-1061-VERIFY-V0141-SUBMIT-EVIDENCE-NETWORK-GUARDS`
+- `TVM-RELEASE-V0141-SUBMIT-EVIDENCE-NETWORK-GUARDS`
+- `V0141-003-ADAPTER-SUBMIT-EVIDENCE-CREATED`
+- `V0141-003-NETWORK-SUBMIT-ATTEMPTED-FALSE`
+- `V0141-003-NETWORK-CANCEL-REPLACE-ATTEMPTED-FALSE`
+- `V0141-003-EVIDENCE-ONLY-WORDING`
+- `V0141-003-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.14.1-submit-evidence-network-guards.sh`
+- Focused tests: `testGH1037ReleaseV0140SignalToExecutionPipelineLinksAcceptedSignalAndFailsClosedRejectedSignal` and `testGH1039ReleaseV0140FailureSimulationSuiteCoversSixFailClosedModes`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0140SignalToExecutionPipeline.swift`、`Sources/ExecutionEngine/OMSFutureGate/ReleaseV0140FailureSimulationSuite.swift`、`Sources/ExecutionEngine/OMSFutureGate/ReleaseV0140FullE2ETestnetSuite.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`checks/verify-v0.14.1-submit-evidence-network-guards.sh`、`checks/run.sh`、`docs/contracts/release-v0.14.0-signal-to-execution-pipeline.md`、`docs/contracts/release-v0.14.0-failure-simulation-suite.md`、`docs/automation/automation-readiness.md`、`docs/validation/trading-validation-matrix.md` 和 `docs/validation/latest-verification-summary.md`。
+- Boundary: GH-1061 只把 ambiguous adapter submit wording 改成 local `adapterSubmitEvidenceCreated`，并固定 `networkSubmitAttempted=false` 和 `networkCancelReplaceAttempted=false`。该 patch 不新增 runtime pipeline，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，也不推进 v0.15.0。
+
 ## GH-1060 Release v0.14.1 Codable Decode Validation
 
 - `GH-1060-VERIFY-V0141-CODABLE-DECODE-VALIDATION`

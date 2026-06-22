@@ -220,7 +220,9 @@ public struct ReleaseV0140SignalToExecutionPipelineReport: Codable, Equatable, S
     public let reconciliationStatus: ReleaseV0140ReconciliationStatus?
     public let strategiesNeverCallExecutionClient: Bool
     public let testnetSubmitEvidenceCreated: Bool
-    public let adapterSubmitAttempted: Bool
+    public let adapterSubmitEvidenceCreated: Bool
+    public let networkSubmitAttempted: Bool
+    public let networkCancelReplaceAttempted: Bool
     public let omsEventLogCreated: Bool
     public let reconciliationCompleted: Bool
     public let productionTradingEnabledByDefault: Bool
@@ -246,7 +248,9 @@ public struct ReleaseV0140SignalToExecutionPipelineReport: Codable, Equatable, S
         reconciliationStatus: ReleaseV0140ReconciliationStatus?,
         strategiesNeverCallExecutionClient: Bool = true,
         testnetSubmitEvidenceCreated: Bool,
-        adapterSubmitAttempted: Bool,
+        adapterSubmitEvidenceCreated: Bool,
+        networkSubmitAttempted: Bool = false,
+        networkCancelReplaceAttempted: Bool = false,
         omsEventLogCreated: Bool,
         reconciliationCompleted: Bool,
         productionTradingEnabledByDefault: Bool = false,
@@ -269,6 +273,8 @@ public struct ReleaseV0140SignalToExecutionPipelineReport: Codable, Equatable, S
         try Self.forbid(productionSecretRead, "productionSecretRead")
         try Self.forbid(productionEndpointConnected, "productionEndpointConnected")
         try Self.forbid(productionSubmitCancelReplace, "productionSubmitCancelReplace")
+        try Self.forbid(networkSubmitAttempted, "networkSubmitAttempted")
+        try Self.forbid(networkCancelReplaceAttempted, "networkCancelReplaceAttempted")
 
         switch status {
         case .passed:
@@ -283,7 +289,9 @@ public struct ReleaseV0140SignalToExecutionPipelineReport: Codable, Equatable, S
                   reconciliationReportID != nil,
                   reconciliationStatus == .passed,
                   testnetSubmitEvidenceCreated,
-                  adapterSubmitAttempted,
+                  adapterSubmitEvidenceCreated,
+                  networkSubmitAttempted == false,
+                  networkCancelReplaceAttempted == false,
                   omsEventLogCreated,
                   reconciliationCompleted else {
                 throw CoreError.liveTradingBoundaryContractMismatch(
@@ -304,7 +312,9 @@ public struct ReleaseV0140SignalToExecutionPipelineReport: Codable, Equatable, S
                   reconciliationReportID == nil,
                   reconciliationStatus == nil,
                   testnetSubmitEvidenceCreated == false,
-                  adapterSubmitAttempted == false,
+                  adapterSubmitEvidenceCreated == false,
+                  networkSubmitAttempted == false,
+                  networkCancelReplaceAttempted == false,
                   omsEventLogCreated == false,
                   reconciliationCompleted == false else {
                 throw CoreError.liveTradingBoundaryContractMismatch(
@@ -337,7 +347,9 @@ public struct ReleaseV0140SignalToExecutionPipelineReport: Codable, Equatable, S
         self.reconciliationStatus = reconciliationStatus
         self.strategiesNeverCallExecutionClient = strategiesNeverCallExecutionClient
         self.testnetSubmitEvidenceCreated = testnetSubmitEvidenceCreated
-        self.adapterSubmitAttempted = adapterSubmitAttempted
+        self.adapterSubmitEvidenceCreated = adapterSubmitEvidenceCreated
+        self.networkSubmitAttempted = networkSubmitAttempted
+        self.networkCancelReplaceAttempted = networkCancelReplaceAttempted
         self.omsEventLogCreated = omsEventLogCreated
         self.reconciliationCompleted = reconciliationCompleted
         self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
@@ -353,6 +365,8 @@ public struct ReleaseV0140SignalToExecutionPipelineReport: Codable, Equatable, S
             && productionSecretRead == false
             && productionEndpointConnected == false
             && productionSubmitCancelReplace == false
+            && networkSubmitAttempted == false
+            && networkCancelReplaceAttempted == false
             && validationAnchors == Self.requiredValidationAnchors
             && (
                 (status == .passed
@@ -360,14 +374,14 @@ public struct ReleaseV0140SignalToExecutionPipelineReport: Codable, Equatable, S
                     && riskOutcome == .accepted
                     && reconciliationStatus == .passed
                     && testnetSubmitEvidenceCreated
-                    && adapterSubmitAttempted
+                    && adapterSubmitEvidenceCreated
                     && omsEventLogCreated
                     && reconciliationCompleted)
                 || (status == .failedClosed
                     && completedStages == Self.requiredFailedClosedStages
                     && riskOutcome != .accepted
                     && executionMappingID == nil
-                    && adapterSubmitAttempted == false
+                    && adapterSubmitEvidenceCreated == false
                     && reconciliationCompleted == false)
             )
     }
@@ -510,7 +524,7 @@ public struct ReleaseV0140SignalToExecutionPipeline: Codable, Equatable, Sendabl
                 reconciliationStatus: nil,
                 strategiesNeverCallExecutionClient: strategiesNeverCallExecutionClient,
                 testnetSubmitEvidenceCreated: false,
-                adapterSubmitAttempted: false,
+                adapterSubmitEvidenceCreated: false,
                 omsEventLogCreated: false,
                 reconciliationCompleted: false,
                 validationAnchors: validationAnchors
@@ -640,7 +654,7 @@ public struct ReleaseV0140SignalToExecutionPipeline: Codable, Equatable, Sendabl
             reconciliationStatus: reconciliation.status,
             strategiesNeverCallExecutionClient: strategiesNeverCallExecutionClient,
             testnetSubmitEvidenceCreated: true,
-            adapterSubmitAttempted: true,
+            adapterSubmitEvidenceCreated: true,
             omsEventLogCreated: true,
             reconciliationCompleted: true,
             validationAnchors: validationAnchors

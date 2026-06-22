@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0141-SUBMIT-EVIDENCE-NETWORK-GUARDS
+
+- TVM-RELEASE-V0141-SUBMIT-EVIDENCE-NETWORK-GUARDS
+- GH-1061-VERIFY-V0141-SUBMIT-EVIDENCE-NETWORK-GUARDS
+- V0141-003-ADAPTER-SUBMIT-EVIDENCE-CREATED
+- V0141-003-NETWORK-SUBMIT-ATTEMPTED-FALSE
+- V0141-003-NETWORK-CANCEL-REPLACE-ATTEMPTED-FALSE
+- V0141-003-EVIDENCE-ONLY-WORDING
+- V0141-003-NO-PRODUCTION-CUTOVER
+- GH-1061 Release v0.14.1 Submit Evidence Network Guards
+- `bash checks/verify-v0.14.1-submit-evidence-network-guards.sh`
+- `swift test --filter TargetGraphTests/testGH1037ReleaseV0140SignalToExecutionPipelineLinksAcceptedSignalAndFailsClosedRejectedSignal`
+- `swift test --filter TargetGraphTests/testGH1039ReleaseV0140FailureSimulationSuiteCoversSixFailClosedModes`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0140SignalToExecutionPipeline.swift`、`Sources/ExecutionEngine/OMSFutureGate/ReleaseV0140FailureSimulationSuite.swift`、`Sources/ExecutionEngine/OMSFutureGate/ReleaseV0140FullE2ETestnetSuite.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`checks/run.sh`、`checks/verify-v0.14.1-submit-evidence-network-guards.sh`、`docs/contracts/release-v0.14.0-signal-to-execution-pipeline.md`、`docs/contracts/release-v0.14.0-failure-simulation-suite.md`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-1061 只修正 v0.14.x local execution evidence wording / field semantics。`adapterSubmitEvidenceCreated` 只表示本地 adapter evidence 已创建，`networkSubmitAttempted` 与 `networkCancelReplaceAttempted` 必须保持 false；不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0141-CODABLE-DECODE-VALIDATION
 
 - TVM-RELEASE-V0141-CODABLE-DECODE-VALIDATION
