@@ -16,9 +16,9 @@ import Foundation
 
 /// ReleaseV0150BinanceSpotTestnetNetworkExecutionActionKind 是 v0.15.0 network action event log 的动作枚举。
 ///
-/// 当前 event log 把已完成的 Spot Testnet submit / cancel runtime evidence 写入 append-only event log。
-/// `cancelReplace` 仍作为后续 #1070 runtime 的 event kind 预留；本类型不实现 production endpoint、
-/// broker endpoint 或真实订单。
+/// 当前 event log 把已完成的 Spot Testnet submit / cancel / cancelReplace runtime evidence 写入 append-only event log。
+/// `cancelReplace` 表示 #1070 cancel + new submit emulation 的聚合 artifact；本类型不实现 production
+/// endpoint、broker endpoint 或真实订单。
 public enum ReleaseV0150BinanceSpotTestnetNetworkExecutionActionKind: String, Codable, CaseIterable, Equatable, Hashable, Sendable {
     case submit
     case cancel
@@ -360,6 +360,54 @@ public struct ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact: Codab
             actionEvidenceID: evidence.runtimeEvidenceID,
             intentID: evidence.intentID,
             signedRequestID: evidence.signedCancelRequestID,
+            transportResultID: evidence.transportResultID,
+            credentialReferenceID: evidence.credentialReferenceID,
+            endpointHost: evidence.endpointHost,
+            endpointPath: evidence.endpointPath,
+            httpStatusCode: evidence.httpStatusCode,
+            orderLifecycleState: evidence.orderLifecycleState,
+            observedAtMilliseconds: observedAtMilliseconds,
+            previousArtifactChecksum: previousArtifactChecksum,
+            artifactChecksum: checksum
+        )
+    }
+
+    public static func fromCancelReplaceRuntimeEvidence(
+        _ evidence: ReleaseV0150BinanceSpotTestnetCancelReplaceRuntimeEvidence,
+        sequenceNumber: Int,
+        observedAtMilliseconds: Int64,
+        previousArtifactChecksum: String
+    ) throws -> ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact {
+        guard evidence.boundaryHeld else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0150NetworkEvent.cancelReplaceEvidence")
+        }
+        let checksum = canonicalChecksum(
+            sequenceNumber: sequenceNumber,
+            actionKind: .cancelReplace,
+            actionEvidenceID: evidence.runtimeEvidenceID,
+            intentID: evidence.intentID,
+            signedRequestID: evidence.signedReplacementRequestID,
+            transportResultID: evidence.transportResultID,
+            credentialReferenceID: evidence.credentialReferenceID,
+            endpointHost: evidence.endpointHost,
+            endpointPath: evidence.endpointPath,
+            httpStatusCode: evidence.httpStatusCode,
+            orderLifecycleState: evidence.orderLifecycleState,
+            observedAtMilliseconds: observedAtMilliseconds,
+            previousArtifactChecksum: previousArtifactChecksum,
+            validationAnchors: requiredValidationAnchors
+        )
+        return try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact(
+            eventArtifactID: deterministicID(
+                sequenceNumber: sequenceNumber,
+                actionKind: .cancelReplace,
+                artifactChecksum: checksum
+            ),
+            sequenceNumber: sequenceNumber,
+            actionKind: .cancelReplace,
+            actionEvidenceID: evidence.runtimeEvidenceID,
+            intentID: evidence.intentID,
+            signedRequestID: evidence.signedReplacementRequestID,
             transportResultID: evidence.transportResultID,
             credentialReferenceID: evidence.credentialReferenceID,
             endpointHost: evidence.endpointHost,
