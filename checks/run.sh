@@ -176,6 +176,7 @@ bash checks/verify-v0.15.0-real-spot-testnet-cancel-replace-runtime.sh
 bash checks/verify-v0.15.0-oms-state-sync-reconciliation.sh
 bash checks/verify-v0.15.0-cli-operator-flow.sh
 bash checks/verify-v0.15.0-dashboard-testnet-execution-status.sh
+bash checks/verify-v0.15.0-failure-simulation-real-signed-transport.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

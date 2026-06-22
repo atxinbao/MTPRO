@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1075 Release v0.15.0 Failure Simulation for Real Signed Transport
+
+- `GH-1075-VERIFY-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT`
+- `TVM-RELEASE-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT`
+- `V0150-010-REJECTED-TIMEOUT-RATELIMIT`
+- `V0150-010-CREDENTIAL-SIGNATURE-FAILURES`
+- `V0150-010-CANCEL-NOT-FOUND`
+- `V0150-010-RECONCILIATION-MISMATCH`
+- `V0150-010-APPEND-ONLY-REDACTED-FAILURE-EVIDENCE`
+- `V0150-010-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.0-failure-simulation-real-signed-transport.sh`
+- Focused test: `testGH1075ReleaseV0150FailureSimulationCoversSignedTransportAndReconciliationFailures`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetFailureSimulation.swift`、`docs/contracts/release-v0.15.0-failure-simulation-real-signed-transport-contract.md`、`checks/verify-v0.15.0-failure-simulation-real-signed-transport.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1075 只允许本地 deterministic failure simulation，覆盖 rejected request、timeout、rate-limit、stale credential、bad signature、cancel-not-found 和 reconciliation mismatch。`failureSimulationOnly=true`，`deterministicFailureSimulation=true`，`appendOnlyFailureEvidence=true`，`redactedRequestIdentity=true`，`redactedResponseIdentity=true`，`omsStateExplainable=true`，`reconciliationMismatchFailClosed=true`；raw secret、production endpoint、broker endpoint、production order 和 production cutover 全部保持关闭。
+
 ## GH-1074 Release v0.15.0 Dashboard Testnet Execution Status
 
 - `GH-1074-VERIFY-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS`
