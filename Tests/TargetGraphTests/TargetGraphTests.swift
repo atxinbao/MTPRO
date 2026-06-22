@@ -40577,6 +40577,285 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertThrowsError(try log.appending(brokenSecondEvent))
     }
 
+    func testGH1069ReleaseV0150SpotTestnetCancelRuntimeAppendsRedactedCancelEvidence() async throws {
+        // 测试场景：GH-1069 从已完成 submit runtime evidence 执行 Spot Testnet cancel 并追加 network event log。
+        // 验证目的：cancel 只消费 testnet order evidence，OMS 状态迁移可审计，production capability 继续关闭。
+        struct MockSpotTestnetSubmitTransport: ReleaseV0150BinanceSpotTestnetSubmitTransport {
+            func submitSpotTestnetOrder(
+                signedRequest: ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence,
+                credential: ReleaseV0150BinanceSpotTestnetCredentialMaterial
+            ) async throws -> ReleaseV0150BinanceSpotTestnetSubmitTransportResult {
+                XCTAssertTrue(signedRequest.boundaryHeld)
+                XCTAssertEqual(credential.binanceAPIKeyHeaderValue(), "gh-1069-testnet-api-key")
+
+                let digest = ReleaseV0150BinanceSpotTestnetSubmitTransportResult.redactedDigest(
+                    statusCode: 200,
+                    acknowledgement: "accepted-redacted-gh-1069"
+                )
+                return try ReleaseV0150BinanceSpotTestnetSubmitTransportResult(
+                    transportResultID: ReleaseV0150BinanceSpotTestnetSubmitTransportResult.deterministicID(
+                        signedRequestID: signedRequest.requestID,
+                        httpStatusCode: 200,
+                        redactedResponseDigest: digest
+                    ),
+                    signedRequest: signedRequest,
+                    httpStatusCode: 200,
+                    redactedResponseDigest: digest
+                )
+            }
+        }
+        struct MockSpotTestnetCancelTransport: ReleaseV0150BinanceSpotTestnetCancelTransport {
+            func cancelSpotTestnetOrder(
+                signedRequest: ReleaseV0150BinanceSpotTestnetSignedCancelOrderRequestEvidence,
+                orderIdentity: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial,
+                credential: ReleaseV0150BinanceSpotTestnetCredentialMaterial
+            ) async throws -> ReleaseV0150BinanceSpotTestnetCancelTransportResult {
+                XCTAssertTrue(signedRequest.boundaryHeld)
+                XCTAssertEqual(signedRequest.httpMethod, "DELETE")
+                XCTAssertEqual(signedRequest.endpointHost, "testnet.binance.vision")
+                XCTAssertEqual(signedRequest.endpointPath, "/api/v3/order")
+                XCTAssertEqual(orderIdentity.binanceOriginalClientOrderID(), "gh-1069-testnet-client-order")
+                XCTAssertEqual(credential.binanceAPIKeyHeaderValue(), "gh-1069-testnet-api-key")
+
+                let digest = ReleaseV0150BinanceSpotTestnetCancelTransportResult.redactedDigest(
+                    statusCode: 200,
+                    acknowledgement: "cancelled-redacted-gh-1069"
+                )
+                return try ReleaseV0150BinanceSpotTestnetCancelTransportResult(
+                    transportResultID: ReleaseV0150BinanceSpotTestnetCancelTransportResult.deterministicID(
+                        signedCancelRequestID: signedRequest.requestID,
+                        httpStatusCode: 200,
+                        redactedResponseDigest: digest
+                    ),
+                    signedRequest: signedRequest,
+                    httpStatusCode: 200,
+                    redactedResponseDigest: digest
+                )
+            }
+        }
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift")
+        let eventLogSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift")
+        let contract = try read("docs/contracts/release-v0.15.0-real-spot-testnet-cancel-runtime-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.15.0-real-spot-testnet-cancel-runtime.sh")
+        let runScript = try read("checks/run.sh")
+        let anchors = [
+            "GH-1069-VERIFY-V0150-REAL-SPOT-TESTNET-CANCEL-RUNTIME",
+            "TVM-RELEASE-V0150-REAL-SPOT-TESTNET-CANCEL",
+            "V0150-004-CANCEL-REQUEST-CONSTRUCTION",
+            "V0150-004-SIGNED-TESTNET-TRANSPORT",
+            "V0150-004-REDACTED-CANCEL-RESPONSE-EVIDENCE",
+            "V0150-004-OMS-CANCEL-STATE-TRANSITION",
+            "V0150-004-APPEND-ONLY-CANCEL-EVENT",
+            "V0150-004-PRODUCTION-ENDPOINT-BLOCKED",
+            "V0150-004-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let instrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let quantity = try Quantity(0.05, field: "gh1069.quantity")
+        let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let correlation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1069-correlation"),
+            strategySignalID: .constant("gh-1069-signal"),
+            sourceMessageID: .constant("gh-1069-message"),
+            strategyRunID: .constant("gh-1069-run"),
+            sourceSequence: 1069
+        )
+        let intent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: instrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation
+            ),
+            instrument: instrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        let submitMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: intent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let cancelMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .cancel,
+                mode: .binanceTestnet,
+                lifecycleState: .accepted
+            ),
+            intent: intent,
+            operation: .cancel,
+            mode: .binanceTestnet,
+            lifecycleState: .accepted
+        )
+        let reference = try ReleaseV0150BinanceSpotTestnetCredentialReference.deterministicFixture(
+            referenceID: .constant("gh-1069-binance-spot-testnet-credential")
+        )
+        let credential = try ReleaseV0150BinanceSpotTestnetCredentialMaterial(
+            reference: reference,
+            apiKeyHeaderValue: "gh-1069-testnet-api-key",
+            signingSecretValue: "gh-1069-testnet-secret"
+        )
+        let submitRuntime = try ReleaseV0150BinanceSpotTestnetSubmitRuntime(
+            requestBuilder: ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
+            transport: MockSpotTestnetSubmitTransport()
+        )
+        let submitEvidence = try await submitRuntime.submitMarketOrder(
+            intent: intent,
+            mapping: submitMapping,
+            credential: credential,
+            operatorConfirmationID: .constant("gh-1069-submit-operator-confirmation"),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        let submitEvent = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(
+            submitEvidence,
+            sequenceNumber: 1,
+            observedAtMilliseconds: 1_704_067_200_000
+        )
+        let submitLog = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.make(eventArtifacts: [submitEvent])
+        let cancelReference = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference(
+            referenceID: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference.deterministicID(
+                sourceSubmitRuntimeEvidenceID: submitEvidence.runtimeEvidenceID
+            ),
+            sourceSubmitEvidence: submitEvidence
+        )
+        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(
+            reference: cancelReference,
+            originalClientOrderID: "gh-1069-testnet-client-order"
+        )
+        let cancelRuntime = try ReleaseV0150BinanceSpotTestnetCancelRuntime(
+            requestBuilder: ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
+            transport: MockSpotTestnetCancelTransport()
+        )
+
+        let result = try await cancelRuntime.cancelSpotTestnetOrder(
+            intent: intent,
+            cancelMapping: cancelMapping,
+            sourceSubmitEvidence: submitEvidence,
+            existingNetworkEventLog: submitLog,
+            credential: credential,
+            cancelOrderIdentity: cancelIdentity,
+            operatorConfirmationID: .constant("gh-1069-cancel-operator-confirmation"),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_260),
+            observedAtMilliseconds: 1_704_067_260_000
+        )
+
+        XCTAssertTrue(result.boundaryHeld)
+        XCTAssertTrue(result.cancelEvidence.boundaryHeld)
+        XCTAssertEqual(result.cancelEvidence.intentID, intent.intentID)
+        XCTAssertEqual(result.cancelEvidence.cancelMappingID, cancelMapping.mappingID)
+        XCTAssertEqual(result.cancelEvidence.sourceSubmitRuntimeEvidenceID, submitEvidence.runtimeEvidenceID)
+        XCTAssertEqual(result.cancelEvidence.credentialReferenceID, reference.referenceID)
+        XCTAssertEqual(result.cancelEvidence.cancelOrderIdentityReferenceID, cancelReference.referenceID)
+        XCTAssertEqual(result.cancelEvidence.productType, .spot)
+        XCTAssertEqual(result.cancelEvidence.endpointHost, "testnet.binance.vision")
+        XCTAssertEqual(result.cancelEvidence.endpointPath, "/api/v3/order")
+        XCTAssertEqual(result.cancelEvidence.httpStatusCode, 200)
+        XCTAssertEqual(result.cancelEvidence.orderLifecycleState, .cancelled)
+        XCTAssertTrue(result.cancelEvidence.operatorConfirmedTestnetCancel)
+        XCTAssertTrue(result.cancelEvidence.requestBodyRedacted)
+        XCTAssertTrue(result.cancelEvidence.responseBodyRedacted)
+        XCTAssertTrue(result.cancelEvidence.credentialMaterialRedacted)
+        XCTAssertTrue(result.cancelEvidence.orderIdentityMaterialRedacted)
+        XCTAssertTrue(result.cancelEvidence.appendOnlyCancelEvidenceCreated)
+        XCTAssertTrue(result.cancelEvidence.omsStateTransitionIntegrated)
+        XCTAssertTrue(result.cancelEvidence.testnetNetworkCancelPerformed)
+        XCTAssertFalse(result.cancelEvidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(result.cancelEvidence.productionSecretAutoRead)
+        XCTAssertFalse(result.cancelEvidence.productionEndpointConnected)
+        XCTAssertFalse(result.cancelEvidence.brokerEndpointConnected)
+        XCTAssertFalse(result.cancelEvidence.productionOrderSubmitted)
+        XCTAssertFalse(result.cancelEvidence.productionCutoverAuthorized)
+        XCTAssertEqual(ReleaseV0150BinanceSpotTestnetCancelRuntimeEvidence.requiredValidationAnchors, anchors)
+        XCTAssertEqual(result.appendedNetworkEventLog.eventArtifacts.count, 2)
+        XCTAssertEqual(result.appendedNetworkEventLog.eventArtifacts.last?.actionKind, .cancel)
+        XCTAssertEqual(result.appendedNetworkEventLog.eventArtifacts.last?.previousArtifactChecksum, submitEvent.artifactChecksum)
+        XCTAssertEqual(result.appendedNetworkEventLog.eventArtifacts.last?.actionEvidenceID, result.cancelEvidence.runtimeEvidenceID)
+        XCTAssertEqual(result.appendedNetworkEventLog.eventArtifacts.last?.orderLifecycleState, .cancelled)
+        XCTAssertFalse(String(describing: cancelReference).contains("gh-1069-testnet-client-order"))
+        XCTAssertFalse(String(describing: cancelIdentity).contains("gh-1069-testnet-client-order"))
+        XCTAssertFalse(String(describing: result.cancelEvidence).contains("gh-1069-testnet-api-key"))
+        XCTAssertFalse(String(describing: result.cancelEvidence).contains("gh-1069-testnet-secret"))
+
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be anchored in contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be anchored in readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be anchored in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be anchored in latest summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must be anchored in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must be anchored in trading matrix")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be anchored in verifier")
+        }
+
+        for requiredString in [
+            "ReleaseV0150BinanceSpotTestnetCancelRuntime",
+            "ReleaseV0150BinanceSpotTestnetCancelTransport",
+            "ReleaseV0150BinanceSpotTestnetCancelOMSStateTransitionEvidence",
+            "httpMethod=DELETE",
+            "testnetNetworkCancelPerformed=true",
+            "appendOnlyCancelEvidenceCreated=true",
+            "omsStateTransitionIntegrated=true",
+            "productionOrderSubmitted=false"
+        ] {
+            XCTAssertTrue(source.contains(requiredString), "\(requiredString) must stay in source")
+            XCTAssertTrue(contract.contains(requiredString), "\(requiredString) must stay in contract")
+        }
+        XCTAssertTrue(eventLogSource.contains("fromCancelRuntimeEvidence"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-real-spot-testnet-cancel-runtime.sh"))
+
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetCancelOperatorGate(
+                gateID: .constant("bad-cancel-gate"),
+                operatorConfirmationID: .constant("gh-1069-bad-confirmation"),
+                strategyRunID: correlation.strategyRunID,
+                sourceSubmitRuntimeEvidenceID: submitEvidence.runtimeEvidenceID,
+                credentialReferenceID: reference.referenceID,
+                signedCancelRequestID: result.cancelEvidence.signedCancelRequestID,
+                cancelOrderIdentityReferenceID: cancelReference.referenceID,
+                operatorConfirmedTestnetCancel: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(
+                reference: cancelReference,
+                originalClientOrderID: " "
+            )
+        )
+        let badEvent = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromCancelRuntimeEvidence(
+            result.cancelEvidence,
+            sequenceNumber: 3,
+            observedAtMilliseconds: 1_704_067_270_000,
+            previousArtifactChecksum: String(repeating: "0", count: 64)
+        )
+        XCTAssertThrowsError(try result.appendedNetworkEventLog.appending(badEvent))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

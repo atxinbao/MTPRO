@@ -6,6 +6,22 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1069 Release v0.15.0 Real Spot Testnet Cancel Runtime
+
+- `GH-1069-VERIFY-V0150-REAL-SPOT-TESTNET-CANCEL-RUNTIME`
+- `TVM-RELEASE-V0150-REAL-SPOT-TESTNET-CANCEL`
+- `V0150-004-CANCEL-REQUEST-CONSTRUCTION`
+- `V0150-004-SIGNED-TESTNET-TRANSPORT`
+- `V0150-004-REDACTED-CANCEL-RESPONSE-EVIDENCE`
+- `V0150-004-OMS-CANCEL-STATE-TRANSITION`
+- `V0150-004-APPEND-ONLY-CANCEL-EVENT`
+- `V0150-004-PRODUCTION-ENDPOINT-BLOCKED`
+- `V0150-004-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.0-real-spot-testnet-cancel-runtime.sh`
+- Focused test: `testGH1069ReleaseV0150SpotTestnetCancelRuntimeAppendsRedactedCancelEvidence`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift`、`docs/contracts/release-v0.15.0-real-spot-testnet-cancel-runtime-contract.md`、`checks/verify-v0.15.0-real-spot-testnet-cancel-runtime.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1069 只允许 Binance Spot Testnet cancel runtime 消费已完成的 #1068 submit runtime evidence、redacted testnet order identity reference、显式 operator confirmation、注入式 Spot Testnet cancel transport 和 #1071 append-only network event log；`httpMethod=DELETE`，`testnetNetworkCancelPerformed=true`，`appendOnlyCancelEvidenceCreated=true`，`omsStateTransitionIntegrated=true`，`productionTradingEnabledByDefault=false`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`；不授权 production cutover、cancel-replace、Dashboard command surface、broker fill 或 production order。
+
 ## GH-1071 Release v0.15.0 Network Execution Event Log
 
 - `GH-1071-VERIFY-V0150-NETWORK-EXECUTION-EVENT-LOG`
@@ -18,7 +34,7 @@
 - Required command: `bash checks/verify-v0.15.0-network-execution-event-log.sh`
 - Focused test: `testGH1071ReleaseV0150NetworkExecutionEventLogChainsRedactedArtifacts`
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`docs/contracts/release-v0.15.0-network-execution-event-log-contract.md`、`checks/verify-v0.15.0-network-execution-event-log.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
-- Boundary: GH-1071 只允许把已完成的 #1068 Binance Spot Testnet submit runtime evidence 写入 append-only redacted checksum event log；event artifact 只记录 request identity、response identity、sequence、previous checksum、artifact checksum 和 production-disabled flags；`appendOnlyNetworkExecutionEventLog=true`，`redactedRequestIdentity=true`，`redactedResponseIdentity=true`，`checksumChainVerified=true`，`rawSecretPersisted=false`，`productionTradingEnabledByDefault=false`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`；不实现 cancel / cancel-replace runtime，不授权 production cutover、Dashboard command surface 或 production order。
+- Boundary: GH-1071 只允许把已完成的 Binance Spot Testnet network action evidence 写入 append-only redacted checksum event log；event artifact 只记录 request identity、response identity、sequence、previous checksum、artifact checksum 和 production-disabled flags；`appendOnlyNetworkExecutionEventLog=true`，`redactedRequestIdentity=true`，`redactedResponseIdentity=true`，`checksumChainVerified=true`，`rawSecretPersisted=false`，`productionTradingEnabledByDefault=false`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`；不实现 cancel-replace runtime，不授权 production cutover、Dashboard command surface 或 production order。
 
 ## GH-1068 Release v0.15.0 Real Spot Testnet Submit Runtime
 

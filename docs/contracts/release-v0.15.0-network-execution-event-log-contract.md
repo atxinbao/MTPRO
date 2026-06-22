@@ -16,15 +16,16 @@
 
 ## Goal
 
-#1071 固定 v0.15.0 Binance Spot Testnet network action 的 append-only evidence contract。它把 #1068 submit runtime 产生的 signed request identity、transport response identity、HTTP 状态、生命周期状态和 checksum chain 写入 replay-friendly artifact。
+#1071 固定 v0.15.0 Binance Spot Testnet network action 的 append-only evidence contract。它把 Spot Testnet runtime 产生的 signed request identity、transport response identity、HTTP 状态、生命周期状态和 checksum chain 写入 replay-friendly artifact。
 
 ## Scope
 
 - 新增 `ReleaseV0150BinanceSpotTestnetNetworkExecutionActionKind`。
 - 新增 `ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact`。
 - 新增 `ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog`。
-- 当前 issue 只从 #1068 `ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence` 生成 submit event。
-- `cancel` 和 `cancelReplace` 只作为后续 #1069 / #1070 的 event kind 预留，不实现 cancel transport。
+- #1071 原始 scope 从 #1068 `ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence` 生成 submit event。
+- #1069 扩展 `fromCancelRuntimeEvidence(...)`，允许已完成的 Spot Testnet cancel runtime evidence 追加 `.cancel` artifact。
+- `cancelReplace` 仍作为后续 #1070 的 event kind 预留，不实现 cancel-replace transport。
 - 每个 artifact 必须包含 request identity、response identity、sequence number、previous checksum、artifact checksum 和 redaction flags。
 
 ## Contract Fields
@@ -44,6 +45,7 @@
 ## Acceptance
 
 - `ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(...)` 只能接受 boundary-held #1068 submit runtime evidence。
+- `ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromCancelRuntimeEvidence(...)` 只能接受 boundary-held #1069 cancel runtime evidence。
 - 第一个 event 的 `previousArtifactChecksum` 必须为空。
 - 后续 event 的 `previousArtifactChecksum` 必须等于前一个 event 的 `artifactChecksum`。
 - checksum 必须是 deterministic lowercase SHA-256。
@@ -52,7 +54,6 @@
 
 ## Non-goals
 
-- 不实现 Binance cancel runtime。
 - 不实现 Binance cancel-replace runtime。
 - 不实现 OMS reconciliation。
 - 不实现 Dashboard command surface。
@@ -71,4 +72,4 @@
 
 ## Boundary
 
-`GH-1071` 只记录 Binance Spot Testnet network execution evidence。它不扩大 #1068 submit runtime 的权限，不授权 #1069 cancel runtime、#1070 cancel-replace runtime、production endpoint、broker endpoint、production order 或 production cutover。
+`GH-1071` 只记录 Binance Spot Testnet network execution evidence。它不扩大 #1068 submit runtime 或 #1069 cancel runtime 的权限，不授权 #1070 cancel-replace runtime、production endpoint、broker endpoint、production order 或 production cutover。
