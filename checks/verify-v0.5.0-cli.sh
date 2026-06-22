@@ -60,7 +60,7 @@ swift test --filter TargetGraphTests/testGH727StrictCLICommandParserRejectsUnkno
 
 help_output="$(swift run mtpro help)"
 require_output_contains "$help_output" "mtpro help"
-require_output_contains "$help_output" "commands=help,run,status,stop,recover,risk-policy,readiness,monitor,verify,rehearsal-status,unified-run-status,run-observer,run-detail-observer,testnet-readonly-probe,verify-fast,verify-release"
+require_output_contains "$help_output" "commands=help,run,status,stop,recover,risk-policy,readiness,monitor,verify,testnet-execution,rehearsal-status,unified-run-status,run-observer,run-detail-observer,testnet-readonly-probe,verify-fast,verify-release"
 require_output_contains "$help_output" "productionTradingEnabledByDefault=false"
 
 run_output="$(swift run mtpro run)"

@@ -160,6 +160,7 @@ private enum MTPROStrictCLI {
         "readiness",
         "monitor",
         "verify",
+        ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -195,6 +196,8 @@ private enum MTPROStrictCLI {
         case "verify":
             try requireExactCount(arguments, expected: 1, command: command)
             return verifyOutput()
+        case ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.cliCommand:
+            return try ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -245,6 +248,10 @@ private enum MTPROStrictCLI {
             "readinessAssessmentSessionContract=v0.12.0",
             "readinessAssessmentActions=\(readinessAssessmentSupportedActionCommands.joined(separator: ","))",
             "monitorActions=\(monitorSupportedActionCommands.joined(separator: ","))",
+            "releaseV0150CLIOperatorCommand=\(ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.cliCommand)",
+            "releaseV0150CLIOperatorValidationAnchor=TVM-RELEASE-V0150-CLI-OPERATOR-FLOW",
+            "releaseV0150CLIOperatorVerificationAnchor=GH-1073-VERIFY-V0150-CLI-OPERATOR-FLOW",
+            "releaseV0150CLIOperatorConfirmationPhrase=\(ReleaseV0150BinanceSpotTestnetCLIOperatorInput.requiredOperatorConfirmationPhrase)",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
             "productionReadinessArtifactStoreImplemented=true",

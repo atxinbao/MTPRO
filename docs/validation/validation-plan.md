@@ -5384,6 +5384,24 @@ swift test
 - dependency evidence: #1005 is blocked by #1004 and starts only after PR #1023 merged, required checks passed, #1004 closed / done, local main fast-forwarded and WIP=1 preflight passed
 - forbidden scope: no tag / GitHub Release publication, no next Project / Issue, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
 
+## GH-1073 Release v0.15.0 CLI Operator Flow Validation
+
+- GH-1073-VERIFY-V0150-CLI-OPERATOR-FLOW
+- TVM-RELEASE-V0150-CLI-OPERATOR-FLOW
+- V0150-008-EXPLICIT-TESTNET-MODE
+- V0150-008-OPERATOR-CONFIRMATION-REQUIRED
+- V0150-008-REDACTED-OUTPUT
+- V0150-008-NO-PRODUCTION-FALLBACK
+- V0150-008-APPEND-ONLY-EVIDENCE-REFERENCE
+- V0150-008-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.15.0-cli-operator-flow.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1073ReleaseV0150CLIOperatorFlowRequiresExplicitTestnetConfirmation`
+- CLI surface: `swift run mtpro testnet-execution --testnet --action submit|cancel|cancel-replace --operator-confirm CONFIRM_BINANCE_SPOT_TESTNET_EXECUTION --intent-id <id> --network-event-log-id <id> --output redacted`
+- validation surface: `ReleaseV0150BinanceSpotTestnetCLIOperatorFlow` parses operator input into `ReleaseV0150BinanceSpotTestnetCLIOperatorEvidence`.
+- fail-closed evidence: missing `--testnet`, wrong confirmation phrase, non-redacted output, unknown action and production fallback flags are rejected.
+- dependency evidence: #1073 starts only after #1072 PR merge / checks / main fast-forward / WIP=1 preflight.
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no raw secret / raw credential / raw order identity / raw broker payload output, no production order.
+
 ## GH-1062 Release v0.14.1 Golden JSON Contract Validation
 
 - GH-1062-VERIFY-V0141-GOLDEN-JSON-CONTRACTS

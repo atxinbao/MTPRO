@@ -41439,6 +41439,183 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-oms-state-sync-reconciliation.sh"))
     }
 
+    func testGH1073ReleaseV0150CLIOperatorFlowRequiresExplicitTestnetConfirmation() throws {
+        // 测试场景：GH-1073 为 v0.15.0 Spot Testnet execution 暴露 operator CLI flow。
+        // 验证目的：CLI 必须显式 testnet mode、operator confirmation 和 redacted output；
+        // production fallback、未脱敏输出和缺失确认必须 fail closed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.swift")
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let contract = try read("docs/contracts/release-v0.15.0-cli-operator-flow-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.15.0-cli-operator-flow.sh")
+        let runScript = try read("checks/run.sh")
+        let anchors = [
+            "GH-1073-VERIFY-V0150-CLI-OPERATOR-FLOW",
+            "TVM-RELEASE-V0150-CLI-OPERATOR-FLOW",
+            "V0150-008-EXPLICIT-TESTNET-MODE",
+            "V0150-008-OPERATOR-CONFIRMATION-REQUIRED",
+            "V0150-008-REDACTED-OUTPUT",
+            "V0150-008-NO-PRODUCTION-FALLBACK",
+            "V0150-008-APPEND-ONLY-EVIDENCE-REFERENCE",
+            "V0150-008-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let arguments = [
+            "testnet-execution",
+            "--testnet",
+            "--action",
+            "cancel-replace",
+            "--operator-confirm",
+            ReleaseV0150BinanceSpotTestnetCLIOperatorInput.requiredOperatorConfirmationPhrase,
+            "--intent-id",
+            "gh1073-intent",
+            "--network-event-log-id",
+            "gh1073-network-event-log",
+            "--output",
+            "redacted"
+        ]
+        let evidence = try ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.evidence(arguments: arguments)
+        let output = try ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.commandLineOutput(arguments: arguments)
+
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(evidence.input.action, .cancelReplace)
+        XCTAssertEqual(evidence.input.intentID.rawValue, "gh1073-intent")
+        XCTAssertEqual(evidence.input.networkEventLogID.rawValue, "gh1073-network-event-log")
+        XCTAssertTrue(evidence.input.explicitTestnetMode)
+        XCTAssertTrue(evidence.input.operatorConfirmationAccepted)
+        XCTAssertTrue(evidence.redactedOutputPrinted)
+        XCTAssertTrue(evidence.appendOnlyChecksummedEvidenceRequired)
+        XCTAssertTrue(evidence.noProductionFallback)
+        XCTAssertTrue(evidence.existingGuardedRuntimeRequired)
+        XCTAssertFalse(evidence.rawSecretPrinted)
+        XCTAssertFalse(evidence.rawCredentialPrinted)
+        XCTAssertFalse(evidence.rawOrderIdentityPrinted)
+        XCTAssertFalse(evidence.rawBrokerPayloadPrinted)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretAutoRead)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.brokerEndpointConnected)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertEqual(ReleaseV0150BinanceSpotTestnetCLIOperatorEvidence.requiredValidationAnchors, anchors)
+
+        for expectedLine in [
+            "issue=GH-1073",
+            "verificationAnchor=GH-1073-VERIFY-V0150-CLI-OPERATOR-FLOW",
+            "validationAnchor=TVM-RELEASE-V0150-CLI-OPERATOR-FLOW",
+            "action=cancel-replace",
+            "venueName=Binance",
+            "executionProductScope=Binance Spot Testnet",
+            "explicitTestnetMode=true",
+            "operatorConfirmationAccepted=true",
+            "redactedOutputPrinted=true",
+            "credentialReference=<redacted>",
+            "orderIdentity=<redacted>",
+            "rawSecretPrinted=false",
+            "rawCredentialPrinted=false",
+            "rawOrderIdentityPrinted=false",
+            "rawBrokerPayloadPrinted=false",
+            "noProductionFallback=true",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretAutoRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "boundaryHeld=true"
+        ] {
+            XCTAssertTrue(output.contains(expectedLine), "\(expectedLine) must stay in CLI output")
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.evidence(
+                arguments: arguments.filter { $0 != "--testnet" }
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.evidence(
+                arguments: [
+                    "testnet-execution",
+                    "--testnet",
+                    "--action",
+                    "submit",
+                    "--operator-confirm",
+                    "WRONG",
+                    "--intent-id",
+                    "gh1073-intent",
+                    "--network-event-log-id",
+                    "gh1073-network-event-log"
+                ]
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.evidence(
+                arguments: [
+                    "testnet-execution",
+                    "--production",
+                    "--action",
+                    "submit",
+                    "--operator-confirm",
+                    ReleaseV0150BinanceSpotTestnetCLIOperatorInput.requiredOperatorConfirmationPhrase,
+                    "--intent-id",
+                    "gh1073-intent",
+                    "--network-event-log-id",
+                    "gh1073-network-event-log"
+                ]
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetCLIOperatorEvidence(
+                evidenceID: evidence.evidenceID,
+                input: evidence.input,
+                redactedOutputPrinted: false
+            )
+        )
+
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be anchored in contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be anchored in readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be anchored in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be anchored in latest summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must be anchored in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must be anchored in trading matrix")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be anchored in verifier")
+        }
+
+        for requiredString in [
+            "ReleaseV0150BinanceSpotTestnetCLIOperatorFlow",
+            "ReleaseV0150BinanceSpotTestnetCLIOperatorInput",
+            "ReleaseV0150BinanceSpotTestnetCLIOperatorEvidence",
+            "cliCommand=testnet-execution",
+            "explicitTestnetModeRequired=true",
+            "operatorConfirmationRequired=true",
+            "redactedOutputPrinted=true",
+            "noProductionFallback=true",
+            "appendOnlyChecksummedEvidenceRequired=true",
+            "existingGuardedRuntimeRequired=true",
+            "rawSecretPrinted=false",
+            "rawCredentialPrinted=false",
+            "rawOrderIdentityPrinted=false",
+            "rawBrokerPayloadPrinted=false",
+            "productionOrderSubmitted=false"
+        ] {
+            XCTAssertTrue(source.contains(requiredString), "\(requiredString) must stay in source")
+            XCTAssertTrue(contract.contains(requiredString), "\(requiredString) must stay in contract")
+        }
+        XCTAssertTrue(cliSource.contains("ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.cliCommand"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-cli-operator-flow.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
