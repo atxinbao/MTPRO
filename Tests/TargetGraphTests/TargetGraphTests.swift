@@ -39375,6 +39375,214 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1060ReleaseV0141CodableDecodeValidationRejectsCorruptedV0140Evidence() throws {
+        // 测试场景：GH-1060 补强 v0.14 execution evidence / Dashboard read model 的 Codable decode 边界。
+        // 验证目的：外部 JSON 不能通过 boundaryHeld=true 注入、缺失 evidence ID 或 stage 顺序漂移
+        // 把损坏 payload 解码成可信证据；submit evidence 也必须在 decode 阶段重新 fail-closed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        func objectData(_ object: [String: Any]) throws -> Data {
+            try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+        }
+
+        func encodedObject<T: Encodable>(_ value: T) throws -> [String: Any] {
+            let data = try JSONEncoder().encode(value)
+            let object = try JSONSerialization.jsonObject(with: data, options: [])
+            return try XCTUnwrap(object as? [String: Any])
+        }
+
+        let dashboardSource = try read("Sources/Dashboard/Report/ReleaseV0140ReadOnlyExecutionDashboardSurface.swift")
+        let submitSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0140BinanceTestnetSubmitPath.swift")
+        let verifier = try read("checks/verify-v0.14.1-codable-decode-validation.sh")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        let decoder = JSONDecoder()
+        let surface = ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.deterministicFixture
+        let roundTrippedSurface = try decoder.decode(
+            ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.self,
+            from: JSONEncoder().encode(surface)
+        )
+        XCTAssertTrue(roundTrippedSurface.boundaryHeld)
+
+        var injectedSurface = try encodedObject(surface)
+        injectedSurface["boundaryHeld"] = true
+        injectedSurface["readOnly"] = false
+        XCTAssertThrowsError(
+            try decoder.decode(
+                ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.self,
+                from: objectData(injectedSurface)
+            )
+        )
+
+        var missingEvidenceSurface = try encodedObject(surface)
+        var logInput = try XCTUnwrap(missingEvidenceSurface["logInput"] as? [String: Any])
+        logInput["executionLogID"] = ""
+        missingEvidenceSurface["logInput"] = logInput
+        XCTAssertThrowsError(
+            try decoder.decode(
+                ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.self,
+                from: objectData(missingEvidenceSurface)
+            )
+        )
+
+        var wrongStageSurface = try encodedObject(surface)
+        var rows = try XCTUnwrap(wrongStageSurface["rows"] as? [[String: Any]])
+        rows[0]["stage"] = ReleaseV0140ReadOnlyExecutionDashboardStage.dashboardStatus.rawValue
+        wrongStageSurface["rows"] = rows
+        XCTAssertThrowsError(
+            try decoder.decode(
+                ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.self,
+                from: objectData(wrongStageSurface)
+            )
+        )
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let instrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let quantity = try Quantity(0.05, field: "gh1060.quantity")
+        let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let correlation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1060-correlation"),
+            strategySignalID: .constant("gh-1060-signal"),
+            sourceMessageID: .constant("gh-1060-message"),
+            strategyRunID: .constant("gh-1060-run"),
+            sourceSequence: 1060
+        )
+        let intent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: instrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation
+            ),
+            instrument: instrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_060)
+        )
+        let mapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: intent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let endpoint = try ReleaseV0140BinanceTestnetEndpointReference.fixture(productType: .spot)
+        let gate = try ReleaseV0140BinanceTestnetSubmitOperatorGate.fixture(correlation: correlation)
+        let request = try ReleaseV0140BinanceTestnetSubmitRequestEvidence(
+            requestID: ReleaseV0140BinanceTestnetSubmitRequestEvidence.deterministicID(
+                mappingID: mapping.mappingID,
+                productType: .spot,
+                sourceSequence: correlation.sourceSequence
+            ),
+            intent: intent,
+            mapping: mapping,
+            endpoint: endpoint,
+            operatorGate: gate
+        )
+        let result = try ExecutionContractSubmissionResult(
+            resultID: ExecutionContractSubmissionResult.deterministicID(
+                mappingID: mapping.mappingID,
+                state: mapping.targetLifecycleState
+            ),
+            mapping: mapping
+        )
+        let acknowledgement = try ExecutionContractAcknowledgement(
+            acknowledgementID: ExecutionContractAcknowledgement.deterministicID(resultID: result.resultID),
+            result: result
+        )
+        let response = try ReleaseV0140BinanceTestnetSubmitResponseEvidence(
+            responseID: ReleaseV0140BinanceTestnetSubmitResponseEvidence.deterministicID(
+                requestID: request.requestID,
+                resultID: result.resultID,
+                acknowledgementID: acknowledgement.acknowledgementID
+            ),
+            request: request,
+            result: result,
+            acknowledgement: acknowledgement
+        )
+        let path = try ReleaseV0140BinanceTestnetSubmitPath(
+            pathID: ReleaseV0140BinanceTestnetSubmitPath.deterministicID(
+                requestID: request.requestID,
+                responseID: response.responseID
+            ),
+            boundary: try ReleaseV0140BinanceTestnetAdapterBoundary(),
+            operatorGate: gate,
+            request: request,
+            result: result,
+            acknowledgement: acknowledgement,
+            response: response
+        )
+        XCTAssertTrue(try decoder.decode(
+            ReleaseV0140BinanceTestnetSubmitPath.self,
+            from: JSONEncoder().encode(path)
+        ).boundaryHeld)
+
+        var missingRequestID = try encodedObject(request)
+        missingRequestID["requestID"] = ""
+        XCTAssertThrowsError(
+            try decoder.decode(
+                ReleaseV0140BinanceTestnetSubmitRequestEvidence.self,
+                from: objectData(missingRequestID)
+            )
+        )
+
+        var corruptedResponse = try encodedObject(response)
+        corruptedResponse["networkSubmitPerformed"] = true
+        XCTAssertThrowsError(
+            try decoder.decode(
+                ReleaseV0140BinanceTestnetSubmitResponseEvidence.self,
+                from: objectData(corruptedResponse)
+            )
+        )
+
+        var corruptedPath = try encodedObject(path)
+        corruptedPath["networkSubmitPerformed"] = true
+        XCTAssertThrowsError(
+            try decoder.decode(
+                ReleaseV0140BinanceTestnetSubmitPath.self,
+                from: objectData(corruptedPath)
+            )
+        )
+
+        for anchor in [
+            "GH-1060-VERIFY-V0141-CODABLE-DECODE-VALIDATION",
+            "TVM-RELEASE-V0141-CODABLE-DECODE-VALIDATION",
+            "V0141-002-CODABLE-DECODE-VALIDATION",
+            "V0141-002-BOUNDARYHELD-COMPUTED",
+            "V0141-002-CORRUPTED-JSON-FAILS-CLOSED",
+            "V0141-002-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in GH-1060 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+        }
+
+        XCTAssertTrue(dashboardSource.contains("public var boundaryHeld: Bool"))
+        XCTAssertTrue(dashboardSource.contains("decodeIfPresent(Bool.self, forKey: .boundaryHeld)"))
+        XCTAssertTrue(submitSource.contains("public init(from decoder: Decoder) throws"))
+        XCTAssertTrue(verifier.contains("testGH1060ReleaseV0141CodableDecodeValidationRejectsCorruptedV0140Evidence"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.1-codable-decode-validation.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

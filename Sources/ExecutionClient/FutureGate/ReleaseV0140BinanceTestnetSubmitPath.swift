@@ -151,6 +151,33 @@ public struct ReleaseV0140BinanceTestnetSubmitRequestEvidence: Codable, Equatabl
     public let productionEndpointConnected: Bool
     public let productionCutoverAuthorized: Bool
 
+    private enum CodingKeys: String, CodingKey {
+        case requestID
+        case mappingID
+        case intentID
+        case strategyRunID
+        case sourceSequence
+        case productType
+        case symbol
+        case side
+        case quantityText
+        case timeInForce
+        case endpointHost
+        case endpointPath
+        case operatorGateID
+        case explicitTestnetMode
+        case testnetOnly
+        case testnetSubmitEvidenceAllowed
+        case requestBodyRedacted
+        case credentialMaterialRedacted
+        case networkSubmitPerformed
+        case cancelReplaceIncluded
+        case productionTradingEnabledByDefault
+        case productionSecretRead
+        case productionEndpointConnected
+        case productionCutoverAuthorized
+    }
+
     public init(
         requestID: Identifier,
         intent: OrderIntent,
@@ -266,6 +293,38 @@ public struct ReleaseV0140BinanceTestnetSubmitRequestEvidence: Codable, Equatabl
         self.productionCutoverAuthorized = productionCutoverAuthorized
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.requestID = try container.decode(Identifier.self, forKey: .requestID)
+        self.mappingID = try container.decode(Identifier.self, forKey: .mappingID)
+        self.intentID = try container.decode(Identifier.self, forKey: .intentID)
+        self.strategyRunID = try container.decode(Identifier.self, forKey: .strategyRunID)
+        self.sourceSequence = try container.decode(Int.self, forKey: .sourceSequence)
+        self.productType = try container.decode(ProductType.self, forKey: .productType)
+        self.symbol = try container.decode(Symbol.self, forKey: .symbol)
+        self.side = try container.decode(OrderIntentSide.self, forKey: .side)
+        self.quantityText = try container.decode(String.self, forKey: .quantityText)
+        self.timeInForce = try container.decode(OrderIntentTimeInForce.self, forKey: .timeInForce)
+        self.endpointHost = try container.decode(String.self, forKey: .endpointHost)
+        self.endpointPath = try container.decode(String.self, forKey: .endpointPath)
+        self.operatorGateID = try container.decode(Identifier.self, forKey: .operatorGateID)
+        self.explicitTestnetMode = try container.decode(Bool.self, forKey: .explicitTestnetMode)
+        self.testnetOnly = try container.decode(Bool.self, forKey: .testnetOnly)
+        self.testnetSubmitEvidenceAllowed = try container.decode(Bool.self, forKey: .testnetSubmitEvidenceAllowed)
+        self.requestBodyRedacted = try container.decode(Bool.self, forKey: .requestBodyRedacted)
+        self.credentialMaterialRedacted = try container.decode(Bool.self, forKey: .credentialMaterialRedacted)
+        self.networkSubmitPerformed = try container.decode(Bool.self, forKey: .networkSubmitPerformed)
+        self.cancelReplaceIncluded = try container.decode(Bool.self, forKey: .cancelReplaceIncluded)
+        self.productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        self.productionSecretRead = try container.decode(Bool.self, forKey: .productionSecretRead)
+        self.productionEndpointConnected = try container.decode(Bool.self, forKey: .productionEndpointConnected)
+        self.productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+
+        try Self.validateDecoded(sourceSequence > 0, field: "sourceSequence")
+        try Self.validateDecoded(quantityText.isEmpty == false, field: "quantityText")
+        try Self.validateDecoded(boundaryHeld, field: "boundaryHeld")
+    }
+
     public var boundaryHeld: Bool {
         explicitTestnetMode
             && testnetOnly
@@ -311,6 +370,16 @@ public struct ReleaseV0140BinanceTestnetSubmitRequestEvidence: Codable, Equatabl
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0140BinanceTestnetSubmit.requestEvidence.\(field)")
         }
     }
+
+    private static func validateDecoded(_ condition: Bool, field: String) throws {
+        guard condition else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0140BinanceTestnetSubmit.requestEvidence.decode.\(field)",
+                expected: "boundary-held decoded evidence",
+                actual: "invalid decoded payload"
+            )
+        }
+    }
 }
 
 /// ReleaseV0140BinanceTestnetSubmitResponseEvidence 记录 GH-1029 submit response 的脱敏证据。
@@ -333,6 +402,23 @@ public struct ReleaseV0140BinanceTestnetSubmitResponseEvidence: Codable, Equatab
     public let productionSecretRead: Bool
     public let productionEndpointConnected: Bool
     public let productionCutoverAuthorized: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case responseID
+        case requestID
+        case mappingID
+        case resultID
+        case acknowledgementID
+        case lifecycleState
+        case acceptedByAdapter
+        case exchangeOrderIDRedacted
+        case responseBodyRedacted
+        case networkSubmitPerformed
+        case productionTradingEnabledByDefault
+        case productionSecretRead
+        case productionEndpointConnected
+        case productionCutoverAuthorized
+    }
 
     public init(
         responseID: Identifier,
@@ -415,6 +501,26 @@ public struct ReleaseV0140BinanceTestnetSubmitResponseEvidence: Codable, Equatab
         self.productionCutoverAuthorized = productionCutoverAuthorized
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.responseID = try container.decode(Identifier.self, forKey: .responseID)
+        self.requestID = try container.decode(Identifier.self, forKey: .requestID)
+        self.mappingID = try container.decode(Identifier.self, forKey: .mappingID)
+        self.resultID = try container.decode(Identifier.self, forKey: .resultID)
+        self.acknowledgementID = try container.decode(Identifier.self, forKey: .acknowledgementID)
+        self.lifecycleState = try container.decode(OrderLifecycleState.self, forKey: .lifecycleState)
+        self.acceptedByAdapter = try container.decode(Bool.self, forKey: .acceptedByAdapter)
+        self.exchangeOrderIDRedacted = try container.decode(Bool.self, forKey: .exchangeOrderIDRedacted)
+        self.responseBodyRedacted = try container.decode(Bool.self, forKey: .responseBodyRedacted)
+        self.networkSubmitPerformed = try container.decode(Bool.self, forKey: .networkSubmitPerformed)
+        self.productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        self.productionSecretRead = try container.decode(Bool.self, forKey: .productionSecretRead)
+        self.productionEndpointConnected = try container.decode(Bool.self, forKey: .productionEndpointConnected)
+        self.productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+
+        try Self.validateDecoded(boundaryHeld, field: "boundaryHeld")
+    }
+
     public var boundaryHeld: Bool {
         lifecycleState == .accepted
             && acceptedByAdapter
@@ -443,6 +549,16 @@ public struct ReleaseV0140BinanceTestnetSubmitResponseEvidence: Codable, Equatab
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0140BinanceTestnetSubmit.responseEvidence.\(field)")
         }
     }
+
+    private static func validateDecoded(_ condition: Bool, field: String) throws {
+        guard condition else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0140BinanceTestnetSubmit.responseEvidence.decode.\(field)",
+                expected: "boundary-held decoded evidence",
+                actual: "invalid decoded payload"
+            )
+        }
+    }
 }
 
 /// ReleaseV0140BinanceTestnetSubmitPath 汇总 GH-1029 submit path 的可审计证据链。
@@ -466,6 +582,25 @@ public struct ReleaseV0140BinanceTestnetSubmitPath: Codable, Equatable, Sendable
     public let productionEndpointConnected: Bool
     public let productionCutoverAuthorized: Bool
     public let validationAnchors: [String]
+
+    private enum CodingKeys: String, CodingKey {
+        case pathID
+        case boundaryID
+        case operatorGateID
+        case requestID
+        case responseID
+        case resultID
+        case acknowledgementID
+        case testnetSubmitPathAllowed
+        case testnetSubmitEvidenceOnly
+        case networkSubmitPerformed
+        case cancelReplaceIncluded
+        case productionTradingEnabledByDefault
+        case productionSecretRead
+        case productionEndpointConnected
+        case productionCutoverAuthorized
+        case validationAnchors
+    }
 
     public init(
         pathID: Identifier,
@@ -555,6 +690,28 @@ public struct ReleaseV0140BinanceTestnetSubmitPath: Codable, Equatable, Sendable
         self.validationAnchors = validationAnchors
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.pathID = try container.decode(Identifier.self, forKey: .pathID)
+        self.boundaryID = try container.decode(Identifier.self, forKey: .boundaryID)
+        self.operatorGateID = try container.decode(Identifier.self, forKey: .operatorGateID)
+        self.requestID = try container.decode(Identifier.self, forKey: .requestID)
+        self.responseID = try container.decode(Identifier.self, forKey: .responseID)
+        self.resultID = try container.decode(Identifier.self, forKey: .resultID)
+        self.acknowledgementID = try container.decode(Identifier.self, forKey: .acknowledgementID)
+        self.testnetSubmitPathAllowed = try container.decode(Bool.self, forKey: .testnetSubmitPathAllowed)
+        self.testnetSubmitEvidenceOnly = try container.decode(Bool.self, forKey: .testnetSubmitEvidenceOnly)
+        self.networkSubmitPerformed = try container.decode(Bool.self, forKey: .networkSubmitPerformed)
+        self.cancelReplaceIncluded = try container.decode(Bool.self, forKey: .cancelReplaceIncluded)
+        self.productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        self.productionSecretRead = try container.decode(Bool.self, forKey: .productionSecretRead)
+        self.productionEndpointConnected = try container.decode(Bool.self, forKey: .productionEndpointConnected)
+        self.productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+        self.validationAnchors = try container.decode([String].self, forKey: .validationAnchors)
+
+        try Self.validateDecoded(boundaryHeld, field: "boundaryHeld")
+    }
+
     public var boundaryHeld: Bool {
         testnetSubmitPathAllowed
             && testnetSubmitEvidenceOnly
@@ -584,6 +741,16 @@ public struct ReleaseV0140BinanceTestnetSubmitPath: Codable, Equatable, Sendable
     private static func forbid(_ value: Bool, _ field: String) throws {
         guard value == false else {
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0140BinanceTestnetSubmit.path.\(field)")
+        }
+    }
+
+    private static func validateDecoded(_ condition: Bool, field: String) throws {
+        guard condition else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0140BinanceTestnetSubmit.path.decode.\(field)",
+                expected: "boundary-held decoded evidence",
+                actual: "invalid decoded payload"
+            )
         }
     }
 }

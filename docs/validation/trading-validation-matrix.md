@@ -6,6 +6,20 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0141-CODABLE-DECODE-VALIDATION
+
+- TVM-RELEASE-V0141-CODABLE-DECODE-VALIDATION
+- GH-1060-VERIFY-V0141-CODABLE-DECODE-VALIDATION
+- V0141-002-CODABLE-DECODE-VALIDATION
+- V0141-002-BOUNDARYHELD-COMPUTED
+- V0141-002-CORRUPTED-JSON-FAILS-CLOSED
+- V0141-002-NO-PRODUCTION-CUTOVER
+- GH-1060 Release v0.14.1 Codable Decode Validation
+- `bash checks/verify-v0.14.1-codable-decode-validation.sh`
+- `swift test --filter TargetGraphTests/testGH1060ReleaseV0141CodableDecodeValidationRejectsCorruptedV0140Evidence`
+- Evidence files: `Sources/Dashboard/Report/ReleaseV0140ReadOnlyExecutionDashboardSurface.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0140BinanceTestnetSubmitPath.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`checks/run.sh`、`checks/verify-v0.14.1-codable-decode-validation.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-1060 只固定 v0.14.x local execution evidence / read-model decode validation。Dashboard `boundaryHeld` 不再信任外部字段注入，submit evidence decode 重新验证 network-submit / production-disabled facts，corrupted JSON 必须 fail closed；不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0141-RELEASE-CI-DASHBOARD-EVIDENCE
 
 - TVM-RELEASE-V0141-RELEASE-CI-DASHBOARD-EVIDENCE

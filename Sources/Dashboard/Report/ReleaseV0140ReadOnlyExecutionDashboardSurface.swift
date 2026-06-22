@@ -52,6 +52,29 @@ public struct ReleaseV0140ReadOnlyExecutionDashboardLogInput:
     public let independentlyInspectable: Bool
     public let readOptimized: Bool
 
+    private enum CodingKeys: String, CodingKey {
+        case sourceEvidenceType
+        case runID
+        case executionLogID
+        case sourcePipelineReportID
+        case sourceOrderEventStreamID
+        case sourceReconciliationReportID
+        case entryCount
+        case orderIntentIDs
+        case localOrderIDs
+        case riskDecisionIDs
+        case adapterEvidenceIDs
+        case omsStoreIDs
+        case stateSnapshotIDs
+        case reconciliationReportIDs
+        case productTypes
+        case strategyScopeLabels
+        case redactedEvidenceOnly
+        case testnetEvidenceOnly
+        case independentlyInspectable
+        case readOptimized
+    }
+
     public var inputHeld: Bool {
         sourceEvidenceType == "ReleaseV0140ExecutionEventLogReport"
             && runID.isEmpty == false
@@ -118,6 +141,44 @@ public struct ReleaseV0140ReadOnlyExecutionDashboardLogInput:
         self.independentlyInspectable = independentlyInspectable
         self.readOptimized = readOptimized
     }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            sourceEvidenceType: try container.decode(String.self, forKey: .sourceEvidenceType),
+            runID: try container.decode(String.self, forKey: .runID),
+            executionLogID: try container.decode(String.self, forKey: .executionLogID),
+            sourcePipelineReportID: try container.decode(String.self, forKey: .sourcePipelineReportID),
+            sourceOrderEventStreamID: try container.decode(String.self, forKey: .sourceOrderEventStreamID),
+            sourceReconciliationReportID: try container.decode(String.self, forKey: .sourceReconciliationReportID),
+            entryCount: try container.decode(Int.self, forKey: .entryCount),
+            orderIntentIDs: try container.decode([String].self, forKey: .orderIntentIDs),
+            localOrderIDs: try container.decode([String].self, forKey: .localOrderIDs),
+            riskDecisionIDs: try container.decode([String].self, forKey: .riskDecisionIDs),
+            adapterEvidenceIDs: try container.decode([String].self, forKey: .adapterEvidenceIDs),
+            omsStoreIDs: try container.decode([String].self, forKey: .omsStoreIDs),
+            stateSnapshotIDs: try container.decode([String].self, forKey: .stateSnapshotIDs),
+            reconciliationReportIDs: try container.decode([String].self, forKey: .reconciliationReportIDs),
+            productTypes: try container.decode([String].self, forKey: .productTypes),
+            strategyScopeLabels: try container.decode([String].self, forKey: .strategyScopeLabels),
+            redactedEvidenceOnly: try container.decode(Bool.self, forKey: .redactedEvidenceOnly),
+            testnetEvidenceOnly: try container.decode(Bool.self, forKey: .testnetEvidenceOnly),
+            independentlyInspectable: try container.decode(Bool.self, forKey: .independentlyInspectable),
+            readOptimized: try container.decode(Bool.self, forKey: .readOptimized)
+        )
+        try Self.requireDecodedBoundary(inputHeld, field: "inputHeld", codingPath: decoder.codingPath)
+    }
+
+    private static func requireDecodedBoundary(_ condition: Bool, field: String, codingPath: [CodingKey]) throws {
+        guard condition else {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "ReleaseV0140ReadOnlyExecutionDashboardLogInput decode validation failed: \(field)"
+                )
+            )
+        }
+    }
 }
 
 /// ReleaseV0140ReadOnlyExecutionDashboardRow 是 GH-1041 Dashboard 的单行执行状态。
@@ -140,6 +201,20 @@ public struct ReleaseV0140ReadOnlyExecutionDashboardRow:
     public let tradingButtonVisible: Bool
     public let orderFormVisible: Bool
     public let submitCancelReplaceEnabled: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case stage
+        case status
+        case sourceEvidenceID
+        case summary
+        case sequence
+        case visibleInDashboard
+        case readOnly
+        case commandHandlerBound
+        case tradingButtonVisible
+        case orderFormVisible
+        case submitCancelReplaceEnabled
+    }
 
     public var rowHeld: Bool {
         sequence > 0
@@ -178,6 +253,35 @@ public struct ReleaseV0140ReadOnlyExecutionDashboardRow:
         self.tradingButtonVisible = tradingButtonVisible
         self.orderFormVisible = orderFormVisible
         self.submitCancelReplaceEnabled = submitCancelReplaceEnabled
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            stage: try container.decode(ReleaseV0140ReadOnlyExecutionDashboardStage.self, forKey: .stage),
+            sourceEvidenceID: try container.decode(String.self, forKey: .sourceEvidenceID),
+            summary: try container.decode(String.self, forKey: .summary),
+            sequence: try container.decode(Int.self, forKey: .sequence),
+            status: try container.decode(String.self, forKey: .status),
+            visibleInDashboard: try container.decode(Bool.self, forKey: .visibleInDashboard),
+            readOnly: try container.decode(Bool.self, forKey: .readOnly),
+            commandHandlerBound: try container.decode(Bool.self, forKey: .commandHandlerBound),
+            tradingButtonVisible: try container.decode(Bool.self, forKey: .tradingButtonVisible),
+            orderFormVisible: try container.decode(Bool.self, forKey: .orderFormVisible),
+            submitCancelReplaceEnabled: try container.decode(Bool.self, forKey: .submitCancelReplaceEnabled)
+        )
+        try Self.requireDecodedBoundary(rowHeld, field: "rowHeld", codingPath: decoder.codingPath)
+    }
+
+    private static func requireDecodedBoundary(_ condition: Bool, field: String, codingPath: [CodingKey]) throws {
+        guard condition else {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "ReleaseV0140ReadOnlyExecutionDashboardRow decode validation failed: \(field)"
+                )
+            )
+        }
     }
 }
 
@@ -218,7 +322,63 @@ public struct ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel:
     public let brokerEndpointConnected: Bool
     public let productionSubmitCancelReplaceEnabled: Bool
     public let productionCutoverAuthorized: Bool
-    public let boundaryHeld: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case issueID
+        case upstreamIssueIDs
+        case previousIssueID
+        case releaseVersion
+        case source
+        case validationAnchors
+        case requiredValidationCommands
+        case logInput
+        case rows
+        case closedLoopStagesVisible
+        case orderLifecycleVisible
+        case reconciliationVisible
+        case eventLogEvidenceVisible
+        case readOnly
+        case dashboardDependsOnExecutionEngineTarget
+        case dashboardCommandSurfaceEnabled
+        case tradingButtonVisible
+        case orderFormVisible
+        case liveCommandVisible
+        case submitCancelReplaceEnabled
+        case productionTradingEnabledByDefault
+        case productionSecretRead
+        case productionEndpointConnected
+        case brokerEndpointConnected
+        case productionSubmitCancelReplaceEnabled
+        case productionCutoverAuthorized
+        case boundaryHeld
+    }
+
+    public var boundaryHeld: Bool {
+        source.isReadModelOnly
+            && validationAnchors == Self.requiredValidationAnchors
+            && requiredValidationCommands == Self.requiredValidationCommands
+            && logInput.inputHeld
+            && rows.map(\.stage) == ReleaseV0140ReadOnlyExecutionDashboardStage.allCases
+            && rows.map(\.sequence) == Array(1...ReleaseV0140ReadOnlyExecutionDashboardStage.allCases.count)
+            && rows.allSatisfy(\.rowHeld)
+            && closedLoopStagesVisible
+            && orderLifecycleVisible
+            && reconciliationVisible
+            && eventLogEvidenceVisible
+            && readOnly
+            && dashboardDependsOnExecutionEngineTarget == false
+            && dashboardCommandSurfaceEnabled == false
+            && tradingButtonVisible == false
+            && orderFormVisible == false
+            && liveCommandVisible == false
+            && submitCancelReplaceEnabled == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionSubmitCancelReplaceEnabled == false
+            && productionCutoverAuthorized == false
+    }
 
     public var visibleRowCount: Int {
         rows.count
@@ -319,30 +479,91 @@ public struct ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel:
         self.brokerEndpointConnected = brokerEndpointConnected
         self.productionSubmitCancelReplaceEnabled = productionSubmitCancelReplaceEnabled
         self.productionCutoverAuthorized = productionCutoverAuthorized
-        self.boundaryHeld = source.isReadModelOnly
-            && validationAnchors == Self.requiredValidationAnchors
-            && requiredValidationCommands == Self.requiredValidationCommands
-            && logInput.inputHeld
-            && rows.map(\.stage) == ReleaseV0140ReadOnlyExecutionDashboardStage.allCases
-            && rows.map(\.sequence) == Array(1...ReleaseV0140ReadOnlyExecutionDashboardStage.allCases.count)
-            && rows.allSatisfy(\.rowHeld)
-            && closedLoopStagesVisible
-            && orderLifecycleVisible
-            && reconciliationVisible
-            && eventLogEvidenceVisible
-            && readOnly
-            && dashboardDependsOnExecutionEngineTarget == false
-            && dashboardCommandSurfaceEnabled == false
-            && tradingButtonVisible == false
-            && orderFormVisible == false
-            && liveCommandVisible == false
-            && submitCancelReplaceEnabled == false
-            && productionTradingEnabledByDefault == false
-            && productionSecretRead == false
-            && productionEndpointConnected == false
-            && brokerEndpointConnected == false
-            && productionSubmitCancelReplaceEnabled == false
-            && productionCutoverAuthorized == false
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let decodedBoundaryHeld = try container.decodeIfPresent(Bool.self, forKey: .boundaryHeld)
+        self.init(
+            issueID: try container.decode(String.self, forKey: .issueID),
+            upstreamIssueIDs: try container.decode([String].self, forKey: .upstreamIssueIDs),
+            previousIssueID: try container.decode(String.self, forKey: .previousIssueID),
+            releaseVersion: try container.decode(String.self, forKey: .releaseVersion),
+            source: try container.decode(ViewModelSourceContract.self, forKey: .source),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors),
+            requiredValidationCommands: try container.decode([String].self, forKey: .requiredValidationCommands),
+            logInput: try container.decode(ReleaseV0140ReadOnlyExecutionDashboardLogInput.self, forKey: .logInput),
+            rows: try container.decode([ReleaseV0140ReadOnlyExecutionDashboardRow].self, forKey: .rows),
+            closedLoopStagesVisible: try container.decode(Bool.self, forKey: .closedLoopStagesVisible),
+            orderLifecycleVisible: try container.decode(Bool.self, forKey: .orderLifecycleVisible),
+            reconciliationVisible: try container.decode(Bool.self, forKey: .reconciliationVisible),
+            eventLogEvidenceVisible: try container.decode(Bool.self, forKey: .eventLogEvidenceVisible),
+            readOnly: try container.decode(Bool.self, forKey: .readOnly),
+            dashboardDependsOnExecutionEngineTarget: try container.decode(
+                Bool.self,
+                forKey: .dashboardDependsOnExecutionEngineTarget
+            ),
+            dashboardCommandSurfaceEnabled: try container.decode(Bool.self, forKey: .dashboardCommandSurfaceEnabled),
+            tradingButtonVisible: try container.decode(Bool.self, forKey: .tradingButtonVisible),
+            orderFormVisible: try container.decode(Bool.self, forKey: .orderFormVisible),
+            liveCommandVisible: try container.decode(Bool.self, forKey: .liveCommandVisible),
+            submitCancelReplaceEnabled: try container.decode(Bool.self, forKey: .submitCancelReplaceEnabled),
+            productionTradingEnabledByDefault: try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault),
+            productionSecretRead: try container.decode(Bool.self, forKey: .productionSecretRead),
+            productionEndpointConnected: try container.decode(Bool.self, forKey: .productionEndpointConnected),
+            brokerEndpointConnected: try container.decode(Bool.self, forKey: .brokerEndpointConnected),
+            productionSubmitCancelReplaceEnabled: try container.decode(
+                Bool.self,
+                forKey: .productionSubmitCancelReplaceEnabled
+            ),
+            productionCutoverAuthorized: try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+        )
+        try Self.requireDecodedBoundary(boundaryHeld, field: "boundaryHeld", codingPath: decoder.codingPath)
+        if let decodedBoundaryHeld, decodedBoundaryHeld != boundaryHeld {
+            try Self.requireDecodedBoundary(false, field: "boundaryHeld payload mismatch", codingPath: decoder.codingPath)
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(issueID, forKey: .issueID)
+        try container.encode(upstreamIssueIDs, forKey: .upstreamIssueIDs)
+        try container.encode(previousIssueID, forKey: .previousIssueID)
+        try container.encode(releaseVersion, forKey: .releaseVersion)
+        try container.encode(source, forKey: .source)
+        try container.encode(validationAnchors, forKey: .validationAnchors)
+        try container.encode(requiredValidationCommands, forKey: .requiredValidationCommands)
+        try container.encode(logInput, forKey: .logInput)
+        try container.encode(rows, forKey: .rows)
+        try container.encode(closedLoopStagesVisible, forKey: .closedLoopStagesVisible)
+        try container.encode(orderLifecycleVisible, forKey: .orderLifecycleVisible)
+        try container.encode(reconciliationVisible, forKey: .reconciliationVisible)
+        try container.encode(eventLogEvidenceVisible, forKey: .eventLogEvidenceVisible)
+        try container.encode(readOnly, forKey: .readOnly)
+        try container.encode(dashboardDependsOnExecutionEngineTarget, forKey: .dashboardDependsOnExecutionEngineTarget)
+        try container.encode(dashboardCommandSurfaceEnabled, forKey: .dashboardCommandSurfaceEnabled)
+        try container.encode(tradingButtonVisible, forKey: .tradingButtonVisible)
+        try container.encode(orderFormVisible, forKey: .orderFormVisible)
+        try container.encode(liveCommandVisible, forKey: .liveCommandVisible)
+        try container.encode(submitCancelReplaceEnabled, forKey: .submitCancelReplaceEnabled)
+        try container.encode(productionTradingEnabledByDefault, forKey: .productionTradingEnabledByDefault)
+        try container.encode(productionSecretRead, forKey: .productionSecretRead)
+        try container.encode(productionEndpointConnected, forKey: .productionEndpointConnected)
+        try container.encode(brokerEndpointConnected, forKey: .brokerEndpointConnected)
+        try container.encode(productionSubmitCancelReplaceEnabled, forKey: .productionSubmitCancelReplaceEnabled)
+        try container.encode(productionCutoverAuthorized, forKey: .productionCutoverAuthorized)
+        try container.encode(boundaryHeld, forKey: .boundaryHeld)
+    }
+
+    private static func requireDecodedBoundary(_ condition: Bool, field: String, codingPath: [CodingKey]) throws {
+        guard condition else {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel decode validation failed: \(field)"
+                )
+            )
+        }
     }
 
     public static var deterministicFixture: ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel {

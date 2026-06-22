@@ -6,6 +6,19 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1060 Release v0.14.1 Codable Decode Validation
+
+- `GH-1060-VERIFY-V0141-CODABLE-DECODE-VALIDATION`
+- `TVM-RELEASE-V0141-CODABLE-DECODE-VALIDATION`
+- `V0141-002-CODABLE-DECODE-VALIDATION`
+- `V0141-002-BOUNDARYHELD-COMPUTED`
+- `V0141-002-CORRUPTED-JSON-FAILS-CLOSED`
+- `V0141-002-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.14.1-codable-decode-validation.sh`
+- Focused test: `testGH1060ReleaseV0141CodableDecodeValidationRejectsCorruptedV0140Evidence`
+- Evidence files: `Sources/Dashboard/Report/ReleaseV0140ReadOnlyExecutionDashboardSurface.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0140BinanceTestnetSubmitPath.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`checks/verify-v0.14.1-codable-decode-validation.sh`、`checks/run.sh`、`docs/automation/automation-readiness.md`、`docs/validation/trading-validation-matrix.md` 和 `docs/validation/latest-verification-summary.md`。
+- Boundary: GH-1060 只补强 v0.14.x local execution evidence / Dashboard read model 的 Codable decode fail-closed 语义；`boundaryHeld` 必须由已验证字段重新计算，损坏 JSON、缺失 evidence ID、错误 stage mapping 或 network submit flag 注入必须 decode 失败；不新增 runtime pipeline，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，也不推进 v0.15.0。
+
 ## GH-1059 Release v0.14.1 Release CI / Dashboard Evidence Validation
 
 - `GH-1059-VERIFY-V0141-RELEASE-CI-DASHBOARD-EVIDENCE`
