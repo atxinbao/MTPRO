@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0150-OMS-STATE-SYNC-RECONCILIATION
+
+- TVM-RELEASE-V0150-OMS-STATE-SYNC-RECONCILIATION
+- GH-1072-VERIFY-V0150-OMS-STATE-SYNC-RECONCILIATION
+- V0150-007-CONSUMES-NETWORK-EVENT-LOG
+- V0150-007-OMS-STATE-SYNC-FROM-APPEND-ONLY-EVIDENCE
+- V0150-007-EXPECTED-OBSERVED-RECONCILIATION
+- V0150-007-MISMATCH-FAIL-CLOSED
+- V0150-007-SUBMIT-CANCEL-CANCEL-REPLACE-COVERAGE
+- V0150-007-NO-PRODUCTION-CUTOVER
+- GH-1072 Release v0.15.0 OMS State Sync + Reconciliation
+- `bash checks/verify-v0.15.0-oms-state-sync-reconciliation.sh`
+- `swift test --filter TargetGraphTests/testGH1072ReleaseV0150OMSStateReconciliationConsumesNetworkEventLog`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetOMSStateReconciliation.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift`、`docs/contracts/release-v0.15.0-oms-state-sync-reconciliation-contract.md`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.15.0-oms-state-sync-reconciliation.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-1072 允许且只允许从 #1071 append-only network event log 生成本地 OMS state snapshot 和 expected / observed reconciliation evidence。`derivedFromNetworkEventLogOnly=true`，`appendOnlyNetworkExecutionEventLog=true`，`expectedObservedReconciliation=true`，`mismatchesFailClosed=true`，`submitCancelCancelReplaceCoverage=true`；`rawBrokerPayloadIncluded=false`，`brokerFillIncluded=false`，`productionTradingEnabledByDefault=false`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`；不授权新 network action、production cutover、production order、broker fill 或 Dashboard command surface。
+
 ## TVM-RELEASE-V0150-REAL-SPOT-TESTNET-CANCEL-REPLACE
 
 - TVM-RELEASE-V0150-REAL-SPOT-TESTNET-CANCEL-REPLACE

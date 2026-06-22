@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1072 Release v0.15.0 OMS State Sync + Reconciliation
+
+- `GH-1072-VERIFY-V0150-OMS-STATE-SYNC-RECONCILIATION`
+- `TVM-RELEASE-V0150-OMS-STATE-SYNC-RECONCILIATION`
+- `V0150-007-CONSUMES-NETWORK-EVENT-LOG`
+- `V0150-007-OMS-STATE-SYNC-FROM-APPEND-ONLY-EVIDENCE`
+- `V0150-007-EXPECTED-OBSERVED-RECONCILIATION`
+- `V0150-007-MISMATCH-FAIL-CLOSED`
+- `V0150-007-SUBMIT-CANCEL-CANCEL-REPLACE-COVERAGE`
+- `V0150-007-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.0-oms-state-sync-reconciliation.sh`
+- Focused test: `testGH1072ReleaseV0150OMSStateReconciliationConsumesNetworkEventLog`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetOMSStateReconciliation.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift`、`docs/contracts/release-v0.15.0-oms-state-sync-reconciliation-contract.md`、`checks/verify-v0.15.0-oms-state-sync-reconciliation.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1072 只允许从 #1071 append-only network execution event log 推导本地 OMS state snapshot 和 expected / observed reconciliation report。`derivedFromNetworkEventLogOnly=true`，`appendOnlyNetworkExecutionEventLog=true`，`expectedObservedReconciliation=true`，`mismatchesFailClosed=true`，`submitCancelCancelReplaceCoverage=true`；raw broker payload、broker fill、new network action、production endpoint、broker endpoint、production secret、production order 和 production cutover 全部保持关闭。
+
 ## GH-1070 Release v0.15.0 Real Spot Testnet Cancel-Replace Runtime
 
 - `GH-1070-VERIFY-V0150-REAL-SPOT-TESTNET-CANCEL-REPLACE-RUNTIME`

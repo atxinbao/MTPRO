@@ -41202,6 +41202,243 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertThrowsError(try result.appendedNetworkEventLog.appending(badEvent))
     }
 
+    func testGH1072ReleaseV0150OMSStateReconciliationConsumesNetworkEventLog() throws {
+        // 测试场景：GH-1072 从 v0.15.0 append-only network event log 同步本地 OMS state。
+        // 验证目的：submit / cancel / cancel-replace 的 expected / observed reconciliation 可审计，
+        // mismatch 必须进入 fail-closed report，不能静默通过。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetOMSStateReconciliation.swift")
+        let eventLogSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift")
+        let contract = try read("docs/contracts/release-v0.15.0-oms-state-sync-reconciliation-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.15.0-oms-state-sync-reconciliation.sh")
+        let runScript = try read("checks/run.sh")
+        let anchors = [
+            "GH-1072-VERIFY-V0150-OMS-STATE-SYNC-RECONCILIATION",
+            "TVM-RELEASE-V0150-OMS-STATE-SYNC-RECONCILIATION",
+            "V0150-007-CONSUMES-NETWORK-EVENT-LOG",
+            "V0150-007-OMS-STATE-SYNC-FROM-APPEND-ONLY-EVIDENCE",
+            "V0150-007-EXPECTED-OBSERVED-RECONCILIATION",
+            "V0150-007-MISMATCH-FAIL-CLOSED",
+            "V0150-007-SUBMIT-CANCEL-CANCEL-REPLACE-COVERAGE",
+            "V0150-007-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let intentID: Identifier = .constant("gh-1072-intent")
+        let credentialReferenceID: Identifier = .constant("gh-1072-credential-reference")
+
+        func makeEvent(
+            sequence: Int,
+            actionKind: ReleaseV0150BinanceSpotTestnetNetworkExecutionActionKind,
+            lifecycleState: OrderLifecycleState,
+            previousArtifactChecksum: String?
+        ) throws -> ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact {
+            let actionEvidenceID: Identifier = .constant("gh-1072-\(actionKind.rawValue)-runtime-evidence")
+            let signedRequestID: Identifier = .constant("gh-1072-\(actionKind.rawValue)-signed-request")
+            let transportResultID: Identifier = .constant("gh-1072-\(actionKind.rawValue)-transport-result")
+            let checksum = ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.canonicalChecksum(
+                sequenceNumber: sequence,
+                actionKind: actionKind,
+                actionEvidenceID: actionEvidenceID,
+                intentID: intentID,
+                signedRequestID: signedRequestID,
+                transportResultID: transportResultID,
+                credentialReferenceID: credentialReferenceID,
+                endpointHost: ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.canonicalSpotTestnetHost,
+                endpointPath: ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.spotOrderEndpointPath,
+                httpStatusCode: 200,
+                orderLifecycleState: lifecycleState,
+                observedAtMilliseconds: 1_704_067_600_000 + Int64(sequence),
+                previousArtifactChecksum: previousArtifactChecksum,
+                validationAnchors: ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.requiredValidationAnchors
+            )
+            return try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact(
+                eventArtifactID: ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.deterministicID(
+                    sequenceNumber: sequence,
+                    actionKind: actionKind,
+                    artifactChecksum: checksum
+                ),
+                sequenceNumber: sequence,
+                actionKind: actionKind,
+                actionEvidenceID: actionEvidenceID,
+                intentID: intentID,
+                signedRequestID: signedRequestID,
+                transportResultID: transportResultID,
+                credentialReferenceID: credentialReferenceID,
+                endpointHost: ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.canonicalSpotTestnetHost,
+                endpointPath: ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.spotOrderEndpointPath,
+                httpStatusCode: 200,
+                orderLifecycleState: lifecycleState,
+                observedAtMilliseconds: 1_704_067_600_000 + Int64(sequence),
+                previousArtifactChecksum: previousArtifactChecksum,
+                artifactChecksum: checksum
+            )
+        }
+
+        let submitEvent = try makeEvent(
+            sequence: 1,
+            actionKind: .submit,
+            lifecycleState: .submittedTestnet,
+            previousArtifactChecksum: nil
+        )
+        let cancelEvent = try makeEvent(
+            sequence: 2,
+            actionKind: .cancel,
+            lifecycleState: .cancelled,
+            previousArtifactChecksum: submitEvent.artifactChecksum
+        )
+        let cancelReplaceEvent = try makeEvent(
+            sequence: 3,
+            actionKind: .cancelReplace,
+            lifecycleState: .replaced,
+            previousArtifactChecksum: cancelEvent.artifactChecksum
+        )
+        let eventLog = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.make(
+            eventArtifacts: [submitEvent, cancelEvent, cancelReplaceEvent]
+        )
+        let engine = try ReleaseV0150BinanceSpotTestnetOMSStateReconciliationEngine()
+        let snapshot = try engine.sync(networkEventLog: eventLog)
+        let observations = try engine.observations(from: eventLog)
+        let passedReport = try engine.reconcile(
+            snapshot: snapshot,
+            networkEventLog: eventLog,
+            observations: observations
+        )
+
+        XCTAssertTrue(engine.boundaryHeld)
+        XCTAssertTrue(snapshot.boundaryHeld)
+        XCTAssertTrue(passedReport.boundaryHeld)
+        XCTAssertEqual(snapshot.sourceEventLogID, eventLog.logID)
+        XCTAssertEqual(snapshot.sourceLatestArtifactChecksum, eventLog.latestArtifactChecksum)
+        XCTAssertEqual(snapshot.sourceEventArtifactIDs, eventLog.eventArtifacts.map(\.eventArtifactID))
+        XCTAssertEqual(snapshot.coveredActionKinds, [.submit, .cancel, .cancelReplace])
+        XCTAssertEqual(snapshot.records.count, 1)
+        let record = try XCTUnwrap(snapshot.record(for: intentID))
+        XCTAssertTrue(record.boundaryHeld)
+        XCTAssertEqual(record.intentID, intentID)
+        XCTAssertEqual(record.currentState, .replaced)
+        XCTAssertEqual(record.actionKinds, [.submit, .cancel, .cancelReplace])
+        XCTAssertEqual(record.sourceEventArtifactIDs, eventLog.eventArtifacts.map(\.eventArtifactID))
+        XCTAssertEqual(record.actionEvidenceIDs, eventLog.eventArtifacts.map(\.actionEvidenceID))
+        XCTAssertEqual(record.transportResultIDs, eventLog.eventArtifacts.map(\.transportResultID))
+        XCTAssertEqual(record.lastArtifactChecksum, cancelReplaceEvent.artifactChecksum)
+        XCTAssertFalse(record.rawBrokerPayloadIncluded)
+        XCTAssertFalse(record.brokerFillIncluded)
+        XCTAssertFalse(record.productionTradingEnabledByDefault)
+        XCTAssertFalse(record.productionSecretAutoRead)
+        XCTAssertFalse(record.productionEndpointConnected)
+        XCTAssertFalse(record.brokerEndpointConnected)
+        XCTAssertFalse(record.productionOrderSubmitted)
+        XCTAssertEqual(observations.map(\.kind), [.submitAcknowledgement, .cancelAcknowledgement, .cancelReplaceAcknowledgement])
+        XCTAssertEqual(passedReport.status, .passed)
+        XCTAssertTrue(passedReport.failures.isEmpty)
+        XCTAssertTrue(passedReport.evidenceCoverageComplete)
+        XCTAssertTrue(passedReport.expectedObservedReconciliation)
+        XCTAssertTrue(passedReport.mismatchesFailClosed)
+        XCTAssertFalse(passedReport.productionTradingEnabledByDefault)
+        XCTAssertFalse(passedReport.productionSecretAutoRead)
+        XCTAssertFalse(passedReport.productionEndpointConnected)
+        XCTAssertFalse(passedReport.brokerEndpointConnected)
+        XCTAssertFalse(passedReport.productionOrderSubmitted)
+        XCTAssertEqual(ReleaseV0150BinanceSpotTestnetOMSStateSnapshot.requiredValidationAnchors, anchors)
+
+        let mismatchedObservation = try ReleaseV0150BinanceSpotTestnetOMSObservedStateEvidence(
+            observationID: ReleaseV0150BinanceSpotTestnetOMSObservedStateEvidence.deterministicID(
+                kind: .cancelReplaceAcknowledgement,
+                intentID: cancelReplaceEvent.intentID,
+                sourceEventArtifactID: cancelReplaceEvent.eventArtifactID,
+                actionEvidenceID: cancelReplaceEvent.actionEvidenceID
+            ),
+            kind: .cancelReplaceAcknowledgement,
+            eventArtifact: cancelReplaceEvent,
+            observedLifecycleState: .replaceRequested
+        )
+        let failedStateReport = try engine.reconcile(
+            snapshot: snapshot,
+            networkEventLog: eventLog,
+            observations: [observations[0], observations[1], mismatchedObservation]
+        )
+        XCTAssertEqual(failedStateReport.status, .failed)
+        XCTAssertFalse(failedStateReport.evidenceCoverageComplete)
+        XCTAssertTrue(failedStateReport.failures.contains { $0.reason == .lifecycleStateMismatch })
+        XCTAssertTrue(failedStateReport.failures.allSatisfy(\.failClosed))
+
+        let failedCoverageReport = try engine.reconcile(
+            snapshot: snapshot,
+            networkEventLog: eventLog,
+            observations: [observations[0], observations[1]]
+        )
+        XCTAssertEqual(failedCoverageReport.status, .failed)
+        XCTAssertTrue(failedCoverageReport.failures.contains { $0.reason == .observationCoverageMismatch })
+
+        XCTAssertThrowsError(try ReleaseV0150BinanceSpotTestnetOMSStateReconciliationEngine(networkOrderActionPerformed: true))
+        XCTAssertThrowsError(try ReleaseV0150BinanceSpotTestnetOMSStateRecord(eventArtifacts: [submitEvent], brokerFillIncluded: true))
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetOMSStateSnapshot(
+                sourceEventLogID: eventLog.logID,
+                sourceLatestArtifactChecksum: eventLog.latestArtifactChecksum,
+                records: snapshot.records,
+                sourceEventArtifactIDs: snapshot.sourceEventArtifactIDs,
+                coveredActionKinds: snapshot.coveredActionKinds,
+                sourceArtifactCount: snapshot.sourceArtifactCount,
+                expectedObservedReconciliationIncluded: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetOMSObservedStateEvidence(
+                observationID: ReleaseV0150BinanceSpotTestnetOMSObservedStateEvidence.deterministicID(
+                    kind: .submitAcknowledgement,
+                    intentID: submitEvent.intentID,
+                    sourceEventArtifactID: submitEvent.eventArtifactID,
+                    actionEvidenceID: submitEvent.actionEvidenceID
+                ),
+                kind: .submitAcknowledgement,
+                eventArtifact: submitEvent,
+                rawBrokerPayloadIncluded: true
+            )
+        )
+
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be anchored in contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be anchored in readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be anchored in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be anchored in latest summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must be anchored in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must be anchored in trading matrix")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be anchored in verifier")
+        }
+
+        for requiredString in [
+            "ReleaseV0150BinanceSpotTestnetOMSStateRecord",
+            "ReleaseV0150BinanceSpotTestnetOMSStateSnapshot",
+            "ReleaseV0150BinanceSpotTestnetOMSObservedStateEvidence",
+            "ReleaseV0150BinanceSpotTestnetOMSReconciliationReport",
+            "ReleaseV0150BinanceSpotTestnetOMSStateReconciliationEngine",
+            "derivedFromNetworkEventLogOnly=true",
+            "appendOnlyNetworkExecutionEventLog=true",
+            "expectedObservedReconciliation=true",
+            "mismatchesFailClosed=true",
+            "submitCancelCancelReplaceCoverage=true",
+            "rawBrokerPayloadIncluded=false",
+            "brokerFillIncluded=false",
+            "productionOrderSubmitted=false"
+        ] {
+            XCTAssertTrue(source.contains(requiredString), "\(requiredString) must stay in source")
+            XCTAssertTrue(contract.contains(requiredString), "\(requiredString) must stay in contract")
+        }
+        XCTAssertTrue(eventLogSource.contains("ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-oms-state-sync-reconciliation.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
