@@ -2136,3 +2136,24 @@ bash checks/run.sh
 - #962 compares `policy`, `artifacts`, `risk-limits`, `kill-switch-state`, `approval-state` and `source-run-evidence` using `policyChecksum`, `artifactBundleChecksum`, `riskLimitChecksum`, `killSwitchStateChecksum`, `approvalStateChecksum` and GH-961 `sourceRunSnapshot`.
 - #962 proves `compareAssessments` does not mutate registry entries or assessment metadata and records `compareDoesNotMutateAssessments=true` / `operatorReviewOnly=true`.
 - #962 keeps diff / compare as local readiness evidence only; it does not authorize production cutover, does not enable order submission, does not read production secret, does not connect production endpoint / broker endpoint, and does not send testnet or production orders.
+
+## Release v0.15.0 CLI Operator Flow Snapshot
+
+- v0.15.0 CLI operator flow
+- GH-1073-VERIFY-V0150-CLI-OPERATOR-FLOW
+- TVM-RELEASE-V0150-CLI-OPERATOR-FLOW
+- V0150-008-EXPLICIT-TESTNET-MODE
+- V0150-008-OPERATOR-CONFIRMATION-REQUIRED
+- V0150-008-REDACTED-OUTPUT
+- V0150-008-NO-PRODUCTION-FALLBACK
+- V0150-008-APPEND-ONLY-EVIDENCE-REFERENCE
+- V0150-008-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.swift`
+- CLI source: `Sources/MTPROCLI/main.swift`
+- Contract source: `docs/contracts/release-v0.15.0-cli-operator-flow-contract.md`
+- Validation source: `checks/verify-v0.15.0-cli-operator-flow.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH1073ReleaseV0150CLIOperatorFlowRequiresExplicitTestnetConfirmation`
+- #1073 adds `mtpro testnet-execution` as the v0.15.0 operator-facing Spot Testnet execution command.
+- #1073 requires explicit `--testnet`, an exact operator confirmation phrase, redacted output, and an append-only network event log reference before any guarded testnet action is represented.
+- #1073 rejects missing testnet mode, wrong confirmation phrase, non-redacted output and production fallback flags fail-closed.
+- #1073 does not read production secret, does not connect production endpoint / broker endpoint, does not output raw secret / credential / order identity / broker payload, does not submit production order, and does not authorize production cutover.

@@ -3480,3 +3480,20 @@
 - boundary evidence: loaded surface remains read-only; no Dashboard trading button, no order form, no live command, no submit / cancel / replace, no production cutover
 - dependency evidence: #1063 starts after #1062 is closed / done with merged PR evidence and main fast-forward
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0150-CLI-OPERATOR-FLOW
+
+- GH-1073-VERIFY-V0150-CLI-OPERATOR-FLOW
+- V0150-008-EXPLICIT-TESTNET-MODE
+- V0150-008-OPERATOR-CONFIRMATION-REQUIRED
+- V0150-008-REDACTED-OUTPUT
+- V0150-008-NO-PRODUCTION-FALLBACK
+- V0150-008-APPEND-ONLY-EVIDENCE-REFERENCE
+- V0150-008-NO-PRODUCTION-CUTOVER
+- testGH1073ReleaseV0150CLIOperatorFlowRequiresExplicitTestnetConfirmation
+- focused verifier: `bash checks/verify-v0.15.0-cli-operator-flow.sh`
+- validation surface: `mtpro testnet-execution` requires explicit Spot Testnet mode, exact operator confirmation phrase, intent ID, append-only network event log ID and redacted output.
+- fail-closed evidence: missing `--testnet`, wrong confirmation phrase, non-redacted output, unknown action and production fallback flags fail closed before evidence output.
+- boundary evidence: CLI prints only redacted evidence handles and keeps raw secret, raw credential, raw order identity, raw broker payload, production endpoint, broker endpoint, production order and production cutover disabled.
+- dependency evidence: #1073 starts after #1072 closed / done with merged PR evidence and main fast-forward.
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no raw secret / credential / order identity / broker payload output, no production order, no non-Binance venue, no Futures / USDⓈ-M execution in v0.15.0 MVP.
