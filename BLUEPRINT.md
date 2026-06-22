@@ -97,6 +97,8 @@ Current Foundation Progress 已完成 4 / 4；Final Product Goal Progress 当前
 
 Release v0.14.1 patch line anchor retained：MTPRO Release v0.14.1 Local Execution Evidence Hardening Patch 已完成 local execution evidence chain wording、decode validation、network-attempt evidence guard、golden JSON contract、Dashboard local artifact loading、Stage Code Audit 和 release notes closeout。它是 local execution evidence chain / testnet evidence only，不是真实 signed Binance testnet execution release，不代表真实 Binance testnet order execution，不新增 runtime pipeline，不创建 tag / GitHub Release，不授权 production cutover。
 
+Release v0.15.0 queue anchor：`MTPRO Release v0.15.0 Real Binance Testnet Execution MVP` 当前只通过 #1066 定义 contract / v0.14.1 preflight gate。`GH-1066-VERIFY-V0150-CONTRACT-PREFLIGHT` 将 v0.15.0 MVP 限定为 Binance Spot Testnet only，productionTradingEnabledByDefault=false，operatorConfirmationRequired=true，testnetEndpointAllowlistOnly=true；#1067..#1076 remain backlog / non-executable until #1066 PR merge / checks SUCCESS / issue done。该 queue 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 Historical release line anchor retained：Release line 已推进到 v0.12.0 readiness assessment sessions。
 Historical patch line anchor retained：Release v0.12.1 已完成 readiness assessment provenance hardening patch。
 Historical release line anchor retained：Release line 已推进到 v0.11.0 production readiness evidence runtime + integrity hardening。

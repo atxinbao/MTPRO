@@ -167,6 +167,7 @@ bash checks/verify-v0.14.1-submit-evidence-network-guards.sh
 bash checks/verify-v0.14.1-golden-json-contracts.sh
 bash checks/verify-v0.14.1-dashboard-local-artifacts.sh
 bash checks/verify-v0.14.1-patch-audit-release-notes.sh
+bash checks/verify-v0.15.0-contract-preflight.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

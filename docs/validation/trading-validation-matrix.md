@@ -6,6 +6,24 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0150-CONTRACT-PREFLIGHT
+
+- TVM-RELEASE-V0150-CONTRACT-PREFLIGHT
+- GH-1066-VERIFY-V0150-CONTRACT-PREFLIGHT
+- V0150-001-RELEASE-CONTRACT
+- V0150-001-V0141-PREFLIGHT-GATE
+- V0150-001-BINANCE-SPOT-TESTNET-ONLY
+- V0150-001-SIGNED-TESTNET-BOUNDARY
+- V0150-001-PRODUCTION-FAIL-CLOSED
+- V0150-001-CHILDREN-BACKLOG-NON-EXECUTABLE
+- V0150-001-NO-PRODUCTION-CUTOVER
+- V0150-001-NO-DASHBOARD-COMMAND-SURFACE
+- GH-1066 Release v0.15.0 Contract / v0.14.1 Preflight Gate
+- `bash checks/verify-v0.15.0-contract-preflight.sh`
+- `swift test --filter TargetGraphTests/testGH1066ReleaseV0150ContractAndV0141PreflightGate`
+- Evidence files: `docs/contracts/release-v0.15.0-real-binance-spot-testnet-execution-mvp-contract.md`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.15.0-contract-preflight.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-1066 只允许 v0.15.0 从 local execution evidence chain 进入 Binance Spot Testnet signed execution planning。`activeVenue == Binance`，`v0150ExecutionProductScope == Binance Spot Testnet only`，`productionTradingEnabledByDefault=false`，`operatorConfirmationRequired=true`，`testnetEndpointAllowlistOnly=true`，`productionSecretRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`dashboardCommandSurfaceEnabled=false`；不授权 production cutover，不提交 production order。
+
 ## TVM-RELEASE-V0141-PATCH-AUDIT-RELEASE-NOTES
 
 - TVM-RELEASE-V0141-PATCH-AUDIT-RELEASE-NOTES
