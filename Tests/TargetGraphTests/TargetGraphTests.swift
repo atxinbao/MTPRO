@@ -41616,6 +41616,106 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-cli-operator-flow.sh"))
     }
 
+    func testGH1074DashboardTestnetExecutionStatusSurfaceIsAnchoredInV0150Guards() throws {
+        // 测试场景：GH-1074 将 v0.15.0 execution 状态接入 Dashboard 只读 surface。
+        // 验证目的：Dashboard 只消费 read-model artifact，展示 submit/cancel/cancel-replace、
+        // OMS、reconciliation 和 failure reason，不依赖 ExecutionClient target 或 UI command。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/Dashboard/Report/ReleaseV0150DashboardTestnetExecutionStatusSurface.swift")
+        let shell = try read("Sources/Dashboard/DashboardShell.swift")
+        let contract = try read("docs/contracts/release-v0.15.0-dashboard-testnet-execution-status-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.15.0-dashboard-testnet-execution-status.sh")
+        let runScript = try read("checks/run.sh")
+        let appTests = try read("Tests/AppTests/AppTests.swift")
+        let anchors = [
+            "GH-1074-VERIFY-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS",
+            "TVM-RELEASE-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS",
+            "V0150-009-DASHBOARD-READ-MODEL-ARTIFACT",
+            "V0150-009-SUBMIT-CANCEL-CANCEL-REPLACE-STATUS",
+            "V0150-009-OMS-RECONCILIATION-FAILURE-REASONS",
+            "V0150-009-DASHBOARD-READ-ONLY-NO-COMMANDS",
+            "V0150-009-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let surface = ReleaseV0150DashboardTestnetExecutionStatusSurfaceViewModel.deterministicFixture
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.input.sourceActionKinds, [.submit, .cancel, .cancelReplace])
+        XCTAssertEqual(surface.input.sourceEventArtifactIDs.count, 3)
+        XCTAssertEqual(surface.input.sourceOMSStateRecordIDs, ["gh-1072-oms-state-record"])
+        XCTAssertEqual(surface.input.reconciliationStatus, "passed")
+        XCTAssertEqual(surface.input.failureReasons, ["none"])
+        XCTAssertEqual(surface.actionLabels, ["submit", "cancel", "cancel-replace"])
+        XCTAssertTrue(surface.rows.allSatisfy(\.rowHeld))
+        XCTAssertTrue(surface.submitStatusVisible)
+        XCTAssertTrue(surface.cancelStatusVisible)
+        XCTAssertTrue(surface.cancelReplaceStatusVisible)
+        XCTAssertTrue(surface.omsStateVisible)
+        XCTAssertTrue(surface.reconciliationStateVisible)
+        XCTAssertTrue(surface.failureReasonsVisible)
+        XCTAssertFalse(surface.dashboardDependsOnExecutionClientTarget)
+        XCTAssertFalse(surface.dashboardCommandSurfaceEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertEqual(ReleaseV0150DashboardTestnetExecutionStatusSurfaceViewModel.requiredValidationAnchors, anchors)
+
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be anchored in contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be anchored in readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be anchored in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be anchored in latest summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must be anchored in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must be anchored in trading matrix")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be anchored in verifier")
+        }
+
+        for requiredString in [
+            "ReleaseV0150DashboardTestnetExecutionStatusSurfaceViewModel",
+            "ReleaseV0150DashboardTestnetExecutionStatusLocalArtifactInput",
+            "dashboardConsumesReadModelArtifactsOnly=true",
+            "submitCancelCancelReplaceStatusVisible=true",
+            "omsStateVisible=true",
+            "reconciliationStateVisible=true",
+            "failureReasonsVisible=true",
+            "dashboardCommandSurfaceEnabled=false",
+            "tradingButtonVisible=false",
+            "orderFormVisible=false",
+            "liveCommandVisible=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionSubmitCancelReplaceEnabled=false"
+        ] {
+            XCTAssertTrue(source.contains(requiredString), "\(requiredString) must stay in source")
+            XCTAssertTrue(contract.contains(requiredString), "\(requiredString) must stay in contract")
+        }
+
+        XCTAssertTrue(shell.contains("releaseV0150DashboardTestnetExecutionStatusSurface"))
+        XCTAssertTrue(shell.contains("releaseV0150DashboardTestnetExecutionStatusSurface(fromLocalReadModelJSON"))
+        XCTAssertTrue(shell.contains("DashboardReleaseV0150TestnetExecutionStatusPanel"))
+        XCTAssertTrue(shell.contains("releaseV0150ExecutionStatusRows"))
+        XCTAssertTrue(appTests.contains("testGH1074DashboardTestnetExecutionStatusSurfaceShowsReadOnlyStatusWithoutCommands"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-dashboard-testnet-execution-status.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

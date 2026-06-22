@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS
+
+- TVM-RELEASE-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS
+- GH-1074-VERIFY-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS
+- V0150-009-DASHBOARD-READ-MODEL-ARTIFACT
+- V0150-009-SUBMIT-CANCEL-CANCEL-REPLACE-STATUS
+- V0150-009-OMS-RECONCILIATION-FAILURE-REASONS
+- V0150-009-DASHBOARD-READ-ONLY-NO-COMMANDS
+- V0150-009-NO-PRODUCTION-CUTOVER
+- GH-1074 Release v0.15.0 Dashboard Testnet Execution Status
+- `bash checks/verify-v0.15.0-dashboard-testnet-execution-status.sh`
+- `swift test --filter AppTests/testGH1074DashboardTestnetExecutionStatusSurfaceShowsReadOnlyStatusWithoutCommands`
+- `swift test --filter TargetGraphTests/testGH1074DashboardTestnetExecutionStatusSurfaceIsAnchoredInV0150Guards`
+- Evidence files: `Sources/Dashboard/Report/ReleaseV0150DashboardTestnetExecutionStatusSurface.swift`、`Sources/Dashboard/DashboardShell.swift`、`docs/contracts/release-v0.15.0-dashboard-testnet-execution-status-contract.md`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.15.0-dashboard-testnet-execution-status.sh`、`docs/automation/automation-readiness.md`、`docs/validation/validation-plan.md`、`Tests/AppTests/AppTests.swift` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1074 允许且只允许 Dashboard 读取本地 read-model artifact 并展示 submit / cancel / cancel-replace status、OMS state、reconciliation state 和 failure reasons。`dashboardConsumesReadModelArtifactsOnly=true`，`submitCancelCancelReplaceStatusVisible=true`，`omsStateVisible=true`，`reconciliationStateVisible=true`，`failureReasonsVisible=true`；`dashboardCommandSurfaceEnabled=false`，`tradingButtonVisible=false`，`orderFormVisible=false`，`liveCommandVisible=false`，`productionTradingEnabledByDefault=false`，`productionSecretRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionSubmitCancelReplaceEnabled=false`；不授权 production cutover、new network action、production order、broker fill 或 Dashboard command surface。
+
 ## TVM-RELEASE-V0150-OMS-STATE-SYNC-RECONCILIATION
 
 - TVM-RELEASE-V0150-OMS-STATE-SYNC-RECONCILIATION
