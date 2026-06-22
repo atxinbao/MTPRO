@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1064 Release v0.14.1 Patch Audit / Release Notes Closeout
+
+- `GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`
+- `TVM-RELEASE-V0141-PATCH-AUDIT-RELEASE-NOTES`
+- `V0141-006-PATCH-AUDIT`
+- `V0141-006-RELEASE-NOTES`
+- `V0141-006-VALIDATION-SUMMARY`
+- `V0141-006-LOCAL-EVIDENCE-WORDING`
+- `V0141-006-NO-PRODUCTION-CUTOVER`
+- `V0141-006-NO-TAG-OR-RELEASE-PUBLICATION`
+- Required command: `bash checks/verify-v0.14.1-patch-audit-release-notes.sh`
+- Focused test: `testGH1064ReleaseV0141PatchAuditReleaseNotesCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-notes.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.14.1-patch-audit-release-notes.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1064 只收口 v0.14.1 patch audit、release notes、latest summary、release publication policy、root docs wording 和 aggregate verifier wiring。v0.14.1 是 `local execution evidence chain / testnet evidence only`，不是真实 signed Binance testnet execution release，不新增 runtime pipeline，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover；GH-1064 PR 本身不创建 `v0.14.1` tag 或 GitHub Release。
+
 ## GH-1061 Release v0.14.1 Submit Evidence Network Guards
 
 - `GH-1061-VERIFY-V0141-SUBMIT-EVIDENCE-NETWORK-GUARDS`

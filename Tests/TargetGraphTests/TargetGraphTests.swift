@@ -39793,6 +39793,133 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1064ReleaseV0141PatchAuditReleaseNotesCloseout() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let verifier = try read("checks/verify-v0.14.1-patch-audit-release-notes.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let audit = try read("docs/audit/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-stage-code-audit.md")
+        let releaseNotes = try read("docs/release/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-notes.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+
+        let anchors = [
+            "GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES",
+            "TVM-RELEASE-V0141-PATCH-AUDIT-RELEASE-NOTES",
+            "V0141-006-PATCH-AUDIT",
+            "V0141-006-RELEASE-NOTES",
+            "V0141-006-VALIDATION-SUMMARY",
+            "V0141-006-LOCAL-EVIDENCE-WORDING",
+            "V0141-006-NO-PRODUCTION-CUTOVER",
+            "V0141-006-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+
+        for anchor in anchors {
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in GH-1064 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+            XCTAssertTrue(audit.contains(anchor), "\(anchor) must stay in stage audit")
+            XCTAssertTrue(releaseNotes.contains(anchor), "\(anchor) must stay in release notes")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(policy.contains(anchor), "\(anchor) must stay in release publication policy")
+        }
+
+        for carriedAnchor in [
+            "GH-1059-VERIFY-V0141-RELEASE-CI-DASHBOARD-EVIDENCE",
+            "GH-1060-VERIFY-V0141-CODABLE-DECODE-VALIDATION",
+            "GH-1061-VERIFY-V0141-SUBMIT-EVIDENCE-NETWORK-GUARDS",
+            "GH-1062-VERIFY-V0141-GOLDEN-JSON-CONTRACTS",
+            "GH-1063-VERIFY-V0141-DASHBOARD-LOCAL-ARTIFACTS"
+        ] {
+            XCTAssertTrue(audit.contains(carriedAnchor), "\(carriedAnchor) must stay in v0.14.1 audit carry-forward")
+            XCTAssertTrue(releaseNotes.contains(carriedAnchor), "\(carriedAnchor) must stay in v0.14.1 release notes carry-forward")
+            XCTAssertTrue(latest.contains(carriedAnchor), "\(carriedAnchor) must stay in latest summary carry-forward")
+        }
+
+        for completedIssue in ["#1059", "#1060", "#1061", "#1062", "#1063", "#1064"] {
+            XCTAssertTrue(audit.contains(completedIssue), "\(completedIssue) must stay in stage audit")
+            XCTAssertTrue(releaseNotes.contains(completedIssue), "\(completedIssue) must stay in release notes")
+        }
+
+        for mergedPR in ["#1077", "#1078", "#1079", "#1080", "#1081"] {
+            XCTAssertTrue(audit.contains(mergedPR), "\(mergedPR) must stay in stage audit PR evidence")
+        }
+
+        for mergeCommit in [
+            "ac0300632891f1571c45d0296d853729f12661b2",
+            "7d6ac0f1e97fb3296811a8ffe5e912e4d03e4fa4",
+            "72cc29d6cdca118b9ac05c7f3f0c09a41f3de179",
+            "5ffe5d35eb307f270f4f2be00c978e85e674c0ca",
+            "3a5cf5d8f71bf7faa41fba790c8b06fd8351ae0c"
+        ] {
+            XCTAssertTrue(audit.contains(mergeCommit), "\(mergeCommit) must stay in stage audit merge evidence")
+        }
+
+        for requiredString in [
+            "bash checks/verify-v0.14.1-patch-audit-release-notes.sh",
+            "testGH1064ReleaseV0141PatchAuditReleaseNotesCloseout",
+            "Release v0.14.1 patch audit / release notes closeout anchor",
+            "v0.14.1 patch audit / release notes closeout",
+            "MTPRO Release v0.14.1 Local Execution Evidence Hardening Patch",
+            "local execution evidence chain / testnet evidence only",
+            "not real signed Binance testnet execution release",
+            "不是真实 signed Binance testnet execution release",
+            "不代表真实 Binance testnet order execution",
+            "#1064 is not a release publication gate",
+            "不创建 `v0.14.1` tag",
+            "不创建 `v0.14.1` GitHub Release"
+        ] {
+            XCTAssertTrue(
+                verifier.contains(requiredString)
+                    || runScript.contains(requiredString)
+                    || readinessScript.contains(requiredString)
+                    || audit.contains(requiredString)
+                    || releaseNotes.contains(requiredString)
+                    || readiness.contains(requiredString)
+                    || latest.contains(requiredString)
+                    || validationPlan.contains(requiredString)
+                    || tradingMatrix.contains(requiredString)
+                    || policy.contains(requiredString)
+                    || readme.contains(requiredString)
+                    || goal.contains(requiredString)
+                    || blueprint.contains(requiredString)
+                    || roadmap.contains(requiredString),
+                "\(requiredString) must stay wired into GH-1064 evidence"
+            )
+        }
+
+        for forbiddenAuthorization in [
+            "real signed Binance testnet execution complete",
+            "real Binance testnet order execution complete",
+            "networkSubmitAttempted=true",
+            "networkCancelReplaceAttempted=true",
+            "testnetOrderSubmissionAllowed=true",
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true"
+        ] {
+            XCTAssertFalse(audit.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of stage audit")
+            XCTAssertFalse(releaseNotes.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of release notes")
+            XCTAssertFalse(latest.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of latest summary")
+            XCTAssertFalse(readme.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of README")
+            XCTAssertFalse(goal.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of GOAL")
+            XCTAssertFalse(blueprint.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of BLUEPRINT")
+            XCTAssertFalse(roadmap.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of roadmap")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
