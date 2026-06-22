@@ -5260,3 +5260,19 @@ swift test
 - root docs evidence: README / GOAL / BLUEPRINT / roadmap / latest verification summary reflect v0.13.0 completed construction facts only
 - dependency evidence: #1005 is blocked by #1004 and starts only after PR #1023 merged, required checks passed, #1004 closed / done, local main fast-forwarded and WIP=1 preflight passed
 - forbidden scope: no tag / GitHub Release publication, no next Project / Issue, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-1062 Release v0.14.1 Golden JSON Contract Validation
+
+- GH-1062-VERIFY-V0141-GOLDEN-JSON-CONTRACTS
+- TVM-RELEASE-V0141-GOLDEN-JSON-CONTRACTS
+- V0141-004-GOLDEN-JSON-FIXTURES
+- V0141-004-DECODE-VALIDATE-MUTATE-FAIL
+- V0141-004-CORRUPTED-PAYLOADS-FAIL-CLOSED
+- V0141-004-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.14.1-golden-json-contracts.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1062ReleaseV0141GoldenJSONFixturesFailClosedCorruptedV0140Contracts`
+- fixture evidence: `Tests/Fixtures/ReleaseV0141GoldenJSON/valid/signal-pipeline-report.json`、`Tests/Fixtures/ReleaseV0141GoldenJSON/valid/oms-local-order-event.json` 和 `Tests/Fixtures/ReleaseV0141GoldenJSON/valid/dashboard-surface.json` 固定外部 JSON artifact 形态
+- decode evidence: `OrderLifecycleTransition`、`ReleaseV0140OMSLocalOrderStoreEvent` 和 `ReleaseV0140SignalToExecutionPipelineReport` 解码时重新执行 initializer contract，不允许合成 Codable 绕过校验
+- fail-closed evidence: 缺失 evidence ID、错误 stage-kind mapping、非法 lifecycle transition 和 corrupted boundary fields 必须 decode 失败
+- dependency evidence: #1062 blocked by #1060 and #1061, starts only after #1061 PR merge / checks / main fast-forward / WIP=1 preflight
+- forbidden scope: no runtime pipeline, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order

@@ -231,6 +231,36 @@ public struct ReleaseV0140SignalToExecutionPipelineReport: Codable, Equatable, S
     public let productionSubmitCancelReplace: Bool
     public let validationAnchors: [String]
 
+    private enum CodingKeys: String, CodingKey {
+        case reportID
+        case status
+        case completedStages
+        case signalID
+        case orderIntentID
+        case riskDecisionID
+        case riskOutcome
+        case executionMappingID
+        case submitPathID
+        case localOrderID
+        case omsStoreID
+        case eventStreamID
+        case stateSnapshotID
+        case reconciliationReportID
+        case reconciliationStatus
+        case strategiesNeverCallExecutionClient
+        case testnetSubmitEvidenceCreated
+        case adapterSubmitEvidenceCreated
+        case networkSubmitAttempted
+        case networkCancelReplaceAttempted
+        case omsEventLogCreated
+        case reconciliationCompleted
+        case productionTradingEnabledByDefault
+        case productionSecretRead
+        case productionEndpointConnected
+        case productionSubmitCancelReplace
+        case validationAnchors
+    }
+
     public init(
         status: ReleaseV0140SignalToExecutionPipelineStatus,
         completedStages: [ReleaseV0140SignalToExecutionPipelineStage],
@@ -357,6 +387,46 @@ public struct ReleaseV0140SignalToExecutionPipelineReport: Codable, Equatable, S
         self.productionEndpointConnected = productionEndpointConnected
         self.productionSubmitCancelReplace = productionSubmitCancelReplace
         self.validationAnchors = validationAnchors
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let decodedReportID = try container.decode(Identifier.self, forKey: .reportID)
+        try self.init(
+            status: try container.decode(ReleaseV0140SignalToExecutionPipelineStatus.self, forKey: .status),
+            completedStages: try container.decode([ReleaseV0140SignalToExecutionPipelineStage].self, forKey: .completedStages),
+            signalID: try container.decode(Identifier.self, forKey: .signalID),
+            orderIntentID: try container.decode(Identifier.self, forKey: .orderIntentID),
+            riskDecisionID: try container.decode(Identifier.self, forKey: .riskDecisionID),
+            riskOutcome: try container.decode(ReleaseV0140PreTradeRiskOutcome.self, forKey: .riskOutcome),
+            executionMappingID: try container.decodeIfPresent(Identifier.self, forKey: .executionMappingID),
+            submitPathID: try container.decodeIfPresent(Identifier.self, forKey: .submitPathID),
+            localOrderID: try container.decodeIfPresent(Identifier.self, forKey: .localOrderID),
+            omsStoreID: try container.decodeIfPresent(Identifier.self, forKey: .omsStoreID),
+            eventStreamID: try container.decodeIfPresent(Identifier.self, forKey: .eventStreamID),
+            stateSnapshotID: try container.decodeIfPresent(Identifier.self, forKey: .stateSnapshotID),
+            reconciliationReportID: try container.decodeIfPresent(Identifier.self, forKey: .reconciliationReportID),
+            reconciliationStatus: try container.decodeIfPresent(ReleaseV0140ReconciliationStatus.self, forKey: .reconciliationStatus),
+            strategiesNeverCallExecutionClient: try container.decode(Bool.self, forKey: .strategiesNeverCallExecutionClient),
+            testnetSubmitEvidenceCreated: try container.decode(Bool.self, forKey: .testnetSubmitEvidenceCreated),
+            adapterSubmitEvidenceCreated: try container.decode(Bool.self, forKey: .adapterSubmitEvidenceCreated),
+            networkSubmitAttempted: try container.decode(Bool.self, forKey: .networkSubmitAttempted),
+            networkCancelReplaceAttempted: try container.decode(Bool.self, forKey: .networkCancelReplaceAttempted),
+            omsEventLogCreated: try container.decode(Bool.self, forKey: .omsEventLogCreated),
+            reconciliationCompleted: try container.decode(Bool.self, forKey: .reconciliationCompleted),
+            productionTradingEnabledByDefault: try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault),
+            productionSecretRead: try container.decode(Bool.self, forKey: .productionSecretRead),
+            productionEndpointConnected: try container.decode(Bool.self, forKey: .productionEndpointConnected),
+            productionSubmitCancelReplace: try container.decode(Bool.self, forKey: .productionSubmitCancelReplace),
+            validationAnchors: try container.decode([String].self, forKey: .validationAnchors)
+        )
+        guard reportID == decodedReportID else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0140SignalPipeline.report.decode.reportID",
+                expected: reportID.rawValue,
+                actual: decodedReportID.rawValue
+            )
+        }
     }
 
     public var boundaryHeld: Bool {

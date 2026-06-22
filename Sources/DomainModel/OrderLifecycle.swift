@@ -49,6 +49,15 @@ public struct OrderLifecycleTransition: Codable, Equatable, Sendable {
     public let authorizesProductionTrading: Bool
     public let touchesProductionBrokerEndpoint: Bool
 
+    private enum CodingKeys: String, CodingKey {
+        case from
+        case to
+        case reason
+        case testnetScoped
+        case authorizesProductionTrading
+        case touchesProductionBrokerEndpoint
+    }
+
     public init(
         from: OrderLifecycleState,
         to: OrderLifecycleState,
@@ -89,6 +98,18 @@ public struct OrderLifecycleTransition: Codable, Equatable, Sendable {
         self.testnetScoped = testnetScoped
         self.authorizesProductionTrading = authorizesProductionTrading
         self.touchesProductionBrokerEndpoint = touchesProductionBrokerEndpoint
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            from: try container.decode(OrderLifecycleState.self, forKey: .from),
+            to: try container.decode(OrderLifecycleState.self, forKey: .to),
+            reason: try container.decode(String.self, forKey: .reason),
+            testnetScoped: try container.decode(Bool.self, forKey: .testnetScoped),
+            authorizesProductionTrading: try container.decode(Bool.self, forKey: .authorizesProductionTrading),
+            touchesProductionBrokerEndpoint: try container.decode(Bool.self, forKey: .touchesProductionBrokerEndpoint)
+        )
     }
 
     public var boundaryHeld: Bool {

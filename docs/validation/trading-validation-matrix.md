@@ -3318,3 +3318,18 @@
 - queue evidence: #994 through #1004 are closed / done and PR #1012 through #1023 are merged with required checks SUCCESS before #1005 closeout
 - boundary evidence: v0.13.0 does not create tag / GitHub Release, does not authorize production cutover, and does not enable testnet or production orders
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0141-GOLDEN-JSON-CONTRACTS
+
+- GH-1062-VERIFY-V0141-GOLDEN-JSON-CONTRACTS
+- V0141-004-GOLDEN-JSON-FIXTURES
+- V0141-004-DECODE-VALIDATE-MUTATE-FAIL
+- V0141-004-CORRUPTED-PAYLOADS-FAIL-CLOSED
+- V0141-004-NO-PRODUCTION-CUTOVER
+- testGH1062ReleaseV0141GoldenJSONFixturesFailClosedCorruptedV0140Contracts
+- focused verifier: `bash checks/verify-v0.14.1-golden-json-contracts.sh`
+- validation surface: fixed JSON fixtures for signal pipeline report, OMS local order event and Dashboard read-only surface decode as boundary-held v0.14 artifacts
+- fail-closed evidence: mutation tests cover missing evidence ID, wrong stage-kind mapping, illegal lifecycle transition and corrupted production / network boundary fields
+- boundary evidence: decode validators rerun initializer contract for lifecycle transition, OMS event and signal pipeline report instead of trusting synthesized Codable output
+- dependency evidence: #1062 starts after #1060 and #1061 are closed / done with merged PR evidence and main fast-forward
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

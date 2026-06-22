@@ -40,6 +40,33 @@ public struct ReleaseV0140OMSLocalOrderStoreEvent: Codable, Equatable, Sendable 
     public let productionEndpointConnected: Bool
     public let productionCutoverAuthorized: Bool
 
+    private enum CodingKeys: String, CodingKey {
+        case eventID
+        case sequence
+        case kind
+        case localOrderID
+        case intentID
+        case strategyRunID
+        case productType
+        case symbol
+        case sourceSubmitPathID
+        case sourceSubmitResponseID
+        case sourceEvidenceID
+        case fromState
+        case toState
+        case transition
+        case orderIdentityRedacted
+        case replayable
+        case realAccountBalanceIncluded
+        case productionPositionOwnershipIncluded
+        case brokerFillIncluded
+        case reconciliationIncluded
+        case productionTradingEnabledByDefault
+        case productionSecretRead
+        case productionEndpointConnected
+        case productionCutoverAuthorized
+    }
+
     public init(
         eventID: Identifier,
         sequence: Int,
@@ -149,6 +176,42 @@ public struct ReleaseV0140OMSLocalOrderStoreEvent: Codable, Equatable, Sendable 
         self.productionSecretRead = productionSecretRead
         self.productionEndpointConnected = productionEndpointConnected
         self.productionCutoverAuthorized = productionCutoverAuthorized
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            eventID: try container.decode(Identifier.self, forKey: .eventID),
+            sequence: try container.decode(Int.self, forKey: .sequence),
+            kind: try container.decode(ReleaseV0140OMSLocalOrderStoreEventKind.self, forKey: .kind),
+            localOrderID: try container.decode(Identifier.self, forKey: .localOrderID),
+            intentID: try container.decode(Identifier.self, forKey: .intentID),
+            strategyRunID: try container.decode(Identifier.self, forKey: .strategyRunID),
+            productType: try container.decode(ProductType.self, forKey: .productType),
+            symbol: try container.decode(Symbol.self, forKey: .symbol),
+            sourceSubmitPathID: try container.decode(Identifier.self, forKey: .sourceSubmitPathID),
+            sourceSubmitResponseID: try container.decodeIfPresent(Identifier.self, forKey: .sourceSubmitResponseID),
+            sourceEvidenceID: try container.decode(Identifier.self, forKey: .sourceEvidenceID),
+            fromState: try container.decode(OrderLifecycleState.self, forKey: .fromState),
+            toState: try container.decode(OrderLifecycleState.self, forKey: .toState),
+            transition: try container.decodeIfPresent(OrderLifecycleTransition.self, forKey: .transition),
+            orderIdentityRedacted: try container.decode(Bool.self, forKey: .orderIdentityRedacted),
+            replayable: try container.decode(Bool.self, forKey: .replayable),
+            realAccountBalanceIncluded: try container.decode(Bool.self, forKey: .realAccountBalanceIncluded),
+            productionPositionOwnershipIncluded: try container.decode(
+                Bool.self,
+                forKey: .productionPositionOwnershipIncluded
+            ),
+            brokerFillIncluded: try container.decode(Bool.self, forKey: .brokerFillIncluded),
+            reconciliationIncluded: try container.decode(Bool.self, forKey: .reconciliationIncluded),
+            productionTradingEnabledByDefault: try container.decode(
+                Bool.self,
+                forKey: .productionTradingEnabledByDefault
+            ),
+            productionSecretRead: try container.decode(Bool.self, forKey: .productionSecretRead),
+            productionEndpointConnected: try container.decode(Bool.self, forKey: .productionEndpointConnected),
+            productionCutoverAuthorized: try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+        )
     }
 
     public var boundaryHeld: Bool {

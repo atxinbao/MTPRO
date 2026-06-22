@@ -1,0 +1,33 @@
+{
+  "brokerFillIncluded": false,
+  "eventID": "gh-1031-oms-local-order-store-event:1:lifecycleTransition:gh-1062-local-order:cancelRequested:gh-1062-cancel-request-evidence",
+  "fromState": "accepted",
+  "intentID": "gh-1062-order-intent",
+  "kind": "lifecycleTransition",
+  "localOrderID": "gh-1062-local-order",
+  "orderIdentityRedacted": true,
+  "productType": "spot",
+  "productionCutoverAuthorized": false,
+  "productionEndpointConnected": false,
+  "productionPositionOwnershipIncluded": false,
+  "productionSecretRead": false,
+  "productionTradingEnabledByDefault": false,
+  "realAccountBalanceIncluded": false,
+  "reconciliationIncluded": false,
+  "replayable": true,
+  "sequence": 1,
+  "sourceEvidenceID": "gh-1062-cancel-request-evidence",
+  "sourceSubmitPathID": "gh-1062-submit-path",
+  "sourceSubmitResponseID": "gh-1062-submit-response",
+  "strategyRunID": "gh-1062-strategy-run",
+  "symbol": "BTCUSDT",
+  "toState": "cancelRequested",
+  "transition": {
+    "authorizesProductionTrading": false,
+    "from": "accepted",
+    "reason": "gh-1062-golden-cancel-request",
+    "testnetScoped": true,
+    "to": "cancelRequested",
+    "touchesProductionBrokerEndpoint": false
+  }
+}
