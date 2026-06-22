@@ -171,6 +171,7 @@ bash checks/verify-v0.15.0-contract-preflight.sh
 bash checks/verify-v0.15.0-testnet-credential-signed-request.sh
 bash checks/verify-v0.15.0-real-spot-testnet-submit-runtime.sh
 bash checks/verify-v0.15.0-network-execution-event-log.sh
+bash checks/verify-v0.15.0-real-spot-testnet-cancel-runtime.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
