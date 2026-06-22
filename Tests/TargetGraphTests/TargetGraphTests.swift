@@ -40163,6 +40163,207 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH1068ReleaseV0150SpotTestnetSubmitRuntimeProducesRedactedNetworkEvidence() async throws {
+        // 测试场景：GH-1068 串起 OrderIntent -> signed request -> injected Spot Testnet transport -> response evidence。
+        // 验证目的：testnet network submit 可以被显式记录为已执行，但 production secret、endpoint 和 order 必须保持关闭。
+        struct MockSpotTestnetSubmitTransport: ReleaseV0150BinanceSpotTestnetSubmitTransport {
+            func submitSpotTestnetOrder(
+                signedRequest: ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence,
+                credential: ReleaseV0150BinanceSpotTestnetCredentialMaterial
+            ) async throws -> ReleaseV0150BinanceSpotTestnetSubmitTransportResult {
+                XCTAssertTrue(signedRequest.boundaryHeld)
+                XCTAssertEqual(signedRequest.endpointHost, "testnet.binance.vision")
+                XCTAssertEqual(signedRequest.endpointPath, "/api/v3/order")
+                XCTAssertEqual(credential.binanceAPIKeyHeaderValue(), "gh-1068-testnet-api-key")
+
+                let digest = ReleaseV0150BinanceSpotTestnetSubmitTransportResult.redactedDigest(
+                    statusCode: 200,
+                    acknowledgement: "accepted-redacted-gh-1068"
+                )
+                return try ReleaseV0150BinanceSpotTestnetSubmitTransportResult(
+                    transportResultID: ReleaseV0150BinanceSpotTestnetSubmitTransportResult.deterministicID(
+                        signedRequestID: signedRequest.requestID,
+                        httpStatusCode: 200,
+                        redactedResponseDigest: digest
+                    ),
+                    signedRequest: signedRequest,
+                    httpStatusCode: 200,
+                    redactedResponseDigest: digest
+                )
+            }
+        }
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift")
+        let signedBuilderSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift")
+        let anchors = [
+            "GH-1068-VERIFY-V0150-REAL-SPOT-TESTNET-SUBMIT-RUNTIME",
+            "TVM-RELEASE-V0150-REAL-SPOT-TESTNET-SUBMIT",
+            "V0150-003-ORDERINTENT-TO-SIGNED-SUBMIT",
+            "V0150-003-REDACTED-RESPONSE-EVIDENCE",
+            "V0150-003-TESTNET-NETWORK-SUBMIT-PERFORMED",
+            "V0150-003-PRODUCTION-ENDPOINT-BLOCKED",
+            "V0150-003-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let instrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let quantity = try Quantity(0.05, field: "gh1068.quantity")
+        let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let correlation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1068-correlation"),
+            strategySignalID: .constant("gh-1068-signal"),
+            sourceMessageID: .constant("gh-1068-message"),
+            strategyRunID: .constant("gh-1068-run"),
+            sourceSequence: 1068
+        )
+        let intent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: instrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation
+            ),
+            instrument: instrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        let mapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: intent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let reference = try ReleaseV0150BinanceSpotTestnetCredentialReference.deterministicFixture(
+            referenceID: .constant("gh-1068-binance-spot-testnet-credential")
+        )
+        let credential = try ReleaseV0150BinanceSpotTestnetCredentialMaterial(
+            reference: reference,
+            apiKeyHeaderValue: "gh-1068-testnet-api-key",
+            signingSecretValue: "gh-1068-testnet-secret"
+        )
+        let runtime = try ReleaseV0150BinanceSpotTestnetSubmitRuntime(
+            requestBuilder: ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
+            transport: MockSpotTestnetSubmitTransport()
+        )
+
+        let evidence = try await runtime.submitMarketOrder(
+            intent: intent,
+            mapping: mapping,
+            credential: credential,
+            operatorConfirmationID: .constant("gh-1068-operator-confirmation"),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(evidence.intentID, intent.intentID)
+        XCTAssertEqual(evidence.mappingID, mapping.mappingID)
+        XCTAssertEqual(evidence.credentialReferenceID, reference.referenceID)
+        XCTAssertEqual(evidence.productType, .spot)
+        XCTAssertEqual(evidence.endpointHost, "testnet.binance.vision")
+        XCTAssertEqual(evidence.endpointPath, "/api/v3/order")
+        XCTAssertEqual(evidence.httpStatusCode, 200)
+        XCTAssertEqual(evidence.orderLifecycleState, .submittedTestnet)
+        XCTAssertTrue(evidence.operatorConfirmedTestnetSubmit)
+        XCTAssertTrue(evidence.requestBodyRedacted)
+        XCTAssertTrue(evidence.responseBodyRedacted)
+        XCTAssertTrue(evidence.credentialMaterialRedacted)
+        XCTAssertTrue(evidence.appendOnlyEvidenceCreated)
+        XCTAssertTrue(evidence.testnetNetworkSubmitPerformed)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretAutoRead)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.brokerEndpointConnected)
+        XCTAssertFalse(evidence.productionOrderSubmitted)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertEqual(ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence.requiredValidationAnchors, anchors)
+
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+        }
+        XCTAssertTrue(source.contains("ReleaseV0150BinanceSpotTestnetSubmitTransport"))
+        XCTAssertTrue(source.contains("ReleaseV0150BinanceSpotTestnetSubmitRuntime"))
+        XCTAssertTrue(source.contains("testnetNetworkSubmitPerformed=true"))
+        XCTAssertTrue(source.contains("productionOrderSubmitted=false"))
+        XCTAssertTrue(signedBuilderSource.contains("GH-1067-VERIFY-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST"))
+        XCTAssertFalse(String(describing: evidence).contains("gh-1068-testnet-api-key"))
+        XCTAssertFalse(String(describing: evidence).contains("gh-1068-testnet-secret"))
+
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetSubmitOperatorGate(
+                gateID: .constant("bad-gate"),
+                operatorConfirmationID: .constant("gh-1068-bad-confirmation"),
+                strategyRunID: correlation.strategyRunID,
+                credentialReferenceID: reference.referenceID,
+                signedRequestID: .constant("gh-1068-signed-request"),
+                operatorConfirmedTestnetSubmit: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetSubmitTransportResult(
+                transportResultID: .constant("bad-result"),
+                signedRequest: try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder().buildMarketSubmitRequest(
+                    credential: credential,
+                    symbol: symbol,
+                    side: .buy,
+                    quantity: quantity,
+                    timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+                ),
+                httpStatusCode: 500,
+                redactedResponseDigest: ReleaseV0150BinanceSpotTestnetSubmitTransportResult.redactedDigest(
+                    statusCode: 500,
+                    acknowledgement: "server-error-redacted"
+                )
+            )
+        )
+        let perpInstrument = InstrumentIdentity.binance(productType: .usdsPerpetual, symbol: symbol)
+        let perpIntent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: perpInstrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation
+            ),
+            instrument: perpInstrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        do {
+            _ = try await runtime.submitMarketOrder(
+                intent: perpIntent,
+                mapping: mapping,
+                credential: credential,
+                operatorConfirmationID: .constant("gh-1068-operator-confirmation"),
+                timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+            )
+            XCTFail("USDⓈ-M Perpetual must stay outside the v0.15.0 Spot Testnet submit runtime")
+        } catch {
+            XCTAssertTrue(String(describing: error).isEmpty == false)
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

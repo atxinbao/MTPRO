@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0150-REAL-SPOT-TESTNET-SUBMIT
+
+- TVM-RELEASE-V0150-REAL-SPOT-TESTNET-SUBMIT
+- GH-1068-VERIFY-V0150-REAL-SPOT-TESTNET-SUBMIT-RUNTIME
+- V0150-003-ORDERINTENT-TO-SIGNED-SUBMIT
+- V0150-003-REDACTED-RESPONSE-EVIDENCE
+- V0150-003-TESTNET-NETWORK-SUBMIT-PERFORMED
+- V0150-003-PRODUCTION-ENDPOINT-BLOCKED
+- V0150-003-NO-PRODUCTION-CUTOVER
+- GH-1068 Release v0.15.0 Real Spot Testnet Submit Runtime
+- `bash checks/verify-v0.15.0-real-spot-testnet-submit-runtime.sh`
+- `swift test --filter TargetGraphTests/testGH1068ReleaseV0150SpotTestnetSubmitRuntimeProducesRedactedNetworkEvidence`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`docs/contracts/release-v0.15.0-real-spot-testnet-submit-runtime-contract.md`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.15.0-real-spot-testnet-submit-runtime.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-1068 允许且只允许 Binance Spot Testnet submit runtime evidence。`testnetNetworkSubmitPerformed=true`，`appendOnlyEvidenceCreated=true`，`endpointHost == testnet.binance.vision`，Spot Testnet order endpoint path 只在 GH-1068 source / contract 中作为 scoped submit evidence 断言，避免污染 GH-845 no-order matrix guard；`productionTradingEnabledByDefault=false`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`；不授权 production cutover、production order、cancel / replace 或 Dashboard command surface。
+
 ## TVM-RELEASE-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST
 
 - TVM-RELEASE-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST

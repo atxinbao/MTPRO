@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1068 Release v0.15.0 Real Spot Testnet Submit Runtime
+
+- `GH-1068-VERIFY-V0150-REAL-SPOT-TESTNET-SUBMIT-RUNTIME`
+- `TVM-RELEASE-V0150-REAL-SPOT-TESTNET-SUBMIT`
+- `V0150-003-ORDERINTENT-TO-SIGNED-SUBMIT`
+- `V0150-003-REDACTED-RESPONSE-EVIDENCE`
+- `V0150-003-TESTNET-NETWORK-SUBMIT-PERFORMED`
+- `V0150-003-PRODUCTION-ENDPOINT-BLOCKED`
+- `V0150-003-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.0-real-spot-testnet-submit-runtime.sh`
+- Focused test: `testGH1068ReleaseV0150SpotTestnetSubmitRuntimeProducesRedactedNetworkEvidence`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift`、`docs/contracts/release-v0.15.0-real-spot-testnet-submit-runtime-contract.md`、`checks/verify-v0.15.0-real-spot-testnet-submit-runtime.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1068 只允许 Binance Spot Testnet submit runtime path；必须从 OrderIntent + riskAccepted Binance Testnet submit mapping 进入，复用 #1067 signed request builder，经显式 operator confirmation 和注入式 Spot Testnet transport 返回 redacted response evidence；`testnetNetworkSubmitPerformed=true`，`appendOnlyEvidenceCreated=true`，`productionTradingEnabledByDefault=false`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`；不授权 production cutover、cancel / replace、Dashboard command surface 或 production order。
+
 ## GH-1067 Release v0.15.0 Testnet Credential / Signed Request Builder
 
 - `GH-1067-VERIFY-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST`
