@@ -1,0 +1,183 @@
+{
+  "boundaryHeld": true,
+  "brokerEndpointConnected": false,
+  "closedLoopStagesVisible": true,
+  "dashboardCommandSurfaceEnabled": false,
+  "dashboardDependsOnExecutionEngineTarget": false,
+  "eventLogEvidenceVisible": true,
+  "issueID": "GH-1041",
+  "liveCommandVisible": false,
+  "logInput": {
+    "adapterEvidenceIDs": [
+      "gh-1029-binance-testnet-adapter-evidence"
+    ],
+    "entryCount": 7,
+    "executionLogID": "gh-1040-execution-event-log:deterministic-fixture",
+    "independentlyInspectable": true,
+    "localOrderIDs": [
+      "gh-1031-local-order"
+    ],
+    "omsStoreIDs": [
+      "gh-1031-oms-store"
+    ],
+    "orderIntentIDs": [
+      "gh-1025-order-intent"
+    ],
+    "productTypes": [
+      "spot",
+      "usd-m-perpetual"
+    ],
+    "readOptimized": true,
+    "reconciliationReportIDs": [
+      "gh-1036-reconciliation-report"
+    ],
+    "redactedEvidenceOnly": true,
+    "riskDecisionIDs": [
+      "gh-1034-risk-decision"
+    ],
+    "runID": "gh-1040-execution-event-log-run",
+    "sourceEvidenceType": "ReleaseV0140ExecutionEventLogReport",
+    "sourceOrderEventStreamID": "gh-1032-order-event-stream",
+    "sourcePipelineReportID": "gh-1037-signal-to-execution-pipeline-report",
+    "sourceReconciliationReportID": "gh-1036-reconciliation-report",
+    "stateSnapshotIDs": [
+      "gh-1033-oms-state-snapshot"
+    ],
+    "strategyScopeLabels": [
+      "ema",
+      "rsi"
+    ],
+    "testnetEvidenceOnly": true
+  },
+  "orderFormVisible": false,
+  "orderLifecycleVisible": true,
+  "previousIssueID": "GH-1040",
+  "productionCutoverAuthorized": false,
+  "productionEndpointConnected": false,
+  "productionSecretRead": false,
+  "productionSubmitCancelReplaceEnabled": false,
+  "productionTradingEnabledByDefault": false,
+  "readOnly": true,
+  "reconciliationVisible": true,
+  "releaseVersion": "v0.14.0",
+  "requiredValidationCommands": [
+    "swift test --filter AppTests/testGH1041DashboardReadOnlyExecutionSurfaceShowsClosedLoopEvidenceWithoutCommands",
+    "swift test --filter TargetGraphTests/testGH1041DashboardReadOnlyExecutionSurfaceIsAnchoredInV0140Guards",
+    "bash checks/verify-v0.14.0-read-only-execution-dashboard.sh",
+    "git diff --check",
+    "bash checks/automation-readiness.sh",
+    "bash checks/run.sh"
+  ],
+  "rows": [
+    {
+      "commandHandlerBound": false,
+      "orderFormVisible": false,
+      "readOnly": true,
+      "sequence": 1,
+      "sourceEvidenceID": "gh-1037-strategy-signal",
+      "stage": "strategy-signal",
+      "status": "read-only-visible",
+      "submitCancelReplaceEnabled": false,
+      "summary": "EMA / RSI signal envelope accepted for testnet closed loop",
+      "tradingButtonVisible": false,
+      "visibleInDashboard": true
+    },
+    {
+      "commandHandlerBound": false,
+      "orderFormVisible": false,
+      "readOnly": true,
+      "sequence": 2,
+      "sourceEvidenceID": "gh-1025-order-intent",
+      "stage": "order-intent",
+      "status": "read-only-visible",
+      "submitCancelReplaceEnabled": false,
+      "summary": "OrderIntent mapped for Binance spot and USD-M perpetual scope",
+      "tradingButtonVisible": false,
+      "visibleInDashboard": true
+    },
+    {
+      "commandHandlerBound": false,
+      "orderFormVisible": false,
+      "readOnly": true,
+      "sequence": 3,
+      "sourceEvidenceID": "gh-1034-risk-decision",
+      "stage": "risk-check",
+      "status": "read-only-visible",
+      "submitCancelReplaceEnabled": false,
+      "summary": "RiskEngine pre-trade gate allowed deterministic testnet intent",
+      "tradingButtonVisible": false,
+      "visibleInDashboard": true
+    },
+    {
+      "commandHandlerBound": false,
+      "orderFormVisible": false,
+      "readOnly": true,
+      "sequence": 4,
+      "sourceEvidenceID": "gh-1029-binance-testnet-adapter-evidence",
+      "stage": "binance-testnet-execution",
+      "status": "read-only-visible",
+      "submitCancelReplaceEnabled": false,
+      "summary": "ExecutionEngine mapped intent to Binance testnet evidence only",
+      "tradingButtonVisible": false,
+      "visibleInDashboard": true
+    },
+    {
+      "commandHandlerBound": false,
+      "orderFormVisible": false,
+      "readOnly": true,
+      "sequence": 5,
+      "sourceEvidenceID": "gh-1032-order-event-stream",
+      "stage": "oms-event-log",
+      "status": "read-only-visible",
+      "submitCancelReplaceEnabled": false,
+      "summary": "OMS local order and event log evidence linked to the run",
+      "tradingButtonVisible": false,
+      "visibleInDashboard": true
+    },
+    {
+      "commandHandlerBound": false,
+      "orderFormVisible": false,
+      "readOnly": true,
+      "sequence": 6,
+      "sourceEvidenceID": "gh-1036-reconciliation-report",
+      "stage": "reconciliation",
+      "status": "read-only-visible",
+      "submitCancelReplaceEnabled": false,
+      "summary": "Reconciliation report remains read-only and local evidence scoped",
+      "tradingButtonVisible": false,
+      "visibleInDashboard": true
+    },
+    {
+      "commandHandlerBound": false,
+      "orderFormVisible": false,
+      "readOnly": true,
+      "sequence": 7,
+      "sourceEvidenceID": "gh-1041-dashboard-read-model",
+      "stage": "dashboard-status",
+      "status": "read-only-visible",
+      "submitCancelReplaceEnabled": false,
+      "summary": "Dashboard displays closed-loop evidence without command controls",
+      "tradingButtonVisible": false,
+      "visibleInDashboard": true
+    }
+  ],
+  "source": {
+    "callsBinanceAdapter": false,
+    "exposesDatabaseTables": false,
+    "exposesORMModels": false,
+    "exposesRuntimeObjects": false,
+    "providesLiveOrderAction": false,
+    "sourceKind": "stable read model projection"
+  },
+  "submitCancelReplaceEnabled": false,
+  "tradingButtonVisible": false,
+  "upstreamIssueIDs": [
+    "GH-1040"
+  ],
+  "validationAnchors": [
+    "GH-1041-READ-ONLY-EXECUTION-DASHBOARD",
+    "GH-1041-EXECUTION-STATUS-SURFACE",
+    "GH-1041-NO-DASHBOARD-COMMANDS",
+    "TVM-RELEASE-V0140-READ-ONLY-EXECUTION-DASHBOARD"
+  ]
+}

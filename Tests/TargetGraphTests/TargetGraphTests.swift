@@ -39599,6 +39599,116 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.1-codable-decode-validation.sh"))
     }
 
+    func testGH1062ReleaseV0141GoldenJSONFixturesFailClosedCorruptedV0140Contracts() throws {
+        // 测试场景：GH-1062 使用固定 golden JSON fixture 验证 v0.14 关键 evidence artifact。
+        // 验证目的：外部 artifact 必须经过 decode -> validate；缺 evidence ID、stage mapping 漂移、
+        // 非法 lifecycle transition 或 production boundary flag 污染都不能绕过 Swift initializer。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let fixtureRoot = "Tests/Fixtures/ReleaseV0141GoldenJSON/valid"
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        func fixtureData(_ name: String) throws -> Data {
+            try Data(contentsOf: repositoryRoot.appendingPathComponent("\(fixtureRoot)/\(name)"))
+        }
+        func fixtureObject(_ name: String) throws -> [String: Any] {
+            let object = try JSONSerialization.jsonObject(with: fixtureData(name), options: [])
+            return try XCTUnwrap(object as? [String: Any])
+        }
+        func objectData(_ object: [String: Any]) throws -> Data {
+            try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+        }
+
+        let decoder = JSONDecoder()
+        let signalReport = try decoder.decode(
+            ReleaseV0140SignalToExecutionPipelineReport.self,
+            from: fixtureData("signal-pipeline-report.json")
+        )
+        let omsEvent = try decoder.decode(
+            ReleaseV0140OMSLocalOrderStoreEvent.self,
+            from: fixtureData("oms-local-order-event.json")
+        )
+        let dashboard = try decoder.decode(
+            ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.self,
+            from: fixtureData("dashboard-surface.json")
+        )
+
+        XCTAssertTrue(signalReport.boundaryHeld)
+        XCTAssertEqual(signalReport.completedStages, ReleaseV0140SignalToExecutionPipelineReport.requiredPassedStages)
+        XCTAssertFalse(signalReport.networkSubmitAttempted)
+        XCTAssertFalse(signalReport.networkCancelReplaceAttempted)
+        XCTAssertTrue(omsEvent.boundaryHeld)
+        XCTAssertEqual(omsEvent.fromState, .accepted)
+        XCTAssertEqual(omsEvent.toState, .cancelRequested)
+        XCTAssertTrue(dashboard.boundaryHeld)
+        XCTAssertEqual(dashboard.visibleRowCount, ReleaseV0140ReadOnlyExecutionDashboardStage.allCases.count)
+
+        var missingEvidenceDashboard = try fixtureObject("dashboard-surface.json")
+        var logInput = try XCTUnwrap(missingEvidenceDashboard["logInput"] as? [String: Any])
+        logInput["executionLogID"] = ""
+        missingEvidenceDashboard["logInput"] = logInput
+        XCTAssertThrowsError(
+            try decoder.decode(
+                ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.self,
+                from: objectData(missingEvidenceDashboard)
+            )
+        )
+
+        var wrongStageSignal = try fixtureObject("signal-pipeline-report.json")
+        var stages = try XCTUnwrap(wrongStageSignal["completedStages"] as? [String])
+        stages[4] = ReleaseV0140SignalToExecutionPipelineStage.reconciliation.rawValue
+        wrongStageSignal["completedStages"] = stages
+        XCTAssertThrowsError(
+            try decoder.decode(ReleaseV0140SignalToExecutionPipelineReport.self, from: objectData(wrongStageSignal))
+        )
+
+        var illegalLifecycleEvent = try fixtureObject("oms-local-order-event.json")
+        illegalLifecycleEvent["fromState"] = OrderLifecycleState.created.rawValue
+        illegalLifecycleEvent["toState"] = OrderLifecycleState.submittedTestnet.rawValue
+        illegalLifecycleEvent["eventID"] =
+            "gh-1031-oms-local-order-store-event:1:lifecycleTransition:gh-1062-local-order:submittedTestnet:gh-1062-cancel-request-evidence"
+        var transition = try XCTUnwrap(illegalLifecycleEvent["transition"] as? [String: Any])
+        transition["from"] = OrderLifecycleState.created.rawValue
+        transition["to"] = OrderLifecycleState.submittedTestnet.rawValue
+        illegalLifecycleEvent["transition"] = transition
+        XCTAssertThrowsError(
+            try decoder.decode(ReleaseV0140OMSLocalOrderStoreEvent.self, from: objectData(illegalLifecycleEvent))
+        )
+
+        var corruptedBoundarySignal = try fixtureObject("signal-pipeline-report.json")
+        corruptedBoundarySignal["networkSubmitAttempted"] = true
+        XCTAssertThrowsError(
+            try decoder.decode(ReleaseV0140SignalToExecutionPipelineReport.self, from: objectData(corruptedBoundarySignal))
+        )
+
+        let verifier = try read("checks/verify-v0.14.1-golden-json-contracts.sh")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        for anchor in [
+            "GH-1062-VERIFY-V0141-GOLDEN-JSON-CONTRACTS",
+            "TVM-RELEASE-V0141-GOLDEN-JSON-CONTRACTS",
+            "V0141-004-GOLDEN-JSON-FIXTURES",
+            "V0141-004-DECODE-VALIDATE-MUTATE-FAIL",
+            "V0141-004-CORRUPTED-PAYLOADS-FAIL-CLOSED",
+            "V0141-004-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in GH-1062 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+        }
+        XCTAssertTrue(verifier.contains("signal-pipeline-report.json"))
+        XCTAssertTrue(verifier.contains("oms-local-order-event.json"))
+        XCTAssertTrue(verifier.contains("dashboard-surface.json"))
+        XCTAssertTrue(verifier.contains("testGH1062ReleaseV0141GoldenJSONFixturesFailClosedCorruptedV0140Contracts"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.1-golden-json-contracts.sh"))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
