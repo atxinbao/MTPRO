@@ -3586,6 +3586,104 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH1063DashboardExecutionSurfaceLoadsLocalReadModelArtifactReadOnly() throws {
+        // 测试场景：GH-1063 Dashboard 必须从本地 read-model artifact JSON 解码 v0.14 执行面，
+        // 并在展示前完成边界验证。该路径只读，不创建 trading button、order form 或 submit/cancel/replace。
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let fixture = ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput()
+        let artifactJSON = try encoder.encode(fixture)
+        let artifactInput = try ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel
+            .localReadModelArtifactInput(fromJSON: artifactJSON)
+        let loadedSurface = try DashboardShellSnapshot
+            .releaseV0140ReadOnlyExecutionDashboardSurface(fromLocalReadModelJSON: artifactJSON)
+        let snapshot = DashboardShellSnapshot(
+            viewModel: try makeDashboardViewModel(),
+            releaseV0140ReadOnlyExecutionDashboardSurface: loadedSurface
+        )
+
+        XCTAssertTrue(artifactInput.inputHeld)
+        XCTAssertEqual(artifactInput.artifactID, "gh-1063-dashboard-execution-surface")
+        XCTAssertEqual(artifactInput.schema, ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput.schemaID)
+        XCTAssertEqual(artifactInput.releaseVersion, "v0.14.1")
+        XCTAssertEqual(artifactInput.validationState, "valid")
+        XCTAssertTrue(
+            ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput
+                .isValidSHA256Reference(artifactInput.checksumReference)
+        )
+        XCTAssertTrue(loadedSurface.boundaryHeld)
+        XCTAssertTrue(loadedSurface.readOnly)
+        XCTAssertFalse(loadedSurface.dashboardCommandSurfaceEnabled)
+        XCTAssertFalse(loadedSurface.tradingButtonVisible)
+        XCTAssertFalse(loadedSurface.orderFormVisible)
+        XCTAssertFalse(loadedSurface.liveCommandVisible)
+        XCTAssertFalse(loadedSurface.submitCancelReplaceEnabled)
+        XCTAssertFalse(loadedSurface.productionTradingEnabledByDefault)
+        XCTAssertFalse(loadedSurface.productionSecretRead)
+        XCTAssertFalse(loadedSurface.productionEndpointConnected)
+        XCTAssertFalse(loadedSurface.brokerEndpointConnected)
+        XCTAssertFalse(loadedSurface.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(loadedSurface.productionCutoverAuthorized)
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0140ExecutionDashboardRows=7"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0140ExecutionDashboardBoundary=confirmed"))
+
+        let invalidPath = try encoder.encode(
+            ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput(
+                relativePath: "../escape/dashboard-execution-surface.json"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.localReadModelArtifact(fromJSON: invalidPath)
+        )
+
+        let uppercaseChecksum = try encoder.encode(
+            ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput(
+                checksumReference: "sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel
+                .localReadModelArtifact(fromJSON: uppercaseChecksum)
+        )
+
+        let commandSurface = try encoder.encode(
+            ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput(
+                surface: ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel(
+                    dashboardCommandSurfaceEnabled: true
+                )
+            )
+        )
+        XCTAssertThrowsError(
+            try DashboardShellSnapshot.releaseV0140ReadOnlyExecutionDashboardSurface(
+                fromLocalReadModelJSON: commandSurface
+            )
+        )
+
+        let productionFlag = try encoder.encode(
+            ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput(
+                productionTradingEnabledByDefault: true
+            )
+        )
+        XCTAssertThrowsError(
+            try DashboardShellSnapshot.releaseV0140ReadOnlyExecutionDashboardSurface(
+                fromLocalReadModelJSON: productionFlag
+            )
+        )
+
+        XCTAssertEqual(
+            ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput.validationAnchors,
+            [
+                "GH-1063-VERIFY-V0141-DASHBOARD-LOCAL-ARTIFACTS",
+                "TVM-RELEASE-V0141-DASHBOARD-LOCAL-ARTIFACTS",
+                "V0141-005-DASHBOARD-LOCAL-READ-MODEL-ARTIFACT",
+                "V0141-005-DECODE-VALIDATE-BEFORE-DISPLAY",
+                "V0141-005-DASHBOARD-READ-ONLY-NO-COMMANDS",
+                "V0141-005-NO-PRODUCTION-CUTOVER"
+            ]
+        )
+    }
+
     func testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands() throws {
         // 测试场景：GH-890 Dashboard 只能展示 v0.10.0 production readiness evidence center。
         // Readiness Overview / Environment / Secret / Endpoint / Risk / Kill Switch /

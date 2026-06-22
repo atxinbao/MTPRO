@@ -489,7 +489,9 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
     public init(
         title: String = "MTPRO Research Dashboard",
         subtitle: String = "Research -> Backtest -> Report",
-        viewModel: DashboardViewModel
+        viewModel: DashboardViewModel,
+        releaseV0140ReadOnlyExecutionDashboardSurface:
+            ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel = .deterministicFixture
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -500,11 +502,16 @@ public struct DashboardShellSnapshot: Codable, Equatable, Sendable {
         self.releaseV090OperatorUXSurface = .deterministicFixture
         self.releaseV0100ProductionReadinessCenter = .deterministicFixture
         self.releaseV0120AssessmentHistorySurface = .deterministicFixture
-        self.releaseV0140ReadOnlyExecutionDashboardSurface = .deterministicFixture
+        self.releaseV0140ReadOnlyExecutionDashboardSurface = releaseV0140ReadOnlyExecutionDashboardSurface
         self.releaseV080SafeLocalControlsSurface = .deterministicFixture
         self.sections = viewModel.sections.map { section in
             Self.makeSectionSnapshot(for: section, viewModel: viewModel)
         }
+    }
+
+    public static func releaseV0140ReadOnlyExecutionDashboardSurface(fromLocalReadModelJSON data: Data
+    ) throws -> ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel {
+        try ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.localReadModelArtifact(fromJSON: data)
     }
 
     public var viewModelSources: [ViewModelSourceContract] {

@@ -570,6 +570,19 @@ public struct ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel:
         ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel()
     }
 
+    public static func localReadModelArtifactInput(
+        fromJSON data: Data,
+        decoder: JSONDecoder = JSONDecoder()
+    ) throws -> ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput {
+        try decoder.decode(ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput.self, from: data)
+    }
+
+    public static func localReadModelArtifact(fromJSON data: Data,
+        decoder: JSONDecoder = JSONDecoder()
+    ) throws -> ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel {
+        try localReadModelArtifactInput(fromJSON: data, decoder: decoder).surface
+    }
+
     public static let requiredValidationAnchors = [
         "GH-1041-READ-ONLY-EXECUTION-DASHBOARD",
         "GH-1041-EXECUTION-STATUS-SURFACE",
@@ -630,4 +643,160 @@ public struct ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel:
             sequence: 7
         )
     ]
+}
+
+/// ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput 是 GH-1063 的本地 Dashboard artifact wrapper。
+///
+/// 该 wrapper 只允许 Dashboard 从本地 read-model JSON 读取已经完成边界验证的 v0.14 执行展示面。
+/// 解码时会先验证 artifact 元数据、sha256 reference 和内嵌 surface 的只读边界，避免 UI 先展示后校验。
+public struct ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput:
+    Codable,
+    Equatable,
+    Sendable
+{
+    public let artifactID: String
+    public let relativePath: String
+    public let schema: String
+    public let releaseVersion: String
+    public let validationState: String
+    public let checksumReference: String
+    public let surface: ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel
+    public let localReadModelArtifact: Bool
+    public let redactedEvidenceOnly: Bool
+    public let readOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let submitCancelReplaceEnabled: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public static let schemaID = "release-v0.14.1-dashboard-execution-surface-read-model"
+
+    public static let validationAnchors = [
+        "GH-1063-VERIFY-V0141-DASHBOARD-LOCAL-ARTIFACTS",
+        "TVM-RELEASE-V0141-DASHBOARD-LOCAL-ARTIFACTS",
+        "V0141-005-DASHBOARD-LOCAL-READ-MODEL-ARTIFACT",
+        "V0141-005-DECODE-VALIDATE-BEFORE-DISPLAY",
+        "V0141-005-DASHBOARD-READ-ONLY-NO-COMMANDS",
+        "V0141-005-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public var inputHeld: Bool {
+        artifactID.isEmpty == false
+            && Self.isSafeLocalArtifactPath(relativePath)
+            && schema == Self.schemaID
+            && releaseVersion == "v0.14.1"
+            && validationState == "valid"
+            && Self.isValidSHA256Reference(checksumReference)
+            && surface.boundaryHeld
+            && surface.readOnly
+            && surface.dashboardCommandSurfaceEnabled == false
+            && surface.tradingButtonVisible == false
+            && surface.orderFormVisible == false
+            && surface.liveCommandVisible == false
+            && surface.submitCancelReplaceEnabled == false
+            && localReadModelArtifact
+            && redactedEvidenceOnly
+            && readOnly
+            && productionTradingEnabledByDefault == false
+            && productionSecretRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && submitCancelReplaceEnabled == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        artifactID: String = "gh-1063-dashboard-execution-surface",
+        relativePath: String = ".local/mtpro/runs/gh-1063/dashboard-execution-surface.json",
+        schema: String = Self.schemaID,
+        releaseVersion: String = "v0.14.1",
+        validationState: String = "valid",
+        checksumReference: String =
+            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        surface: ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel = .deterministicFixture,
+        localReadModelArtifact: Bool = true,
+        redactedEvidenceOnly: Bool = true,
+        readOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        submitCancelReplaceEnabled: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) {
+        self.artifactID = artifactID
+        self.relativePath = relativePath
+        self.schema = schema
+        self.releaseVersion = releaseVersion
+        self.validationState = validationState
+        self.checksumReference = checksumReference
+        self.surface = surface
+        self.localReadModelArtifact = localReadModelArtifact
+        self.redactedEvidenceOnly = redactedEvidenceOnly
+        self.readOnly = readOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretRead = productionSecretRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.submitCancelReplaceEnabled = submitCancelReplaceEnabled
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            artifactID: try container.decode(String.self, forKey: .artifactID),
+            relativePath: try container.decode(String.self, forKey: .relativePath),
+            schema: try container.decode(String.self, forKey: .schema),
+            releaseVersion: try container.decode(String.self, forKey: .releaseVersion),
+            validationState: try container.decode(String.self, forKey: .validationState),
+            checksumReference: try container.decode(String.self, forKey: .checksumReference),
+            surface: try container.decode(ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.self, forKey: .surface),
+            localReadModelArtifact: try container.decode(Bool.self, forKey: .localReadModelArtifact),
+            redactedEvidenceOnly: try container.decode(Bool.self, forKey: .redactedEvidenceOnly),
+            readOnly: try container.decode(Bool.self, forKey: .readOnly),
+            productionTradingEnabledByDefault: try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault),
+            productionSecretRead: try container.decode(Bool.self, forKey: .productionSecretRead),
+            productionEndpointConnected: try container.decode(Bool.self, forKey: .productionEndpointConnected),
+            brokerEndpointConnected: try container.decode(Bool.self, forKey: .brokerEndpointConnected),
+            submitCancelReplaceEnabled: try container.decode(Bool.self, forKey: .submitCancelReplaceEnabled),
+            productionCutoverAuthorized: try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+        )
+        try Self.requireDecodedBoundary(inputHeld, field: "inputHeld", codingPath: decoder.codingPath)
+    }
+
+    public static func isSafeLocalArtifactPath(_ path: String) -> Bool {
+        path.isEmpty == false
+            && path.hasPrefix("/") == false
+            && path.contains("..") == false
+            && path.hasSuffix(".json")
+            && (path.hasPrefix(".local/mtpro/") || path.hasPrefix("runs/"))
+    }
+
+    public static func isValidSHA256Reference(_ value: String) -> Bool {
+        let prefix = "sha256:"
+        guard value.hasPrefix(prefix) else {
+            return false
+        }
+        let digest = String(value.dropFirst(prefix.count))
+        guard digest.count == 64 else {
+            return false
+        }
+        return digest.unicodeScalars.allSatisfy {
+            CharacterSet(charactersIn: "0123456789abcdef").contains($0)
+        }
+    }
+
+    private static func requireDecodedBoundary(_ condition: Bool, field: String, codingPath: [CodingKey]) throws {
+        guard condition else {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput decode validation failed: \(field)"
+                )
+            )
+        }
+    }
 }

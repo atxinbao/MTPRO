@@ -3333,3 +3333,19 @@
 - boundary evidence: decode validators rerun initializer contract for lifecycle transition, OMS event and signal pipeline report instead of trusting synthesized Codable output
 - dependency evidence: #1062 starts after #1060 and #1061 are closed / done with merged PR evidence and main fast-forward
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command
+
+## TVM-RELEASE-V0141-DASHBOARD-LOCAL-ARTIFACTS
+
+- GH-1063-VERIFY-V0141-DASHBOARD-LOCAL-ARTIFACTS
+- V0141-005-DASHBOARD-LOCAL-READ-MODEL-ARTIFACT
+- V0141-005-DECODE-VALIDATE-BEFORE-DISPLAY
+- V0141-005-DASHBOARD-READ-ONLY-NO-COMMANDS
+- V0141-005-NO-PRODUCTION-CUTOVER
+- testGH1063DashboardExecutionSurfaceLoadsLocalReadModelArtifactReadOnly
+- testGH1063DashboardLocalArtifactLoaderAnchorsReadOnlyBoundary
+- focused verifier: `bash checks/verify-v0.14.1-dashboard-local-artifacts.sh`
+- validation surface: Dashboard can load the v0.14 execution surface from a local read-model artifact JSON wrapper after schema、path、sha256 and boundary validation
+- fail-closed evidence: invalid relative path, non-canonical checksum, command-surface injection and production-enabled flag injection fail before display
+- boundary evidence: loaded surface remains read-only; no Dashboard trading button, no order form, no live command, no submit / cancel / replace, no production cutover
+- dependency evidence: #1063 starts after #1062 is closed / done with merged PR evidence and main fast-forward
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no broker connection, no submit / cancel / replace, no testnet order, no production order, no trading button, no order form, no live command

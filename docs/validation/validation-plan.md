@@ -5276,3 +5276,19 @@ swift test
 - fail-closed evidence: 缺失 evidence ID、错误 stage-kind mapping、非法 lifecycle transition 和 corrupted boundary fields 必须 decode 失败
 - dependency evidence: #1062 blocked by #1060 and #1061, starts only after #1061 PR merge / checks / main fast-forward / WIP=1 preflight
 - forbidden scope: no runtime pipeline, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-1063 Release v0.14.1 Dashboard Local Artifact Validation
+
+- GH-1063-VERIFY-V0141-DASHBOARD-LOCAL-ARTIFACTS
+- TVM-RELEASE-V0141-DASHBOARD-LOCAL-ARTIFACTS
+- V0141-005-DASHBOARD-LOCAL-READ-MODEL-ARTIFACT
+- V0141-005-DECODE-VALIDATE-BEFORE-DISPLAY
+- V0141-005-DASHBOARD-READ-ONLY-NO-COMMANDS
+- V0141-005-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.14.1-dashboard-local-artifacts.sh`
+- focused tests: `swift test --filter AppTests/testGH1063DashboardExecutionSurfaceLoadsLocalReadModelArtifactReadOnly` and `swift test --filter TargetGraphTests/testGH1063DashboardLocalArtifactLoaderAnchorsReadOnlyBoundary`
+- implementation evidence: `ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput` wraps the v0.14 read-only execution Dashboard surface with artifact ID, safe local relative path, schema, validation state and sha256 reference
+- Dashboard evidence: `DashboardShellSnapshot.releaseV0140ReadOnlyExecutionDashboardSurface(fromLocalReadModelJSON:)` only accepts a decoded surface after artifact wrapper validation has already confirmed `boundaryHeld`
+- fail-closed evidence: invalid path, uppercase checksum, command-surface injection and production-enabled flag injection must fail before Dashboard display
+- dependency evidence: #1063 blocked by #1062 and starts only after #1062 PR merge / checks / main fast-forward / WIP=1 preflight
+- forbidden scope: no runtime pipeline, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
