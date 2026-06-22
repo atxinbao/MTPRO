@@ -6,6 +6,19 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1059 Release v0.14.1 Release CI / Dashboard Evidence Validation
+
+- `GH-1059-VERIFY-V0141-RELEASE-CI-DASHBOARD-EVIDENCE`
+- `TVM-RELEASE-V0141-RELEASE-CI-DASHBOARD-EVIDENCE`
+- `V0141-001-RELEASE-CI-DASHBOARD-EVIDENCE`
+- `V0141-001-V0140-TAG-RELEASE-CHECKS`
+- `V0141-001-DASHBOARD-MACOS-EVIDENCE`
+- `V0141-001-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.14.1-release-ci-dashboard-evidence.sh`
+- Focused test: `testGH1059ReleaseV0141CIAndDashboardEvidenceAnchorsV0140ReleaseFacts`
+- Evidence files: `docs/audit/inputs/mtpro-release-v0.14.1-release-ci-dashboard-evidence.md`、`.github/workflows/checks.yml`、`checks/verify-v0.14.1-release-ci-dashboard-evidence.sh`、`checks/verify-v0.14.0-read-only-execution-dashboard.sh`、`checks/run.sh`、`docs/automation/automation-readiness.md`、`docs/validation/trading-validation-matrix.md` 和 `docs/validation/latest-verification-summary.md`。
+- Boundary: GH-1059 只补强 v0.14.x release CI / Dashboard evidence，固定 v0.14.0 public release、PR #1058、required checks、Linux `checks/run.sh`、macOS Dashboard build / smoke 和 tag push workflow evidence；不新增 runtime pipeline，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，也不推进 v0.15.0。
+
 ## GH-951 Release v0.11.1 Patch Audit / Release Notes Closeout Validation
 
 - `GH-951-VERIFY-V0111-PATCH-AUDIT-RELEASE-NOTES`

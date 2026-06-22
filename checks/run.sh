@@ -161,6 +161,7 @@ bash checks/verify-v0.14.0-full-e2e-testnet-suite.sh
 bash checks/verify-v0.14.0-failure-simulation-suite.sh
 bash checks/verify-v0.14.0-execution-event-log.sh
 bash checks/verify-v0.14.0-read-only-execution-dashboard.sh
+bash checks/verify-v0.14.1-release-ci-dashboard-evidence.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

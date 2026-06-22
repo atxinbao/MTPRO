@@ -39292,6 +39292,89 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1059ReleaseV0141CIAndDashboardEvidenceAnchorsV0140ReleaseFacts() throws {
+        // 测试场景：GH-1059 只补强 v0.14.x release CI 与 macOS Dashboard evidence。
+        // 验证目的：v0.14.0 tag / Release / PR / checks / tag-push workflow 已被写成可审计输入，
+        // 且 v0.14.1 guard 在 Dashboard build / smoke 前执行，不新增 runtime 或生产交易能力。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let auditInput = try read("docs/audit/inputs/mtpro-release-v0.14.1-release-ci-dashboard-evidence.md")
+        let verifier = try read("checks/verify-v0.14.1-release-ci-dashboard-evidence.sh")
+        let workflow = try read(".github/workflows/checks.yml")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        for anchor in [
+            "GH-1059-VERIFY-V0141-RELEASE-CI-DASHBOARD-EVIDENCE",
+            "TVM-RELEASE-V0141-RELEASE-CI-DASHBOARD-EVIDENCE",
+            "V0141-001-RELEASE-CI-DASHBOARD-EVIDENCE",
+            "V0141-001-V0140-TAG-RELEASE-CHECKS",
+            "V0141-001-DASHBOARD-MACOS-EVIDENCE",
+            "V0141-001-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(auditInput.contains(anchor), "\(anchor) must stay in v0.14.1 audit input")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.14.1 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+        }
+
+        for required in [
+            "https://github.com/atxinbao/MTPRO/releases/tag/v0.14.0",
+            "5ec84cd02adb425fb533fdf7337673746b51c8be",
+            "PR #1058",
+            "27919195332",
+            "27919993831",
+            "linux-checks",
+            "dashboard-macos",
+            "checks",
+            "bash checks/run.sh",
+            "bash checks/verify-v0.14.0-read-only-execution-dashboard.sh",
+            "v0.14.1 是 hardening patch，不新增 runtime pipeline"
+        ] {
+            XCTAssertTrue(auditInput.contains(required), "\(required) must stay documented for GH-1059")
+        }
+
+        XCTAssertTrue(workflow.contains("Verify v0.14.x release CI and Dashboard evidence guards"))
+        XCTAssertTrue(workflow.contains("bash checks/verify-v0.14.1-release-ci-dashboard-evidence.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.1-release-ci-dashboard-evidence.sh"))
+        XCTAssertTrue(verifier.contains("bash \"$DASHBOARD_GUARD\""))
+        XCTAssertTrue(verifier.contains("swift build --product Dashboard"))
+        XCTAssertTrue(verifier.contains("DASHBOARD_SMOKE=1 swift run Dashboard"))
+
+        let v0120Range = try XCTUnwrap(workflow.range(of: "Verify v0.12.0 Dashboard macOS focused guards"))
+        let v0141Range = try XCTUnwrap(workflow.range(of: "Verify v0.14.x release CI and Dashboard evidence guards"))
+        let buildRange = try XCTUnwrap(workflow.range(of: "Build Dashboard"))
+        let smokeRange = try XCTUnwrap(workflow.range(of: "Run Dashboard smoke"))
+        XCTAssertLessThan(v0120Range.lowerBound, v0141Range.lowerBound)
+        XCTAssertLessThan(v0141Range.lowerBound, buildRange.lowerBound)
+        XCTAssertLessThan(buildRange.lowerBound, smokeRange.lowerBound)
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true",
+            "productionSubmitCancelReplace=true",
+            "productionCutoverAuthorized=true",
+            "swift run mtpro submit",
+            "swift run mtpro cancel",
+            "swift run mtpro replace"
+        ] {
+            XCTAssertFalse(auditInput.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of GH-1059 audit input")
+            XCTAssertFalse(workflow.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of CI workflow")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
