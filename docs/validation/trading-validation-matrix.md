@@ -6,6 +6,23 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0150-REAL-SPOT-TESTNET-CANCEL-REPLACE
+
+- TVM-RELEASE-V0150-REAL-SPOT-TESTNET-CANCEL-REPLACE
+- GH-1070-VERIFY-V0150-REAL-SPOT-TESTNET-CANCEL-REPLACE-RUNTIME
+- V0150-005-CANCEL-REPLACE-EMULATION
+- V0150-005-CANCEL-THEN-NEW-SUBMIT
+- V0150-005-OMS-REPLACE-STATE-TRANSITION
+- V0150-005-APPEND-ONLY-CANCEL-REPLACE-EVENT
+- V0150-005-UNSUPPORTED-NATIVE-REPLACE-FAIL-CLOSED
+- V0150-005-PRODUCTION-ENDPOINT-BLOCKED
+- V0150-005-NO-PRODUCTION-CUTOVER
+- GH-1070 Release v0.15.0 Real Spot Testnet Cancel-Replace Runtime
+- `bash checks/verify-v0.15.0-real-spot-testnet-cancel-replace-runtime.sh`
+- `swift test --filter TargetGraphTests/testGH1070ReleaseV0150SpotTestnetCancelReplaceRuntimeEmulatesCancelThenSubmit`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift`、`docs/contracts/release-v0.15.0-real-spot-testnet-cancel-replace-runtime-contract.md`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.15.0-real-spot-testnet-cancel-replace-runtime.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-1070 允许且只允许 Binance Spot Testnet cancel + new submit emulation。`nativeCancelReplaceSupported=false`，`nativeReplaceRejectedFailClosed=true`，`cancelThenNewSubmitEmulationUsed=true`，`testnetNetworkCancelPerformed=true`，`testnetNetworkSubmitPerformed=true`，`appendOnlyCancelReplaceEvidenceCreated=true`，`omsStateTransitionIntegrated=true`；`productionTradingEnabledByDefault=false`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`；不授权 production cutover、native cancelReplace endpoint、broker fill、reconciliation 或 Dashboard command surface。
+
 ## TVM-RELEASE-V0150-REAL-SPOT-TESTNET-CANCEL
 
 - TVM-RELEASE-V0150-REAL-SPOT-TESTNET-CANCEL

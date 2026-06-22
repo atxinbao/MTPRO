@@ -6,6 +6,22 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1070 Release v0.15.0 Real Spot Testnet Cancel-Replace Runtime
+
+- `GH-1070-VERIFY-V0150-REAL-SPOT-TESTNET-CANCEL-REPLACE-RUNTIME`
+- `TVM-RELEASE-V0150-REAL-SPOT-TESTNET-CANCEL-REPLACE`
+- `V0150-005-CANCEL-REPLACE-EMULATION`
+- `V0150-005-CANCEL-THEN-NEW-SUBMIT`
+- `V0150-005-OMS-REPLACE-STATE-TRANSITION`
+- `V0150-005-APPEND-ONLY-CANCEL-REPLACE-EVENT`
+- `V0150-005-UNSUPPORTED-NATIVE-REPLACE-FAIL-CLOSED`
+- `V0150-005-PRODUCTION-ENDPOINT-BLOCKED`
+- `V0150-005-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.0-real-spot-testnet-cancel-replace-runtime.sh`
+- Focused test: `testGH1070ReleaseV0150SpotTestnetCancelReplaceRuntimeEmulatesCancelThenSubmit`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`docs/contracts/release-v0.15.0-real-spot-testnet-cancel-replace-runtime-contract.md`、`checks/verify-v0.15.0-real-spot-testnet-cancel-replace-runtime.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1070 只允许 Binance Spot Testnet cancel-replace emulation。Native cancel-replace 保持 unsupported / fail-closed；实际执行路径是先消费 #1069 cancel runtime，再消费 #1068 submit runtime 提交 replacement intent，并追加 aggregate `.cancelReplace` event。`nativeCancelReplaceSupported=false`，`nativeReplaceRejectedFailClosed=true`，`cancelThenNewSubmitEmulationUsed=true`，`appendOnlyCancelReplaceEvidenceCreated=true`，`omsStateTransitionIntegrated=true`；production endpoint、broker endpoint、production secret、production order 和 production cutover 全部保持关闭。
+
 ## GH-1069 Release v0.15.0 Real Spot Testnet Cancel Runtime
 
 - `GH-1069-VERIFY-V0150-REAL-SPOT-TESTNET-CANCEL-RUNTIME`
