@@ -39709,6 +39709,90 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.1-golden-json-contracts.sh"))
     }
 
+    func testGH1063DashboardLocalArtifactLoaderAnchorsReadOnlyBoundary() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        XCTAssertEqual(
+            ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput.validationAnchors,
+            [
+                "GH-1063-VERIFY-V0141-DASHBOARD-LOCAL-ARTIFACTS",
+                "TVM-RELEASE-V0141-DASHBOARD-LOCAL-ARTIFACTS",
+                "V0141-005-DASHBOARD-LOCAL-READ-MODEL-ARTIFACT",
+                "V0141-005-DECODE-VALIDATE-BEFORE-DISPLAY",
+                "V0141-005-DASHBOARD-READ-ONLY-NO-COMMANDS",
+                "V0141-005-NO-PRODUCTION-CUTOVER"
+            ]
+        )
+
+        let source = try read("Sources/Dashboard/Report/ReleaseV0140ReadOnlyExecutionDashboardSurface.swift")
+        let shell = try read("Sources/Dashboard/DashboardShell.swift")
+        let appTests = try read("Tests/AppTests/AppTests.swift")
+        let targetTests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+        let verifier = try read("checks/verify-v0.14.1-dashboard-local-artifacts.sh")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        for anchor in ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput.validationAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-1063 source")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in GH-1063 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest summary")
+        }
+
+        for requiredString in [
+            "ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput",
+            "localReadModelArtifact(fromJSON",
+            "localReadModelArtifactInput(fromJSON",
+            "releaseV0140ReadOnlyExecutionDashboardSurface(fromLocalReadModelJSON",
+            "testGH1063DashboardExecutionSurfaceLoadsLocalReadModelArtifactReadOnly",
+            "testGH1063DashboardLocalArtifactLoaderAnchorsReadOnlyBoundary",
+            "bash checks/verify-v0.14.1-dashboard-local-artifacts.sh"
+        ] {
+            XCTAssertTrue(
+                source.contains(requiredString)
+                    || shell.contains(requiredString)
+                    || appTests.contains(requiredString)
+                    || targetTests.contains(requiredString)
+                    || verifier.contains(requiredString)
+                    || runScript.contains(requiredString)
+                    || readiness.contains(requiredString)
+                    || readinessScript.contains(requiredString)
+                    || validationPlan.contains(requiredString)
+                    || tradingMatrix.contains(requiredString)
+                    || latest.contains(requiredString),
+                "\(requiredString) must stay wired into GH-1063 evidence"
+            )
+        }
+
+        for forbiddenAuthorization in [
+            "productionTradingEnabledByDefault: true",
+            "productionSecretRead: true",
+            "productionEndpointConnected: true",
+            "brokerEndpointConnected: true",
+            "submitCancelReplaceEnabled: true",
+            "productionCutoverAuthorized: true",
+            "dashboardCommandSurfaceEnabled: true",
+            "tradingButtonVisible: true",
+            "orderFormVisible: true",
+            "liveCommandVisible: true",
+            "api.binance.com",
+            "fapi.binance.com"
+        ] {
+            XCTAssertFalse(source.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of source")
+            XCTAssertFalse(shell.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of shell")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
