@@ -6,6 +6,20 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0141-RELEASE-CI-DASHBOARD-EVIDENCE
+
+- TVM-RELEASE-V0141-RELEASE-CI-DASHBOARD-EVIDENCE
+- GH-1059-VERIFY-V0141-RELEASE-CI-DASHBOARD-EVIDENCE
+- V0141-001-RELEASE-CI-DASHBOARD-EVIDENCE
+- V0141-001-V0140-TAG-RELEASE-CHECKS
+- V0141-001-DASHBOARD-MACOS-EVIDENCE
+- V0141-001-NO-PRODUCTION-CUTOVER
+- GH-1059 Release v0.14.1 Release CI / Dashboard Evidence Validation
+- `bash checks/verify-v0.14.1-release-ci-dashboard-evidence.sh`
+- `swift test --filter TargetGraphTests/testGH1059ReleaseV0141CIAndDashboardEvidenceAnchorsV0140ReleaseFacts`
+- Evidence files: `docs/audit/inputs/mtpro-release-v0.14.1-release-ci-dashboard-evidence.md`、`.github/workflows/checks.yml`、`checks/run.sh`、`checks/verify-v0.14.1-release-ci-dashboard-evidence.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-1059 只固定 v0.14.x release evidence chain。v0.14.0 public Release、PR #1058、workflow run `27919195332`、tag push run `27919993831`、`linux-checks`、`dashboard-macos`、`checks` 和 `bash checks/run.sh` 是 evidence；该 evidence 不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order，不授权 production cutover。
+
 ## TVM-RELEASE-V0111-PATCH-AUDIT-RELEASE-NOTES
 
 - TVM-RELEASE-V0111-PATCH-AUDIT-RELEASE-NOTES

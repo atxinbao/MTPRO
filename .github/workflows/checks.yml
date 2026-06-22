@@ -74,6 +74,9 @@ jobs:
       - name: Verify v0.12.0 Dashboard macOS focused guards
         run: bash checks/verify-v0.12.0-dashboard-macos-guards.sh
 
+      - name: Verify v0.14.x release CI and Dashboard evidence guards
+        run: bash checks/verify-v0.14.1-release-ci-dashboard-evidence.sh
+
       - name: Build Dashboard
         run: swift build --product Dashboard
 
