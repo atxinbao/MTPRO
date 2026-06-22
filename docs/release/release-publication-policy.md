@@ -13,6 +13,7 @@
 - `GH-953 V0120-002 Align v0.11.x release publication and patch facts`
 - `v0.12.0 Release Publication Gate fact sync`
 - `GH-993 V0121-006 Close v0.12.1 patch audit and release notes`
+- `GH-1064 V141-006 Correct v0.14 wording and close hardening patch audit`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -171,6 +172,36 @@ v0.12.0 当前存在 public GitHub Release：
 v0.12.0 的 construction closeout、Release Publication Gate、release fact sync / stale wording guard 和 production cutover 仍是独立 gate。已发布事实不授权 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实订单，不创建下一 Project / Issue，也不推进 v0.13.0。
 
 GH-988 / v0.12.1 stale wording guard 固定该 release fact：所有未限定为 #965 历史 closeout 的 v0.12.0 文档不得继续描述为 publication pending、tag pending、release not created、no public tag、no GitHub Release、未创建 release 或待发布。
+
+## V0141-006-PATCH-AUDIT-RELEASE-NOTES
+
+`GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`
+
+`TVM-RELEASE-V0141-PATCH-AUDIT-RELEASE-NOTES`
+
+`V0141-006-PATCH-AUDIT`
+
+`V0141-006-RELEASE-NOTES`
+
+`V0141-006-VALIDATION-SUMMARY`
+
+`V0141-006-LOCAL-EVIDENCE-WORDING`
+
+`V0141-006-NO-PRODUCTION-CUTOVER`
+
+`V0141-006-NO-TAG-OR-RELEASE-PUBLICATION`
+
+v0.14.1 Local Execution Evidence Hardening Patch 是 v0.14.0 public Release 后的 local execution evidence hardening closeout。它只收口 #1059..#1064 的 release CI / Dashboard evidence、Codable decode validation、submit evidence network guard、golden JSON contract validation、Dashboard local artifact loading、Stage Code Audit、release notes 和 root-doc wording。
+
+#1064 is not a release publication gate:
+
+- 不创建 `v0.14.1` tag。
+- 不创建 `v0.14.1` GitHub Release。
+- 不移动、不覆盖、不重写 `v0.14.0` tag 或 GitHub Release。
+- 不推进 v0.15.0。
+- 不授权 production cutover。
+
+v0.14.1 的 engineering semantic 是 `local execution evidence chain / testnet evidence only`。它不是真实 signed Binance testnet execution release，不代表真实 Binance testnet order execution，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order。若 Human 后续要求发布 `v0.14.1`，必须在 #1064 PR merge、required checks SUCCESS、issue closed / done、main == origin/main 和 worktree clean 后，执行独立 Release Publication Gate。
 
 ## V0121-006-PATCH-AUDIT-RELEASE-NOTES
 

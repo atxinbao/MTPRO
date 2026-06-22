@@ -93,7 +93,9 @@ Current Foundation Progress 已完成 4 / 4；Final Product Goal Progress 当前
 
 ## Complete Capability Map
 
-当前 foundation 已覆盖 Binance public read-only ingest、Event Log / Replay、Research / Backtest / Report、Trading Validation、Paper Session Runtime、Paper Execution Workflow、Dashboard / Workbench、Market Data Replay Operations、Portfolio / Risk paper-only evidence。Release line 已推进到 v0.13.0 local evidence-driven readiness engine，但 production trading disabled by default，production cutover not authorized。
+当前 foundation 已覆盖 Binance public read-only ingest、Event Log / Replay、Research / Backtest / Report、Trading Validation、Paper Session Runtime、Paper Execution Workflow、Dashboard / Workbench、Market Data Replay Operations、Portfolio / Risk paper-only evidence。Release line 已推进到 v0.13.0 local evidence-driven readiness engine，最新 patch 为 MTPRO Release v0.14.1 Local Execution Evidence Hardening Patch；production trading disabled by default，production cutover not authorized。
+
+Release v0.14.1 patch line anchor retained：MTPRO Release v0.14.1 Local Execution Evidence Hardening Patch 已完成 local execution evidence chain wording、decode validation、network-attempt evidence guard、golden JSON contract、Dashboard local artifact loading、Stage Code Audit 和 release notes closeout。它是 local execution evidence chain / testnet evidence only，不是真实 signed Binance testnet execution release，不代表真实 Binance testnet order execution，不新增 runtime pipeline，不创建 tag / GitHub Release，不授权 production cutover。
 
 Historical release line anchor retained：Release line 已推进到 v0.12.0 readiness assessment sessions。
 Historical patch line anchor retained：Release v0.12.1 已完成 readiness assessment provenance hardening patch。

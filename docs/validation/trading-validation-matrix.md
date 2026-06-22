@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0141-PATCH-AUDIT-RELEASE-NOTES
+
+- TVM-RELEASE-V0141-PATCH-AUDIT-RELEASE-NOTES
+- GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES
+- V0141-006-PATCH-AUDIT
+- V0141-006-RELEASE-NOTES
+- V0141-006-VALIDATION-SUMMARY
+- V0141-006-LOCAL-EVIDENCE-WORDING
+- V0141-006-NO-PRODUCTION-CUTOVER
+- V0141-006-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1064 Release v0.14.1 Patch Audit / Release Notes Closeout
+- `bash checks/verify-v0.14.1-patch-audit-release-notes.sh`
+- `swift test --filter TargetGraphTests/testGH1064ReleaseV0141PatchAuditReleaseNotesCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-notes.md`、`docs/release/release-publication-policy.md`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.14.1-patch-audit-release-notes.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-1064 只固定 v0.14.1 patch audit / release notes closeout、local evidence wording 和 release publication separation。v0.14.1 是 local execution evidence chain / testnet evidence only，不是真实 signed Binance testnet execution release；不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order，不授权 production cutover。GH-1064 PR 本身不创建 `v0.14.1` tag 或 GitHub Release。
+
 ## TVM-RELEASE-V0141-SUBMIT-EVIDENCE-NETWORK-GUARDS
 
 - TVM-RELEASE-V0141-SUBMIT-EVIDENCE-NETWORK-GUARDS
