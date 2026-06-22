@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0150-NETWORK-EXECUTION-EVENT-LOG
+
+- TVM-RELEASE-V0150-NETWORK-EXECUTION-EVENT-LOG
+- GH-1071-VERIFY-V0150-NETWORK-EXECUTION-EVENT-LOG
+- V0150-006-APPEND-ONLY-NETWORK-EVENT-LOG
+- V0150-006-REQUEST-RESPONSE-IDENTITY
+- V0150-006-CHECKSUM-CHAIN
+- V0150-006-RAW-SECRET-NOT-PERSISTED
+- V0150-006-NO-PRODUCTION-CUTOVER
+- GH-1071 Release v0.15.0 Network Execution Event Log
+- `bash checks/verify-v0.15.0-network-execution-event-log.sh`
+- `swift test --filter TargetGraphTests/testGH1071ReleaseV0150NetworkExecutionEventLogChainsRedactedArtifacts`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift`、`docs/contracts/release-v0.15.0-network-execution-event-log-contract.md`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.15.0-network-execution-event-log.sh`、`docs/automation/automation-readiness.md` 和 `docs/validation/validation-plan.md`。
+- Boundary: GH-1071 允许且只允许 append-only redacted checksum event log 记录已完成的 Spot Testnet network action evidence。它记录 request / response identity、sequence、previous checksum 和 artifact checksum；不保存 raw secret、raw request body 或 raw response body；不实现 cancel / cancel-replace runtime，不授权 production cutover、production order 或 Dashboard command surface。
+
 ## TVM-RELEASE-V0150-REAL-SPOT-TESTNET-SUBMIT
 
 - TVM-RELEASE-V0150-REAL-SPOT-TESTNET-SUBMIT

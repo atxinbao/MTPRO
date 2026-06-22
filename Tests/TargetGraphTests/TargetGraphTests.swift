@@ -40364,6 +40364,219 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1071ReleaseV0150NetworkExecutionEventLogChainsRedactedArtifacts() async throws {
+        // 测试场景：GH-1071 将 GH-1068 submit runtime evidence 写入 append-only checksum event log。
+        // 验证目的：request / response identity 可追溯，raw secret 和 production capability 不进入 artifact。
+        struct MockSpotTestnetSubmitTransport: ReleaseV0150BinanceSpotTestnetSubmitTransport {
+            func submitSpotTestnetOrder(
+                signedRequest: ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence,
+                credential: ReleaseV0150BinanceSpotTestnetCredentialMaterial
+            ) async throws -> ReleaseV0150BinanceSpotTestnetSubmitTransportResult {
+                XCTAssertTrue(signedRequest.boundaryHeld)
+                XCTAssertEqual(credential.binanceAPIKeyHeaderValue(), "gh-1071-testnet-api-key")
+
+                let digest = ReleaseV0150BinanceSpotTestnetSubmitTransportResult.redactedDigest(
+                    statusCode: 200,
+                    acknowledgement: "accepted-redacted-gh-1071"
+                )
+                return try ReleaseV0150BinanceSpotTestnetSubmitTransportResult(
+                    transportResultID: ReleaseV0150BinanceSpotTestnetSubmitTransportResult.deterministicID(
+                        signedRequestID: signedRequest.requestID,
+                        httpStatusCode: 200,
+                        redactedResponseDigest: digest
+                    ),
+                    signedRequest: signedRequest,
+                    httpStatusCode: 200,
+                    redactedResponseDigest: digest
+                )
+            }
+        }
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift")
+        let contract = try read("docs/contracts/release-v0.15.0-network-execution-event-log-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.15.0-network-execution-event-log.sh")
+        let runScript = try read("checks/run.sh")
+
+        let anchors = [
+            "GH-1071-VERIFY-V0150-NETWORK-EXECUTION-EVENT-LOG",
+            "TVM-RELEASE-V0150-NETWORK-EXECUTION-EVENT-LOG",
+            "V0150-006-APPEND-ONLY-NETWORK-EVENT-LOG",
+            "V0150-006-REQUEST-RESPONSE-IDENTITY",
+            "V0150-006-CHECKSUM-CHAIN",
+            "V0150-006-RAW-SECRET-NOT-PERSISTED",
+            "V0150-006-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let instrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let quantity = try Quantity(0.05, field: "gh1071.quantity")
+        let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let correlation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1071-correlation"),
+            strategySignalID: .constant("gh-1071-signal"),
+            sourceMessageID: .constant("gh-1071-message"),
+            strategyRunID: .constant("gh-1071-run"),
+            sourceSequence: 1071
+        )
+        let intent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: instrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation
+            ),
+            instrument: instrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        let mapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: intent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let reference = try ReleaseV0150BinanceSpotTestnetCredentialReference.deterministicFixture(
+            referenceID: .constant("gh-1071-binance-spot-testnet-credential")
+        )
+        let credential = try ReleaseV0150BinanceSpotTestnetCredentialMaterial(
+            reference: reference,
+            apiKeyHeaderValue: "gh-1071-testnet-api-key",
+            signingSecretValue: "gh-1071-testnet-secret"
+        )
+        let runtime = try ReleaseV0150BinanceSpotTestnetSubmitRuntime(
+            requestBuilder: ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
+            transport: MockSpotTestnetSubmitTransport()
+        )
+        let submitEvidence = try await runtime.submitMarketOrder(
+            intent: intent,
+            mapping: mapping,
+            credential: credential,
+            operatorConfirmationID: .constant("gh-1071-operator-confirmation"),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+
+        let firstEvent = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(
+            submitEvidence,
+            sequenceNumber: 1,
+            observedAtMilliseconds: 1_704_067_200_000
+        )
+        let log = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.make(eventArtifacts: [firstEvent])
+        let secondEvent = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(
+            submitEvidence,
+            sequenceNumber: 2,
+            observedAtMilliseconds: 1_704_067_201_000,
+            previousArtifactChecksum: firstEvent.artifactChecksum
+        )
+        let twoEventLog = try log.appending(secondEvent)
+
+        XCTAssertTrue(firstEvent.boundaryHeld)
+        XCTAssertTrue(log.boundaryHeld)
+        XCTAssertTrue(twoEventLog.boundaryHeld)
+        XCTAssertEqual(firstEvent.actionKind, .submit)
+        XCTAssertEqual(firstEvent.actionEvidenceID, submitEvidence.runtimeEvidenceID)
+        XCTAssertEqual(firstEvent.intentID, submitEvidence.intentID)
+        XCTAssertEqual(firstEvent.signedRequestID, submitEvidence.signedRequestID)
+        XCTAssertEqual(firstEvent.transportResultID, submitEvidence.transportResultID)
+        XCTAssertEqual(firstEvent.credentialReferenceID, reference.referenceID)
+        XCTAssertEqual(firstEvent.endpointHost, "testnet.binance.vision")
+        XCTAssertEqual(firstEvent.endpointPath, "/api/v3/order")
+        XCTAssertEqual(firstEvent.orderLifecycleState, .submittedTestnet)
+        XCTAssertEqual(firstEvent.previousArtifactChecksum, nil)
+        XCTAssertEqual(secondEvent.previousArtifactChecksum, firstEvent.artifactChecksum)
+        XCTAssertEqual(twoEventLog.eventArtifacts.count, 2)
+        XCTAssertEqual(twoEventLog.latestArtifactChecksum, secondEvent.artifactChecksum)
+        XCTAssertEqual(ReleaseV0150BinanceSpotTestnetNetworkExecutionActionKind.allCases, [.submit, .cancel, .cancelReplace])
+        XCTAssertEqual(ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.requiredValidationAnchors, anchors)
+        XCTAssertFalse(firstEvent.rawSecretPersisted)
+        XCTAssertFalse(firstEvent.productionTradingEnabledByDefault)
+        XCTAssertFalse(firstEvent.productionSecretAutoRead)
+        XCTAssertFalse(firstEvent.productionEndpointConnected)
+        XCTAssertFalse(firstEvent.brokerEndpointConnected)
+        XCTAssertFalse(firstEvent.productionOrderSubmitted)
+        XCTAssertFalse(firstEvent.productionCutoverAuthorized)
+        XCTAssertFalse(String(describing: firstEvent).contains("gh-1071-testnet-api-key"))
+        XCTAssertFalse(String(describing: firstEvent).contains("gh-1071-testnet-secret"))
+
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must be anchored in source")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must be anchored in contract")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be anchored in readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be anchored in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be anchored in latest summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must be anchored in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must be anchored in trading matrix")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be anchored in verifier")
+            XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-network-execution-event-log.sh"))
+        }
+
+        for requiredString in [
+            "ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact",
+            "ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog",
+            "appendOnlyNetworkExecutionEventLog=true",
+            "redactedRequestIdentity=true",
+            "redactedResponseIdentity=true",
+            "checksumChainVerified=true",
+            "rawSecretPersisted=false",
+            "productionOrderSubmitted=false"
+        ] {
+            XCTAssertTrue(source.contains(requiredString), "\(requiredString) must stay in source")
+            XCTAssertTrue(contract.contains(requiredString), "\(requiredString) must stay in contract")
+        }
+
+        let mismatchedChecksum = String(repeating: "0", count: 64)
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact(
+                eventArtifactID: ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.deterministicID(
+                    sequenceNumber: 1,
+                    actionKind: .submit,
+                    artifactChecksum: mismatchedChecksum
+                ),
+                sequenceNumber: 1,
+                actionKind: .submit,
+                actionEvidenceID: submitEvidence.runtimeEvidenceID,
+                intentID: submitEvidence.intentID,
+                signedRequestID: submitEvidence.signedRequestID,
+                transportResultID: submitEvidence.transportResultID,
+                credentialReferenceID: submitEvidence.credentialReferenceID,
+                endpointHost: submitEvidence.endpointHost,
+                endpointPath: submitEvidence.endpointPath,
+                httpStatusCode: submitEvidence.httpStatusCode,
+                orderLifecycleState: submitEvidence.orderLifecycleState,
+                observedAtMilliseconds: 1_704_067_200_000,
+                previousArtifactChecksum: nil,
+                artifactChecksum: mismatchedChecksum
+            )
+        )
+        let brokenSecondEvent = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(
+            submitEvidence,
+            sequenceNumber: 2,
+            observedAtMilliseconds: 1_704_067_202_000
+        )
+        XCTAssertThrowsError(try log.appending(brokenSecondEvent))
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
