@@ -39920,6 +39920,116 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1066ReleaseV0150ContractAndV0141PreflightGate() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let contract = try read("docs/contracts/release-v0.15.0-real-binance-spot-testnet-execution-mvp-contract.md")
+        let verifier = try read("checks/verify-v0.15.0-contract-preflight.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+
+        let anchors = [
+            "GH-1066-VERIFY-V0150-CONTRACT-PREFLIGHT",
+            "TVM-RELEASE-V0150-CONTRACT-PREFLIGHT",
+            "V0150-001-RELEASE-CONTRACT",
+            "V0150-001-V0141-PREFLIGHT-GATE",
+            "V0150-001-BINANCE-SPOT-TESTNET-ONLY",
+            "V0150-001-SIGNED-TESTNET-BOUNDARY",
+            "V0150-001-PRODUCTION-FAIL-CLOSED",
+            "V0150-001-CHILDREN-BACKLOG-NON-EXECUTABLE",
+            "V0150-001-NO-PRODUCTION-CUTOVER",
+            "V0150-001-NO-DASHBOARD-COMMAND-SURFACE"
+        ]
+
+        for anchor in anchors {
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in v0.15 contract")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in v0.15 verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+        }
+
+        for preflightFact in [
+            "#1059", "#1060", "#1061", "#1062", "#1063", "#1064",
+            "#1077", "#1078", "#1079", "#1080", "#1081", "#1082",
+            "https://github.com/atxinbao/MTPRO/releases/tag/v0.14.1",
+            "92cd3d5cf00e85c43ef99d9f204cca97347c79ff"
+        ] {
+            XCTAssertTrue(contract.contains(preflightFact), "\(preflightFact) must stay in v0.15 contract preflight evidence")
+            XCTAssertTrue(latest.contains(preflightFact), "\(preflightFact) must stay in latest summary preflight evidence")
+        }
+
+        for childIssue in ["#1067", "#1068", "#1069", "#1070", "#1071", "#1072", "#1073", "#1074", "#1075", "#1076"] {
+            XCTAssertTrue(contract.contains(childIssue), "\(childIssue) must stay in v0.15 child queue contract")
+            XCTAssertTrue(latest.contains(childIssue), "\(childIssue) must stay in latest summary child queue evidence")
+        }
+
+        for requiredString in [
+            "MTPRO Release v0.15.0 Real Binance Testnet Execution MVP",
+            "activeVenue == Binance",
+            "v0150ExecutionProductScope == Binance Spot Testnet only",
+            "productionTradingEnabledByDefault=false",
+            "operatorConfirmationRequired=true",
+            "testnetEndpointAllowlistOnly=true",
+            "productionEndpointConnected=false",
+            "productionSecretRead=false",
+            "productionOrderSubmitted=false",
+            "dashboardCommandSurfaceEnabled=false",
+            "V150 children remain backlog / non-executable",
+            "Release v0.15.0 contract / v0.14.1 preflight gate anchor",
+            "bash checks/verify-v0.15.0-contract-preflight.sh",
+            "testGH1066ReleaseV0150ContractAndV0141PreflightGate"
+        ] {
+            XCTAssertTrue(
+                contract.contains(requiredString)
+                    || verifier.contains(requiredString)
+                    || runScript.contains(requiredString)
+                    || readinessScript.contains(requiredString)
+                    || readiness.contains(requiredString)
+                    || latest.contains(requiredString)
+                    || validationPlan.contains(requiredString)
+                    || tradingMatrix.contains(requiredString)
+                    || readme.contains(requiredString)
+                    || goal.contains(requiredString)
+                    || blueprint.contains(requiredString)
+                    || roadmap.contains(requiredString),
+                "\(requiredString) must stay wired into GH-1066 evidence"
+            )
+        }
+
+        for forbiddenAuthorization in [
+            "activeProductType == USDⓈ-M Perpetual",
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "dashboardCommandSurfaceEnabled=true",
+            "orderFormEnabled=true",
+            "v0.15.0 production cutover"
+        ] {
+            XCTAssertFalse(contract.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of v0.15 contract")
+            XCTAssertFalse(latest.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of latest summary")
+            XCTAssertFalse(readme.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of README")
+            XCTAssertFalse(goal.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of GOAL")
+            XCTAssertFalse(blueprint.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of BLUEPRINT")
+            XCTAssertFalse(roadmap.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of roadmap")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

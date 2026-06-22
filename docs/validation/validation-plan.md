@@ -6,6 +6,23 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1066 Release v0.15.0 Contract / v0.14.1 Preflight Gate
+
+- `GH-1066-VERIFY-V0150-CONTRACT-PREFLIGHT`
+- `TVM-RELEASE-V0150-CONTRACT-PREFLIGHT`
+- `V0150-001-RELEASE-CONTRACT`
+- `V0150-001-V0141-PREFLIGHT-GATE`
+- `V0150-001-BINANCE-SPOT-TESTNET-ONLY`
+- `V0150-001-SIGNED-TESTNET-BOUNDARY`
+- `V0150-001-PRODUCTION-FAIL-CLOSED`
+- `V0150-001-CHILDREN-BACKLOG-NON-EXECUTABLE`
+- `V0150-001-NO-PRODUCTION-CUTOVER`
+- `V0150-001-NO-DASHBOARD-COMMAND-SURFACE`
+- Required command: `bash checks/verify-v0.15.0-contract-preflight.sh`
+- Focused test: `testGH1066ReleaseV0150ContractAndV0141PreflightGate`
+- Evidence files: `docs/contracts/release-v0.15.0-real-binance-spot-testnet-execution-mvp-contract.md`、`checks/verify-v0.15.0-contract-preflight.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1066 只定义 v0.15.0 Real Binance Testnet Execution MVP 的 release contract、v0.14.1 preflight gate、Binance Spot Testnet only boundary、signed testnet execution boundaries 和 acceptance matrix。v0.14.1 public Release 必须已存在，tag peeled commit 必须为 `92cd3d5cf00e85c43ef99d9f204cca97347c79ff`；#1067..#1076 remain backlog / non-executable until #1066 PR merge / checks SUCCESS / issue done；不实现 signed runtime，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。
+
 ## GH-1064 Release v0.14.1 Patch Audit / Release Notes Closeout
 
 - `GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`
