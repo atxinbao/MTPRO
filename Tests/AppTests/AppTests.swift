@@ -3684,6 +3684,141 @@ final class AppTests: XCTestCase {
         )
     }
 
+    func testGH1074DashboardTestnetExecutionStatusSurfaceShowsReadOnlyStatusWithoutCommands() throws {
+        // 测试场景：GH-1074 Dashboard 只展示 v0.15.0 Spot Testnet execution evidence 状态。
+        // 验证目的：submit / cancel / cancel-replace、OMS state、reconciliation 和 failure reason
+        // 全部来自本地 read-model artifact；Dashboard 不能暴露交易按钮、命令面或 order form。
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV0150DashboardTestnetExecutionStatusSurface
+
+        XCTAssertEqual(surface.issueID, "GH-1074")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-1072", "GH-1073"])
+        XCTAssertEqual(surface.previousIssueID, "GH-1073")
+        XCTAssertEqual(surface.releaseVersion, "v0.15.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertTrue(surface.input.inputHeld)
+        XCTAssertEqual(
+            surface.input.sourceEvidenceType,
+            "ReleaseV0150DashboardTestnetExecutionStatusReadModel"
+        )
+        XCTAssertEqual(surface.input.sourceActionKinds, ReleaseV0150DashboardTestnetExecutionStatusAction.allCases)
+        XCTAssertEqual(surface.input.reconciliationStatus, "passed")
+        XCTAssertEqual(surface.input.failureReasons, ["none"])
+        XCTAssertEqual(surface.input.venueName, "Binance")
+        XCTAssertEqual(surface.input.executionProductScope, "Binance Spot Testnet")
+        XCTAssertEqual(surface.rows.map(\.action), ReleaseV0150DashboardTestnetExecutionStatusAction.allCases)
+        XCTAssertEqual(surface.rows.map(\.sequence), Array(1...3))
+        XCTAssertTrue(surface.rows.allSatisfy(\.rowHeld))
+        XCTAssertEqual(surface.visibleRowCount, 3)
+        XCTAssertEqual(surface.actionLabels, ["submit", "cancel", "cancel-replace"])
+        XCTAssertTrue(surface.submitStatusVisible)
+        XCTAssertTrue(surface.cancelStatusVisible)
+        XCTAssertTrue(surface.cancelReplaceStatusVisible)
+        XCTAssertTrue(surface.omsStateVisible)
+        XCTAssertTrue(surface.reconciliationStateVisible)
+        XCTAssertTrue(surface.failureReasonsVisible)
+        XCTAssertTrue(surface.readOnly)
+        XCTAssertFalse(surface.dashboardDependsOnExecutionClientTarget)
+        XCTAssertFalse(surface.dashboardCommandSurfaceEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        XCTAssertEqual(metricValue("v0.15 execution status rows", in: surface.metrics), "3")
+        XCTAssertEqual(metricValue("v0.15 execution actions", in: surface.metrics), "submit,cancel,cancel-replace")
+        XCTAssertEqual(metricValue("v0.15 OMS state", in: surface.metrics), "gh-1072-v0150-oms-state-snapshot")
+        XCTAssertEqual(metricValue("v0.15 reconciliation", in: surface.metrics), "passed")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Dashboard command surface: none"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0150ExecutionStatusRows=3"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0150ExecutionActions=submit,cancel,cancel-replace"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0150ExecutionOMSState=gh-1072-v0150-oms-state-snapshot"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0150ExecutionReconciliation=passed"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0150ExecutionBoundary=confirmed"))
+
+        let encodedSurface = try JSONEncoder().encode(surface)
+        let decodedSurface = try JSONDecoder().decode(
+            ReleaseV0150DashboardTestnetExecutionStatusSurfaceViewModel.self,
+            from: encodedSurface
+        )
+        XCTAssertEqual(decodedSurface, surface)
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let artifactJSON = try encoder.encode(ReleaseV0150DashboardTestnetExecutionStatusLocalArtifactInput())
+        let artifactInput = try ReleaseV0150DashboardTestnetExecutionStatusSurfaceViewModel
+            .localReadModelArtifactInput(fromJSON: artifactJSON)
+        let loadedSurface = try DashboardShellSnapshot
+            .releaseV0150DashboardTestnetExecutionStatusSurface(fromLocalReadModelJSON: artifactJSON)
+        let loadedSnapshot = DashboardShellSnapshot(
+            viewModel: try makeDashboardViewModel(),
+            releaseV0150DashboardTestnetExecutionStatusSurface: loadedSurface
+        )
+
+        XCTAssertTrue(artifactInput.inputHeld)
+        XCTAssertEqual(artifactInput.artifactID, "gh-1074-dashboard-testnet-execution-status")
+        XCTAssertEqual(
+            artifactInput.schema,
+            ReleaseV0150DashboardTestnetExecutionStatusLocalArtifactInput.schemaID
+        )
+        XCTAssertEqual(artifactInput.releaseVersion, "v0.15.0")
+        XCTAssertTrue(loadedSurface.boundaryHeld)
+        XCTAssertTrue(loadedSnapshot.isReadModelOnly)
+        XCTAssertTrue(loadedSnapshot.smokeSummary.contains("releaseV0150ExecutionBoundary=confirmed"))
+
+        let invalidPath = try encoder.encode(
+            ReleaseV0150DashboardTestnetExecutionStatusLocalArtifactInput(
+                relativePath: "../escape/dashboard-testnet-execution-status.json"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0150DashboardTestnetExecutionStatusSurfaceViewModel
+                .localReadModelArtifact(fromJSON: invalidPath)
+        )
+
+        let commandSurface = try encoder.encode(
+            ReleaseV0150DashboardTestnetExecutionStatusLocalArtifactInput(
+                surface: ReleaseV0150DashboardTestnetExecutionStatusSurfaceViewModel(
+                    dashboardCommandSurfaceEnabled: true
+                )
+            )
+        )
+        XCTAssertThrowsError(
+            try DashboardShellSnapshot.releaseV0150DashboardTestnetExecutionStatusSurface(
+                fromLocalReadModelJSON: commandSurface
+            )
+        )
+
+        let productionFlag = try encoder.encode(
+            ReleaseV0150DashboardTestnetExecutionStatusLocalArtifactInput(
+                productionTradingEnabledByDefault: true
+            )
+        )
+        XCTAssertThrowsError(
+            try DashboardShellSnapshot.releaseV0150DashboardTestnetExecutionStatusSurface(
+                fromLocalReadModelJSON: productionFlag
+            )
+        )
+
+        for anchor in ReleaseV0150DashboardTestnetExecutionStatusSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-1074 surface")
+        }
+    }
+
     func testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands() throws {
         // 测试场景：GH-890 Dashboard 只能展示 v0.10.0 production readiness evidence center。
         // Readiness Overview / Environment / Secret / Endpoint / Risk / Kill Switch /

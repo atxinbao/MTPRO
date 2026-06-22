@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1074 Release v0.15.0 Dashboard Testnet Execution Status
+
+- `GH-1074-VERIFY-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS`
+- `TVM-RELEASE-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS`
+- `V0150-009-DASHBOARD-READ-MODEL-ARTIFACT`
+- `V0150-009-SUBMIT-CANCEL-CANCEL-REPLACE-STATUS`
+- `V0150-009-OMS-RECONCILIATION-FAILURE-REASONS`
+- `V0150-009-DASHBOARD-READ-ONLY-NO-COMMANDS`
+- `V0150-009-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.0-dashboard-testnet-execution-status.sh`
+- Focused tests: `testGH1074DashboardTestnetExecutionStatusSurfaceShowsReadOnlyStatusWithoutCommands` and `testGH1074DashboardTestnetExecutionStatusSurfaceIsAnchoredInV0150Guards`
+- Evidence files: `Sources/Dashboard/Report/ReleaseV0150DashboardTestnetExecutionStatusSurface.swift`、`Sources/Dashboard/DashboardShell.swift`、`docs/contracts/release-v0.15.0-dashboard-testnet-execution-status-contract.md`、`checks/verify-v0.15.0-dashboard-testnet-execution-status.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`Tests/AppTests/AppTests.swift` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1074 只允许 Dashboard 消费本地 read-model artifact，展示 submit / cancel / cancel-replace status、OMS state、reconciliation state 和 failure reasons。`dashboardConsumesReadModelArtifactsOnly=true`，`submitCancelCancelReplaceStatusVisible=true`，`omsStateVisible=true`，`reconciliationStateVisible=true`，`failureReasonsVisible=true`；Dashboard command surface、trading button、order form、live command、production endpoint、broker endpoint、production secret、production order 和 production cutover 全部保持关闭。
+
 ## GH-1072 Release v0.15.0 OMS State Sync + Reconciliation
 
 - `GH-1072-VERIFY-V0150-OMS-STATE-SYNC-RECONCILIATION`
