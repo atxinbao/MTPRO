@@ -6,6 +6,16 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1094 Release v0.15.1 v0.15.0 Release Fact Sync / Stale Wording Guard
+
+- `GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC`
+- `V0151-001-V0150-RELEASE-FACT-SYNC-GUARD`
+- `TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC`
+- Required command: `bash checks/verify-v0.15.1-v0150-release-fact-sync.sh`
+- Focused test: `testGH1094ReleaseV0151V0150ReleaseFactSyncGuardRejectsStalePublicationWording`
+- Evidence files: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md`、`docs/automation/automation-readiness.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-v0150-release-fact-sync.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1094 只同步 v0.15.0 stable GitHub Release 已发布事实并拒绝未限定到 #1076 historical closeout 的 stale publication wording。`v0.15.0` release URL 为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`，tag peeled commit 为 `1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`，publication timestamp 为 `2026-06-23T01:26:30Z`；不移动 tag，不覆盖 release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 ## GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence
 
 - `GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT`

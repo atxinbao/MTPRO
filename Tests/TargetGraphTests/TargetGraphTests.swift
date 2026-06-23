@@ -41950,6 +41950,137 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1094ReleaseV0151V0150ReleaseFactSyncGuardRejectsStalePublicationWording() throws {
+        // 测试场景：GH-1094 固化 v0.15.0 已发布事实，防止 root docs 继续把
+        // v0.15.0 描述为 active queue 或 publication pending。#1076 本身仍是
+        // historical construction closeout，不是 release publication gate。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let notes = try read("docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let verifier = try read("checks/verify-v0.15.1-v0150-release-fact-sync.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+
+        let v0150ReleaseURL = "https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0"
+        let v0150TargetCommit = "1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece"
+        let v0150PublicationTimestamp = "2026-06-23T01:26:30Z"
+        let anchors = [
+            "GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC",
+            "V0151-001-V0150-RELEASE-FACT-SYNC-GUARD",
+            "TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC"
+        ]
+
+        for anchor in anchors {
+            XCTAssertTrue(policy.contains(anchor), "\(anchor) must be documented in release policy")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must be documented in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must be documented in trading matrix")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be documented in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be documented in latest summary")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be enforced by the focused verifier")
+        }
+
+        XCTAssertTrue(policy.contains("v0.15.0 release publication、v0.15.1 release fact sync / stale wording guard、后续 hardening patch 和 production cutover 仍是独立 gate"))
+        XCTAssertTrue(validationPlan.contains("GH-1094 Release v0.15.1 v0.15.0 Release Fact Sync / Stale Wording Guard"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC"))
+        XCTAssertTrue(readiness.contains("Release v0.15.1 v0.15.0 release fact sync stale wording guard anchor"))
+        XCTAssertTrue(latest.contains("v0.15.0 release publication fact"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.15.1-v0150-release-fact-sync.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.1-v0150-release-fact-sync.sh"))
+
+        let docsWithPublicationFacts = [
+            readme,
+            goal,
+            blueprint,
+            roadmap,
+            latest,
+            policy,
+            notes,
+            validationPlan,
+            tradingMatrix,
+            readiness
+        ]
+
+        for document in docsWithPublicationFacts {
+            XCTAssertTrue(document.contains(v0150ReleaseURL), "v0.15.0 release URL must stay synchronized")
+            XCTAssertTrue(document.contains(v0150TargetCommit), "v0.15.0 tag target must stay synchronized")
+            XCTAssertTrue(document.contains(v0150PublicationTimestamp), "v0.15.0 publication timestamp must stay synchronized")
+        }
+
+        let stalePublicationTerms = [
+            "publication pending",
+            "release pending",
+            "tag pending",
+            "release not created",
+            "not a Git tag publication",
+            "not a GitHub Release publication",
+            "no public tag",
+            "no GitHub Release",
+            "construction closeout only",
+            "construction closeout final state",
+            "PR pending",
+            "不创建 tag",
+            "不创建 public tag",
+            "不创建 GitHub Release",
+            "不发布 GitHub Release",
+            "没有 tag",
+            "没有 GitHub Release",
+            "仍需创建 release",
+            "未创建 release",
+            "待发布",
+            "release artifact 缺失"
+        ]
+
+        for document in docsWithPublicationFacts {
+            for line in document.components(separatedBy: .newlines) {
+                let mentionsV0150 = line.contains("v0.15.0")
+                let containsStalePublicationWording = stalePublicationTerms.contains { line.contains($0) }
+
+                if mentionsV0150 && containsStalePublicationWording {
+                    XCTAssertTrue(
+                        line.contains("#1076") || line.contains("GH-1076") || line.contains("V0150-011"),
+                        "stale publication wording must be scoped to #1076 historical closeout: \(line)"
+                    )
+                }
+            }
+        }
+
+        for staleQueuePointer in [
+            "Current GitHub fallback queue: `MTPRO Release v0.15.0",
+            "当前 GitHub fallback queue 为 `release/v0.15.0`",
+            "current issue `#1073`",
+            "current issue #1076 is release CI"
+        ] {
+            XCTAssertFalse(readme.contains(staleQueuePointer), "\(staleQueuePointer) must be retired from README")
+            XCTAssertFalse(goal.contains(staleQueuePointer), "\(staleQueuePointer) must be retired from GOAL")
+            XCTAssertFalse(blueprint.contains(staleQueuePointer), "\(staleQueuePointer) must be retired from BLUEPRINT")
+            XCTAssertFalse(roadmap.contains(staleQueuePointer), "\(staleQueuePointer) must be retired from roadmap")
+            XCTAssertFalse(latest.contains(staleQueuePointer), "\(staleQueuePointer) must be retired from latest summary")
+        }
+
+        for forbiddenAuthorization in [
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true"
+        ] {
+            XCTAssertFalse(policy.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of release policy")
+            XCTAssertFalse(readiness.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of readiness docs")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

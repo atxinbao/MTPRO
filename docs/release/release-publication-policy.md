@@ -14,6 +14,7 @@
 - `v0.12.0 Release Publication Gate fact sync`
 - `GH-993 V0121-006 Close v0.12.1 patch audit and release notes`
 - `GH-1064 V141-006 Correct v0.14 wording and close hardening patch audit`
+- `GH-1094 V151-001 Sync v0.15.0 release facts in root docs`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -172,6 +173,24 @@ v0.12.0 当前存在 public GitHub Release：
 v0.12.0 的 construction closeout、Release Publication Gate、release fact sync / stale wording guard 和 production cutover 仍是独立 gate。已发布事实不授权 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送真实订单，不创建下一 Project / Issue，也不推进 v0.13.0。
 
 GH-988 / v0.12.1 stale wording guard 固定该 release fact：所有未限定为 #965 历史 closeout 的 v0.12.0 文档不得继续描述为 publication pending、tag pending、release not created、no public tag、no GitHub Release、未创建 release 或待发布。
+
+## V0151-001-V0150-RELEASE-FACT-SYNC-GUARD
+
+`GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC`
+
+`V0151-001-V0150-RELEASE-FACT-SYNC-GUARD`
+
+`TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC`
+
+v0.15.0 Real Binance Testnet Execution MVP 已在 #1076 construction closeout 后通过独立 Release Publication Gate 发布 stable GitHub Release。
+
+- GitHub Release URL：`https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`
+- tag peeled commit：`1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`
+- publication timestamp：`2026-06-23T01:26:30Z`
+
+#1076 是 construction closeout / release CI / manual testnet workflow / audit evidence gate，不是 release publication gate；但 release publication 已在后续独立 gate 中完成。所有未限定为 #1076 historical closeout 的 v0.15.0 文档不得继续描述为 publication pending、tag pending、release not created、没有 GitHub Release、未创建 release 或待发布。
+
+v0.15.0 release publication、v0.15.1 release fact sync / stale wording guard、后续 hardening patch 和 production cutover 仍是独立 gate。已发布事实不授权 production trading，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不创建下一 Project / Issue，也不推进 v0.15.1 后续 issue。
 
 ## V0141-006-PATCH-AUDIT-RELEASE-NOTES
 
