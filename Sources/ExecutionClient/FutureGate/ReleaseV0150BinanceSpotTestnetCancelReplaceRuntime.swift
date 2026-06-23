@@ -746,6 +746,7 @@ public struct ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime: Sendable {
         credential: ReleaseV0150BinanceSpotTestnetCredentialMaterial,
         cancelOrderIdentity: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial,
         operatorConfirmationID: Identifier,
+        runtimeGate: ReleaseV0151BinanceSpotTestnetRuntimeInternalGate,
         cancelTimestamp: Date,
         replacementSubmitTimestamp: Date,
         cancelObservedAtMilliseconds: Int64,
@@ -778,11 +779,18 @@ public struct ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime: Sendable {
               sourceSubmitEvidence.credentialReferenceID == credential.reference.referenceID,
               cancelOrderIdentity.reference.sourceSubmitRuntimeEvidenceID == sourceSubmitEvidence.runtimeEvidenceID,
               existingNetworkEventLog.boundaryHeld,
-              existingNetworkEventLog.eventArtifacts.contains(where: {
-                  $0.actionKind == .submit && $0.actionEvidenceID == sourceSubmitEvidence.runtimeEvidenceID
-              }) else {
+	              existingNetworkEventLog.eventArtifacts.contains(where: {
+	                  $0.actionKind == .submit && $0.actionEvidenceID == sourceSubmitEvidence.runtimeEvidenceID
+	              }) else {
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0150SpotTestnetCancelReplace.runtimeInputs")
         }
+        try runtimeGate.requireTransportAllowed(
+            action: .cancelReplace,
+            intentIDs: [sourceIntent.intentID, replacementIntent.intentID],
+            mappingIDs: [replaceMapping.mappingID, cancelMapping.mappingID, replacementSubmitMapping.mappingID],
+            operatorConfirmationID: operatorConfirmationID,
+            sourceSubmitRuntimeEvidenceID: sourceSubmitEvidence.runtimeEvidenceID
+        )
 
         let operatorGate = try ReleaseV0150BinanceSpotTestnetCancelReplaceOperatorGate(
             gateID: ReleaseV0150BinanceSpotTestnetCancelReplaceOperatorGate.deterministicID(
@@ -805,6 +813,12 @@ public struct ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime: Sendable {
             requestBuilder: requestBuilder,
             transport: cancelTransport
         )
+        let cancelRuntimeGate = try runtimeGate.derivedAllowedGate(
+            action: .cancel,
+            intentIDs: [sourceIntent.intentID],
+            mappingIDs: [cancelMapping.mappingID],
+            sourceSubmitRuntimeEvidenceID: sourceSubmitEvidence.runtimeEvidenceID
+        )
         let cancelResult = try await cancelRuntime.cancelSpotTestnetOrder(
             intent: sourceIntent,
             cancelMapping: cancelMapping,
@@ -813,6 +827,7 @@ public struct ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime: Sendable {
             credential: credential,
             cancelOrderIdentity: cancelOrderIdentity,
             operatorConfirmationID: operatorConfirmationID,
+            runtimeGate: cancelRuntimeGate,
             timestamp: cancelTimestamp,
             observedAtMilliseconds: cancelObservedAtMilliseconds,
             receiveWindowMilliseconds: receiveWindowMilliseconds
@@ -821,11 +836,17 @@ public struct ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime: Sendable {
             requestBuilder: requestBuilder,
             transport: submitTransport
         )
+        let replacementSubmitRuntimeGate = try runtimeGate.derivedAllowedGate(
+            action: .submit,
+            intentIDs: [replacementIntent.intentID],
+            mappingIDs: [replacementSubmitMapping.mappingID]
+        )
         let replacementSubmitEvidence = try await submitRuntime.submitMarketOrder(
             intent: replacementIntent,
             mapping: replacementSubmitMapping,
             credential: credential,
             operatorConfirmationID: operatorConfirmationID,
+            runtimeGate: replacementSubmitRuntimeGate,
             timestamp: replacementSubmitTimestamp,
             receiveWindowMilliseconds: receiveWindowMilliseconds
         )

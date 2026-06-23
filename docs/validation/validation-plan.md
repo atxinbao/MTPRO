@@ -60,6 +60,21 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Sources/MTPROCLI/main.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-cli-testnet-execution-runtime.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1097 只把 `mtpro testnet-execution` 的 submit / cancel / cancel-replace 接到 v0.15 guarded runtime。Credential provider 固定为 `testnet-env`，缺失 testnet credential 或 operator confirmation 必须 fail-closed；CLI 输出只返回 redacted run id、artifact path、checksum 和 evidence identity。不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
+## GH-1098 Release v0.15.1 Runtime Internal Gate Guard
+
+- `GH-1098-VERIFY-V0151-RUNTIME-INTERNAL-GATES`
+- `TVM-RELEASE-V0151-RUNTIME-INTERNAL-GATES`
+- `V0151-005-RISKENGINE-GATE-IN-RUNTIME`
+- `V0151-005-KILL-SWITCH-GATE-IN-RUNTIME`
+- `V0151-005-NO-TRADE-GATE-IN-RUNTIME`
+- `V0151-005-OPERATOR-CONFIRMATION-IN-RUNTIME`
+- `V0151-005-TRANSPORT-NOT-INVOKED-WHEN-BLOCKED`
+- `V0151-005-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.1-runtime-internal-gates.sh`
+- Focused test: `testGH1098ReleaseV0151RuntimeInternalGatesBlockTransportBeforeInvocation`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-runtime-internal-gates.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1098 只把 RiskEngine allow、kill switch inactive、no-trade inactive 和 operator confirmation gate 放入 Binance Spot Testnet submit / cancel / cancel-replace runtime 内部。Rejected risk、active kill switch、active no-trade 或 missing confirmation 必须在 transport invocation 前 fail-closed。不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 ## GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence
 
 - `GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT`
