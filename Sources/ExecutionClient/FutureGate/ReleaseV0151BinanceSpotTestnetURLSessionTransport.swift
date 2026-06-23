@@ -136,7 +136,7 @@ public actor ReleaseV0151BinanceSpotTestnetURLSessionTransport:
 
         let request = try makeRequest(
             method: signedRequest.httpMethod,
-            queryString: signedRequest.signedQueryString,
+            queryString: signedRequest.binanceSignedQueryStringForTransport(),
             apiKeyHeaderName: signedRequest.apiKeyHeaderName,
             apiKeyHeaderValue: credential.binanceAPIKeyHeaderValue()
         )

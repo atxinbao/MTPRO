@@ -881,23 +881,18 @@ public enum ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow {
         sourceSubmitEvidence: ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence,
         originalClientOrderID: String?
     ) throws -> ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial {
-        guard let originalClientOrderID else {
+        let material = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial.derivedFromSubmitEvidence(
+            sourceSubmitEvidence
+        )
+        if let originalClientOrderID,
+           originalClientOrderID.trimmingCharacters(in: .whitespacesAndNewlines) != material.binanceOriginalClientOrderID() {
             throw ReleaseV0151BinanceSpotTestnetCLIRuntimeError.invalidArgument(
                 field: "--original-client-order-id",
-                expected: "required short-lived Binance Spot Testnet client order id",
-                actual: "missing"
+                expected: "deterministic client order id derived from submit evidence",
+                actual: "<redacted-mismatch>"
             )
         }
-        let reference = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference(
-            referenceID: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference.deterministicID(
-                sourceSubmitRuntimeEvidenceID: sourceSubmitEvidence.runtimeEvidenceID
-            ),
-            sourceSubmitEvidence: sourceSubmitEvidence
-        )
-        return try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(
-            reference: reference,
-            originalClientOrderID: originalClientOrderID
-        )
+        return material
     }
 
     private static func makeResult(

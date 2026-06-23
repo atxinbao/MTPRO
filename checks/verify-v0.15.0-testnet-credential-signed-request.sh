@@ -92,7 +92,7 @@ for required_string in \
 done
 
 require_file_contains "$TESTS" "testGH1067ReleaseV0150SpotTestnetSignedRequestBuilderIsRedactedAndDeterministic"
-require_file_contains "$TESTS" "a78819b93b981c0bbab0ed9f685bb76929b6c06faf1c213e87338e843a0644e5"
+require_file_contains "$TESTS" "d15c1572ca392246ef69bff7715a21e7f2ffef81d7a7be08880c8d2c070553da"
 require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.15.0-testnet-credential-signed-request.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.15.0-testnet-credential-signed-request.sh"
 require_file_contains "$READINESS" "Release v0.15.0 testnet credential / signed request anchor"

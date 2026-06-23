@@ -278,6 +278,24 @@ v0.15.0 release publication 固定的是 signed execution runtime contracts 和 
 
 #1098 是 v0.15.1 对 #1097 CLI runtime 的 internal gate hardening slice：它要求 submit / cancel / cancel-replace runtime 在触达 Binance Spot Testnet transport 前重新检查 RiskEngine allow、kill switch inactive、no-trade inactive 和 operator confirmation。Rejected risk、active kill switch、active no-trade 或 missing confirmation 必须 fail-closed，且 transport invocation 不发生。该 policy 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
+## V0151-006-CLIENT-ORDER-IDENTITY-CHAIN
+
+`GH-1099-VERIFY-V0151-CLIENT-ORDER-IDENTITY-CHAIN`
+
+`TVM-RELEASE-V0151-CLIENT-ORDER-IDENTITY-CHAIN`
+
+`V0151-006-DETERMINISTIC-NEW-CLIENT-ORDER-ID`
+
+`V0151-006-REDACTED-CLIENT-ORDER-REFERENCE`
+
+`V0151-006-SUBMIT-TO-CANCEL-IDENTITY-HANDOFF`
+
+`V0151-006-RAW-UNTRACKED-ORDER-ID-REJECTED`
+
+`V0151-006-NO-PRODUCTION-CUTOVER`
+
+#1099 是 v0.15.1 对 #1098 internal gate 后的 submit-to-cancel identity hardening slice：它要求 submit evidence 生成 deterministic redacted `newClientOrderId` reference，cancel 只能从 submit evidence 派生短生命周期 identity material，raw / untracked order id 必须 fail-closed。该 policy 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 该 transport policy 的固定事实：
 
 - scheme 必须为 `https`；

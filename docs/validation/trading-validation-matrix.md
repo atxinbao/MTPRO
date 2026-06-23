@@ -80,6 +80,21 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.15.1-runtime-internal-gates.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1098 only authorizes internal pre-transport gates for Binance Spot Testnet submit / cancel / cancel-replace runtime. Risk rejection, active kill switch, active no-trade and missing confirmation must block before any transport invocation. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
 
+## TVM-RELEASE-V0151-CLIENT-ORDER-IDENTITY-CHAIN
+
+- TVM-RELEASE-V0151-CLIENT-ORDER-IDENTITY-CHAIN
+- GH-1099-VERIFY-V0151-CLIENT-ORDER-IDENTITY-CHAIN
+- V0151-006-DETERMINISTIC-NEW-CLIENT-ORDER-ID
+- V0151-006-REDACTED-CLIENT-ORDER-REFERENCE
+- V0151-006-SUBMIT-TO-CANCEL-IDENTITY-HANDOFF
+- V0151-006-RAW-UNTRACKED-ORDER-ID-REJECTED
+- V0151-006-NO-PRODUCTION-CUTOVER
+- GH-1099 Release v0.15.1 Client Order Identity Chain Guard
+- `bash checks/verify-v0.15.1-client-order-identity-chain.sh`
+- `swift test --filter TargetGraphTests/testGH1099ReleaseV0151ClientOrderIdentityChainDerivesCancelIdentityFromSubmitEvidence`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.15.1-client-order-identity-chain.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1099 only authorizes deterministic Binance Spot Testnet client order identity handoff. Submit evidence stores redacted/hash `newClientOrderId` reference, cancel derives short-lived identity material from submit evidence, and raw / untracked order ids fail closed. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
+
 ## TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT
 
 - TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT

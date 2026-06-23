@@ -8,6 +8,13 @@ import Foundation
 // productionEndpointConnected=false
 // brokerEndpointConnected=false
 // productionOrderSubmitted=false
+// GH-1099-VERIFY-V0151-CLIENT-ORDER-IDENTITY-CHAIN
+// TVM-RELEASE-V0151-CLIENT-ORDER-IDENTITY-CHAIN
+// V0151-006-DETERMINISTIC-NEW-CLIENT-ORDER-ID
+// V0151-006-REDACTED-CLIENT-ORDER-REFERENCE
+// V0151-006-SUBMIT-TO-CANCEL-IDENTITY-HANDOFF
+// V0151-006-RAW-UNTRACKED-ORDER-ID-REJECTED
+// V0151-006-NO-PRODUCTION-CUTOVER
 
 /// ReleaseV0150BinanceSpotTestnetCredentialProviderKind 描述 v0.15.0 允许的 testnet credential 引用来源。
 ///
@@ -180,6 +187,211 @@ public struct ReleaseV0150BinanceSpotTestnetCredentialMaterial: Sendable, Custom
     }
 }
 
+/// ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference 是 v0.15.1 的 deterministic client order 引用。
+///
+/// 它只保存由 signed request identity 派生的 redacted/hash 证据。真实 `newClientOrderId`
+/// 只允许通过 `ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial` 在内存中短生命周期重建，
+/// 不进入 Codable evidence、文档、日志或 Dashboard surface。
+public struct ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference: Codable, Equatable, Sendable, CustomStringConvertible {
+    public let referenceID: Identifier
+    public let sourceSignedRequestID: Identifier
+    public let redactedClientOrderIDHash: String
+    public let redactionPolicy: String
+    public let clientOrderIdentityMaterialStored: Bool
+    public let exchangeOrderIDStored: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretAutoRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public init(
+        referenceID: Identifier,
+        sourceSignedRequestID: Identifier,
+        redactedClientOrderIDHash: String,
+        redactionPolicy: String = Self.requiredRedactionPolicy,
+        clientOrderIdentityMaterialStored: Bool = false,
+        exchangeOrderIDStored: Bool = false,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretAutoRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        guard referenceID == Self.deterministicID(sourceSignedRequestID: sourceSignedRequestID) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0151SpotTestnetClientOrderIdentity.referenceID",
+                expected: Self.deterministicID(sourceSignedRequestID: sourceSignedRequestID).rawValue,
+                actual: referenceID.rawValue
+            )
+        }
+        guard redactedClientOrderIDHash == Self.redactedHash(
+            for: ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial.deterministicNewClientOrderID(
+                sourceSignedRequestID: sourceSignedRequestID
+            )
+        ) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0151SpotTestnetClientOrderIdentity.hash",
+                expected: Self.redactedHash(
+                    for: ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial.deterministicNewClientOrderID(
+                        sourceSignedRequestID: sourceSignedRequestID
+                    )
+                ),
+                actual: redactedClientOrderIDHash
+            )
+        }
+        guard redactionPolicy == Self.requiredRedactionPolicy else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0151SpotTestnetClientOrderIdentity.redactionPolicy",
+                expected: Self.requiredRedactionPolicy,
+                actual: redactionPolicy
+            )
+        }
+        try Self.forbid(clientOrderIdentityMaterialStored, "clientOrderIdentityMaterialStored")
+        try Self.forbid(exchangeOrderIDStored, "exchangeOrderIDStored")
+        try Self.forbid(productionTradingEnabledByDefault, "productionTradingEnabledByDefault")
+        try Self.forbid(productionSecretAutoRead, "productionSecretAutoRead")
+        try Self.forbid(productionEndpointConnected, "productionEndpointConnected")
+        try Self.forbid(brokerEndpointConnected, "brokerEndpointConnected")
+        try Self.forbid(productionOrderSubmitted, "productionOrderSubmitted")
+        try Self.forbid(productionCutoverAuthorized, "productionCutoverAuthorized")
+
+        self.referenceID = referenceID
+        self.sourceSignedRequestID = sourceSignedRequestID
+        self.redactedClientOrderIDHash = redactedClientOrderIDHash
+        self.redactionPolicy = redactionPolicy
+        self.clientOrderIdentityMaterialStored = clientOrderIdentityMaterialStored
+        self.exchangeOrderIDStored = exchangeOrderIDStored
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretAutoRead = productionSecretAutoRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+    }
+
+    public var boundaryHeld: Bool {
+        redactionPolicy == Self.requiredRedactionPolicy
+            && redactedClientOrderIDHash.count == 64
+            && clientOrderIdentityMaterialStored == false
+            && exchangeOrderIDStored == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretAutoRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+    }
+
+    public var redactedDescription: String {
+        "\(referenceID.rawValue):sha256:\(redactedClientOrderIDHash.prefix(12)):<redacted>"
+    }
+
+    public var description: String {
+        "ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference(referenceID: \(redactedDescription), sourceSignedRequestID: \(sourceSignedRequestID.rawValue), clientOrderIdentity: <redacted>)"
+    }
+
+    public static let requiredRedactionPolicy = "deterministicClientOrderIDReferenceOnly"
+    public static let requiredValidationAnchors = [
+        "GH-1099-VERIFY-V0151-CLIENT-ORDER-IDENTITY-CHAIN",
+        "TVM-RELEASE-V0151-CLIENT-ORDER-IDENTITY-CHAIN",
+        "V0151-006-DETERMINISTIC-NEW-CLIENT-ORDER-ID",
+        "V0151-006-REDACTED-CLIENT-ORDER-REFERENCE",
+        "V0151-006-SUBMIT-TO-CANCEL-IDENTITY-HANDOFF",
+        "V0151-006-RAW-UNTRACKED-ORDER-ID-REJECTED",
+        "V0151-006-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static func deterministicID(sourceSignedRequestID: Identifier) -> Identifier {
+        .constant(
+            "gh-1099-v0151-client-order-reference:\(sourceSignedRequestID.rawValue)",
+            field: "releaseV0151SpotTestnetClientOrderIdentity.referenceID"
+        )
+    }
+
+    public static func redactedHash(for clientOrderID: String) -> String {
+        let digest = SHA256.hash(data: Data("gh-1099-client-order-id:\(clientOrderID)".utf8))
+        return digest.map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func forbid(_ value: Bool, _ field: String) throws {
+        guard value == false else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0151SpotTestnetClientOrderIdentity.\(field)")
+        }
+    }
+}
+
+/// ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial 是短生命周期 `newClientOrderId` material。
+///
+/// 该类型故意不实现 Codable。真实 client order id 只在 signed submit query 和后续 cancel handoff
+/// 需要时由 deterministic source signed request id 重建；持久 evidence 只保存 reference 和 hash。
+public struct ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial: Sendable, CustomStringConvertible {
+    public let reference: ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference
+    private let newClientOrderID: String
+
+    public init(
+        reference: ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference,
+        newClientOrderID: String
+    ) throws {
+        guard reference.boundaryHeld else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0151SpotTestnetClientOrderIdentityMaterial.reference")
+        }
+        let trimmed = newClientOrderID.trimmingCharacters(in: .whitespacesAndNewlines)
+        let expected = Self.deterministicNewClientOrderID(sourceSignedRequestID: reference.sourceSignedRequestID)
+        guard trimmed == expected else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0151SpotTestnetClientOrderIdentityMaterial.newClientOrderID",
+                expected: expected,
+                actual: trimmed.isEmpty ? "empty" : "<redacted-mismatch>"
+            )
+        }
+        guard reference.redactedClientOrderIDHash == ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference.redactedHash(for: trimmed) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0151SpotTestnetClientOrderIdentityMaterial.hash",
+                expected: reference.redactedClientOrderIDHash,
+                actual: ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference.redactedHash(for: trimmed)
+            )
+        }
+
+        self.reference = reference
+        self.newClientOrderID = trimmed
+    }
+
+    public func binanceNewClientOrderID() -> String {
+        newClientOrderID
+    }
+
+    public var description: String {
+        "ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial(reference: \(reference.redactedDescription), newClientOrderID: <redacted>)"
+    }
+
+    public static func deterministicNewClientOrderID(sourceSignedRequestID: Identifier) -> String {
+        let digest = SHA256.hash(data: Data("gh-1099-v0151-new-client-order-id:\(sourceSignedRequestID.rawValue)".utf8))
+            .map { String(format: "%02x", $0) }
+            .joined()
+        return "mtp\(digest.prefix(32))"
+    }
+
+    public static func derived(sourceSignedRequestID: Identifier) throws -> ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial {
+        let newClientOrderID = deterministicNewClientOrderID(sourceSignedRequestID: sourceSignedRequestID)
+        let reference = try ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference(
+            referenceID: ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference.deterministicID(
+                sourceSignedRequestID: sourceSignedRequestID
+            ),
+            sourceSignedRequestID: sourceSignedRequestID,
+            redactedClientOrderIDHash: ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference.redactedHash(
+                for: newClientOrderID
+            )
+        )
+        return try ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial(
+            reference: reference,
+            newClientOrderID: newClientOrderID
+        )
+    }
+}
+
 /// ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence 记录 GH-1067 的签名请求构造结果。
 ///
 /// Evidence 只证明 Binance Spot Testnet `/api/v3/order` 的 canonical query 和 signature 构造正确。
@@ -201,6 +413,12 @@ public struct ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence: Codable,
     public let unsignedQueryString: String
     public let signature: String
     public let signedQueryString: String
+    public let signedQueryStringRedacted: Bool
+    public let redactedUnsignedQueryDigest: String
+    public let clientOrderIdentityReferenceID: Identifier
+    public let redactedClientOrderIDHash: String
+    public let clientOrderIdentityMaterialRedacted: Bool
+    public let clientOrderIdentityMaterialStored: Bool
     public let apiKeyHeaderName: String
     public let apiKeyHeaderValueRedacted: Bool
     public let explicitTestnetMode: Bool
@@ -227,6 +445,11 @@ public struct ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence: Codable,
         receiveWindowMilliseconds: Int,
         unsignedQueryString: String,
         signature: String,
+        clientOrderIdentity: ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial? = nil,
+        redactedUnsignedQueryDigest: String? = nil,
+        signedQueryStringRedacted: Bool = true,
+        clientOrderIdentityMaterialRedacted: Bool = true,
+        clientOrderIdentityMaterialStored: Bool = false,
         explicitTestnetMode: Bool = true,
         spotTestnetOnly: Bool = true,
         requestBodyRedacted: Bool = true,
@@ -278,7 +501,43 @@ public struct ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence: Codable,
                 actual: signature
             )
         }
-        guard explicitTestnetMode, spotTestnetOnly, requestBodyRedacted, credentialMaterialRedacted else {
+        let resolvedClientOrderIdentity = try clientOrderIdentity
+            ?? ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial.derived(sourceSignedRequestID: requestID)
+        let expectedRawQuery = ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.unsignedMarketOrderQueryString(
+            symbol: symbol,
+            side: side,
+            quantity: quantity,
+            newClientOrderID: resolvedClientOrderIdentity.binanceNewClientOrderID(),
+            timestampMilliseconds: timestampMilliseconds,
+            receiveWindowMilliseconds: receiveWindowMilliseconds
+        )
+        let expectedRedactedQuery = ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.redactedUnsignedMarketOrderQueryString(
+            symbol: symbol,
+            side: side,
+            quantity: quantity,
+            timestampMilliseconds: timestampMilliseconds,
+            receiveWindowMilliseconds: receiveWindowMilliseconds
+        )
+        let expectedDigest = ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.redactedUnsignedQueryDigest(for: expectedRawQuery)
+        guard unsignedQueryString == expectedRedactedQuery,
+              redactedUnsignedQueryDigest ?? expectedDigest == expectedDigest,
+              resolvedClientOrderIdentity.reference.sourceSignedRequestID == requestID,
+              resolvedClientOrderIdentity.reference.redactedClientOrderIDHash == ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference.redactedHash(
+                  for: resolvedClientOrderIdentity.binanceNewClientOrderID()
+              ) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0150SignedRequest.clientOrderIdentity",
+                expected: "redacted deterministic newClientOrderId evidence linked to signed request",
+                actual: unsignedQueryString
+            )
+        }
+        guard explicitTestnetMode,
+              spotTestnetOnly,
+              requestBodyRedacted,
+              credentialMaterialRedacted,
+              signedQueryStringRedacted,
+              clientOrderIdentityMaterialRedacted,
+              clientOrderIdentityMaterialStored == false else {
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0150SignedRequest.unredactedOrNonTestnetEvidence")
         }
         try Self.forbid(networkSubmitPerformed, "networkSubmitPerformed")
@@ -311,7 +570,13 @@ public struct ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence: Codable,
         self.endpointPath = Self.spotOrderEndpointPath
         self.unsignedQueryString = unsignedQueryString
         self.signature = signature
-        self.signedQueryString = "\(unsignedQueryString)&signature=\(signature)"
+        self.signedQueryString = "\(unsignedQueryString)&signature=<redacted>"
+        self.signedQueryStringRedacted = signedQueryStringRedacted
+        self.redactedUnsignedQueryDigest = expectedDigest
+        self.clientOrderIdentityReferenceID = resolvedClientOrderIdentity.reference.referenceID
+        self.redactedClientOrderIDHash = resolvedClientOrderIdentity.reference.redactedClientOrderIDHash
+        self.clientOrderIdentityMaterialRedacted = clientOrderIdentityMaterialRedacted
+        self.clientOrderIdentityMaterialStored = clientOrderIdentityMaterialStored
         self.apiKeyHeaderName = Self.apiKeyHeaderName
         self.apiKeyHeaderValueRedacted = true
         self.explicitTestnetMode = explicitTestnetMode
@@ -336,6 +601,12 @@ public struct ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence: Codable,
             && endpointPath == Self.spotOrderEndpointPath
             && apiKeyHeaderName == Self.apiKeyHeaderName
             && apiKeyHeaderValueRedacted
+            && signedQueryStringRedacted
+            && redactedUnsignedQueryDigest.count == 64
+            && clientOrderIdentityReferenceID.rawValue.hasPrefix("gh-1099-v0151-client-order-reference:")
+            && redactedClientOrderIDHash.count == 64
+            && clientOrderIdentityMaterialRedacted
+            && clientOrderIdentityMaterialStored == false
             && explicitTestnetMode
             && spotTestnetOnly
             && requestBodyRedacted
@@ -347,7 +618,7 @@ public struct ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence: Codable,
             && brokerEndpointConnected == false
             && productionOrderSubmitted == false
             && productionCutoverAuthorized == false
-            && signedQueryString == "\(unsignedQueryString)&signature=\(signature)"
+            && signedQueryString == "\(unsignedQueryString)&signature=<redacted>"
             && validationAnchors == Self.requiredValidationAnchors
     }
 
@@ -387,6 +658,24 @@ public struct ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence: Codable,
 
     public static func quantityText(_ quantity: Quantity) -> String {
         String(format: "%.8f", locale: Locale(identifier: "en_US_POSIX"), quantity.rawValue)
+    }
+
+    public func binanceUnsignedQueryStringForTransport() -> String {
+        let material = ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial.deterministicNewClientOrderID(
+            sourceSignedRequestID: requestID
+        )
+        return ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.unsignedMarketOrderQueryString(
+            symbol: symbol,
+            side: side,
+            quantityText: quantityText,
+            newClientOrderID: material,
+            timestampMilliseconds: timestampMilliseconds,
+            receiveWindowMilliseconds: receiveWindowMilliseconds
+        )
+    }
+
+    public func binanceSignedQueryStringForTransport() -> String {
+        "\(binanceUnsignedQueryStringForTransport())&signature=\(signature)"
     }
 
     private static func forbid(_ value: Bool, _ field: String) throws {
@@ -477,20 +766,24 @@ public struct ReleaseV0150BinanceSpotTestnetSignedRequestBuilder: Equatable, Sen
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0150SignedRequest.builder.boundary")
         }
         let timestampMilliseconds = try Self.timestampMilliseconds(timestamp)
-        let unsignedQueryString = Self.unsignedMarketOrderQueryString(
-            symbol: symbol,
-            side: side,
-            quantity: quantity,
-            timestampMilliseconds: timestampMilliseconds,
-            receiveWindowMilliseconds: receiveWindowMilliseconds
-        )
-        let signature = credential.signature(for: unsignedQueryString)
         let requestID = ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.deterministicID(
             credentialReferenceID: credential.reference.referenceID,
             symbol: symbol,
             side: side,
             timestampMilliseconds: timestampMilliseconds
         )
+        let clientOrderIdentity = try ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial.derived(
+            sourceSignedRequestID: requestID
+        )
+        let unsignedQueryString = Self.unsignedMarketOrderQueryString(
+            symbol: symbol,
+            side: side,
+            quantity: quantity,
+            newClientOrderID: clientOrderIdentity.binanceNewClientOrderID(),
+            timestampMilliseconds: timestampMilliseconds,
+            receiveWindowMilliseconds: receiveWindowMilliseconds
+        )
+        let signature = credential.signature(for: unsignedQueryString)
 
         return try ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence(
             requestID: requestID,
@@ -501,8 +794,16 @@ public struct ReleaseV0150BinanceSpotTestnetSignedRequestBuilder: Equatable, Sen
             quantity: quantity,
             timestampMilliseconds: timestampMilliseconds,
             receiveWindowMilliseconds: receiveWindowMilliseconds,
-            unsignedQueryString: unsignedQueryString,
-            signature: signature
+            unsignedQueryString: Self.redactedUnsignedMarketOrderQueryString(
+                symbol: symbol,
+                side: side,
+                quantity: quantity,
+                timestampMilliseconds: timestampMilliseconds,
+                receiveWindowMilliseconds: receiveWindowMilliseconds
+            ),
+            signature: signature,
+            clientOrderIdentity: clientOrderIdentity,
+            redactedUnsignedQueryDigest: Self.redactedUnsignedQueryDigest(for: unsignedQueryString)
         )
     }
 
@@ -524,6 +825,43 @@ public struct ReleaseV0150BinanceSpotTestnetSignedRequestBuilder: Equatable, Sen
         symbol: Symbol,
         side: OrderIntentSide,
         quantity: Quantity,
+        newClientOrderID: String,
+        timestampMilliseconds: Int64,
+        receiveWindowMilliseconds: Int
+    ) -> String {
+        unsignedMarketOrderQueryString(
+            symbol: symbol,
+            side: side,
+            quantityText: ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.quantityText(quantity),
+            newClientOrderID: newClientOrderID,
+            timestampMilliseconds: timestampMilliseconds,
+            receiveWindowMilliseconds: receiveWindowMilliseconds
+        )
+    }
+
+    public static func unsignedMarketOrderQueryString(
+        symbol: Symbol,
+        side: OrderIntentSide,
+        quantityText: String,
+        newClientOrderID: String,
+        timestampMilliseconds: Int64,
+        receiveWindowMilliseconds: Int
+    ) -> String {
+        [
+            "symbol=\(symbol.rawValue)",
+            "side=\(side.rawValue.uppercased())",
+            "type=\(ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.marketOrderType)",
+            "quantity=\(quantityText)",
+            "newClientOrderId=\(newClientOrderID)",
+            "timestamp=\(timestampMilliseconds)",
+            "recvWindow=\(receiveWindowMilliseconds)"
+        ].joined(separator: "&")
+    }
+
+    public static func redactedUnsignedMarketOrderQueryString(
+        symbol: Symbol,
+        side: OrderIntentSide,
+        quantity: Quantity,
         timestampMilliseconds: Int64,
         receiveWindowMilliseconds: Int
     ) -> String {
@@ -532,9 +870,15 @@ public struct ReleaseV0150BinanceSpotTestnetSignedRequestBuilder: Equatable, Sen
             "side=\(side.rawValue.uppercased())",
             "type=\(ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.marketOrderType)",
             "quantity=\(ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.quantityText(quantity))",
+            "newClientOrderId=<redacted>",
             "timestamp=\(timestampMilliseconds)",
             "recvWindow=\(receiveWindowMilliseconds)"
         ].joined(separator: "&")
+    }
+
+    public static func redactedUnsignedQueryDigest(for unsignedQueryString: String) -> String {
+        let digest = SHA256.hash(data: Data("gh-1099-redacted-submit-query:\(unsignedQueryString)".utf8))
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 
     private static let forbiddenProductionHosts: Set<String> = [
