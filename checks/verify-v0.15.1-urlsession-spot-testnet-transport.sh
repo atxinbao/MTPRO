@@ -85,8 +85,8 @@ require_file_contains "$TESTS" "gh-1096-testnet-secret"
 require_file_contains "$TESTS" "productionHostForbidden(\"api.binance.com\")"
 require_file_contains "$TESTS" "httpStatus(500)"
 
-require_file_contains "$README" "current issue \`#1096\`"
-require_file_contains "$GOAL" "#1096 concrete URLSession Spot Testnet transport is current WIP=1"
+require_file_contains "$README" "#1096 已通过 \`GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT\`"
+require_file_contains "$GOAL" "#1096 concrete URLSession Spot Testnet transport closed / done"
 require_file_contains "$BLUEPRINT" "concrete URLSession Spot Testnet transport"
 require_file_contains "$ROADMAP" "concrete URLSession transport"
 require_file_contains "$LATEST" "v0.15.1 URLSession Spot Testnet transport"
@@ -99,7 +99,7 @@ require_file_contains "checks/run.sh" "bash checks/verify-v0.15.1-urlsession-spo
 
 for file in "$README" "$GOAL" "$BLUEPRINT" "$ROADMAP" "$LATEST"; do
   require_file_absent "$file" "current issue \`#1095\`"
-  require_file_absent "$file" "#1096..#1100 remain backlog / non-executable"
+  require_file_absent "$file" "#1097..#1100 remain backlog / non-executable"
 done
 
 swift test --filter TargetGraphTests/testGH1096ReleaseV0151URLSessionSpotTestnetTransportUsesAllowlistAndRedaction

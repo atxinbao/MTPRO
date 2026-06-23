@@ -234,6 +234,30 @@ v0.15.0 release publication 固定的是 signed execution runtime contracts 和 
 
 #1096 是 v0.15.1 对 #1095 wording split 的 concrete hardening slice：它允许仓库内存在一个 bounded URLSession-backed Binance Spot Testnet transport，但只允许 `https://testnet.binance.vision/api/v3/order` 的 submit / cancel request。
 
+## V0151-004-CLI-TESTNET-EXECUTION-RUNTIME
+
+`GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME`
+
+`TVM-RELEASE-V0151-CLI-TESTNET-EXECUTION-RUNTIME`
+
+`V0151-004-CLI-GUARDED-RUNTIME-INVOKED`
+
+`V0151-004-TESTNET-ONLY-CREDENTIAL-PROVIDER`
+
+`V0151-004-SUBMIT-CANCEL-CANCEL-REPLACE-RUNTIME`
+
+`V0151-004-EXPLICIT-OPERATOR-CONFIRMATION`
+
+`V0151-004-REDACTED-OUTPUT`
+
+`V0151-004-MISSING-CREDENTIAL-FAIL-CLOSED`
+
+`V0151-004-RUN-ID-ARTIFACT-CHECKSUM`
+
+`V0151-004-NO-PRODUCTION-CUTOVER`
+
+#1097 是 v0.15.1 对 #1096 concrete transport 的 CLI wiring hardening slice：它允许 `mtpro testnet-execution` 在 `testnet-env` credential provider、显式 operator confirmation 和 redacted output 下调用 v0.15 guarded submit / cancel / cancel-replace runtime。缺少 testnet credential 或 confirmation 必须 fail-closed。该 policy 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 该 transport policy 的固定事实：
 
 - scheme 必须为 `https`；

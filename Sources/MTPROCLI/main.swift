@@ -197,7 +197,7 @@ private enum MTPROStrictCLI {
             try requireExactCount(arguments, expected: 1, command: command)
             return verifyOutput()
         case ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.cliCommand:
-            return try ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.commandLineOutput(arguments: arguments)
+            return try await ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:

@@ -46,6 +46,24 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.15.1-urlsession-spot-testnet-transport.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1096 only authorizes Binance Spot Testnet `https://testnet.binance.vision/api/v3/order` URLSession submit / cancel transport. Host / scheme / path are allowlisted; production hosts are rejected fail-closed; response body becomes `response-sha256` redacted digest; API key, secret and raw order identity are not persisted. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
 
+## TVM-RELEASE-V0151-CLI-TESTNET-EXECUTION-RUNTIME
+
+- TVM-RELEASE-V0151-CLI-TESTNET-EXECUTION-RUNTIME
+- GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME
+- V0151-004-CLI-GUARDED-RUNTIME-INVOKED
+- V0151-004-TESTNET-ONLY-CREDENTIAL-PROVIDER
+- V0151-004-SUBMIT-CANCEL-CANCEL-REPLACE-RUNTIME
+- V0151-004-EXPLICIT-OPERATOR-CONFIRMATION
+- V0151-004-REDACTED-OUTPUT
+- V0151-004-MISSING-CREDENTIAL-FAIL-CLOSED
+- V0151-004-RUN-ID-ARTIFACT-CHECKSUM
+- V0151-004-NO-PRODUCTION-CUTOVER
+- GH-1097 Release v0.15.1 CLI Testnet Execution Runtime Guard
+- `bash checks/verify-v0.15.1-cli-testnet-execution-runtime.sh`
+- `swift test --filter TargetGraphTests/testGH1097ReleaseV0151CLITestnetExecutionInvokesGuardedRuntime`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Sources/MTPROCLI/main.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.15.1-cli-testnet-execution-runtime.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1097 only authorizes CLI wiring from `mtpro testnet-execution` to v0.15 guarded runtime for Binance Spot Testnet submit / cancel / cancel-replace. `testnet-env` is the only provider, missing testnet credential or confirmation fails closed, output is redacted and returns run id / artifact path / checksum. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
+
 ## TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT
 
 - TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT
