@@ -40373,13 +40373,28 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(request.apiKeyHeaderValueRedacted)
         XCTAssertEqual(
             request.unsignedQueryString,
-            "symbol=BTCUSDT&side=BUY&type=MARKET&quantity=0.05000000&timestamp=1704067200000&recvWindow=5000"
+            "symbol=BTCUSDT&side=BUY&type=MARKET&quantity=0.05000000&newClientOrderId=<redacted>&timestamp=1704067200000&recvWindow=5000"
         )
         XCTAssertEqual(
             request.signature,
-            "a78819b93b981c0bbab0ed9f685bb76929b6c06faf1c213e87338e843a0644e5"
+            "d15c1572ca392246ef69bff7715a21e7f2ffef81d7a7be08880c8d2c070553da"
         )
-        XCTAssertEqual(request.signedQueryString, "\(request.unsignedQueryString)&signature=\(request.signature)")
+        XCTAssertEqual(request.signedQueryString, "\(request.unsignedQueryString)&signature=<redacted>")
+        XCTAssertTrue(request.signedQueryStringRedacted)
+        XCTAssertTrue(request.unsignedQueryString.contains("newClientOrderId=<redacted>"))
+        XCTAssertTrue(request.clientOrderIdentityReferenceID.rawValue.hasPrefix("gh-1099-v0151-client-order-reference:"))
+        XCTAssertEqual(request.redactedClientOrderIDHash.count, 64)
+        XCTAssertTrue(request.clientOrderIdentityMaterialRedacted)
+        XCTAssertFalse(request.clientOrderIdentityMaterialStored)
+        let clientOrderIdentity = try ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial.derived(
+            sourceSignedRequestID: request.requestID
+        )
+        XCTAssertEqual(request.clientOrderIdentityReferenceID, clientOrderIdentity.reference.referenceID)
+        XCTAssertEqual(request.redactedClientOrderIDHash, clientOrderIdentity.reference.redactedClientOrderIDHash)
+        XCTAssertTrue(request.binanceUnsignedQueryStringForTransport().contains("newClientOrderId=\(clientOrderIdentity.binanceNewClientOrderID())"))
+        XCTAssertTrue(request.binanceSignedQueryStringForTransport().contains("signature=\(request.signature)"))
+        XCTAssertFalse(request.unsignedQueryString.contains(clientOrderIdentity.binanceNewClientOrderID()))
+        XCTAssertFalse(request.signedQueryString.contains(clientOrderIdentity.binanceNewClientOrderID()))
         XCTAssertTrue(request.credentialReferenceRedacted.contains("<redacted>"))
         XCTAssertFalse(request.networkSubmitPerformed)
         XCTAssertFalse(request.productionTradingEnabledByDefault)
@@ -40902,7 +40917,14 @@ final class TargetGraphTests: XCTestCase {
                 XCTAssertEqual(signedRequest.httpMethod, "DELETE")
                 XCTAssertEqual(signedRequest.endpointHost, "testnet.binance.vision")
                 XCTAssertEqual(signedRequest.endpointPath, "/api/v3/order")
-                XCTAssertEqual(orderIdentity.binanceOriginalClientOrderID(), "gh-1069-testnet-client-order")
+                XCTAssertTrue(orderIdentity.binanceOriginalClientOrderID().hasPrefix("mtp"))
+                XCTAssertEqual(orderIdentity.binanceOriginalClientOrderID().count, 35)
+                XCTAssertEqual(
+                    orderIdentity.reference.redactedClientOrderIDHash,
+                    ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference.redactedHash(
+                        for: orderIdentity.binanceOriginalClientOrderID()
+                    )
+                )
                 XCTAssertEqual(credential.binanceAPIKeyHeaderValue(), "gh-1069-testnet-api-key")
 
                 let digest = ReleaseV0150BinanceSpotTestnetCancelTransportResult.redactedDigest(
@@ -41031,16 +41053,12 @@ final class TargetGraphTests: XCTestCase {
             observedAtMilliseconds: 1_704_067_200_000
         )
         let submitLog = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.make(eventArtifacts: [submitEvent])
-        let cancelReference = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference(
-            referenceID: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference.deterministicID(
-                sourceSubmitRuntimeEvidenceID: submitEvidence.runtimeEvidenceID
-            ),
-            sourceSubmitEvidence: submitEvidence
-        )
-        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(
-            reference: cancelReference,
-            originalClientOrderID: "gh-1069-testnet-client-order"
-        )
+        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial
+            .derivedFromSubmitEvidence(submitEvidence)
+        let cancelReference = cancelIdentity.reference
+        XCTAssertEqual(cancelReference.sourceSubmitSignedRequestID, submitEvidence.signedRequestID)
+        XCTAssertEqual(cancelReference.sourceClientOrderIdentityReferenceID, submitEvidence.clientOrderIdentityReferenceID)
+        XCTAssertEqual(cancelReference.redactedClientOrderIDHash, submitEvidence.redactedClientOrderIDHash)
         let cancelRuntime = try ReleaseV0150BinanceSpotTestnetCancelRuntime(
             requestBuilder: ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
             transport: MockSpotTestnetCancelTransport()
@@ -41096,8 +41114,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(result.appendedNetworkEventLog.eventArtifacts.last?.previousArtifactChecksum, submitEvent.artifactChecksum)
         XCTAssertEqual(result.appendedNetworkEventLog.eventArtifacts.last?.actionEvidenceID, result.cancelEvidence.runtimeEvidenceID)
         XCTAssertEqual(result.appendedNetworkEventLog.eventArtifacts.last?.orderLifecycleState, .cancelled)
-        XCTAssertFalse(String(describing: cancelReference).contains("gh-1069-testnet-client-order"))
-        XCTAssertFalse(String(describing: cancelIdentity).contains("gh-1069-testnet-client-order"))
+        XCTAssertFalse(String(describing: cancelReference).contains(cancelIdentity.binanceOriginalClientOrderID()))
+        XCTAssertFalse(String(describing: cancelIdentity).contains(cancelIdentity.binanceOriginalClientOrderID()))
         XCTAssertFalse(String(describing: result.cancelEvidence).contains("gh-1069-testnet-api-key"))
         XCTAssertFalse(String(describing: result.cancelEvidence).contains("gh-1069-testnet-secret"))
 
@@ -41192,7 +41210,14 @@ final class TargetGraphTests: XCTestCase {
                 XCTAssertEqual(signedRequest.httpMethod, "DELETE")
                 XCTAssertEqual(signedRequest.endpointHost, "testnet.binance.vision")
                 XCTAssertEqual(signedRequest.endpointPath, "/api/v3/order")
-                XCTAssertEqual(orderIdentity.binanceOriginalClientOrderID(), "gh-1070-testnet-client-order")
+                XCTAssertTrue(orderIdentity.binanceOriginalClientOrderID().hasPrefix("mtp"))
+                XCTAssertEqual(orderIdentity.binanceOriginalClientOrderID().count, 35)
+                XCTAssertEqual(
+                    orderIdentity.reference.redactedClientOrderIDHash,
+                    ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference.redactedHash(
+                        for: orderIdentity.binanceOriginalClientOrderID()
+                    )
+                )
                 XCTAssertEqual(credential.binanceAPIKeyHeaderValue(), "gh-1070-testnet-api-key")
 
                 let digest = ReleaseV0150BinanceSpotTestnetCancelTransportResult.redactedDigest(
@@ -41370,16 +41395,12 @@ final class TargetGraphTests: XCTestCase {
             observedAtMilliseconds: 1_704_067_300_000
         )
         let sourceSubmitLog = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.make(eventArtifacts: [sourceSubmitEvent])
-        let cancelReference = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference(
-            referenceID: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference.deterministicID(
-                sourceSubmitRuntimeEvidenceID: sourceSubmitEvidence.runtimeEvidenceID
-            ),
-            sourceSubmitEvidence: sourceSubmitEvidence
-        )
-        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(
-            reference: cancelReference,
-            originalClientOrderID: "gh-1070-testnet-client-order"
-        )
+        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial
+            .derivedFromSubmitEvidence(sourceSubmitEvidence)
+        let cancelReference = cancelIdentity.reference
+        XCTAssertEqual(cancelReference.sourceSubmitSignedRequestID, sourceSubmitEvidence.signedRequestID)
+        XCTAssertEqual(cancelReference.sourceClientOrderIdentityReferenceID, sourceSubmitEvidence.clientOrderIdentityReferenceID)
+        XCTAssertEqual(cancelReference.redactedClientOrderIDHash, sourceSubmitEvidence.redactedClientOrderIDHash)
         let runtime = ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime(
             requestBuilder: try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
             cancelTransport: MockSpotTestnetCancelTransport(),
@@ -41447,8 +41468,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(result.appendedNetworkEventLog.eventArtifacts[3].actionEvidenceID, result.cancelReplaceEvidence.runtimeEvidenceID)
         XCTAssertEqual(result.appendedNetworkEventLog.eventArtifacts[3].previousArtifactChecksum, result.appendedNetworkEventLog.eventArtifacts[2].artifactChecksum)
         XCTAssertEqual(result.appendedNetworkEventLog.eventArtifacts[3].orderLifecycleState, .replaced)
-        XCTAssertFalse(String(describing: cancelReference).contains("gh-1070-testnet-client-order"))
-        XCTAssertFalse(String(describing: cancelIdentity).contains("gh-1070-testnet-client-order"))
+        XCTAssertFalse(String(describing: cancelReference).contains(cancelIdentity.binanceOriginalClientOrderID()))
+        XCTAssertFalse(String(describing: cancelIdentity).contains(cancelIdentity.binanceOriginalClientOrderID()))
         XCTAssertFalse(String(describing: result.cancelReplaceEvidence).contains("gh-1070-testnet-api-key"))
         XCTAssertFalse(String(describing: result.cancelReplaceEvidence).contains("gh-1070-testnet-secret"))
 
@@ -42468,7 +42489,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(readme.contains("#1095 closed / done"))
         XCTAssertTrue(readme.contains("#1096 已通过 `GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT`"))
         XCTAssertTrue(readme.contains("#1097 已通过 `GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME`"))
-        XCTAssertTrue(readme.contains("current issue `#1098`"))
+        XCTAssertTrue(readme.contains("current issue `#1099`"))
         XCTAssertTrue(readme.contains("GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING"))
         XCTAssertTrue(goal.contains("#1095 injected transport wording guard is closed / done"))
         XCTAssertTrue(blueprint.contains("mock/manual proof split"))
@@ -42728,16 +42749,15 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(String(describing: submitEvidence).contains("gh-1096-testnet-secret"))
         XCTAssertFalse(String(describing: submitEvidence).contains("gh-1096-testnet-client-order"))
 
-        let cancelReference = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference(
-            referenceID: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference.deterministicID(
-                sourceSubmitRuntimeEvidenceID: submitEvidence.runtimeEvidenceID
-            ),
-            sourceSubmitEvidence: submitEvidence
-        )
-        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(
-            reference: cancelReference,
-            originalClientOrderID: "gh-1096-testnet-client-order"
-        )
+        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial
+            .derivedFromSubmitEvidence(submitEvidence)
+        let cancelReference = cancelIdentity.reference
+        let expectedOriginalClientOrderID = cancelIdentity.binanceOriginalClientOrderID()
+        XCTAssertTrue(expectedOriginalClientOrderID.hasPrefix("mtp"))
+        XCTAssertEqual(expectedOriginalClientOrderID.count, 35)
+        XCTAssertEqual(cancelReference.sourceSubmitSignedRequestID, submitEvidence.signedRequestID)
+        XCTAssertEqual(cancelReference.sourceClientOrderIdentityReferenceID, submitEvidence.clientOrderIdentityReferenceID)
+        XCTAssertEqual(cancelReference.redactedClientOrderIDHash, submitEvidence.redactedClientOrderIDHash)
         let signedCancelRequest = try requestBuilder.buildCancelRequest(
             sourceSubmitEvidence: submitEvidence,
             credential: credential,
@@ -42778,13 +42798,13 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(capturedCancel.timeout, 9)
         XCTAssertFalse(capturedCancel.hasHTTPBody)
         XCTAssertTrue(capturedCancel.query?.contains("symbol=BTCUSDT") == true)
-        XCTAssertTrue(capturedCancel.query?.contains("origClientOrderId=gh-1096-testnet-client-order") == true)
+        XCTAssertTrue(capturedCancel.query?.contains("origClientOrderId=\(expectedOriginalClientOrderID)") == true)
         XCTAssertTrue(capturedCancel.query?.contains("signature=") == true)
         XCTAssertFalse(capturedCancel.absoluteString.contains("api.binance.com"))
         XCTAssertFalse(capturedCancel.absoluteString.contains("gh-1096-testnet-api-key"))
         XCTAssertFalse(capturedCancel.absoluteString.contains("gh-1096-testnet-secret"))
-        XCTAssertFalse(String(describing: cancelReference).contains("gh-1096-testnet-client-order"))
-        XCTAssertFalse(String(describing: cancelIdentity).contains("gh-1096-testnet-client-order"))
+        XCTAssertFalse(String(describing: cancelReference).contains(expectedOriginalClientOrderID))
+        XCTAssertFalse(String(describing: cancelIdentity).contains(expectedOriginalClientOrderID))
         XCTAssertFalse(String(describing: cancelResult).contains("gh-1096-testnet-api-key"))
         XCTAssertFalse(String(describing: cancelResult).contains("gh-1096-testnet-secret"))
         XCTAssertFalse(String(describing: cancelResult).contains("gh-1096-testnet-client-order"))
@@ -42974,8 +42994,7 @@ final class TargetGraphTests: XCTestCase {
             timestampMS: "1704067260000"
         ) + [
             "--source-submit-evidence-json", cancelSourceEvidenceURL.path,
-            "--network-event-log-json", cancelNetworkLogURL.path,
-            "--original-client-order-id", "gh-1097-testnet-client-order"
+            "--network-event-log-json", cancelNetworkLogURL.path
         ]
         let cancelResult = try await ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.result(
             arguments: cancelArgs,
@@ -42996,7 +43015,6 @@ final class TargetGraphTests: XCTestCase {
         ) + [
             "--source-submit-evidence-json", cancelReplaceSourceEvidenceURL.path,
             "--network-event-log-json", cancelReplaceNetworkLogURL.path,
-            "--original-client-order-id", "gh-1097-testnet-client-order",
             "--replacement-quantity", "0.03",
             "--replacement-source-sequence", "1098"
         ]
@@ -43256,16 +43274,8 @@ final class TargetGraphTests: XCTestCase {
             mode: .binanceTestnet,
             lifecycleState: .accepted
         )
-        let cancelReference = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference(
-            referenceID: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference.deterministicID(
-                sourceSubmitRuntimeEvidenceID: allowedSubmitEvidence.runtimeEvidenceID
-            ),
-            sourceSubmitEvidence: allowedSubmitEvidence
-        )
-        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(
-            reference: cancelReference,
-            originalClientOrderID: "gh-1098-testnet-client-order"
-        )
+        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial
+            .derivedFromSubmitEvidence(allowedSubmitEvidence)
         let cancelRuntime = ReleaseV0150BinanceSpotTestnetCancelRuntime(
             requestBuilder: try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
             transport: transport
@@ -43385,6 +43395,194 @@ final class TargetGraphTests: XCTestCase {
         counts = await transport.capturedCounts()
         XCTAssertEqual(counts.submit, 1)
         XCTAssertEqual(counts.cancel, 0)
+    }
+
+    func testGH1099ReleaseV0151ClientOrderIdentityChainDerivesCancelIdentityFromSubmitEvidence() async throws {
+        // 测试场景：GH-1099 为 Spot Testnet submit 生成 deterministic newClientOrderId，并让 cancel 从 submit evidence 派生身份。
+        // 验证目的：持久 evidence 只保存 redacted/hash reference，raw/untracked order id 必须 fail-closed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let builderSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift")
+        let submitSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift")
+        let cancelSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift")
+        let cliSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+        let verifier = try read("checks/verify-v0.15.1-client-order-identity-chain.sh")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+
+        let anchors = ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference.requiredValidationAnchors
+        XCTAssertEqual(
+            anchors,
+            [
+                "GH-1099-VERIFY-V0151-CLIENT-ORDER-IDENTITY-CHAIN",
+                "TVM-RELEASE-V0151-CLIENT-ORDER-IDENTITY-CHAIN",
+                "V0151-006-DETERMINISTIC-NEW-CLIENT-ORDER-ID",
+                "V0151-006-REDACTED-CLIENT-ORDER-REFERENCE",
+                "V0151-006-SUBMIT-TO-CANCEL-IDENTITY-HANDOFF",
+                "V0151-006-RAW-UNTRACKED-ORDER-ID-REJECTED",
+                "V0151-006-NO-PRODUCTION-CUTOVER"
+            ]
+        )
+        for anchor in anchors {
+            XCTAssertTrue(builderSource.contains(anchor), "\(anchor) must stay in signed request builder source")
+            XCTAssertTrue(tests.contains(anchor), "\(anchor) must stay in #1099 tests")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in #1099 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(policy.contains(anchor), "\(anchor) must stay in release policy")
+            XCTAssertTrue(readme.contains(anchor), "\(anchor) must stay in README")
+            XCTAssertTrue(goal.contains(anchor), "\(anchor) must stay in GOAL")
+            XCTAssertTrue(blueprint.contains(anchor), "\(anchor) must stay in BLUEPRINT")
+            XCTAssertTrue(roadmap.contains(anchor), "\(anchor) must stay in roadmap")
+        }
+        XCTAssertTrue(submitSource.contains("clientOrderIdentityReferenceID"))
+        XCTAssertTrue(submitSource.contains("redactedClientOrderIDHash"))
+        XCTAssertTrue(cancelSource.contains("derivedFromSubmitEvidence"))
+        XCTAssertTrue(cancelSource.contains("sourceSubmitSignedRequestID"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial.derivedFromSubmitEvidence"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.1-client-order-identity-chain.sh"))
+
+        let credentialReference = try ReleaseV0150BinanceSpotTestnetCredentialReference(
+            referenceID: .constant("gh-1099-binance-spot-testnet-credential"),
+            providerKind: .testnetEnvironmentReference
+        )
+        let credential = try ReleaseV0150BinanceSpotTestnetCredentialMaterial(
+            reference: credentialReference,
+            apiKeyHeaderValue: "gh-1099-testnet-api-key",
+            signingSecretValue: "gh-1099-testnet-secret"
+        )
+        let builder = try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder()
+        let request = try builder.buildMarketSubmitRequest(
+            credential: credential,
+            symbol: .constant("BTCUSDT"),
+            side: .buy,
+            quantity: try Quantity(0.05, field: "gh1099.quantity"),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        let repeatRequest = try builder.buildMarketSubmitRequest(
+            credential: credential,
+            symbol: .constant("BTCUSDT"),
+            side: .buy,
+            quantity: try Quantity(0.05, field: "gh1099.quantity"),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        XCTAssertEqual(request.clientOrderIdentityReferenceID, repeatRequest.clientOrderIdentityReferenceID)
+        XCTAssertEqual(request.redactedClientOrderIDHash, repeatRequest.redactedClientOrderIDHash)
+        XCTAssertEqual(request.signature, repeatRequest.signature)
+
+        let clientOrderIdentity = try ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial.derived(
+            sourceSignedRequestID: request.requestID
+        )
+        let newClientOrderID = clientOrderIdentity.binanceNewClientOrderID()
+        XCTAssertTrue(newClientOrderID.hasPrefix("mtp"))
+        XCTAssertEqual(newClientOrderID.count, 35)
+        XCTAssertEqual(request.clientOrderIdentityReferenceID, clientOrderIdentity.reference.referenceID)
+        XCTAssertEqual(request.redactedClientOrderIDHash, clientOrderIdentity.reference.redactedClientOrderIDHash)
+        XCTAssertTrue(request.unsignedQueryString.contains("newClientOrderId=<redacted>"))
+        XCTAssertTrue(request.binanceUnsignedQueryStringForTransport().contains("newClientOrderId=\(newClientOrderID)"))
+        XCTAssertTrue(request.binanceSignedQueryStringForTransport().contains("signature=\(request.signature)"))
+        XCTAssertFalse(request.unsignedQueryString.contains(newClientOrderID))
+        XCTAssertFalse(request.signedQueryString.contains(newClientOrderID))
+        XCTAssertFalse(String(describing: request).contains(newClientOrderID))
+        XCTAssertTrue(request.clientOrderIdentityMaterialRedacted)
+        XCTAssertFalse(request.clientOrderIdentityMaterialStored)
+
+        let transport = GH1097RecordingSpotTestnetTransport()
+        let symbol = Symbol.constant("BTCUSDT")
+        let instrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let quantity = try Quantity(0.05, field: "gh1099.submitQuantity")
+        let policyModel = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let correlation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1099-correlation"),
+            strategySignalID: .constant("gh-1099-signal"),
+            sourceMessageID: .constant("gh-1099-message"),
+            strategyRunID: .constant("gh-1099-run"),
+            sourceSequence: 1099
+        )
+        let intent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: instrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policyModel,
+                correlation: correlation
+            ),
+            instrument: instrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policyModel,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        let submitMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: intent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let submitRuntime = ReleaseV0150BinanceSpotTestnetSubmitRuntime(
+            requestBuilder: try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
+            transport: transport
+        )
+        let submitEvidence = try await submitRuntime.submitMarketOrder(
+            intent: intent,
+            mapping: submitMapping,
+            credential: credential,
+            operatorConfirmationID: .constant("gh-1099-submit-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedSubmit(
+                intent: intent,
+                mapping: submitMapping,
+                operatorConfirmationID: .constant("gh-1099-submit-confirmation")
+            ),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        XCTAssertTrue(submitEvidence.clientOrderIdentityReferenceID.rawValue.hasPrefix("gh-1099-v0151-client-order-reference:"))
+        XCTAssertEqual(submitEvidence.redactedClientOrderIDHash.count, 64)
+        XCTAssertTrue(submitEvidence.clientOrderIdentityMaterialRedacted)
+        XCTAssertFalse(submitEvidence.clientOrderIdentityMaterialStored)
+
+        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial
+            .derivedFromSubmitEvidence(submitEvidence)
+        let expectedSubmitClientOrderID = ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial
+            .deterministicNewClientOrderID(sourceSignedRequestID: submitEvidence.signedRequestID)
+        XCTAssertEqual(cancelIdentity.binanceOriginalClientOrderID(), expectedSubmitClientOrderID)
+        XCTAssertEqual(cancelIdentity.reference.sourceSubmitSignedRequestID, submitEvidence.signedRequestID)
+        XCTAssertEqual(cancelIdentity.reference.sourceClientOrderIdentityReferenceID, submitEvidence.clientOrderIdentityReferenceID)
+        XCTAssertEqual(cancelIdentity.reference.redactedClientOrderIDHash, submitEvidence.redactedClientOrderIDHash)
+        XCTAssertFalse(String(describing: cancelIdentity).contains(expectedSubmitClientOrderID))
+
+        XCTAssertThrowsError(
+            try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(
+                reference: cancelIdentity.reference,
+                originalClientOrderID: "gh-1099-untracked-raw-order-id"
+            )
+        ) { error in
+            XCTAssertTrue(String(describing: error).contains("originalClientOrderID"))
+        }
     }
 
     private func gh1097Arguments(

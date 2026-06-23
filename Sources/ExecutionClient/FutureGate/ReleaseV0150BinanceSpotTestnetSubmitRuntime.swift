@@ -300,6 +300,8 @@ public struct ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence: Codable, Equa
     public let operatorGateID: Identifier
     public let transportResultID: Identifier
     public let credentialReferenceID: Identifier
+    public let clientOrderIdentityReferenceID: Identifier
+    public let redactedClientOrderIDHash: String
     public let productType: ProductType
     public let endpointHost: String
     public let endpointPath: String
@@ -311,6 +313,8 @@ public struct ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence: Codable, Equa
     public let requestBodyRedacted: Bool
     public let responseBodyRedacted: Bool
     public let credentialMaterialRedacted: Bool
+    public let clientOrderIdentityMaterialRedacted: Bool
+    public let clientOrderIdentityMaterialStored: Bool
     public let appendOnlyEvidenceCreated: Bool
     public let testnetNetworkSubmitPerformed: Bool
     public let productionTradingEnabledByDefault: Bool
@@ -334,6 +338,8 @@ public struct ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence: Codable, Equa
         requestBodyRedacted: Bool = true,
         responseBodyRedacted: Bool = true,
         credentialMaterialRedacted: Bool = true,
+        clientOrderIdentityMaterialRedacted: Bool = true,
+        clientOrderIdentityMaterialStored: Bool = false,
         appendOnlyEvidenceCreated: Bool = true,
         testnetNetworkSubmitPerformed: Bool = true,
         productionTradingEnabledByDefault: Bool = false,
@@ -359,7 +365,10 @@ public struct ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence: Codable, Equa
               signedRequest.requestID == operatorGate.signedRequestID,
               signedRequest.productType == .spot,
               signedRequest.symbol == intent.instrument.symbol,
-              signedRequest.side == intent.side else {
+              signedRequest.side == intent.side,
+              signedRequest.clientOrderIdentityMaterialRedacted,
+              signedRequest.clientOrderIdentityMaterialStored == false,
+              signedRequest.redactedClientOrderIDHash.count == 64 else {
             throw CoreError.liveTradingBoundaryContractMismatch(
                 field: "releaseV0150SpotTestnetSubmit.signedRequest",
                 expected: "boundary-held signed Spot Testnet request linked to intent and gate",
@@ -379,6 +388,8 @@ public struct ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence: Codable, Equa
               requestBodyRedacted,
               responseBodyRedacted,
               credentialMaterialRedacted,
+              clientOrderIdentityMaterialRedacted,
+              clientOrderIdentityMaterialStored == false,
               appendOnlyEvidenceCreated,
               testnetNetworkSubmitPerformed else {
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0150SpotTestnetSubmit.unheldRuntimeEvidence")
@@ -419,6 +430,8 @@ public struct ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence: Codable, Equa
         self.operatorGateID = operatorGate.gateID
         self.transportResultID = transportResult.transportResultID
         self.credentialReferenceID = signedRequest.credentialReferenceID
+        self.clientOrderIdentityReferenceID = signedRequest.clientOrderIdentityReferenceID
+        self.redactedClientOrderIDHash = signedRequest.redactedClientOrderIDHash
         self.productType = signedRequest.productType
         self.endpointHost = signedRequest.endpointHost
         self.endpointPath = signedRequest.endpointPath
@@ -430,6 +443,8 @@ public struct ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence: Codable, Equa
         self.requestBodyRedacted = requestBodyRedacted
         self.responseBodyRedacted = responseBodyRedacted
         self.credentialMaterialRedacted = credentialMaterialRedacted
+        self.clientOrderIdentityMaterialRedacted = clientOrderIdentityMaterialRedacted
+        self.clientOrderIdentityMaterialStored = clientOrderIdentityMaterialStored
         self.appendOnlyEvidenceCreated = appendOnlyEvidenceCreated
         self.testnetNetworkSubmitPerformed = testnetNetworkSubmitPerformed
         self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
@@ -452,6 +467,10 @@ public struct ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence: Codable, Equa
             && requestBodyRedacted
             && responseBodyRedacted
             && credentialMaterialRedacted
+            && clientOrderIdentityMaterialRedacted
+            && clientOrderIdentityMaterialStored == false
+            && clientOrderIdentityReferenceID.rawValue.hasPrefix("gh-1099-v0151-client-order-reference:")
+            && redactedClientOrderIDHash.count == 64
             && appendOnlyEvidenceCreated
             && testnetNetworkSubmitPerformed
             && productionTradingEnabledByDefault == false

@@ -23,7 +23,10 @@ import Foundation
 public struct ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference: Codable, Equatable, Sendable, CustomStringConvertible {
     public let referenceID: Identifier
     public let sourceSubmitRuntimeEvidenceID: Identifier
+    public let sourceSubmitSignedRequestID: Identifier
     public let intentID: Identifier
+    public let sourceClientOrderIdentityReferenceID: Identifier
+    public let redactedClientOrderIDHash: String
     public let redactionPolicy: String
     public let orderIdentityMaterialStored: Bool
     public let exchangeOrderIDStored: Bool
@@ -49,7 +52,10 @@ public struct ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference: Codabl
     ) throws {
         guard sourceSubmitEvidence.boundaryHeld,
               sourceSubmitEvidence.productType == .spot,
-              sourceSubmitEvidence.orderLifecycleState == .submittedTestnet else {
+              sourceSubmitEvidence.orderLifecycleState == .submittedTestnet,
+              sourceSubmitEvidence.clientOrderIdentityMaterialRedacted,
+              sourceSubmitEvidence.clientOrderIdentityMaterialStored == false,
+              sourceSubmitEvidence.redactedClientOrderIDHash.count == 64 else {
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0150SpotTestnetCancel.orderIdentity.sourceSubmitEvidence")
         }
         guard redactionPolicy == Self.requiredRedactionPolicy else {
@@ -81,7 +87,10 @@ public struct ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference: Codabl
 
         self.referenceID = referenceID
         self.sourceSubmitRuntimeEvidenceID = sourceSubmitEvidence.runtimeEvidenceID
+        self.sourceSubmitSignedRequestID = sourceSubmitEvidence.signedRequestID
         self.intentID = sourceSubmitEvidence.intentID
+        self.sourceClientOrderIdentityReferenceID = sourceSubmitEvidence.clientOrderIdentityReferenceID
+        self.redactedClientOrderIDHash = sourceSubmitEvidence.redactedClientOrderIDHash
         self.redactionPolicy = redactionPolicy
         self.orderIdentityMaterialStored = orderIdentityMaterialStored
         self.exchangeOrderIDStored = exchangeOrderIDStored
@@ -95,6 +104,8 @@ public struct ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference: Codabl
 
     public var boundaryHeld: Bool {
         redactionPolicy == Self.requiredRedactionPolicy
+            && sourceClientOrderIdentityReferenceID.rawValue.hasPrefix("gh-1099-v0151-client-order-reference:")
+            && redactedClientOrderIDHash.count == 64
             && orderIdentityMaterialStored == false
             && exchangeOrderIDStored == false
             && productionTradingEnabledByDefault == false
@@ -106,7 +117,7 @@ public struct ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference: Codabl
     }
 
     public var redactedDescription: String {
-        "\(referenceID.rawValue):<redacted>"
+        "\(referenceID.rawValue):sha256:\(redactedClientOrderIDHash.prefix(12)):<redacted>"
     }
 
     public var description: String {
@@ -145,11 +156,23 @@ public struct ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial: Sendabl
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0150SpotTestnetCancel.orderIdentityMaterial.reference")
         }
         let trimmedOrderID = originalClientOrderID.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmedOrderID.isEmpty == false else {
+        let expectedOrderID = ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial.deterministicNewClientOrderID(
+            sourceSignedRequestID: reference.sourceSubmitSignedRequestID
+        )
+        guard trimmedOrderID == expectedOrderID else {
             throw CoreError.liveTradingBoundaryContractMismatch(
                 field: "releaseV0150SpotTestnetCancel.orderIdentityMaterial.originalClientOrderID",
-                expected: "non-empty Binance Spot Testnet order identity",
-                actual: "empty"
+                expected: expectedOrderID,
+                actual: trimmedOrderID.isEmpty ? "empty" : "<redacted-mismatch>"
+            )
+        }
+        guard reference.redactedClientOrderIDHash == ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference.redactedHash(
+            for: trimmedOrderID
+        ) else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0150SpotTestnetCancel.orderIdentityMaterial.hash",
+                expected: reference.redactedClientOrderIDHash,
+                actual: ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference.redactedHash(for: trimmedOrderID)
             )
         }
 
@@ -163,6 +186,24 @@ public struct ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial: Sendabl
 
     public var description: String {
         "ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(reference: \(reference.redactedDescription), originalClientOrderID: <redacted>)"
+    }
+
+    public static func derivedFromSubmitEvidence(
+        _ sourceSubmitEvidence: ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence
+    ) throws -> ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial {
+        let reference = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference(
+            referenceID: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference.deterministicID(
+                sourceSubmitRuntimeEvidenceID: sourceSubmitEvidence.runtimeEvidenceID
+            ),
+            sourceSubmitEvidence: sourceSubmitEvidence
+        )
+        let material = try ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial.derived(
+            sourceSignedRequestID: sourceSubmitEvidence.signedRequestID
+        )
+        return try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(
+            reference: reference,
+            originalClientOrderID: material.binanceNewClientOrderID()
+        )
     }
 }
 

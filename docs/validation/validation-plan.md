@@ -75,6 +75,20 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-runtime-internal-gates.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1098 只把 RiskEngine allow、kill switch inactive、no-trade inactive 和 operator confirmation gate 放入 Binance Spot Testnet submit / cancel / cancel-replace runtime 内部。Rejected risk、active kill switch、active no-trade 或 missing confirmation 必须在 transport invocation 前 fail-closed。不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
+## GH-1099 Release v0.15.1 Client Order Identity Chain Guard
+
+- `GH-1099-VERIFY-V0151-CLIENT-ORDER-IDENTITY-CHAIN`
+- `TVM-RELEASE-V0151-CLIENT-ORDER-IDENTITY-CHAIN`
+- `V0151-006-DETERMINISTIC-NEW-CLIENT-ORDER-ID`
+- `V0151-006-REDACTED-CLIENT-ORDER-REFERENCE`
+- `V0151-006-SUBMIT-TO-CANCEL-IDENTITY-HANDOFF`
+- `V0151-006-RAW-UNTRACKED-ORDER-ID-REJECTED`
+- `V0151-006-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.1-client-order-identity-chain.sh`
+- Focused test: `testGH1099ReleaseV0151ClientOrderIdentityChainDerivesCancelIdentityFromSubmitEvidence`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-client-order-identity-chain.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1099 只增强 Binance Spot Testnet submit-to-cancel identity handoff。Submit evidence 生成 deterministic redacted `newClientOrderId` reference；cancel 只能从 submit evidence 派生短生命周期 identity material；raw / untracked order id 必须 fail-closed。不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 ## GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence
 
 - `GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT`
