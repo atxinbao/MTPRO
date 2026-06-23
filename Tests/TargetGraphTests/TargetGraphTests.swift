@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 import Cache
 import Database
 import DataClient
@@ -13,6 +16,65 @@ import RiskEngine
 import Trader
 import TraderStrategies
 import XCTest
+
+private struct GH1096CapturedURLSessionRequest: Equatable, Sendable {
+    let method: String?
+    let absoluteString: String
+    let scheme: String?
+    let host: String?
+    let path: String
+    let query: String?
+    let apiKeyHeader: String?
+    let acceptHeader: String?
+    let timeout: TimeInterval
+    let hasHTTPBody: Bool
+
+    init(_ request: URLRequest) {
+        let url = request.url
+        self.method = request.httpMethod
+        self.absoluteString = url?.absoluteString ?? ""
+        self.scheme = url?.scheme
+        self.host = url?.host
+        self.path = url?.path ?? ""
+        self.query = url?.query
+        self.apiKeyHeader = request.value(forHTTPHeaderField: "X-MBX-APIKEY")
+        self.acceptHeader = request.value(forHTTPHeaderField: "Accept")
+        self.timeout = request.timeoutInterval
+        self.hasHTTPBody = request.httpBody != nil
+    }
+}
+
+private actor GH1096MockURLSessionDataLoader: ReleaseV0151BinanceSpotTestnetURLSessionDataLoading {
+    private let statusCode: Int
+    private let responseData: Data
+    private var capturedRequests: [GH1096CapturedURLSessionRequest] = []
+
+    init(
+        statusCode: Int = 200,
+        responseBody: String = #"{"symbol":"BTCUSDT","orderId":123456,"clientOrderId":"raw-testnet-client-order"}"#
+    ) {
+        self.statusCode = statusCode
+        self.responseData = Data(responseBody.utf8)
+    }
+
+    func load(_ request: URLRequest) async throws -> (Data, URLResponse) {
+        capturedRequests.append(GH1096CapturedURLSessionRequest(request))
+        guard let url = request.url,
+              let response = HTTPURLResponse(
+                url: url,
+                statusCode: statusCode,
+                httpVersion: "HTTP/1.1",
+                headerFields: ["Content-Type": "application/json"]
+              ) else {
+            throw URLError(.badServerResponse)
+        }
+        return (responseData, response)
+    }
+
+    func captured() -> [GH1096CapturedURLSessionRequest] {
+        capturedRequests
+    }
+}
 
 final class TargetGraphTests: XCTestCase {
     func testMTP217FoundationTargetsExposeDependencyDirectionAndCompatibilityBoundary() {
@@ -161,6 +223,16 @@ final class TargetGraphTests: XCTestCase {
         DomainModelTargetBoundary.requiredValidationAnchors.contains(expected)
             || MessageBusTargetBoundary.requiredValidationAnchors.contains(expected)
             || DatabaseTargetBoundary.requiredValidationAnchors.contains(expected)
+    }
+
+    private func markdownSection(in document: String, heading: String) -> String {
+        guard let start = document.range(of: heading) else {
+            return ""
+        }
+        if let nextHeading = document[start.upperBound...].range(of: "\n## ") {
+            return String(document[start.lowerBound..<nextHeading.lowerBound])
+        }
+        return String(document[start.lowerBound...])
     }
 
     func testGH419DatabasePersistenceRuntimeOwnershipMatrixIsExplicit() throws {
@@ -11515,8 +11587,20 @@ final class TargetGraphTests: XCTestCase {
             "testnetCancelReplaceAllowed=true"
         ] {
             XCTAssertFalse(contract.contains(forbiddenAuthorization), "GH-844 must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-844 validation must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-844 matrix must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(
+                markdownSection(
+                    in: validationPlan,
+                    heading: "## GH-844 Release v0.9.0 v0.8.0 Publication Alignment Carry-forward Validation"
+                ).contains(forbiddenAuthorization),
+                "GH-844 validation must not authorize \(forbiddenAuthorization)"
+            )
+            XCTAssertFalse(
+                markdownSection(
+                    in: tradingMatrix,
+                    heading: "## TVM-RELEASE-V090-V080-PUBLICATION-ALIGNMENT-CARRYFORWARD"
+                ).contains(forbiddenAuthorization),
+                "GH-844 matrix must not authorize \(forbiddenAuthorization)"
+            )
         }
     }
 
@@ -11562,6 +11646,24 @@ final class TargetGraphTests: XCTestCase {
         let automationReadiness = try String(
             contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
             encoding: .utf8
+        )
+        func markdownSection(in document: String, heading: String) -> String {
+            guard let start = document.range(of: heading) else {
+                return ""
+            }
+            let remaining = document[start.lowerBound...]
+            if let nextHeading = document[start.upperBound...].range(of: "\n## ") {
+                return String(document[start.lowerBound..<nextHeading.lowerBound])
+            }
+            return String(remaining)
+        }
+        let gh845ValidationPlan = markdownSection(
+            in: validationPlan,
+            heading: "## GH-845 Release v0.9.0 TestnetReadOnlyMonitorSession Store Validation"
+        )
+        let gh845TradingMatrix = markdownSection(
+            in: tradingMatrix,
+            heading: "## TVM-RELEASE-V090-TESTNET-MONITOR-SESSION-STORE"
         )
 
         let requiredAnchors = [
@@ -11734,6 +11836,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(readinessScript.contains("GH-845-VERIFY-V090-TESTNET-MONITOR-SESSION-STORE"))
         XCTAssertTrue(validationPlan.contains("GH-845 Release v0.9.0 TestnetReadOnlyMonitorSession Store Validation"))
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V090-TESTNET-MONITOR-SESSION-STORE"))
+        XCTAssertFalse(gh845ValidationPlan.isEmpty)
+        XCTAssertFalse(gh845TradingMatrix.isEmpty)
         XCTAssertTrue(automationReadiness.contains("Release v0.9.0 TestnetReadOnlyMonitorSession store anchor"))
 
         for requiredSource in [
@@ -11775,8 +11879,8 @@ final class TargetGraphTests: XCTestCase {
         ] {
             XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-845 source must not contain \(forbiddenAuthorization)")
             XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-845 contract must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-845 validation must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-845 matrix must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(gh845ValidationPlan.contains(forbiddenAuthorization), "GH-845 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(gh845TradingMatrix.contains(forbiddenAuthorization), "GH-845 matrix must not authorize \(forbiddenAuthorization)")
         }
     }
 
@@ -11817,6 +11921,24 @@ final class TargetGraphTests: XCTestCase {
         let automationReadiness = try String(
             contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
             encoding: .utf8
+        )
+        func markdownSection(in document: String, heading: String) -> String {
+            guard let start = document.range(of: heading) else {
+                return ""
+            }
+            let remaining = document[start.lowerBound...]
+            if let nextHeading = document[start.upperBound...].range(of: "\n## ") {
+                return String(document[start.lowerBound..<nextHeading.lowerBound])
+            }
+            return String(remaining)
+        }
+        let gh846ValidationPlan = markdownSection(
+            in: validationPlan,
+            heading: "## GH-846 Release v0.9.0 Signed Account Snapshot Freshness Monitor Validation"
+        )
+        let gh846TradingMatrix = markdownSection(
+            in: tradingMatrix,
+            heading: "## TVM-RELEASE-V090-SIGNED-ACCOUNT-SNAPSHOT-FRESHNESS"
         )
 
         let requiredAnchors = [
@@ -11986,8 +12108,8 @@ final class TargetGraphTests: XCTestCase {
         ] {
             XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-846 source must not contain \(forbiddenAuthorization)")
             XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-846 contract must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-846 validation must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-846 matrix must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(gh846ValidationPlan.contains(forbiddenAuthorization), "GH-846 validation must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(gh846TradingMatrix.contains(forbiddenAuthorization), "GH-846 matrix must not authorize \(forbiddenAuthorization)")
         }
     }
 
@@ -12270,8 +12392,20 @@ final class TargetGraphTests: XCTestCase {
         ] {
             XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-847 source must not contain \(forbiddenAuthorization)")
             XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-847 contract must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-847 validation must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-847 matrix must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(
+                markdownSection(
+                    in: validationPlan,
+                    heading: "## GH-847 Release v0.9.0 Private Stream Heartbeat Staleness Monitor Validation"
+                ).contains(forbiddenAuthorization),
+                "GH-847 validation must not authorize \(forbiddenAuthorization)"
+            )
+            XCTAssertFalse(
+                markdownSection(
+                    in: tradingMatrix,
+                    heading: "## TVM-RELEASE-V090-PRIVATE-STREAM-HEARTBEAT-STALENESS"
+                ).contains(forbiddenAuthorization),
+                "GH-847 matrix must not authorize \(forbiddenAuthorization)"
+            )
         }
     }
 
@@ -12503,8 +12637,20 @@ final class TargetGraphTests: XCTestCase {
         ] {
             XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-848 source must not contain \(forbiddenAuthorization)")
             XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-848 contract must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-848 validation must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-848 matrix must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(
+                markdownSection(
+                    in: validationPlan,
+                    heading: "## GH-848 Release v0.9.0 Monitor Recovery Workflow Validation"
+                ).contains(forbiddenAuthorization),
+                "GH-848 validation must not authorize \(forbiddenAuthorization)"
+            )
+            XCTAssertFalse(
+                markdownSection(
+                    in: tradingMatrix,
+                    heading: "## TVM-RELEASE-V090-MONITOR-RECOVERY-WORKFLOW"
+                ).contains(forbiddenAuthorization),
+                "GH-848 matrix must not authorize \(forbiddenAuthorization)"
+            )
         }
     }
 
@@ -12741,8 +12887,20 @@ final class TargetGraphTests: XCTestCase {
         ] {
             XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-850 source must not contain \(forbiddenAuthorization)")
             XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-850 contract must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-850 validation must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-850 matrix must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(
+                markdownSection(
+                    in: validationPlan,
+                    heading: "## GH-850 Release v0.9.0 Alert Read-model Validation"
+                ).contains(forbiddenAuthorization),
+                "GH-850 validation must not authorize \(forbiddenAuthorization)"
+            )
+            XCTAssertFalse(
+                markdownSection(
+                    in: tradingMatrix,
+                    heading: "## TVM-RELEASE-V090-ALERT-READ-MODEL"
+                ).contains(forbiddenAuthorization),
+                "GH-850 matrix must not authorize \(forbiddenAuthorization)"
+            )
         }
     }
 
@@ -12965,8 +13123,20 @@ final class TargetGraphTests: XCTestCase {
         ] {
             XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-851 source must not contain \(forbiddenAuthorization)")
             XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-851 contract must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-851 validation must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-851 matrix must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(
+                markdownSection(
+                    in: validationPlan,
+                    heading: "## GH-851 Release v0.9.0 Portfolio Reconciliation Timeline Validation"
+                ).contains(forbiddenAuthorization),
+                "GH-851 validation must not authorize \(forbiddenAuthorization)"
+            )
+            XCTAssertFalse(
+                markdownSection(
+                    in: tradingMatrix,
+                    heading: "## TVM-RELEASE-V090-PORTFOLIO-RECONCILIATION-TIMELINE"
+                ).contains(forbiddenAuthorization),
+                "GH-851 matrix must not authorize \(forbiddenAuthorization)"
+            )
         }
     }
 
@@ -13186,8 +13356,20 @@ final class TargetGraphTests: XCTestCase {
         ] {
             XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-852 source must not contain \(forbiddenAuthorization)")
             XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-852 contract must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-852 validation must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-852 matrix must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(
+                markdownSection(
+                    in: validationPlan,
+                    heading: "## GH-852 Release v0.9.0 Risk Policy Application Audit Validation"
+                ).contains(forbiddenAuthorization),
+                "GH-852 validation must not authorize \(forbiddenAuthorization)"
+            )
+            XCTAssertFalse(
+                markdownSection(
+                    in: tradingMatrix,
+                    heading: "## TVM-RELEASE-V090-RISK-POLICY-APPLICATION-AUDIT"
+                ).contains(forbiddenAuthorization),
+                "GH-852 matrix must not authorize \(forbiddenAuthorization)"
+            )
         }
     }
 
@@ -13432,8 +13614,20 @@ final class TargetGraphTests: XCTestCase {
         ] {
             XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-853 source must not contain \(forbiddenAuthorization)")
             XCTAssertFalse(contractDoc.contains(forbiddenAuthorization), "GH-853 contract must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-853 validation must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-853 matrix must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(
+                markdownSection(
+                    in: validationPlan,
+                    heading: "## GH-853 Release v0.9.0 Run Monitor Export Bundle Validation"
+                ).contains(forbiddenAuthorization),
+                "GH-853 validation must not authorize \(forbiddenAuthorization)"
+            )
+            XCTAssertFalse(
+                markdownSection(
+                    in: tradingMatrix,
+                    heading: "## TVM-RELEASE-V090-RUN-MONITOR-EXPORT-BUNDLE"
+                ).contains(forbiddenAuthorization),
+                "GH-853 matrix must not authorize \(forbiddenAuthorization)"
+            )
         }
     }
 
@@ -13579,8 +13773,20 @@ final class TargetGraphTests: XCTestCase {
         ] {
             XCTAssertFalse(contract.contains(forbiddenAuthorization), "GH-854 contract must not authorize \(forbiddenAuthorization)")
             XCTAssertFalse(runbook.contains(forbiddenAuthorization), "GH-854 runbook must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-854 validation must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-854 matrix must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(
+                markdownSection(
+                    in: validationPlan,
+                    heading: "## GH-854 Release v0.9.0 Validation Lanes Hardening Validation"
+                ).contains(forbiddenAuthorization),
+                "GH-854 validation must not authorize \(forbiddenAuthorization)"
+            )
+            XCTAssertFalse(
+                markdownSection(
+                    in: tradingMatrix,
+                    heading: "## TVM-RELEASE-V090-VALIDATION-LANES"
+                ).contains(forbiddenAuthorization),
+                "GH-854 matrix must not authorize \(forbiddenAuthorization)"
+            )
         }
     }
 
@@ -13743,8 +13949,20 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertFalse(source.contains(forbiddenAuthorization), "GH-855 source must not authorize \(forbiddenAuthorization)")
             XCTAssertFalse(cliSource.contains(forbiddenAuthorization), "GH-855 CLI must not authorize \(forbiddenAuthorization)")
             XCTAssertFalse(contract.contains(forbiddenAuthorization), "GH-855 contract must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(validationPlan.contains(forbiddenAuthorization), "GH-855 validation must not authorize \(forbiddenAuthorization)")
-            XCTAssertFalse(tradingMatrix.contains(forbiddenAuthorization), "GH-855 matrix must not authorize \(forbiddenAuthorization)")
+            XCTAssertFalse(
+                markdownSection(
+                    in: validationPlan,
+                    heading: "## GH-855 Release v0.9.0 Dashboard / CLI Operator UX Validation"
+                ).contains(forbiddenAuthorization),
+                "GH-855 validation must not authorize \(forbiddenAuthorization)"
+            )
+            XCTAssertFalse(
+                markdownSection(
+                    in: tradingMatrix,
+                    heading: "## TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX"
+                ).contains(forbiddenAuthorization),
+                "GH-855 matrix must not authorize \(forbiddenAuthorization)"
+            )
         }
     }
 
@@ -42152,9 +42370,10 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertTrue(document.contains("concrete network transport"))
         }
 
-        XCTAssertTrue(readme.contains("current issue `#1095`"))
+        XCTAssertTrue(readme.contains("#1095 closed / done"))
+        XCTAssertTrue(readme.contains("current issue `#1096`"))
         XCTAssertTrue(readme.contains("GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING"))
-        XCTAssertTrue(goal.contains("#1095 injected transport wording guard is current WIP=1"))
+        XCTAssertTrue(goal.contains("#1095 injected transport wording guard is closed / done"))
         XCTAssertTrue(blueprint.contains("mock/manual proof split"))
         XCTAssertTrue(roadmap.contains("future URLSession runner split"))
         XCTAssertTrue(latest.contains("v0.15.1 injected transport wording guard"))
@@ -42171,6 +42390,8 @@ final class TargetGraphTests: XCTestCase {
         for staleQueuePointer in [
             "current issue #1094 is release fact sync",
             "current issue `#1094`",
+            "current issue `#1095`",
+            "#1095 injected transport wording guard is current WIP=1",
             "#1095..#1100 remain backlog / non-executable"
         ] {
             XCTAssertFalse(readme.contains(staleQueuePointer), "\(staleQueuePointer) must be retired from README")
@@ -42231,6 +42452,282 @@ final class TargetGraphTests: XCTestCase {
         ] {
             XCTAssertFalse(policy.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of release policy")
             XCTAssertFalse(readiness.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of readiness docs")
+        }
+    }
+
+    func testGH1096ReleaseV0151URLSessionSpotTestnetTransportUsesAllowlistAndRedaction() async throws {
+        // 测试场景：GH-1096 为 v0.15.1 增加真实 URLSession-backed Binance Spot Testnet transport。
+        // 验证目的：只允许 testnet.binance.vision /api/v3/order，production host fail-closed，
+        // 并确保 response body、API key、secret 和 raw order identity 不进入持久证据。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+        let verifier = try read("checks/verify-v0.15.1-urlsession-spot-testnet-transport.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+
+        let anchors = [
+            "GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT",
+            "TVM-RELEASE-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT",
+            "V0151-003-URLSESSION-SPOT-TESTNET-ALLOWLIST",
+            "V0151-003-SUBMIT-CANCEL-URLSESSION-TRANSPORT",
+            "V0151-003-REDACTED-RESPONSE-DIGEST",
+            "V0151-003-NO-SECRET-PERSISTENCE",
+            "V0151-003-PRODUCTION-ENDPOINT-REJECTED",
+            "V0151-003-NO-PRODUCTION-CUTOVER"
+        ]
+
+        XCTAssertEqual(ReleaseV0151BinanceSpotTestnetURLSessionTransport.validationAnchors, anchors)
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in URLSession transport source")
+            XCTAssertTrue(tests.contains(anchor), "\(anchor) must stay in TargetGraphTests")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in focused verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(policy.contains(anchor), "\(anchor) must stay in release policy")
+        }
+
+        for requiredString in [
+            "ReleaseV0151BinanceSpotTestnetURLSessionTransport",
+            "ReleaseV0151BinanceSpotTestnetURLSessionDataLoading",
+            "URLSession",
+            "URLRequest",
+            "testnet.binance.vision",
+            "/api/v3/order",
+            "api.binance.com",
+            "response-sha256",
+            "productionOrderSubmitted=false"
+        ] {
+            XCTAssertTrue(source.contains(requiredString), "\(requiredString) must stay in concrete transport source")
+            XCTAssertTrue(verifier.contains(requiredString), "\(requiredString) must stay guarded by verifier")
+        }
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.1-urlsession-spot-testnet-transport.sh"))
+        XCTAssertTrue(readme.contains("current issue `#1096`"))
+        XCTAssertTrue(goal.contains("#1096 concrete URLSession Spot Testnet transport is current WIP=1"))
+        XCTAssertTrue(blueprint.contains("concrete URLSession Spot Testnet transport"))
+        XCTAssertTrue(roadmap.contains("concrete URLSession transport"))
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let instrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let quantity = try Quantity(0.05, field: "gh1096.quantity")
+        let policyModel = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let correlation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1096-correlation"),
+            strategySignalID: .constant("gh-1096-signal"),
+            sourceMessageID: .constant("gh-1096-message"),
+            strategyRunID: .constant("gh-1096-run"),
+            sourceSequence: 1096
+        )
+        let intent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: instrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policyModel,
+                correlation: correlation
+            ),
+            instrument: instrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policyModel,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        let submitMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: intent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let reference = try ReleaseV0150BinanceSpotTestnetCredentialReference.deterministicFixture(
+            referenceID: .constant("gh-1096-binance-spot-testnet-credential")
+        )
+        let credential = try ReleaseV0150BinanceSpotTestnetCredentialMaterial(
+            reference: reference,
+            apiKeyHeaderValue: "gh-1096-testnet-api-key",
+            signingSecretValue: "gh-1096-testnet-secret"
+        )
+        let requestBuilder = try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder()
+        let submitLoader = GH1096MockURLSessionDataLoader(
+            responseBody: #"{"symbol":"BTCUSDT","orderId":123456,"clientOrderId":"gh-1096-testnet-client-order","apiKey":"gh-1096-testnet-api-key","secret":"gh-1096-testnet-secret"}"#
+        )
+        let submitTransport = try ReleaseV0151BinanceSpotTestnetURLSessionTransport(
+            dataLoader: submitLoader,
+            timeoutSeconds: 7
+        )
+        let submitBoundaryHeld = await submitTransport.boundaryHeld
+        XCTAssertTrue(submitBoundaryHeld)
+
+        let submitRuntime = ReleaseV0150BinanceSpotTestnetSubmitRuntime(
+            requestBuilder: requestBuilder,
+            transport: submitTransport
+        )
+        let submitEvidence = try await submitRuntime.submitMarketOrder(
+            intent: intent,
+            mapping: submitMapping,
+            credential: credential,
+            operatorConfirmationID: .constant("gh-1096-submit-operator-confirmation"),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+
+        XCTAssertTrue(submitEvidence.boundaryHeld)
+        XCTAssertTrue(submitEvidence.testnetNetworkSubmitPerformed)
+        XCTAssertTrue(submitEvidence.responseBodyRedacted)
+        XCTAssertFalse(submitEvidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(submitEvidence.productionSecretAutoRead)
+        XCTAssertFalse(submitEvidence.productionEndpointConnected)
+        XCTAssertFalse(submitEvidence.brokerEndpointConnected)
+        XCTAssertFalse(submitEvidence.productionOrderSubmitted)
+        XCTAssertFalse(submitEvidence.productionCutoverAuthorized)
+
+        let capturedSubmitRequests = await submitLoader.captured()
+        let capturedSubmit = try XCTUnwrap(capturedSubmitRequests.first)
+        XCTAssertEqual(capturedSubmit.method, "POST")
+        XCTAssertEqual(capturedSubmit.scheme, "https")
+        XCTAssertEqual(capturedSubmit.host, "testnet.binance.vision")
+        XCTAssertEqual(capturedSubmit.path, "/api/v3/order")
+        XCTAssertEqual(capturedSubmit.apiKeyHeader, "gh-1096-testnet-api-key")
+        XCTAssertEqual(capturedSubmit.acceptHeader, "application/json")
+        XCTAssertEqual(capturedSubmit.timeout, 7)
+        XCTAssertFalse(capturedSubmit.hasHTTPBody)
+        XCTAssertTrue(capturedSubmit.query?.contains("symbol=BTCUSDT") == true)
+        XCTAssertTrue(capturedSubmit.query?.contains("side=BUY") == true)
+        XCTAssertTrue(capturedSubmit.query?.contains("signature=") == true)
+        XCTAssertFalse(capturedSubmit.absoluteString.contains("api.binance.com"))
+        XCTAssertFalse(capturedSubmit.absoluteString.contains("gh-1096-testnet-api-key"))
+        XCTAssertFalse(capturedSubmit.absoluteString.contains("gh-1096-testnet-secret"))
+        XCTAssertFalse(String(describing: submitEvidence).contains("gh-1096-testnet-api-key"))
+        XCTAssertFalse(String(describing: submitEvidence).contains("gh-1096-testnet-secret"))
+        XCTAssertFalse(String(describing: submitEvidence).contains("gh-1096-testnet-client-order"))
+
+        let cancelReference = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference(
+            referenceID: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference.deterministicID(
+                sourceSubmitRuntimeEvidenceID: submitEvidence.runtimeEvidenceID
+            ),
+            sourceSubmitEvidence: submitEvidence
+        )
+        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(
+            reference: cancelReference,
+            originalClientOrderID: "gh-1096-testnet-client-order"
+        )
+        let signedCancelRequest = try requestBuilder.buildCancelRequest(
+            sourceSubmitEvidence: submitEvidence,
+            credential: credential,
+            cancelOrderIdentity: cancelIdentity,
+            symbol: symbol,
+            timestamp: Date(timeIntervalSince1970: 1_704_067_260)
+        )
+        let cancelLoader = GH1096MockURLSessionDataLoader(
+            responseBody: #"{"symbol":"BTCUSDT","origClientOrderId":"gh-1096-testnet-client-order","status":"CANCELED","secret":"gh-1096-testnet-secret"}"#
+        )
+        let cancelTransport = try ReleaseV0151BinanceSpotTestnetURLSessionTransport(
+            dataLoader: cancelLoader,
+            timeoutSeconds: 9
+        )
+        let cancelResult = try await cancelTransport.cancelSpotTestnetOrder(
+            signedRequest: signedCancelRequest,
+            orderIdentity: cancelIdentity,
+            credential: credential
+        )
+
+        XCTAssertTrue(cancelResult.boundaryHeld)
+        XCTAssertTrue(cancelResult.testnetNetworkCancelPerformed)
+        XCTAssertTrue(cancelResult.responseBodyRedacted)
+        XCTAssertFalse(cancelResult.productionTradingEnabledByDefault)
+        XCTAssertFalse(cancelResult.productionSecretAutoRead)
+        XCTAssertFalse(cancelResult.productionEndpointConnected)
+        XCTAssertFalse(cancelResult.brokerEndpointConnected)
+        XCTAssertFalse(cancelResult.productionOrderSubmitted)
+        XCTAssertFalse(cancelResult.productionCutoverAuthorized)
+
+        let capturedCancelRequests = await cancelLoader.captured()
+        let capturedCancel = try XCTUnwrap(capturedCancelRequests.first)
+        XCTAssertEqual(capturedCancel.method, "DELETE")
+        XCTAssertEqual(capturedCancel.scheme, "https")
+        XCTAssertEqual(capturedCancel.host, "testnet.binance.vision")
+        XCTAssertEqual(capturedCancel.path, "/api/v3/order")
+        XCTAssertEqual(capturedCancel.apiKeyHeader, "gh-1096-testnet-api-key")
+        XCTAssertEqual(capturedCancel.timeout, 9)
+        XCTAssertFalse(capturedCancel.hasHTTPBody)
+        XCTAssertTrue(capturedCancel.query?.contains("symbol=BTCUSDT") == true)
+        XCTAssertTrue(capturedCancel.query?.contains("origClientOrderId=gh-1096-testnet-client-order") == true)
+        XCTAssertTrue(capturedCancel.query?.contains("signature=") == true)
+        XCTAssertFalse(capturedCancel.absoluteString.contains("api.binance.com"))
+        XCTAssertFalse(capturedCancel.absoluteString.contains("gh-1096-testnet-api-key"))
+        XCTAssertFalse(capturedCancel.absoluteString.contains("gh-1096-testnet-secret"))
+        XCTAssertFalse(String(describing: cancelReference).contains("gh-1096-testnet-client-order"))
+        XCTAssertFalse(String(describing: cancelIdentity).contains("gh-1096-testnet-client-order"))
+        XCTAssertFalse(String(describing: cancelResult).contains("gh-1096-testnet-api-key"))
+        XCTAssertFalse(String(describing: cancelResult).contains("gh-1096-testnet-secret"))
+        XCTAssertFalse(String(describing: cancelResult).contains("gh-1096-testnet-client-order"))
+
+        XCTAssertThrowsError(
+            try ReleaseV0151BinanceSpotTestnetURLSessionTransport(
+                baseURL: URL(string: "https://api.binance.com")!,
+                dataLoader: GH1096MockURLSessionDataLoader()
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0151BinanceSpotTestnetURLSessionTransportError,
+                .productionHostForbidden("api.binance.com")
+            )
+        }
+        XCTAssertThrowsError(
+            try ReleaseV0151BinanceSpotTestnetURLSessionTransport(
+                dataLoader: GH1096MockURLSessionDataLoader(),
+                timeoutSeconds: 0
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0151BinanceSpotTestnetURLSessionTransportError,
+                .invalidTimeout(0)
+            )
+        }
+
+        let failingLoader = GH1096MockURLSessionDataLoader(statusCode: 500)
+        let failingTransport = try ReleaseV0151BinanceSpotTestnetURLSessionTransport(dataLoader: failingLoader)
+        let signedSubmitRequest = try requestBuilder.buildMarketSubmitRequest(
+            credential: credential,
+            symbol: symbol,
+            side: .buy,
+            quantity: quantity,
+            timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        do {
+            _ = try await failingTransport.submitSpotTestnetOrder(
+                signedRequest: signedSubmitRequest,
+                credential: credential
+            )
+            XCTFail("HTTP 500 must fail closed for the Spot Testnet URLSession transport")
+        } catch {
+            XCTAssertEqual(
+                error as? ReleaseV0151BinanceSpotTestnetURLSessionTransportError,
+                .httpStatus(500)
+            )
         }
     }
 

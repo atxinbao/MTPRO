@@ -28,6 +28,21 @@
 - Evidence files: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md`、`docs/audit/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-stage-code-audit.md`、`docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md`、`docs/automation/automation-readiness.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-transport-wording.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1095 只修正文档和 guard wording，明确 v0.15.0 是 signed execution runtime contracts + injected Spot Testnet transport protocol evidence + deterministic mock / operator manual proof，不是仓库内置联网 runner、CLI 默认真实联网 runner 或 production broker connector。#1096 才是后续 concrete network transport runner slice；不移动 tag，不覆盖 release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
+## GH-1096 Release v0.15.1 URLSession Spot Testnet Transport Guard
+
+- `GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT`
+- `TVM-RELEASE-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT`
+- `V0151-003-URLSESSION-SPOT-TESTNET-ALLOWLIST`
+- `V0151-003-SUBMIT-CANCEL-URLSESSION-TRANSPORT`
+- `V0151-003-REDACTED-RESPONSE-DIGEST`
+- `V0151-003-NO-SECRET-PERSISTENCE`
+- `V0151-003-PRODUCTION-ENDPOINT-REJECTED`
+- `V0151-003-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.1-urlsession-spot-testnet-transport.sh`
+- Focused test: `testGH1096ReleaseV0151URLSessionSpotTestnetTransportUsesAllowlistAndRedaction`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-urlsession-spot-testnet-transport.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1096 只实现 concrete URLSession-backed Binance Spot Testnet submit / cancel transport，endpoint 固定为 `https://testnet.binance.vision/api/v3/order`。Transport 必须 reject production host、使用显式 timeout、只返回 redacted response digest，并且不持久化 response body、API key、secret 或 raw order identity。不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 ## GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence
 
 - `GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT`

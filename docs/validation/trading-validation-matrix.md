@@ -30,6 +30,22 @@
 - Evidence files: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md`、`docs/audit/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-stage-code-audit.md`、`docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md`、`docs/automation/automation-readiness.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.15.1-transport-wording.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: v0.15.0 signed execution evidence must be described as injected Spot Testnet transport protocol, deterministic mock proof, or operator manual proof. Built-in network runner, CLI default real-network runner, production broker connector, production endpoint, production secret and production order remain unauthorized and must not be implied by v0.15.0 wording. #1096 is the later concrete network transport hardening slice.
 
+## TVM-RELEASE-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT
+
+- TVM-RELEASE-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT
+- GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT
+- V0151-003-URLSESSION-SPOT-TESTNET-ALLOWLIST
+- V0151-003-SUBMIT-CANCEL-URLSESSION-TRANSPORT
+- V0151-003-REDACTED-RESPONSE-DIGEST
+- V0151-003-NO-SECRET-PERSISTENCE
+- V0151-003-PRODUCTION-ENDPOINT-REJECTED
+- V0151-003-NO-PRODUCTION-CUTOVER
+- GH-1096 Release v0.15.1 URLSession Spot Testnet Transport Guard
+- `bash checks/verify-v0.15.1-urlsession-spot-testnet-transport.sh`
+- `swift test --filter TargetGraphTests/testGH1096ReleaseV0151URLSessionSpotTestnetTransportUsesAllowlistAndRedaction`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.15.1-urlsession-spot-testnet-transport.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1096 only authorizes Binance Spot Testnet `https://testnet.binance.vision/api/v3/order` URLSession submit / cancel transport. Host / scheme / path are allowlisted; production hosts are rejected fail-closed; response body becomes `response-sha256` redacted digest; API key, secret and raw order identity are not persisted. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
+
 ## TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT
 
 - TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT

@@ -214,6 +214,38 @@ v0.15.0 release publication 固定的是 signed execution runtime contracts 和 
 
 `mtpro` CLI operator flow 不得被描述为 default real-network execution runner。任何 concrete URLSession runner、real network runner wiring 或 production broker connector 都必须由后续 issue 单独实现、验证和收口。该 wording guard 不移动 v0.15.0 tag，不覆盖 release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
+## V0151-003-URLSESSION-SPOT-TESTNET-TRANSPORT
+
+`GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT`
+
+`TVM-RELEASE-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT`
+
+`V0151-003-URLSESSION-SPOT-TESTNET-ALLOWLIST`
+
+`V0151-003-SUBMIT-CANCEL-URLSESSION-TRANSPORT`
+
+`V0151-003-REDACTED-RESPONSE-DIGEST`
+
+`V0151-003-NO-SECRET-PERSISTENCE`
+
+`V0151-003-PRODUCTION-ENDPOINT-REJECTED`
+
+`V0151-003-NO-PRODUCTION-CUTOVER`
+
+#1096 是 v0.15.1 对 #1095 wording split 的 concrete hardening slice：它允许仓库内存在一个 bounded URLSession-backed Binance Spot Testnet transport，但只允许 `https://testnet.binance.vision/api/v3/order` 的 submit / cancel request。
+
+该 transport policy 的固定事实：
+
+- scheme 必须为 `https`；
+- host 必须为 `testnet.binance.vision`；
+- path 必须为 `/api/v3/order`；
+- `api.binance.com`、`fapi.binance.com` 和 `dapi.binance.com` 必须 fail-closed；
+- response body 只允许降维为 `response-sha256` redacted digest；
+- API key、signing secret 和 raw order identity 不得进入持久 evidence；
+- production cutover、production secret read、production endpoint / broker endpoint connection 和 production order 仍未授权。
+
+该 guard 不移动 v0.15.0 tag，不覆盖 release，不创建下一 Project / Issue，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 ## V0141-006-PATCH-AUDIT-RELEASE-NOTES
 
 `GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`

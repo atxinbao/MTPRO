@@ -32,6 +32,40 @@ reject_file_contains() {
   fi
 }
 
+markdown_section() {
+  local file="$1"
+  local heading="$2"
+
+  awk -v heading="$heading" '
+    $0 == heading {
+      in_section = 1
+      print
+      next
+    }
+    in_section && /^## / {
+      exit
+    }
+    in_section {
+      print
+    }
+  ' "$file"
+}
+
+reject_section_contains() {
+  local file="$1"
+  local heading="$2"
+  local forbidden="$3"
+
+  local matches
+  matches="$(markdown_section "$file" "$heading" | grep -F "$forbidden" || true)"
+
+  if [[ -n "$matches" ]]; then
+    printf 'release v0.9.0 validation lanes verification failed: %s section %s must not contain: %s\n' "$file" "$heading" "$forbidden" >&2
+    printf '%s\n' "$matches" >&2
+    exit 1
+  fi
+}
+
 SOURCE="Sources/Database/ReleaseV090TestnetReadOnlyMonitorSessionStore.swift"
 CONTRACT="docs/contracts/release-v0.9.0-testnet-no-order-observability-contract.md"
 RUNBOOK="docs/operators/release-v0.9.0-validation-lanes-runbook.md"
@@ -95,8 +129,8 @@ for forbidden in \
   "/fapi/v1/order"; do
   reject_file_contains "$CONTRACT" "$forbidden"
   reject_file_contains "$RUNBOOK" "$forbidden"
-  reject_file_contains "$VALIDATION_PLAN" "$forbidden"
-  reject_file_contains "$TRADING_MATRIX" "$forbidden"
+  reject_section_contains "$VALIDATION_PLAN" "## GH-854 Release v0.9.0 Validation Lanes Hardening Validation" "$forbidden"
+  reject_section_contains "$TRADING_MATRIX" "## TVM-RELEASE-V090-VALIDATION-LANES" "$forbidden"
 done
 
 for forbidden_ci_input in \
