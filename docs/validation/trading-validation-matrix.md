@@ -64,6 +64,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Sources/MTPROCLI/main.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.15.1-cli-testnet-execution-runtime.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1097 only authorizes CLI wiring from `mtpro testnet-execution` to v0.15 guarded runtime for Binance Spot Testnet submit / cancel / cancel-replace. `testnet-env` is the only provider, missing testnet credential or confirmation fails closed, output is redacted and returns run id / artifact path / checksum. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
 
+## TVM-RELEASE-V0151-RUNTIME-INTERNAL-GATES
+
+- TVM-RELEASE-V0151-RUNTIME-INTERNAL-GATES
+- GH-1098-VERIFY-V0151-RUNTIME-INTERNAL-GATES
+- V0151-005-RISKENGINE-GATE-IN-RUNTIME
+- V0151-005-KILL-SWITCH-GATE-IN-RUNTIME
+- V0151-005-NO-TRADE-GATE-IN-RUNTIME
+- V0151-005-OPERATOR-CONFIRMATION-IN-RUNTIME
+- V0151-005-TRANSPORT-NOT-INVOKED-WHEN-BLOCKED
+- V0151-005-NO-PRODUCTION-CUTOVER
+- GH-1098 Release v0.15.1 Runtime Internal Gate Guard
+- `bash checks/verify-v0.15.1-runtime-internal-gates.sh`
+- `swift test --filter TargetGraphTests/testGH1098ReleaseV0151RuntimeInternalGatesBlockTransportBeforeInvocation`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.15.1-runtime-internal-gates.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1098 only authorizes internal pre-transport gates for Binance Spot Testnet submit / cancel / cancel-replace runtime. Risk rejection, active kill switch, active no-trade and missing confirmation must block before any transport invocation. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
+
 ## TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT
 
 - TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT

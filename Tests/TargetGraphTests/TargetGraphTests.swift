@@ -40541,6 +40541,11 @@ final class TargetGraphTests: XCTestCase {
             mapping: mapping,
             credential: credential,
             operatorConfirmationID: .constant("gh-1068-operator-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedSubmit(
+                intent: intent,
+                mapping: mapping,
+                operatorConfirmationID: .constant("gh-1068-operator-confirmation")
+            ),
             timestamp: Date(timeIntervalSince1970: 1_704_067_200)
         )
 
@@ -40629,6 +40634,11 @@ final class TargetGraphTests: XCTestCase {
                 mapping: mapping,
                 credential: credential,
                 operatorConfirmationID: .constant("gh-1068-operator-confirmation"),
+                runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedSubmit(
+                    intent: perpIntent,
+                    mapping: mapping,
+                    operatorConfirmationID: .constant("gh-1068-operator-confirmation")
+                ),
                 timestamp: Date(timeIntervalSince1970: 1_704_067_200)
             )
             XCTFail("USDⓈ-M Perpetual must stay outside the v0.15.0 Spot Testnet submit runtime")
@@ -40747,6 +40757,11 @@ final class TargetGraphTests: XCTestCase {
             mapping: mapping,
             credential: credential,
             operatorConfirmationID: .constant("gh-1071-operator-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedSubmit(
+                intent: intent,
+                mapping: mapping,
+                operatorConfirmationID: .constant("gh-1071-operator-confirmation")
+            ),
             timestamp: Date(timeIntervalSince1970: 1_704_067_200)
         )
 
@@ -41003,6 +41018,11 @@ final class TargetGraphTests: XCTestCase {
             mapping: submitMapping,
             credential: credential,
             operatorConfirmationID: .constant("gh-1069-submit-operator-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedSubmit(
+                intent: intent,
+                mapping: submitMapping,
+                operatorConfirmationID: .constant("gh-1069-submit-operator-confirmation")
+            ),
             timestamp: Date(timeIntervalSince1970: 1_704_067_200)
         )
         let submitEvent = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(
@@ -41034,6 +41054,12 @@ final class TargetGraphTests: XCTestCase {
             credential: credential,
             cancelOrderIdentity: cancelIdentity,
             operatorConfirmationID: .constant("gh-1069-cancel-operator-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedCancel(
+                intent: intent,
+                cancelMapping: cancelMapping,
+                sourceSubmitEvidence: submitEvidence,
+                operatorConfirmationID: .constant("gh-1069-cancel-operator-confirmation")
+            ),
             timestamp: Date(timeIntervalSince1970: 1_704_067_260),
             observedAtMilliseconds: 1_704_067_260_000
         )
@@ -41331,6 +41357,11 @@ final class TargetGraphTests: XCTestCase {
             mapping: sourceSubmitMapping,
             credential: credential,
             operatorConfirmationID: .constant("gh-1070-source-submit-operator-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedSubmit(
+                intent: sourceIntent,
+                mapping: sourceSubmitMapping,
+                operatorConfirmationID: .constant("gh-1070-source-submit-operator-confirmation")
+            ),
             timestamp: Date(timeIntervalSince1970: 1_704_067_300)
         )
         let sourceSubmitEvent = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(
@@ -41366,6 +41397,15 @@ final class TargetGraphTests: XCTestCase {
             credential: credential,
             cancelOrderIdentity: cancelIdentity,
             operatorConfirmationID: .constant("gh-1070-cancel-replace-operator-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedCancelReplace(
+                sourceIntent: sourceIntent,
+                replacementIntent: replacementIntent,
+                replaceMapping: replaceMapping,
+                cancelMapping: cancelMapping,
+                replacementSubmitMapping: replacementSubmitMapping,
+                sourceSubmitEvidence: sourceSubmitEvidence,
+                operatorConfirmationID: .constant("gh-1070-cancel-replace-operator-confirmation")
+            ),
             cancelTimestamp: Date(timeIntervalSince1970: 1_704_067_420),
             replacementSubmitTimestamp: Date(timeIntervalSince1970: 1_704_067_480),
             cancelObservedAtMilliseconds: 1_704_067_420_000,
@@ -42427,7 +42467,8 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertTrue(readme.contains("#1095 closed / done"))
         XCTAssertTrue(readme.contains("#1096 已通过 `GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT`"))
-        XCTAssertTrue(readme.contains("current issue `#1097`"))
+        XCTAssertTrue(readme.contains("#1097 已通过 `GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME`"))
+        XCTAssertTrue(readme.contains("current issue `#1098`"))
         XCTAssertTrue(readme.contains("GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING"))
         XCTAssertTrue(goal.contains("#1095 injected transport wording guard is closed / done"))
         XCTAssertTrue(blueprint.contains("mock/manual proof split"))
@@ -42447,6 +42488,8 @@ final class TargetGraphTests: XCTestCase {
             "current issue #1094 is release fact sync",
             "current issue `#1094`",
             "current issue `#1095`",
+            "current issue `#1096`",
+            "current issue `#1097`",
             "#1095 injected transport wording guard is current WIP=1",
             "#1095..#1100 remain backlog / non-executable"
         ] {
@@ -42647,6 +42690,11 @@ final class TargetGraphTests: XCTestCase {
             mapping: submitMapping,
             credential: credential,
             operatorConfirmationID: .constant("gh-1096-submit-operator-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedSubmit(
+                intent: intent,
+                mapping: submitMapping,
+                operatorConfirmationID: .constant("gh-1096-submit-operator-confirmation")
+            ),
             timestamp: Date(timeIntervalSince1970: 1_704_067_200)
         )
 
@@ -42852,8 +42900,8 @@ final class TargetGraphTests: XCTestCase {
         }
         XCTAssertTrue(cliSource.contains("ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.commandLineOutput"))
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.1-cli-testnet-execution-runtime.sh"))
-        XCTAssertTrue(readme.contains("current issue `#1097`"))
-        XCTAssertTrue(goal.contains("#1097 CLI guarded runtime wiring is current WIP=1"))
+        XCTAssertTrue(readme.contains("#1097 closed / done"))
+        XCTAssertTrue(goal.contains("#1097 CLI guarded runtime wiring closed / done"))
         XCTAssertTrue(blueprint.contains("CLI guarded runtime wiring"))
         XCTAssertTrue(roadmap.contains("CLI guarded runtime"))
 
@@ -43012,6 +43060,333 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1098ReleaseV0151RuntimeInternalGatesBlockTransportBeforeInvocation() async throws {
+        // 测试场景：GH-1098 把 RiskEngine / kill switch / no-trade / operator confirmation 放入 runtime 内部。
+        // 验证目的：即使调用方传入 riskAccepted mapping，runtime 也必须在触达 testnet transport 前重新 gate。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let gateSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.swift")
+        let submitSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift")
+        let cancelSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift")
+        let cancelReplaceSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime.swift")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+        let verifier = try read("checks/verify-v0.15.1-runtime-internal-gates.sh")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+
+        let expectedAnchors = [
+            "GH-1098-VERIFY-V0151-RUNTIME-INTERNAL-GATES",
+            "TVM-RELEASE-V0151-RUNTIME-INTERNAL-GATES",
+            "V0151-005-RISKENGINE-GATE-IN-RUNTIME",
+            "V0151-005-KILL-SWITCH-GATE-IN-RUNTIME",
+            "V0151-005-NO-TRADE-GATE-IN-RUNTIME",
+            "V0151-005-OPERATOR-CONFIRMATION-IN-RUNTIME",
+            "V0151-005-TRANSPORT-NOT-INVOKED-WHEN-BLOCKED",
+            "V0151-005-NO-PRODUCTION-CUTOVER"
+        ]
+        let anchors = ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.requiredValidationAnchors
+        XCTAssertEqual(anchors, expectedAnchors)
+        for anchor in anchors {
+            XCTAssertTrue(gateSource.contains(anchor), "\(anchor) must stay in #1098 gate source")
+            XCTAssertTrue(tests.contains(anchor), "\(anchor) must stay in #1098 tests")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in #1098 verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readme.contains(anchor), "\(anchor) must stay in README")
+            XCTAssertTrue(goal.contains(anchor), "\(anchor) must stay in GOAL")
+            XCTAssertTrue(blueprint.contains(anchor), "\(anchor) must stay in BLUEPRINT")
+            XCTAssertTrue(roadmap.contains(anchor), "\(anchor) must stay in roadmap")
+        }
+        for source in [submitSource, cancelSource, cancelReplaceSource] {
+            XCTAssertTrue(source.contains("runtimeGate.requireTransportAllowed"))
+        }
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.1-runtime-internal-gates.sh"))
+        XCTAssertTrue(gateSource.contains("transportNotInvokedWhenBlocked=true"))
+        XCTAssertTrue(gateSource.contains("riskEngineGateInsideRuntime=true"))
+        XCTAssertTrue(gateSource.contains("killSwitchGateInsideRuntime=true"))
+        XCTAssertTrue(gateSource.contains("noTradeGateInsideRuntime=true"))
+
+        let transport = GH1097RecordingSpotTestnetTransport()
+        let symbol = Symbol.constant("BTCUSDT")
+        let instrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let quantity = try Quantity(0.05, field: "gh1098.quantity")
+        let replacementQuantity = try Quantity(0.03, field: "gh1098.replacementQuantity")
+        let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let correlation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1098-correlation"),
+            strategySignalID: .constant("gh-1098-signal"),
+            sourceMessageID: .constant("gh-1098-message"),
+            strategyRunID: .constant("gh-1098-run"),
+            sourceSequence: 1098
+        )
+        let intent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: instrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation
+            ),
+            instrument: instrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        let submitMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: intent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let credentialReference = try ReleaseV0150BinanceSpotTestnetCredentialReference(
+            referenceID: .constant("gh-1098-binance-spot-testnet-credential"),
+            providerKind: .testnetEnvironmentReference
+        )
+        let credential = try ReleaseV0150BinanceSpotTestnetCredentialMaterial(
+            reference: credentialReference,
+            apiKeyHeaderValue: "gh-1098-testnet-api-key",
+            signingSecretValue: "gh-1098-testnet-secret"
+        )
+        let submitRuntime = ReleaseV0150BinanceSpotTestnetSubmitRuntime(
+            requestBuilder: try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
+            transport: transport
+        )
+        let blockedRiskGate = try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.blockedSubmit(
+            intent: intent,
+            mapping: submitMapping,
+            operatorConfirmationID: .constant("gh-1098-submit-confirmation"),
+            blocker: .riskEngineRejected
+        )
+        XCTAssertFalse(blockedRiskGate.boundaryHeld)
+        do {
+            _ = try await submitRuntime.submitMarketOrder(
+                intent: intent,
+                mapping: submitMapping,
+                credential: credential,
+                operatorConfirmationID: .constant("gh-1098-submit-confirmation"),
+                runtimeGate: blockedRiskGate,
+                timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+            )
+            XCTFail("risk rejected gate must prevent submit transport invocation")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("risk-engine-rejected"))
+        }
+        var counts = await transport.capturedCounts()
+        XCTAssertEqual(counts.submit, 0)
+        XCTAssertEqual(counts.cancel, 0)
+
+        let missingConfirmationGate = try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.blockedSubmit(
+            intent: intent,
+            mapping: submitMapping,
+            operatorConfirmationID: .constant("gh-1098-submit-confirmation"),
+            blocker: .operatorConfirmationMissing
+        )
+        do {
+            _ = try await submitRuntime.submitMarketOrder(
+                intent: intent,
+                mapping: submitMapping,
+                credential: credential,
+                operatorConfirmationID: .constant("gh-1098-submit-confirmation"),
+                runtimeGate: missingConfirmationGate,
+                timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+            )
+            XCTFail("missing operator confirmation gate must prevent submit transport invocation")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("operator-confirmation-missing"))
+        }
+        counts = await transport.capturedCounts()
+        XCTAssertEqual(counts.submit, 0)
+        XCTAssertEqual(counts.cancel, 0)
+
+        let allowedSubmitEvidence = try await submitRuntime.submitMarketOrder(
+            intent: intent,
+            mapping: submitMapping,
+            credential: credential,
+            operatorConfirmationID: .constant("gh-1098-submit-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedSubmit(
+                intent: intent,
+                mapping: submitMapping,
+                operatorConfirmationID: .constant("gh-1098-submit-confirmation")
+            ),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_200)
+        )
+        let submitEvent = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(
+            allowedSubmitEvidence,
+            sequenceNumber: 1,
+            observedAtMilliseconds: 1_704_067_200_000
+        )
+        let submitLog = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.make(eventArtifacts: [submitEvent])
+        counts = await transport.capturedCounts()
+        XCTAssertEqual(counts.submit, 1)
+        XCTAssertEqual(counts.cancel, 0)
+
+        let cancelMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .cancel,
+                mode: .binanceTestnet,
+                lifecycleState: .accepted
+            ),
+            intent: intent,
+            operation: .cancel,
+            mode: .binanceTestnet,
+            lifecycleState: .accepted
+        )
+        let cancelReference = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference(
+            referenceID: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityReference.deterministicID(
+                sourceSubmitRuntimeEvidenceID: allowedSubmitEvidence.runtimeEvidenceID
+            ),
+            sourceSubmitEvidence: allowedSubmitEvidence
+        )
+        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial(
+            reference: cancelReference,
+            originalClientOrderID: "gh-1098-testnet-client-order"
+        )
+        let cancelRuntime = ReleaseV0150BinanceSpotTestnetCancelRuntime(
+            requestBuilder: try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
+            transport: transport
+        )
+        do {
+            _ = try await cancelRuntime.cancelSpotTestnetOrder(
+                intent: intent,
+                cancelMapping: cancelMapping,
+                sourceSubmitEvidence: allowedSubmitEvidence,
+                existingNetworkEventLog: submitLog,
+                credential: credential,
+                cancelOrderIdentity: cancelIdentity,
+                operatorConfirmationID: .constant("gh-1098-cancel-confirmation"),
+                runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.blockedCancel(
+                    intent: intent,
+                    cancelMapping: cancelMapping,
+                    sourceSubmitEvidence: allowedSubmitEvidence,
+                    operatorConfirmationID: .constant("gh-1098-cancel-confirmation"),
+                    blocker: .killSwitchActive
+                ),
+                timestamp: Date(timeIntervalSince1970: 1_704_067_260),
+                observedAtMilliseconds: 1_704_067_260_000
+            )
+            XCTFail("active kill switch must prevent cancel transport invocation")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("kill-switch-active"))
+        }
+        counts = await transport.capturedCounts()
+        XCTAssertEqual(counts.submit, 1)
+        XCTAssertEqual(counts.cancel, 0)
+
+        let replacementCorrelation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1098-replacement-correlation"),
+            strategySignalID: .constant("gh-1098-replacement-signal"),
+            sourceMessageID: .constant("gh-1098-replacement-message"),
+            strategyRunID: .constant("gh-1098-run"),
+            sourceSequence: 1099
+        )
+        let replacementIntent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: instrument,
+                side: .buy,
+                quantity: replacementQuantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: replacementCorrelation
+            ),
+            instrument: instrument,
+            side: .buy,
+            quantity: replacementQuantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: replacementCorrelation,
+            createdAt: Date(timeIntervalSince1970: 1_704_067_300)
+        )
+        let replaceMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .replace,
+                mode: .binanceTestnet,
+                lifecycleState: .accepted
+            ),
+            intent: intent,
+            operation: .replace,
+            mode: .binanceTestnet,
+            lifecycleState: .accepted
+        )
+        let replacementSubmitMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: replacementIntent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: replacementIntent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let cancelReplaceRuntime = ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime(
+            requestBuilder: try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
+            cancelTransport: transport,
+            submitTransport: transport
+        )
+        do {
+            _ = try await cancelReplaceRuntime.cancelReplaceSpotTestnetOrder(
+                sourceIntent: intent,
+                replacementIntent: replacementIntent,
+                replaceMapping: replaceMapping,
+                cancelMapping: cancelMapping,
+                replacementSubmitMapping: replacementSubmitMapping,
+                sourceSubmitEvidence: allowedSubmitEvidence,
+                existingNetworkEventLog: submitLog,
+                credential: credential,
+                cancelOrderIdentity: cancelIdentity,
+                operatorConfirmationID: .constant("gh-1098-cancel-replace-confirmation"),
+                runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.blockedCancelReplace(
+                    sourceIntent: intent,
+                    replacementIntent: replacementIntent,
+                    replaceMapping: replaceMapping,
+                    cancelMapping: cancelMapping,
+                    replacementSubmitMapping: replacementSubmitMapping,
+                    sourceSubmitEvidence: allowedSubmitEvidence,
+                    operatorConfirmationID: .constant("gh-1098-cancel-replace-confirmation"),
+                    blocker: .noTradeActive
+                ),
+                cancelTimestamp: Date(timeIntervalSince1970: 1_704_067_420),
+                replacementSubmitTimestamp: Date(timeIntervalSince1970: 1_704_067_480),
+                cancelObservedAtMilliseconds: 1_704_067_420_000,
+                replacementSubmitObservedAtMilliseconds: 1_704_067_480_000,
+                cancelReplaceObservedAtMilliseconds: 1_704_067_540_000
+            )
+            XCTFail("active no-trade state must prevent cancel-replace transport invocation")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("no-trade-active"))
+        }
+        counts = await transport.capturedCounts()
+        XCTAssertEqual(counts.submit, 1)
+        XCTAssertEqual(counts.cancel, 0)
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
@@ -43112,6 +43487,11 @@ final class TargetGraphTests: XCTestCase {
             mapping: mapping,
             credential: credential,
             operatorConfirmationID: .constant("gh-1097-source-submit-operator-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedSubmit(
+                intent: intent,
+                mapping: mapping,
+                operatorConfirmationID: .constant("gh-1097-source-submit-operator-confirmation")
+            ),
             timestamp: Date(timeIntervalSince1970: timestampSeconds)
         )
         let event = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(

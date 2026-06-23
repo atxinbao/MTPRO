@@ -615,6 +615,11 @@ public enum ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow {
             mapping: mapping,
             credential: credential,
             operatorConfirmationID: operatorConfirmationID(command: command),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedSubmit(
+                intent: intent,
+                mapping: mapping,
+                operatorConfirmationID: operatorConfirmationID(command: command)
+            ),
             timestamp: date(milliseconds: command.timestampMilliseconds)
         )
         let event = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(
@@ -657,6 +662,12 @@ public enum ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow {
             credential: credential,
             cancelOrderIdentity: cancelIdentity,
             operatorConfirmationID: operatorConfirmationID(command: command),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedCancel(
+                intent: intent,
+                cancelMapping: try makeMapping(intent: intent, operation: .cancel, lifecycleState: .accepted),
+                sourceSubmitEvidence: sourceSubmitEvidence,
+                operatorConfirmationID: operatorConfirmationID(command: command)
+            ),
             timestamp: date(milliseconds: command.timestampMilliseconds),
             observedAtMilliseconds: command.observedAtMilliseconds
         )
@@ -701,6 +712,19 @@ public enum ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow {
             credential: credential,
             cancelOrderIdentity: cancelIdentity,
             operatorConfirmationID: operatorConfirmationID(command: command),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedCancelReplace(
+                sourceIntent: sourceIntent,
+                replacementIntent: replacementIntent,
+                replaceMapping: try makeMapping(intent: sourceIntent, operation: .replace, lifecycleState: .accepted),
+                cancelMapping: try makeMapping(intent: sourceIntent, operation: .cancel, lifecycleState: .accepted),
+                replacementSubmitMapping: try makeMapping(
+                    intent: replacementIntent,
+                    operation: .submit,
+                    lifecycleState: .riskAccepted
+                ),
+                sourceSubmitEvidence: sourceSubmitEvidence,
+                operatorConfirmationID: operatorConfirmationID(command: command)
+            ),
             cancelTimestamp: date(milliseconds: command.timestampMilliseconds),
             replacementSubmitTimestamp: date(milliseconds: command.timestampMilliseconds + 1_000),
             cancelObservedAtMilliseconds: command.observedAtMilliseconds,

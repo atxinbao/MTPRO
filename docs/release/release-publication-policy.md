@@ -258,6 +258,26 @@ v0.15.0 release publication 固定的是 signed execution runtime contracts 和 
 
 #1097 是 v0.15.1 对 #1096 concrete transport 的 CLI wiring hardening slice：它允许 `mtpro testnet-execution` 在 `testnet-env` credential provider、显式 operator confirmation 和 redacted output 下调用 v0.15 guarded submit / cancel / cancel-replace runtime。缺少 testnet credential 或 confirmation 必须 fail-closed。该 policy 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
+## V0151-005-RUNTIME-INTERNAL-GATES
+
+`GH-1098-VERIFY-V0151-RUNTIME-INTERNAL-GATES`
+
+`TVM-RELEASE-V0151-RUNTIME-INTERNAL-GATES`
+
+`V0151-005-RISKENGINE-GATE-IN-RUNTIME`
+
+`V0151-005-KILL-SWITCH-GATE-IN-RUNTIME`
+
+`V0151-005-NO-TRADE-GATE-IN-RUNTIME`
+
+`V0151-005-OPERATOR-CONFIRMATION-IN-RUNTIME`
+
+`V0151-005-TRANSPORT-NOT-INVOKED-WHEN-BLOCKED`
+
+`V0151-005-NO-PRODUCTION-CUTOVER`
+
+#1098 是 v0.15.1 对 #1097 CLI runtime 的 internal gate hardening slice：它要求 submit / cancel / cancel-replace runtime 在触达 Binance Spot Testnet transport 前重新检查 RiskEngine allow、kill switch inactive、no-trade inactive 和 operator confirmation。Rejected risk、active kill switch、active no-trade 或 missing confirmation 必须 fail-closed，且 transport invocation 不发生。该 policy 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 该 transport policy 的固定事实：
 
 - scheme 必须为 `https`；

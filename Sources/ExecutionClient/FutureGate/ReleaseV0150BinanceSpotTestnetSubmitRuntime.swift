@@ -513,6 +513,7 @@ public struct ReleaseV0150BinanceSpotTestnetSubmitRuntime: Sendable {
         mapping: ExecutionContractRequestMapping,
         credential: ReleaseV0150BinanceSpotTestnetCredentialMaterial,
         operatorConfirmationID: Identifier,
+        runtimeGate: ReleaseV0151BinanceSpotTestnetRuntimeInternalGate,
         timestamp: Date,
         receiveWindowMilliseconds: Int = 5_000
     ) async throws -> ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence {
@@ -525,9 +526,15 @@ public struct ReleaseV0150BinanceSpotTestnetSubmitRuntime: Sendable {
               mapping.intentID == intent.intentID,
               mapping.operation == .submit,
               mapping.mode == .binanceTestnet,
-              mapping.lifecycleState == .riskAccepted else {
+	              mapping.lifecycleState == .riskAccepted else {
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0150SpotTestnetSubmit.intentMapping")
         }
+        try runtimeGate.requireTransportAllowed(
+            action: .submit,
+            intentIDs: [intent.intentID],
+            mappingIDs: [mapping.mappingID],
+            operatorConfirmationID: operatorConfirmationID
+        )
 
         let signedRequest = try requestBuilder.buildMarketSubmitRequest(
             credential: credential,

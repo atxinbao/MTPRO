@@ -1294,6 +1294,7 @@ public struct ReleaseV0150BinanceSpotTestnetCancelRuntime: Sendable {
         credential: ReleaseV0150BinanceSpotTestnetCredentialMaterial,
         cancelOrderIdentity: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial,
         operatorConfirmationID: Identifier,
+        runtimeGate: ReleaseV0151BinanceSpotTestnetRuntimeInternalGate,
         timestamp: Date,
         observedAtMilliseconds: Int64,
         receiveWindowMilliseconds: Int = 5_000
@@ -1313,11 +1314,18 @@ public struct ReleaseV0150BinanceSpotTestnetCancelRuntime: Sendable {
               sourceSubmitEvidence.credentialReferenceID == credential.reference.referenceID,
               cancelOrderIdentity.reference.sourceSubmitRuntimeEvidenceID == sourceSubmitEvidence.runtimeEvidenceID,
               existingNetworkEventLog.boundaryHeld,
-              existingNetworkEventLog.eventArtifacts.contains(where: {
-                  $0.actionKind == .submit && $0.actionEvidenceID == sourceSubmitEvidence.runtimeEvidenceID
-              }) else {
+	              existingNetworkEventLog.eventArtifacts.contains(where: {
+	                  $0.actionKind == .submit && $0.actionEvidenceID == sourceSubmitEvidence.runtimeEvidenceID
+	              }) else {
             throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0150SpotTestnetCancel.runtimeInputs")
         }
+        try runtimeGate.requireTransportAllowed(
+            action: .cancel,
+            intentIDs: [intent.intentID],
+            mappingIDs: [cancelMapping.mappingID],
+            operatorConfirmationID: operatorConfirmationID,
+            sourceSubmitRuntimeEvidenceID: sourceSubmitEvidence.runtimeEvidenceID
+        )
 
         let signedRequest = try requestBuilder.buildCancelRequest(
             sourceSubmitEvidence: sourceSubmitEvidence,
