@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT
+
+- TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT
+- GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT
+- V0150-011-STAGE-CODE-AUDIT
+- V0150-011-MANUAL-TESTNET-WORKFLOW
+- V0150-011-RELEASE-NOTES
+- V0150-011-VALIDATION-SUITE
+- V0150-011-PRODUCTION-DISABLED-PROOF
+- V0150-011-NO-PRODUCTION-CUTOVER
+- GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence
+- `bash checks/verify-v0.15.0-release-ci-manual-testnet-audit.sh`
+- `swift test --filter TargetGraphTests/testGH1076ReleaseV0150FinalAuditManualWorkflowCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-stage-code-audit.md`、`docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md`、`docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md`、`checks/run.sh`、`checks/automation-readiness.sh`、`checks/verify-v0.15.0-release-ci-manual-testnet-audit.sh`、`docs/automation/automation-readiness.md`、`docs/validation/validation-plan.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1076 只允许 release CI、manual Spot Testnet workflow、Stage Code Audit、release notes 和 production-disabled proof closeout。`productionTradingEnabledByDefault=false`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`，`productionCutoverAuthorized=false`；不创建 tag / GitHub Release，不推进下一阶段，不授权 production cutover。
+
 ## TVM-RELEASE-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT
 
 - TVM-RELEASE-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT

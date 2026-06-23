@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence
+
+- `GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT`
+- `TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT`
+- `V0150-011-STAGE-CODE-AUDIT`
+- `V0150-011-MANUAL-TESTNET-WORKFLOW`
+- `V0150-011-RELEASE-NOTES`
+- `V0150-011-VALIDATION-SUITE`
+- `V0150-011-PRODUCTION-DISABLED-PROOF`
+- `V0150-011-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.0-release-ci-manual-testnet-audit.sh`
+- Focused test: `testGH1076ReleaseV0150FinalAuditManualWorkflowCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-stage-code-audit.md`、`docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md`、`docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md`、`checks/verify-v0.15.0-release-ci-manual-testnet-audit.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1076 只收口 v0.15.0 release CI、manual Spot Testnet workflow、Stage Code Audit、release notes 和 production-disabled proof。`productionTradingEnabledByDefault=false`，`productionSecretAutoRead=false`，`productionEndpointConnected=false`，`brokerEndpointConnected=false`，`productionOrderSubmitted=false`，`productionCutoverAuthorized=false`；#1076 不创建 tag / GitHub Release，不推进下一阶段，不授权 production cutover。
+
 ## GH-1075 Release v0.15.0 Failure Simulation for Real Signed Transport
 
 - `GH-1075-VERIFY-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT`

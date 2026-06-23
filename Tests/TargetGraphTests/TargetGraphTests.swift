@@ -41855,6 +41855,101 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-failure-simulation-real-signed-transport.sh"))
     }
 
+    func testGH1076ReleaseV0150FinalAuditManualWorkflowCloseout() throws {
+        // 测试场景：GH-1076 收口 v0.15.0 release CI、manual Spot Testnet workflow 和 Stage Code Audit。
+        // 验证目的：最终 audit / release notes / operator runbook / automation readiness 必须同源记录
+        // production-disabled proof，且 #1076 本身不能创建 tag、Release 或授权 production cutover。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let audit = try read("docs/audit/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-stage-code-audit.md")
+        let releaseNotes = try read("docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md")
+        let runbook = try read("docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.15.0-release-ci-manual-testnet-audit.sh")
+        let runScript = try read("checks/run.sh")
+
+        let anchors = [
+            "GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT",
+            "TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT",
+            "V0150-011-STAGE-CODE-AUDIT",
+            "V0150-011-MANUAL-TESTNET-WORKFLOW",
+            "V0150-011-RELEASE-NOTES",
+            "V0150-011-VALIDATION-SUITE",
+            "V0150-011-PRODUCTION-DISABLED-PROOF",
+            "V0150-011-NO-PRODUCTION-CUTOVER"
+        ]
+
+        for anchor in anchors {
+            XCTAssertTrue(audit.contains(anchor), "\(anchor) must be anchored in audit")
+            XCTAssertTrue(releaseNotes.contains(anchor), "\(anchor) must be anchored in release notes")
+            XCTAssertTrue(runbook.contains(anchor), "\(anchor) must be anchored in runbook")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must be anchored in readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must be anchored in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must be anchored in latest summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must be anchored in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must be anchored in trading matrix")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must be anchored in verifier")
+        }
+
+        for issue in ["#1066", "#1067", "#1068", "#1069", "#1070", "#1071", "#1072", "#1073", "#1074", "#1075", "#1076"] {
+            XCTAssertTrue(audit.contains(issue), "\(issue) must stay in audit")
+            XCTAssertTrue(releaseNotes.contains(issue), "\(issue) must stay in release notes")
+        }
+
+        for pullRequest in ["#1083", "#1084", "#1085", "#1086", "#1087", "#1088", "#1089", "#1090", "#1091", "#1092"] {
+            XCTAssertTrue(audit.contains(pullRequest), "\(pullRequest) merge evidence must stay in audit")
+        }
+
+        for requiredString in [
+            "productionTradingEnabledByDefault=false",
+            "productionSecretAutoRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionOrderSubmitted=false",
+            "productionCutoverAuthorized=false",
+            "Spot Testnet only for v0.15.0 execution MVP",
+            "No Futures / USDⓈ-M Perpetual execution in v0.15.0 MVP",
+            "No Dashboard trading button",
+            "No Dashboard order form",
+            "No Dashboard live command"
+        ] {
+            XCTAssertTrue(audit.contains(requiredString), "\(requiredString) must stay in audit")
+            XCTAssertTrue(releaseNotes.contains(requiredString), "\(requiredString) must stay in release notes")
+        }
+
+        XCTAssertTrue(runbook.contains("Stop and do not proceed"))
+        XCTAssertTrue(runbook.contains("This runbook tells an operator how to review and rehearse the v0.15.0 Binance Spot Testnet execution MVP locally"))
+        XCTAssertTrue(audit.contains("v0.15.0 public release publication 需要 Human 显式触发独立 Release Publication Gate"))
+        XCTAssertTrue(releaseNotes.contains("v0.15.0 是 Real Binance Testnet Execution MVP construction closeout"))
+        XCTAssertTrue(latest.contains("v0.15.0 release CI / manual testnet workflow / audit evidence"))
+        XCTAssertTrue(plan.contains("GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence"))
+        XCTAssertTrue(matrix.contains("GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence"))
+        XCTAssertTrue(readiness.contains("Release v0.15.0 release CI manual testnet audit anchor"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.15.0-release-ci-manual-testnet-audit.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.0-release-ci-manual-testnet-audit.sh"))
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionSecretAutoRead=true",
+            "productionEndpointConnected=true",
+            "brokerEndpointConnected=true",
+            "productionOrderSubmitted=true",
+            "productionCutoverAuthorized=true",
+            "dashboardCommandSurfaceEnabled=true"
+        ] {
+            XCTAssertFalse(audit.contains(forbidden), "\(forbidden) must not appear in audit")
+            XCTAssertFalse(releaseNotes.contains(forbidden), "\(forbidden) must not appear in release notes")
+            XCTAssertFalse(runbook.contains(forbidden), "\(forbidden) must not appear in runbook")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {
