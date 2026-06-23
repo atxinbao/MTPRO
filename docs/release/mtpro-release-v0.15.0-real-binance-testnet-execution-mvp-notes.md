@@ -10,6 +10,8 @@ v0.15.0 是 Real Binance Testnet Execution MVP construction closeout。它把 v0
 
 本说明是 #1076 closeout notes。#1076 本身不创建 `v0.15.0` tag，不创建 GitHub Release，不推进下一阶段，不授权 production cutover。后续独立 Release Publication Gate 已发布 `v0.15.0` stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`，tag peeled commit `1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`，publication timestamp `2026-06-23T01:26:30Z`。
 
+v0.15.0 的 execution wording 必须按 #1095 hardening 理解：它提供 signed execution runtime contracts、injected Spot Testnet transport protocol evidence、deterministic mock proof 和 operator manual proof runbook，不表示仓库已经内置 URLSession network runner，也不表示 `mtpro` CLI 默认具备真实联网执行器。具体 concrete URLSession transport 是 v0.15.1 后续 #1096 的独立 hardening slice。
+
 ## Completed Queue
 
 - #1066：定义 v0.15.0 contract / v0.14.1 preflight gate，确认 v0.15.0 只进入 Binance Spot Testnet execution MVP。
@@ -74,6 +76,7 @@ Manual workflow guardrails:
 - Use Binance Spot Testnet only.
 - Use testnet credential references only.
 - Require explicit operator confirmation before any Spot Testnet submit / cancel / cancel-replace rehearsal.
+- Use injected Spot Testnet transport protocol or documented operator manual proof; do not treat v0.15.0 as a built-in URLSession runner.
 - Persist only redacted request / response identity and append-only checksum evidence.
 - Review Dashboard status from local read-model artifacts only.
 - Stop on production host, production secret, broker endpoint, raw secret output, unredacted order identity, missing operator confirmation or reconciliation mismatch.
@@ -101,5 +104,7 @@ Manual workflow guardrails:
 ## Operator Meaning
 
 v0.15.0 表示 MTPRO 已具备可审计的 Binance Spot Testnet signed execution MVP construction evidence。它不是 production cutover，不是 production readiness approval，也不允许默认真实交易。
+
+v0.15.0 也不是 out-of-the-box built-in URLSession runner release。CLI operator flow 和 runtime evidence 要么使用 injected transport protocol 形成 redacted evidence，要么引用 operator manual proof；未来 concrete network runner 必须由后续 issue 单独实现、验证和收口。
 
 后续独立 public GitHub Release publication 已完成：`v0.15.0` stable GitHub Release 位于 `https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`，tag peeled commit 为 `1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`，publication timestamp 为 `2026-06-23T01:26:30Z`。该 publication 只固定 v0.15.0 release identity，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。

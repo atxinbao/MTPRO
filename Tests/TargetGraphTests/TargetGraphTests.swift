@@ -42081,6 +42081,159 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1095ReleaseV0151InjectedTransportWordingRejectsBuiltinRunnerClaims() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let notes = try read("docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md")
+        let audit = try read("docs/audit/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-stage-code-audit.md")
+        let runbook = try read("docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.15.1-transport-wording.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+
+        let anchors = [
+            "GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING",
+            "V0151-002-INJECTED-TRANSPORT-NOT-BUILTIN-RUNNER",
+            "V0151-002-MOCK-MANUAL-PROOF-SPLIT",
+            "V0151-002-FUTURE-URLSESSION-RUNNER-DEFERRED",
+            "TVM-RELEASE-V0151-INJECTED-TRANSPORT-WORDING"
+        ]
+
+        for anchor in anchors {
+            XCTAssertTrue(policy.contains(anchor), "\(anchor) must stay in release policy")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in focused verifier")
+        }
+
+        let guardedDocuments = [
+            ("README.md", readme),
+            ("GOAL.md", goal),
+            ("BLUEPRINT.md", blueprint),
+            ("docs/roadmap.md", roadmap),
+            ("docs/validation/latest-verification-summary.md", latest),
+            ("docs/release/release-publication-policy.md", policy),
+            ("docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md", notes),
+            ("docs/audit/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-stage-code-audit.md", audit),
+            ("docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md", runbook),
+            ("docs/automation/automation-readiness.md", readiness),
+            ("docs/validation/validation-plan.md", validationPlan),
+            ("docs/validation/trading-validation-matrix.md", tradingMatrix)
+        ]
+
+        for (_, document) in guardedDocuments {
+            XCTAssertTrue(document.contains("v0.15.0"))
+            XCTAssertTrue(document.contains("injected Spot Testnet transport"))
+            XCTAssertTrue(document.contains("#1096"))
+        }
+
+        for document in [policy, notes, audit, runbook, readiness] {
+            XCTAssertTrue(document.contains("deterministic mock"))
+            XCTAssertTrue(document.contains("operator manual proof"))
+            XCTAssertTrue(document.contains("concrete URLSession transport"))
+        }
+        for document in [validationPlan, tradingMatrix] {
+            XCTAssertTrue(document.contains("deterministic mock"))
+            XCTAssertTrue(document.contains("operator manual proof"))
+            XCTAssertTrue(document.contains("concrete network transport"))
+        }
+
+        XCTAssertTrue(readme.contains("current issue `#1095`"))
+        XCTAssertTrue(readme.contains("GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING"))
+        XCTAssertTrue(goal.contains("#1095 injected transport wording guard is current WIP=1"))
+        XCTAssertTrue(blueprint.contains("mock/manual proof split"))
+        XCTAssertTrue(roadmap.contains("future URLSession runner split"))
+        XCTAssertTrue(latest.contains("v0.15.1 injected transport wording guard"))
+        XCTAssertTrue(policy.contains("out-of-the-box built-in URLSession runner"))
+        XCTAssertTrue(notes.contains("CLI 默认具备真实联网执行器"))
+        XCTAssertTrue(audit.contains("not a bundled URLSession runner"))
+        XCTAssertTrue(runbook.contains("Any concrete URLSession transport must be implemented and validated by a later issue"))
+        XCTAssertTrue(readiness.contains("Release v0.15.1 injected transport wording guard anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1095 Release v0.15.1 Injected Transport / Built-in Runner Wording Guard"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0151-INJECTED-TRANSPORT-WORDING"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.15.1-transport-wording.sh"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.1-transport-wording.sh"))
+
+        for staleQueuePointer in [
+            "current issue #1094 is release fact sync",
+            "current issue `#1094`",
+            "#1095..#1100 remain backlog / non-executable"
+        ] {
+            XCTAssertFalse(readme.contains(staleQueuePointer), "\(staleQueuePointer) must be retired from README")
+            XCTAssertFalse(goal.contains(staleQueuePointer), "\(staleQueuePointer) must be retired from GOAL")
+            XCTAssertFalse(blueprint.contains(staleQueuePointer), "\(staleQueuePointer) must be retired from BLUEPRINT")
+            XCTAssertFalse(roadmap.contains(staleQueuePointer), "\(staleQueuePointer) must be retired from roadmap")
+            XCTAssertFalse(latest.contains(staleQueuePointer), "\(staleQueuePointer) must be retired from latest summary")
+        }
+
+        let builtInRunnerTerms = [
+            "built-in URLSession runner",
+            "builtin URLSession runner",
+            "out-of-the-box URLSession runner",
+            "CLI default real-network",
+            "default real-network execution runner",
+            "内置 URLSession",
+            "默认真实联网",
+            "默认联网执行器"
+        ]
+        let negationTerms = [
+            "not",
+            "does not",
+            "do not",
+            "不是",
+            "不把",
+            "不表示",
+            "不等于",
+            "不得",
+            "不能",
+            "拒绝",
+            "without",
+            "must not",
+            "不具备",
+            "不应"
+        ]
+
+        for (path, document) in guardedDocuments {
+            for line in document.components(separatedBy: .newlines) {
+                let mentionsV0150 = line.contains("v0.15.0")
+                let mentionsBuiltInRunner = builtInRunnerTerms.contains { line.contains($0) }
+                let hasNegation = negationTerms.contains { line.localizedCaseInsensitiveContains($0) }
+
+                if mentionsV0150 && mentionsBuiltInRunner {
+                    XCTAssertTrue(
+                        hasNegation,
+                        "\(path) contains unqualified built-in runner wording: \(line)"
+                    )
+                }
+            }
+        }
+
+        for forbiddenAuthorization in [
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true"
+        ] {
+            XCTAssertFalse(policy.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of release policy")
+            XCTAssertFalse(readiness.contains(forbiddenAuthorization), "\(forbiddenAuthorization) must stay out of readiness docs")
+        }
+    }
+
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         func read(_ relativePath: String) throws -> String {

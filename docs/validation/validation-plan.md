@@ -16,6 +16,18 @@
 - Evidence files: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md`、`docs/automation/automation-readiness.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-v0150-release-fact-sync.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1094 只同步 v0.15.0 stable GitHub Release 已发布事实并拒绝未限定到 #1076 historical closeout 的 stale publication wording。`v0.15.0` release URL 为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`，tag peeled commit 为 `1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`，publication timestamp 为 `2026-06-23T01:26:30Z`；不移动 tag，不覆盖 release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
+## GH-1095 Release v0.15.1 Injected Transport / Built-in Runner Wording Guard
+
+- `GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING`
+- `V0151-002-INJECTED-TRANSPORT-NOT-BUILTIN-RUNNER`
+- `V0151-002-MOCK-MANUAL-PROOF-SPLIT`
+- `V0151-002-FUTURE-URLSESSION-RUNNER-DEFERRED`
+- `TVM-RELEASE-V0151-INJECTED-TRANSPORT-WORDING`
+- Required command: `bash checks/verify-v0.15.1-transport-wording.sh`
+- Focused test: `testGH1095ReleaseV0151InjectedTransportWordingRejectsBuiltinRunnerClaims`
+- Evidence files: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md`、`docs/audit/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-stage-code-audit.md`、`docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md`、`docs/automation/automation-readiness.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-transport-wording.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1095 只修正文档和 guard wording，明确 v0.15.0 是 signed execution runtime contracts + injected Spot Testnet transport protocol evidence + deterministic mock / operator manual proof，不是仓库内置联网 runner、CLI 默认真实联网 runner 或 production broker connector。#1096 才是后续 concrete network transport runner slice；不移动 tag，不覆盖 release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 ## GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence
 
 - `GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT`

@@ -179,6 +179,7 @@ bash checks/verify-v0.15.0-dashboard-testnet-execution-status.sh
 bash checks/verify-v0.15.0-failure-simulation-real-signed-transport.sh
 bash checks/verify-v0.15.0-release-ci-manual-testnet-audit.sh
 bash checks/verify-v0.15.1-v0150-release-fact-sync.sh
+bash checks/verify-v0.15.1-transport-wording.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

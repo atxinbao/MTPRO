@@ -10,6 +10,8 @@
 
 本 audit 不创建 `v0.15.0` tag，不创建 GitHub Release，不推进下一阶段。v0.15.0 public release publication 需要 Human 显式触发独立 Release Publication Gate。
 
+Post-publication #1095 hardening clarification：本 audit 中的 `real Binance Spot Testnet signed execution MVP` 指 signed execution runtime contracts、injected Spot Testnet transport protocol evidence、redacted deterministic mock proof 和 operator manual proof workflow；它不是仓库内置 URLSession runner，不是 CLI 默认真实联网 runner，也不是 production broker connector；it is not a bundled URLSession runner。concrete URLSession transport 属于后续 #1096 hardening slice，不由 #1076 audit 自动授权。
+
 ## Validation Anchors
 
 - `GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT`
@@ -59,6 +61,7 @@ The release evidence confirms:
 - Binance Spot Testnet is the only active execution venue / product scope for this MVP.
 - Signed request construction uses testnet credential references and redacted HMAC evidence.
 - Submit, cancel and cancel-replace paths are guarded by explicit operator confirmation and injected Spot Testnet transports.
+- Injected Spot Testnet transport is a protocol boundary and proof seam; this audit does not prove an out-of-the-box built-in URLSession runner.
 - Network action evidence is append-only and checksum chained with redacted request / response identity.
 - OMS state sync and expected / observed reconciliation derive from append-only network event evidence.
 - CLI operator flow requires explicit testnet confirmation and prints redacted evidence only.
@@ -121,7 +124,7 @@ The focused verifier must run `swift test --filter TargetGraphTests/testGH1076Re
 
 ## Known Residual Risk
 
-v0.15.0 has a real Binance Spot Testnet execution MVP evidence path. It still does not represent production cutover readiness. Any production cutover must be separately planned, separately authorized, and separately validated with production environment, credential, risk, kill switch, no-trade, incident rollback and operator approval gates.
+v0.15.0 has a real Binance Spot Testnet execution MVP evidence path through signed runtime contracts and injected transport / manual proof. It still does not represent a bundled URLSession runner, production cutover readiness, or production execution capability. Any concrete network runner and any production cutover must be separately planned, separately authorized, and separately validated with production environment, credential, risk, kill switch, no-trade, incident rollback and operator approval gates.
 
 ## Root Docs Delta Input
 
