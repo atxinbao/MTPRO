@@ -42489,7 +42489,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(readme.contains("#1095 closed / done"))
         XCTAssertTrue(readme.contains("#1096 已通过 `GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT`"))
         XCTAssertTrue(readme.contains("#1097 已通过 `GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME`"))
-        XCTAssertTrue(readme.contains("current issue `#1099`"))
+        XCTAssertTrue(readme.contains("#1099 deterministic client order identity chain closed / done"))
         XCTAssertTrue(readme.contains("GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING"))
         XCTAssertTrue(goal.contains("#1095 injected transport wording guard is closed / done"))
         XCTAssertTrue(blueprint.contains("mock/manual proof split"))
@@ -42511,6 +42511,7 @@ final class TargetGraphTests: XCTestCase {
             "current issue `#1095`",
             "current issue `#1096`",
             "current issue `#1097`",
+            "current issue `#1099`",
             "#1095 injected transport wording guard is current WIP=1",
             "#1095..#1100 remain backlog / non-executable"
         ] {
@@ -43583,6 +43584,333 @@ final class TargetGraphTests: XCTestCase {
         ) { error in
             XCTAssertTrue(String(describing: error).contains("originalClientOrderID"))
         }
+    }
+
+    func testGH1100ReleaseV0151CodableDecodeValidationFailsClosedOnMutatedArtifacts() async throws {
+        // 测试场景：GH-1100 补强 v0.15/v0.15.1 执行 artifact 的 Codable decode 边界。
+        // 验证目的：外部 JSON artifact 必须在 decode 阶段重新校验 host、checksum、deterministic id 和 production 禁区。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        func encoded<T: Encodable>(_ value: T) throws -> Data {
+            try JSONEncoder().encode(value)
+        }
+        func mutatedData<T: Encodable>(
+            _ value: T,
+            mutate: (inout [String: Any]) -> Void
+        ) throws -> Data {
+            var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded(value)) as? [String: Any])
+            mutate(&object)
+            return try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+        }
+        func assertDecodeFails<T: Decodable>(
+            _ type: T.Type,
+            from data: Data,
+            _ message: String,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) {
+            XCTAssertThrowsError(try JSONDecoder().decode(type, from: data), message, file: file, line: line)
+        }
+
+        let decodeBoundarySource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0151CodableDecodeBoundary.swift")
+        let signedRequestSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift")
+        let submitSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift")
+        let cancelSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift")
+        let cancelReplaceSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime.swift")
+        let eventLogSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift")
+        let reconciliationSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetOMSStateReconciliation.swift")
+        let verifier = try read("checks/verify-v0.15.1-codable-decode-closeout.sh")
+        let runScript = try read("checks/run.sh")
+
+        let anchors = [
+            "GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT",
+            "TVM-RELEASE-V0151-CODABLE-DECODE-CLOSEOUT",
+            "V0151-007-CODABLE-DECODE-VALIDATION",
+            "V0151-007-CORRUPTED-JSON-FAILS-CLOSED",
+            "V0151-007-CHECKSUM-MISMATCH-FAILS-CLOSED",
+            "V0151-007-PRODUCTION-HOST-MUTATION-REJECTED",
+            "V0151-007-NO-PRODUCTION-CUTOVER"
+        ]
+        for anchor in anchors {
+            XCTAssertTrue(decodeBoundarySource.contains(anchor), "\(anchor) must stay in decode boundary helper")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+        }
+        for source in [
+            signedRequestSource,
+            submitSource,
+            cancelSource,
+            cancelReplaceSource,
+            eventLogSource,
+            reconciliationSource
+        ] {
+            XCTAssertTrue(source.contains("public init(from decoder: Decoder) throws"))
+            XCTAssertTrue(source.contains("ReleaseV0151CodableDecodeBoundary.requireHeld"))
+        }
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.1-codable-decode-closeout.sh"))
+
+        let symbol = Symbol.constant("BTCUSDT")
+        let instrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let sourceQuantity = try Quantity(0.05, field: "gh1100.sourceQuantity")
+        let replacementQuantity = try Quantity(0.03, field: "gh1100.replacementQuantity")
+        let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let sourceCorrelation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1100-source-correlation"),
+            strategySignalID: .constant("gh-1100-source-signal"),
+            sourceMessageID: .constant("gh-1100-source-message"),
+            strategyRunID: .constant("gh-1100-run"),
+            sourceSequence: 1100
+        )
+        let replacementCorrelation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1100-replacement-correlation"),
+            strategySignalID: .constant("gh-1100-replacement-signal"),
+            sourceMessageID: .constant("gh-1100-replacement-message"),
+            strategyRunID: .constant("gh-1100-run"),
+            sourceSequence: 1101
+        )
+        let sourceIntent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: instrument,
+                side: .buy,
+                quantity: sourceQuantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: sourceCorrelation
+            ),
+            instrument: instrument,
+            side: .buy,
+            quantity: sourceQuantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: sourceCorrelation,
+            createdAt: Date(timeIntervalSince1970: 1_704_067_300)
+        )
+        let replacementIntent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: instrument,
+                side: .buy,
+                quantity: replacementQuantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: replacementCorrelation
+            ),
+            instrument: instrument,
+            side: .buy,
+            quantity: replacementQuantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: replacementCorrelation,
+            createdAt: Date(timeIntervalSince1970: 1_704_067_360)
+        )
+        let submitMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: sourceIntent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: sourceIntent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let cancelMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: sourceIntent.intentID,
+                operation: .cancel,
+                mode: .binanceTestnet,
+                lifecycleState: .accepted
+            ),
+            intent: sourceIntent,
+            operation: .cancel,
+            mode: .binanceTestnet,
+            lifecycleState: .accepted
+        )
+        let replaceMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: sourceIntent.intentID,
+                operation: .replace,
+                mode: .binanceTestnet,
+                lifecycleState: .accepted
+            ),
+            intent: sourceIntent,
+            operation: .replace,
+            mode: .binanceTestnet,
+            lifecycleState: .accepted
+        )
+        let replacementSubmitMapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: replacementIntent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: replacementIntent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let credentialReference = try ReleaseV0150BinanceSpotTestnetCredentialReference.deterministicFixture(
+            referenceID: .constant("gh-1100-binance-spot-testnet-credential")
+        )
+        let credential = try ReleaseV0150BinanceSpotTestnetCredentialMaterial(
+            reference: credentialReference,
+            apiKeyHeaderValue: "gh-1100-testnet-api-key",
+            signingSecretValue: "gh-1100-testnet-secret"
+        )
+        let transport = GH1097RecordingSpotTestnetTransport()
+        let requestBuilder = try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder()
+        let signedRequest = try requestBuilder.buildMarketSubmitRequest(
+            credential: credential,
+            symbol: symbol,
+            side: .buy,
+            quantity: sourceQuantity,
+            timestamp: Date(timeIntervalSince1970: 1_704_067_300)
+        )
+        let submitRuntime = ReleaseV0150BinanceSpotTestnetSubmitRuntime(
+            requestBuilder: requestBuilder,
+            transport: transport
+        )
+        let submitEvidence = try await submitRuntime.submitMarketOrder(
+            intent: sourceIntent,
+            mapping: submitMapping,
+            credential: credential,
+            operatorConfirmationID: .constant("gh-1100-submit-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedSubmit(
+                intent: sourceIntent,
+                mapping: submitMapping,
+                operatorConfirmationID: .constant("gh-1100-submit-confirmation")
+            ),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_300)
+        )
+        let submitEvent = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(
+            submitEvidence,
+            sequenceNumber: 1,
+            observedAtMilliseconds: 1_704_067_300_000
+        )
+        let submitLog = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.make(eventArtifacts: [submitEvent])
+        let cancelIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial
+            .derivedFromSubmitEvidence(submitEvidence)
+        let cancelRuntime = ReleaseV0150BinanceSpotTestnetCancelRuntime(
+            requestBuilder: requestBuilder,
+            transport: transport
+        )
+        let cancelResult = try await cancelRuntime.cancelSpotTestnetOrder(
+            intent: sourceIntent,
+            cancelMapping: cancelMapping,
+            sourceSubmitEvidence: submitEvidence,
+            existingNetworkEventLog: submitLog,
+            credential: credential,
+            cancelOrderIdentity: cancelIdentity,
+            operatorConfirmationID: .constant("gh-1100-cancel-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedCancel(
+                intent: sourceIntent,
+                cancelMapping: cancelMapping,
+                sourceSubmitEvidence: submitEvidence,
+                operatorConfirmationID: .constant("gh-1100-cancel-confirmation")
+            ),
+            timestamp: Date(timeIntervalSince1970: 1_704_067_420),
+            observedAtMilliseconds: 1_704_067_420_000
+        )
+        let cancelReplaceRuntime = ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime(
+            requestBuilder: requestBuilder,
+            cancelTransport: transport,
+            submitTransport: transport
+        )
+        let cancelReplaceResult = try await cancelReplaceRuntime.cancelReplaceSpotTestnetOrder(
+            sourceIntent: sourceIntent,
+            replacementIntent: replacementIntent,
+            replaceMapping: replaceMapping,
+            cancelMapping: cancelMapping,
+            replacementSubmitMapping: replacementSubmitMapping,
+            sourceSubmitEvidence: submitEvidence,
+            existingNetworkEventLog: submitLog,
+            credential: credential,
+            cancelOrderIdentity: cancelIdentity,
+            operatorConfirmationID: .constant("gh-1100-cancel-replace-confirmation"),
+            runtimeGate: try ReleaseV0151BinanceSpotTestnetRuntimeInternalGate.allowedCancelReplace(
+                sourceIntent: sourceIntent,
+                replacementIntent: replacementIntent,
+                replaceMapping: replaceMapping,
+                cancelMapping: cancelMapping,
+                replacementSubmitMapping: replacementSubmitMapping,
+                sourceSubmitEvidence: submitEvidence,
+                operatorConfirmationID: .constant("gh-1100-cancel-replace-confirmation")
+            ),
+            cancelTimestamp: Date(timeIntervalSince1970: 1_704_067_480),
+            replacementSubmitTimestamp: Date(timeIntervalSince1970: 1_704_067_540),
+            cancelObservedAtMilliseconds: 1_704_067_480_000,
+            replacementSubmitObservedAtMilliseconds: 1_704_067_540_000,
+            cancelReplaceObservedAtMilliseconds: 1_704_067_600_000
+        )
+        let reconciliationEngine = try ReleaseV0150BinanceSpotTestnetOMSStateReconciliationEngine()
+        let snapshot = try reconciliationEngine.sync(networkEventLog: cancelReplaceResult.appendedNetworkEventLog)
+        let observations = try reconciliationEngine.observations(from: cancelReplaceResult.appendedNetworkEventLog)
+        let report = try reconciliationEngine.reconcile(
+            snapshot: snapshot,
+            networkEventLog: cancelReplaceResult.appendedNetworkEventLog,
+            observations: observations
+        )
+        let decoder = JSONDecoder()
+
+        XCTAssertEqual(try decoder.decode(ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.self, from: encoded(signedRequest)), signedRequest)
+        XCTAssertEqual(try decoder.decode(ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence.self, from: encoded(submitEvidence)), submitEvidence)
+        XCTAssertEqual(try decoder.decode(ReleaseV0150BinanceSpotTestnetCancelRuntimeResult.self, from: encoded(cancelResult)), cancelResult)
+        XCTAssertEqual(
+            try decoder.decode(ReleaseV0150BinanceSpotTestnetCancelReplaceRuntimeResult.self, from: encoded(cancelReplaceResult)),
+            cancelReplaceResult
+        )
+        XCTAssertEqual(
+            try decoder.decode(ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.self, from: encoded(cancelReplaceResult.appendedNetworkEventLog)),
+            cancelReplaceResult.appendedNetworkEventLog
+        )
+        XCTAssertEqual(try decoder.decode(ReleaseV0150BinanceSpotTestnetOMSStateSnapshot.self, from: encoded(snapshot)), snapshot)
+        XCTAssertEqual(try decoder.decode(ReleaseV0150BinanceSpotTestnetOMSReconciliationReport.self, from: encoded(report)), report)
+
+        assertDecodeFails(
+            ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.self,
+            from: try mutatedData(signedRequest) { $0["endpointHost"] = "api.binance.com" },
+            "production host mutation must fail closed"
+        )
+        assertDecodeFails(
+            ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.self,
+            from: try mutatedData(cancelReplaceResult.appendedNetworkEventLog.eventArtifacts[0]) {
+                $0["artifactChecksum"] = String(repeating: "0", count: 64)
+            },
+            "checksum mismatch must fail closed"
+        )
+        assertDecodeFails(
+            ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.self,
+            from: try mutatedData(cancelReplaceResult.appendedNetworkEventLog) {
+                $0["latestArtifactChecksum"] = String(repeating: "1", count: 64)
+            },
+            "event log latest checksum mismatch must fail closed"
+        )
+        assertDecodeFails(
+            ReleaseV0150BinanceSpotTestnetCancelRuntimeResult.self,
+            from: try mutatedData(cancelResult) {
+                $0["appendedCancelArtifactChecksum"] = String(repeating: "2", count: 64)
+            },
+            "cancel result checksum mutation must fail closed"
+        )
+        assertDecodeFails(
+            ReleaseV0150BinanceSpotTestnetCancelReplaceRuntimeResult.self,
+            from: try mutatedData(cancelReplaceResult) {
+                $0["appendedCancelReplaceArtifactChecksum"] = String(repeating: "3", count: 64)
+            },
+            "cancel-replace result checksum mutation must fail closed"
+        )
+        assertDecodeFails(
+            ReleaseV0150BinanceSpotTestnetOMSReconciliationReport.self,
+            from: try mutatedData(report) { $0["productionEndpointConnected"] = true },
+            "production boundary mutation must fail closed"
+        )
+        assertDecodeFails(
+            ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence.self,
+            from: Data(#"{"runtimeEvidenceID":"corrupted"}"#.utf8),
+            "corrupted JSON artifact must fail closed"
+        )
     }
 
     private func gh1097Arguments(

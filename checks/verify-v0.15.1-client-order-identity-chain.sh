@@ -98,13 +98,15 @@ require_file_contains "$TESTS" "gh-1099-untracked-raw-order-id"
 require_file_contains "checks/automation-readiness.sh" "checks/verify-v0.15.1-client-order-identity-chain.sh"
 require_file_contains "checks/run.sh" "bash checks/verify-v0.15.1-client-order-identity-chain.sh"
 
-require_file_contains "$README" "current issue \`#1099\`"
-require_file_contains "$GOAL" "#1099 deterministic client order identity chain is current WIP=1"
-require_file_contains "$LATEST" "current issue #1099 is deterministic client order identity chain"
+require_file_contains "$README" "#1099 deterministic client order identity chain closed / done"
+require_file_contains "$GOAL" "#1099 deterministic client order identity chain closed / done"
+require_file_contains "$LATEST" "#1099 deterministic client order identity chain is closed / done"
 require_file_contains "$BLUEPRINT" "deterministic client order identity chain"
 require_file_contains "$ROADMAP" "deterministic client order identity"
 require_file_absent "$README" "current issue \`#1098\`"
 require_file_absent "$GOAL" "#1098 runtime internal gate is current WIP=1"
+require_file_absent "$README" "current issue \`#1099\`"
+require_file_absent "$GOAL" "#1099 deterministic client order identity chain is current WIP=1"
 
 swift test --filter TargetGraphTests/testGH1099ReleaseV0151ClientOrderIdentityChainDerivesCancelIdentityFromSubmitEvidence
 

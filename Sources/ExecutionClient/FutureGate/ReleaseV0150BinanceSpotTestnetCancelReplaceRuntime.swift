@@ -198,6 +198,33 @@ public struct ReleaseV0150BinanceSpotTestnetCancelReplaceOMSStateTransitionEvide
     public let productionOrderSubmitted: Bool
     public let productionCutoverAuthorized: Bool
 
+    private enum CodingKeys: String, CodingKey {
+        case transitionEvidenceID
+        case sourceSubmitRuntimeEvidenceID
+        case cancelRuntimeEvidenceID
+        case replacementSubmitRuntimeEvidenceID
+        case replaceMappingID
+        case sourceIntentID
+        case replacementIntentID
+        case localOrderID
+        case fromLifecycleState
+        case requestLifecycleState
+        case finalLifecycleState
+        case requestTransition
+        case finalTransition
+        case stateMachineValidated
+        case appendOnlyOMSStateTransitionEvidence
+        case cancelThenNewSubmitEmulationUsed
+        case brokerFillIncluded
+        case reconciliationIncluded
+        case productionTradingEnabledByDefault
+        case productionSecretAutoRead
+        case productionEndpointConnected
+        case brokerEndpointConnected
+        case productionOrderSubmitted
+        case productionCutoverAuthorized
+    }
+
     public init(
         transitionEvidenceID: Identifier,
         sourceIntent: OrderIntent,
@@ -320,6 +347,51 @@ public struct ReleaseV0150BinanceSpotTestnetCancelReplaceOMSStateTransitionEvide
         self.productionCutoverAuthorized = productionCutoverAuthorized
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.transitionEvidenceID = try container.decode(Identifier.self, forKey: .transitionEvidenceID)
+        self.sourceSubmitRuntimeEvidenceID = try container.decode(Identifier.self, forKey: .sourceSubmitRuntimeEvidenceID)
+        self.cancelRuntimeEvidenceID = try container.decode(Identifier.self, forKey: .cancelRuntimeEvidenceID)
+        self.replacementSubmitRuntimeEvidenceID = try container.decode(Identifier.self, forKey: .replacementSubmitRuntimeEvidenceID)
+        self.replaceMappingID = try container.decode(Identifier.self, forKey: .replaceMappingID)
+        self.sourceIntentID = try container.decode(Identifier.self, forKey: .sourceIntentID)
+        self.replacementIntentID = try container.decode(Identifier.self, forKey: .replacementIntentID)
+        self.localOrderID = try container.decode(Identifier.self, forKey: .localOrderID)
+        self.fromLifecycleState = try container.decode(OrderLifecycleState.self, forKey: .fromLifecycleState)
+        self.requestLifecycleState = try container.decode(OrderLifecycleState.self, forKey: .requestLifecycleState)
+        self.finalLifecycleState = try container.decode(OrderLifecycleState.self, forKey: .finalLifecycleState)
+        self.requestTransition = try container.decode(OrderLifecycleTransition.self, forKey: .requestTransition)
+        self.finalTransition = try container.decode(OrderLifecycleTransition.self, forKey: .finalTransition)
+        self.stateMachineValidated = try container.decode(Bool.self, forKey: .stateMachineValidated)
+        self.appendOnlyOMSStateTransitionEvidence = try container.decode(Bool.self, forKey: .appendOnlyOMSStateTransitionEvidence)
+        self.cancelThenNewSubmitEmulationUsed = try container.decode(Bool.self, forKey: .cancelThenNewSubmitEmulationUsed)
+        self.brokerFillIncluded = try container.decode(Bool.self, forKey: .brokerFillIncluded)
+        self.reconciliationIncluded = try container.decode(Bool.self, forKey: .reconciliationIncluded)
+        self.productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        self.productionSecretAutoRead = try container.decode(Bool.self, forKey: .productionSecretAutoRead)
+        self.productionEndpointConnected = try container.decode(Bool.self, forKey: .productionEndpointConnected)
+        self.brokerEndpointConnected = try container.decode(Bool.self, forKey: .brokerEndpointConnected)
+        self.productionOrderSubmitted = try container.decode(Bool.self, forKey: .productionOrderSubmitted)
+        self.productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+
+        let expectedTransitionID = Self.deterministicID(
+            sourceSubmitRuntimeEvidenceID: sourceSubmitRuntimeEvidenceID,
+            cancelRuntimeEvidenceID: cancelRuntimeEvidenceID,
+            replacementSubmitRuntimeEvidenceID: replacementSubmitRuntimeEvidenceID,
+            replaceMappingID: replaceMappingID
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            transitionEvidenceID == expectedTransitionID,
+            field: "releaseV0150SpotTestnetCancelReplace.omsTransition.transitionEvidenceID",
+            expected: expectedTransitionID.rawValue,
+            actual: transitionEvidenceID.rawValue
+        )
+        try ReleaseV0151CodableDecodeBoundary.requireHeld(
+            boundaryHeld,
+            field: "releaseV0150SpotTestnetCancelReplace.omsTransition.boundaryHeld"
+        )
+    }
+
     public var boundaryHeld: Bool {
         (fromLifecycleState == .accepted || fromLifecycleState == .partiallyFilled || fromLifecycleState == .replaced)
             && requestLifecycleState == .replaceRequested
@@ -418,6 +490,47 @@ public struct ReleaseV0150BinanceSpotTestnetCancelReplaceRuntimeEvidence: Codabl
     public let productionOrderSubmitted: Bool
     public let productionCutoverAuthorized: Bool
     public let validationAnchors: [String]
+
+    private enum CodingKeys: String, CodingKey {
+        case runtimeEvidenceID
+        case intentID
+        case replacementIntentID
+        case replaceMappingID
+        case sourceSubmitRuntimeEvidenceID
+        case cancelRuntimeEvidenceID
+        case replacementSubmitRuntimeEvidenceID
+        case signedReplacementRequestID
+        case operatorGateID
+        case transportResultID
+        case omsTransitionEvidenceID
+        case credentialReferenceID
+        case productType
+        case endpointHost
+        case endpointPath
+        case httpStatusCode
+        case orderLifecycleState
+        case explicitTestnetMode
+        case spotTestnetOnly
+        case operatorConfirmedTestnetCancelReplace
+        case nativeCancelReplaceSupported
+        case nativeReplaceRejectedFailClosed
+        case cancelThenNewSubmitEmulationUsed
+        case requestBodyRedacted
+        case responseBodyRedacted
+        case credentialMaterialRedacted
+        case orderIdentityMaterialRedacted
+        case appendOnlyCancelReplaceEvidenceCreated
+        case omsStateTransitionIntegrated
+        case testnetNetworkCancelPerformed
+        case testnetNetworkSubmitPerformed
+        case productionTradingEnabledByDefault
+        case productionSecretAutoRead
+        case productionEndpointConnected
+        case brokerEndpointConnected
+        case productionOrderSubmitted
+        case productionCutoverAuthorized
+        case validationAnchors
+    }
 
     public init(
         runtimeEvidenceID: Identifier,
@@ -571,6 +684,65 @@ public struct ReleaseV0150BinanceSpotTestnetCancelReplaceRuntimeEvidence: Codabl
         self.validationAnchors = validationAnchors
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.runtimeEvidenceID = try container.decode(Identifier.self, forKey: .runtimeEvidenceID)
+        self.intentID = try container.decode(Identifier.self, forKey: .intentID)
+        self.replacementIntentID = try container.decode(Identifier.self, forKey: .replacementIntentID)
+        self.replaceMappingID = try container.decode(Identifier.self, forKey: .replaceMappingID)
+        self.sourceSubmitRuntimeEvidenceID = try container.decode(Identifier.self, forKey: .sourceSubmitRuntimeEvidenceID)
+        self.cancelRuntimeEvidenceID = try container.decode(Identifier.self, forKey: .cancelRuntimeEvidenceID)
+        self.replacementSubmitRuntimeEvidenceID = try container.decode(Identifier.self, forKey: .replacementSubmitRuntimeEvidenceID)
+        self.signedReplacementRequestID = try container.decode(Identifier.self, forKey: .signedReplacementRequestID)
+        self.operatorGateID = try container.decode(Identifier.self, forKey: .operatorGateID)
+        self.transportResultID = try container.decode(Identifier.self, forKey: .transportResultID)
+        self.omsTransitionEvidenceID = try container.decode(Identifier.self, forKey: .omsTransitionEvidenceID)
+        self.credentialReferenceID = try container.decode(Identifier.self, forKey: .credentialReferenceID)
+        self.productType = try container.decode(ProductType.self, forKey: .productType)
+        self.endpointHost = try container.decode(String.self, forKey: .endpointHost)
+        self.endpointPath = try container.decode(String.self, forKey: .endpointPath)
+        self.httpStatusCode = try container.decode(Int.self, forKey: .httpStatusCode)
+        self.orderLifecycleState = try container.decode(OrderLifecycleState.self, forKey: .orderLifecycleState)
+        self.explicitTestnetMode = try container.decode(Bool.self, forKey: .explicitTestnetMode)
+        self.spotTestnetOnly = try container.decode(Bool.self, forKey: .spotTestnetOnly)
+        self.operatorConfirmedTestnetCancelReplace = try container.decode(Bool.self, forKey: .operatorConfirmedTestnetCancelReplace)
+        self.nativeCancelReplaceSupported = try container.decode(Bool.self, forKey: .nativeCancelReplaceSupported)
+        self.nativeReplaceRejectedFailClosed = try container.decode(Bool.self, forKey: .nativeReplaceRejectedFailClosed)
+        self.cancelThenNewSubmitEmulationUsed = try container.decode(Bool.self, forKey: .cancelThenNewSubmitEmulationUsed)
+        self.requestBodyRedacted = try container.decode(Bool.self, forKey: .requestBodyRedacted)
+        self.responseBodyRedacted = try container.decode(Bool.self, forKey: .responseBodyRedacted)
+        self.credentialMaterialRedacted = try container.decode(Bool.self, forKey: .credentialMaterialRedacted)
+        self.orderIdentityMaterialRedacted = try container.decode(Bool.self, forKey: .orderIdentityMaterialRedacted)
+        self.appendOnlyCancelReplaceEvidenceCreated = try container.decode(Bool.self, forKey: .appendOnlyCancelReplaceEvidenceCreated)
+        self.omsStateTransitionIntegrated = try container.decode(Bool.self, forKey: .omsStateTransitionIntegrated)
+        self.testnetNetworkCancelPerformed = try container.decode(Bool.self, forKey: .testnetNetworkCancelPerformed)
+        self.testnetNetworkSubmitPerformed = try container.decode(Bool.self, forKey: .testnetNetworkSubmitPerformed)
+        self.productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        self.productionSecretAutoRead = try container.decode(Bool.self, forKey: .productionSecretAutoRead)
+        self.productionEndpointConnected = try container.decode(Bool.self, forKey: .productionEndpointConnected)
+        self.brokerEndpointConnected = try container.decode(Bool.self, forKey: .brokerEndpointConnected)
+        self.productionOrderSubmitted = try container.decode(Bool.self, forKey: .productionOrderSubmitted)
+        self.productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+        self.validationAnchors = try container.decode([String].self, forKey: .validationAnchors)
+
+        let expectedID = Self.deterministicID(
+            sourceSubmitRuntimeEvidenceID: sourceSubmitRuntimeEvidenceID,
+            cancelRuntimeEvidenceID: cancelRuntimeEvidenceID,
+            replacementSubmitRuntimeEvidenceID: replacementSubmitRuntimeEvidenceID,
+            omsTransitionEvidenceID: omsTransitionEvidenceID
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            runtimeEvidenceID == expectedID,
+            field: "releaseV0150SpotTestnetCancelReplace.runtimeEvidenceID",
+            expected: expectedID.rawValue,
+            actual: runtimeEvidenceID.rawValue
+        )
+        try ReleaseV0151CodableDecodeBoundary.requireHeld(
+            boundaryHeld,
+            field: "releaseV0150SpotTestnetCancelReplace.runtimeEvidence.boundaryHeld"
+        )
+    }
+
     public var boundaryHeld: Bool {
         productType == .spot
             && endpointHost == ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.canonicalSpotTestnetHost
@@ -649,6 +821,16 @@ public struct ReleaseV0150BinanceSpotTestnetCancelReplaceRuntimeResult: Codable,
     public let appendedCancelReplaceEventID: Identifier
     public let appendedCancelReplaceArtifactChecksum: String
 
+    private enum CodingKeys: String, CodingKey {
+        case resultID
+        case cancelReplaceEvidence
+        case cancelResult
+        case replacementSubmitEvidence
+        case appendedNetworkEventLog
+        case appendedCancelReplaceEventID
+        case appendedCancelReplaceArtifactChecksum
+    }
+
     public init(
         resultID: Identifier,
         cancelReplaceEvidence: ReleaseV0150BinanceSpotTestnetCancelReplaceRuntimeEvidence,
@@ -693,6 +875,38 @@ public struct ReleaseV0150BinanceSpotTestnetCancelReplaceRuntimeResult: Codable,
         self.appendedNetworkEventLog = appendedNetworkEventLog
         self.appendedCancelReplaceEventID = lastEvent.eventArtifactID
         self.appendedCancelReplaceArtifactChecksum = lastEvent.artifactChecksum
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.resultID = try container.decode(Identifier.self, forKey: .resultID)
+        self.cancelReplaceEvidence = try container.decode(ReleaseV0150BinanceSpotTestnetCancelReplaceRuntimeEvidence.self, forKey: .cancelReplaceEvidence)
+        self.cancelResult = try container.decode(ReleaseV0150BinanceSpotTestnetCancelRuntimeResult.self, forKey: .cancelResult)
+        self.replacementSubmitEvidence = try container.decode(ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence.self, forKey: .replacementSubmitEvidence)
+        self.appendedNetworkEventLog = try container.decode(ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.self, forKey: .appendedNetworkEventLog)
+        self.appendedCancelReplaceEventID = try container.decode(Identifier.self, forKey: .appendedCancelReplaceEventID)
+        self.appendedCancelReplaceArtifactChecksum = try container.decode(String.self, forKey: .appendedCancelReplaceArtifactChecksum)
+
+        let expectedID = Self.deterministicID(
+            cancelReplaceRuntimeEvidenceID: cancelReplaceEvidence.runtimeEvidenceID,
+            latestArtifactChecksum: appendedNetworkEventLog.latestArtifactChecksum
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            resultID == expectedID,
+            field: "releaseV0150SpotTestnetCancelReplace.runtimeResult.resultID",
+            expected: expectedID.rawValue,
+            actual: resultID.rawValue
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            appendedCancelReplaceArtifactChecksum == appendedNetworkEventLog.latestArtifactChecksum,
+            field: "releaseV0150SpotTestnetCancelReplace.runtimeResult.appendedCancelReplaceArtifactChecksum",
+            expected: appendedNetworkEventLog.latestArtifactChecksum,
+            actual: appendedCancelReplaceArtifactChecksum
+        )
+        try ReleaseV0151CodableDecodeBoundary.requireHeld(
+            boundaryHeld,
+            field: "releaseV0150SpotTestnetCancelReplace.runtimeResult.boundaryHeld"
+        )
     }
 
     public var boundaryHeld: Bool {

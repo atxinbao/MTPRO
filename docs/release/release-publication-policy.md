@@ -16,6 +16,7 @@
 - `GH-1064 V141-006 Correct v0.14 wording and close hardening patch audit`
 - `GH-1094 V151-001 Sync v0.15.0 release facts in root docs`
 - `GH-1095 V151-002 Clarify injected transport versus built-in network runner wording`
+- `GH-1100 V151-007 Harden v0.15 execution artifact decoding and close patch validation`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -293,6 +294,26 @@ v0.15.0 release publication 固定的是 signed execution runtime contracts 和 
 `V0151-006-RAW-UNTRACKED-ORDER-ID-REJECTED`
 
 `V0151-006-NO-PRODUCTION-CUTOVER`
+
+## V0151-007-CODABLE-DECODE-CLOSEOUT
+
+`GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT`
+
+`TVM-RELEASE-V0151-CODABLE-DECODE-CLOSEOUT`
+
+`V0151-007-CODABLE-DECODE-VALIDATION`
+
+`V0151-007-CORRUPTED-JSON-FAILS-CLOSED`
+
+`V0151-007-CHECKSUM-MISMATCH-FAILS-CLOSED`
+
+`V0151-007-PRODUCTION-HOST-MUTATION-REJECTED`
+
+`V0151-007-NO-PRODUCTION-CUTOVER`
+
+v0.15.1 是 v0.15.0 后的 real testnet execution hardening patch closeout。#1100 只增强 submit / cancel / cancel-replace evidence、network event log、OMS snapshot 和 reconciliation report 的 Codable decode-time validation，并同步 Stage Code Audit / release notes / validation matrix。
+
+本 `v0.15.1` closeout 不创建 `v0.15.1` tag，不创建 `v0.15.1` GitHub Release，不移动既有 `v0.15.0` release identity，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。若后续需要 public `v0.15.1` release，必须走独立 Release Publication Gate。
 
 #1099 是 v0.15.1 对 #1098 internal gate 后的 submit-to-cancel identity hardening slice：它要求 submit evidence 生成 deterministic redacted `newClientOrderId` reference，cancel 只能从 submit evidence 派生短生命周期 identity material，raw / untracked order id 必须 fail-closed。该 policy 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 

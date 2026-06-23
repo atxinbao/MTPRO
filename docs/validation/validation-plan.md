@@ -89,6 +89,20 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-client-order-identity-chain.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1099 只增强 Binance Spot Testnet submit-to-cancel identity handoff。Submit evidence 生成 deterministic redacted `newClientOrderId` reference；cancel 只能从 submit evidence 派生短生命周期 identity material；raw / untracked order id 必须 fail-closed。不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
+## GH-1100 Release v0.15.1 Codable Decode Closeout Guard
+
+- `GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT`
+- `TVM-RELEASE-V0151-CODABLE-DECODE-CLOSEOUT`
+- `V0151-007-CODABLE-DECODE-VALIDATION`
+- `V0151-007-CORRUPTED-JSON-FAILS-CLOSED`
+- `V0151-007-CHECKSUM-MISMATCH-FAILS-CLOSED`
+- `V0151-007-PRODUCTION-HOST-MUTATION-REJECTED`
+- `V0151-007-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.1-codable-decode-closeout.sh`
+- Focused test: `testGH1100ReleaseV0151CodableDecodeValidationFailsClosedOnMutatedArtifacts`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151CodableDecodeBoundary.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetOMSStateReconciliation.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/audit/mtpro-release-v0.15.1-real-testnet-execution-hardening-patch-stage-code-audit.md`、`checks/verify-v0.15.1-codable-decode-closeout.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1100 只增强 v0.15/v0.15.1 execution evidence 的 decode-time validation 和 patch closeout。损坏 JSON、checksum mismatch、production host mutation 和 production boundary mutation 必须 fail-closed。不创建 tag / GitHub Release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 ## GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence
 
 - `GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT`
