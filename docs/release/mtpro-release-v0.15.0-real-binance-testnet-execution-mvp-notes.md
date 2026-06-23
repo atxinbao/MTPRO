@@ -8,7 +8,7 @@
 
 v0.15.0 是 Real Binance Testnet Execution MVP construction closeout。它把 v0.14.x 的 local execution evidence chain 推进到 Binance Spot Testnet signed execution evidence：testnet credential reference、signed request construction、submit、cancel、cancel-replace、append-only network event log、OMS state sync / reconciliation、CLI operator flow、Dashboard read-only execution status 和 failure simulation。
 
-本说明是 #1076 closeout notes。#1076 本身不创建 `v0.15.0` tag，不创建 GitHub Release，不推进下一阶段，不授权 production cutover。
+本说明是 #1076 closeout notes。#1076 本身不创建 `v0.15.0` tag，不创建 GitHub Release，不推进下一阶段，不授权 production cutover。后续独立 Release Publication Gate 已发布 `v0.15.0` stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`，tag peeled commit `1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`，publication timestamp `2026-06-23T01:26:30Z`。
 
 ## Completed Queue
 
@@ -102,4 +102,4 @@ Manual workflow guardrails:
 
 v0.15.0 表示 MTPRO 已具备可审计的 Binance Spot Testnet signed execution MVP construction evidence。它不是 production cutover，不是 production readiness approval，也不允许默认真实交易。
 
-如果后续需要 public GitHub Release publication，必须在 #1076 PR 合并、open PR = 0、active issue = 0、`main == origin/main`、worktree clean、required validation complete 后，由 Human 显式触发独立 Release Publication Gate。
+后续独立 public GitHub Release publication 已完成：`v0.15.0` stable GitHub Release 位于 `https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`，tag peeled commit 为 `1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`，publication timestamp 为 `2026-06-23T01:26:30Z`。该 publication 只固定 v0.15.0 release identity，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
