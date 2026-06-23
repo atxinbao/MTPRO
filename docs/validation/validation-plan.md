@@ -43,6 +43,23 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-urlsession-spot-testnet-transport.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1096 只实现 concrete URLSession-backed Binance Spot Testnet submit / cancel transport，endpoint 固定为 `https://testnet.binance.vision/api/v3/order`。Transport 必须 reject production host、使用显式 timeout、只返回 redacted response digest，并且不持久化 response body、API key、secret 或 raw order identity。不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
+## GH-1097 Release v0.15.1 CLI Testnet Execution Runtime Guard
+
+- `GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME`
+- `TVM-RELEASE-V0151-CLI-TESTNET-EXECUTION-RUNTIME`
+- `V0151-004-CLI-GUARDED-RUNTIME-INVOKED`
+- `V0151-004-TESTNET-ONLY-CREDENTIAL-PROVIDER`
+- `V0151-004-SUBMIT-CANCEL-CANCEL-REPLACE-RUNTIME`
+- `V0151-004-EXPLICIT-OPERATOR-CONFIRMATION`
+- `V0151-004-REDACTED-OUTPUT`
+- `V0151-004-MISSING-CREDENTIAL-FAIL-CLOSED`
+- `V0151-004-RUN-ID-ARTIFACT-CHECKSUM`
+- `V0151-004-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.15.1-cli-testnet-execution-runtime.sh`
+- Focused test: `testGH1097ReleaseV0151CLITestnetExecutionInvokesGuardedRuntime`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Sources/MTPROCLI/main.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.15.1-cli-testnet-execution-runtime.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1097 只把 `mtpro testnet-execution` 的 submit / cancel / cancel-replace 接到 v0.15 guarded runtime。Credential provider 固定为 `testnet-env`，缺失 testnet credential 或 operator confirmation 必须 fail-closed；CLI 输出只返回 redacted run id、artifact path、checksum 和 evidence identity。不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
 ## GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence
 
 - `GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT`

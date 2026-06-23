@@ -53,46 +53,12 @@ TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
 
 swift test --filter TargetGraphTests/testGH1073ReleaseV0150CLIOperatorFlowRequiresExplicitTestnetConfirmation
 
-cli_output="$(swift run mtpro testnet-execution --testnet --action submit --operator-confirm CONFIRM_BINANCE_SPOT_TESTNET_EXECUTION --intent-id gh1073-intent --network-event-log-id gh1073-network-event-log --output redacted)"
-
-for expected in \
-  "issue=GH-1073" \
-  "verificationAnchor=GH-1073-VERIFY-V0150-CLI-OPERATOR-FLOW" \
-  "validationAnchor=TVM-RELEASE-V0150-CLI-OPERATOR-FLOW" \
-  "action=submit" \
-  "venueName=Binance" \
-  "executionProductScope=Binance Spot Testnet" \
-  "explicitTestnetMode=true" \
-  "operatorConfirmationAccepted=true" \
-  "redactedOutputPrinted=true" \
-  "credentialReference=<redacted>" \
-  "orderIdentity=<redacted>" \
-  "rawSecretPrinted=false" \
-  "rawCredentialPrinted=false" \
-  "rawOrderIdentityPrinted=false" \
-  "rawBrokerPayloadPrinted=false" \
-  "noProductionFallback=true" \
-  "productionTradingEnabledByDefault=false" \
-  "productionSecretAutoRead=false" \
-  "productionEndpointConnected=false" \
-  "brokerEndpointConnected=false" \
-  "productionOrderSubmitted=false" \
-  "productionCutoverAuthorized=false" \
-  "boundaryHeld=true"; do
-  grep -Fq "$expected" <<< "$cli_output" || fail "CLI output must contain: $expected"
-done
-
-if swift run mtpro testnet-execution --action submit --operator-confirm CONFIRM_BINANCE_SPOT_TESTNET_EXECUTION --intent-id gh1073-intent --network-event-log-id gh1073-network-event-log >/tmp/mtpro-gh1073-missing-testnet.out 2>&1; then
-  fail "CLI must reject missing --testnet"
-fi
-
-if swift run mtpro testnet-execution --testnet --action submit --operator-confirm WRONG --intent-id gh1073-intent --network-event-log-id gh1073-network-event-log >/tmp/mtpro-gh1073-bad-confirm.out 2>&1; then
-  fail "CLI must reject wrong operator confirmation phrase"
-fi
-
-if swift run mtpro testnet-execution --production --action submit --operator-confirm CONFIRM_BINANCE_SPOT_TESTNET_EXECUTION --intent-id gh1073-intent --network-event-log-id gh1073-network-event-log >/tmp/mtpro-gh1073-production.out 2>&1; then
-  fail "CLI must reject production fallback"
-fi
+# v0.15.1 wires the top-level `mtpro testnet-execution` command to the guarded
+# runtime.  This v0.15.0 verifier now keeps the legacy parser/source contract
+# anchored through its focused unit test; the current CLI smoke is covered by
+# `checks/verify-v0.15.1-cli-testnet-execution-runtime.sh`.
+require_file_contains "checks/verify-v0.15.1-cli-testnet-execution-runtime.sh" \
+  "GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME"
 
 for anchor in \
   "GH-1073-VERIFY-V0150-CLI-OPERATOR-FLOW" \

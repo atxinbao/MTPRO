@@ -76,6 +76,61 @@ private actor GH1096MockURLSessionDataLoader: ReleaseV0151BinanceSpotTestnetURLS
     }
 }
 
+private actor GH1097RecordingSpotTestnetTransport:
+    ReleaseV0150BinanceSpotTestnetSubmitTransport,
+    ReleaseV0150BinanceSpotTestnetCancelTransport
+{
+    private var submitRequestIDs: [Identifier] = []
+    private var cancelRequestIDs: [Identifier] = []
+
+    func submitSpotTestnetOrder(
+        signedRequest: ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence,
+        credential: ReleaseV0150BinanceSpotTestnetCredentialMaterial
+    ) async throws -> ReleaseV0150BinanceSpotTestnetSubmitTransportResult {
+        submitRequestIDs.append(signedRequest.requestID)
+        let digest = ReleaseV0150BinanceSpotTestnetSubmitTransportResult.redactedDigest(
+            statusCode: 200,
+            acknowledgement: "accepted-redacted-gh-1097-\(submitRequestIDs.count)"
+        )
+        return try ReleaseV0150BinanceSpotTestnetSubmitTransportResult(
+            transportResultID: ReleaseV0150BinanceSpotTestnetSubmitTransportResult.deterministicID(
+                signedRequestID: signedRequest.requestID,
+                httpStatusCode: 200,
+                redactedResponseDigest: digest
+            ),
+            signedRequest: signedRequest,
+            httpStatusCode: 200,
+            redactedResponseDigest: digest
+        )
+    }
+
+    func cancelSpotTestnetOrder(
+        signedRequest: ReleaseV0150BinanceSpotTestnetSignedCancelOrderRequestEvidence,
+        orderIdentity: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial,
+        credential: ReleaseV0150BinanceSpotTestnetCredentialMaterial
+    ) async throws -> ReleaseV0150BinanceSpotTestnetCancelTransportResult {
+        cancelRequestIDs.append(signedRequest.requestID)
+        let digest = ReleaseV0150BinanceSpotTestnetCancelTransportResult.redactedDigest(
+            statusCode: 200,
+            acknowledgement: "cancelled-redacted-gh-1097-\(cancelRequestIDs.count)"
+        )
+        return try ReleaseV0150BinanceSpotTestnetCancelTransportResult(
+            transportResultID: ReleaseV0150BinanceSpotTestnetCancelTransportResult.deterministicID(
+                signedCancelRequestID: signedRequest.requestID,
+                httpStatusCode: 200,
+                redactedResponseDigest: digest
+            ),
+            signedRequest: signedRequest,
+            httpStatusCode: 200,
+            redactedResponseDigest: digest
+        )
+    }
+
+    func capturedCounts() -> (submit: Int, cancel: Int) {
+        (submitRequestIDs.count, cancelRequestIDs.count)
+    }
+}
+
 final class TargetGraphTests: XCTestCase {
     func testMTP217FoundationTargetsExposeDependencyDirectionAndCompatibilityBoundary() {
         let domainModel = DomainModelTargetBoundary.mtp217
@@ -42371,7 +42426,8 @@ final class TargetGraphTests: XCTestCase {
         }
 
         XCTAssertTrue(readme.contains("#1095 closed / done"))
-        XCTAssertTrue(readme.contains("current issue `#1096`"))
+        XCTAssertTrue(readme.contains("#1096 已通过 `GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT`"))
+        XCTAssertTrue(readme.contains("current issue `#1097`"))
         XCTAssertTrue(readme.contains("GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING"))
         XCTAssertTrue(goal.contains("#1095 injected transport wording guard is closed / done"))
         XCTAssertTrue(blueprint.contains("mock/manual proof split"))
@@ -42518,8 +42574,8 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertTrue(verifier.contains(requiredString), "\(requiredString) must stay guarded by verifier")
         }
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.1-urlsession-spot-testnet-transport.sh"))
-        XCTAssertTrue(readme.contains("current issue `#1096`"))
-        XCTAssertTrue(goal.contains("#1096 concrete URLSession Spot Testnet transport is current WIP=1"))
+        XCTAssertTrue(readme.contains("#1096 已通过 `GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT`"))
+        XCTAssertTrue(goal.contains("#1096 concrete URLSession Spot Testnet transport closed / done"))
         XCTAssertTrue(blueprint.contains("concrete URLSession Spot Testnet transport"))
         XCTAssertTrue(roadmap.contains("concrete URLSession transport"))
 
@@ -42729,6 +42785,341 @@ final class TargetGraphTests: XCTestCase {
                 .httpStatus(500)
             )
         }
+    }
+
+    func testGH1097ReleaseV0151CLITestnetExecutionInvokesGuardedRuntime() async throws {
+        // 测试场景：GH-1097 将 `mtpro testnet-execution` 从 evidence-only parser 接到 v0.15 guarded runtime。
+        // 验证目的：submit / cancel / cancel-replace 都必须显式 testnet provider + operator confirmation，
+        // 输出只返回 run id、artifact path 和 checksum；缺少 credential 或确认必须 fail closed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift")
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+        let verifier = try read("checks/verify-v0.15.1-cli-testnet-execution-runtime.sh")
+        let runScript = try read("checks/run.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+        let anchors = ReleaseV0151BinanceSpotTestnetCLIRuntimeResult.requiredValidationAnchors
+
+        XCTAssertEqual(anchors, [
+            "GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME",
+            "TVM-RELEASE-V0151-CLI-TESTNET-EXECUTION-RUNTIME",
+            "V0151-004-CLI-GUARDED-RUNTIME-INVOKED",
+            "V0151-004-TESTNET-ONLY-CREDENTIAL-PROVIDER",
+            "V0151-004-SUBMIT-CANCEL-CANCEL-REPLACE-RUNTIME",
+            "V0151-004-EXPLICIT-OPERATOR-CONFIRMATION",
+            "V0151-004-REDACTED-OUTPUT",
+            "V0151-004-MISSING-CREDENTIAL-FAIL-CLOSED",
+            "V0151-004-RUN-ID-ARTIFACT-CHECKSUM",
+            "V0151-004-NO-PRODUCTION-CUTOVER"
+        ])
+        for anchor in anchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in #1097 source")
+            XCTAssertTrue(tests.contains(anchor), "\(anchor) must stay in TargetGraphTests")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in focused verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest summary")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+        }
+
+        for requiredString in [
+            "ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow",
+            "ReleaseV0151BinanceSpotTestnetCLICredentialProvider",
+            "ReleaseV0151BinanceSpotTestnetCLIRuntimeResult",
+            "credentialProvider=testnet-env",
+            "guardedRuntimeInvoked=true",
+            "missingCredentialFailsClosed=true",
+            "artifactPathReturned=true",
+            "runIDReturned=true",
+            "checksumReturned=true",
+            "productionOrderSubmitted=false"
+        ] {
+            XCTAssertTrue(source.contains(requiredString), "\(requiredString) must stay in #1097 source")
+            XCTAssertTrue(verifier.contains(requiredString), "\(requiredString) must stay guarded by verifier")
+        }
+        XCTAssertTrue(cliSource.contains("ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.commandLineOutput"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.15.1-cli-testnet-execution-runtime.sh"))
+        XCTAssertTrue(readme.contains("current issue `#1097`"))
+        XCTAssertTrue(goal.contains("#1097 CLI guarded runtime wiring is current WIP=1"))
+        XCTAssertTrue(blueprint.contains("CLI guarded runtime wiring"))
+        XCTAssertTrue(roadmap.contains("CLI guarded runtime"))
+
+        let environment = [
+            "MTPRO_BINANCE_SPOT_TESTNET_API_KEY": "gh-1097-testnet-api-key",
+            "MTPRO_BINANCE_SPOT_TESTNET_SECRET_KEY": "gh-1097-testnet-secret"
+        ]
+        let transport = GH1097RecordingSpotTestnetTransport()
+        let cancelSourceArtifacts = try await makeGH1097SourceSubmitArtifacts(
+            transport: transport,
+            action: "cancel",
+            runID: "gh-1097-cancel-run",
+            timestampSeconds: 1_704_067_260,
+            observedAtMilliseconds: 1_704_067_260_000
+        )
+        let cancelReplaceSourceArtifacts = try await makeGH1097SourceSubmitArtifacts(
+            transport: transport,
+            action: "cancel-replace",
+            runID: "gh-1097-cancel-replace-run",
+            timestampSeconds: 1_704_067_320,
+            observedAtMilliseconds: 1_704_067_320_000
+        )
+        let tempRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("mtpro-gh1097-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tempRoot, withIntermediateDirectories: true)
+        let cancelSourceEvidenceURL = tempRoot.appendingPathComponent("cancel-source-submit-evidence.json")
+        let cancelNetworkLogURL = tempRoot.appendingPathComponent("cancel-network-event-log.json")
+        let cancelReplaceSourceEvidenceURL = tempRoot
+            .appendingPathComponent("cancel-replace-source-submit-evidence.json")
+        let cancelReplaceNetworkLogURL = tempRoot
+            .appendingPathComponent("cancel-replace-network-event-log.json")
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try encoder.encode(cancelSourceArtifacts.evidence).write(to: cancelSourceEvidenceURL)
+        try encoder.encode(cancelSourceArtifacts.log).write(to: cancelNetworkLogURL)
+        try encoder.encode(cancelReplaceSourceArtifacts.evidence).write(to: cancelReplaceSourceEvidenceURL)
+        try encoder.encode(cancelReplaceSourceArtifacts.log).write(to: cancelReplaceNetworkLogURL)
+
+        let commonSubmitArgs = gh1097Arguments(
+            action: "submit",
+            runID: "gh-1097-submit-run",
+            quantity: "0.05",
+            sourceSequence: "1097",
+            timestampMS: "1704067200000"
+        )
+        let submitResult = try await ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.result(
+            arguments: commonSubmitArgs,
+            environment: environment,
+            submitTransport: transport,
+            cancelTransport: transport
+        )
+        let submitOutput = submitResult.redactedOutputLines.joined(separator: "\n")
+        XCTAssertTrue(submitResult.boundaryHeld)
+        XCTAssertEqual(submitResult.action, .submit)
+        XCTAssertTrue(submitOutput.contains("issue=GH-1097"))
+        XCTAssertTrue(submitOutput.contains("action=submit"))
+        XCTAssertTrue(submitOutput.contains("runID=gh-1097-submit-run"))
+        XCTAssertTrue(submitOutput.contains("artifactPath=artifacts/v0.15.1/testnet-execution/gh-1097-submit-run/submit.json"))
+        XCTAssertTrue(submitOutput.contains("artifactChecksum="))
+        XCTAssertTrue(submitOutput.contains("guardedRuntimeInvoked=true"))
+        XCTAssertTrue(submitOutput.contains("credentialReference=<redacted>"))
+        XCTAssertFalse(submitOutput.contains("gh-1097-testnet-api-key"))
+        XCTAssertFalse(submitOutput.contains("gh-1097-testnet-secret"))
+
+        let cancelArgs = gh1097Arguments(
+            action: "cancel",
+            runID: "gh-1097-cancel-run",
+            quantity: "0.05",
+            sourceSequence: "1097",
+            timestampMS: "1704067260000"
+        ) + [
+            "--source-submit-evidence-json", cancelSourceEvidenceURL.path,
+            "--network-event-log-json", cancelNetworkLogURL.path,
+            "--original-client-order-id", "gh-1097-testnet-client-order"
+        ]
+        let cancelResult = try await ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.result(
+            arguments: cancelArgs,
+            environment: environment,
+            submitTransport: transport,
+            cancelTransport: transport
+        )
+        XCTAssertTrue(cancelResult.boundaryHeld)
+        XCTAssertEqual(cancelResult.action, .cancel)
+        XCTAssertTrue(cancelResult.redactedOutputLines.joined(separator: "\n").contains("action=cancel"))
+
+        let cancelReplaceArgs = gh1097Arguments(
+            action: "cancel-replace",
+            runID: "gh-1097-cancel-replace-run",
+            quantity: "0.05",
+            sourceSequence: "1097",
+            timestampMS: "1704067320000"
+        ) + [
+            "--source-submit-evidence-json", cancelReplaceSourceEvidenceURL.path,
+            "--network-event-log-json", cancelReplaceNetworkLogURL.path,
+            "--original-client-order-id", "gh-1097-testnet-client-order",
+            "--replacement-quantity", "0.03",
+            "--replacement-source-sequence", "1098"
+        ]
+        let cancelReplaceResult = try await ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.result(
+            arguments: cancelReplaceArgs,
+            environment: environment,
+            submitTransport: transport,
+            cancelTransport: transport
+        )
+        XCTAssertTrue(cancelReplaceResult.boundaryHeld)
+        XCTAssertEqual(cancelReplaceResult.action, .cancelReplace)
+        XCTAssertTrue(cancelReplaceResult.redactedOutputLines.joined(separator: "\n").contains("action=cancel-replace"))
+
+        let capturedCounts = await transport.capturedCounts()
+        XCTAssertEqual(capturedCounts.submit, 4)
+        XCTAssertEqual(capturedCounts.cancel, 2)
+
+        do {
+            _ = try await ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.result(
+                arguments: commonSubmitArgs,
+                environment: [:],
+                submitTransport: transport,
+                cancelTransport: transport
+            )
+            XCTFail("missing testnet credential must fail closed")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("MTPRO_BINANCE_SPOT_TESTNET_API_KEY"))
+        }
+        do {
+            _ = try await ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.result(
+                arguments: gh1097Arguments(
+                    action: "submit",
+                    runID: "gh-1097-bad-confirmation-run",
+                    quantity: "0.05",
+                    sourceSequence: "1097",
+                    timestampMS: "1704067200000",
+                    confirmation: "WRONG"
+                ),
+                environment: environment,
+                submitTransport: transport,
+                cancelTransport: transport
+            )
+            XCTFail("missing explicit operator confirmation must fail closed")
+        } catch {
+            XCTAssertTrue(String(describing: error).isEmpty == false)
+        }
+        do {
+            _ = try ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.parse(
+                arguments: gh1097Arguments(
+                    action: "submit",
+                    runID: "gh-1097-production-provider-run",
+                    quantity: "0.05",
+                    sourceSequence: "1097",
+                    timestampMS: "1704067200000",
+                    credentialProvider: "production-env"
+                )
+            )
+            XCTFail("production credential provider must fail closed")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("production-env"))
+        }
+    }
+
+    private func gh1097Arguments(
+        action: String,
+        runID: String,
+        quantity: String,
+        sourceSequence: String,
+        timestampMS: String,
+        confirmation: String = ReleaseV0150BinanceSpotTestnetCLIOperatorInput.requiredOperatorConfirmationPhrase,
+        credentialProvider: String = "testnet-env"
+    ) -> [String] {
+        [
+            "testnet-execution",
+            "--testnet",
+            "--action", action,
+            "--operator-confirm", confirmation,
+            "--credential-provider", credentialProvider,
+            "--credential-reference-id", "gh-1097-binance-spot-testnet-credential",
+            "--run-id", runID,
+            "--symbol", "BTCUSDT",
+            "--side", "buy",
+            "--quantity", quantity,
+            "--strategy", "EMA",
+            "--source-sequence", sourceSequence,
+            "--correlation-id", "gh-1097-\(action)-correlation",
+            "--strategy-signal-id", "gh-1097-\(action)-signal",
+            "--source-message-id", "gh-1097-\(action)-message",
+            "--strategy-run-id", runID,
+            "--timestamp-ms", timestampMS,
+            "--observed-at-ms", timestampMS,
+            "--output", "redacted"
+        ]
+    }
+
+    private func makeGH1097SourceSubmitArtifacts(
+        transport: GH1097RecordingSpotTestnetTransport,
+        action: String,
+        runID: String,
+        timestampSeconds: TimeInterval,
+        observedAtMilliseconds: Int64
+    ) async throws -> (
+        evidence: ReleaseV0150BinanceSpotTestnetSubmitRuntimeEvidence,
+        log: ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog
+    ) {
+        let symbol = Symbol.constant("BTCUSDT")
+        let instrument = InstrumentIdentity.binance(productType: .spot, symbol: symbol)
+        let quantity = try Quantity(0.05, field: "gh1097.sourceQuantity")
+        let policy = try OrderIntentPolicy(timeInForce: .goodTillCanceled)
+        let correlation = try OrderIntentCorrelationMetadata(
+            correlationID: .constant("gh-1097-\(action)-correlation"),
+            strategySignalID: .constant("gh-1097-\(action)-signal"),
+            sourceMessageID: .constant("gh-1097-\(action)-message"),
+            strategyRunID: .constant(runID),
+            sourceSequence: 1097
+        )
+        let intent = try OrderIntent(
+            intentID: OrderIntent.deterministicID(
+                instrument: instrument,
+                side: .buy,
+                quantity: quantity,
+                strategy: .ema,
+                policy: policy,
+                correlation: correlation
+            ),
+            instrument: instrument,
+            side: .buy,
+            quantity: quantity,
+            strategy: .ema,
+            policy: policy,
+            correlation: correlation,
+            createdAt: Date(timeIntervalSince1970: timestampSeconds)
+        )
+        let mapping = try ExecutionContractRequestMapping(
+            mappingID: ExecutionContractRequestMapping.deterministicID(
+                intentID: intent.intentID,
+                operation: .submit,
+                mode: .binanceTestnet,
+                lifecycleState: .riskAccepted
+            ),
+            intent: intent,
+            operation: .submit,
+            mode: .binanceTestnet,
+            lifecycleState: .riskAccepted
+        )
+        let reference = try ReleaseV0150BinanceSpotTestnetCredentialReference(
+            referenceID: .constant("gh-1097-binance-spot-testnet-credential"),
+            providerKind: .testnetEnvironmentReference
+        )
+        let credential = try ReleaseV0150BinanceSpotTestnetCredentialMaterial(
+            reference: reference,
+            apiKeyHeaderValue: "gh-1097-testnet-api-key",
+            signingSecretValue: "gh-1097-testnet-secret"
+        )
+        let runtime = ReleaseV0150BinanceSpotTestnetSubmitRuntime(
+            requestBuilder: try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder(),
+            transport: transport
+        )
+        let evidence = try await runtime.submitMarketOrder(
+            intent: intent,
+            mapping: mapping,
+            credential: credential,
+            operatorConfirmationID: .constant("gh-1097-source-submit-operator-confirmation"),
+            timestamp: Date(timeIntervalSince1970: timestampSeconds)
+        )
+        let event = try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.fromSubmitRuntimeEvidence(
+            evidence,
+            sequenceNumber: 1,
+            observedAtMilliseconds: observedAtMilliseconds
+        )
+        return (evidence, try ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.make(eventArtifacts: [event]))
     }
 
     func testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors() throws {
