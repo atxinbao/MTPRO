@@ -17,6 +17,19 @@
 - Evidence files: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md`、`docs/automation/automation-readiness.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.15.1-v0150-release-fact-sync.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1094 只允许同步 v0.15.0 stable GitHub Release 已发布事实：release URL `https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`，tag peeled commit `1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`，publication timestamp `2026-06-23T01:26:30Z`。#1076 historical closeout 仍不是 release publication gate；未限定为 #1076 的 v0.15.0 stale publication wording 必须 fail。该 guard 不移动 tag、不覆盖 release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不提交 production order。
 
+## TVM-RELEASE-V0151-INJECTED-TRANSPORT-WORDING
+
+- TVM-RELEASE-V0151-INJECTED-TRANSPORT-WORDING
+- GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING
+- V0151-002-INJECTED-TRANSPORT-NOT-BUILTIN-RUNNER
+- V0151-002-MOCK-MANUAL-PROOF-SPLIT
+- V0151-002-FUTURE-URLSESSION-RUNNER-DEFERRED
+- GH-1095 Release v0.15.1 Injected Transport / Built-in Runner Wording Guard
+- `bash checks/verify-v0.15.1-transport-wording.sh`
+- `swift test --filter TargetGraphTests/testGH1095ReleaseV0151InjectedTransportWordingRejectsBuiltinRunnerClaims`
+- Evidence files: `README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md`、`docs/audit/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-stage-code-audit.md`、`docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md`、`docs/automation/automation-readiness.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.15.1-transport-wording.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: v0.15.0 signed execution evidence must be described as injected Spot Testnet transport protocol, deterministic mock proof, or operator manual proof. Built-in network runner, CLI default real-network runner, production broker connector, production endpoint, production secret and production order remain unauthorized and must not be implied by v0.15.0 wording. #1096 is the later concrete network transport hardening slice.
+
 ## TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT
 
 - TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT

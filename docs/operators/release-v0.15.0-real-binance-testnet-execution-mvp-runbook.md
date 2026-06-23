@@ -21,6 +21,8 @@ Anchor set:
 
 This runbook tells an operator how to review and rehearse the v0.15.0 Binance Spot Testnet execution MVP locally. It is a manual testnet workflow and audit guide only. It is not a production cutover guide.
 
+#1095 hardening note: v0.15.0 provides signed execution runtime contracts, injected Spot Testnet transport protocol evidence, deterministic mock proof and operator manual proof. It does not ship an out-of-the-box built-in URLSession runner, and the CLI is not a default real-network execution runner. Any concrete URLSession transport must be implemented and validated by a later issue, #1096.
+
 ## Preconditions
 
 - #1066 through #1076 are closed / done after #1076 PR merge.
@@ -85,6 +87,7 @@ bash checks/run.sh
    - submit uses #1068 evidence path.
    - cancel uses #1069 evidence path.
    - cancel-replace uses #1070 cancel + new submit emulation.
+   - transport is injected or represented by documented operator manual proof; do not assume a repository-bundled URLSession runner exists in v0.15.0.
    - native cancel-replace endpoint remains unsupported / fail-closed.
 
 6. Review append-only execution evidence:
@@ -128,6 +131,7 @@ Stop and do not proceed if any of the following are observed:
 - reconciliation mismatch without fail-closed evidence.
 - active queue conflict or open PR conflict.
 - request to authorize production cutover.
+- request that would treat v0.15.0 as a built-in URLSession network runner or CLI default real-network executor; do not treat v0.15.0 as either.
 
 ## Boundary
 
