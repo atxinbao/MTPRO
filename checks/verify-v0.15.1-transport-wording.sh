@@ -97,7 +97,7 @@ done
 require_file_contains "$README" "#1095 closed / done"
 require_file_contains "$README" "#1096 已通过 \`GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT\`"
 require_file_contains "$README" "#1097 已通过 \`GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME\`"
-require_file_contains "$README" "current issue \`#1099\`"
+require_file_contains "$README" "#1099 deterministic client order identity chain closed / done"
 require_file_contains "$README" "GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING"
 require_file_contains "$GOAL" "#1095 injected transport wording guard is closed / done"
 require_file_contains "$BLUEPRINT" "mock/manual proof split"

@@ -110,6 +110,33 @@ public struct ReleaseV0150BinanceSpotTestnetOMSStateRecord: Codable, Equatable, 
     public let productionOrderSubmitted: Bool
     public let productionCutoverAuthorized: Bool
 
+    private enum CodingKeys: String, CodingKey {
+        case stateRecordID
+        case intentID
+        case currentState
+        case actionKinds
+        case sourceEventArtifactIDs
+        case actionEvidenceIDs
+        case signedRequestIDs
+        case transportResultIDs
+        case credentialReferenceIDs
+        case lastEventArtifactID
+        case lastSequenceNumber
+        case lastArtifactChecksum
+        case eventCount
+        case derivedFromNetworkEventLogOnly
+        case appendOnlyNetworkExecutionEventLog
+        case redactedRequestResponseIdentity
+        case rawBrokerPayloadIncluded
+        case brokerFillIncluded
+        case productionTradingEnabledByDefault
+        case productionSecretAutoRead
+        case productionEndpointConnected
+        case brokerEndpointConnected
+        case productionOrderSubmitted
+        case productionCutoverAuthorized
+    }
+
     public init(
         eventArtifacts: [ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact],
         derivedFromNetworkEventLogOnly: Bool = true,
@@ -176,6 +203,59 @@ public struct ReleaseV0150BinanceSpotTestnetOMSStateRecord: Codable, Equatable, 
         self.productionCutoverAuthorized = productionCutoverAuthorized
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.stateRecordID = try container.decode(Identifier.self, forKey: .stateRecordID)
+        self.intentID = try container.decode(Identifier.self, forKey: .intentID)
+        self.currentState = try container.decode(OrderLifecycleState.self, forKey: .currentState)
+        self.actionKinds = try container.decode([ReleaseV0150BinanceSpotTestnetNetworkExecutionActionKind].self, forKey: .actionKinds)
+        self.sourceEventArtifactIDs = try container.decode([Identifier].self, forKey: .sourceEventArtifactIDs)
+        self.actionEvidenceIDs = try container.decode([Identifier].self, forKey: .actionEvidenceIDs)
+        self.signedRequestIDs = try container.decode([Identifier].self, forKey: .signedRequestIDs)
+        self.transportResultIDs = try container.decode([Identifier].self, forKey: .transportResultIDs)
+        self.credentialReferenceIDs = try container.decode([Identifier].self, forKey: .credentialReferenceIDs)
+        self.lastEventArtifactID = try container.decode(Identifier.self, forKey: .lastEventArtifactID)
+        self.lastSequenceNumber = try container.decode(Int.self, forKey: .lastSequenceNumber)
+        self.lastArtifactChecksum = try container.decode(String.self, forKey: .lastArtifactChecksum)
+        self.eventCount = try container.decode(Int.self, forKey: .eventCount)
+        self.derivedFromNetworkEventLogOnly = try container.decode(Bool.self, forKey: .derivedFromNetworkEventLogOnly)
+        self.appendOnlyNetworkExecutionEventLog = try container.decode(Bool.self, forKey: .appendOnlyNetworkExecutionEventLog)
+        self.redactedRequestResponseIdentity = try container.decode(Bool.self, forKey: .redactedRequestResponseIdentity)
+        self.rawBrokerPayloadIncluded = try container.decode(Bool.self, forKey: .rawBrokerPayloadIncluded)
+        self.brokerFillIncluded = try container.decode(Bool.self, forKey: .brokerFillIncluded)
+        self.productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        self.productionSecretAutoRead = try container.decode(Bool.self, forKey: .productionSecretAutoRead)
+        self.productionEndpointConnected = try container.decode(Bool.self, forKey: .productionEndpointConnected)
+        self.brokerEndpointConnected = try container.decode(Bool.self, forKey: .brokerEndpointConnected)
+        self.productionOrderSubmitted = try container.decode(Bool.self, forKey: .productionOrderSubmitted)
+        self.productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+
+        let expectedID = Self.deterministicID(
+            intentID: intentID,
+            currentState: currentState,
+            lastEventArtifactID: lastEventArtifactID
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            stateRecordID == expectedID,
+            field: "releaseV0150OMSStateReconciliation.recordID",
+            expected: expectedID.rawValue,
+            actual: stateRecordID.rawValue
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            sourceEventArtifactIDs.last == lastEventArtifactID
+                && eventCount > 0
+                && lastSequenceNumber > 0
+                && ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.isLowercaseSHA256(lastArtifactChecksum),
+            field: "releaseV0150OMSStateReconciliation.recordChain",
+            expected: "last event, positive count/sequence and checksum match",
+            actual: "sequence=\(lastSequenceNumber):count=\(eventCount):checksum=\(lastArtifactChecksum)"
+        )
+        try ReleaseV0151CodableDecodeBoundary.requireHeld(
+            boundaryHeld,
+            field: "releaseV0150OMSStateReconciliation.record.boundaryHeld"
+        )
+    }
+
     public var boundaryHeld: Bool {
         eventCount == sourceEventArtifactIDs.count
             && eventCount == actionEvidenceIDs.count
@@ -237,6 +317,31 @@ public struct ReleaseV0150BinanceSpotTestnetOMSStateSnapshot: Codable, Equatable
     public let productionOrderSubmitted: Bool
     public let productionCutoverAuthorized: Bool
     public let validationAnchors: [String]
+
+    private enum CodingKeys: String, CodingKey {
+        case snapshotID
+        case sourceEventLogID
+        case sourceLatestArtifactChecksum
+        case records
+        case sourceEventArtifactIDs
+        case coveredActionKinds
+        case sourceArtifactCount
+        case derivedFromNetworkEventLogOnly
+        case appendOnlyNetworkExecutionEventLog
+        case checksumChainVerified
+        case missingEventsFailClosed
+        case hiddenRuntimeStateMutated
+        case rawBrokerPayloadIncluded
+        case brokerFillIncluded
+        case expectedObservedReconciliationIncluded
+        case productionTradingEnabledByDefault
+        case productionSecretAutoRead
+        case productionEndpointConnected
+        case brokerEndpointConnected
+        case productionOrderSubmitted
+        case productionCutoverAuthorized
+        case validationAnchors
+    }
 
     public init(
         sourceEventLogID: Identifier,
@@ -339,6 +444,56 @@ public struct ReleaseV0150BinanceSpotTestnetOMSStateSnapshot: Codable, Equatable
         self.validationAnchors = validationAnchors
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.snapshotID = try container.decode(Identifier.self, forKey: .snapshotID)
+        self.sourceEventLogID = try container.decode(Identifier.self, forKey: .sourceEventLogID)
+        self.sourceLatestArtifactChecksum = try container.decode(String.self, forKey: .sourceLatestArtifactChecksum)
+        self.records = try container.decode([ReleaseV0150BinanceSpotTestnetOMSStateRecord].self, forKey: .records)
+        self.sourceEventArtifactIDs = try container.decode([Identifier].self, forKey: .sourceEventArtifactIDs)
+        self.coveredActionKinds = try container.decode([ReleaseV0150BinanceSpotTestnetNetworkExecutionActionKind].self, forKey: .coveredActionKinds)
+        self.sourceArtifactCount = try container.decode(Int.self, forKey: .sourceArtifactCount)
+        self.derivedFromNetworkEventLogOnly = try container.decode(Bool.self, forKey: .derivedFromNetworkEventLogOnly)
+        self.appendOnlyNetworkExecutionEventLog = try container.decode(Bool.self, forKey: .appendOnlyNetworkExecutionEventLog)
+        self.checksumChainVerified = try container.decode(Bool.self, forKey: .checksumChainVerified)
+        self.missingEventsFailClosed = try container.decode(Bool.self, forKey: .missingEventsFailClosed)
+        self.hiddenRuntimeStateMutated = try container.decode(Bool.self, forKey: .hiddenRuntimeStateMutated)
+        self.rawBrokerPayloadIncluded = try container.decode(Bool.self, forKey: .rawBrokerPayloadIncluded)
+        self.brokerFillIncluded = try container.decode(Bool.self, forKey: .brokerFillIncluded)
+        self.expectedObservedReconciliationIncluded = try container.decode(Bool.self, forKey: .expectedObservedReconciliationIncluded)
+        self.productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        self.productionSecretAutoRead = try container.decode(Bool.self, forKey: .productionSecretAutoRead)
+        self.productionEndpointConnected = try container.decode(Bool.self, forKey: .productionEndpointConnected)
+        self.brokerEndpointConnected = try container.decode(Bool.self, forKey: .brokerEndpointConnected)
+        self.productionOrderSubmitted = try container.decode(Bool.self, forKey: .productionOrderSubmitted)
+        self.productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+        self.validationAnchors = try container.decode([String].self, forKey: .validationAnchors)
+
+        let expectedID = Self.deterministicID(
+            sourceEventLogID: sourceEventLogID,
+            sourceLatestArtifactChecksum: sourceLatestArtifactChecksum,
+            sourceEventArtifactIDs: sourceEventArtifactIDs
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            snapshotID == expectedID,
+            field: "releaseV0150OMSStateReconciliation.snapshotID",
+            expected: expectedID.rawValue,
+            actual: snapshotID.rawValue
+        )
+        let coveredEventIDs = Set(records.flatMap(\.sourceEventArtifactIDs).map(\.rawValue))
+        let expectedEventIDs = Set(sourceEventArtifactIDs.map(\.rawValue))
+        try ReleaseV0151CodableDecodeBoundary.require(
+            coveredEventIDs == expectedEventIDs,
+            field: "releaseV0150OMSStateReconciliation.snapshotEventCoverage",
+            expected: expectedEventIDs.sorted().joined(separator: ","),
+            actual: coveredEventIDs.sorted().joined(separator: ",")
+        )
+        try ReleaseV0151CodableDecodeBoundary.requireHeld(
+            boundaryHeld,
+            field: "releaseV0150OMSStateReconciliation.snapshot.boundaryHeld"
+        )
+    }
+
     public var boundaryHeld: Bool {
         records.isEmpty == false
             && sourceEventArtifactIDs.isEmpty == false
@@ -424,6 +579,30 @@ public struct ReleaseV0150BinanceSpotTestnetOMSObservedStateEvidence: Codable, E
     public let productionOrderSubmitted: Bool
     public let productionCutoverAuthorized: Bool
 
+    private enum CodingKeys: String, CodingKey {
+        case observationID
+        case kind
+        case intentID
+        case sourceEventArtifactID
+        case sourceSequenceNumber
+        case observedLifecycleState
+        case actionEvidenceID
+        case signedRequestID
+        case transportResultID
+        case latestArtifactChecksum
+        case acknowledgedBySpotTestnet
+        case redactedRequestResponseIdentity
+        case derivedFromNetworkEventLogOnly
+        case rawBrokerPayloadIncluded
+        case brokerFillIncluded
+        case productionTradingEnabledByDefault
+        case productionSecretAutoRead
+        case productionEndpointConnected
+        case brokerEndpointConnected
+        case productionOrderSubmitted
+        case productionCutoverAuthorized
+    }
+
     public init(
         observationID: Identifier,
         kind: ReleaseV0150BinanceSpotTestnetOMSReconciliationObservationKind,
@@ -505,6 +684,54 @@ public struct ReleaseV0150BinanceSpotTestnetOMSObservedStateEvidence: Codable, E
         self.productionCutoverAuthorized = productionCutoverAuthorized
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.observationID = try container.decode(Identifier.self, forKey: .observationID)
+        self.kind = try container.decode(ReleaseV0150BinanceSpotTestnetOMSReconciliationObservationKind.self, forKey: .kind)
+        self.intentID = try container.decode(Identifier.self, forKey: .intentID)
+        self.sourceEventArtifactID = try container.decode(Identifier.self, forKey: .sourceEventArtifactID)
+        self.sourceSequenceNumber = try container.decode(Int.self, forKey: .sourceSequenceNumber)
+        self.observedLifecycleState = try container.decode(OrderLifecycleState.self, forKey: .observedLifecycleState)
+        self.actionEvidenceID = try container.decode(Identifier.self, forKey: .actionEvidenceID)
+        self.signedRequestID = try container.decode(Identifier.self, forKey: .signedRequestID)
+        self.transportResultID = try container.decode(Identifier.self, forKey: .transportResultID)
+        self.latestArtifactChecksum = try container.decode(String.self, forKey: .latestArtifactChecksum)
+        self.acknowledgedBySpotTestnet = try container.decode(Bool.self, forKey: .acknowledgedBySpotTestnet)
+        self.redactedRequestResponseIdentity = try container.decode(Bool.self, forKey: .redactedRequestResponseIdentity)
+        self.derivedFromNetworkEventLogOnly = try container.decode(Bool.self, forKey: .derivedFromNetworkEventLogOnly)
+        self.rawBrokerPayloadIncluded = try container.decode(Bool.self, forKey: .rawBrokerPayloadIncluded)
+        self.brokerFillIncluded = try container.decode(Bool.self, forKey: .brokerFillIncluded)
+        self.productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        self.productionSecretAutoRead = try container.decode(Bool.self, forKey: .productionSecretAutoRead)
+        self.productionEndpointConnected = try container.decode(Bool.self, forKey: .productionEndpointConnected)
+        self.brokerEndpointConnected = try container.decode(Bool.self, forKey: .brokerEndpointConnected)
+        self.productionOrderSubmitted = try container.decode(Bool.self, forKey: .productionOrderSubmitted)
+        self.productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+
+        let expectedID = Self.deterministicID(
+            kind: kind,
+            intentID: intentID,
+            sourceEventArtifactID: sourceEventArtifactID,
+            actionEvidenceID: actionEvidenceID
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            observationID == expectedID,
+            field: "releaseV0150OMSStateReconciliation.observationID",
+            expected: expectedID.rawValue,
+            actual: observationID.rawValue
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.isLowercaseSHA256(latestArtifactChecksum),
+            field: "releaseV0150OMSStateReconciliation.observation.latestArtifactChecksum",
+            expected: "lowercase sha256 checksum",
+            actual: latestArtifactChecksum
+        )
+        try ReleaseV0151CodableDecodeBoundary.requireHeld(
+            boundaryHeld,
+            field: "releaseV0150OMSStateReconciliation.observation.boundaryHeld"
+        )
+    }
+
     public var boundaryHeld: Bool {
         kind.expectedLifecycleStates.contains(observedLifecycleState)
             && acknowledgedBySpotTestnet
@@ -568,6 +795,17 @@ public struct ReleaseV0150BinanceSpotTestnetOMSReconciliationFailure: Codable, E
     public let actual: String
     public let failClosed: Bool
 
+    private enum CodingKeys: String, CodingKey {
+        case failureID
+        case reason
+        case intentID
+        case sourceEventArtifactID
+        case observationID
+        case expected
+        case actual
+        case failClosed
+    }
+
     public init(
         failureID: Identifier,
         reason: ReleaseV0150BinanceSpotTestnetOMSReconciliationFailureReason,
@@ -620,6 +858,37 @@ public struct ReleaseV0150BinanceSpotTestnetOMSReconciliationFailure: Codable, E
         self.failClosed = failClosed
     }
 
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.failureID = try container.decode(Identifier.self, forKey: .failureID)
+        self.reason = try container.decode(ReleaseV0150BinanceSpotTestnetOMSReconciliationFailureReason.self, forKey: .reason)
+        self.intentID = try container.decodeIfPresent(Identifier.self, forKey: .intentID)
+        self.sourceEventArtifactID = try container.decodeIfPresent(Identifier.self, forKey: .sourceEventArtifactID)
+        self.observationID = try container.decodeIfPresent(Identifier.self, forKey: .observationID)
+        self.expected = try container.decode(String.self, forKey: .expected)
+        self.actual = try container.decode(String.self, forKey: .actual)
+        self.failClosed = try container.decode(Bool.self, forKey: .failClosed)
+
+        let expectedID = Self.deterministicID(
+            reason: reason,
+            intentID: intentID,
+            sourceEventArtifactID: sourceEventArtifactID,
+            observationID: observationID,
+            expected: expected,
+            actual: actual
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            failureID == expectedID,
+            field: "releaseV0150OMSStateReconciliation.failureID",
+            expected: expectedID.rawValue,
+            actual: failureID.rawValue
+        )
+        try ReleaseV0151CodableDecodeBoundary.requireHeld(
+            boundaryHeld,
+            field: "releaseV0150OMSStateReconciliation.failure.boundaryHeld"
+        )
+    }
+
     public var boundaryHeld: Bool {
         expected.isEmpty == false
             && actual.isEmpty == false
@@ -665,6 +934,31 @@ public struct ReleaseV0150BinanceSpotTestnetOMSReconciliationReport: Codable, Eq
     public let productionOrderSubmitted: Bool
     public let productionCutoverAuthorized: Bool
     public let validationAnchors: [String]
+
+    private enum CodingKeys: String, CodingKey {
+        case reportID
+        case sourceSnapshotID
+        case sourceEventLogID
+        case sourceLatestArtifactChecksum
+        case sourceEventArtifactIDs
+        case observationIDs
+        case status
+        case failures
+        case evidenceCoverageComplete
+        case expectedObservedReconciliation
+        case mismatchesFailClosed
+        case derivedFromNetworkEventLogOnly
+        case testnetEvidenceOnly
+        case rawBrokerPayloadIncluded
+        case brokerFillIncluded
+        case productionTradingEnabledByDefault
+        case productionSecretAutoRead
+        case productionEndpointConnected
+        case brokerEndpointConnected
+        case productionOrderSubmitted
+        case productionCutoverAuthorized
+        case validationAnchors
+    }
 
     public init(
         sourceSnapshotID: Identifier,
@@ -754,6 +1048,54 @@ public struct ReleaseV0150BinanceSpotTestnetOMSReconciliationReport: Codable, Eq
         self.productionOrderSubmitted = productionOrderSubmitted
         self.productionCutoverAuthorized = productionCutoverAuthorized
         self.validationAnchors = validationAnchors
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.reportID = try container.decode(Identifier.self, forKey: .reportID)
+        self.sourceSnapshotID = try container.decode(Identifier.self, forKey: .sourceSnapshotID)
+        self.sourceEventLogID = try container.decode(Identifier.self, forKey: .sourceEventLogID)
+        self.sourceLatestArtifactChecksum = try container.decode(String.self, forKey: .sourceLatestArtifactChecksum)
+        self.sourceEventArtifactIDs = try container.decode([Identifier].self, forKey: .sourceEventArtifactIDs)
+        self.observationIDs = try container.decode([Identifier].self, forKey: .observationIDs)
+        self.status = try container.decode(ReleaseV0150BinanceSpotTestnetOMSReconciliationStatus.self, forKey: .status)
+        self.failures = try container.decode([ReleaseV0150BinanceSpotTestnetOMSReconciliationFailure].self, forKey: .failures)
+        self.evidenceCoverageComplete = try container.decode(Bool.self, forKey: .evidenceCoverageComplete)
+        self.expectedObservedReconciliation = try container.decode(Bool.self, forKey: .expectedObservedReconciliation)
+        self.mismatchesFailClosed = try container.decode(Bool.self, forKey: .mismatchesFailClosed)
+        self.derivedFromNetworkEventLogOnly = try container.decode(Bool.self, forKey: .derivedFromNetworkEventLogOnly)
+        self.testnetEvidenceOnly = try container.decode(Bool.self, forKey: .testnetEvidenceOnly)
+        self.rawBrokerPayloadIncluded = try container.decode(Bool.self, forKey: .rawBrokerPayloadIncluded)
+        self.brokerFillIncluded = try container.decode(Bool.self, forKey: .brokerFillIncluded)
+        self.productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        self.productionSecretAutoRead = try container.decode(Bool.self, forKey: .productionSecretAutoRead)
+        self.productionEndpointConnected = try container.decode(Bool.self, forKey: .productionEndpointConnected)
+        self.brokerEndpointConnected = try container.decode(Bool.self, forKey: .brokerEndpointConnected)
+        self.productionOrderSubmitted = try container.decode(Bool.self, forKey: .productionOrderSubmitted)
+        self.productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+        self.validationAnchors = try container.decode([String].self, forKey: .validationAnchors)
+
+        let expectedID = Self.deterministicID(
+            sourceSnapshotID: sourceSnapshotID,
+            observationIDs: observationIDs,
+            failureIDs: failures.map(\.failureID)
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            reportID == expectedID,
+            field: "releaseV0150OMSStateReconciliation.reportID",
+            expected: expectedID.rawValue,
+            actual: reportID.rawValue
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.isLowercaseSHA256(sourceLatestArtifactChecksum),
+            field: "releaseV0150OMSStateReconciliation.report.sourceLatestArtifactChecksum",
+            expected: "lowercase sha256 checksum",
+            actual: sourceLatestArtifactChecksum
+        )
+        try ReleaseV0151CodableDecodeBoundary.requireHeld(
+            boundaryHeld,
+            field: "releaseV0150OMSStateReconciliation.report.boundaryHeld"
+        )
     }
 
     public var boundaryHeld: Bool {

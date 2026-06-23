@@ -95,6 +95,21 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.15.1-client-order-identity-chain.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1099 only authorizes deterministic Binance Spot Testnet client order identity handoff. Submit evidence stores redacted/hash `newClientOrderId` reference, cancel derives short-lived identity material from submit evidence, and raw / untracked order ids fail closed. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
 
+## TVM-RELEASE-V0151-CODABLE-DECODE-CLOSEOUT
+
+- TVM-RELEASE-V0151-CODABLE-DECODE-CLOSEOUT
+- GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT
+- V0151-007-CODABLE-DECODE-VALIDATION
+- V0151-007-CORRUPTED-JSON-FAILS-CLOSED
+- V0151-007-CHECKSUM-MISMATCH-FAILS-CLOSED
+- V0151-007-PRODUCTION-HOST-MUTATION-REJECTED
+- V0151-007-NO-PRODUCTION-CUTOVER
+- GH-1100 Release v0.15.1 Codable Decode Closeout Guard
+- `bash checks/verify-v0.15.1-codable-decode-closeout.sh`
+- `swift test --filter TargetGraphTests/testGH1100ReleaseV0151CodableDecodeValidationFailsClosedOnMutatedArtifacts`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0151CodableDecodeBoundary.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSignedRequestBuilder.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetSubmitRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetCancelReplaceRuntime.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetNetworkExecutionEventLog.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetOMSStateReconciliation.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/audit/mtpro-release-v0.15.1-real-testnet-execution-hardening-patch-stage-code-audit.md`、`checks/verify-v0.15.1-codable-decode-closeout.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1100 only authorizes decode-time validation and patch closeout for v0.15/v0.15.1 Binance Spot Testnet execution evidence. Corrupted JSON, checksum mismatch, production host mutation and production boundary mutation fail closed. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
+
 ## TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT
 
 - TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT

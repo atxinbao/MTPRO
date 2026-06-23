@@ -206,6 +206,21 @@ public struct ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference: Codabl
     public let productionOrderSubmitted: Bool
     public let productionCutoverAuthorized: Bool
 
+    private enum CodingKeys: String, CodingKey {
+        case referenceID
+        case sourceSignedRequestID
+        case redactedClientOrderIDHash
+        case redactionPolicy
+        case clientOrderIdentityMaterialStored
+        case exchangeOrderIDStored
+        case productionTradingEnabledByDefault
+        case productionSecretAutoRead
+        case productionEndpointConnected
+        case brokerEndpointConnected
+        case productionOrderSubmitted
+        case productionCutoverAuthorized
+    }
+
     public init(
         referenceID: Identifier,
         sourceSignedRequestID: Identifier,
@@ -270,6 +285,45 @@ public struct ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference: Codabl
         self.brokerEndpointConnected = brokerEndpointConnected
         self.productionOrderSubmitted = productionOrderSubmitted
         self.productionCutoverAuthorized = productionCutoverAuthorized
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.referenceID = try container.decode(Identifier.self, forKey: .referenceID)
+        self.sourceSignedRequestID = try container.decode(Identifier.self, forKey: .sourceSignedRequestID)
+        self.redactedClientOrderIDHash = try container.decode(String.self, forKey: .redactedClientOrderIDHash)
+        self.redactionPolicy = try container.decode(String.self, forKey: .redactionPolicy)
+        self.clientOrderIdentityMaterialStored = try container.decode(Bool.self, forKey: .clientOrderIdentityMaterialStored)
+        self.exchangeOrderIDStored = try container.decode(Bool.self, forKey: .exchangeOrderIDStored)
+        self.productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        self.productionSecretAutoRead = try container.decode(Bool.self, forKey: .productionSecretAutoRead)
+        self.productionEndpointConnected = try container.decode(Bool.self, forKey: .productionEndpointConnected)
+        self.brokerEndpointConnected = try container.decode(Bool.self, forKey: .brokerEndpointConnected)
+        self.productionOrderSubmitted = try container.decode(Bool.self, forKey: .productionOrderSubmitted)
+        self.productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+
+        let expectedReferenceID = Self.deterministicID(sourceSignedRequestID: sourceSignedRequestID)
+        try ReleaseV0151CodableDecodeBoundary.require(
+            referenceID == expectedReferenceID,
+            field: "releaseV0151ClientOrderIdentityReference.referenceID",
+            expected: expectedReferenceID.rawValue,
+            actual: referenceID.rawValue
+        )
+        let expectedHash = Self.redactedHash(
+            for: ReleaseV0151BinanceSpotTestnetClientOrderIdentityMaterial.deterministicNewClientOrderID(
+                sourceSignedRequestID: sourceSignedRequestID
+            )
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            redactedClientOrderIDHash == expectedHash,
+            field: "releaseV0151ClientOrderIdentityReference.redactedClientOrderIDHash",
+            expected: expectedHash,
+            actual: redactedClientOrderIDHash
+        )
+        try ReleaseV0151CodableDecodeBoundary.requireHeld(
+            boundaryHeld,
+            field: "releaseV0151ClientOrderIdentityReference.boundaryHeld"
+        )
     }
 
     public var boundaryHeld: Bool {
@@ -434,6 +488,45 @@ public struct ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence: Codable,
     public let productionCutoverAuthorized: Bool
     public let validationAnchors: [String]
 
+    private enum CodingKeys: String, CodingKey {
+        case requestID
+        case credentialReferenceID
+        case credentialReferenceRedacted
+        case productType
+        case symbol
+        case side
+        case orderType
+        case quantityText
+        case timestampMilliseconds
+        case receiveWindowMilliseconds
+        case httpMethod
+        case endpointHost
+        case endpointPath
+        case unsignedQueryString
+        case signature
+        case signedQueryString
+        case signedQueryStringRedacted
+        case redactedUnsignedQueryDigest
+        case clientOrderIdentityReferenceID
+        case redactedClientOrderIDHash
+        case clientOrderIdentityMaterialRedacted
+        case clientOrderIdentityMaterialStored
+        case apiKeyHeaderName
+        case apiKeyHeaderValueRedacted
+        case explicitTestnetMode
+        case spotTestnetOnly
+        case requestBodyRedacted
+        case credentialMaterialRedacted
+        case networkSubmitPerformed
+        case productionTradingEnabledByDefault
+        case productionSecretRead
+        case productionEndpointConnected
+        case brokerEndpointConnected
+        case productionOrderSubmitted
+        case productionCutoverAuthorized
+        case validationAnchors
+    }
+
     public init(
         requestID: Identifier,
         credentialReference: ReleaseV0150BinanceSpotTestnetCredentialReference,
@@ -591,6 +684,92 @@ public struct ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence: Codable,
         self.productionOrderSubmitted = productionOrderSubmitted
         self.productionCutoverAuthorized = productionCutoverAuthorized
         self.validationAnchors = validationAnchors
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.requestID = try container.decode(Identifier.self, forKey: .requestID)
+        self.credentialReferenceID = try container.decode(Identifier.self, forKey: .credentialReferenceID)
+        self.credentialReferenceRedacted = try container.decode(String.self, forKey: .credentialReferenceRedacted)
+        self.productType = try container.decode(ProductType.self, forKey: .productType)
+        self.symbol = try container.decode(Symbol.self, forKey: .symbol)
+        self.side = try container.decode(OrderIntentSide.self, forKey: .side)
+        self.orderType = try container.decode(String.self, forKey: .orderType)
+        self.quantityText = try container.decode(String.self, forKey: .quantityText)
+        self.timestampMilliseconds = try container.decode(Int64.self, forKey: .timestampMilliseconds)
+        self.receiveWindowMilliseconds = try container.decode(Int.self, forKey: .receiveWindowMilliseconds)
+        self.httpMethod = try container.decode(String.self, forKey: .httpMethod)
+        self.endpointHost = try container.decode(String.self, forKey: .endpointHost)
+        self.endpointPath = try container.decode(String.self, forKey: .endpointPath)
+        self.unsignedQueryString = try container.decode(String.self, forKey: .unsignedQueryString)
+        self.signature = try container.decode(String.self, forKey: .signature)
+        self.signedQueryString = try container.decode(String.self, forKey: .signedQueryString)
+        self.signedQueryStringRedacted = try container.decode(Bool.self, forKey: .signedQueryStringRedacted)
+        self.redactedUnsignedQueryDigest = try container.decode(String.self, forKey: .redactedUnsignedQueryDigest)
+        self.clientOrderIdentityReferenceID = try container.decode(Identifier.self, forKey: .clientOrderIdentityReferenceID)
+        self.redactedClientOrderIDHash = try container.decode(String.self, forKey: .redactedClientOrderIDHash)
+        self.clientOrderIdentityMaterialRedacted = try container.decode(Bool.self, forKey: .clientOrderIdentityMaterialRedacted)
+        self.clientOrderIdentityMaterialStored = try container.decode(Bool.self, forKey: .clientOrderIdentityMaterialStored)
+        self.apiKeyHeaderName = try container.decode(String.self, forKey: .apiKeyHeaderName)
+        self.apiKeyHeaderValueRedacted = try container.decode(Bool.self, forKey: .apiKeyHeaderValueRedacted)
+        self.explicitTestnetMode = try container.decode(Bool.self, forKey: .explicitTestnetMode)
+        self.spotTestnetOnly = try container.decode(Bool.self, forKey: .spotTestnetOnly)
+        self.requestBodyRedacted = try container.decode(Bool.self, forKey: .requestBodyRedacted)
+        self.credentialMaterialRedacted = try container.decode(Bool.self, forKey: .credentialMaterialRedacted)
+        self.networkSubmitPerformed = try container.decode(Bool.self, forKey: .networkSubmitPerformed)
+        self.productionTradingEnabledByDefault = try container.decode(Bool.self, forKey: .productionTradingEnabledByDefault)
+        self.productionSecretRead = try container.decode(Bool.self, forKey: .productionSecretRead)
+        self.productionEndpointConnected = try container.decode(Bool.self, forKey: .productionEndpointConnected)
+        self.brokerEndpointConnected = try container.decode(Bool.self, forKey: .brokerEndpointConnected)
+        self.productionOrderSubmitted = try container.decode(Bool.self, forKey: .productionOrderSubmitted)
+        self.productionCutoverAuthorized = try container.decode(Bool.self, forKey: .productionCutoverAuthorized)
+        self.validationAnchors = try container.decode([String].self, forKey: .validationAnchors)
+
+        let expectedRequestID = Self.deterministicID(
+            credentialReferenceID: credentialReferenceID,
+            symbol: symbol,
+            side: side,
+            timestampMilliseconds: timestampMilliseconds
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            requestID == expectedRequestID,
+            field: "releaseV0150SignedRequest.requestID",
+            expected: expectedRequestID.rawValue,
+            actual: requestID.rawValue
+        )
+        let expectedUnsignedQuery = [
+            "symbol=\(symbol.rawValue)",
+            "side=\(side.rawValue.uppercased())",
+            "type=\(Self.marketOrderType)",
+            "quantity=\(quantityText)",
+            "newClientOrderId=<redacted>",
+            "timestamp=\(timestampMilliseconds)",
+            "recvWindow=\(receiveWindowMilliseconds)"
+        ].joined(separator: "&")
+        try ReleaseV0151CodableDecodeBoundary.require(
+            unsignedQueryString == expectedUnsignedQuery,
+            field: "releaseV0150SignedRequest.unsignedQueryString",
+            expected: expectedUnsignedQuery,
+            actual: unsignedQueryString
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            signedQueryString == "\(unsignedQueryString)&signature=<redacted>",
+            field: "releaseV0150SignedRequest.signedQueryString",
+            expected: "redacted signed query string",
+            actual: signedQueryString
+        )
+        try ReleaseV0151CodableDecodeBoundary.require(
+            ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.isLowercaseSHA256(signature)
+                && ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.isLowercaseSHA256(redactedUnsignedQueryDigest)
+                && ReleaseV0150BinanceSpotTestnetNetworkExecutionEventArtifact.isLowercaseSHA256(redactedClientOrderIDHash),
+            field: "releaseV0150SignedRequest.hashFields",
+            expected: "lowercase sha256 evidence",
+            actual: "signature=\(signature.count):digest=\(redactedUnsignedQueryDigest.count):clientOrder=\(redactedClientOrderIDHash.count)"
+        )
+        try ReleaseV0151CodableDecodeBoundary.requireHeld(
+            boundaryHeld,
+            field: "releaseV0150SignedRequest.boundaryHeld"
+        )
     }
 
     public var boundaryHeld: Bool {
