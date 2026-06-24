@@ -10566,7 +10566,47 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "checks/run.sh" "bash checks/verify-v0.16.0-operator-beta-contract.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-operator-beta-contract.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1101ReleaseV0160OperatorBetaContractBlocksProductionCutover"
-require_absent "README.md" "#1101 closed / done"
-require_absent "GOAL.md" "#1101 closed / done"
+require_contains "README.md" "#1101 contract / preflight closed / done"
+require_contains "GOAL.md" "#1101 contract / preflight closed / done"
+
+require_file "checks/verify-v0.16.0-operator-run-model.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift"
+require_file "docs/contracts/release-v0.16.0-binance-spot-testnet-operator-run-model-contract.md"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift" \
+  "docs/contracts/release-v0.16.0-binance-spot-testnet-operator-run-model-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.16.0-operator-run-model.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1102-VERIFY-V0160-OPERATOR-RUN-MODEL"
+  require_contains "$file" "TVM-RELEASE-V0160-OPERATOR-RUN-MODEL"
+  require_contains "$file" "V0160-002-RUN-ID-LIFECYCLE"
+  require_contains "$file" "V0160-002-ACTION-SEQUENCE"
+  require_contains "$file" "V0160-002-ARTIFACT-LINKAGE"
+  require_contains "$file" "V0160-002-INVALID-TRANSITION-FAILS-CLOSED"
+  require_contains "$file" "V0160-002-REDACTED-METADATA"
+  require_contains "$file" "V0160-002-NO-NETWORK-BY-THIS-ISSUE"
+  require_contains "$file" "V0160-002-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift" "ReleaseV0160OperatorRunModel"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift" ".local/mtpro/v0.16.0/operator-runs"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift" "testnetCredentialValueReadEnabledByThisIssue == false"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift" "testnetNetworkConnectionEnabledByThisIssue == false"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift" "testnetOrderSubmissionImplementedByThisIssue == false"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift" "productionCutoverAuthorized == false"
+require_contains "README.md" "#1102 operator run model is current WIP=1"
+require_contains "GOAL.md" "#1102 operator run model is current WIP=1"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 operator run model anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 operator run model"
+require_contains "docs/validation/validation-plan.md" "GH-1102 Release v0.16.0 Operator Run Model Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-OPERATOR-RUN-MODEL"
+require_contains "docs/release/release-publication-policy.md" "V0160-002-OPERATOR-RUN-MODEL"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.0-operator-run-model.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-operator-run-model.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1102ReleaseV0160OperatorRunModelDefinesRunIDLifecycleAndFailsClosed"
 
 printf 'MTPRO automation readiness checks passed.\n'
