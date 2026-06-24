@@ -22,6 +22,23 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-operator-beta-contract.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1101 is the v0.16.0 contract / preflight issue only. It requires v0.15.1 / GH-1100 closeout, keeps WIP=1 queue order #1101..#1112, limits the release to Binance Spot Testnet operator beta, requires explicit operator confirmation and redacted evidence, and keeps production cutover unauthorized. Credential value read, testnet network connection and testnet order submission are deferred to later explicitly scoped issues.
 
+## TVM-RELEASE-V0160-OPERATOR-RUN-MODEL
+
+- TVM-RELEASE-V0160-OPERATOR-RUN-MODEL
+- GH-1102-VERIFY-V0160-OPERATOR-RUN-MODEL
+- V0160-002-RUN-ID-LIFECYCLE
+- V0160-002-ACTION-SEQUENCE
+- V0160-002-ARTIFACT-LINKAGE
+- V0160-002-INVALID-TRANSITION-FAILS-CLOSED
+- V0160-002-REDACTED-METADATA
+- V0160-002-NO-NETWORK-BY-THIS-ISSUE
+- V0160-002-NO-PRODUCTION-CUTOVER
+- GH-1102 Release v0.16.0 Operator Run Model Guard
+- `bash checks/verify-v0.16.0-operator-run-model.sh`
+- `swift test --filter TargetGraphTests/testGH1102ReleaseV0160OperatorRunModelDefinesRunIDLifecycleAndFailsClosed`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-operator-run-model-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-operator-run-model.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1102 is the v0.16.0 operator run model issue only. It defines durable run id lifecycle, action sequence, artifact linkage, redacted metadata and invalid transition fail-closed guards. It does not read credential values, connect to testnet endpoints, submit testnet orders or authorize production cutover.
+
 ## TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC
 
 - TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC

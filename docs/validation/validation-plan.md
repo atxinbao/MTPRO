@@ -21,6 +21,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-operator-beta-contract.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1101 只定义 v0.16.0 Binance Spot Testnet operator beta contract、#1100 dependency、#1102..#1112 canonical queue order、explicit operator confirmation、redacted evidence 和 no-production-cutover guard。不读取 credential value，不连接 testnet endpoint，不提交 testnet order，不授权 production cutover，不推进下一 milestone。
 
+## GH-1102 Release v0.16.0 Operator Run Model Guard
+
+- `GH-1102-VERIFY-V0160-OPERATOR-RUN-MODEL`
+- `TVM-RELEASE-V0160-OPERATOR-RUN-MODEL`
+- `V0160-002-RUN-ID-LIFECYCLE`
+- `V0160-002-ACTION-SEQUENCE`
+- `V0160-002-ARTIFACT-LINKAGE`
+- `V0160-002-INVALID-TRANSITION-FAILS-CLOSED`
+- `V0160-002-REDACTED-METADATA`
+- `V0160-002-NO-NETWORK-BY-THIS-ISSUE`
+- `V0160-002-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.16.0-operator-run-model.sh`
+- Focused test: `testGH1102ReleaseV0160OperatorRunModelDefinesRunIDLifecycleAndFailsClosed`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-operator-run-model-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-operator-run-model.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1102 只定义 durable run id lifecycle、action sequence、artifact linkage、redacted metadata 和 invalid transition fail-closed guard。不读取 credential value，不连接 testnet endpoint，不提交 testnet order，不授权 production cutover；submit / cancel / status / reconciliation runtime 均留给后续显式 scoped issue。
+
 ## GH-1094 Release v0.15.1 v0.15.0 Release Fact Sync / Stale Wording Guard
 
 - `GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC`

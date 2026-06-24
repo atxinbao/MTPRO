@@ -186,6 +186,7 @@ bash checks/verify-v0.15.1-runtime-internal-gates.sh
 bash checks/verify-v0.15.1-client-order-identity-chain.sh
 bash checks/verify-v0.15.1-codable-decode-closeout.sh
 bash checks/verify-v0.16.0-operator-beta-contract.sh
+bash checks/verify-v0.16.0-operator-run-model.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

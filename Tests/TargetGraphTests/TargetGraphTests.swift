@@ -44000,6 +44000,158 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(docs.contains("#1112 / GH-1112"))
     }
 
+    func testGH1102ReleaseV0160OperatorRunModelDefinesRunIDLifecycleAndFailsClosed() throws {
+        // 测试场景：GH-1102 定义 v0.16.0 Binance Spot Testnet operator run model。
+        // 验证目的：run id lifecycle、action sequence、artifact linkage 和 redacted metadata
+        // 必须 deterministic 且 fail-closed；本 issue 不读取 credential、不连接网络、不提交订单。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1102-VERIFY-V0160-OPERATOR-RUN-MODEL",
+            "TVM-RELEASE-V0160-OPERATOR-RUN-MODEL",
+            "V0160-002-RUN-ID-LIFECYCLE",
+            "V0160-002-ACTION-SEQUENCE",
+            "V0160-002-ARTIFACT-LINKAGE",
+            "V0160-002-INVALID-TRANSITION-FAILS-CLOSED",
+            "V0160-002-REDACTED-METADATA",
+            "V0160-002-NO-NETWORK-BY-THIS-ISSUE",
+            "V0160-002-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let model = try ReleaseV0160OperatorRunModel.deterministicFixture()
+        XCTAssertTrue(model.modelHeld)
+        XCTAssertTrue(model.productionDefaultsClosed)
+        XCTAssertEqual(model.issueID.rawValue, "GH-1102")
+        XCTAssertEqual(model.upstreamIssueIDs.map(\.rawValue), ["GH-1101"])
+        XCTAssertEqual(model.releaseVersion, "v0.16.0")
+        XCTAssertEqual(model.runID.rawValue, "gh-1102-v0160-operator-run")
+        XCTAssertEqual(model.state, .closed)
+        XCTAssertEqual(
+            model.actionSequence,
+            [
+                .create,
+                .requestSubmit,
+                .recordSubmitObserved,
+                .requestStatus,
+                .recordStatusObserved,
+                .requestCancel,
+                .recordCancelObserved,
+                .reconcile,
+                .close
+            ]
+        )
+
+        XCTAssertTrue(model.metadata.metadataHeld)
+        XCTAssertEqual(model.metadata.runRootPath, ".local/mtpro/v0.16.0/operator-runs/gh-1102-v0160-operator-run")
+        XCTAssertEqual(model.metadata.venue, "Binance")
+        XCTAssertEqual(model.metadata.productType, "spot")
+        XCTAssertEqual(
+            model.metadata.operatorConfirmationPhrase,
+            ReleaseV0160OperatorRunMetadata.requiredOperatorConfirmationPhrase
+        )
+        XCTAssertTrue(model.metadata.redactedMetadataOnly)
+        XCTAssertFalse(model.metadata.testnetCredentialValueReadEnabledByThisIssue)
+        XCTAssertFalse(model.metadata.testnetNetworkConnectionEnabledByThisIssue)
+        XCTAssertFalse(model.metadata.testnetOrderSubmissionImplementedByThisIssue)
+        XCTAssertFalse(model.metadata.productionTradingEnabledByDefault)
+        XCTAssertFalse(model.metadata.productionSecretReadEnabled)
+        XCTAssertFalse(model.metadata.productionEndpointConnectionEnabled)
+        XCTAssertFalse(model.metadata.productionBrokerConnectionEnabled)
+        XCTAssertFalse(model.metadata.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(model.metadata.productionCutoverAuthorized)
+        XCTAssertEqual(
+            Set(model.metadata.artifactLinks.map(\.role)),
+            Set(ReleaseV0160OperatorRunArtifactRole.allCases)
+        )
+        for link in model.metadata.artifactLinks {
+            XCTAssertTrue(link.linkHeld)
+            XCTAssertTrue(link.path.hasPrefix(".local/mtpro/v0.16.0/operator-runs/\(model.runID.rawValue)/"))
+            XCTAssertTrue(link.checksum.hasPrefix("sha256:"))
+            XCTAssertTrue(link.redacted)
+            XCTAssertFalse(link.containsCredentialValue)
+            XCTAssertFalse(link.containsRawBrokerPayload)
+            XCTAssertFalse(link.containsRawOrderIdentity)
+        }
+
+        for (index, event) in model.events.enumerated() {
+            XCTAssertTrue(event.eventHeld)
+            XCTAssertEqual(event.runID, model.runID)
+            XCTAssertEqual(event.sequence, index + 1)
+            XCTAssertEqual(event.eventID, ReleaseV0160OperatorRunEvent.deterministicID(
+                runID: model.runID,
+                sequence: index + 1,
+                action: event.action
+            ))
+            XCTAssertTrue(event.operatorConfirmed)
+            XCTAssertTrue(event.redactedEvidenceOnly)
+            XCTAssertFalse(event.testnetNetworkPerformedByThisIssue)
+            XCTAssertFalse(event.productionOrderSubmitted)
+            if index == 0 {
+                XCTAssertNil(event.previousEventChecksum)
+            } else {
+                XCTAssertEqual(event.previousEventChecksum, model.events[index - 1].eventChecksum)
+            }
+        }
+
+        XCTAssertThrowsError(try ReleaseV0160OperatorRunModel.nextState(action: .requestCancel, from: .created))
+        let created = try ReleaseV0160OperatorRunModel.created(runID: Identifier.constant("gh-1102-invalid"))
+        XCTAssertThrowsError(try created.applying(.requestStatus, artifactRoles: [.statusSnapshotJSON], at: Date()))
+        XCTAssertThrowsError(try ReleaseV0160OperatorRunArtifactLink(
+            role: .runMetadataJSON,
+            runID: model.runID,
+            containsCredentialValue: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0160OperatorRunMetadata(
+            runID: model.runID,
+            createdAt: model.metadata.createdAt,
+            redactedMetadataOnly: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0160OperatorRunEvent(
+            runID: model.runID,
+            sequence: 10,
+            action: .close,
+            fromState: .reconciled,
+            toState: .closed,
+            operatorConfirmed: false,
+            artifactRoles: [.runMetadataJSON],
+            previousEventChecksum: model.events.last?.eventChecksum,
+            createdAt: Date()
+        ))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift")
+        let docs = try read("docs/contracts/release-v0.16.0-binance-spot-testnet-operator-run-model-contract.md")
+        let verifier = try read("checks/verify-v0.16.0-operator-run-model.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertEqual(ReleaseV0160OperatorRunModel.requiredValidationAnchors, requiredAnchors)
+        for anchor in requiredAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in source")
+            XCTAssertTrue(docs.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.0-operator-run-model.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.0-operator-run-model.sh"))
+        XCTAssertTrue(docs.contains("#1102 / GH-1102"))
+        XCTAssertTrue(docs.contains("不读取 credential value"))
+        XCTAssertTrue(docs.contains("不连接 testnet endpoint"))
+        XCTAssertTrue(docs.contains("不提交 testnet order"))
+        XCTAssertTrue(docs.contains("不授权 production cutover"))
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
