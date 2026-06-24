@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1101 Release v0.16.0 Operator Beta Contract / Preflight Guard
+
+- `GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT`
+- `TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT`
+- `V0160-001-V0151-PREFLIGHT-GATE`
+- `V0160-001-BINANCE-SPOT-TESTNET-ONLY`
+- `V0160-001-OPERATOR-CONFIRMATION-REQUIRED`
+- `V0160-001-REDACTED-EVIDENCE-REQUIRED`
+- `V0160-001-QUEUE-ORDER`
+- `V0160-001-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.16.0-operator-beta-contract.sh`
+- Focused test: `testGH1101ReleaseV0160OperatorBetaContractBlocksProductionCutover`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-operator-beta-contract.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1101 只定义 v0.16.0 Binance Spot Testnet operator beta contract、#1100 dependency、#1102..#1112 canonical queue order、explicit operator confirmation、redacted evidence 和 no-production-cutover guard。不读取 credential value，不连接 testnet endpoint，不提交 testnet order，不授权 production cutover，不推进下一 milestone。
+
 ## GH-1094 Release v0.15.1 v0.15.0 Release Fact Sync / Stale Wording Guard
 
 - `GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC`

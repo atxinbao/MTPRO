@@ -107,6 +107,10 @@ Release v0.15.1 #1099 validation anchors：`GH-1099-VERIFY-V0151-CLIENT-ORDER-ID
 
 Release v0.15.1 #1100 validation anchors：`GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT`、`TVM-RELEASE-V0151-CODABLE-DECODE-CLOSEOUT`、`V0151-007-CODABLE-DECODE-VALIDATION`、`V0151-007-CORRUPTED-JSON-FAILS-CLOSED`、`V0151-007-CHECKSUM-MISMATCH-FAILS-CLOSED`、`V0151-007-PRODUCTION-HOST-MUTATION-REJECTED`、`V0151-007-NO-PRODUCTION-CUTOVER`。
 
+Release v0.16.0 operator beta queue anchor：`MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta` 使用 GitHub fallback issues #1101..#1112，WIP=1。#1101 使用 `GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT` 定义 v0.16.0 contract / preflight：必须先满足 v0.15.1 / #1100 closeout，scope 仅限 Binance Spot Testnet operator beta，后续 issue 必须保留显式 operator confirmation、redacted evidence、queue order 和 no-production-cutover guard。#1101 不读取 testnet credential value，不连接 testnet endpoint，不提交 testnet order，不授权 production cutover。
+
+Release v0.16.0 #1101 validation anchors：`GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT`、`TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT`、`V0160-001-V0151-PREFLIGHT-GATE`、`V0160-001-BINANCE-SPOT-TESTNET-ONLY`、`V0160-001-OPERATOR-CONFIRMATION-REQUIRED`、`V0160-001-REDACTED-EVIDENCE-REQUIRED`、`V0160-001-QUEUE-ORDER`、`V0160-001-NO-PRODUCTION-CUTOVER`。
+
 Historical release line anchor retained：Release line 已推进到 v0.12.0 readiness assessment sessions。
 Historical patch line anchor retained：Release v0.12.1 已完成 readiness assessment provenance hardening patch。
 Historical release line anchor retained：Release line 已推进到 v0.11.0 production readiness evidence runtime + integrity hardening。

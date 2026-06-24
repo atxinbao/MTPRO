@@ -43913,6 +43913,93 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH1101ReleaseV0160OperatorBetaContractBlocksProductionCutover() throws {
+        // 测试场景：GH-1101 定义 v0.16.0 Binance Spot Testnet Operator Execution Beta 顶层合同。
+        // 验证目的：合同必须以 #1100 / v0.15.1 closeout 为前置依赖，固定 #1101..#1112 队列，
+        // 并证明 GH-1101 本身不读取 credential、不连接网络、不提交订单、不授权 production cutover。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT",
+            "TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT",
+            "V0160-001-V0151-PREFLIGHT-GATE",
+            "V0160-001-BINANCE-SPOT-TESTNET-ONLY",
+            "V0160-001-OPERATOR-CONFIRMATION-REQUIRED",
+            "V0160-001-REDACTED-EVIDENCE-REQUIRED",
+            "V0160-001-QUEUE-ORDER",
+            "V0160-001-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let contract = try ReleaseV0160OperatorBetaContract.deterministicFixture()
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.preflightBoundaryHeld)
+        XCTAssertTrue(contract.implementationDeferredByThisIssue)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-1101")
+        XCTAssertEqual(contract.blockedByIssueID.rawValue, "GH-1100")
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-1101..GH-1112")
+        XCTAssertEqual(contract.releaseVersion, "v0.16.0")
+        XCTAssertEqual(contract.allowedVenue, "Binance")
+        XCTAssertEqual(contract.allowedProductTypes, ["spot"])
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), (1102...1112).map { "GH-\($0)" })
+        XCTAssertTrue(contract.allowedModes.contains(.spotTestnetSubmit))
+        XCTAssertTrue(contract.allowedModes.contains(.spotTestnetCancel))
+        XCTAssertTrue(contract.allowedModes.contains(.spotTestnetStatusQuery))
+        XCTAssertTrue(contract.allowedModes.contains(.manualRedactedEvidence))
+        XCTAssertTrue(contract.preflightRequirements.contains(.previousV0151QueueClosed))
+        XCTAssertTrue(contract.preflightRequirements.contains(.blockingIssue1100Done))
+        XCTAssertTrue(contract.preflightRequirements.contains(.githubQueueWIPOne))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.productionCutoverAuthorization))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.productionOrderSubmitCancelReplace))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.rawSecretPersistence))
+        XCTAssertFalse(contract.testnetCredentialValueReadEnabledByThisIssue)
+        XCTAssertFalse(contract.testnetNetworkConnectionEnabledByThisIssue)
+        XCTAssertFalse(contract.testnetOrderSubmissionImplementedByThisIssue)
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretReadEnabled)
+        XCTAssertFalse(contract.productionEndpointConnectionEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+        XCTAssertFalse(contract.startsNextMilestone)
+
+        XCTAssertThrowsError(try ReleaseV0160OperatorBetaContract(blockedByIssueID: .constant("GH-1099")))
+        XCTAssertThrowsError(try ReleaseV0160OperatorBetaContract(allowedProductTypes: ["spot", "usdsPerpetual"]))
+        XCTAssertThrowsError(try ReleaseV0160OperatorBetaContract(v0151CloseoutRequired: false))
+        XCTAssertThrowsError(try ReleaseV0160OperatorBetaContract(testnetCredentialValueReadEnabledByThisIssue: true))
+        XCTAssertThrowsError(try ReleaseV0160OperatorBetaContract(testnetNetworkConnectionEnabledByThisIssue: true))
+        XCTAssertThrowsError(try ReleaseV0160OperatorBetaContract(testnetOrderSubmissionImplementedByThisIssue: true))
+        XCTAssertThrowsError(try ReleaseV0160OperatorBetaContract(productionCutoverAuthorized: true))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift")
+        let docs = try read("docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md")
+        let verifier = try read("checks/verify-v0.16.0-operator-beta-contract.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertEqual(ReleaseV0160OperatorBetaContract.requiredValidationAnchors, requiredAnchors)
+        for anchor in requiredAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in source")
+            XCTAssertTrue(docs.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.0-operator-beta-contract.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.0-operator-beta-contract.sh"))
+        XCTAssertTrue(docs.contains("#1102 / GH-1102"))
+        XCTAssertTrue(docs.contains("#1112 / GH-1112"))
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
