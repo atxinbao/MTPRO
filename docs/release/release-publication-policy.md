@@ -315,6 +315,28 @@ v0.15.1 是 v0.15.0 后的 real testnet execution hardening patch closeout。#11
 
 本 `v0.15.1` closeout 不创建 `v0.15.1` tag，不创建 `v0.15.1` GitHub Release，不移动既有 `v0.15.0` release identity，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。若后续需要 public `v0.15.1` release，必须走独立 Release Publication Gate。
 
+## V0160-001-OPERATOR-BETA-CONTRACT
+
+`GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT`
+
+`TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT`
+
+`V0160-001-V0151-PREFLIGHT-GATE`
+
+`V0160-001-BINANCE-SPOT-TESTNET-ONLY`
+
+`V0160-001-OPERATOR-CONFIRMATION-REQUIRED`
+
+`V0160-001-REDACTED-EVIDENCE-REQUIRED`
+
+`V0160-001-QUEUE-ORDER`
+
+`V0160-001-NO-PRODUCTION-CUTOVER`
+
+#1101 是 v0.16.0 Binance Spot Testnet Operator Execution Beta 的 contract / preflight slice。它只定义 #1100 依赖、#1102..#1112 queue order、Binance Spot Testnet-only scope、显式 operator confirmation、redacted evidence 和 production 禁区。
+
+本 `v0.16.0` contract slice 不创建 tag，不创建 GitHub Release，不读取 credential value，不连接 testnet endpoint，不提交 testnet order，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。后续 issue 只有在各自 GitHub issue scope 明确授权时，才能逐步实现 bounded Spot Testnet operator runtime。
+
 #1099 是 v0.15.1 对 #1098 internal gate 后的 submit-to-cancel identity hardening slice：它要求 submit evidence 生成 deterministic redacted `newClientOrderId` reference，cancel 只能从 submit evidence 派生短生命周期 identity material，raw / untracked order id 必须 fail-closed。该 policy 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
 该 transport policy 的固定事实：

@@ -10524,4 +10524,49 @@ require_absent "GOAL.md" "#1099 deterministic client order identity chain is cur
 require_absent "README.md" "#1100 remains backlog"
 require_absent "GOAL.md" "#1100 remains backlog"
 
+require_file "checks/verify-v0.16.0-operator-beta-contract.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift"
+require_file "docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift" \
+  "docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.16.0-operator-beta-contract.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT"
+  require_contains "$file" "TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT"
+  require_contains "$file" "V0160-001-V0151-PREFLIGHT-GATE"
+  require_contains "$file" "V0160-001-BINANCE-SPOT-TESTNET-ONLY"
+  require_contains "$file" "V0160-001-OPERATOR-CONFIRMATION-REQUIRED"
+  require_contains "$file" "V0160-001-REDACTED-EVIDENCE-REQUIRED"
+  require_contains "$file" "V0160-001-QUEUE-ORDER"
+  require_contains "$file" "V0160-001-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift" "ReleaseV0160OperatorBetaContract"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift" "requiredAllowedProductTypes = [\"spot\"]"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift" "testnetCredentialValueReadEnabledByThisIssue == false"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift" "testnetNetworkConnectionEnabledByThisIssue == false"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift" "testnetOrderSubmissionImplementedByThisIssue == false"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift" "productionTradingEnabledByDefault == false"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift" "productionCutoverAuthorized == false"
+require_contains "docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md" "#1102 / GH-1102"
+require_contains "docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md" "#1112 / GH-1112"
+require_contains "README.md" "MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta"
+require_contains "GOAL.md" "MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta"
+require_contains "BLUEPRINT.md" "MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta"
+require_contains "docs/roadmap.md" "GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT"
+require_contains "docs/release/release-publication-policy.md" "GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 operator beta contract anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 operator beta contract"
+require_contains "docs/validation/validation-plan.md" "GH-1101 Release v0.16.0 Operator Beta Contract / Preflight Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.0-operator-beta-contract.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-operator-beta-contract.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1101ReleaseV0160OperatorBetaContractBlocksProductionCutover"
+require_absent "README.md" "#1101 closed / done"
+require_absent "GOAL.md" "#1101 closed / done"
+
 printf 'MTPRO automation readiness checks passed.\n'

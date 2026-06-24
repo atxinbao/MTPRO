@@ -105,6 +105,10 @@ Historical completed patch scope 是 `MTPRO Release v0.14.1 Local Execution Evid
 
 #1100 validation anchors：`GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT`、`TVM-RELEASE-V0151-CODABLE-DECODE-CLOSEOUT`、`V0151-007-CODABLE-DECODE-VALIDATION`、`V0151-007-CORRUPTED-JSON-FAILS-CLOSED`、`V0151-007-CHECKSUM-MISMATCH-FAILS-CLOSED`、`V0151-007-PRODUCTION-HOST-MUTATION-REJECTED`、`V0151-007-NO-PRODUCTION-CUTOVER`。
 
+当前 GitHub fallback queue 是 `MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta`，issue range 为 GH-1101 至 GH-1112。#1101 contract / preflight 是当前 WIP=1，使用 `GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT` 固定 v0.15.1 / #1100 dependency、Binance Spot Testnet only、explicit operator confirmation、redacted evidence、canonical queue order 和 no-production-cutover boundary。#1101 只定义合同、验证和队列入口，不读取 credential value，不连接 testnet endpoint，不提交 testnet order，不授权 production cutover。
+
+#1101 validation anchors：`GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT`、`TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT`、`V0160-001-V0151-PREFLIGHT-GATE`、`V0160-001-BINANCE-SPOT-TESTNET-ONLY`、`V0160-001-OPERATOR-CONFIRMATION-REQUIRED`、`V0160-001-REDACTED-EVIDENCE-REQUIRED`、`V0160-001-QUEUE-ORDER`、`V0160-001-NO-PRODUCTION-CUTOVER`。
+
 <!-- Historical guard：最新完成的 release construction scope 是 `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening`。 -->
 
 - activeVenue == Binance

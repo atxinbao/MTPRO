@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT
+
+- TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT
+- GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT
+- V0160-001-V0151-PREFLIGHT-GATE
+- V0160-001-BINANCE-SPOT-TESTNET-ONLY
+- V0160-001-OPERATOR-CONFIRMATION-REQUIRED
+- V0160-001-REDACTED-EVIDENCE-REQUIRED
+- V0160-001-QUEUE-ORDER
+- V0160-001-NO-PRODUCTION-CUTOVER
+- GH-1101 Release v0.16.0 Operator Beta Contract / Preflight Guard
+- `bash checks/verify-v0.16.0-operator-beta-contract.sh`
+- `swift test --filter TargetGraphTests/testGH1101ReleaseV0160OperatorBetaContractBlocksProductionCutover`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-operator-beta-contract.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1101 is the v0.16.0 contract / preflight issue only. It requires v0.15.1 / GH-1100 closeout, keeps WIP=1 queue order #1101..#1112, limits the release to Binance Spot Testnet operator beta, requires explicit operator confirmation and redacted evidence, and keeps production cutover unauthorized. Credential value read, testnet network connection and testnet order submission are deferred to later explicitly scoped issues.
+
 ## TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC
 
 - TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC
