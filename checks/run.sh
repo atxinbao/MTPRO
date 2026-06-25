@@ -193,6 +193,7 @@ bash checks/verify-v0.16.0-order-status-query.sh
 bash checks/verify-v0.16.0-local-execution-artifact-store.sh
 bash checks/verify-v0.16.0-oms-observed-status-reconciliation.sh
 bash checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh
+bash checks/verify-v0.16.0-failure-recovery-workflow.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

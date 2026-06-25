@@ -5699,3 +5699,19 @@ swift test
 - fail-closed evidence: invalid path, uppercase checksum, command-surface injection and production-enabled flag injection must fail before Dashboard display
 - dependency evidence: #1063 blocked by #1062 and starts only after #1062 PR merge / checks / main fast-forward / WIP=1 preflight
 - forbidden scope: no runtime pipeline, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace, no testnet order, no production order
+
+## GH-1109 Release v0.16.0 Failure Recovery Workflow Guard
+
+- GH-1109-VERIFY-V0160-FAILURE-RECOVERY-WORKFLOW
+- TVM-RELEASE-V0160-FAILURE-RECOVERY-WORKFLOW
+- V0160-009-SUBMIT-SUCCEEDED-ARTIFACT-WRITE-FAILED
+- V0160-009-NETWORK-TIMEOUT-POSSIBLE-EXCHANGE-RECEIPT
+- V0160-009-CANCEL-UNKNOWN-STATE
+- V0160-009-STATUS-QUERY-COMPENSATION-WORKFLOW
+- V0160-009-NO-AUTOMATIC-PRODUCTION-RETRY
+- V0160-009-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.16.0-failure-recovery-workflow.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1109ReleaseV0160FailureRecoveryWorkflowHandlesAmbiguousStatesFailClosed`
+- validation surface: `ReleaseV0160FailureRecoveryWorkflowEngine` consumes local #1106 artifact replay and #1107 reconciliation report to generate recovery runbook evidence.
+- fail-closed evidence: submit succeeded / artifact write failed, network timeout with possible exchange receipt, cancel unknown state and status query compensation all freeze the run, require operator review, require status query compensation and close failed with no automatic retry.
+- boundary evidence: no automatic production retry, no production cutover, no production secret read, no production endpoint / broker endpoint connection and no production order.

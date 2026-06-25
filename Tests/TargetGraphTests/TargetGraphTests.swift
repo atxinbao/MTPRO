@@ -45032,6 +45032,132 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(docs.contains("不授权 production cutover"))
     }
 
+    func testGH1109ReleaseV0160FailureRecoveryWorkflowHandlesAmbiguousStatesFailClosed() throws {
+        // 测试场景：GH-1109 从 #1106 本地 artifacts 和 #1107 reconciliation report 生成 ambiguous failure recovery runbook。
+        // 验证目的：submit succeeded / artifact write failed、network timeout、cancel unknown state
+        // 和 status query compensation 都必须 fail closed，且绝不自动 retry 到 production。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1109-VERIFY-V0160-FAILURE-RECOVERY-WORKFLOW",
+            "TVM-RELEASE-V0160-FAILURE-RECOVERY-WORKFLOW",
+            "V0160-009-SUBMIT-SUCCEEDED-ARTIFACT-WRITE-FAILED",
+            "V0160-009-NETWORK-TIMEOUT-POSSIBLE-EXCHANGE-RECEIPT",
+            "V0160-009-CANCEL-UNKNOWN-STATE",
+            "V0160-009-STATUS-QUERY-COMPENSATION-WORKFLOW",
+            "V0160-009-NO-AUTOMATIC-PRODUCTION-RETRY",
+            "V0160-009-NO-PRODUCTION-CUTOVER"
+        ]
+        let tempRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("mtpro-gh1109-\(UUID().uuidString)", isDirectory: true)
+        let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+        let runID = Identifier.constant("gh-1109-v0160-failure-recovery-run")
+        let start = Date(timeIntervalSince1970: 1_704_067_560)
+        var recordsByKind: [ReleaseV0160LocalExecutionArtifactKind: ReleaseV0160LocalExecutionArtifactRecord] = [:]
+        for (index, kind) in [ReleaseV0160LocalExecutionArtifactKind.submit, .cancel, .status].enumerated() {
+            let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                kind: kind,
+                suffix: "failure-recovery-\(index + 1)",
+                observedAt: start.addingTimeInterval(TimeInterval(index))
+            )
+            recordsByKind[kind] = try store.append(
+                runID: runID,
+                payload: payload,
+                appendedAt: start.addingTimeInterval(TimeInterval(index))
+            )
+        }
+        let replay = try store.replay(runID: runID)
+        let unknownEvidence = try ReleaseV0160OMSObservedStatusEvidence(
+            statusArtifact: XCTUnwrap(recordsByKind[.status]),
+            rawBinanceStatus: "PENDING_CANCEL"
+        )
+        let reconciliationReport = try ReleaseV0160OMSObservedStatusReconciliationEngine().reconcile(
+            replay: replay,
+            observedStatusEvidence: unknownEvidence,
+            expectedState: .cancelObserved
+        )
+        XCTAssertEqual(reconciliationReport.status, .failed)
+        XCTAssertTrue(reconciliationReport.failures.contains { $0.reason == .unknownObservedStatus })
+
+        let engine = try ReleaseV0160FailureRecoveryWorkflowEngine()
+        let report = try engine.recover(replay: replay, reconciliationReport: reconciliationReport)
+        XCTAssertTrue(report.reportHeld)
+        XCTAssertEqual(report.issueID, Identifier.constant("GH-1109"))
+        XCTAssertEqual(report.upstreamIssueIDs.map(\.rawValue), ["GH-1106", "GH-1107", "GH-1108"])
+        XCTAssertEqual(report.scenarioCoverage, ReleaseV0160FailureRecoveryScenario.allCases)
+        XCTAssertTrue(report.submitSucceededArtifactWriteFailedCovered)
+        XCTAssertTrue(report.networkTimeoutPossibleExchangeReceiptCovered)
+        XCTAssertTrue(report.cancelUnknownStateCovered)
+        XCTAssertTrue(report.statusQueryCompensationWorkflowCovered)
+        XCTAssertTrue(report.noAutomaticRetryIntoProduction)
+        XCTAssertTrue(report.localRecoveryEvidenceOnly)
+        XCTAssertTrue(report.recoveryRunbookEvidenceWritten)
+        XCTAssertFalse(report.productionOrderSubmitted)
+        XCTAssertFalse(report.productionCutoverAuthorized)
+        XCTAssertEqual(Set(report.cases.map(\.scenario)), Set(ReleaseV0160FailureRecoveryScenario.allCases))
+        XCTAssertTrue(report.cases.allSatisfy(\.caseHeld))
+        XCTAssertTrue(report.cases.allSatisfy(\.requiresManualStatusCompensation))
+        XCTAssertTrue(report.cases.allSatisfy(\.automaticRetryBlocked))
+        XCTAssertTrue(report.cases.allSatisfy(\.productionRetryBlocked))
+        XCTAssertTrue(report.cases.allSatisfy(\.failClosed))
+        XCTAssertTrue(report.cases.allSatisfy { $0.operatorActionPlan.contains(.closeFailedNoRetry) })
+
+        let byScenario = Dictionary(uniqueKeysWithValues: report.cases.map { ($0.scenario, $0) })
+        XCTAssertTrue(try XCTUnwrap(byScenario[.submitSucceededArtifactWriteFailed]).partialArtifactQuarantined)
+        XCTAssertTrue(try XCTUnwrap(byScenario[.submitSucceededArtifactWriteFailed]).possibleExchangeReceiptAcknowledged)
+        XCTAssertTrue(try XCTUnwrap(byScenario[.networkTimeoutPossibleExchangeReceipt]).possibleExchangeReceiptAcknowledged)
+        XCTAssertEqual(try XCTUnwrap(byScenario[.cancelUnknownState]).observedExchangeState, "UNKNOWN")
+        XCTAssertNotNil(try XCTUnwrap(byScenario[.statusQueryCompensationWorkflow]).sourceReconciliationReportID)
+        XCTAssertThrowsError(try ReleaseV0160FailureRecoveryWorkflowEngine(productionOrderSubmitted: true))
+        XCTAssertThrowsError(try ReleaseV0160FailureRecoveryCase(
+            scenario: .networkTimeoutPossibleExchangeReceipt,
+            sourceRunID: runID,
+            sourceArtifactRecordID: recordsByKind[.submit]?.recordID,
+            sourceReconciliationReportID: reconciliationReport.reportID,
+            observedExchangeState: "timeout",
+            operatorActionPlan: [.freezeRun, .requireOperatorReview, .closeFailedNoRetry],
+            statusQueryCompensationRequired: false,
+            productionEndpointConnected: true
+        ))
+
+        let encoded = try JSONEncoder().encode(report)
+        let decoded = try JSONDecoder().decode(ReleaseV0160FailureRecoveryWorkflowReport.self, from: encoded)
+        XCTAssertEqual(decoded, report)
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift")
+        let docs = try read("docs/contracts/release-v0.16.0-failure-recovery-workflow-contract.md")
+        let verifier = try read("checks/verify-v0.16.0-failure-recovery-workflow.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertEqual(ReleaseV0160FailureRecoveryWorkflowReport.requiredValidationAnchors, requiredAnchors)
+        for anchor in requiredAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in source")
+            XCTAssertTrue(docs.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+        XCTAssertTrue(source.contains("failureRecoveryWorkflow=ReleaseV0160FailureRecoveryWorkflowEngine"))
+        XCTAssertTrue(source.contains("noAutomaticRetryIntoProduction=true"))
+        XCTAssertTrue(source.contains("statusQueryCompensationWorkflowCovered=true"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.0-failure-recovery-workflow.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.0-failure-recovery-workflow.sh"))
+        XCTAssertTrue(docs.contains("#1109 / GH-1109"))
+        XCTAssertTrue(docs.contains("不授权 production cutover"))
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
