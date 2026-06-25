@@ -10714,8 +10714,8 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQ
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift" "querySpotTestnetOrderStatus"
 require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0160CLIOrderStatusQueryFlow.commandLineOutput"
 require_contains "Sources/MTPROCLI/main.swift" "releaseV0160CLIOrderStatusQueryCommand"
-require_contains "README.md" "#1105 signed order status query is current WIP=1"
-require_contains "GOAL.md" "#1105 signed order status query is current WIP=1"
+require_contains "README.md" "#1105 signed order status query closed / done"
+require_contains "GOAL.md" "#1105 signed order status query closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 signed order status query anchor"
 require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 signed order status query"
 require_contains "docs/validation/validation-plan.md" "GH-1105 Release v0.16.0 Signed Order Status Query Guard"
@@ -10724,5 +10724,45 @@ require_contains "docs/release/release-publication-policy.md" "V0160-005-SIGNED-
 require_contains "checks/run.sh" "bash checks/verify-v0.16.0-order-status-query.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-order-status-query.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1105ReleaseV0160SignedOrderStatusQueryUsesGETAllowlistAndRedaction"
+
+require_file "checks/verify-v0.16.0-local-execution-artifact-store.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift"
+require_file "docs/contracts/release-v0.16.0-local-execution-artifact-store-contract.md"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" \
+  "docs/contracts/release-v0.16.0-local-execution-artifact-store-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.16.0-local-execution-artifact-store.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1106-VERIFY-V0160-LOCAL-EXECUTION-ARTIFACT-STORE"
+  require_contains "$file" "TVM-RELEASE-V0160-LOCAL-EXECUTION-ARTIFACT-STORE"
+  require_contains "$file" "V0160-006-APPEND-ONLY-ARTIFACT-PERSISTENCE"
+  require_contains "$file" "V0160-006-CHECKSUM-MANIFEST"
+  require_contains "$file" "V0160-006-CHECKSUM-MISMATCH-REJECTED"
+  require_contains "$file" "V0160-006-REPLAY-VALIDATION"
+  require_contains "$file" "V0160-006-REDACTED-EXPORT-BUNDLE"
+  require_contains "$file" "V0160-006-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "ReleaseV0160LocalExecutionArtifactStore"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "appendOnlyArtifactPersistence=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "checksumManifestWritten=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "checksumMismatchRejected=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "replayValidationSupported=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "redactedExportBundleSupported=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "submitCancelStatusReconciliationEvidenceSupported=true"
+require_contains "README.md" "#1106 local execution artifact store is current WIP=1"
+require_contains "GOAL.md" "#1106 local execution artifact store is current WIP=1"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 local execution artifact store anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 local execution artifact store"
+require_contains "docs/validation/validation-plan.md" "GH-1106 Release v0.16.0 Local Execution Artifact Store Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-LOCAL-EXECUTION-ARTIFACT-STORE"
+require_contains "docs/release/release-publication-policy.md" "V0160-006-APPEND-ONLY-ARTIFACT-PERSISTENCE"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.0-local-execution-artifact-store.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-local-execution-artifact-store.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1106ReleaseV0160LocalExecutionArtifactStorePersistsValidatesReplaysAndExports"
 
 printf 'MTPRO automation readiness checks passed.\n'

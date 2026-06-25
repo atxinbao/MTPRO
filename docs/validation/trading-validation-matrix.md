@@ -91,6 +91,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-order-status-query.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1105 is the v0.16.0 stable signed order status query issue only. It exposes `spot-testnet-status-query`, consumes source submit evidence JSON and network event log JSON, constructs allowlisted signed GET `/api/v3/order`, and returns redacted request / response evidence plus artifact path / checksum evidence. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
 
+## TVM-RELEASE-V0160-LOCAL-EXECUTION-ARTIFACT-STORE
+
+- TVM-RELEASE-V0160-LOCAL-EXECUTION-ARTIFACT-STORE
+- GH-1106-VERIFY-V0160-LOCAL-EXECUTION-ARTIFACT-STORE
+- V0160-006-APPEND-ONLY-ARTIFACT-PERSISTENCE
+- V0160-006-CHECKSUM-MANIFEST
+- V0160-006-CHECKSUM-MISMATCH-REJECTED
+- V0160-006-REPLAY-VALIDATION
+- V0160-006-REDACTED-EXPORT-BUNDLE
+- V0160-006-NO-PRODUCTION-CUTOVER
+- GH-1106 Release v0.16.0 Local Execution Artifact Store Guard
+- `bash checks/verify-v0.16.0-local-execution-artifact-store.sh`
+- `swift test --filter TargetGraphTests/testGH1106ReleaseV0160LocalExecutionArtifactStorePersistsValidatesReplaysAndExports`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`、`docs/contracts/release-v0.16.0-local-execution-artifact-store-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-local-execution-artifact-store.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1106 is the v0.16.0 local execution artifact store issue only. It persists submit / cancel / status / reconciliation redacted evidence as append-only JSONL, writes checksum manifest, rejects checksum mismatch, validates replay, and exports redacted evidence bundles. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
+
 ## TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC
 
 - TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC

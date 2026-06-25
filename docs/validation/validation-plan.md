@@ -86,6 +86,21 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-order-status-query.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1105 只实现 `spot-testnet-status-query` stable CLI signed GET order status query。它必须消费 source submit evidence JSON 和 network event log JSON，从 submit evidence 派生短生命周期 order identity，构造 allowlisted `GET /api/v3/order`，并只返回 redacted request / response evidence、artifact path 和 checksum；缺 prior artifact、错 confirmation、production provider、非 status action 或 production host 必须 fail closed。不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order，不授权 production cutover。
 
+## GH-1106 Release v0.16.0 Local Execution Artifact Store Guard
+
+- `GH-1106-VERIFY-V0160-LOCAL-EXECUTION-ARTIFACT-STORE`
+- `TVM-RELEASE-V0160-LOCAL-EXECUTION-ARTIFACT-STORE`
+- `V0160-006-APPEND-ONLY-ARTIFACT-PERSISTENCE`
+- `V0160-006-CHECKSUM-MANIFEST`
+- `V0160-006-CHECKSUM-MISMATCH-REJECTED`
+- `V0160-006-REPLAY-VALIDATION`
+- `V0160-006-REDACTED-EXPORT-BUNDLE`
+- `V0160-006-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.16.0-local-execution-artifact-store.sh`
+- Focused test: `testGH1106ReleaseV0160LocalExecutionArtifactStorePersistsValidatesReplaysAndExports`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`、`docs/contracts/release-v0.16.0-local-execution-artifact-store-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-local-execution-artifact-store.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1106 只实现本地 execution artifact store。它必须将 submit、cancel、status 和 reconciliation evidence 写入 append-only JSONL，生成 checksum manifest，拒绝 checksum mismatch，支持 replay validation，并导出 redacted export bundle；不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order，不授权 production cutover。
+
 ## GH-1094 Release v0.15.1 v0.15.0 Release Fact Sync / Stale Wording Guard
 
 - `GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC`
