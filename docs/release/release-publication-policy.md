@@ -20,6 +20,7 @@
 - `GH-1105 V160-005 Add signed order status query`
 - `GH-1106 V160-006 Add local execution artifact store`
 - `GH-1107 V160-007 Add OMS observed status reconciliation`
+- `GH-1108 V160-008 Add Dashboard artifact-backed execution view`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -481,6 +482,28 @@ v0.15.1 是 v0.15.0 后的 real testnet execution hardening patch closeout。#11
 #1107 是 v0.16.0 Binance Spot Testnet Operator Execution Beta 的 OMS observed-status reconciliation slice。它只授权消费 #1106 本地 replay surface 中的 submit、cancel 和 status artifacts，生成 deterministic reconciliation report，并覆盖 submit observed、cancel observed、unknown status、expected-state mismatch、missing cancel artifact 和非 status evidence 的 pass / fail-closed 证据。
 
 本 `v0.16.0` OMS observed-status reconciliation slice 不创建 tag，不创建 GitHub Release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。Dashboard review / recovery 只有在后续 GitHub issue scope 明确授权时才能实现。
+
+## V0160-008-LOCAL-ARTIFACT-BACKED-ROWS
+
+`GH-1108-VERIFY-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW`
+
+`TVM-RELEASE-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW`
+
+`V0160-008-LOCAL-ARTIFACT-BACKED-ROWS`
+
+`V0160-008-ACTION-SEQUENCE-VISIBLE`
+
+`V0160-008-CHECKSUMS-VISIBLE`
+
+`V0160-008-OMS-RECONCILIATION-RESULT-VISIBLE`
+
+`V0160-008-DASHBOARD-READ-ONLY-NO-COMMANDS`
+
+`V0160-008-NO-PRODUCTION-CUTOVER`
+
+#1108 是 v0.16.0 Binance Spot Testnet Operator Execution Beta 的 Dashboard artifact-backed execution view slice。它只授权 Dashboard 消费本地 read-model artifacts，并以只读方式展示 artifact-backed rows、action sequence、artifact checksums、artifact paths 和 OMS reconciliation result。
+
+本 `v0.16.0` Dashboard artifact-backed execution view slice 不创建 tag，不创建 GitHub Release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order，不提供 Dashboard command surface、trading button、order form 或 live command。
 
 #1099 是 v0.15.1 对 #1098 internal gate 后的 submit-to-cancel identity hardening slice：它要求 submit evidence 生成 deterministic redacted `newClientOrderId` reference，cancel 只能从 submit evidence 派生短生命周期 identity material，raw / untracked order id 必须 fail-closed。该 policy 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 

@@ -3819,6 +3819,140 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH1108DashboardArtifactBackedExecutionViewShowsLocalArtifactsWithoutCommands() throws {
+        // 测试场景：GH-1108 Dashboard 必须展示 v0.16.0 本地 operator artifact-backed execution view。
+        // 验证目的：action sequence、record checksum、artifact path 和 #1107 reconciliation result
+        // 全部是只读 read model；Dashboard 不能出现 command handler、交易按钮或 order form。
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV0160DashboardArtifactBackedExecutionView
+
+        XCTAssertEqual(surface.issueID, "GH-1108")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-1106", "GH-1107"])
+        XCTAssertEqual(surface.previousIssueID, "GH-1107")
+        XCTAssertEqual(surface.releaseVersion, "v0.16.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertTrue(surface.input.inputHeld)
+        XCTAssertEqual(
+            surface.input.sourceEvidenceType,
+            "ReleaseV0160DashboardArtifactBackedExecutionReadModel"
+        )
+        XCTAssertEqual(surface.input.venueName, "Binance")
+        XCTAssertEqual(surface.input.executionProductScope, "Binance Spot Testnet")
+        XCTAssertEqual(surface.input.actionSequence, ReleaseV0160DashboardArtifactBackedExecutionAction.allCases)
+        XCTAssertEqual(surface.rows.map(\.action), ReleaseV0160DashboardArtifactBackedExecutionAction.allCases)
+        XCTAssertEqual(surface.rows.map(\.sequence), Array(1...3))
+        XCTAssertEqual(surface.rows.map(\.artifactRecordID), surface.input.artifactRecordIDs)
+        XCTAssertEqual(surface.rows.map(\.artifactChecksum), surface.input.artifactRecordChecksums)
+        XCTAssertEqual(surface.rows.map(\.artifactRelativePath), surface.input.artifactRelativePaths)
+        XCTAssertTrue(surface.rows.allSatisfy(\.rowHeld))
+        XCTAssertEqual(surface.visibleRowCount, 3)
+        XCTAssertEqual(surface.actionLabels, ["submit", "cancel", "status"])
+        XCTAssertTrue(surface.localArtifactBackedRowsVisible)
+        XCTAssertTrue(surface.actionSequenceVisible)
+        XCTAssertTrue(surface.checksumsVisible)
+        XCTAssertTrue(surface.omsReconciliationResultVisible)
+        XCTAssertTrue(surface.readOnly)
+        XCTAssertFalse(surface.dashboardDependsOnExecutionClientTarget)
+        XCTAssertFalse(surface.dashboardCommandSurfaceEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        XCTAssertEqual(metricValue("v0.16 artifact rows", in: surface.metrics), "3")
+        XCTAssertEqual(metricValue("v0.16 action sequence", in: surface.metrics), "submit,cancel,status")
+        XCTAssertEqual(metricValue("v0.16 reconciliation", in: surface.metrics), "passed")
+        XCTAssertEqual(metricValue("v0.16 checksum count", in: surface.metrics), "3")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Dashboard command surface: none"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0160ArtifactRows=3"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0160ActionSequence=submit,cancel,status"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0160Reconciliation=passed"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0160ChecksumCount=3"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0160ArtifactBoundary=confirmed"))
+
+        let encodedSurface = try JSONEncoder().encode(surface)
+        let decodedSurface = try JSONDecoder().decode(
+            ReleaseV0160DashboardArtifactBackedExecutionViewModel.self,
+            from: encodedSurface
+        )
+        XCTAssertEqual(decodedSurface, surface)
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let artifactJSON = try encoder.encode(ReleaseV0160DashboardArtifactBackedExecutionLocalArtifactInput())
+        let artifactInput = try ReleaseV0160DashboardArtifactBackedExecutionViewModel
+            .localReadModelArtifactInput(fromJSON: artifactJSON)
+        let loadedSurface = try DashboardShellSnapshot
+            .releaseV0160DashboardArtifactBackedExecutionView(fromLocalReadModelJSON: artifactJSON)
+        let loadedSnapshot = DashboardShellSnapshot(
+            viewModel: try makeDashboardViewModel(),
+            releaseV0160DashboardArtifactBackedExecutionView: loadedSurface
+        )
+
+        XCTAssertTrue(artifactInput.inputHeld)
+        XCTAssertEqual(artifactInput.artifactID, "gh-1108-dashboard-artifact-backed-execution-view")
+        XCTAssertEqual(
+            artifactInput.schema,
+            ReleaseV0160DashboardArtifactBackedExecutionLocalArtifactInput.schemaID
+        )
+        XCTAssertEqual(artifactInput.releaseVersion, "v0.16.0")
+        XCTAssertTrue(loadedSurface.boundaryHeld)
+        XCTAssertTrue(loadedSnapshot.isReadModelOnly)
+        XCTAssertTrue(loadedSnapshot.smokeSummary.contains("releaseV0160ArtifactBoundary=confirmed"))
+
+        let invalidPath = try encoder.encode(
+            ReleaseV0160DashboardArtifactBackedExecutionLocalArtifactInput(
+                relativePath: "../escape/execution-view.json"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0160DashboardArtifactBackedExecutionViewModel
+                .localReadModelArtifact(fromJSON: invalidPath)
+        )
+
+        let commandSurface = try encoder.encode(
+            ReleaseV0160DashboardArtifactBackedExecutionLocalArtifactInput(
+                surface: ReleaseV0160DashboardArtifactBackedExecutionViewModel(
+                    dashboardCommandSurfaceEnabled: true
+                )
+            )
+        )
+        XCTAssertThrowsError(
+            try DashboardShellSnapshot.releaseV0160DashboardArtifactBackedExecutionView(
+                fromLocalReadModelJSON: commandSurface
+            )
+        )
+
+        let productionFlag = try encoder.encode(
+            ReleaseV0160DashboardArtifactBackedExecutionLocalArtifactInput(
+                productionTradingEnabledByDefault: true
+            )
+        )
+        XCTAssertThrowsError(
+            try DashboardShellSnapshot.releaseV0160DashboardArtifactBackedExecutionView(
+                fromLocalReadModelJSON: productionFlag
+            )
+        )
+
+        for anchor in ReleaseV0160DashboardArtifactBackedExecutionViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-1108 surface")
+        }
+    }
+
     func testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands() throws {
         // 测试场景：GH-890 Dashboard 只能展示 v0.10.0 production readiness evidence center。
         // Readiness Overview / Environment / Secret / Endpoint / Risk / Kill Switch /

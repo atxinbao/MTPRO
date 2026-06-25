@@ -44972,6 +44972,66 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(docs.contains("不授权 production cutover"))
     }
 
+    func testGH1108DashboardArtifactBackedExecutionViewIsAnchoredInV0160Guards() throws {
+        // 测试场景：GH-1108 固定 Dashboard v0.16.0 artifact-backed execution view 的源码、文档和验证锚点。
+        // 验证目的：Dashboard 只能消费本地 read-model artifact，展示 action sequence、checksum
+        // 和 OMS reconciliation result，不引入 command surface、trading button 或 production cutover。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1108-VERIFY-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW",
+            "TVM-RELEASE-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW",
+            "V0160-008-LOCAL-ARTIFACT-BACKED-ROWS",
+            "V0160-008-ACTION-SEQUENCE-VISIBLE",
+            "V0160-008-CHECKSUMS-VISIBLE",
+            "V0160-008-OMS-RECONCILIATION-RESULT-VISIBLE",
+            "V0160-008-DASHBOARD-READ-ONLY-NO-COMMANDS",
+            "V0160-008-NO-PRODUCTION-CUTOVER"
+        ]
+        let source = try read("Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift")
+        let shell = try read("Sources/Dashboard/DashboardShell.swift")
+        let docs = try read("docs/contracts/release-v0.16.0-dashboard-artifact-backed-execution-view-contract.md")
+        let verifier = try read("checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let appTests = try read("Tests/AppTests/AppTests.swift")
+
+        XCTAssertEqual(ReleaseV0160DashboardArtifactBackedExecutionViewModel.requiredValidationAnchors, requiredAnchors)
+        for anchor in requiredAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in source")
+            XCTAssertTrue(docs.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+        XCTAssertTrue(source.contains("dashboardArtifactBackedExecutionView=ReleaseV0160DashboardArtifactBackedExecutionViewModel"))
+        XCTAssertTrue(source.contains("localArtifactBackedRows=true"))
+        XCTAssertTrue(source.contains("actionSequenceVisible=true"))
+        XCTAssertTrue(source.contains("checksumsVisible=true"))
+        XCTAssertTrue(source.contains("omsReconciliationResultVisible=true"))
+        XCTAssertTrue(source.contains("dashboardCommandSurfaceEnabled=false"))
+        XCTAssertTrue(source.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(source.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(shell.contains("releaseV0160DashboardArtifactBackedExecutionView"))
+        XCTAssertTrue(shell.contains("DashboardReleaseV0160ArtifactBackedExecutionPanel"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh"))
+        XCTAssertTrue(appTests.contains("testGH1108DashboardArtifactBackedExecutionViewShowsLocalArtifactsWithoutCommands"))
+        XCTAssertTrue(docs.contains("#1108 / GH-1108"))
+        XCTAssertTrue(docs.contains("不授权 production cutover"))
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,

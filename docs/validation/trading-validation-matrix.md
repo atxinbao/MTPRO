@@ -123,6 +123,23 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift`、`docs/contracts/release-v0.16.0-oms-observed-status-reconciliation-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-oms-observed-status-reconciliation.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1107 is the v0.16.0 OMS observed-status reconciliation issue only. It consumes local submit / cancel / status artifacts from the #1106 replay surface and produces deterministic pass / fail-closed reconciliation reports for submit observed, cancel observed, unknown status, expected-state mismatch, missing cancel artifact and non-status evidence. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
 
+## TVM-RELEASE-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW
+
+- TVM-RELEASE-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW
+- GH-1108-VERIFY-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW
+- V0160-008-LOCAL-ARTIFACT-BACKED-ROWS
+- V0160-008-ACTION-SEQUENCE-VISIBLE
+- V0160-008-CHECKSUMS-VISIBLE
+- V0160-008-OMS-RECONCILIATION-RESULT-VISIBLE
+- V0160-008-DASHBOARD-READ-ONLY-NO-COMMANDS
+- V0160-008-NO-PRODUCTION-CUTOVER
+- GH-1108 Release v0.16.0 Dashboard Artifact-backed Execution View Guard
+- `bash checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh`
+- `swift test --filter AppTests/testGH1108DashboardArtifactBackedExecutionViewShowsLocalArtifactsWithoutCommands`
+- `swift test --filter TargetGraphTests/testGH1108DashboardArtifactBackedExecutionViewIsAnchoredInV0160Guards`
+- Evidence files: `Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift`、`Sources/Dashboard/DashboardShell.swift`、`docs/contracts/release-v0.16.0-dashboard-artifact-backed-execution-view-contract.md`、`Tests/AppTests/AppTests.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1108 is the v0.16.0 Dashboard artifact-backed execution view issue only. It consumes local read-model artifacts and renders artifact-backed rows, action sequence, checksums, artifact paths and OMS reconciliation result as read-only Dashboard evidence. Dashboard command surface, trading button, order form, live command, production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
+
 ## TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC
 
 - TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC
