@@ -44819,6 +44819,159 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(docs.contains("不授权 production cutover"))
     }
 
+    func testGH1107ReleaseV0160OMSObservedStatusReconciliationFromLocalArtifactsFailsClosed() throws {
+        // 测试场景：GH-1107 从 #1106 本地 submit / cancel / status artifacts 生成 OMS observed-status reconciliation。
+        // 验证目的：submit observed、cancel observed 可以通过；unknown status、状态 mismatch 和缺失 cancel artifact 必须 fail closed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1107-VERIFY-V0160-OMS-OBSERVED-STATUS-RECONCILIATION",
+            "TVM-RELEASE-V0160-OMS-OBSERVED-STATUS-RECONCILIATION",
+            "V0160-007-SUBMIT-OBSERVED-RECONCILIATION",
+            "V0160-007-CANCEL-OBSERVED-RECONCILIATION",
+            "V0160-007-UNKNOWN-STATUS-FAILS-CLOSED",
+            "V0160-007-MISMATCH-FAILS-CLOSED",
+            "V0160-007-LOCAL-ARTIFACTS-ONLY",
+            "V0160-007-NO-PRODUCTION-CUTOVER"
+        ]
+
+        func replay(
+            suffix: String,
+            kinds: [ReleaseV0160LocalExecutionArtifactKind]
+        ) throws -> (ReleaseV0160LocalExecutionArtifactReplay, [ReleaseV0160LocalExecutionArtifactKind: ReleaseV0160LocalExecutionArtifactRecord]) {
+            let tempRoot = FileManager.default.temporaryDirectory
+                .appendingPathComponent("mtpro-gh1107-\(suffix)-\(UUID().uuidString)", isDirectory: true)
+            let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+            let runID = Identifier.constant("gh-1107-v0160-oms-\(suffix)-run")
+            let start = Date(timeIntervalSince1970: 1_704_067_460)
+            var recordsByKind: [ReleaseV0160LocalExecutionArtifactKind: ReleaseV0160LocalExecutionArtifactRecord] = [:]
+            for (index, kind) in kinds.enumerated() {
+                let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                    kind: kind,
+                    suffix: "\(suffix)-\(index + 1)",
+                    observedAt: start.addingTimeInterval(TimeInterval(index))
+                )
+                recordsByKind[kind] = try store.append(
+                    runID: runID,
+                    payload: payload,
+                    appendedAt: start.addingTimeInterval(TimeInterval(index))
+                )
+            }
+            return (try store.replay(runID: runID), recordsByKind)
+        }
+
+        let engine = try ReleaseV0160OMSObservedStatusReconciliationEngine()
+
+        let (submitReplay, submitRecords) = try replay(suffix: "submit", kinds: [.submit, .status])
+        let submitEvidence = try ReleaseV0160OMSObservedStatusEvidence(
+            statusArtifact: XCTUnwrap(submitRecords[.status]),
+            rawBinanceStatus: "NEW"
+        )
+        let submitReport = try engine.reconcile(
+            replay: submitReplay,
+            observedStatusEvidence: submitEvidence,
+            expectedState: .submitObserved
+        )
+        XCTAssertTrue(submitReport.boundaryHeld)
+        XCTAssertEqual(submitReport.status, .passed)
+        XCTAssertTrue(submitReport.failures.isEmpty)
+        XCTAssertTrue(submitReport.sourceSubmitArtifactConsumed)
+        XCTAssertFalse(submitReport.sourceCancelArtifactConsumed)
+        XCTAssertTrue(submitReport.sourceStatusArtifactConsumed)
+
+        let (cancelReplay, cancelRecords) = try replay(suffix: "cancel", kinds: [.submit, .cancel, .status])
+        let cancelEvidence = try ReleaseV0160OMSObservedStatusEvidence(
+            statusArtifact: XCTUnwrap(cancelRecords[.status]),
+            rawBinanceStatus: "CANCELED"
+        )
+        let cancelReport = try engine.reconcile(
+            replay: cancelReplay,
+            observedStatusEvidence: cancelEvidence,
+            expectedState: .cancelObserved
+        )
+        XCTAssertTrue(cancelReport.boundaryHeld)
+        XCTAssertEqual(cancelReport.status, .passed)
+        XCTAssertTrue(cancelReport.sourceSubmitArtifactConsumed)
+        XCTAssertTrue(cancelReport.sourceCancelArtifactConsumed)
+        XCTAssertTrue(cancelReport.sourceStatusArtifactConsumed)
+
+        let unknownEvidence = try ReleaseV0160OMSObservedStatusEvidence(
+            statusArtifact: XCTUnwrap(cancelRecords[.status]),
+            rawBinanceStatus: "PENDING_CANCEL"
+        )
+        let unknownReport = try engine.reconcile(
+            replay: cancelReplay,
+            observedStatusEvidence: unknownEvidence,
+            expectedState: .cancelObserved
+        )
+        XCTAssertEqual(unknownReport.status, .failed)
+        XCTAssertTrue(unknownReport.failures.contains { $0.reason == .unknownObservedStatus })
+        XCTAssertTrue(unknownReport.failures.allSatisfy(\.failClosed))
+
+        let mismatchEvidence = try ReleaseV0160OMSObservedStatusEvidence(
+            statusArtifact: XCTUnwrap(cancelRecords[.status]),
+            rawBinanceStatus: "NEW"
+        )
+        let mismatchReport = try engine.reconcile(
+            replay: cancelReplay,
+            observedStatusEvidence: mismatchEvidence,
+            expectedState: .cancelObserved
+        )
+        XCTAssertEqual(mismatchReport.status, .failed)
+        XCTAssertTrue(mismatchReport.failures.contains { $0.reason == .cancelStateMismatch })
+
+        let (missingCancelReplay, missingCancelRecords) = try replay(suffix: "missing-cancel", kinds: [.submit, .status])
+        let missingCancelEvidence = try ReleaseV0160OMSObservedStatusEvidence(
+            statusArtifact: XCTUnwrap(missingCancelRecords[.status]),
+            rawBinanceStatus: "CANCELED"
+        )
+        let missingCancelReport = try engine.reconcile(
+            replay: missingCancelReplay,
+            observedStatusEvidence: missingCancelEvidence,
+            expectedState: .cancelObserved
+        )
+        XCTAssertEqual(missingCancelReport.status, .failed)
+        XCTAssertTrue(missingCancelReport.failures.contains { $0.reason == .missingCancelArtifact })
+        XCTAssertThrowsError(try ReleaseV0160OMSObservedStatusEvidence(
+            statusArtifact: XCTUnwrap(cancelRecords[.submit]),
+            rawBinanceStatus: "NEW"
+        ))
+        XCTAssertThrowsError(try ReleaseV0160OMSObservedStatusReconciliationEngine(productionOrderSubmitted: true))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift")
+        let docs = try read("docs/contracts/release-v0.16.0-oms-observed-status-reconciliation-contract.md")
+        let verifier = try read("checks/verify-v0.16.0-oms-observed-status-reconciliation.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertEqual(ReleaseV0160OMSObservedStatusReconciliationReport.requiredValidationAnchors, requiredAnchors)
+        for anchor in requiredAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in source")
+            XCTAssertTrue(docs.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+        XCTAssertTrue(source.contains("omsObservedStatusReconciliation=ReleaseV0160OMSObservedStatusReconciliationEngine"))
+        XCTAssertTrue(source.contains("unknownStatusFailsClosed=true"))
+        XCTAssertTrue(source.contains("localArtifactsOnly=true"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.0-oms-observed-status-reconciliation.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.0-oms-observed-status-reconciliation.sh"))
+        XCTAssertTrue(docs.contains("#1107 / GH-1107"))
+        XCTAssertTrue(docs.contains("不授权 production cutover"))
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
