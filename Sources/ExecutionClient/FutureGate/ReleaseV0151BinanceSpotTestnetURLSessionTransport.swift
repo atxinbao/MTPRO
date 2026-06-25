@@ -5,10 +5,11 @@ import Foundation
 import FoundationNetworking
 #endif
 
-// GH-1096 static contract boundary:
+// GH-1096 / GH-1105 static contract boundary:
 // endpointHost=testnet.binance.vision
 // endpointPath=/api/v3/order
 // URLSession transport enabled for Binance Spot Testnet only
+// statusQueryMethod=GET
 // responseBodyRedacted=true
 // productionTradingEnabledByDefault=false
 // productionSecretAutoRead=false
@@ -72,13 +73,14 @@ public actor ReleaseV0151BinanceSpotTestnetURLSessionDataLoader: ReleaseV0151Bin
 
 /// ReleaseV0151BinanceSpotTestnetURLSessionTransport 是具体 Binance Spot Testnet 网络 transport。
 ///
-/// 该 actor 用真实 URLSession-backed runner 实现 v0.15.0 注入式 submit / cancel transport 协议。
-/// 它只构造 `https://testnet.binance.vision/api/v3/order` 的 POST / DELETE request，fail-closed 拒绝
+/// 该 actor 用真实 URLSession-backed runner 实现 v0.15.0 / v0.16.0 注入式 submit / cancel / status transport 协议。
+/// 它只构造 `https://testnet.binance.vision/api/v3/order` 的 POST / DELETE / GET request，fail-closed 拒绝
 /// production host，设置显式 timeout，并只返回脱敏 transport result evidence。它不保存 raw response body、
 /// API key、signing secret 或 raw order identity。
 public actor ReleaseV0151BinanceSpotTestnetURLSessionTransport:
     ReleaseV0150BinanceSpotTestnetSubmitTransport,
-    ReleaseV0150BinanceSpotTestnetCancelTransport
+    ReleaseV0150BinanceSpotTestnetCancelTransport,
+    ReleaseV0160BinanceSpotTestnetOrderStatusTransport
 {
     public let baseURL: URL
     public let timeoutSeconds: TimeInterval
@@ -229,6 +231,71 @@ public actor ReleaseV0151BinanceSpotTestnetURLSessionTransport:
         )
     }
 
+    public func querySpotTestnetOrderStatus(
+        signedRequest: ReleaseV0160BinanceSpotTestnetSignedOrderStatusQueryRequestEvidence,
+        orderIdentity: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial,
+        credential: ReleaseV0150BinanceSpotTestnetCredentialMaterial
+    ) async throws -> ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult {
+        guard boundaryHeld, signedRequest.boundaryHeld else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0151SpotTestnetURLSessionTransport.status.boundary")
+        }
+        guard signedRequest.httpMethod == "GET",
+              signedRequest.endpointHost == Self.canonicalSpotTestnetHost,
+              signedRequest.endpointPath == Self.spotOrderEndpointPath else {
+            throw ReleaseV0151BinanceSpotTestnetURLSessionTransportError.invalidRequestURL(
+                "\(signedRequest.endpointHost)\(signedRequest.endpointPath)"
+            )
+        }
+
+        let unsignedQueryString = ReleaseV0160BinanceSpotTestnetSignedOrderStatusQueryRequestEvidence.unsignedOrderStatusQueryString(
+            symbol: signedRequest.symbol,
+            originalClientOrderID: orderIdentity.binanceOriginalClientOrderID(),
+            timestampMilliseconds: signedRequest.timestampMilliseconds,
+            receiveWindowMilliseconds: signedRequest.receiveWindowMilliseconds
+        )
+        let redactedDigest = ReleaseV0160BinanceSpotTestnetSignedOrderStatusQueryRequestEvidence.redactedUnsignedQueryDigest(
+            for: unsignedQueryString
+        )
+        guard redactedDigest == signedRequest.redactedUnsignedQueryDigest else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0151SpotTestnetURLSessionTransport.status.redactedUnsignedQueryDigest",
+                expected: signedRequest.redactedUnsignedQueryDigest,
+                actual: redactedDigest
+            )
+        }
+        guard credential.signature(for: unsignedQueryString) == signedRequest.signature else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability("releaseV0151SpotTestnetURLSessionTransport.status.signatureMismatch")
+        }
+
+        let request = try makeRequest(
+            method: signedRequest.httpMethod,
+            queryString: "\(unsignedQueryString)&signature=\(signedRequest.signature)",
+            apiKeyHeaderName: signedRequest.apiKeyHeaderName,
+            apiKeyHeaderValue: credential.binanceAPIKeyHeaderValue()
+        )
+        let (data, response) = try await dataLoader.load(request)
+        let statusCode = try Self.validatedStatusCode(response)
+        let responseDigest = ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult.redactedDigest(
+            statusCode: statusCode,
+            acknowledgement: Self.redactedAcknowledgement(
+                action: "status",
+                requestID: signedRequest.requestID,
+                responseData: data
+            )
+        )
+
+        return try ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult(
+            transportResultID: ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult.deterministicID(
+                signedStatusQueryRequestID: signedRequest.requestID,
+                httpStatusCode: statusCode,
+                redactedResponseDigest: responseDigest
+            ),
+            signedRequest: signedRequest,
+            httpStatusCode: statusCode,
+            redactedResponseDigest: responseDigest
+        )
+    }
+
     public static let canonicalSpotTestnetHost = ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.canonicalSpotTestnetHost
     public static let spotOrderEndpointPath = ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.spotOrderEndpointPath
     public static let apiKeyHeaderName = ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence.apiKeyHeaderName
@@ -241,6 +308,18 @@ public actor ReleaseV0151BinanceSpotTestnetURLSessionTransport:
         "V0151-003-NO-SECRET-PERSISTENCE",
         "V0151-003-PRODUCTION-ENDPOINT-REJECTED",
         "V0151-003-NO-PRODUCTION-CUTOVER"
+    ]
+
+    /// GH-1105 独立记录 status query transport 扩展锚点，避免改变 GH-1096 的 v0.15.1 精确 anchor contract。
+    public static let orderStatusQueryValidationAnchors = [
+        "GH-1105-VERIFY-V0160-SIGNED-ORDER-STATUS-QUERY",
+        "TVM-RELEASE-V0160-SIGNED-ORDER-STATUS-QUERY",
+        "V0160-005-SIGNED-GET-ORDER-STATUS",
+        "V0160-005-TESTNET-ENDPOINT-ALLOWLIST",
+        "V0160-005-REDACTED-REQUEST-RESPONSE-EVIDENCE",
+        "V0160-005-NO-RAW-SECRET-PERSISTENCE",
+        "V0160-005-PRODUCTION-HOST-REJECTED",
+        "V0160-005-NO-PRODUCTION-CUTOVER"
     ]
 
     public static func validateCanonicalBaseURL(_ url: URL) throws {

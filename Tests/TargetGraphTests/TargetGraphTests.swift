@@ -78,10 +78,12 @@ private actor GH1096MockURLSessionDataLoader: ReleaseV0151BinanceSpotTestnetURLS
 
 private actor GH1097RecordingSpotTestnetTransport:
     ReleaseV0150BinanceSpotTestnetSubmitTransport,
-    ReleaseV0150BinanceSpotTestnetCancelTransport
+    ReleaseV0150BinanceSpotTestnetCancelTransport,
+    ReleaseV0160BinanceSpotTestnetOrderStatusTransport
 {
     private var submitRequestIDs: [Identifier] = []
     private var cancelRequestIDs: [Identifier] = []
+    private var statusRequestIDs: [Identifier] = []
 
     func submitSpotTestnetOrder(
         signedRequest: ReleaseV0150BinanceSpotTestnetSignedOrderRequestEvidence,
@@ -126,8 +128,30 @@ private actor GH1097RecordingSpotTestnetTransport:
         )
     }
 
-    func capturedCounts() -> (submit: Int, cancel: Int) {
-        (submitRequestIDs.count, cancelRequestIDs.count)
+    func querySpotTestnetOrderStatus(
+        signedRequest: ReleaseV0160BinanceSpotTestnetSignedOrderStatusQueryRequestEvidence,
+        orderIdentity: ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial,
+        credential: ReleaseV0150BinanceSpotTestnetCredentialMaterial
+    ) async throws -> ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult {
+        statusRequestIDs.append(signedRequest.requestID)
+        let digest = ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult.redactedDigest(
+            statusCode: 200,
+            acknowledgement: "status-redacted-gh-1105-\(statusRequestIDs.count)"
+        )
+        return try ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult(
+            transportResultID: ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult.deterministicID(
+                signedStatusQueryRequestID: signedRequest.requestID,
+                httpStatusCode: 200,
+                redactedResponseDigest: digest
+            ),
+            signedRequest: signedRequest,
+            httpStatusCode: 200,
+            redactedResponseDigest: digest
+        )
+    }
+
+    func capturedCounts() -> (submit: Int, cancel: Int, status: Int) {
+        (submitRequestIDs.count, cancelRequestIDs.count, statusRequestIDs.count)
     }
 }
 
@@ -44474,6 +44498,197 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(docs.contains("不授权 production cutover"))
     }
 
+    func testGH1105ReleaseV0160SignedOrderStatusQueryUsesGETAllowlistAndRedaction() async throws {
+        // 测试场景：GH-1105 提供 v0.16.0 稳定 `spot-testnet-status-query` CLI 入口。
+        // 验证目的：status query 必须消费 prior submit artifact，签出 GET `/api/v3/order`，
+        // 并只输出脱敏 request / response evidence；缺少 prior artifact 或 production 参数必须 fail closed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1105-VERIFY-V0160-SIGNED-ORDER-STATUS-QUERY",
+            "TVM-RELEASE-V0160-SIGNED-ORDER-STATUS-QUERY",
+            "V0160-005-SIGNED-GET-ORDER-STATUS",
+            "V0160-005-TESTNET-ENDPOINT-ALLOWLIST",
+            "V0160-005-REDACTED-REQUEST-RESPONSE-EVIDENCE",
+            "V0160-005-NO-RAW-SECRET-PERSISTENCE",
+            "V0160-005-PRODUCTION-HOST-REJECTED",
+            "V0160-005-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let environment = [
+            "MTPRO_BINANCE_SPOT_TESTNET_API_KEY": "gh-1105-testnet-api-key",
+            "MTPRO_BINANCE_SPOT_TESTNET_SECRET_KEY": "gh-1105-testnet-secret"
+        ]
+        let transport = GH1097RecordingSpotTestnetTransport()
+        let sourceArtifacts = try await makeGH1097SourceSubmitArtifacts(
+            transport: transport,
+            action: "status",
+            runID: "gh-1105-v0160-status-run",
+            timestampSeconds: 1_704_067_320,
+            observedAtMilliseconds: 1_704_067_320_000,
+            credentialReferenceID: "gh-1105-binance-spot-testnet-credential",
+            apiKeyHeaderValue: "gh-1105-testnet-api-key",
+            signingSecretValue: "gh-1105-testnet-secret",
+            correlationPrefix: "gh-1105",
+            sourceSequence: 1105
+        )
+        let tempRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("mtpro-gh1105-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tempRoot, withIntermediateDirectories: true)
+        let sourceEvidenceURL = tempRoot.appendingPathComponent("source-submit-evidence.json")
+        let networkLogURL = tempRoot.appendingPathComponent("network-event-log.json")
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try encoder.encode(sourceArtifacts.evidence).write(to: sourceEvidenceURL)
+        try encoder.encode(sourceArtifacts.log).write(to: networkLogURL)
+
+        let result = try await ReleaseV0160CLIOrderStatusQueryFlow.result(
+            arguments: gh1105Arguments(
+                sourceSubmitEvidencePath: sourceEvidenceURL.path,
+                networkEventLogPath: networkLogURL.path
+            ),
+            environment: environment,
+            statusTransport: transport
+        )
+        let output = result.redactedOutputLines.joined(separator: "\n")
+
+        XCTAssertTrue(result.boundaryHeld)
+        XCTAssertEqual(result.command, "spot-testnet-status-query")
+        XCTAssertEqual(result.action, "spot-testnet-status-query")
+        XCTAssertEqual(result.runID.rawValue, "gh-1105-v0160-status-run")
+        XCTAssertEqual(result.operatorRunState, .statusObserved)
+        XCTAssertEqual(
+            result.operatorRunActionSequence,
+            [.create, .requestSubmit, .recordSubmitObserved, .requestStatus, .recordStatusObserved]
+        )
+        XCTAssertTrue(result.sourceSubmitArtifactConsumed)
+        XCTAssertTrue(result.redactedOrderReferenceConsumed)
+        XCTAssertTrue(result.signedGETOrderStatusQueryPerformed)
+        XCTAssertTrue(result.testnetEndpointAllowlisted)
+        XCTAssertTrue(result.redactedRequestResponseEvidence)
+        XCTAssertTrue(result.productionHostRejected)
+        XCTAssertTrue(result.missingPriorArtifactFailsClosed)
+        XCTAssertTrue(result.artifactPath.hasPrefix(".local/mtpro/v0.16.0/operator-runs/gh-1105-v0160-status-run/"))
+        XCTAssertTrue(result.artifactPath.hasSuffix("status-snapshot.json"))
+        XCTAssertTrue(output.contains("issue=GH-1105"))
+        XCTAssertTrue(output.contains("command=spot-testnet-status-query"))
+        XCTAssertTrue(output.contains("action=spot-testnet-status-query"))
+        XCTAssertTrue(output.contains("operatorRunState=statusObserved"))
+        XCTAssertTrue(output.contains("signedGETOrderStatusQueryPerformed=true"))
+        XCTAssertTrue(output.contains("testnetEndpointAllowlisted=true"))
+        XCTAssertTrue(output.contains("redactedRequestResponseEvidence=true"))
+        XCTAssertTrue(output.contains("sourceSubmitEvidenceJSON=<redacted-path>"))
+        XCTAssertTrue(output.contains("networkEventLogJSON=<redacted-path>"))
+        XCTAssertTrue(output.contains("orderReference=<redacted>"))
+        XCTAssertTrue(output.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(output.contains("productionCutoverAuthorized=false"))
+        XCTAssertFalse(output.contains("gh-1105-testnet-api-key"))
+        XCTAssertFalse(output.contains("gh-1105-testnet-secret"))
+        XCTAssertFalse(output.contains(sourceEvidenceURL.path))
+        XCTAssertFalse(output.contains(networkLogURL.path))
+
+        let capturedCounts = await transport.capturedCounts()
+        XCTAssertEqual(capturedCounts.submit, 1)
+        XCTAssertEqual(capturedCounts.cancel, 0)
+        XCTAssertEqual(capturedCounts.status, 1)
+
+        XCTAssertThrowsError(
+            try ReleaseV0151BinanceSpotTestnetURLSessionTransport(
+                baseURL: URL(string: "https://api.binance.com")!,
+                dataLoader: GH1096MockURLSessionDataLoader()
+            )
+        )
+        do {
+            _ = try await ReleaseV0160CLIOrderStatusQueryFlow.result(
+                arguments: gh1105Arguments(sourceSubmitEvidencePath: "", networkEventLogPath: networkLogURL.path),
+                environment: environment,
+                statusTransport: transport
+            )
+            XCTFail("missing source submit artifact must fail closed")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("--source-submit-evidence-json"))
+        }
+        do {
+            _ = try await ReleaseV0160CLIOrderStatusQueryFlow.result(
+                arguments: gh1105Arguments(
+                    sourceSubmitEvidencePath: sourceEvidenceURL.path,
+                    networkEventLogPath: networkLogURL.path,
+                    confirmation: "WRONG"
+                ),
+                environment: environment,
+                statusTransport: transport
+            )
+            XCTFail("wrong v0.16 operator confirmation must fail closed")
+        } catch {
+            XCTAssertTrue(String(describing: error).isEmpty == false)
+        }
+        do {
+            _ = try ReleaseV0160CLIOrderStatusQueryFlow.parse(
+                arguments: gh1105Arguments(
+                    sourceSubmitEvidencePath: sourceEvidenceURL.path,
+                    networkEventLogPath: networkLogURL.path,
+                    credentialProvider: "production-env"
+                )
+            )
+            XCTFail("production credential provider must fail closed")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("production-env"))
+        }
+        do {
+            _ = try ReleaseV0160CLIOrderStatusQueryFlow.parse(
+                arguments: gh1105Arguments(
+                    sourceSubmitEvidencePath: sourceEvidenceURL.path,
+                    networkEventLogPath: networkLogURL.path,
+                    action: "cancel"
+                )
+            )
+            XCTFail("v0.16 status query CLI must not accept cancel")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("cancel"))
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift")
+        let transportSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift")
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let docs = try read("docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md")
+        let verifier = try read("checks/verify-v0.16.0-order-status-query.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertEqual(ReleaseV0160CLIOrderStatusQueryResult.requiredValidationAnchors, requiredAnchors)
+        for anchor in requiredAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in source")
+            XCTAssertTrue(transportSource.contains(anchor), "\(anchor) must stay in transport")
+            XCTAssertTrue(docs.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+        XCTAssertTrue(source.contains("httpMethod = \"GET\""))
+        XCTAssertTrue(source.contains("querySpotTestnetOrderStatus"))
+        XCTAssertTrue(transportSource.contains("querySpotTestnetOrderStatus"))
+        XCTAssertTrue(transportSource.contains("method: signedRequest.httpMethod"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0160CLIOrderStatusQueryFlow.commandLineOutput"))
+        XCTAssertTrue(cliSource.contains("releaseV0160CLIOrderStatusQueryCommand"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.0-order-status-query.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.0-order-status-query.sh"))
+        XCTAssertTrue(docs.contains("#1105 / GH-1105"))
+        XCTAssertTrue(docs.contains("spot-testnet-status-query"))
+        XCTAssertTrue(docs.contains("GET `/api/v3/order`"))
+        XCTAssertTrue(docs.contains("不授权 production cutover"))
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
@@ -44564,6 +44779,41 @@ final class TargetGraphTests: XCTestCase {
             "--network-event-log-json", networkEventLogPath,
             "--timestamp-ms", "1704067260000",
             "--observed-at-ms", "1704067260000",
+            "--output", "redacted"
+        ]
+        if let action {
+            arguments += ["--action", action]
+        }
+        return arguments
+    }
+
+    private func gh1105Arguments(
+        sourceSubmitEvidencePath: String,
+        networkEventLogPath: String,
+        confirmation: String = ReleaseV0160OperatorRunMetadata.requiredOperatorConfirmationPhrase,
+        credentialProvider: String = "testnet-env",
+        action: String? = nil
+    ) -> [String] {
+        var arguments = [
+            "spot-testnet-status-query",
+            "--testnet",
+            "--operator-confirm", confirmation,
+            "--credential-provider", credentialProvider,
+            "--credential-reference-id", "gh-1105-binance-spot-testnet-credential",
+            "--run-id", "gh-1105-v0160-status-run",
+            "--symbol", "BTCUSDT",
+            "--side", "buy",
+            "--quantity", "0.05",
+            "--strategy", "EMA",
+            "--source-sequence", "1105",
+            "--correlation-id", "gh-1105-status-correlation",
+            "--strategy-signal-id", "gh-1105-status-signal",
+            "--source-message-id", "gh-1105-status-message",
+            "--strategy-run-id", "gh-1105-v0160-status-run",
+            "--source-submit-evidence-json", sourceSubmitEvidencePath,
+            "--network-event-log-json", networkEventLogPath,
+            "--timestamp-ms", "1704067320000",
+            "--observed-at-ms", "1704067320000",
             "--output", "redacted"
         ]
         if let action {

@@ -75,6 +75,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-cli-cancel-flow-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-cli-cancel-flow.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1104 is the v0.16.0 stable CLI cancel flow issue only. It exposes `spot-testnet-cancel`, consumes source submit evidence JSON and network event log JSON, delegates cancel to the v0.15.1 guarded runtime, requires explicit v0.16 operator confirmation and testnet-env credential profile, and returns redacted order reference / artifact path / checksum evidence. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
 
+## TVM-RELEASE-V0160-SIGNED-ORDER-STATUS-QUERY
+
+- TVM-RELEASE-V0160-SIGNED-ORDER-STATUS-QUERY
+- GH-1105-VERIFY-V0160-SIGNED-ORDER-STATUS-QUERY
+- V0160-005-SIGNED-GET-ORDER-STATUS
+- V0160-005-TESTNET-ENDPOINT-ALLOWLIST
+- V0160-005-REDACTED-REQUEST-RESPONSE-EVIDENCE
+- V0160-005-NO-RAW-SECRET-PERSISTENCE
+- V0160-005-PRODUCTION-HOST-REJECTED
+- V0160-005-NO-PRODUCTION-CUTOVER
+- GH-1105 Release v0.16.0 Signed Order Status Query Guard
+- `bash checks/verify-v0.16.0-order-status-query.sh`
+- `swift test --filter TargetGraphTests/testGH1105ReleaseV0160SignedOrderStatusQueryUsesGETAllowlistAndRedaction`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-order-status-query.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1105 is the v0.16.0 stable signed order status query issue only. It exposes `spot-testnet-status-query`, consumes source submit evidence JSON and network event log JSON, constructs allowlisted signed GET `/api/v3/order`, and returns redacted request / response evidence plus artifact path / checksum evidence. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
+
 ## TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC
 
 - TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC
