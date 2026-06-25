@@ -18,6 +18,7 @@
 - `GH-1095 V151-002 Clarify injected transport versus built-in network runner wording`
 - `GH-1100 V151-007 Harden v0.15 execution artifact decoding and close patch validation`
 - `GH-1105 V160-005 Add signed order status query`
+- `GH-1106 V160-006 Add local execution artifact store`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -435,6 +436,28 @@ v0.15.1 是 v0.15.0 后的 real testnet execution hardening patch closeout。#11
 #1105 是 v0.16.0 Binance Spot Testnet Operator Execution Beta 的 signed order status query slice。它只授权 `spot-testnet-status-query` status-only operator command，消费 source submit evidence JSON 和 network event log JSON，从 submit evidence 派生短生命周期 order identity，并构造 allowlisted signed GET `/api/v3/order` status query。
 
 本 `v0.16.0` order status query slice 不创建 tag，不创建 GitHub Release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。reconciliation / Dashboard review / recovery 只有在后续 GitHub issue scope 明确授权时才能实现。
+
+## V0160-006-APPEND-ONLY-ARTIFACT-PERSISTENCE
+
+`GH-1106-VERIFY-V0160-LOCAL-EXECUTION-ARTIFACT-STORE`
+
+`TVM-RELEASE-V0160-LOCAL-EXECUTION-ARTIFACT-STORE`
+
+`V0160-006-APPEND-ONLY-ARTIFACT-PERSISTENCE`
+
+`V0160-006-CHECKSUM-MANIFEST`
+
+`V0160-006-CHECKSUM-MISMATCH-REJECTED`
+
+`V0160-006-REPLAY-VALIDATION`
+
+`V0160-006-REDACTED-EXPORT-BUNDLE`
+
+`V0160-006-NO-PRODUCTION-CUTOVER`
+
+#1106 是 v0.16.0 Binance Spot Testnet Operator Execution Beta 的 local execution artifact store slice。它只授权本地 append-only JSONL artifact persistence、checksum manifest、checksum mismatch rejection、replay validation 和 redacted export bundle，用于承接 submit、cancel、status 和后续 reconciliation evidence。
+
+本 `v0.16.0` local execution artifact store slice 不创建 tag，不创建 GitHub Release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。Dashboard review / recovery / reconciliation 只有在后续 GitHub issue scope 明确授权时才能实现。
 
 #1099 是 v0.15.1 对 #1098 internal gate 后的 submit-to-cancel identity hardening slice：它要求 submit evidence 生成 deterministic redacted `newClientOrderId` reference，cancel 只能从 submit evidence 派生短生命周期 identity material，raw / untracked order id 必须 fail-closed。该 policy 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 

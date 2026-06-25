@@ -44689,6 +44689,136 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(docs.contains("不授权 production cutover"))
     }
 
+    func testGH1106ReleaseV0160LocalExecutionArtifactStorePersistsValidatesReplaysAndExports() throws {
+        // 测试场景：GH-1106 为 v0.16.0 operator beta 增加本地 execution artifact store。
+        // 验证目的：submit / cancel / status / reconciliation evidence 必须以 append-only JSONL、
+        // checksum manifest、replay validation 和 redacted export bundle 形式持久化；篡改 payload 必须 fail closed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1106-VERIFY-V0160-LOCAL-EXECUTION-ARTIFACT-STORE",
+            "TVM-RELEASE-V0160-LOCAL-EXECUTION-ARTIFACT-STORE",
+            "V0160-006-APPEND-ONLY-ARTIFACT-PERSISTENCE",
+            "V0160-006-CHECKSUM-MANIFEST",
+            "V0160-006-CHECKSUM-MISMATCH-REJECTED",
+            "V0160-006-REPLAY-VALIDATION",
+            "V0160-006-REDACTED-EXPORT-BUNDLE",
+            "V0160-006-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let tempRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("mtpro-gh1106-\(UUID().uuidString)", isDirectory: true)
+        let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+        let runID = Identifier.constant("gh-1106-v0160-artifact-store-run")
+        let start = Date(timeIntervalSince1970: 1_704_067_360)
+        let kinds: [ReleaseV0160LocalExecutionArtifactKind] = [.submit, .cancel, .status, .reconciliation]
+        var records: [ReleaseV0160LocalExecutionArtifactRecord] = []
+
+        for (index, kind) in kinds.enumerated() {
+            let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                kind: kind,
+                suffix: "\(index + 1)",
+                observedAt: start.addingTimeInterval(TimeInterval(index))
+            )
+            let record = try store.append(
+                runID: runID,
+                payload: payload,
+                appendedAt: start.addingTimeInterval(TimeInterval(index))
+            )
+            records.append(record)
+            XCTAssertTrue(record.recordHeld)
+            XCTAssertEqual(record.sequence, index + 1)
+            XCTAssertEqual(record.kind, kind)
+            XCTAssertEqual(record.artifactRole, kind.artifactRole)
+            XCTAssertEqual(record.previousRecordChecksum, index == 0 ? nil : records[index - 1].recordChecksum)
+            XCTAssertTrue(FileManager.default.fileExists(atPath: store.fileURL(forRelativePath: record.payloadPath).path))
+        }
+
+        let manifest = try store.validate(runID: runID)
+        XCTAssertTrue(manifest.manifestHeld)
+        XCTAssertEqual(manifest.recordCount, 4)
+        XCTAssertEqual(manifest.artifactKinds, kinds)
+        XCTAssertEqual(manifest.recordChecksums, records.map(\.recordChecksum))
+        XCTAssertTrue(manifest.appendOnlyArtifactPersistence)
+        XCTAssertTrue(manifest.checksumManifestWritten)
+        XCTAssertFalse(manifest.productionCutoverAuthorized)
+
+        let replay = try store.replay(runID: runID)
+        XCTAssertTrue(replay.replayHeld)
+        XCTAssertEqual(replay.replayedKinds, kinds)
+        XCTAssertEqual(replay.records.map(\.recordID), records.map(\.recordID))
+        XCTAssertTrue(replay.chainValidated)
+        XCTAssertTrue(replay.replayValidationSupported)
+
+        let export = try store.exportRedactedBundle(
+            runID: runID,
+            exportedAt: start.addingTimeInterval(10)
+        )
+        let exportURL = store.fileURL(forRelativePath: export.exportPath)
+        let exportText = try String(contentsOf: exportURL, encoding: .utf8)
+        XCTAssertTrue(export.exportHeld)
+        XCTAssertTrue(export.redactedExportBundleSupported)
+        XCTAssertTrue(export.redactedEvidenceOnly)
+        XCTAssertFalse(export.containsCredentialValue)
+        XCTAssertFalse(export.containsRawOrderIdentity)
+        XCTAssertFalse(export.containsRawBrokerPayload)
+        XCTAssertFalse(export.productionCutoverAuthorized)
+        XCTAssertFalse(exportText.localizedCaseInsensitiveContains("api key:"))
+        XCTAssertFalse(exportText.localizedCaseInsensitiveContains("secret key:"))
+        XCTAssertFalse(exportText.localizedCaseInsensitiveContains("listenkey"))
+        XCTAssertFalse(exportText.localizedCaseInsensitiveContains("api.binance.com"))
+
+        let tamperedPayloadURL = store.fileURL(forRelativePath: records[0].payloadPath)
+        try Data("{\"tampered\":\"redacted\"}".utf8).write(to: tamperedPayloadURL, options: .atomic)
+        XCTAssertThrowsError(try store.validate(runID: runID)) { error in
+            XCTAssertTrue(String(describing: error).contains("checksum mismatch"))
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV0160LocalExecutionArtifactPayload(
+                kind: .submit,
+                evidenceID: Identifier.constant("gh-1106-secret-leak"),
+                redactedSummary: "API Key: should never persist",
+                redactedEvidenceReferences: ["redacted"],
+                observedAt: start
+            )
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift")
+        let docs = try read("docs/contracts/release-v0.16.0-local-execution-artifact-store-contract.md")
+        let verifier = try read("checks/verify-v0.16.0-local-execution-artifact-store.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertEqual(ReleaseV0160LocalExecutionArtifactManifest.requiredValidationAnchors, requiredAnchors)
+        for anchor in requiredAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in source")
+            XCTAssertTrue(docs.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+        XCTAssertTrue(source.contains("ReleaseV0160LocalExecutionArtifactStore"))
+        XCTAssertTrue(source.contains("appendOnlyArtifactPersistence=true"))
+        XCTAssertTrue(source.contains("redactedExportBundleSupported=true"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.0-local-execution-artifact-store.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.0-local-execution-artifact-store.sh"))
+        XCTAssertTrue(docs.contains("#1106 / GH-1106"))
+        XCTAssertTrue(docs.contains("append-only JSONL"))
+        XCTAssertTrue(docs.contains("不授权 production cutover"))
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
