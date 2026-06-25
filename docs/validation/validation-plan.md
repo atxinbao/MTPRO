@@ -116,6 +116,21 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift`、`docs/contracts/release-v0.16.0-oms-observed-status-reconciliation-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-oms-observed-status-reconciliation.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1107 只实现本地 OMS observed-status reconciliation。它必须从 #1106 replay 出来的 submit、cancel 和 status artifacts 生成 reconciliation report；submit observed、cancel observed、unknown status、expected-state mismatch、missing cancel artifact 和非 status evidence 都必须有 deterministic pass / fail-closed 证据；不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order，不授权 production cutover。
 
+## GH-1108 Release v0.16.0 Dashboard Artifact-backed Execution View Guard
+
+- `GH-1108-VERIFY-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW`
+- `TVM-RELEASE-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW`
+- `V0160-008-LOCAL-ARTIFACT-BACKED-ROWS`
+- `V0160-008-ACTION-SEQUENCE-VISIBLE`
+- `V0160-008-CHECKSUMS-VISIBLE`
+- `V0160-008-OMS-RECONCILIATION-RESULT-VISIBLE`
+- `V0160-008-DASHBOARD-READ-ONLY-NO-COMMANDS`
+- `V0160-008-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh`
+- Focused tests: `testGH1108DashboardArtifactBackedExecutionViewShowsLocalArtifactsWithoutCommands` and `testGH1108DashboardArtifactBackedExecutionViewIsAnchoredInV0160Guards`
+- Evidence files: `Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift`、`Sources/Dashboard/DashboardShell.swift`、`docs/contracts/release-v0.16.0-dashboard-artifact-backed-execution-view-contract.md`、`Tests/AppTests/AppTests.swift`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1108 只实现 Dashboard read-only artifact-backed execution view。它必须从本地 read-model artifact 展示 action sequence、artifact checksums、artifact paths 和 OMS reconciliation result；Dashboard command surface、trading button、order form、live command、production endpoint、broker endpoint、production secret、production submit / cancel / replace 和 production cutover 全部保持关闭。
+
 ## GH-1094 Release v0.15.1 v0.15.0 Release Fact Sync / Stale Wording Guard
 
 - `GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC`

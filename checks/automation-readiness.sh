@@ -10793,8 +10793,8 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStat
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" "unknownStatusFailsClosed=true"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" "mismatchFailsClosed=true"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" "localArtifactsOnly=true"
-require_contains "README.md" "#1107 OMS observed status reconciliation is current WIP=1"
-require_contains "GOAL.md" "#1107 OMS observed status reconciliation is current WIP=1"
+require_contains "README.md" "#1107 OMS observed status reconciliation closed / done"
+require_contains "GOAL.md" "#1107 OMS observed status reconciliation closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 OMS observed status reconciliation anchor"
 require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 OMS observed status reconciliation"
 require_contains "docs/validation/validation-plan.md" "GH-1107 Release v0.16.0 OMS Observed Status Reconciliation Guard"
@@ -10803,5 +10803,49 @@ require_contains "docs/release/release-publication-policy.md" "V0160-007-SUBMIT-
 require_contains "checks/run.sh" "bash checks/verify-v0.16.0-oms-observed-status-reconciliation.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-oms-observed-status-reconciliation.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1107ReleaseV0160OMSObservedStatusReconciliationFromLocalArtifactsFailsClosed"
+
+require_file "checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh"
+require_file "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift"
+require_file "docs/contracts/release-v0.16.0-dashboard-artifact-backed-execution-view-contract.md"
+for file in \
+  "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" \
+  "docs/contracts/release-v0.16.0-dashboard-artifact-backed-execution-view-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1108-VERIFY-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW"
+  require_contains "$file" "TVM-RELEASE-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW"
+  require_contains "$file" "V0160-008-LOCAL-ARTIFACT-BACKED-ROWS"
+  require_contains "$file" "V0160-008-ACTION-SEQUENCE-VISIBLE"
+  require_contains "$file" "V0160-008-CHECKSUMS-VISIBLE"
+  require_contains "$file" "V0160-008-OMS-RECONCILIATION-RESULT-VISIBLE"
+  require_contains "$file" "V0160-008-DASHBOARD-READ-ONLY-NO-COMMANDS"
+  require_contains "$file" "V0160-008-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" "ReleaseV0160DashboardArtifactBackedExecutionViewModel"
+require_contains "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" "dashboardArtifactBackedExecutionView=ReleaseV0160DashboardArtifactBackedExecutionViewModel"
+require_contains "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" "localArtifactBackedRows=true"
+require_contains "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" "actionSequenceVisible=true"
+require_contains "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" "checksumsVisible=true"
+require_contains "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" "omsReconciliationResultVisible=true"
+require_contains "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" "dashboardCommandSurfaceEnabled=false"
+require_contains "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" "tradingButtonVisible=false"
+require_contains "Sources/Dashboard/DashboardShell.swift" "releaseV0160DashboardArtifactBackedExecutionView"
+require_contains "Sources/Dashboard/DashboardShell.swift" "DashboardReleaseV0160ArtifactBackedExecutionPanel"
+require_contains "README.md" "#1108 Dashboard artifact-backed execution view is current WIP=1"
+require_contains "GOAL.md" "#1108 Dashboard artifact-backed execution view is current WIP=1"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 Dashboard artifact-backed execution view anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 Dashboard artifact-backed execution view"
+require_contains "docs/validation/validation-plan.md" "GH-1108 Release v0.16.0 Dashboard Artifact-backed Execution View Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW"
+require_contains "docs/release/release-publication-policy.md" "V0160-008-LOCAL-ARTIFACT-BACKED-ROWS"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh"
+require_contains "Tests/AppTests/AppTests.swift" "testGH1108DashboardArtifactBackedExecutionViewShowsLocalArtifactsWithoutCommands"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1108DashboardArtifactBackedExecutionViewIsAnchoredInV0160Guards"
 
 printf 'MTPRO automation readiness checks passed.\n'
