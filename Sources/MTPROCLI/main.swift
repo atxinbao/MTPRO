@@ -162,6 +162,7 @@ private enum MTPROStrictCLI {
         "verify",
         ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.cliCommand,
         ReleaseV0160CLISubmitExecutionFlow.cliCommand,
+        ReleaseV0160CLICancelExecutionFlow.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -201,6 +202,8 @@ private enum MTPROStrictCLI {
             return try await ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.commandLineOutput(arguments: arguments)
         case ReleaseV0160CLISubmitExecutionFlow.cliCommand:
             return try await ReleaseV0160CLISubmitExecutionFlow.commandLineOutput(arguments: arguments)
+        case ReleaseV0160CLICancelExecutionFlow.cliCommand:
+            return try await ReleaseV0160CLICancelExecutionFlow.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -259,6 +262,10 @@ private enum MTPROStrictCLI {
             "releaseV0160CLISubmitValidationAnchor=TVM-RELEASE-V0160-CLI-SUBMIT-FLOW",
             "releaseV0160CLISubmitVerificationAnchor=GH-1103-VERIFY-V0160-CLI-SUBMIT-FLOW",
             "releaseV0160CLISubmitConfirmationPhrase=\(ReleaseV0160OperatorRunMetadata.requiredOperatorConfirmationPhrase)",
+            "releaseV0160CLICancelCommand=\(ReleaseV0160CLICancelExecutionFlow.cliCommand)",
+            "releaseV0160CLICancelValidationAnchor=TVM-RELEASE-V0160-CLI-CANCEL-FLOW",
+            "releaseV0160CLICancelVerificationAnchor=GH-1104-VERIFY-V0160-CLI-CANCEL-FLOW",
+            "releaseV0160CLICancelConfirmationPhrase=\(ReleaseV0160OperatorRunMetadata.requiredOperatorConfirmationPhrase)",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
             "productionReadinessArtifactStoreImplemented=true",

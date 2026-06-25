@@ -56,6 +56,25 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160CLISubmitExecutionFlow.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-cli-submit-flow-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-cli-submit-flow.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1103 is the v0.16.0 stable CLI submit flow issue only. It exposes `spot-testnet-submit`, delegates submit to the v0.15.1 guarded runtime, requires explicit v0.16 operator confirmation and testnet-env credential profile, and returns redacted artifact path / checksum evidence. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
 
+## TVM-RELEASE-V0160-CLI-CANCEL-FLOW
+
+- TVM-RELEASE-V0160-CLI-CANCEL-FLOW
+- GH-1104-VERIFY-V0160-CLI-CANCEL-FLOW
+- V0160-004-STABLE-CLI-CANCEL
+- V0160-004-SUBMIT-ARTIFACT-IDENTITY
+- V0160-004-V0151-RUNTIME-DELEGATION
+- V0160-004-EXPLICIT-OPERATOR-CONFIRMATION
+- V0160-004-TESTNET-CREDENTIAL-PROFILE
+- V0160-004-REDACTED-ORDER-REFERENCE
+- V0160-004-APPEND-ONLY-EVENT-EVIDENCE
+- V0160-004-MISSING-PRIOR-ARTIFACT-FAILS-CLOSED
+- V0160-004-NO-PRODUCTION-CUTOVER
+- GH-1104 Release v0.16.0 CLI Cancel Flow Guard
+- `bash checks/verify-v0.16.0-cli-cancel-flow.sh`
+- `swift test --filter TargetGraphTests/testGH1104ReleaseV0160CLICancelFlowConsumesSubmitArtifactAndFailsClosed`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-cli-cancel-flow-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-cli-cancel-flow.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1104 is the v0.16.0 stable CLI cancel flow issue only. It exposes `spot-testnet-cancel`, consumes source submit evidence JSON and network event log JSON, delegates cancel to the v0.15.1 guarded runtime, requires explicit v0.16 operator confirmation and testnet-env credential profile, and returns redacted order reference / artifact path / checksum evidence. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
+
 ## TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC
 
 - TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC
