@@ -21,6 +21,7 @@
 - `GH-1106 V160-006 Add local execution artifact store`
 - `GH-1107 V160-007 Add OMS observed status reconciliation`
 - `GH-1108 V160-008 Add Dashboard artifact-backed execution view`
+- `GH-1109 V160-009 Add failure recovery workflow`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -504,6 +505,28 @@ v0.15.1 是 v0.15.0 后的 real testnet execution hardening patch closeout。#11
 #1108 是 v0.16.0 Binance Spot Testnet Operator Execution Beta 的 Dashboard artifact-backed execution view slice。它只授权 Dashboard 消费本地 read-model artifacts，并以只读方式展示 artifact-backed rows、action sequence、artifact checksums、artifact paths 和 OMS reconciliation result。
 
 本 `v0.16.0` Dashboard artifact-backed execution view slice 不创建 tag，不创建 GitHub Release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order，不提供 Dashboard command surface、trading button、order form 或 live command。
+
+## V0160-009-SUBMIT-SUCCEEDED-ARTIFACT-WRITE-FAILED
+
+`GH-1109-VERIFY-V0160-FAILURE-RECOVERY-WORKFLOW`
+
+`TVM-RELEASE-V0160-FAILURE-RECOVERY-WORKFLOW`
+
+`V0160-009-SUBMIT-SUCCEEDED-ARTIFACT-WRITE-FAILED`
+
+`V0160-009-NETWORK-TIMEOUT-POSSIBLE-EXCHANGE-RECEIPT`
+
+`V0160-009-CANCEL-UNKNOWN-STATE`
+
+`V0160-009-STATUS-QUERY-COMPENSATION-WORKFLOW`
+
+`V0160-009-NO-AUTOMATIC-PRODUCTION-RETRY`
+
+`V0160-009-NO-PRODUCTION-CUTOVER`
+
+#1109 是 v0.16.0 Binance Spot Testnet Operator Execution Beta 的 failure recovery workflow slice。它只授权本地 recovery runbook evidence，覆盖 submit 可能成功但 artifact 写入失败、network timeout 但 exchange receipt 未知、cancel unknown state，以及 manual status query compensation workflow。
+
+本 `v0.16.0` failure recovery slice 不创建 tag，不创建 GitHub Release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order，不自动 retry 到 production。后续 review / audit / closeout 只有在后续 GitHub issue scope 明确授权时才能实现。
 
 #1099 是 v0.15.1 对 #1098 internal gate 后的 submit-to-cancel identity hardening slice：它要求 submit evidence 生成 deterministic redacted `newClientOrderId` reference，cancel 只能从 submit evidence 派生短生命周期 identity material，raw / untracked order id 必须 fail-closed。该 policy 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 

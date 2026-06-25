@@ -10836,8 +10836,8 @@ require_contains "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedEx
 require_contains "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" "tradingButtonVisible=false"
 require_contains "Sources/Dashboard/DashboardShell.swift" "releaseV0160DashboardArtifactBackedExecutionView"
 require_contains "Sources/Dashboard/DashboardShell.swift" "DashboardReleaseV0160ArtifactBackedExecutionPanel"
-require_contains "README.md" "#1108 Dashboard artifact-backed execution view is current WIP=1"
-require_contains "GOAL.md" "#1108 Dashboard artifact-backed execution view is current WIP=1"
+require_contains "README.md" "#1108 Dashboard artifact-backed execution view closed / done"
+require_contains "GOAL.md" "#1108 Dashboard artifact-backed execution view closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 Dashboard artifact-backed execution view anchor"
 require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 Dashboard artifact-backed execution view"
 require_contains "docs/validation/validation-plan.md" "GH-1108 Release v0.16.0 Dashboard Artifact-backed Execution View Guard"
@@ -10847,5 +10847,45 @@ require_contains "checks/run.sh" "bash checks/verify-v0.16.0-dashboard-artifact-
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh"
 require_contains "Tests/AppTests/AppTests.swift" "testGH1108DashboardArtifactBackedExecutionViewShowsLocalArtifactsWithoutCommands"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1108DashboardArtifactBackedExecutionViewIsAnchoredInV0160Guards"
+
+require_file "checks/verify-v0.16.0-failure-recovery-workflow.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift"
+require_file "docs/contracts/release-v0.16.0-failure-recovery-workflow-contract.md"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" \
+  "docs/contracts/release-v0.16.0-failure-recovery-workflow-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.16.0-failure-recovery-workflow.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1109-VERIFY-V0160-FAILURE-RECOVERY-WORKFLOW"
+  require_contains "$file" "TVM-RELEASE-V0160-FAILURE-RECOVERY-WORKFLOW"
+  require_contains "$file" "V0160-009-SUBMIT-SUCCEEDED-ARTIFACT-WRITE-FAILED"
+  require_contains "$file" "V0160-009-NETWORK-TIMEOUT-POSSIBLE-EXCHANGE-RECEIPT"
+  require_contains "$file" "V0160-009-CANCEL-UNKNOWN-STATE"
+  require_contains "$file" "V0160-009-STATUS-QUERY-COMPENSATION-WORKFLOW"
+  require_contains "$file" "V0160-009-NO-AUTOMATIC-PRODUCTION-RETRY"
+  require_contains "$file" "V0160-009-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" "ReleaseV0160FailureRecoveryWorkflowEngine"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" "failureRecoveryWorkflow=ReleaseV0160FailureRecoveryWorkflowEngine"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" "submitSucceededArtifactWriteFailedCovered=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" "networkTimeoutPossibleExchangeReceiptCovered=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" "cancelUnknownStateCovered=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" "statusQueryCompensationWorkflowCovered=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" "noAutomaticRetryIntoProduction=true"
+require_contains "README.md" "#1109 failure recovery workflow is current WIP=1"
+require_contains "GOAL.md" "#1109 failure recovery workflow is current WIP=1"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 failure recovery workflow anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 failure recovery workflow"
+require_contains "docs/validation/validation-plan.md" "GH-1109 Release v0.16.0 Failure Recovery Workflow Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-FAILURE-RECOVERY-WORKFLOW"
+require_contains "docs/release/release-publication-policy.md" "V0160-009-SUBMIT-SUCCEEDED-ARTIFACT-WRITE-FAILED"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.0-failure-recovery-workflow.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-failure-recovery-workflow.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1109ReleaseV0160FailureRecoveryWorkflowHandlesAmbiguousStatesFailClosed"
 
 printf 'MTPRO automation readiness checks passed.\n'

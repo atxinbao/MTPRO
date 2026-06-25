@@ -3783,3 +3783,18 @@
 - boundary evidence: CLI prints only redacted evidence handles and keeps raw secret, raw credential, raw order identity, raw broker payload, production endpoint, broker endpoint, production order and production cutover disabled.
 - dependency evidence: #1073 starts after #1072 closed / done with merged PR evidence and main fast-forward.
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no raw secret / credential / order identity / broker payload output, no production order, no non-Binance venue, no Futures / USDⓈ-M execution in v0.15.0 MVP.
+
+## TVM-RELEASE-V0160-FAILURE-RECOVERY-WORKFLOW
+
+- GH-1109-VERIFY-V0160-FAILURE-RECOVERY-WORKFLOW
+- V0160-009-SUBMIT-SUCCEEDED-ARTIFACT-WRITE-FAILED
+- V0160-009-NETWORK-TIMEOUT-POSSIBLE-EXCHANGE-RECEIPT
+- V0160-009-CANCEL-UNKNOWN-STATE
+- V0160-009-STATUS-QUERY-COMPENSATION-WORKFLOW
+- V0160-009-NO-AUTOMATIC-PRODUCTION-RETRY
+- V0160-009-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.16.0-failure-recovery-workflow.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1109ReleaseV0160FailureRecoveryWorkflowHandlesAmbiguousStatesFailClosed`
+- validation surface: local recovery runbook evidence for ambiguous Binance Spot Testnet operator states.
+- fail-closed evidence: partial artifact, timeout, unknown cancel state and compensation workflow all require status query compensation, operator review and close-failed-no-retry.
+- forbidden scope: no automatic production retry, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.
