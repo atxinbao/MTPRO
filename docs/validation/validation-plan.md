@@ -5715,3 +5715,21 @@ swift test
 - validation surface: `ReleaseV0160FailureRecoveryWorkflowEngine` consumes local #1106 artifact replay and #1107 reconciliation report to generate recovery runbook evidence.
 - fail-closed evidence: submit succeeded / artifact write failed, network timeout with possible exchange receipt, cancel unknown state and status query compensation all freeze the run, require operator review, require status query compensation and close failed with no automatic retry.
 - boundary evidence: no automatic production retry, no production cutover, no production secret read, no production endpoint / broker endpoint connection and no production order.
+
+## GH-1110 Release v0.16.0 Beta Safety Guards
+
+- GH-1110-VERIFY-V0160-BETA-SAFETY-GUARDS
+- TVM-RELEASE-V0160-BETA-SAFETY-GUARDS
+- V0160-010-MAX-QUANTITY-GUARD
+- V0160-010-MAX-ORDERS-PER-RUN-GUARD
+- V0160-010-COOLDOWN-GUARD
+- V0160-010-SYMBOL-ALLOWLIST-GUARD
+- V0160-010-TESTNET-ONLY-CREDENTIAL-PROFILE
+- V0160-010-TRANSPORT-PRECHECK-FAILS-CLOSED
+- V0160-010-REDACTED-SAFETY-EVIDENCE
+- V0160-010-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.16.0-beta-safety-guards.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1110ReleaseV0160BetaSafetyGuardsFailClosedBeforeTransport`
+- validation surface: `ReleaseV0160BetaSafetyGuard` evaluates quantity, orders-per-run, cooldown, symbol allowlist and testnet-only credential profile before submit / cancel / status-query transport.
+- fail-closed evidence: max quantity overflow, per-run order count overflow, cooldown violation, disallowed symbol and non-testnet env profile all produce redacted safety evidence and then fail closed before transport.
+- boundary evidence: no production cutover, no production secret read, no production endpoint / broker endpoint connection, no raw secret / raw credential / raw order identity / raw broker payload, and no production order.

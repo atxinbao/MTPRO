@@ -450,6 +450,7 @@ public enum ReleaseV0160CLISubmitExecutionFlow {
         cancelTransport: (any ReleaseV0150BinanceSpotTestnetCancelTransport)? = nil
     ) async throws -> ReleaseV0160CLISubmitExecutionResult {
         let command = try parse(arguments: arguments)
+        try ReleaseV0160BetaSafetyGuard.validate(command: command)
         let delegated = try await ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow.result(
             arguments: command.delegatedV0151Arguments,
             environment: environment,

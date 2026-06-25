@@ -915,6 +915,7 @@ public enum ReleaseV0160CLIOrderStatusQueryFlow {
         statusTransport: (any ReleaseV0160BinanceSpotTestnetOrderStatusTransport)? = nil
     ) async throws -> ReleaseV0160CLIOrderStatusQueryResult {
         let command = try parse(arguments: arguments)
+        try ReleaseV0160BetaSafetyGuard.validate(command: command)
         let credentialProvider = try ReleaseV0151BinanceSpotTestnetCLICredentialProvider(
             kind: command.credentialProviderKind,
             environment: environment,

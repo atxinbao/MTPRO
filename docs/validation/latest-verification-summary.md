@@ -2177,3 +2177,25 @@ bash checks/run.sh
 - #1073 requires explicit `--testnet`, an exact operator confirmation phrase, redacted output, and an append-only network event log reference before any guarded testnet action is represented.
 - #1073 rejects missing testnet mode, wrong confirmation phrase, non-redacted output and production fallback flags fail-closed.
 - #1073 does not read production secret, does not connect production endpoint / broker endpoint, does not output raw secret / credential / order identity / broker payload, does not submit production order, and does not authorize production cutover.
+
+## Release v0.16.0 Beta Safety Guards Snapshot
+
+- v0.16.0 beta safety guards
+- GH-1110-VERIFY-V0160-BETA-SAFETY-GUARDS
+- TVM-RELEASE-V0160-BETA-SAFETY-GUARDS
+- V0160-010-MAX-QUANTITY-GUARD
+- V0160-010-MAX-ORDERS-PER-RUN-GUARD
+- V0160-010-COOLDOWN-GUARD
+- V0160-010-SYMBOL-ALLOWLIST-GUARD
+- V0160-010-TESTNET-ONLY-CREDENTIAL-PROFILE
+- V0160-010-TRANSPORT-PRECHECK-FAILS-CLOSED
+- V0160-010-REDACTED-SAFETY-EVIDENCE
+- V0160-010-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift`
+- Flow sources: `Sources/ExecutionClient/FutureGate/ReleaseV0160CLISubmitExecutionFlow.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift`
+- Contract source: `docs/contracts/release-v0.16.0-beta-safety-guards-contract.md`
+- Validation source: `checks/verify-v0.16.0-beta-safety-guards.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH1110ReleaseV0160BetaSafetyGuardsFailClosedBeforeTransport`
+- #1110 adds transport-precheck beta safety evidence for quantity, orders-per-run, cooldown, symbol allowlist and testnet-only credential profile.
+- #1110 proves over-limit quantity fails before transport by keeping submit / cancel / status transport invocation counts at zero.
+- #1110 does not read production secret, does not connect production endpoint / broker endpoint, does not submit production order, and does not authorize production cutover.

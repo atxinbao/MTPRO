@@ -761,3 +761,30 @@ Required validation：
 - testnetOrderRoutingAllowed=false
 
 GH-808 不发布 v0.8.0，不创建下一 Project / Issue，不推进下一 Todo，不启动 Linear / Symphony / Graphify / code-index / Figma，不修改 production capability，不读取 secret，不连接 endpoint，不提交订单。
+
+## GH-1110 Release v0.16.0 Beta Safety Guard Policy
+
+`GH-1110-VERIFY-V0160-BETA-SAFETY-GUARDS`
+
+`TVM-RELEASE-V0160-BETA-SAFETY-GUARDS`
+
+Release v0.16.0 Binance Spot Testnet Operator Execution Beta 在任何 submit / cancel / status-query transport call 之前必须执行本地 beta safety guard：
+
+- `V0160-010-MAX-QUANTITY-GUARD`
+- `V0160-010-MAX-ORDERS-PER-RUN-GUARD`
+- `V0160-010-COOLDOWN-GUARD`
+- `V0160-010-SYMBOL-ALLOWLIST-GUARD`
+- `V0160-010-TESTNET-ONLY-CREDENTIAL-PROFILE`
+- `V0160-010-TRANSPORT-PRECHECK-FAILS-CLOSED`
+- `V0160-010-REDACTED-SAFETY-EVIDENCE`
+- `V0160-010-NO-PRODUCTION-CUTOVER`
+
+Required validation：
+
+- `bash checks/verify-v0.16.0-beta-safety-guards.sh`
+- `swift test --filter TargetGraphTests/testGH1110ReleaseV0160BetaSafetyGuardsFailClosedBeforeTransport`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-1110 不发布 tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不启动 Linear / Symphony / Graphify / code-index / Figma，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。

@@ -3798,3 +3798,20 @@
 - validation surface: local recovery runbook evidence for ambiguous Binance Spot Testnet operator states.
 - fail-closed evidence: partial artifact, timeout, unknown cancel state and compensation workflow all require status query compensation, operator review and close-failed-no-retry.
 - forbidden scope: no automatic production retry, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.
+
+## TVM-RELEASE-V0160-BETA-SAFETY-GUARDS
+
+- GH-1110-VERIFY-V0160-BETA-SAFETY-GUARDS
+- V0160-010-MAX-QUANTITY-GUARD
+- V0160-010-MAX-ORDERS-PER-RUN-GUARD
+- V0160-010-COOLDOWN-GUARD
+- V0160-010-SYMBOL-ALLOWLIST-GUARD
+- V0160-010-TESTNET-ONLY-CREDENTIAL-PROFILE
+- V0160-010-TRANSPORT-PRECHECK-FAILS-CLOSED
+- V0160-010-REDACTED-SAFETY-EVIDENCE
+- V0160-010-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.16.0-beta-safety-guards.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1110ReleaseV0160BetaSafetyGuardsFailClosedBeforeTransport`
+- validation surface: submit / cancel / status-query operator flows call `ReleaseV0160BetaSafetyGuard.validate(command:)` before credential resolution or transport.
+- fail-closed evidence: over-limit quantity, over-count run, cooldown violation, disallowed symbol and production-like credential env profile fail closed with redacted safety evidence.
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.
