@@ -10877,8 +10877,8 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecovery
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" "cancelUnknownStateCovered=true"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" "statusQueryCompensationWorkflowCovered=true"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" "noAutomaticRetryIntoProduction=true"
-require_contains "README.md" "#1109 failure recovery workflow is current WIP=1"
-require_contains "GOAL.md" "#1109 failure recovery workflow is current WIP=1"
+require_contains "README.md" "#1109 failure recovery workflow closed / done"
+require_contains "GOAL.md" "#1109 failure recovery workflow closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 failure recovery workflow anchor"
 require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 failure recovery workflow"
 require_contains "docs/validation/validation-plan.md" "GH-1109 Release v0.16.0 Failure Recovery Workflow Guard"
@@ -10887,5 +10887,52 @@ require_contains "docs/release/release-publication-policy.md" "V0160-009-SUBMIT-
 require_contains "checks/run.sh" "bash checks/verify-v0.16.0-failure-recovery-workflow.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-failure-recovery-workflow.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1109ReleaseV0160FailureRecoveryWorkflowHandlesAmbiguousStatesFailClosed"
+
+require_file "checks/verify-v0.16.0-beta-safety-guards.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift"
+require_file "docs/contracts/release-v0.16.0-beta-safety-guards-contract.md"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift" \
+  "docs/contracts/release-v0.16.0-beta-safety-guards-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.16.0-beta-safety-guards.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1110-VERIFY-V0160-BETA-SAFETY-GUARDS"
+  require_contains "$file" "TVM-RELEASE-V0160-BETA-SAFETY-GUARDS"
+  require_contains "$file" "V0160-010-MAX-QUANTITY-GUARD"
+  require_contains "$file" "V0160-010-MAX-ORDERS-PER-RUN-GUARD"
+  require_contains "$file" "V0160-010-COOLDOWN-GUARD"
+  require_contains "$file" "V0160-010-SYMBOL-ALLOWLIST-GUARD"
+  require_contains "$file" "V0160-010-TESTNET-ONLY-CREDENTIAL-PROFILE"
+  require_contains "$file" "V0160-010-TRANSPORT-PRECHECK-FAILS-CLOSED"
+  require_contains "$file" "V0160-010-REDACTED-SAFETY-EVIDENCE"
+  require_contains "$file" "V0160-010-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift" "ReleaseV0160BetaSafetyGuard"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift" "betaSafetyGuard=ReleaseV0160BetaSafetyGuard"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift" "maxQuantityGuardEnabled=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift" "maxOrdersPerRunGuardEnabled=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift" "cooldownGuardEnabled=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift" "symbolAllowlistGuardEnabled=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift" "testnetOnlyCredentialProfileGuardEnabled=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift" "transportPrecheckFailsClosed=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift" "redactedSafetyEvidence=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLISubmitExecutionFlow.swift" "ReleaseV0160BetaSafetyGuard.validate(command: command)"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift" "ReleaseV0160BetaSafetyGuard.validate(command: command)"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift" "ReleaseV0160BetaSafetyGuard.validate(command: command)"
+require_contains "README.md" "#1110 beta safety guards is current WIP=1"
+require_contains "GOAL.md" "#1110 beta safety guards is current WIP=1"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 beta safety guards anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 beta safety guards"
+require_contains "docs/validation/validation-plan.md" "GH-1110 Release v0.16.0 Beta Safety Guards"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-BETA-SAFETY-GUARDS"
+require_contains "docs/release/release-publication-policy.md" "V0160-010-MAX-QUANTITY-GUARD"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.0-beta-safety-guards.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-beta-safety-guards.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1110ReleaseV0160BetaSafetyGuardsFailClosedBeforeTransport"
 
 printf 'MTPRO automation readiness checks passed.\n'

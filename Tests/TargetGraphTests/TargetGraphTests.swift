@@ -45158,6 +45158,213 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(docs.contains("不授权 production cutover"))
     }
 
+    func testGH1110ReleaseV0160BetaSafetyGuardsFailClosedBeforeTransport() async throws {
+        // 测试场景：GH-1110 在 v0.16.0 submit / cancel / status-query transport 前增加 beta safety guard。
+        // 验证目的：quantity、orders-per-run、cooldown、symbol allowlist 和 testnet credential profile
+        // 任一失败都必须先生成脱敏 evidence，再在任何 transport call 之前 fail closed。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1110-VERIFY-V0160-BETA-SAFETY-GUARDS",
+            "TVM-RELEASE-V0160-BETA-SAFETY-GUARDS",
+            "V0160-010-MAX-QUANTITY-GUARD",
+            "V0160-010-MAX-ORDERS-PER-RUN-GUARD",
+            "V0160-010-COOLDOWN-GUARD",
+            "V0160-010-SYMBOL-ALLOWLIST-GUARD",
+            "V0160-010-TESTNET-ONLY-CREDENTIAL-PROFILE",
+            "V0160-010-TRANSPORT-PRECHECK-FAILS-CLOSED",
+            "V0160-010-REDACTED-SAFETY-EVIDENCE",
+            "V0160-010-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let validRequest = ReleaseV0160BetaSafetyGuardRequest(
+            runID: .constant("gh-1110-v0160-beta-safety-run"),
+            action: .submit,
+            symbol: "btcusdt",
+            quantity: "0.05",
+            credentialProviderKind: .testnetEnvironment,
+            credentialReferenceID: .constant("gh-1110-binance-spot-testnet-credential"),
+            apiKeyEnvironmentName: "MTPRO_BINANCE_SPOT_TESTNET_API_KEY",
+            secretEnvironmentName: "MTPRO_BINANCE_SPOT_TESTNET_SECRET_KEY",
+            attemptedOrderCount: 1,
+            timestampMilliseconds: 1_704_067_800_000
+        )
+        let validEvidence = try ReleaseV0160BetaSafetyGuard.validate(request: validRequest)
+        let validOutput = validEvidence.redactedOutputLines.joined(separator: "\n")
+        XCTAssertTrue(validEvidence.boundaryHeld)
+        XCTAssertEqual(validEvidence.issueID, .constant("GH-1110"))
+        XCTAssertEqual(validEvidence.action, .submit)
+        XCTAssertEqual(validEvidence.symbol, "BTCUSDT")
+        XCTAssertTrue(validEvidence.quantityWithinLimit)
+        XCTAssertTrue(validEvidence.maxOrdersPerRunHeld)
+        XCTAssertTrue(validEvidence.cooldownHeld)
+        XCTAssertTrue(validEvidence.symbolAllowlistHeld)
+        XCTAssertTrue(validEvidence.testnetOnlyCredentialProfileHeld)
+        XCTAssertTrue(validEvidence.transportPrecheckPassed)
+        XCTAssertTrue(validEvidence.redactedSafetyEvidence)
+        XCTAssertTrue(validOutput.contains("credentialReference=<redacted>"))
+        XCTAssertFalse(validOutput.contains("gh-1110-testnet-api-key"))
+        XCTAssertFalse(validOutput.contains("gh-1110-testnet-secret"))
+        XCTAssertFalse(validEvidence.rawSecretPrinted)
+        XCTAssertFalse(validEvidence.rawCredentialPrinted)
+        XCTAssertFalse(validEvidence.rawOrderIdentityPrinted)
+        XCTAssertFalse(validEvidence.rawBrokerPayloadPrinted)
+        XCTAssertFalse(validEvidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(validEvidence.productionSecretAutoRead)
+        XCTAssertFalse(validEvidence.productionEndpointConnected)
+        XCTAssertFalse(validEvidence.brokerEndpointConnected)
+        XCTAssertFalse(validEvidence.productionOrderSubmitted)
+        XCTAssertFalse(validEvidence.productionCutoverAuthorized)
+
+        let quantityFailure = ReleaseV0160BetaSafetyGuard.evaluate(
+            request: ReleaseV0160BetaSafetyGuardRequest(
+                runID: validRequest.runID,
+                action: .submit,
+                symbol: "BTCUSDT",
+                quantity: "0.06",
+                credentialProviderKind: .testnetEnvironment,
+                credentialReferenceID: validRequest.credentialReferenceID,
+                apiKeyEnvironmentName: validRequest.apiKeyEnvironmentName,
+                secretEnvironmentName: validRequest.secretEnvironmentName,
+                attemptedOrderCount: 1,
+                timestampMilliseconds: validRequest.timestampMilliseconds
+            )
+        )
+        XCTAssertFalse(quantityFailure.quantityWithinLimit)
+        XCTAssertTrue(quantityFailure.failureReasons.contains("max-quantity"))
+        XCTAssertThrowsError(try ReleaseV0160BetaSafetyGuard.validate(
+            request: ReleaseV0160BetaSafetyGuardRequest(
+                runID: validRequest.runID,
+                action: .submit,
+                symbol: "BTCUSDT",
+                quantity: "0.06",
+                credentialProviderKind: .testnetEnvironment,
+                credentialReferenceID: validRequest.credentialReferenceID,
+                apiKeyEnvironmentName: validRequest.apiKeyEnvironmentName,
+                secretEnvironmentName: validRequest.secretEnvironmentName,
+                attemptedOrderCount: 1,
+                timestampMilliseconds: validRequest.timestampMilliseconds
+            )
+        ))
+        XCTAssertThrowsError(try ReleaseV0160BetaSafetyGuard.validate(
+            request: ReleaseV0160BetaSafetyGuardRequest(
+                runID: validRequest.runID,
+                action: .cancel,
+                symbol: "BTCUSDT",
+                quantity: "0.05",
+                credentialProviderKind: .testnetEnvironment,
+                credentialReferenceID: validRequest.credentialReferenceID,
+                apiKeyEnvironmentName: validRequest.apiKeyEnvironmentName,
+                secretEnvironmentName: validRequest.secretEnvironmentName,
+                attemptedOrderCount: 2,
+                timestampMilliseconds: validRequest.timestampMilliseconds
+            )
+        ))
+        XCTAssertThrowsError(try ReleaseV0160BetaSafetyGuard.validate(
+            request: ReleaseV0160BetaSafetyGuardRequest(
+                runID: validRequest.runID,
+                action: .statusQuery,
+                symbol: "BTCUSDT",
+                quantity: "0.05",
+                credentialProviderKind: .testnetEnvironment,
+                credentialReferenceID: validRequest.credentialReferenceID,
+                apiKeyEnvironmentName: validRequest.apiKeyEnvironmentName,
+                secretEnvironmentName: validRequest.secretEnvironmentName,
+                attemptedOrderCount: 1,
+                timestampMilliseconds: validRequest.timestampMilliseconds,
+                previousTransportAttemptMilliseconds: validRequest.timestampMilliseconds - 5_000
+            )
+        ))
+        XCTAssertThrowsError(try ReleaseV0160BetaSafetyGuard.validate(
+            request: ReleaseV0160BetaSafetyGuardRequest(
+                runID: validRequest.runID,
+                action: .submit,
+                symbol: "BNBUSDT",
+                quantity: "0.05",
+                credentialProviderKind: .testnetEnvironment,
+                credentialReferenceID: validRequest.credentialReferenceID,
+                apiKeyEnvironmentName: validRequest.apiKeyEnvironmentName,
+                secretEnvironmentName: validRequest.secretEnvironmentName,
+                attemptedOrderCount: 1,
+                timestampMilliseconds: validRequest.timestampMilliseconds
+            )
+        ))
+        XCTAssertThrowsError(try ReleaseV0160BetaSafetyGuard.validate(
+            request: ReleaseV0160BetaSafetyGuardRequest(
+                runID: validRequest.runID,
+                action: .submit,
+                symbol: "BTCUSDT",
+                quantity: "0.05",
+                credentialProviderKind: .testnetEnvironment,
+                credentialReferenceID: validRequest.credentialReferenceID,
+                apiKeyEnvironmentName: "MTPRO_BINANCE_PRODUCTION_API_KEY",
+                secretEnvironmentName: "MTPRO_BINANCE_PRODUCTION_SECRET_KEY",
+                attemptedOrderCount: 1,
+                timestampMilliseconds: validRequest.timestampMilliseconds
+            )
+        ))
+
+        let environment = [
+            "MTPRO_BINANCE_SPOT_TESTNET_API_KEY": "gh-1110-testnet-api-key",
+            "MTPRO_BINANCE_SPOT_TESTNET_SECRET_KEY": "gh-1110-testnet-secret"
+        ]
+        let transport = GH1097RecordingSpotTestnetTransport()
+        do {
+            _ = try await ReleaseV0160CLISubmitExecutionFlow.result(
+                arguments: gh1103Arguments(quantity: "0.06"),
+                environment: environment,
+                submitTransport: transport,
+                cancelTransport: transport
+            )
+            XCTFail("quantity over beta limit must fail before transport")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("max-quantity"))
+        }
+        let capturedCounts = await transport.capturedCounts()
+        XCTAssertEqual(capturedCounts.submit, 0)
+        XCTAssertEqual(capturedCounts.cancel, 0)
+        XCTAssertEqual(capturedCounts.status, 0)
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift")
+        let submitSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160CLISubmitExecutionFlow.swift")
+        let cancelSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift")
+        let statusSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift")
+        let docs = try read("docs/contracts/release-v0.16.0-beta-safety-guards-contract.md")
+        let verifier = try read("checks/verify-v0.16.0-beta-safety-guards.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertEqual(ReleaseV0160BetaSafetyGuardEvidence.requiredValidationAnchors, requiredAnchors)
+        for anchor in requiredAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in source")
+            XCTAssertTrue(docs.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+        XCTAssertTrue(submitSource.contains("ReleaseV0160BetaSafetyGuard.validate(command: command)"))
+        XCTAssertTrue(cancelSource.contains("ReleaseV0160BetaSafetyGuard.validate(command: command)"))
+        XCTAssertTrue(statusSource.contains("ReleaseV0160BetaSafetyGuard.validate(command: command)"))
+        XCTAssertTrue(source.contains("betaSafetyGuard=ReleaseV0160BetaSafetyGuard"))
+        XCTAssertTrue(source.contains("transportPrecheckFailsClosed=true"))
+        XCTAssertTrue(source.contains("redactedSafetyEvidence=true"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.0-beta-safety-guards.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.0-beta-safety-guards.sh"))
+        XCTAssertTrue(docs.contains("#1110 / GH-1110"))
+        XCTAssertTrue(docs.contains("不授权 production cutover"))
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
@@ -45193,7 +45400,10 @@ final class TargetGraphTests: XCTestCase {
     private func gh1103Arguments(
         confirmation: String = ReleaseV0160OperatorRunMetadata.requiredOperatorConfirmationPhrase,
         credentialProvider: String = "testnet-env",
-        action: String? = nil
+        action: String? = nil,
+        symbol: String = "BTCUSDT",
+        quantity: String = "0.05",
+        timestampMS: String = "1704067200000"
     ) -> [String] {
         var arguments = [
             "spot-testnet-submit",
@@ -45202,17 +45412,17 @@ final class TargetGraphTests: XCTestCase {
             "--credential-provider", credentialProvider,
             "--credential-reference-id", "gh-1103-binance-spot-testnet-credential",
             "--run-id", "gh-1103-v0160-submit-run",
-            "--symbol", "BTCUSDT",
+            "--symbol", symbol,
             "--side", "buy",
-            "--quantity", "0.05",
+            "--quantity", quantity,
             "--strategy", "EMA",
             "--source-sequence", "1103",
             "--correlation-id", "gh-1103-submit-correlation",
             "--strategy-signal-id", "gh-1103-submit-signal",
             "--source-message-id", "gh-1103-submit-message",
             "--strategy-run-id", "gh-1103-v0160-submit-run",
-            "--timestamp-ms", "1704067200000",
-            "--observed-at-ms", "1704067200000",
+            "--timestamp-ms", timestampMS,
+            "--observed-at-ms", timestampMS,
             "--output", "redacted"
         ]
         if let action {
