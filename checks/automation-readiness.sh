@@ -10924,8 +10924,8 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLISubmitExecutionFlow.swift" "ReleaseV0160BetaSafetyGuard.validate(command: command)"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift" "ReleaseV0160BetaSafetyGuard.validate(command: command)"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift" "ReleaseV0160BetaSafetyGuard.validate(command: command)"
-require_contains "README.md" "#1110 beta safety guards is current WIP=1"
-require_contains "GOAL.md" "#1110 beta safety guards is current WIP=1"
+require_contains "README.md" "#1110 beta safety guards closed / done"
+require_contains "GOAL.md" "#1110 beta safety guards closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 beta safety guards anchor"
 require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 beta safety guards"
 require_contains "docs/validation/validation-plan.md" "GH-1110 Release v0.16.0 Beta Safety Guards"
@@ -10934,5 +10934,54 @@ require_contains "docs/release/release-publication-policy.md" "V0160-010-MAX-QUA
 require_contains "checks/run.sh" "bash checks/verify-v0.16.0-beta-safety-guards.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-beta-safety-guards.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1110ReleaseV0160BetaSafetyGuardsFailClosedBeforeTransport"
+
+require_file "checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift"
+require_file ".github/workflows/release-v0.16.0-manual-testnet-validation.yml"
+require_file "docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md"
+require_file "docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" \
+  ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" \
+  "docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md" \
+  "docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.16.0-manual-testnet-validation-workflow.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1111-VERIFY-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW"
+  require_contains "$file" "TVM-RELEASE-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW"
+  require_contains "$file" "V0160-011-MANUAL-WORKFLOW-ONLY"
+  require_contains "$file" "V0160-011-SUBMIT-STATUS-CANCEL-STATUS-SEQUENCE"
+  require_contains "$file" "V0160-011-RECONCILIATION-PASSED"
+  require_contains "$file" "V0160-011-REDACTED-EVIDENCE-BUNDLE"
+  require_contains "$file" "V0160-011-CHECKSUM-REFERENCES"
+  require_contains "$file" "V0160-011-NO-PRODUCTION-CREDENTIALS"
+  require_contains "$file" "V0160-011-NO-PRODUCTION-ENDPOINT"
+  require_contains "$file" "V0160-011-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "manualTestnetValidationWorkflow=ReleaseV0160ManualTestnetValidationWorkflow"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "manualWorkflowOnly=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "submitStatusCancelStatusReconciliationSequence=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "redactedEvidenceBundleRequired=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "checksumReferencesRequired=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "githubWorkflowDispatchOnly=true"
+require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "workflow_dispatch:"
+require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "dry_run_only"
+require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "operator_confirmed_redaction"
+require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
+require_contains "README.md" "#1111 manual testnet validation workflow is current WIP=1"
+require_contains "GOAL.md" "#1111 manual testnet validation workflow is current WIP=1"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 manual testnet validation workflow anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 manual testnet validation workflow"
+require_contains "docs/validation/validation-plan.md" "GH-1111 Release v0.16.0 Manual Testnet Validation Workflow Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW"
+require_contains "docs/release/release-publication-policy.md" "V0160-011-SUBMIT-STATUS-CANCEL-STATUS-SEQUENCE"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1111ReleaseV0160ManualTestnetValidationWorkflowRequiresRedactedBundle"
 
 printf 'MTPRO automation readiness checks passed.\n'

@@ -45365,6 +45365,124 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(docs.contains("不授权 production cutover"))
     }
 
+    func testGH1111ReleaseV0160ManualTestnetValidationWorkflowRequiresRedactedBundle() throws {
+        // 测试场景：GH-1111 固定 v0.16.0 手动 testnet validation workflow 和 redacted bundle。
+        // 验证目的：submit -> status -> cancel -> status -> reconciliation passed 顺序、checksum
+        // references、workflow_dispatch-only 和 production 禁区必须被同一组 source/docs/scripts 锚定。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1111-VERIFY-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW",
+            "TVM-RELEASE-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW",
+            "V0160-011-MANUAL-WORKFLOW-ONLY",
+            "V0160-011-SUBMIT-STATUS-CANCEL-STATUS-SEQUENCE",
+            "V0160-011-RECONCILIATION-PASSED",
+            "V0160-011-REDACTED-EVIDENCE-BUNDLE",
+            "V0160-011-CHECKSUM-REFERENCES",
+            "V0160-011-NO-PRODUCTION-CREDENTIALS",
+            "V0160-011-NO-PRODUCTION-ENDPOINT",
+            "V0160-011-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let report = try ReleaseV0160ManualTestnetValidationWorkflow.fixture()
+        let validated = try ReleaseV0160ManualTestnetValidationWorkflow.validate(report: report)
+        let summary = validated.redactedBundleSummaryLines.joined(separator: "\n")
+
+        XCTAssertTrue(validated.reportHeld)
+        XCTAssertEqual(validated.issueID, .constant("GH-1111"))
+        XCTAssertEqual(validated.upstreamIssueIDs, [.constant("GH-1110")])
+        XCTAssertEqual(validated.releaseVersion, "v0.16.0")
+        XCTAssertEqual(validated.requiredActionSequence, ReleaseV0160ManualTestnetValidationStep.requiredSequence)
+        XCTAssertEqual(validated.evidenceEntries.map(\.step), ReleaseV0160ManualTestnetValidationStep.requiredSequence)
+        XCTAssertEqual(validated.checksumReferences.count, 5)
+        XCTAssertTrue(validated.evidenceEntries.allSatisfy(\.entryHeld))
+        XCTAssertTrue(validated.checksumReferences.allSatisfy { $0.contains("sha256:") })
+        XCTAssertTrue(validated.submitStatusCancelStatusReconciliationPassed)
+        XCTAssertTrue(validated.manualWorkflowOnly)
+        XCTAssertTrue(validated.githubWorkflowDispatchOnly)
+        XCTAssertTrue(validated.automaticScheduleDisabled)
+        XCTAssertTrue(validated.productionSecretsBlockedInWorkflow)
+        XCTAssertTrue(validated.testnetCredentialProfileRequired)
+        XCTAssertTrue(validated.explicitOperatorConfirmationRequired)
+        XCTAssertTrue(validated.redactedEvidenceBundleRequired)
+        XCTAssertTrue(validated.redactedEvidenceOnly)
+        XCTAssertFalse(validated.containsCredentialValue)
+        XCTAssertFalse(validated.containsRawOrderIdentity)
+        XCTAssertFalse(validated.containsRawBrokerPayload)
+        XCTAssertFalse(validated.productionTradingEnabledByDefault)
+        XCTAssertFalse(validated.productionSecretAutoRead)
+        XCTAssertFalse(validated.productionEndpointConnected)
+        XCTAssertFalse(validated.brokerEndpointConnected)
+        XCTAssertFalse(validated.productionOrderSubmitted)
+        XCTAssertFalse(validated.productionCutoverAuthorized)
+        XCTAssertTrue(summary.contains("manualWorkflowOnly=true"))
+        XCTAssertTrue(summary.contains("githubWorkflowDispatchOnly=true"))
+        XCTAssertTrue(summary.contains("submit -> status-after-submit -> cancel -> status-after-cancel -> reconciliation-passed"))
+        XCTAssertFalse(summary.lowercased().contains("secret key"))
+        XCTAssertFalse(summary.lowercased().contains("api key"))
+
+        XCTAssertThrowsError(try ReleaseV0160ManualTestnetValidationReport(
+            runID: .constant("gh-1111-invalid-sequence"),
+            evidenceEntries: Array(report.evidenceEntries.dropLast())
+        ))
+        XCTAssertThrowsError(try ReleaseV0160ManualTestnetValidationEvidenceEntry(
+            step: .submit,
+            artifactRecordID: .constant("gh-1111-invalid-checksum"),
+            artifactChecksum: "sha256:not-a-real-checksum",
+            redactedArtifactPath: ".local/mtpro/v0.16.0/operator-runs/gh-1111/evidence/submit-redacted.json"
+        ))
+        XCTAssertThrowsError(try ReleaseV0160ManualTestnetValidationEvidenceEntry(
+            step: .submit,
+            artifactRecordID: .constant("gh-1111-invalid-path"),
+            artifactChecksum: report.evidenceEntries[0].artifactChecksum,
+            redactedArtifactPath: ".local/mtpro/v0.16.0/operator-runs/gh-1111/evidence/submit-raw-secret.json"
+        ))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift")
+        let workflow = try read(".github/workflows/release-v0.16.0-manual-testnet-validation.yml")
+        let docs = try read("docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md")
+        let runbook = try read("docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md")
+        let verifier = try read("checks/verify-v0.16.0-manual-testnet-validation-workflow.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertEqual(ReleaseV0160ManualTestnetValidationReport.requiredValidationAnchors, requiredAnchors)
+        for anchor in requiredAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in source")
+            XCTAssertTrue(workflow.contains(anchor), "\(anchor) must stay in workflow")
+            XCTAssertTrue(docs.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(runbook.contains(anchor), "\(anchor) must stay in runbook")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+        XCTAssertTrue(source.contains("manualTestnetValidationWorkflow=ReleaseV0160ManualTestnetValidationWorkflow"))
+        XCTAssertTrue(source.contains("manualWorkflowOnly=true"))
+        XCTAssertTrue(source.contains("submitStatusCancelStatusReconciliationSequence=true"))
+        XCTAssertTrue(source.contains("redactedEvidenceBundleRequired=true"))
+        XCTAssertTrue(source.contains("checksumReferencesRequired=true"))
+        XCTAssertTrue(source.contains("githubWorkflowDispatchOnly=true"))
+        XCTAssertTrue(workflow.contains("workflow_dispatch:"))
+        XCTAssertTrue(workflow.contains("dry_run_only"))
+        XCTAssertTrue(workflow.contains("operator_confirmed_redaction"))
+        XCTAssertFalse(workflow.contains("secrets."))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"))
+        XCTAssertTrue(docs.contains("#1111 / GH-1111"))
+        XCTAssertTrue(docs.contains("不授权 production cutover"))
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,

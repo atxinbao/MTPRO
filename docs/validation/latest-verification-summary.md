@@ -2199,3 +2199,26 @@ bash checks/run.sh
 - #1110 adds transport-precheck beta safety evidence for quantity, orders-per-run, cooldown, symbol allowlist and testnet-only credential profile.
 - #1110 proves over-limit quantity fails before transport by keeping submit / cancel / status transport invocation counts at zero.
 - #1110 does not read production secret, does not connect production endpoint / broker endpoint, does not submit production order, and does not authorize production cutover.
+
+## Release v0.16.0 Manual Testnet Validation Workflow Snapshot
+
+- v0.16.0 manual testnet validation workflow
+- GH-1111-VERIFY-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW
+- TVM-RELEASE-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW
+- V0160-011-MANUAL-WORKFLOW-ONLY
+- V0160-011-SUBMIT-STATUS-CANCEL-STATUS-SEQUENCE
+- V0160-011-RECONCILIATION-PASSED
+- V0160-011-REDACTED-EVIDENCE-BUNDLE
+- V0160-011-CHECKSUM-REFERENCES
+- V0160-011-NO-PRODUCTION-CREDENTIALS
+- V0160-011-NO-PRODUCTION-ENDPOINT
+- V0160-011-NO-PRODUCTION-CUTOVER
+- Source: `Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`
+- GitHub workflow: `.github/workflows/release-v0.16.0-manual-testnet-validation.yml`
+- Contract source: `docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md`
+- Runbook source: `docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md`
+- Validation source: `checks/verify-v0.16.0-manual-testnet-validation-workflow.sh`
+- Test source: `Tests/TargetGraphTests/TargetGraphTests.swift::testGH1111ReleaseV0160ManualTestnetValidationWorkflowRequiresRedactedBundle`
+- #1111 adds manual workflow_dispatch validation for a redacted evidence bundle after operator manually completes submit -> status -> cancel -> status -> reconciliation passed.
+- #1111 requires sha256 checksum references for every evidence entry and rejects missing sequence, non-redacted path, production-like credential / endpoint markers and unredacted payload markers.
+- #1111 does not read production secret, does not connect production endpoint / broker endpoint, does not submit production order, and does not authorize production cutover.

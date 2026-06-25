@@ -3815,3 +3815,20 @@
 - validation surface: submit / cancel / status-query operator flows call `ReleaseV0160BetaSafetyGuard.validate(command:)` before credential resolution or transport.
 - fail-closed evidence: over-limit quantity, over-count run, cooldown violation, disallowed symbol and production-like credential env profile fail closed with redacted safety evidence.
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.
+
+## TVM-RELEASE-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW
+
+- GH-1111-VERIFY-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW
+- V0160-011-MANUAL-WORKFLOW-ONLY
+- V0160-011-SUBMIT-STATUS-CANCEL-STATUS-SEQUENCE
+- V0160-011-RECONCILIATION-PASSED
+- V0160-011-REDACTED-EVIDENCE-BUNDLE
+- V0160-011-CHECKSUM-REFERENCES
+- V0160-011-NO-PRODUCTION-CREDENTIALS
+- V0160-011-NO-PRODUCTION-ENDPOINT
+- V0160-011-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1111ReleaseV0160ManualTestnetValidationWorkflowRequiresRedactedBundle`
+- validation surface: manual workflow_dispatch only validates redacted bundle references; it never reads secrets and never runs network execution.
+- fail-closed evidence: submit -> status -> cancel -> status -> reconciliation passed sequence and every sha256 checksum reference must be present.
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.

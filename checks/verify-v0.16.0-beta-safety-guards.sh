@@ -68,8 +68,8 @@ require_file_contains "$SUBMIT_FLOW" "ReleaseV0160BetaSafetyGuard.validate(comma
 require_file_contains "$CANCEL_FLOW" "ReleaseV0160BetaSafetyGuard.validate(command: command)"
 require_file_contains "$STATUS_FLOW" "ReleaseV0160BetaSafetyGuard.validate(command: command)"
 require_file_contains "$TARGET_TESTS" "testGH1110ReleaseV0160BetaSafetyGuardsFailClosedBeforeTransport"
-require_file_contains "README.md" "#1110 beta safety guards is current WIP=1"
-require_file_contains "GOAL.md" "#1110 beta safety guards is current WIP=1"
+require_file_contains "README.md" "#1110 beta safety guards closed / done"
+require_file_contains "GOAL.md" "#1110 beta safety guards closed / done"
 require_file_contains "checks/run.sh" "bash checks/verify-v0.16.0-beta-safety-guards.sh"
 require_file_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-beta-safety-guards.sh"
 
