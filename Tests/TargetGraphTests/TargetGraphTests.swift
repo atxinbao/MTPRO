@@ -44152,6 +44152,142 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(docs.contains("不授权 production cutover"))
     }
 
+    func testGH1103ReleaseV0160CLISubmitFlowUsesStableOperatorSubmitAndFailsClosed() async throws {
+        // 测试场景：GH-1103 提供 v0.16.0 稳定 `spot-testnet-submit` CLI 入口。
+        // 验证目的：外层必须使用 v0.16 operator confirmation 和 testnet-env profile，
+        // 内层只委托 v0.15.1 guarded submit runtime，输出必须脱敏并保留 production 禁区。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1103-VERIFY-V0160-CLI-SUBMIT-FLOW",
+            "TVM-RELEASE-V0160-CLI-SUBMIT-FLOW",
+            "V0160-003-STABLE-CLI-SUBMIT",
+            "V0160-003-V0151-RUNTIME-DELEGATION",
+            "V0160-003-EXPLICIT-OPERATOR-CONFIRMATION",
+            "V0160-003-TESTNET-CREDENTIAL-PROFILE",
+            "V0160-003-REDACTED-OUTPUT-ARTIFACT-CHECKSUM",
+            "V0160-003-MISSING-GATE-CREDENTIAL-CONFIRMATION-FAILS-CLOSED",
+            "V0160-003-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let environment = [
+            "MTPRO_BINANCE_SPOT_TESTNET_API_KEY": "gh-1103-testnet-api-key",
+            "MTPRO_BINANCE_SPOT_TESTNET_SECRET_KEY": "gh-1103-testnet-secret"
+        ]
+        let transport = GH1097RecordingSpotTestnetTransport()
+        let result = try await ReleaseV0160CLISubmitExecutionFlow.result(
+            arguments: gh1103Arguments(),
+            environment: environment,
+            submitTransport: transport,
+            cancelTransport: transport
+        )
+        let output = result.redactedOutputLines.joined(separator: "\n")
+
+        XCTAssertTrue(result.boundaryHeld)
+        XCTAssertEqual(result.command, "spot-testnet-submit")
+        XCTAssertEqual(result.delegatedRuntime, "ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow")
+        XCTAssertEqual(result.action, "submit")
+        XCTAssertEqual(result.runID.rawValue, "gh-1103-v0160-submit-run")
+        XCTAssertEqual(result.operatorRunState, .submitObserved)
+        XCTAssertEqual(result.operatorRunActionSequence, [.create, .requestSubmit, .recordSubmitObserved])
+        XCTAssertTrue(result.artifactPath.hasPrefix(".local/mtpro/v0.16.0/operator-runs/gh-1103-v0160-submit-run/"))
+        XCTAssertTrue(result.artifactPath.hasSuffix("redacted-execution-evidence.json"))
+        XCTAssertTrue(result.delegatedArtifactPath.contains("v0.15.1/testnet-execution"))
+        XCTAssertTrue(output.contains("issue=GH-1103"))
+        XCTAssertTrue(output.contains("command=spot-testnet-submit"))
+        XCTAssertTrue(output.contains("action=submit"))
+        XCTAssertTrue(output.contains("operatorRunState=submitObserved"))
+        XCTAssertTrue(output.contains("credentialProvider=testnet-env"))
+        XCTAssertTrue(output.contains("credentialReference=<redacted>"))
+        XCTAssertTrue(output.contains("testnetRuntimeDelegated=true"))
+        XCTAssertTrue(output.contains("testnetSubmitRuntimeAuthorizedByIssue=true"))
+        XCTAssertTrue(output.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(output.contains("productionCutoverAuthorized=false"))
+        XCTAssertFalse(output.contains("gh-1103-testnet-api-key"))
+        XCTAssertFalse(output.contains("gh-1103-testnet-secret"))
+
+        let capturedCounts = await transport.capturedCounts()
+        XCTAssertEqual(capturedCounts.submit, 1)
+        XCTAssertEqual(capturedCounts.cancel, 0)
+
+        do {
+            _ = try await ReleaseV0160CLISubmitExecutionFlow.result(
+                arguments: gh1103Arguments(),
+                environment: [:],
+                submitTransport: transport,
+                cancelTransport: transport
+            )
+            XCTFail("missing testnet credential must fail closed")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("MTPRO_BINANCE_SPOT_TESTNET_API_KEY"))
+        }
+        do {
+            _ = try await ReleaseV0160CLISubmitExecutionFlow.result(
+                arguments: gh1103Arguments(confirmation: "WRONG"),
+                environment: environment,
+                submitTransport: transport,
+                cancelTransport: transport
+            )
+            XCTFail("wrong v0.16 operator confirmation must fail closed")
+        } catch {
+            XCTAssertTrue(String(describing: error).isEmpty == false)
+        }
+        do {
+            _ = try ReleaseV0160CLISubmitExecutionFlow.parse(
+                arguments: gh1103Arguments(credentialProvider: "production-env")
+            )
+            XCTFail("production credential provider must fail closed")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("production-env"))
+        }
+        do {
+            _ = try ReleaseV0160CLISubmitExecutionFlow.parse(arguments: Array(gh1103Arguments().drop { $0 != "--testnet" }.dropFirst()))
+            XCTFail("missing command and testnet gate must fail closed")
+        } catch {
+            XCTAssertTrue(String(describing: error).isEmpty == false)
+        }
+        do {
+            _ = try ReleaseV0160CLISubmitExecutionFlow.parse(arguments: gh1103Arguments(action: "cancel"))
+            XCTFail("v0.16 submit CLI must not accept cancel")
+        } catch {
+            XCTAssertTrue(String(describing: error).contains("cancel"))
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160CLISubmitExecutionFlow.swift")
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let docs = try read("docs/contracts/release-v0.16.0-binance-spot-testnet-cli-submit-flow-contract.md")
+        let verifier = try read("checks/verify-v0.16.0-cli-submit-flow.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertEqual(ReleaseV0160CLISubmitExecutionResult.requiredValidationAnchors, requiredAnchors)
+        for anchor in requiredAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in source")
+            XCTAssertTrue(docs.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+        XCTAssertTrue(cliSource.contains("ReleaseV0160CLISubmitExecutionFlow.commandLineOutput"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.0-cli-submit-flow.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.0-cli-submit-flow.sh"))
+        XCTAssertTrue(docs.contains("#1103 / GH-1103"))
+        XCTAssertTrue(docs.contains("spot-testnet-submit"))
+        XCTAssertTrue(docs.contains("v0.15.1 guarded runtime"))
+        XCTAssertTrue(docs.contains("不授权 production cutover"))
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
@@ -44182,6 +44318,37 @@ final class TargetGraphTests: XCTestCase {
             "--observed-at-ms", timestampMS,
             "--output", "redacted"
         ]
+    }
+
+    private func gh1103Arguments(
+        confirmation: String = ReleaseV0160OperatorRunMetadata.requiredOperatorConfirmationPhrase,
+        credentialProvider: String = "testnet-env",
+        action: String? = nil
+    ) -> [String] {
+        var arguments = [
+            "spot-testnet-submit",
+            "--testnet",
+            "--operator-confirm", confirmation,
+            "--credential-provider", credentialProvider,
+            "--credential-reference-id", "gh-1103-binance-spot-testnet-credential",
+            "--run-id", "gh-1103-v0160-submit-run",
+            "--symbol", "BTCUSDT",
+            "--side", "buy",
+            "--quantity", "0.05",
+            "--strategy", "EMA",
+            "--source-sequence", "1103",
+            "--correlation-id", "gh-1103-submit-correlation",
+            "--strategy-signal-id", "gh-1103-submit-signal",
+            "--source-message-id", "gh-1103-submit-message",
+            "--strategy-run-id", "gh-1103-v0160-submit-run",
+            "--timestamp-ms", "1704067200000",
+            "--observed-at-ms", "1704067200000",
+            "--output", "redacted"
+        ]
+        if let action {
+            arguments += ["--action", action]
+        }
+        return arguments
     }
 
     private func makeGH1097SourceSubmitArtifacts(
