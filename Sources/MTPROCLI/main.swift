@@ -163,6 +163,7 @@ private enum MTPROStrictCLI {
         ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.cliCommand,
         ReleaseV0160CLISubmitExecutionFlow.cliCommand,
         ReleaseV0160CLICancelExecutionFlow.cliCommand,
+        ReleaseV0160CLIOrderStatusQueryFlow.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -204,6 +205,8 @@ private enum MTPROStrictCLI {
             return try await ReleaseV0160CLISubmitExecutionFlow.commandLineOutput(arguments: arguments)
         case ReleaseV0160CLICancelExecutionFlow.cliCommand:
             return try await ReleaseV0160CLICancelExecutionFlow.commandLineOutput(arguments: arguments)
+        case ReleaseV0160CLIOrderStatusQueryFlow.cliCommand:
+            return try await ReleaseV0160CLIOrderStatusQueryFlow.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -266,6 +269,10 @@ private enum MTPROStrictCLI {
             "releaseV0160CLICancelValidationAnchor=TVM-RELEASE-V0160-CLI-CANCEL-FLOW",
             "releaseV0160CLICancelVerificationAnchor=GH-1104-VERIFY-V0160-CLI-CANCEL-FLOW",
             "releaseV0160CLICancelConfirmationPhrase=\(ReleaseV0160OperatorRunMetadata.requiredOperatorConfirmationPhrase)",
+            "releaseV0160CLIOrderStatusQueryCommand=\(ReleaseV0160CLIOrderStatusQueryFlow.cliCommand)",
+            "releaseV0160CLIOrderStatusQueryValidationAnchor=TVM-RELEASE-V0160-SIGNED-ORDER-STATUS-QUERY",
+            "releaseV0160CLIOrderStatusQueryVerificationAnchor=GH-1105-VERIFY-V0160-SIGNED-ORDER-STATUS-QUERY",
+            "releaseV0160CLIOrderStatusQueryConfirmationPhrase=\(ReleaseV0160OperatorRunMetadata.requiredOperatorConfirmationPhrase)",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
             "productionReadinessArtifactStoreImplemented=true",

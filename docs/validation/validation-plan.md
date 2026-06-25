@@ -71,6 +71,21 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-cli-cancel-flow-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-cli-cancel-flow.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1104 只实现 `spot-testnet-cancel` stable CLI cancel flow。它必须消费 source submit evidence JSON 和 network event log JSON，委托 v0.15.1 guarded runtime，要求 explicit v0.16 operator confirmation、testnet credential profile、redacted order reference、append-only event evidence、artifact path 和 checksum；缺 prior artifact、错 confirmation、production provider 或非 cancel action 必须 fail closed。不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order，不授权 production cutover。
 
+## GH-1105 Release v0.16.0 Signed Order Status Query Guard
+
+- `GH-1105-VERIFY-V0160-SIGNED-ORDER-STATUS-QUERY`
+- `TVM-RELEASE-V0160-SIGNED-ORDER-STATUS-QUERY`
+- `V0160-005-SIGNED-GET-ORDER-STATUS`
+- `V0160-005-TESTNET-ENDPOINT-ALLOWLIST`
+- `V0160-005-REDACTED-REQUEST-RESPONSE-EVIDENCE`
+- `V0160-005-NO-RAW-SECRET-PERSISTENCE`
+- `V0160-005-PRODUCTION-HOST-REJECTED`
+- `V0160-005-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.16.0-order-status-query.sh`
+- Focused test: `testGH1105ReleaseV0160SignedOrderStatusQueryUsesGETAllowlistAndRedaction`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-order-status-query.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1105 只实现 `spot-testnet-status-query` stable CLI signed GET order status query。它必须消费 source submit evidence JSON 和 network event log JSON，从 submit evidence 派生短生命周期 order identity，构造 allowlisted `GET /api/v3/order`，并只返回 redacted request / response evidence、artifact path 和 checksum；缺 prior artifact、错 confirmation、production provider、非 status action 或 production host 必须 fail closed。不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order，不授权 production cutover。
+
 ## GH-1094 Release v0.15.1 v0.15.0 Release Fact Sync / Stale Wording Guard
 
 - `GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC`
