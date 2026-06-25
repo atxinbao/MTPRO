@@ -361,6 +361,30 @@ v0.15.1 是 v0.15.0 后的 real testnet execution hardening patch closeout。#11
 
 本 `v0.16.0` run model slice 不创建 tag，不创建 GitHub Release，不读取 credential value，不连接 testnet endpoint，不提交 testnet order，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。submit / cancel / status / reconciliation runtime 只有在后续 GitHub issue scope 明确授权时才能实现。
 
+## V0160-003-STABLE-CLI-SUBMIT
+
+`GH-1103-VERIFY-V0160-CLI-SUBMIT-FLOW`
+
+`TVM-RELEASE-V0160-CLI-SUBMIT-FLOW`
+
+`V0160-003-STABLE-CLI-SUBMIT`
+
+`V0160-003-V0151-RUNTIME-DELEGATION`
+
+`V0160-003-EXPLICIT-OPERATOR-CONFIRMATION`
+
+`V0160-003-TESTNET-CREDENTIAL-PROFILE`
+
+`V0160-003-REDACTED-OUTPUT-ARTIFACT-CHECKSUM`
+
+`V0160-003-MISSING-GATE-CREDENTIAL-CONFIRMATION-FAILS-CLOSED`
+
+`V0160-003-NO-PRODUCTION-CUTOVER`
+
+#1103 是 v0.16.0 Binance Spot Testnet Operator Execution Beta 的 stable CLI submit flow slice。它只授权 `spot-testnet-submit` submit-only operator command，委托 v0.15.1 guarded runtime，要求 explicit v0.16 operator confirmation、testnet-env credential profile、redacted artifact path 和 checksum。
+
+本 `v0.16.0` CLI submit slice 不创建 tag，不创建 GitHub Release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。cancel / status / reconciliation / Dashboard review / recovery 只有在后续 GitHub issue scope 明确授权时才能实现。
+
 #1099 是 v0.15.1 对 #1098 internal gate 后的 submit-to-cancel identity hardening slice：它要求 submit evidence 生成 deterministic redacted `newClientOrderId` reference，cancel 只能从 submit evidence 派生短生命周期 identity material，raw / untracked order id 必须 fail-closed。该 policy 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
 该 transport policy 的固定事实：

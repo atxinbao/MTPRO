@@ -37,6 +37,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-operator-run-model-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-operator-run-model.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1102 只定义 durable run id lifecycle、action sequence、artifact linkage、redacted metadata 和 invalid transition fail-closed guard。不读取 credential value，不连接 testnet endpoint，不提交 testnet order，不授权 production cutover；submit / cancel / status / reconciliation runtime 均留给后续显式 scoped issue。
 
+## GH-1103 Release v0.16.0 CLI Submit Flow Guard
+
+- `GH-1103-VERIFY-V0160-CLI-SUBMIT-FLOW`
+- `TVM-RELEASE-V0160-CLI-SUBMIT-FLOW`
+- `V0160-003-STABLE-CLI-SUBMIT`
+- `V0160-003-V0151-RUNTIME-DELEGATION`
+- `V0160-003-EXPLICIT-OPERATOR-CONFIRMATION`
+- `V0160-003-TESTNET-CREDENTIAL-PROFILE`
+- `V0160-003-REDACTED-OUTPUT-ARTIFACT-CHECKSUM`
+- `V0160-003-MISSING-GATE-CREDENTIAL-CONFIRMATION-FAILS-CLOSED`
+- `V0160-003-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.16.0-cli-submit-flow.sh`
+- Focused test: `testGH1103ReleaseV0160CLISubmitFlowUsesStableOperatorSubmitAndFailsClosed`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160CLISubmitExecutionFlow.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-cli-submit-flow-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-cli-submit-flow.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1103 只实现 `spot-testnet-submit` stable CLI submit flow。它必须委托 v0.15.1 guarded runtime，要求 explicit v0.16 operator confirmation、testnet credential profile、redacted output、artifact path 和 checksum；缺 gate、缺 credential、错 confirmation、production provider 或非 submit action 必须 fail closed。不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order，不授权 production cutover。
+
 ## GH-1094 Release v0.15.1 v0.15.0 Release Fact Sync / Stale Wording Guard
 
 - `GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC`
