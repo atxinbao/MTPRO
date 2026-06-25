@@ -107,6 +107,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`、`docs/contracts/release-v0.16.0-local-execution-artifact-store-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-local-execution-artifact-store.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1106 is the v0.16.0 local execution artifact store issue only. It persists submit / cancel / status / reconciliation redacted evidence as append-only JSONL, writes checksum manifest, rejects checksum mismatch, validates replay, and exports redacted evidence bundles. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
 
+## TVM-RELEASE-V0160-OMS-OBSERVED-STATUS-RECONCILIATION
+
+- TVM-RELEASE-V0160-OMS-OBSERVED-STATUS-RECONCILIATION
+- GH-1107-VERIFY-V0160-OMS-OBSERVED-STATUS-RECONCILIATION
+- V0160-007-SUBMIT-OBSERVED-RECONCILIATION
+- V0160-007-CANCEL-OBSERVED-RECONCILIATION
+- V0160-007-UNKNOWN-STATUS-FAILS-CLOSED
+- V0160-007-MISMATCH-FAILS-CLOSED
+- V0160-007-LOCAL-ARTIFACTS-ONLY
+- V0160-007-NO-PRODUCTION-CUTOVER
+- GH-1107 Release v0.16.0 OMS Observed Status Reconciliation Guard
+- `bash checks/verify-v0.16.0-oms-observed-status-reconciliation.sh`
+- `swift test --filter TargetGraphTests/testGH1107ReleaseV0160OMSObservedStatusReconciliationFromLocalArtifactsFailsClosed`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift`、`docs/contracts/release-v0.16.0-oms-observed-status-reconciliation-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-oms-observed-status-reconciliation.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1107 is the v0.16.0 OMS observed-status reconciliation issue only. It consumes local submit / cancel / status artifacts from the #1106 replay surface and produces deterministic pass / fail-closed reconciliation reports for submit observed, cancel observed, unknown status, expected-state mismatch, missing cancel artifact and non-status evidence. Production cutover, production secret read, production endpoint / broker endpoint connection and production order remain unauthorized.
+
 ## TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC
 
 - TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC

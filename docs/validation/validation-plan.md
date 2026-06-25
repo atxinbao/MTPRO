@@ -101,6 +101,21 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`、`docs/contracts/release-v0.16.0-local-execution-artifact-store-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-local-execution-artifact-store.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1106 只实现本地 execution artifact store。它必须将 submit、cancel、status 和 reconciliation evidence 写入 append-only JSONL，生成 checksum manifest，拒绝 checksum mismatch，支持 replay validation，并导出 redacted export bundle；不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order，不授权 production cutover。
 
+## GH-1107 Release v0.16.0 OMS Observed Status Reconciliation Guard
+
+- `GH-1107-VERIFY-V0160-OMS-OBSERVED-STATUS-RECONCILIATION`
+- `TVM-RELEASE-V0160-OMS-OBSERVED-STATUS-RECONCILIATION`
+- `V0160-007-SUBMIT-OBSERVED-RECONCILIATION`
+- `V0160-007-CANCEL-OBSERVED-RECONCILIATION`
+- `V0160-007-UNKNOWN-STATUS-FAILS-CLOSED`
+- `V0160-007-MISMATCH-FAILS-CLOSED`
+- `V0160-007-LOCAL-ARTIFACTS-ONLY`
+- `V0160-007-NO-PRODUCTION-CUTOVER`
+- Required command: `bash checks/verify-v0.16.0-oms-observed-status-reconciliation.sh`
+- Focused test: `testGH1107ReleaseV0160OMSObservedStatusReconciliationFromLocalArtifactsFailsClosed`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift`、`docs/contracts/release-v0.16.0-oms-observed-status-reconciliation-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`checks/verify-v0.16.0-oms-observed-status-reconciliation.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1107 只实现本地 OMS observed-status reconciliation。它必须从 #1106 replay 出来的 submit、cancel 和 status artifacts 生成 reconciliation report；submit observed、cancel observed、unknown status、expected-state mismatch、missing cancel artifact 和非 status evidence 都必须有 deterministic pass / fail-closed 证据；不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order，不授权 production cutover。
+
 ## GH-1094 Release v0.15.1 v0.15.0 Release Fact Sync / Stale Wording Guard
 
 - `GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC`

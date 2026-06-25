@@ -10754,8 +10754,8 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionA
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "replayValidationSupported=true"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "redactedExportBundleSupported=true"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "submitCancelStatusReconciliationEvidenceSupported=true"
-require_contains "README.md" "#1106 local execution artifact store is current WIP=1"
-require_contains "GOAL.md" "#1106 local execution artifact store is current WIP=1"
+require_contains "README.md" "#1106 local execution artifact store closed / done"
+require_contains "GOAL.md" "#1106 local execution artifact store closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 local execution artifact store anchor"
 require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 local execution artifact store"
 require_contains "docs/validation/validation-plan.md" "GH-1106 Release v0.16.0 Local Execution Artifact Store Guard"
@@ -10764,5 +10764,44 @@ require_contains "docs/release/release-publication-policy.md" "V0160-006-APPEND-
 require_contains "checks/run.sh" "bash checks/verify-v0.16.0-local-execution-artifact-store.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-local-execution-artifact-store.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1106ReleaseV0160LocalExecutionArtifactStorePersistsValidatesReplaysAndExports"
+
+require_file "checks/verify-v0.16.0-oms-observed-status-reconciliation.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift"
+require_file "docs/contracts/release-v0.16.0-oms-observed-status-reconciliation-contract.md"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" \
+  "docs/contracts/release-v0.16.0-oms-observed-status-reconciliation-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.16.0-oms-observed-status-reconciliation.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1107-VERIFY-V0160-OMS-OBSERVED-STATUS-RECONCILIATION"
+  require_contains "$file" "TVM-RELEASE-V0160-OMS-OBSERVED-STATUS-RECONCILIATION"
+  require_contains "$file" "V0160-007-SUBMIT-OBSERVED-RECONCILIATION"
+  require_contains "$file" "V0160-007-CANCEL-OBSERVED-RECONCILIATION"
+  require_contains "$file" "V0160-007-UNKNOWN-STATUS-FAILS-CLOSED"
+  require_contains "$file" "V0160-007-MISMATCH-FAILS-CLOSED"
+  require_contains "$file" "V0160-007-LOCAL-ARTIFACTS-ONLY"
+  require_contains "$file" "V0160-007-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" "ReleaseV0160OMSObservedStatusReconciliationEngine"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" "submitObservedReconciliation=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" "cancelObservedReconciliation=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" "unknownStatusFailsClosed=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" "mismatchFailsClosed=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" "localArtifactsOnly=true"
+require_contains "README.md" "#1107 OMS observed status reconciliation is current WIP=1"
+require_contains "GOAL.md" "#1107 OMS observed status reconciliation is current WIP=1"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 OMS observed status reconciliation anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 OMS observed status reconciliation"
+require_contains "docs/validation/validation-plan.md" "GH-1107 Release v0.16.0 OMS Observed Status Reconciliation Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-OMS-OBSERVED-STATUS-RECONCILIATION"
+require_contains "docs/release/release-publication-policy.md" "V0160-007-SUBMIT-OBSERVED-RECONCILIATION"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.0-oms-observed-status-reconciliation.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-oms-observed-status-reconciliation.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1107ReleaseV0160OMSObservedStatusReconciliationFromLocalArtifactsFailsClosed"
 
 printf 'MTPRO automation readiness checks passed.\n'
