@@ -788,3 +788,30 @@ Required validation：
 - `bash checks/run.sh`
 
 GH-1110 不发布 tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不启动 Linear / Symphony / Graphify / code-index / Figma，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
+## GH-1111 Release v0.16.0 Manual Testnet Validation Workflow Policy
+
+`GH-1111-VERIFY-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW`
+
+`TVM-RELEASE-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW`
+
+Release v0.16.0 Binance Spot Testnet Operator Execution Beta 的手动 testnet validation workflow 只能验证 operator 已生成的 redacted evidence bundle：
+
+- `V0160-011-MANUAL-WORKFLOW-ONLY`
+- `V0160-011-SUBMIT-STATUS-CANCEL-STATUS-SEQUENCE`
+- `V0160-011-RECONCILIATION-PASSED`
+- `V0160-011-REDACTED-EVIDENCE-BUNDLE`
+- `V0160-011-CHECKSUM-REFERENCES`
+- `V0160-011-NO-PRODUCTION-CREDENTIALS`
+- `V0160-011-NO-PRODUCTION-ENDPOINT`
+- `V0160-011-NO-PRODUCTION-CUTOVER`
+
+Required validation：
+
+- `bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh`
+- `swift test --filter TargetGraphTests/testGH1111ReleaseV0160ManualTestnetValidationWorkflowRequiresRedactedBundle`
+- `git diff --check`
+- `bash checks/automation-readiness.sh`
+- `bash checks/run.sh`
+
+GH-1111 不发布 tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不启动 Linear / Symphony / Graphify / code-index / Figma，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。

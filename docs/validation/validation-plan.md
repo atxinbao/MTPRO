@@ -5733,3 +5733,21 @@ swift test
 - validation surface: `ReleaseV0160BetaSafetyGuard` evaluates quantity, orders-per-run, cooldown, symbol allowlist and testnet-only credential profile before submit / cancel / status-query transport.
 - fail-closed evidence: max quantity overflow, per-run order count overflow, cooldown violation, disallowed symbol and non-testnet env profile all produce redacted safety evidence and then fail closed before transport.
 - boundary evidence: no production cutover, no production secret read, no production endpoint / broker endpoint connection, no raw secret / raw credential / raw order identity / raw broker payload, and no production order.
+
+## GH-1111 Release v0.16.0 Manual Testnet Validation Workflow Guard
+
+- GH-1111-VERIFY-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW
+- TVM-RELEASE-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW
+- V0160-011-MANUAL-WORKFLOW-ONLY
+- V0160-011-SUBMIT-STATUS-CANCEL-STATUS-SEQUENCE
+- V0160-011-RECONCILIATION-PASSED
+- V0160-011-REDACTED-EVIDENCE-BUNDLE
+- V0160-011-CHECKSUM-REFERENCES
+- V0160-011-NO-PRODUCTION-CREDENTIALS
+- V0160-011-NO-PRODUCTION-ENDPOINT
+- V0160-011-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1111ReleaseV0160ManualTestnetValidationWorkflowRequiresRedactedBundle`
+- validation surface: `ReleaseV0160ManualTestnetValidationWorkflow` validates manual workflow_dispatch and redacted evidence bundle after operator manually completes submit -> status -> cancel -> status -> reconciliation passed.
+- fail-closed evidence: missing or reordered steps, non-SHA256 checksum, non-redacted artifact path, production endpoint marker and credential marker fail closed before a report is accepted.
+- boundary evidence: no production cutover, no production secret read, no production endpoint / broker endpoint connection, no raw secret / raw credential / raw order identity / raw broker payload, and no production order.

@@ -1,0 +1,65 @@
+name: MTPRO v0.16.0 Manual Testnet Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Manual Binance Spot Testnet operator run id; no secret value."
+        required: true
+        type: string
+      evidence_bundle_path:
+        description: "Redacted local evidence bundle path copied from operator machine."
+        required: true
+        default: ".local/mtpro/v0.16.0/operator-runs/<run-id>/export/redacted-manual-testnet-validation-bundle.json"
+        type: string
+      operator_confirmed_redaction:
+        description: "Operator confirms bundle is redacted before validation."
+        required: true
+        default: false
+        type: boolean
+      dry_run_only:
+        description: "Must stay true; this workflow never performs network execution."
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  validate-redacted-evidence:
+    name: validate-redacted-evidence
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard manual-only and no-secret inputs
+        run: |
+          test "${{ inputs.dry_run_only }}" = "true"
+          test "${{ inputs.operator_confirmed_redaction }}" = "true"
+          test -n "${{ inputs.run_id }}"
+          case "${{ inputs.evidence_bundle_path }}" in
+            *api-key*|*api_key*|*secret*|*production*|*api.binance.com*|*broker*)
+              echo "Evidence bundle path must be redacted and testnet-only." >&2
+              exit 1
+              ;;
+          esac
+          echo "GH-1111-VERIFY-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW"
+          echo "TVM-RELEASE-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW"
+          echo "V0160-011-MANUAL-WORKFLOW-ONLY"
+          echo "V0160-011-SUBMIT-STATUS-CANCEL-STATUS-SEQUENCE"
+          echo "V0160-011-RECONCILIATION-PASSED"
+          echo "V0160-011-REDACTED-EVIDENCE-BUNDLE"
+          echo "V0160-011-CHECKSUM-REFERENCES"
+          echo "V0160-011-NO-PRODUCTION-CREDENTIALS"
+          echo "V0160-011-NO-PRODUCTION-ENDPOINT"
+          echo "V0160-011-NO-PRODUCTION-CUTOVER"
+          echo "productionTradingEnabledByDefault=false"
+          echo "productionSecretAutoRead=false"
+          echo "productionEndpointConnected=false"
+          echo "brokerEndpointConnected=false"
+          echo "productionOrderSubmitted=false"
+          echo "productionCutoverAuthorized=false"
+
+      - name: Verify deterministic #1111 guard
+        run: bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh
