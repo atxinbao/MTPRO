@@ -10635,8 +10635,8 @@ done
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLISubmitExecutionFlow.swift" "ReleaseV0160CLISubmitExecutionFlow"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLISubmitExecutionFlow.swift" "ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow"
 require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0160CLISubmitExecutionFlow.commandLineOutput"
-require_contains "README.md" "#1103 CLI submit flow is current WIP=1"
-require_contains "GOAL.md" "#1103 CLI submit flow is current WIP=1"
+require_contains "README.md" "#1103 CLI submit flow closed / done"
+require_contains "GOAL.md" "#1103 CLI submit flow closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 CLI submit flow anchor"
 require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 CLI submit flow"
 require_contains "docs/validation/validation-plan.md" "GH-1103 Release v0.16.0 CLI Submit Flow Guard"
@@ -10645,5 +10645,44 @@ require_contains "docs/release/release-publication-policy.md" "V0160-003-STABLE-
 require_contains "checks/run.sh" "bash checks/verify-v0.16.0-cli-submit-flow.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-cli-submit-flow.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1103ReleaseV0160CLISubmitFlowUsesStableOperatorSubmitAndFailsClosed"
+
+require_file "checks/verify-v0.16.0-cli-cancel-flow.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift"
+require_file "docs/contracts/release-v0.16.0-binance-spot-testnet-cli-cancel-flow-contract.md"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift" \
+  "docs/contracts/release-v0.16.0-binance-spot-testnet-cli-cancel-flow-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.16.0-cli-cancel-flow.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1104-VERIFY-V0160-CLI-CANCEL-FLOW"
+  require_contains "$file" "TVM-RELEASE-V0160-CLI-CANCEL-FLOW"
+  require_contains "$file" "V0160-004-STABLE-CLI-CANCEL"
+  require_contains "$file" "V0160-004-SUBMIT-ARTIFACT-IDENTITY"
+  require_contains "$file" "V0160-004-V0151-RUNTIME-DELEGATION"
+  require_contains "$file" "V0160-004-EXPLICIT-OPERATOR-CONFIRMATION"
+  require_contains "$file" "V0160-004-TESTNET-CREDENTIAL-PROFILE"
+  require_contains "$file" "V0160-004-REDACTED-ORDER-REFERENCE"
+  require_contains "$file" "V0160-004-APPEND-ONLY-EVENT-EVIDENCE"
+  require_contains "$file" "V0160-004-MISSING-PRIOR-ARTIFACT-FAILS-CLOSED"
+  require_contains "$file" "V0160-004-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift" "ReleaseV0160CLICancelExecutionFlow"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift" "ReleaseV0151BinanceSpotTestnetCLIGuardedRuntimeFlow"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0160CLICancelExecutionFlow.commandLineOutput"
+require_contains "README.md" "#1104 CLI cancel flow is current WIP=1"
+require_contains "GOAL.md" "#1104 CLI cancel flow is current WIP=1"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 CLI cancel flow anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 CLI cancel flow"
+require_contains "docs/validation/validation-plan.md" "GH-1104 Release v0.16.0 CLI Cancel Flow Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-CLI-CANCEL-FLOW"
+require_contains "docs/release/release-publication-policy.md" "V0160-004-STABLE-CLI-CANCEL"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.0-cli-cancel-flow.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-cli-cancel-flow.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1104ReleaseV0160CLICancelFlowConsumesSubmitArtifactAndFailsClosed"
 
 printf 'MTPRO automation readiness checks passed.\n'
