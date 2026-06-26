@@ -930,3 +930,21 @@ GH-1135 不创建 tag，不创建 GitHub Release，不移动 `v0.16.0` tag，不
 GH-1136 adds regression coverage for Binance sensitive headers, signed query markers, listenKey / secret variants, production Binance hosts, raw broker payload variants and raw order payload variants. 这些 markers 必须由 `ReleaseV0161OperatorBetaArtifactRedactionPolicy` 统一维护，并被 local execution artifact store、manual evidence bundle validator、Dashboard read model 和 focused tests 共同消费。
 
 GH-1136 不创建 tag，不创建 GitHub Release，不移动 `v0.16.0` tag，不覆盖 release，不推进 #1137..#1138，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order。production cutover not authorized。
+
+## GH-1137 Release v0.16.1 Status Query Transport Evidence Wording Policy
+
+`GH-1137-VERIFY-V0161-STATUS-QUERY-TRANSPORT-WORDING`
+
+`TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING`
+
+`V0161-005-REQUEST-EVIDENCE-FLAG-CLARIFIED`
+
+`V0161-005-TRANSPORT-RESULT-EVIDENCE-CLARIFIED`
+
+`V0161-005-NO-FAKE-STATUS-QUERY-WORDING`
+
+`V0161-005-NO-PRODUCTION-READINESS-OVERSTATEMENT`
+
+GH-1137 fixes release wording around the #1105 status query evidence layers. `networkStatusQueryPerformed=false` belongs to the signed request evidence and means the request-construction evidence does not itself assert a network side effect. Guarded Testnet status transport result evidence remains represented by `ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult`, its redacted request / response evidence, artifact path and checksum. This distinction must not be described as fabricated or mocked status wording, and it must not be overstated as production readiness.
+
+GH-1137 不创建 tag，不创建 GitHub Release，不移动 `v0.16.0` tag，不覆盖 release，不推进 #1138，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order。production cutover not authorized。

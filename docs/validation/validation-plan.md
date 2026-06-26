@@ -62,6 +62,19 @@
 - Evidence files: `Sources/DomainModel/ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`、`Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`checks/verify-v0.16.1-redaction-regression-coverage.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1136 只给共享 redaction policy 增加 Binance sensitive header、signed query marker、listenKey / secret variants、production Binance hosts、raw broker / order payload variants 的 regression coverage。它不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
 
+## GH-1137 Release v0.16.1 Status Query Transport Evidence Wording Guard
+
+- GH-1137-VERIFY-V0161-STATUS-QUERY-TRANSPORT-WORDING
+- TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING
+- V0161-005-REQUEST-EVIDENCE-FLAG-CLARIFIED
+- V0161-005-TRANSPORT-RESULT-EVIDENCE-CLARIFIED
+- V0161-005-NO-FAKE-STATUS-QUERY-WORDING
+- V0161-005-NO-PRODUCTION-READINESS-OVERSTATEMENT
+- focused verifier: `bash checks/verify-v0.16.1-status-query-transport-wording.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1137ReleaseV0161StatusQueryTransportEvidenceWording`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`checks/verify-v0.16.1-status-query-transport-wording.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1137 只澄清 `networkStatusQueryPerformed=false` 属于 request evidence flag，guarded Testnet status transport result evidence 仍由 `ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult`、redacted request / response evidence、artifact path 和 checksum 单独表达。它不把 status query 描述为 fake / mock，也不扩展为 production readiness；不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
+
 ## GH-1112 Release v0.16.0 Stage Audit / Release Docs Closeout
 
 - GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS

@@ -19,6 +19,14 @@ import Foundation
 // brokerEndpointConnected=false
 // productionOrderSubmitted=false
 // productionCutoverAuthorized=false
+// GH-1137-VERIFY-V0161-STATUS-QUERY-TRANSPORT-WORDING
+// TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING
+// V0161-005-REQUEST-EVIDENCE-FLAG-CLARIFIED
+// V0161-005-TRANSPORT-RESULT-EVIDENCE-CLARIFIED
+// V0161-005-NO-FAKE-STATUS-QUERY-WORDING
+// V0161-005-NO-PRODUCTION-READINESS-OVERSTATEMENT
+// requestEvidenceNetworkStatusQueryPerformed=false
+// statusTransportResultEvidence=guarded-testnet-status-result
 
 /// ReleaseV0160CLIOrderStatusQueryFlowError 描述 GH-1105 稳定 status query CLI 的 fail-closed 错误。
 ///
@@ -73,6 +81,12 @@ public struct ReleaseV0160BinanceSpotTestnetSignedOrderStatusQueryRequestEvidenc
     public let requestBodyRedacted: Bool
     public let credentialMaterialRedacted: Bool
     public let orderIdentityMaterialRedacted: Bool
+    /// Request evidence 只描述本地 signed GET request shape。
+    ///
+    /// `networkStatusQueryPerformed=false` 不是说 status query 是 fake / mock；
+    /// 它表示 request evidence 本身不直接声明 transport side effect。真正的 guarded
+    /// Testnet status transport result 由 `ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult`
+    /// 单独记录，避免把 request construction 和 transport result 混成同一个证据层。
     public let networkStatusQueryPerformed: Bool
     public let productionTradingEnabledByDefault: Bool
     public let productionSecretRead: Bool

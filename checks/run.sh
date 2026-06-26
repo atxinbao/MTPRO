@@ -241,6 +241,13 @@ bash checks/verify-v0.16.1-central-artifact-redaction-policy.sh
 # V0161-004-RAW-BROKER-ORDER-PAYLOAD-MARKERS
 # V0161-004-WORKFLOW-BUNDLE-REGRESSION-COVERAGE
 bash checks/verify-v0.16.1-redaction-regression-coverage.sh
+# GH-1137-VERIFY-V0161-STATUS-QUERY-TRANSPORT-WORDING
+# TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING
+# V0161-005-REQUEST-EVIDENCE-FLAG-CLARIFIED
+# V0161-005-TRANSPORT-RESULT-EVIDENCE-CLARIFIED
+# V0161-005-NO-FAKE-STATUS-QUERY-WORDING
+# V0161-005-NO-PRODUCTION-READINESS-OVERSTATEMENT
+bash checks/verify-v0.16.1-status-query-transport-wording.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
