@@ -127,6 +127,18 @@ GH-1141 adds bounded retry, per-attempt timeout and classified redacted failure 
 
 GH-1142 adds operator run resume from the local redacted artifact store for v0.17.0. It reuses GH-1140 replay validation and v0.16.0 append-only manifest / record checksums to produce a resume cursor with audit continuity. It does not read credential values, connect endpoints, resubmit orders, publish a tag / GitHub Release, or authorize production cutover.
 
+`GH-1143-VERIFY-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH`
+`TVM-RELEASE-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH`
+`V0170-005-CANCEL-STATUS-MISMATCH-CLASSIFICATION`
+`V0170-005-INTERRUPTED-STATUS-EVIDENCE-RECOVERY`
+`V0170-005-RESUME-CURSOR-CONTINUITY-REQUIRED`
+`V0170-005-STATUS-COMPENSATION-REQUIRED`
+`V0170-005-NO-AUTOMATIC-ORDER-RETRY`
+`V0170-005-REDACTED-RECOVERY-EVIDENCE`
+`V0170-005-NO-PRODUCTION-CUTOVER`
+
+GH-1143 adds the cancel/status reconciliation recovery path for v0.17.0. It classifies cancel/status mismatch and interrupted status evidence from GH-1142 resume cursor, GH-1107 reconciliation report and GH-1141 status query failure evidence into a local fail-closed recovery report. It does not read credential values, connect endpoints, resubmit orders, publish a tag / GitHub Release, or authorize production cutover.
+
 `GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
 
 `GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`

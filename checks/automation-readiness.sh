@@ -120,6 +120,7 @@ require_file "docs/audit/mtpro-release-v0.16.1-operator-beta-evidence-hardening-
 require_file "docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md"
 require_file "docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-replay-validator-contract.md"
 require_file "docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-failure-model-contract.md"
+require_file "docs/contracts/release-v0.17.0-cancel-status-reconciliation-recovery-path-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
@@ -129,6 +130,7 @@ require_file "checks/verify-v0.16.1-patch-audit-release-notes.sh"
 require_file "checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh"
 require_file "checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"
 require_file "checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh"
+require_file "checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -434,6 +436,39 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "checks/run.sh" "bash checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1142ReleaseV0170OperatorRunResumeFromArtifactStore"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170CancelStatusReconciliationRecoveryPath.swift" \
+  "docs/contracts/release-v0.17.0-cancel-status-reconciliation-recovery-path-contract.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh" \
+  "checks/run.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1143-VERIFY-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH"
+  require_contains "$file" "TVM-RELEASE-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH"
+  require_contains "$file" "V0170-005-CANCEL-STATUS-MISMATCH-CLASSIFICATION"
+  require_contains "$file" "V0170-005-INTERRUPTED-STATUS-EVIDENCE-RECOVERY"
+  require_contains "$file" "V0170-005-RESUME-CURSOR-CONTINUITY-REQUIRED"
+  require_contains "$file" "V0170-005-STATUS-COMPENSATION-REQUIRED"
+  require_contains "$file" "V0170-005-NO-AUTOMATIC-ORDER-RETRY"
+  require_contains "$file" "V0170-005-REDACTED-RECOVERY-EVIDENCE"
+  require_contains "$file" "V0170-005-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170CancelStatusReconciliationRecoveryPath.swift" "ReleaseV0170CancelStatusReconciliationRecoveryPath"
+require_contains "docs/contracts/release-v0.17.0-cancel-status-reconciliation-recovery-path-contract.md" "#1143 / GH-1143"
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.0 cancel/status reconciliation recovery path anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1143 Release v0.17.0 Cancel Status Reconciliation Recovery Path"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1143ReleaseV0170CancelStatusReconciliationRecoveryPath"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"
