@@ -46252,6 +46252,195 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1140ReleaseV0170ArtifactBundleReplayValidator() throws {
+        // 测试场景：GH-1140 在 v0.16.0 本地 execution artifact store 之上增加真实 artifact
+        // bundle ingest / replay validator。
+        // 验证目的：validator 必须从本地 bundle 读取、回放并输出确定性 pass/fail；schema、
+        // checksum、action sequence 和 reconciliation artifact 缺失都必须 fail closed，且不得读取
+        // credential value、连接 endpoint、提交订单或授权 production cutover。
+        // GH-1140-VERIFY-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR
+        // TVM-RELEASE-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR
+        // V0170-002-REAL-ARTIFACT-BUNDLE-INGEST
+        // V0170-002-SCHEMA-CHECKSUM-REPLAY-VALIDATION
+        // V0170-002-ACTION-SEQUENCE-VALIDATION
+        // V0170-002-RECONCILIATION-ARTIFACT-REQUIRED
+        // V0170-002-DETERMINISTIC-PASS-FAIL-RESULT
+        // V0170-002-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1140-VERIFY-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR",
+            "TVM-RELEASE-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR",
+            "V0170-002-REAL-ARTIFACT-BUNDLE-INGEST",
+            "V0170-002-SCHEMA-CHECKSUM-REPLAY-VALIDATION",
+            "V0170-002-ACTION-SEQUENCE-VALIDATION",
+            "V0170-002-RECONCILIATION-ARTIFACT-REQUIRED",
+            "V0170-002-DETERMINISTIC-PASS-FAIL-RESULT",
+            "V0170-002-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaArtifactBundleReplayValidator.swift",
+            "docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-replay-validator-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.17.0-artifact-bundle-replay-validator.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        func makeBundle(
+            suffix: String,
+            kinds: [ReleaseV0160LocalExecutionArtifactKind]
+        ) throws -> (
+            URL,
+            Identifier,
+            ReleaseV0160LocalExecutionArtifactStore,
+            [ReleaseV0160LocalExecutionArtifactRecord]
+        ) {
+            let tempRoot = FileManager.default.temporaryDirectory
+                .appendingPathComponent("mtpro-gh1140-\(suffix)-\(UUID().uuidString)", isDirectory: true)
+            let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+            let runID = Identifier.constant("gh-1140-v0170-\(suffix)-artifact-bundle")
+            let start = Date(timeIntervalSince1970: 1_704_070_000)
+            var records: [ReleaseV0160LocalExecutionArtifactRecord] = []
+            for (index, kind) in kinds.enumerated() {
+                let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                    kind: kind,
+                    suffix: "\(suffix)-\(index + 1)",
+                    observedAt: start.addingTimeInterval(TimeInterval(index))
+                )
+                records.append(try store.append(
+                    runID: runID,
+                    payload: payload,
+                    appendedAt: start.addingTimeInterval(TimeInterval(index))
+                ))
+            }
+            return (tempRoot, runID, store, records)
+        }
+
+        let validator = try ReleaseV0170OperatorBetaArtifactBundleReplayValidator()
+        let expectedSequence = ReleaseV0170OperatorBetaArtifactBundleValidationResult.requiredActionSequence
+        let (validRoot, validRunID, _, validRecords) = try makeBundle(
+            suffix: "valid",
+            kinds: expectedSequence
+        )
+        defer { try? FileManager.default.removeItem(at: validRoot) }
+
+        let passed = try validator.validate(runID: validRunID, storageRootURL: validRoot)
+        XCTAssertTrue(passed.resultHeld)
+        XCTAssertEqual(passed.issueID.rawValue, "GH-1140")
+        XCTAssertEqual(passed.blockedByIssueID.rawValue, "GH-1139")
+        XCTAssertEqual(passed.mode, .artifactBundleIngestReplayValidator)
+        XCTAssertEqual(passed.status, .passed)
+        XCTAssertTrue(passed.failures.isEmpty)
+        XCTAssertTrue(passed.schemaValidated)
+        XCTAssertTrue(passed.checksumValidated)
+        XCTAssertTrue(passed.actionSequenceValidated)
+        XCTAssertTrue(passed.reconciliationValidated)
+        XCTAssertTrue(passed.realArtifactBundleIngest)
+        XCTAssertTrue(passed.deterministicPassFailResult)
+        XCTAssertTrue(passed.redactedArtifactEvidenceOnly)
+        XCTAssertEqual(passed.replayedKinds, expectedSequence)
+        XCTAssertEqual(passed.sourceRecordChecksums, validRecords.map(\.recordChecksum))
+        XCTAssertFalse(passed.productionTradingEnabledByDefault)
+        XCTAssertFalse(passed.productionSecretReadEnabled)
+        XCTAssertFalse(passed.productionEndpointConnectionEnabled)
+        XCTAssertFalse(passed.productionBrokerConnectionEnabled)
+        XCTAssertFalse(passed.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(passed.productionCutoverAuthorized)
+
+        let (tamperedRoot, tamperedRunID, tamperedStore, tamperedRecords) = try makeBundle(
+            suffix: "tampered",
+            kinds: expectedSequence
+        )
+        defer { try? FileManager.default.removeItem(at: tamperedRoot) }
+        try Data("{\"tampered\":\"redacted\"}".utf8).write(
+            to: tamperedStore.fileURL(forRelativePath: tamperedRecords[0].payloadPath),
+            options: .atomic
+        )
+        let checksumFailure = try validator.validate(runID: tamperedRunID, storageRootURL: tamperedRoot)
+        XCTAssertTrue(checksumFailure.resultHeld)
+        XCTAssertEqual(checksumFailure.status, .failed)
+        XCTAssertTrue(checksumFailure.failures.contains { $0.reason == .checksumMismatch })
+        XCTAssertFalse(checksumFailure.checksumValidated)
+
+        let (missingRoot, missingRunID, _, _) = try makeBundle(
+            suffix: "missing-reconciliation",
+            kinds: [.submit, .cancel, .status]
+        )
+        defer { try? FileManager.default.removeItem(at: missingRoot) }
+        let missingReconciliation = try validator.validate(runID: missingRunID, storageRootURL: missingRoot)
+        XCTAssertTrue(missingReconciliation.resultHeld)
+        XCTAssertEqual(missingReconciliation.status, .failed)
+        XCTAssertTrue(missingReconciliation.failures.contains { $0.reason == .actionSequenceMismatch })
+        XCTAssertTrue(missingReconciliation.failures.contains { $0.reason == .reconciliationArtifactMissing })
+        XCTAssertTrue(missingReconciliation.schemaValidated)
+        XCTAssertTrue(missingReconciliation.checksumValidated)
+        XCTAssertFalse(missingReconciliation.actionSequenceValidated)
+        XCTAssertFalse(missingReconciliation.reconciliationValidated)
+
+        let sanitizedFailure = try ReleaseV0170OperatorBetaArtifactBundleValidationFailure(
+            reason: .redactionPolicyViolation,
+            field: "redaction",
+            detail: "API Key: should not appear"
+        )
+        XCTAssertEqual(sanitizedFailure.detail, "redaction policy rejected forbidden marker")
+        XCTAssertTrue(sanitizedFailure.failureHeld)
+
+        XCTAssertEqual(ReleaseV0170OperatorBetaArtifactBundleValidationResult.requiredValidationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            ReleaseV0170OperatorBetaArtifactBundleValidationResult.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1140ReleaseV0170ArtifactBundleReplayValidator",
+                "bash checks/verify-v0.17.0-artifact-bundle-replay-validator.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaArtifactBundleReplayValidator.swift")
+        let contractDoc = try read("docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-replay-validator-contract.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.17.0-artifact-bundle-replay-validator.sh")
+
+        XCTAssertTrue(source.contains("artifactBundleReplayValidator=ReleaseV0170OperatorBetaArtifactBundleReplayValidator"))
+        XCTAssertTrue(source.contains("realArtifactBundleIngest=true"))
+        XCTAssertTrue(source.contains("reconciliationArtifactRequired=true"))
+        XCTAssertTrue(contractDoc.contains("#1140 / GH-1140"))
+        XCTAssertTrue(contractDoc.contains("schema / checksum / action sequence / reconciliation"))
+        XCTAssertTrue(contractDoc.contains("不授权 production cutover"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1140ReleaseV0170ArtifactBundleReplayValidator"))
+
+        for artifact in [source, contractDoc, verifier] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,

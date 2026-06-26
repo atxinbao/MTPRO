@@ -8,6 +8,22 @@
 
 ## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 
+## TVM-RELEASE-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR
+
+- TVM-RELEASE-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR
+- GH-1140-VERIFY-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR
+- V0170-002-REAL-ARTIFACT-BUNDLE-INGEST
+- V0170-002-SCHEMA-CHECKSUM-REPLAY-VALIDATION
+- V0170-002-ACTION-SEQUENCE-VALIDATION
+- V0170-002-RECONCILIATION-ARTIFACT-REQUIRED
+- V0170-002-DETERMINISTIC-PASS-FAIL-RESULT
+- V0170-002-NO-PRODUCTION-CUTOVER
+- GH-1140 Release v0.17.0 Artifact Bundle Replay Validator
+- `bash checks/verify-v0.17.0-artifact-bundle-replay-validator.sh`
+- `swift test --filter TargetGraphTests/testGH1140ReleaseV0170ArtifactBundleReplayValidator`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaArtifactBundleReplayValidator.swift`、`docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-replay-validator-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-artifact-bundle-replay-validator.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1140 validates redacted local operator beta artifact bundles from disk with schema / checksum / action sequence / reconciliation checks and deterministic pass/fail output. It does not read credential values, connect endpoints, send testnet or production orders, create a tag / GitHub Release, start the next milestone, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
 
 - TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
