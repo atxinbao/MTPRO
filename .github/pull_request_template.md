@@ -48,6 +48,15 @@
 
 -
 
+# Review Fast Path
+
+- [ ] Review tier：`A` fast docs / evidence path、`B` focused implementation path 或 `C` full sensitive path。
+- [ ] 已运行 `bash checks/review-packet.sh`，或已说明不运行原因：
+- [ ] Fast path 只压缩 reviewer 读取顺序，不替代 WIP=1、Parent Codex queue preflight、`bash checks/run.sh`、GitHub required checks、Stage Code Audit 或 production gates。
+- [ ] 如选择 Tier A，已确认本 PR 不触碰 production behavior、credential、runtime、transport、OMS、RiskEngine 或 workflow dispatch。
+- [ ] 如选择 Tier B，已记录 focused feedback loop 和边界命中解释。
+- [ ] 如选择 Tier C，已保留完整 sensitive review。
+
 # Feedback Loop Evidence
 
 - [ ] 已记录本 PR 使用的最快反馈环，例如 focused fixture / module test / Dashboard smoke / `bash checks/run.sh` / GitHub `checks`。
