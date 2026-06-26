@@ -46852,6 +46852,225 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1143ReleaseV0170CancelStatusReconciliationRecoveryPath() throws {
+        // 测试场景：GH-1143 在 GH-1142 resume cursor、GH-1107 reconciliation failure
+        // 和 GH-1141 signed status query failure 上生成 cancel/status recovery evidence。
+        // 验证目的：cancel/status mismatch 和 interrupted status evidence 必须分类、fail closed、
+        // 要求 status compensation，并且绝不自动重提订单或授权 production cutover。
+        // GH-1143-VERIFY-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH
+        // TVM-RELEASE-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH
+        // V0170-005-CANCEL-STATUS-MISMATCH-CLASSIFICATION
+        // V0170-005-INTERRUPTED-STATUS-EVIDENCE-RECOVERY
+        // V0170-005-RESUME-CURSOR-CONTINUITY-REQUIRED
+        // V0170-005-STATUS-COMPENSATION-REQUIRED
+        // V0170-005-NO-AUTOMATIC-ORDER-RETRY
+        // V0170-005-REDACTED-RECOVERY-EVIDENCE
+        // V0170-005-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1143-VERIFY-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH",
+            "TVM-RELEASE-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH",
+            "V0170-005-CANCEL-STATUS-MISMATCH-CLASSIFICATION",
+            "V0170-005-INTERRUPTED-STATUS-EVIDENCE-RECOVERY",
+            "V0170-005-RESUME-CURSOR-CONTINUITY-REQUIRED",
+            "V0170-005-STATUS-COMPENSATION-REQUIRED",
+            "V0170-005-NO-AUTOMATIC-ORDER-RETRY",
+            "V0170-005-REDACTED-RECOVERY-EVIDENCE",
+            "V0170-005-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0170CancelStatusReconciliationRecoveryPath.swift",
+            "docs/contracts/release-v0.17.0-cancel-status-reconciliation-recovery-path-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let tempRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("mtpro-gh1143-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: tempRoot) }
+        let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+        let runID = Identifier.constant("gh-1143-v0170-cancel-status-recovery-run")
+        let start = Date(timeIntervalSince1970: 1_704_081_000)
+        var recordsByKind: [ReleaseV0160LocalExecutionArtifactKind: ReleaseV0160LocalExecutionArtifactRecord] = [:]
+        for (index, kind) in ReleaseV0170OperatorBetaArtifactBundleValidationResult.requiredActionSequence.enumerated() {
+            let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                kind: kind,
+                suffix: "cancel-status-recovery-\(index + 1)",
+                observedAt: start.addingTimeInterval(TimeInterval(index))
+            )
+            recordsByKind[kind] = try store.append(
+                runID: runID,
+                payload: payload,
+                appendedAt: start.addingTimeInterval(TimeInterval(index))
+            )
+        }
+        let replay = try store.replay(runID: runID)
+        let resumeResult = try ReleaseV0170OperatorRunResumeFromArtifactStore()
+            .resume(runID: runID, storageRootURL: tempRoot)
+        XCTAssertTrue(resumeResult.resultHeld)
+        XCTAssertEqual(resumeResult.status, .passed)
+        XCTAssertNotNil(resumeResult.resumeCursor)
+
+        let mismatchEvidence = try ReleaseV0160OMSObservedStatusEvidence(
+            statusArtifact: XCTUnwrap(recordsByKind[.status]),
+            rawBinanceStatus: "NEW"
+        )
+        let mismatchReport = try ReleaseV0160OMSObservedStatusReconciliationEngine()
+            .reconcile(
+                replay: replay,
+                observedStatusEvidence: mismatchEvidence,
+                expectedState: .cancelObserved
+            )
+        XCTAssertEqual(mismatchReport.status, .failed)
+        XCTAssertTrue(mismatchReport.failures.contains { $0.reason == .cancelStateMismatch })
+
+        let timeoutFailure = try ReleaseV0170SignedStatusQueryAttemptFailure(
+            reason: .timeout,
+            field: "timeout",
+            detail: "interrupted status evidence for GH-1143",
+            retryable: false
+        )
+        let interruptedAttempt = try ReleaseV0170SignedStatusQueryAttemptEvidence(
+            attemptIndex: 1,
+            timeoutMilliseconds: 5,
+            status: .failed,
+            transportResultID: nil,
+            failure: timeoutFailure,
+            retryScheduled: false
+        )
+        let interruptedStatusResult = try ReleaseV0170SignedStatusQueryResult(
+            signedStatusQueryRequestID: .constant("gh-1143-v0170-signed-status-query-request"),
+            status: .failed,
+            finalTransportResultID: nil,
+            attempts: [interruptedAttempt],
+            retryPolicy: try ReleaseV0170SignedStatusQueryRetryPolicy(
+                maxAttempts: 1,
+                perAttemptTimeoutMilliseconds: 5
+            )
+        )
+        XCTAssertTrue(interruptedStatusResult.resultHeld)
+        XCTAssertEqual(interruptedStatusResult.status, .failed)
+
+        let recovery = try ReleaseV0170CancelStatusReconciliationRecoveryPath()
+            .recover(
+                resumeResult: resumeResult,
+                reconciliationReport: mismatchReport,
+                signedStatusQueryResult: interruptedStatusResult
+            )
+        XCTAssertTrue(recovery.reportHeld)
+        XCTAssertEqual(recovery.issueID.rawValue, "GH-1143")
+        XCTAssertEqual(recovery.blockedByIssueIDs.map(\.rawValue), ["GH-1141", "GH-1142"])
+        XCTAssertEqual(recovery.releaseVersion, "v0.17.0")
+        XCTAssertEqual(recovery.mode, .cancelStatusReconciliationRecovery)
+        XCTAssertEqual(recovery.status, .failed)
+        XCTAssertEqual(recovery.sourceRunID, runID)
+        XCTAssertEqual(recovery.resumeResultID, resumeResult.resultID)
+        XCTAssertEqual(recovery.resumeCursorID, resumeResult.resumeCursor?.cursorID)
+        XCTAssertEqual(recovery.reconciliationReportID, mismatchReport.reportID)
+        XCTAssertEqual(recovery.signedStatusQueryResultID, interruptedStatusResult.resultID)
+        XCTAssertTrue(recovery.cancelStatusMismatchClassified)
+        XCTAssertTrue(recovery.interruptedStatusEvidenceCovered)
+        XCTAssertTrue(recovery.resumeCursorContinuityRequired)
+        XCTAssertTrue(recovery.statusCompensationRequired)
+        XCTAssertTrue(recovery.noAutomaticOrderRetry)
+        XCTAssertTrue(recovery.redactedRecoveryEvidenceOnly)
+        XCTAssertFalse(recovery.productionTradingEnabledByDefault)
+        XCTAssertFalse(recovery.productionSecretReadEnabled)
+        XCTAssertFalse(recovery.productionEndpointConnectionEnabled)
+        XCTAssertFalse(recovery.productionBrokerConnectionEnabled)
+        XCTAssertFalse(recovery.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(recovery.productionCutoverAuthorized)
+
+        let reasons = Set(recovery.cases.map(\.reason))
+        XCTAssertTrue(reasons.contains(.cancelStatusMismatch))
+        XCTAssertTrue(reasons.contains(.interruptedStatusEvidence))
+        XCTAssertTrue(recovery.cases.allSatisfy(\.caseHeld))
+        XCTAssertTrue(recovery.cases.allSatisfy(\.statusQueryCompensationRequired))
+        XCTAssertTrue(recovery.cases.allSatisfy(\.reconciliationReplayRequired))
+        XCTAssertTrue(recovery.cases.allSatisfy(\.automaticOrderRetryBlocked))
+        XCTAssertTrue(recovery.cases.allSatisfy(\.noResubmitOnResume))
+        XCTAssertTrue(recovery.cases.allSatisfy(\.failClosed))
+        XCTAssertTrue(recovery.cases.allSatisfy(\.redactedRecoveryEvidenceOnly))
+        XCTAssertTrue(recovery.cases.allSatisfy { $0.operatorActionPlan.contains(.freezeRun) })
+        XCTAssertTrue(recovery.cases.allSatisfy { $0.operatorActionPlan.contains(.runStatusQueryCompensation) })
+        XCTAssertTrue(recovery.cases.allSatisfy { $0.operatorActionPlan.contains(.reconcileObservedStatus) })
+        XCTAssertTrue(recovery.cases.allSatisfy { $0.operatorActionPlan.contains(.closeFailedNoRetry) })
+
+        let redactedCase = try ReleaseV0170CancelStatusReconciliationRecoveryCase(
+            reason: .redactionPolicyViolation,
+            sourceRunID: runID,
+            resumeCursorID: resumeResult.resumeCursor?.cursorID,
+            reconciliationReportID: mismatchReport.reportID,
+            reconciliationFailureID: nil,
+            signedStatusQueryResultID: interruptedStatusResult.resultID,
+            signedStatusFailureID: nil,
+            observedState: "API " + "Key: should not persist"
+        )
+        XCTAssertEqual(redactedCase.observedState, "redaction policy rejected forbidden marker")
+        XCTAssertTrue(redactedCase.caseHeld)
+
+        XCTAssertEqual(ReleaseV0170CancelStatusReconciliationRecoveryReport.requiredValidationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            ReleaseV0170CancelStatusReconciliationRecoveryReport.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1143ReleaseV0170CancelStatusReconciliationRecoveryPath",
+                "bash checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170CancelStatusReconciliationRecoveryPath.swift")
+        let contractDoc = try read("docs/contracts/release-v0.17.0-cancel-status-reconciliation-recovery-path-contract.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh")
+
+        XCTAssertTrue(source.contains("cancelStatusReconciliationRecovery=ReleaseV0170CancelStatusReconciliationRecoveryPath"))
+        XCTAssertTrue(source.contains("cancelStatusMismatchClassification=true"))
+        XCTAssertTrue(source.contains("interruptedStatusEvidenceRecovery=true"))
+        XCTAssertTrue(source.contains("resumeCursorContinuityRequired=true"))
+        XCTAssertTrue(source.contains("statusCompensationRequired=true"))
+        XCTAssertTrue(source.contains("noAutomaticOrderRetry=true"))
+        XCTAssertTrue(source.contains("redactedRecoveryEvidenceOnly=true"))
+        XCTAssertTrue(contractDoc.contains("#1143 / GH-1143"))
+        XCTAssertTrue(contractDoc.contains("cancel/status reconciliation recovery"))
+        XCTAssertTrue(contractDoc.contains("不授权 production cutover"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1143ReleaseV0170CancelStatusReconciliationRecoveryPath"))
+
+        for artifact in [source, contractDoc, verifier] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     private enum GH1141StatusQueryScriptOutcome: Sendable {
         case retryableHTTPStatus
         case nonRetryableHTTPStatus

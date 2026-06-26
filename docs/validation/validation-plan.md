@@ -6,6 +6,22 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1143 Release v0.17.0 Cancel Status Reconciliation Recovery Path
+
+- GH-1143-VERIFY-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH
+- TVM-RELEASE-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH
+- V0170-005-CANCEL-STATUS-MISMATCH-CLASSIFICATION
+- V0170-005-INTERRUPTED-STATUS-EVIDENCE-RECOVERY
+- V0170-005-RESUME-CURSOR-CONTINUITY-REQUIRED
+- V0170-005-STATUS-COMPENSATION-REQUIRED
+- V0170-005-NO-AUTOMATIC-ORDER-RETRY
+- V0170-005-REDACTED-RECOVERY-EVIDENCE
+- V0170-005-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1143ReleaseV0170CancelStatusReconciliationRecoveryPath`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170CancelStatusReconciliationRecoveryPath.swift`、`docs/contracts/release-v0.17.0-cancel-status-reconciliation-recovery-path-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1143 只将 cancel/status mismatch 与 interrupted status evidence 归类为本地 fail-closed recovery report，并要求 status compensation 与 reconciliation replay。GH-1143 不读取 credential value，不连接 testnet / production endpoint，不重提 testnet / production order，不创建 tag / GitHub Release，不启动下一 milestone，不授权 production cutover。
+
 ## GH-1142 Release v0.17.0 Operator Run Resume From Artifact Store
 
 - GH-1142-VERIFY-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE

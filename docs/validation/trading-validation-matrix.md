@@ -8,6 +8,23 @@
 
 ## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 
+## TVM-RELEASE-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH
+
+- TVM-RELEASE-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH
+- GH-1143-VERIFY-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH
+- V0170-005-CANCEL-STATUS-MISMATCH-CLASSIFICATION
+- V0170-005-INTERRUPTED-STATUS-EVIDENCE-RECOVERY
+- V0170-005-RESUME-CURSOR-CONTINUITY-REQUIRED
+- V0170-005-STATUS-COMPENSATION-REQUIRED
+- V0170-005-NO-AUTOMATIC-ORDER-RETRY
+- V0170-005-REDACTED-RECOVERY-EVIDENCE
+- V0170-005-NO-PRODUCTION-CUTOVER
+- GH-1143 Release v0.17.0 Cancel Status Reconciliation Recovery Path
+- `bash checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh`
+- `swift test --filter TargetGraphTests/testGH1143ReleaseV0170CancelStatusReconciliationRecoveryPath`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170CancelStatusReconciliationRecoveryPath.swift`、`docs/contracts/release-v0.17.0-cancel-status-reconciliation-recovery-path-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1143 classifies cancel/status mismatch and interrupted status evidence into local fail-closed recovery evidence. It only consumes GH-1142 resume cursor, GH-1107 reconciliation report and GH-1141 status query failure evidence. It does not read credential values, connect endpoints, resubmit testnet or production orders, create a tag / GitHub Release, start the next milestone, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE
 
 - TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE
