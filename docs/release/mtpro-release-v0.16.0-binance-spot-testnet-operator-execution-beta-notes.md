@@ -8,7 +8,7 @@
 
 `MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta` 是 v0.15.1 后的 operator beta construction closeout。它收口 GitHub fallback issues `#1101..#1112`，把 guarded Spot Testnet runtime evidence 推进到可由 operator 手动执行、可由本地 artifact 和 Dashboard read-only surface 审计的 beta flow。
 
-本说明是 #1112 closeout notes。#1112 不创建 `v0.16.0` tag，不创建 GitHub Release，不推进下一阶段，不授权 production cutover。后续如需 public release publication，必须走独立 Release Publication Gate。
+本说明最初是 #1112 closeout notes。#1112 construction closeout 本身不创建 `v0.16.0` tag，不创建 GitHub Release，不推进下一阶段，不授权 production cutover。随后独立 Release Publication Gate 已发布 `v0.16.0` stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`，tag peeled commit：`28779236262bd7ffaf71e286b27b95854c5cd3e1`，publication timestamp：`2026-06-26T01:29:21Z`。该 publication 仍不授权 production cutover。
 
 ## Completed Queue
 
@@ -80,4 +80,4 @@ Dashboard 只展示本地 artifact-backed execution evidence，不提供 command
 
 ## Publication
 
-本 closeout 不创建 tag / GitHub Release。`v0.16.0` public release publication 必须作为独立 gate 执行，并且仍不得被解释为 production cutover authorization。
+本 closeout 本身不创建 tag / GitHub Release。`v0.16.0` public release publication 已由后续独立 Release Publication Gate 执行，并且仍不得被解释为 production cutover authorization。

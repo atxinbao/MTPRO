@@ -20,7 +20,7 @@
 - focused verifier: `bash checks/verify-v0.16.0-stage-audit-release-docs.sh`
 - focused test: `swift test --filter TargetGraphTests/testGH1112ReleaseV0160StageAuditReleaseDocsCloseout`
 - Evidence files: `docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md`、`docs/release/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-notes.md`、`docs/operators/release-v0.16.0-binance-spot-testnet-operator-execution-beta-runbook.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.0-stage-audit-release-docs.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
-- Boundary: GH-1112 只收口 v0.16.0 Stage Code Audit、release notes、operator runbook、validation matrix 和 stale wording guard；不创建 tag / GitHub Release，不推进下一 Project / Issue，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+- Boundary: GH-1112 只收口 v0.16.0 Stage Code Audit、release notes、operator runbook、validation matrix 和 stale wording guard；#1112 closeout 本身不创建 tag / GitHub Release，不推进下一 Project / Issue，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。后续独立 Release Publication Gate 已发布 v0.16.0 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`，tag peeled commit `28779236262bd7ffaf71e286b27b95854c5cd3e1`；该 publication 仍不授权 production cutover。
 
 ## GH-1101 Release v0.16.0 Operator Beta Contract / Preflight Guard
 

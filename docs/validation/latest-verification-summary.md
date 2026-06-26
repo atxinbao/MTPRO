@@ -129,7 +129,7 @@ productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing
 
 GH-1112 收口 v0.16.0 Binance Spot Testnet Operator Execution Beta。当前 evidence chain 覆盖 #1101..#1111 closed / done、Stage Code Audit Report、release notes、operator runbook、latest verification summary、automation readiness、validation plan、trading validation matrix、`checks/verify-v0.16.0-stage-audit-release-docs.sh` 和 `testGH1112ReleaseV0160StageAuditReleaseDocsCloseout`。
 
-v0.16.0 construction closeout 只记录 Binance Spot Testnet operator beta evidence，不创建 v0.16.0 tag，不创建 GitHub Release，不推进下一 Project / Issue，不授权 production cutover。
+v0.16.0 construction closeout 只记录 Binance Spot Testnet operator beta evidence；#1112 closeout 本身不创建 v0.16.0 tag、不创建 GitHub Release、不推进下一 Project / Issue、不授权 production cutover。随后独立 Release Publication Gate 已发布 v0.16.0 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`，tag peeled commit：`28779236262bd7ffaf71e286b27b95854c5cd3e1`，publication timestamp：`2026-06-26T01:29:21Z`。该 publication 仍不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
 
 Required validation:
 
