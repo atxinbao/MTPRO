@@ -16,13 +16,13 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 
 | 项 | 当前事实 |
 | --- | --- |
-| Latest completed release construction scope | `MTPRO Release v0.15.0 Real Binance Testnet Execution MVP` |
+| Latest completed release construction scope | `MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta` |
 | Latest completed patch scope | `MTPRO Release v0.15.1 Real Testnet Execution Hardening Patch` |
 | Historical guard retains | v0.11.0 previous latest construction scope retained for historical guards |
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
 | Latest patch queue | GitHub fallback queue `#1094..#1100` for v0.15.1 Real Testnet Execution Hardening Patch is closed；#1094 is closed / done；#1095 is closed / done；#1096 is closed / done；#1097 is closed / done；#1098 is closed / done；#1099 deterministic client order identity chain is closed / done；#1100 codable decode closeout is closed / done；release/v0.15.1 queue closed |
-| Current v0.16.0 operator beta queue | GitHub fallback queue `#1101..#1112` for `MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta` is active under WIP=1；#1101 contract / preflight is closed / done；#1102 operator run model is closed / done；#1103 CLI submit flow is closed / done；#1104 CLI cancel flow is closed / done；#1105 signed order status query is closed / done；#1106 local execution artifact store is closed / done；#1107 OMS observed status reconciliation is closed / done；#1108 Dashboard artifact-backed execution view is current active issue；#1108 shows local artifact-backed rows, action sequence, checksums and OMS reconciliation result in Dashboard without command surface |
-| Stage Code Audit Report | `docs/audit/mtpro-release-v0.15.1-real-testnet-execution-hardening-patch-stage-code-audit.md` |
+| Latest v0.16.0 operator beta queue | GitHub fallback queue `#1101..#1112` for `MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta` is closed / done；#1111 manual testnet validation workflow is closed / done；#1112 audit / release docs closeout is closed / done；v0.16.0 Stage Code Audit / release docs closeout uses `GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS` and keeps production cutover not authorized |
+| Stage Code Audit Report | `docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md` |
 | v0.14.1 release publication preflight fact | v0.14.1 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.14.1`；tag peeled commit `92cd3d5cf00e85c43ef99d9f204cca97347c79ff`；publication timestamp `2026-06-22T09:00:59Z`；该 publication 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order |
 | v0.15.0 release publication fact | `GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC`；`V0151-001-V0150-RELEASE-FACT-SYNC-GUARD`；`TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC`；v0.15.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`；tag peeled commit `1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`；publication timestamp `2026-06-23T01:26:30Z`；该 publication 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order；#1094 guard 拒绝未限定到 #1076 historical closeout 的 stale publication wording |
 | v0.15.1 injected transport wording guard | `GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING`；`V0151-002-INJECTED-TRANSPORT-NOT-BUILTIN-RUNNER`；`V0151-002-MOCK-MANUAL-PROOF-SPLIT`；`V0151-002-FUTURE-URLSESSION-RUNNER-DEFERRED`；`TVM-RELEASE-V0151-INJECTED-TRANSPORT-WORDING`；v0.15.0 signed execution runtime evidence 依赖 injected Spot Testnet transport protocol、deterministic mock proof 或 operator manual proof，不表示仓库已内置 URLSession runner，也不表示 CLI 默认真实联网执行器；#1096 才是后续 concrete URLSession transport slice；不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order |
@@ -106,6 +106,39 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。该 default-off / gated posture 是当前 release line 的 fail-closed 状态，不是 MTPRO 永久禁止实盘；后续 live trading 只能在独立 planning、唯一 live queue source、Parent Codex preflight、readiness evidence、credential / signed endpoint、OMS、risk、reconciliation、audit / rollback 和 Human approval gates 满足后逐层启用。`v0.15.0` Real Binance Testnet Execution MVP 已发布 stable GitHub Release；该 publication 不授权 production cutover。
+
+## Release v0.16.0 Stage Audit / Release Docs Closeout Snapshot
+
+`GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS`
+
+`TVM-RELEASE-V0160-STAGE-AUDIT-RELEASE-DOCS`
+
+`V0160-012-STAGE-CODE-AUDIT`
+
+`V0160-012-RELEASE-NOTES`
+
+`V0160-012-OPERATOR-RUNBOOK`
+
+`V0160-012-VALIDATION-MATRIX`
+
+`V0160-012-STALE-WORDING-GUARD`
+
+`V0160-012-NO-PRODUCTION-CUTOVER`
+
+`V0160-012-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1112 收口 v0.16.0 Binance Spot Testnet Operator Execution Beta。当前 evidence chain 覆盖 #1101..#1111 closed / done、Stage Code Audit Report、release notes、operator runbook、latest verification summary、automation readiness、validation plan、trading validation matrix、`checks/verify-v0.16.0-stage-audit-release-docs.sh` 和 `testGH1112ReleaseV0160StageAuditReleaseDocsCloseout`。
+
+v0.16.0 construction closeout 只记录 Binance Spot Testnet operator beta evidence，不创建 v0.16.0 tag，不创建 GitHub Release，不推进下一 Project / Issue，不授权 production cutover。
+
+Required validation:
+
+```bash
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/verify-v0.16.0-stage-audit-release-docs.sh
+bash checks/run.sh
+```
 
 ## Release v0.13.0 Stage Audit / Release Docs Closeout Snapshot
 

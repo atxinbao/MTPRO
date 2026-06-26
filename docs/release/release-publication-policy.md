@@ -22,6 +22,7 @@
 - `GH-1107 V160-007 Add OMS observed status reconciliation`
 - `GH-1108 V160-008 Add Dashboard artifact-backed execution view`
 - `GH-1109 V160-009 Add failure recovery workflow`
+- `GH-1112 V160-012 Close v0.16.0 audit / runbook / release docs`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -815,3 +816,29 @@ Required validation：
 - `bash checks/run.sh`
 
 GH-1111 不发布 tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不启动 Linear / Symphony / Graphify / code-index / Figma，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
+## GH-1112 Release v0.16.0 Stage Audit / Release Docs Policy
+
+`GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS`
+
+`TVM-RELEASE-V0160-STAGE-AUDIT-RELEASE-DOCS`
+
+`V0160-012-STAGE-CODE-AUDIT`
+
+`V0160-012-RELEASE-NOTES`
+
+`V0160-012-OPERATOR-RUNBOOK`
+
+`V0160-012-VALIDATION-MATRIX`
+
+`V0160-012-STALE-WORDING-GUARD`
+
+`V0160-012-NO-PRODUCTION-CUTOVER`
+
+`V0160-012-NO-TAG-OR-RELEASE-PUBLICATION`
+
+#1112 是 v0.16.0 Binance Spot Testnet Operator Execution Beta 的 construction closeout slice。它只同步已发生事实：#1101..#1112 closed / done、Stage Code Audit、release notes、operator runbook、validation matrix、automation readiness 和 stale wording guard。
+
+GH-1112 不创建 tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不启动 Linear / Symphony / Graphify / code-index / Figma，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
+如需发布 `v0.16.0` public GitHub Release，必须在本 construction closeout 完成后由独立 Release Publication Gate 显式触发。Release publication 仍不等于 production cutover authorization。

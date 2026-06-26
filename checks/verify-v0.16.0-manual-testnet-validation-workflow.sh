@@ -83,8 +83,10 @@ require_file_contains "$WORKFLOW" "bash checks/verify-v0.16.0-manual-testnet-val
 reject_file_contains "$WORKFLOW" "secrets."
 reject_file_contains "$WORKFLOW" "api.binance.com/api"
 require_file_contains "$TARGET_TESTS" "testGH1111ReleaseV0160ManualTestnetValidationWorkflowRequiresRedactedBundle"
-require_file_contains "README.md" "#1111 manual testnet validation workflow is current WIP=1"
-require_file_contains "GOAL.md" "#1111 manual testnet validation workflow is current WIP=1"
+require_file_contains "README.md" "#1111 manual testnet validation workflow closed / done"
+require_file_contains "GOAL.md" "#1111 manual testnet validation workflow closed / done"
+reject_file_contains "README.md" "#1111 manual testnet validation workflow is current WIP=1"
+reject_file_contains "GOAL.md" "#1111 manual testnet validation workflow is current WIP=1"
 require_file_contains "checks/run.sh" "bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
 require_file_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
 

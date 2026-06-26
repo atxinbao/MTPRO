@@ -45483,6 +45483,76 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(docs.contains("不授权 production cutover"))
     }
 
+    func testGH1112ReleaseV0160StageAuditReleaseDocsCloseout() throws {
+        // 测试场景：GH-1112 只收口 v0.16.0 construction closeout 的文档和验证锚点。
+        // 验证目的：Stage Code Audit、release notes、operator runbook、validation matrix 和
+        // stale wording guard 必须一致声明不创建 tag / GitHub Release 且不授权 production cutover。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS",
+            "TVM-RELEASE-V0160-STAGE-AUDIT-RELEASE-DOCS",
+            "V0160-012-STAGE-CODE-AUDIT",
+            "V0160-012-RELEASE-NOTES",
+            "V0160-012-OPERATOR-RUNBOOK",
+            "V0160-012-VALIDATION-MATRIX",
+            "V0160-012-STALE-WORDING-GUARD",
+            "V0160-012-NO-PRODUCTION-CUTOVER",
+            "V0160-012-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-notes.md",
+            "docs/operators/release-v0.16.0-binance-spot-testnet-operator-execution-beta-runbook.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/automation/automation-readiness.md",
+            "docs/release/release-publication-policy.md",
+            "checks/verify-v0.16.0-stage-audit-release-docs.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let audit = try read("docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-notes.md")
+        let runbook = try read("docs/operators/release-v0.16.0-binance-spot-testnet-operator-execution-beta-runbook.md")
+        let verifier = try read("checks/verify-v0.16.0-stage-audit-release-docs.sh")
+
+        XCTAssertTrue(readme.contains("#1101..#1112 closed / done"))
+        XCTAssertTrue(readme.contains("#1112 audit / release docs closeout closed / done"))
+        XCTAssertTrue(goal.contains("#1112 audit / release docs closeout closed / done"))
+        XCTAssertTrue(latest.contains("v0.16.0 Stage Code Audit / release docs closeout"))
+        XCTAssertTrue(audit.contains("Issue Evidence"))
+        XCTAssertTrue(audit.contains("Residual Risk"))
+        XCTAssertTrue(notes.contains("Completed Queue"))
+        XCTAssertTrue(runbook.contains("Operator Evidence Path"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1112ReleaseV0160StageAuditReleaseDocsCloseout"))
+
+        for source in [readme, goal, latest, audit, notes, runbook] {
+            XCTAssertTrue(source.contains("production cutover not authorized") || source.contains("不授权 production cutover"))
+            XCTAssertFalse(source.contains("#1111 manual testnet validation workflow is current WIP=1"))
+            XCTAssertFalse(source.contains("#1108 Dashboard artifact-backed execution view is current active issue"))
+            XCTAssertFalse(source.contains("#1104 CLI cancel flow 是当前 WIP=1"))
+        }
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
