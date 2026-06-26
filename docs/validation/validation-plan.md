@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1142 Release v0.17.0 Operator Run Resume From Artifact Store
+
+- GH-1142-VERIFY-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE
+- TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE
+- V0170-004-LOCAL-ARTIFACT-STORE-RESUME
+- V0170-004-REPLAY-VALIDATION-REQUIRED
+- V0170-004-AUDIT-CONTINUITY-PRESERVED
+- V0170-004-NO-RESUBMIT-ON-RESUME
+- V0170-004-REDACTED-RESUME-EVIDENCE
+- V0170-004-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1142ReleaseV0170OperatorRunResumeFromArtifactStore`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorRunResumeFromArtifactStore.swift`、`docs/contracts/release-v0.17.0-operator-run-resume-from-artifact-store-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1142 只从本地 redacted artifact store 恢复 operator run 的 append-only audit cursor，并依赖 GH-1140 replay validation。GH-1142 不读取 credential value，不连接 testnet / production endpoint，不重提 testnet / production order，不创建 tag / GitHub Release，不启动下一 milestone，不授权 production cutover。
+
 ## GH-1141 Release v0.17.0 Signed Status Query Retry / Timeout Failure Model
 
 - GH-1141-VERIFY-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL

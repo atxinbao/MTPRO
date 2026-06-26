@@ -116,6 +116,17 @@ GH-1140 adds the local artifact bundle ingest / replay validator for v0.17.0. It
 
 GH-1141 adds bounded retry, per-attempt timeout and classified redacted failure evidence around the Binance Spot Testnet signed status query path. It does not read credential values, connect production endpoint / broker endpoint, send orders, publish a tag / GitHub Release, or authorize production cutover.
 
+`GH-1142-VERIFY-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE`
+`TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE`
+`V0170-004-LOCAL-ARTIFACT-STORE-RESUME`
+`V0170-004-REPLAY-VALIDATION-REQUIRED`
+`V0170-004-AUDIT-CONTINUITY-PRESERVED`
+`V0170-004-NO-RESUBMIT-ON-RESUME`
+`V0170-004-REDACTED-RESUME-EVIDENCE`
+`V0170-004-NO-PRODUCTION-CUTOVER`
+
+GH-1142 adds operator run resume from the local redacted artifact store for v0.17.0. It reuses GH-1140 replay validation and v0.16.0 append-only manifest / record checksums to produce a resume cursor with audit continuity. It does not read credential values, connect endpoints, resubmit orders, publish a tag / GitHub Release, or authorize production cutover.
+
 `GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
 
 `GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`

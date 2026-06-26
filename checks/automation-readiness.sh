@@ -403,6 +403,38 @@ require_contains "checks/run.sh" "bash checks/verify-v0.17.0-signed-status-query
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1141ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorRunResumeFromArtifactStore.swift" \
+  "docs/contracts/release-v0.17.0-operator-run-resume-from-artifact-store-contract.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh" \
+  "checks/run.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1142-VERIFY-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE"
+  require_contains "$file" "TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE"
+  require_contains "$file" "V0170-004-LOCAL-ARTIFACT-STORE-RESUME"
+  require_contains "$file" "V0170-004-REPLAY-VALIDATION-REQUIRED"
+  require_contains "$file" "V0170-004-AUDIT-CONTINUITY-PRESERVED"
+  require_contains "$file" "V0170-004-NO-RESUBMIT-ON-RESUME"
+  require_contains "$file" "V0170-004-REDACTED-RESUME-EVIDENCE"
+  require_contains "$file" "V0170-004-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorRunResumeFromArtifactStore.swift" "ReleaseV0170OperatorRunResumeFromArtifactStore"
+require_contains "docs/contracts/release-v0.17.0-operator-run-resume-from-artifact-store-contract.md" "#1142 / GH-1142"
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.0 operator run resume from artifact store anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1142 Release v0.17.0 Operator Run Resume From Artifact Store"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1142ReleaseV0170OperatorRunResumeFromArtifactStore"
+
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC"
