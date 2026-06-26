@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
+
+- TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
+- GH-1138-VERIFY-V0161-PATCH-AUDIT-RELEASE-NOTES
+- V0161-006-PATCH-AUDIT
+- V0161-006-RELEASE-NOTES
+- V0161-006-VALIDATION-MATRIX
+- V0161-006-PUBLICATION-GUIDANCE
+- V0161-006-NO-PRODUCTION-CUTOVER
+- V0161-006-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1138 Release v0.16.1 Patch Audit / Release Notes Closeout
+- `bash checks/verify-v0.16.1-patch-audit-release-notes.sh`
+- `swift test --filter TargetGraphTests/testGH1138ReleaseV0161PatchAuditReleaseNotesCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.1-patch-audit-release-notes.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1138 closes v0.16.1 patch audit, release notes, validation matrix and publication guidance. It does not create a tag / GitHub Release, move the v0.16.0 tag, overwrite the release, create the next Project / Issue, read production secrets, connect production endpoint / broker endpoint, send testnet or production order, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC
 
 - TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC
