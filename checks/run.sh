@@ -196,6 +196,16 @@ bash checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh
 bash checks/verify-v0.16.0-failure-recovery-workflow.sh
 bash checks/verify-v0.16.0-beta-safety-guards.sh
 bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh
+# GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS
+# TVM-RELEASE-V0160-STAGE-AUDIT-RELEASE-DOCS
+# V0160-012-STAGE-CODE-AUDIT
+# V0160-012-RELEASE-NOTES
+# V0160-012-OPERATOR-RUNBOOK
+# V0160-012-VALIDATION-MATRIX
+# V0160-012-STALE-WORDING-GUARD
+# V0160-012-NO-PRODUCTION-CUTOVER
+# V0160-012-NO-TAG-OR-RELEASE-PUBLICATION
+bash checks/verify-v0.16.0-stage-audit-release-docs.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

@@ -10973,8 +10973,8 @@ require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.ym
 require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "dry_run_only"
 require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "operator_confirmed_redaction"
 require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
-require_contains "README.md" "#1111 manual testnet validation workflow is current WIP=1"
-require_contains "GOAL.md" "#1111 manual testnet validation workflow is current WIP=1"
+require_contains "README.md" "#1111 manual testnet validation workflow closed / done"
+require_contains "GOAL.md" "#1111 manual testnet validation workflow closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 manual testnet validation workflow anchor"
 require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 manual testnet validation workflow"
 require_contains "docs/validation/validation-plan.md" "GH-1111 Release v0.16.0 Manual Testnet Validation Workflow Guard"
@@ -10983,5 +10983,50 @@ require_contains "docs/release/release-publication-policy.md" "V0160-011-SUBMIT-
 require_contains "checks/run.sh" "bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1111ReleaseV0160ManualTestnetValidationWorkflowRequiresRedactedBundle"
+
+require_file "checks/verify-v0.16.0-stage-audit-release-docs.sh"
+require_file "docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-notes.md"
+require_file "docs/operators/release-v0.16.0-binance-spot-testnet-operator-execution-beta-runbook.md"
+for file in \
+  "docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-notes.md" \
+  "docs/operators/release-v0.16.0-binance-spot-testnet-operator-execution-beta-runbook.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.16.0-stage-audit-release-docs.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "TVM-RELEASE-V0160-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "V0160-012-STAGE-CODE-AUDIT"
+  require_contains "$file" "V0160-012-RELEASE-NOTES"
+  require_contains "$file" "V0160-012-OPERATOR-RUNBOOK"
+  require_contains "$file" "V0160-012-VALIDATION-MATRIX"
+  require_contains "$file" "V0160-012-STALE-WORDING-GUARD"
+  require_contains "$file" "V0160-012-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0160-012-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "README.md" "#1101..#1112 closed / done"
+require_contains "README.md" "#1112 audit / release docs closeout closed / done"
+require_contains "GOAL.md" "#1112 audit / release docs closeout closed / done"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 Stage Code Audit / release docs closeout anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 Stage Code Audit / release docs closeout"
+require_contains "docs/validation/validation-plan.md" "GH-1112 Release v0.16.0 Stage Audit / Release Docs Closeout"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-STAGE-AUDIT-RELEASE-DOCS"
+require_contains "docs/release/release-publication-policy.md" "V0160-012-NO-TAG-OR-RELEASE-PUBLICATION"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.0-stage-audit-release-docs.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-stage-audit-release-docs.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1112ReleaseV0160StageAuditReleaseDocsCloseout"
+require_absent "README.md" "#1111 manual testnet validation workflow is current WIP=1"
+require_absent "GOAL.md" "#1111 manual testnet validation workflow is current WIP=1"
+require_absent "BLUEPRINT.md" "#1104 是当前 WIP=1"
+require_absent "docs/roadmap.md" "#1104 CLI cancel flow 是当前 WIP=1"
 
 printf 'MTPRO automation readiness checks passed.\n'

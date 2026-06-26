@@ -22,6 +22,23 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift`、`docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md`、`Tests/TargetGraphTests/TargetGraphTests.swift`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`checks/verify-v0.16.0-operator-beta-contract.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1101 is the v0.16.0 contract / preflight issue only. It requires v0.15.1 / GH-1100 closeout, keeps WIP=1 queue order #1101..#1112, limits the release to Binance Spot Testnet operator beta, requires explicit operator confirmation and redacted evidence, and keeps production cutover unauthorized. Credential value read, testnet network connection and testnet order submission are deferred to later explicitly scoped issues.
 
+## TVM-RELEASE-V0160-STAGE-AUDIT-RELEASE-DOCS
+
+- TVM-RELEASE-V0160-STAGE-AUDIT-RELEASE-DOCS
+- GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS
+- V0160-012-STAGE-CODE-AUDIT
+- V0160-012-RELEASE-NOTES
+- V0160-012-OPERATOR-RUNBOOK
+- V0160-012-VALIDATION-MATRIX
+- V0160-012-STALE-WORDING-GUARD
+- V0160-012-NO-PRODUCTION-CUTOVER
+- V0160-012-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1112 Release v0.16.0 Stage Audit / Release Docs Closeout
+- `bash checks/verify-v0.16.0-stage-audit-release-docs.sh`
+- `swift test --filter TargetGraphTests/testGH1112ReleaseV0160StageAuditReleaseDocsCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md`、`docs/release/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-notes.md`、`docs/operators/release-v0.16.0-binance-spot-testnet-operator-execution-beta-runbook.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.0-stage-audit-release-docs.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1112 closes v0.16.0 construction evidence only. It does not create a tag / GitHub Release, does not create the next Project / Issue, does not authorize production cutover, does not read production secrets, does not connect production endpoint / broker endpoint, and does not submit production orders.
+
 ## TVM-RELEASE-V0160-OPERATOR-RUN-MODEL
 
 - TVM-RELEASE-V0160-OPERATOR-RUN-MODEL
