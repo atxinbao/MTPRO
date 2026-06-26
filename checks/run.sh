@@ -284,6 +284,15 @@ bash checks/verify-v0.17.0-artifact-bundle-replay-validator.sh
 # V0170-003-REDACTED-FAILURE-EVIDENCE
 # V0170-003-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh
+# GH-1142-VERIFY-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE
+# TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE
+# V0170-004-LOCAL-ARTIFACT-STORE-RESUME
+# V0170-004-REPLAY-VALIDATION-REQUIRED
+# V0170-004-AUDIT-CONTINUITY-PRESERVED
+# V0170-004-NO-RESUBMIT-ON-RESUME
+# V0170-004-REDACTED-RESUME-EVIDENCE
+# V0170-004-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

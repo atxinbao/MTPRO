@@ -8,6 +8,22 @@
 
 ## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 
+## TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE
+
+- TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE
+- GH-1142-VERIFY-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE
+- V0170-004-LOCAL-ARTIFACT-STORE-RESUME
+- V0170-004-REPLAY-VALIDATION-REQUIRED
+- V0170-004-AUDIT-CONTINUITY-PRESERVED
+- V0170-004-NO-RESUBMIT-ON-RESUME
+- V0170-004-REDACTED-RESUME-EVIDENCE
+- V0170-004-NO-PRODUCTION-CUTOVER
+- GH-1142 Release v0.17.0 Operator Run Resume From Artifact Store
+- `bash checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh`
+- `swift test --filter TargetGraphTests/testGH1142ReleaseV0170OperatorRunResumeFromArtifactStore`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorRunResumeFromArtifactStore.swift`、`docs/contracts/release-v0.17.0-operator-run-resume-from-artifact-store-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1142 resumes an operator run from the local redacted artifact store with GH-1140 replay validation and append-only audit continuity. It does not read credential values, connect endpoints, resubmit testnet or production orders, create a tag / GitHub Release, start the next milestone, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
 
 - TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL

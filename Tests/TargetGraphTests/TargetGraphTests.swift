@@ -46661,6 +46661,197 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1142ReleaseV0170OperatorRunResumeFromArtifactStore() throws {
+        // 测试场景：GH-1142 在 GH-1140 artifact bundle replay validator 之上增加
+        // operator run resume cursor。
+        // 验证目的：resume 必须只从本地 redacted artifact store 恢复审计连续性，不得
+        // re-submit、不连接 endpoint、不读取 credential value，也不得授权 production cutover。
+        // GH-1142-VERIFY-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE
+        // TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE
+        // V0170-004-LOCAL-ARTIFACT-STORE-RESUME
+        // V0170-004-REPLAY-VALIDATION-REQUIRED
+        // V0170-004-AUDIT-CONTINUITY-PRESERVED
+        // V0170-004-NO-RESUBMIT-ON-RESUME
+        // V0170-004-REDACTED-RESUME-EVIDENCE
+        // V0170-004-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1142-VERIFY-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE",
+            "TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE",
+            "V0170-004-LOCAL-ARTIFACT-STORE-RESUME",
+            "V0170-004-REPLAY-VALIDATION-REQUIRED",
+            "V0170-004-AUDIT-CONTINUITY-PRESERVED",
+            "V0170-004-NO-RESUBMIT-ON-RESUME",
+            "V0170-004-REDACTED-RESUME-EVIDENCE",
+            "V0170-004-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorRunResumeFromArtifactStore.swift",
+            "docs/contracts/release-v0.17.0-operator-run-resume-from-artifact-store-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        func makeBundle(
+            suffix: String,
+            kinds: [ReleaseV0160LocalExecutionArtifactKind]
+        ) throws -> (
+            URL,
+            Identifier,
+            ReleaseV0160LocalExecutionArtifactStore,
+            [ReleaseV0160LocalExecutionArtifactRecord]
+        ) {
+            let tempRoot = FileManager.default.temporaryDirectory
+                .appendingPathComponent("mtpro-gh1142-\(suffix)-\(UUID().uuidString)", isDirectory: true)
+            let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+            let runID = Identifier.constant("gh-1142-v0170-\(suffix)-operator-run")
+            let start = Date(timeIntervalSince1970: 1_704_080_000)
+            var records: [ReleaseV0160LocalExecutionArtifactRecord] = []
+            for (index, kind) in kinds.enumerated() {
+                let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                    kind: kind,
+                    suffix: "\(suffix)-\(index + 1)",
+                    observedAt: start.addingTimeInterval(TimeInterval(index))
+                )
+                records.append(try store.append(
+                    runID: runID,
+                    payload: payload,
+                    appendedAt: start.addingTimeInterval(TimeInterval(index))
+                ))
+            }
+            return (tempRoot, runID, store, records)
+        }
+
+        let expectedSequence = ReleaseV0170OperatorBetaArtifactBundleValidationResult.requiredActionSequence
+        let resumer = try ReleaseV0170OperatorRunResumeFromArtifactStore()
+        let (validRoot, validRunID, validStore, validRecords) = try makeBundle(
+            suffix: "valid",
+            kinds: expectedSequence
+        )
+        defer { try? FileManager.default.removeItem(at: validRoot) }
+        let validReplay = try validStore.replay(runID: validRunID)
+
+        let resumed = try resumer.resume(runID: validRunID, storageRootURL: validRoot)
+        XCTAssertTrue(resumed.resultHeld)
+        XCTAssertEqual(resumed.issueID.rawValue, "GH-1142")
+        XCTAssertEqual(resumed.blockedByIssueIDs.map(\.rawValue), ["GH-1140", "GH-1141"])
+        XCTAssertEqual(resumed.mode, .operatorRunResumeFromArtifactStore)
+        XCTAssertEqual(resumed.status, .passed)
+        XCTAssertTrue(resumed.failures.isEmpty)
+        XCTAssertEqual(resumed.replayedKinds, expectedSequence)
+        XCTAssertEqual(resumed.sourceManifestPath, validReplay.manifest.manifestPath)
+        XCTAssertEqual(resumed.sourceManifestChecksum, validReplay.manifest.manifestChecksum)
+        XCTAssertEqual(resumed.sourceRecordChecksums, validRecords.map(\.recordChecksum))
+        XCTAssertEqual(resumed.sourceLatestRecordChecksum, validRecords.last?.recordChecksum)
+        XCTAssertTrue(resumed.artifactReplayValidated)
+        XCTAssertTrue(resumed.auditContinuityPreserved)
+        XCTAssertTrue(resumed.localArtifactStoreResume)
+        XCTAssertTrue(resumed.noResubmitOnResume)
+        XCTAssertTrue(resumed.redactedArtifactEvidenceOnly)
+        XCTAssertFalse(resumed.productionTradingEnabledByDefault)
+        XCTAssertFalse(resumed.productionSecretReadEnabled)
+        XCTAssertFalse(resumed.productionEndpointConnectionEnabled)
+        XCTAssertFalse(resumed.productionBrokerConnectionEnabled)
+        XCTAssertFalse(resumed.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(resumed.productionCutoverAuthorized)
+
+        let cursor = try XCTUnwrap(resumed.resumeCursor)
+        XCTAssertTrue(cursor.cursorHeld)
+        XCTAssertEqual(cursor.runID, validRunID)
+        XCTAssertEqual(cursor.manifestChecksum, validReplay.manifest.manifestChecksum)
+        XCTAssertEqual(cursor.latestRecordChecksum, validRecords.last?.recordChecksum)
+        XCTAssertEqual(cursor.nextSequence, validRecords.count + 1)
+        XCTAssertEqual(cursor.lastArtifactKind, .reconciliation)
+        XCTAssertEqual(cursor.lastOperatorAction, .reconcile)
+        XCTAssertTrue(cursor.appendOnlyResumePoint)
+        XCTAssertTrue(cursor.localArtifactStoreResume)
+        XCTAssertTrue(cursor.noResubmitOnResume)
+        XCTAssertFalse(cursor.networkConnectionRequired)
+        XCTAssertFalse(cursor.productionCutoverAuthorized)
+
+        let (missingRoot, missingRunID, _, _) = try makeBundle(
+            suffix: "missing-reconciliation",
+            kinds: [.submit, .cancel, .status]
+        )
+        defer { try? FileManager.default.removeItem(at: missingRoot) }
+        let missingReconciliation = try resumer.resume(runID: missingRunID, storageRootURL: missingRoot)
+        XCTAssertTrue(missingReconciliation.resultHeld)
+        XCTAssertEqual(missingReconciliation.status, .failed)
+        XCTAssertNil(missingReconciliation.resumeCursor)
+        XCTAssertEqual(missingReconciliation.artifactBundleValidationStatus, .failed)
+        XCTAssertTrue(missingReconciliation.failures.contains { $0.reason == .artifactBundleValidationFailed })
+        XCTAssertFalse(missingReconciliation.artifactReplayValidated)
+        XCTAssertFalse(missingReconciliation.auditContinuityPreserved)
+        XCTAssertFalse(missingReconciliation.productionCutoverAuthorized)
+
+        let redactedFailure = try ReleaseV0170OperatorRunResumeFailure(
+            reason: .redactionPolicyViolation,
+            field: "redaction",
+            detail: "API " + "Key: should not persist"
+        )
+        XCTAssertEqual(redactedFailure.detail, "redaction policy rejected forbidden marker")
+        XCTAssertTrue(redactedFailure.failureHeld)
+
+        XCTAssertEqual(ReleaseV0170OperatorRunResumeResult.requiredValidationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            ReleaseV0170OperatorRunResumeResult.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1142ReleaseV0170OperatorRunResumeFromArtifactStore",
+                "bash checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorRunResumeFromArtifactStore.swift")
+        let contractDoc = try read("docs/contracts/release-v0.17.0-operator-run-resume-from-artifact-store-contract.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh")
+
+        XCTAssertTrue(source.contains("operatorRunResumeFromArtifactStore=ReleaseV0170OperatorRunResumeFromArtifactStore"))
+        XCTAssertTrue(source.contains("localArtifactStoreResume=true"))
+        XCTAssertTrue(source.contains("replayValidationRequired=true"))
+        XCTAssertTrue(source.contains("auditContinuityPreserved=true"))
+        XCTAssertTrue(source.contains("noResubmitOnResume=true"))
+        XCTAssertTrue(contractDoc.contains("#1142 / GH-1142"))
+        XCTAssertTrue(contractDoc.contains("resume cursor"))
+        XCTAssertTrue(contractDoc.contains("不授权 production cutover"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1142ReleaseV0170OperatorRunResumeFromArtifactStore"))
+
+        for artifact in [source, contractDoc, verifier] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     private enum GH1141StatusQueryScriptOutcome: Sendable {
         case retryableHTTPStatus
         case nonRetryableHTTPStatus
