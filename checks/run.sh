@@ -224,6 +224,15 @@ bash checks/verify-v0.16.1-release-fact-sync.sh
 # V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS
 # V0161-002-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.16.1-manual-evidence-bundle-content.sh
+# GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+# TVM-RELEASE-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+# V0161-003-SHARED-REDACTION-POLICY-SOURCE
+# V0161-003-ARTIFACT-STORE-POLICY-USES-SHARED-SOURCE
+# V0161-003-WORKFLOW-BUNDLE-POLICY-USES-SHARED-SOURCE
+# V0161-003-DASHBOARD-READ-MODEL-POLICY-USES-SHARED-SOURCE
+# V0161-003-NO-SECRET-NO-PRODUCTION-MARKERS
+# V0161-003-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.16.1-central-artifact-redaction-policy.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

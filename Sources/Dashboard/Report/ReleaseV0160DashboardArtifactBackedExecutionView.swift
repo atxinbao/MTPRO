@@ -1,3 +1,4 @@
+import Core
 import Foundation
 
 // GH-1108 static contract boundary:
@@ -16,6 +17,14 @@ import Foundation
 // brokerEndpointConnected=false
 // productionSubmitCancelReplaceEnabled=false
 // productionCutoverAuthorized=false
+// GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+// TVM-RELEASE-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+// V0161-003-SHARED-REDACTION-POLICY-SOURCE
+// V0161-003-ARTIFACT-STORE-POLICY-USES-SHARED-SOURCE
+// V0161-003-WORKFLOW-BUNDLE-POLICY-USES-SHARED-SOURCE
+// V0161-003-DASHBOARD-READ-MODEL-POLICY-USES-SHARED-SOURCE
+// V0161-003-NO-SECRET-NO-PRODUCTION-MARKERS
+// V0161-003-NO-PRODUCTION-CUTOVER
 
 /// ReleaseV0160DashboardArtifactBackedExecutionAction 固定 #1108 Dashboard 可展示的本地 artifact 动作序列。
 ///
@@ -407,6 +416,7 @@ public struct ReleaseV0160DashboardArtifactBackedExecutionViewModel:
             && brokerEndpointConnected == false
             && productionSubmitCancelReplaceEnabled == false
             && productionCutoverAuthorized == false
+            && redactionPolicyHeld
     }
 
     public var visibleRowCount: Int {
@@ -427,6 +437,26 @@ public struct ReleaseV0160DashboardArtifactBackedExecutionViewModel:
         ]
     }
 
+    public var redactionPolicyID: String {
+        Self.redactionPolicy.policyID
+    }
+
+    public var redactionPolicyIssueID: String {
+        Self.redactionPolicy.issueID
+    }
+
+    public var redactionPolicyValidationAnchors: [String] {
+        Self.redactionPolicy.validationAnchors
+    }
+
+    public var redactionPolicyHeld: Bool {
+        Self.redactionPolicy.policyHeld
+            && redactionPolicyID == ReleaseV0161OperatorBetaArtifactRedactionPolicy.requiredPolicyID
+            && redactionPolicyIssueID == "GH-1135"
+            && redactionPolicyValidationAnchors == ReleaseV0161OperatorBetaArtifactRedactionPolicy
+                .requiredValidationAnchors
+    }
+
     public var details: [String] {
         [
             "Run ID: \(input.runID)",
@@ -445,6 +475,7 @@ public struct ReleaseV0160DashboardArtifactBackedExecutionViewModel:
             "Order form: none",
             "Live command: none",
             "Submit / cancel / replace: none",
+            "Redaction policy: \(redactionPolicyID)",
             "Production endpoint: none",
             "Production boundary: \(boundaryHeld ? "confirmed" : "breached")"
         ]
@@ -618,6 +649,8 @@ public struct ReleaseV0160DashboardArtifactBackedExecutionViewModel:
         "bash checks/automation-readiness.sh",
         "bash checks/run.sh"
     ]
+
+    public static let redactionPolicy = ReleaseV0161OperatorBetaArtifactRedactionPolicy.current
 
     public static let defaultRows = [
         ReleaseV0160DashboardArtifactBackedExecutionRow(

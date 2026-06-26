@@ -35,6 +35,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`、`Sources/MTPROCLI/main.swift`、`.github/workflows/release-v0.16.0-manual-testnet-validation.yml`、`docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md`、`docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.1-manual-evidence-bundle-content.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1134 hardens the v0.16 manual validation workflow by reading the redacted bundle JSON content and checking schema, action sequence, checksum references, reconciliation and no-secret / no-production markers. It does not read production secret, connect production endpoint / broker endpoint, send testnet or production order, or authorize production cutover.
 
+## TVM-RELEASE-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+
+- TVM-RELEASE-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+- GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+- V0161-003-SHARED-REDACTION-POLICY-SOURCE
+- V0161-003-ARTIFACT-STORE-POLICY-USES-SHARED-SOURCE
+- V0161-003-WORKFLOW-BUNDLE-POLICY-USES-SHARED-SOURCE
+- V0161-003-DASHBOARD-READ-MODEL-POLICY-USES-SHARED-SOURCE
+- V0161-003-NO-SECRET-NO-PRODUCTION-MARKERS
+- V0161-003-NO-PRODUCTION-CUTOVER
+- GH-1135 Release v0.16.1 Central Artifact Redaction Policy Guard
+- `bash checks/verify-v0.16.1-central-artifact-redaction-policy.sh`
+- `swift test --filter TargetGraphTests/testGH1135ReleaseV0161CentralArtifactRedactionPolicyIsSharedAcrossSurfaces`
+- Evidence files: `Sources/DomainModel/ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`、`Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`checks/verify-v0.16.1-central-artifact-redaction-policy.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1135 centralizes the v0.16 operator beta artifact redaction policy in DomainModel and reuses it from artifact store, manual workflow validator, Dashboard read model and tests. It does not read production secret, connect production endpoint / broker endpoint, send testnet or production order, or authorize production cutover.
+
 ## TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT
 
 - TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT

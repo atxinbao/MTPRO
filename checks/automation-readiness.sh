@@ -118,6 +118,7 @@ require_file "docs/contracts/production-credential-reference-environment-isolati
 require_file "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
+require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -155,6 +156,42 @@ require_contains "docs/release/release-publication-policy.md" "GH-1134 只强化
 require_contains "checks/run.sh" "bash checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1134ReleaseV0161ManualEvidenceBundleContentValidationReadsBundle"
+
+for file in \
+  "Sources/DomainModel/ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift" \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" \
+  "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" \
+  "checks/verify-v0.16.1-central-artifact-redaction-policy.sh" \
+  "checks/run.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY"
+  require_contains "$file" "TVM-RELEASE-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY"
+  require_contains "$file" "V0161-003-SHARED-REDACTION-POLICY-SOURCE"
+  require_contains "$file" "V0161-003-ARTIFACT-STORE-POLICY-USES-SHARED-SOURCE"
+  require_contains "$file" "V0161-003-WORKFLOW-BUNDLE-POLICY-USES-SHARED-SOURCE"
+  require_contains "$file" "V0161-003-DASHBOARD-READ-MODEL-POLICY-USES-SHARED-SOURCE"
+  require_contains "$file" "V0161-003-NO-SECRET-NO-PRODUCTION-MARKERS"
+  require_contains "$file" "V0161-003-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Package.swift" "ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift"
+require_contains "Sources/DomainModel/ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift" "release-v0.16.1-operator-beta-artifact-redaction-policy.v1"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "ReleaseV0161OperatorBetaArtifactRedactionPolicy.current"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "ReleaseV0161OperatorBetaArtifactRedactionPolicy.current"
+require_contains "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" "redactionPolicyHeld"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.1 central artifact redaction policy anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1135 Release v0.16.1 Central Artifact Redaction Policy Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY"
+require_contains "docs/release/release-publication-policy.md" "GH-1135 将 v0.16 operator beta artifact redaction policy"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1135ReleaseV0161CentralArtifactRedactionPolicyIsSharedAcrossSurfaces"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"
