@@ -6,6 +6,20 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC
+
+- TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC
+- GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC
+- V0161-001-V0160-RELEASE-FACT-SYNC-GUARD
+- V0161-001-V0160-TAG-FIXED
+- V0161-001-PATCH-QUEUE-NOT-PUBLICATION
+- V0161-001-NO-PRODUCTION-CUTOVER
+- GH-1133 Release v0.16.1 v0.16.0 Release Fact Sync Guard
+- `bash checks/verify-v0.16.1-release-fact-sync.sh`
+- `swift test --filter TargetGraphTests/testGH1133ReleaseV0161V0160ReleaseFactSyncGuard`
+- Evidence files: `docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.1-release-fact-sync.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1133 fixes v0.16.0 publication facts for v0.16.1 patch evidence. `https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0` remains the v0.16.0 stable GitHub Release, tag peeled commit remains `28779236262bd7ffaf71e286b27b95854c5cd3e1`, publication timestamp remains `2026-06-26T01:29:21Z`. v0.16.1 is patch evidence only; it does not move tag, overwrite release, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT
 
 - TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT

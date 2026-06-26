@@ -22,6 +22,7 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 | Current release construction scope | activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]；productionTradingEnabledByDefault == false |
 | Latest patch queue | GitHub fallback queue `#1094..#1100` for v0.15.1 Real Testnet Execution Hardening Patch is closed；#1094 is closed / done；#1095 is closed / done；#1096 is closed / done；#1097 is closed / done；#1098 is closed / done；#1099 deterministic client order identity chain is closed / done；#1100 codable decode closeout is closed / done；release/v0.15.1 queue closed |
 | Latest v0.16.0 operator beta queue | GitHub fallback queue `#1101..#1112` for `MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta` is closed / done；#1111 manual testnet validation workflow is closed / done；#1112 audit / release docs closeout is closed / done；v0.16.0 Stage Code Audit / release docs closeout uses `GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS` and keeps production cutover not authorized |
+| Active v0.16.1 patch queue | `MTPRO Release v0.16.1 Operator Beta Evidence Hardening Patch`；GH-1133 uses `GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC`、`V0161-001-V0160-RELEASE-FACT-SYNC-GUARD`、`TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC`、`V0161-001-V0160-TAG-FIXED`、`V0161-001-PATCH-QUEUE-NOT-PUBLICATION` and `V0161-001-NO-PRODUCTION-CUTOVER` to keep v0.16.0 publication facts synchronized：`https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`、tag peeled commit `28779236262bd7ffaf71e286b27b95854c5cd3e1`、publication timestamp `2026-06-26T01:29:21Z`；v0.16.1 is patch evidence only and production cutover not authorized |
 | Stage Code Audit Report | `docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md` |
 | v0.14.1 release publication preflight fact | v0.14.1 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.14.1`；tag peeled commit `92cd3d5cf00e85c43ef99d9f204cca97347c79ff`；publication timestamp `2026-06-22T09:00:59Z`；该 publication 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order |
 | v0.15.0 release publication fact | `GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC`；`V0151-001-V0150-RELEASE-FACT-SYNC-GUARD`；`TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC`；v0.15.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`；tag peeled commit `1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`；publication timestamp `2026-06-23T01:26:30Z`；该 publication 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order；#1094 guard 拒绝未限定到 #1076 historical closeout 的 stale publication wording |
@@ -106,6 +107,33 @@ README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architect
 ## Boundary
 
 productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover，不创建下一 Linear Project / Issue。该 default-off / gated posture 是当前 release line 的 fail-closed 状态，不是 MTPRO 永久禁止实盘；后续 live trading 只能在独立 planning、唯一 live queue source、Parent Codex preflight、readiness evidence、credential / signed endpoint、OMS、risk、reconciliation、audit / rollback 和 Human approval gates 满足后逐层启用。`v0.15.0` Real Binance Testnet Execution MVP 已发布 stable GitHub Release；该 publication 不授权 production cutover。
+
+## Release v0.16.1 v0.16.0 Release Fact Sync Snapshot
+
+`GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC`
+
+`V0161-001-V0160-RELEASE-FACT-SYNC-GUARD`
+
+`TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC`
+
+`V0161-001-V0160-TAG-FIXED`
+
+`V0161-001-PATCH-QUEUE-NOT-PUBLICATION`
+
+`V0161-001-NO-PRODUCTION-CUTOVER`
+
+GH-1133 同步 v0.16.0 已发布事实并启动 v0.16.1 evidence hardening patch guard。v0.16.0 stable GitHub Release URL 为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`，tag peeled commit 为 `28779236262bd7ffaf71e286b27b95854c5cd3e1`，publication timestamp 为 `2026-06-26T01:29:21Z`。
+
+v0.16.1 是 v0.16.0 后的 patch queue，不移动 v0.16.0 tag，不覆盖 release，不创建 production cutover authorization。production cutover not authorized；production trading 默认关闭；不读取 production secret；不连接 production endpoint / broker endpoint；不提交 production order。
+
+Required validation:
+
+```bash
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/verify-v0.16.1-release-fact-sync.sh
+bash checks/run.sh
+```
 
 ## Release v0.16.0 Stage Audit / Release Docs Closeout Snapshot
 

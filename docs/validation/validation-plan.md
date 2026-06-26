@@ -6,6 +6,19 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1133 Release v0.16.1 v0.16.0 Release Fact Sync Guard
+
+- GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC
+- V0161-001-V0160-RELEASE-FACT-SYNC-GUARD
+- TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC
+- V0161-001-V0160-TAG-FIXED
+- V0161-001-PATCH-QUEUE-NOT-PUBLICATION
+- V0161-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.16.1-release-fact-sync.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1133ReleaseV0161V0160ReleaseFactSyncGuard`
+- Evidence files: `docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.1-release-fact-sync.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1133 只同步 v0.16.0 已发布事实到 v0.16.1 patch guard。v0.16.0 stable GitHub Release URL 为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`，tag peeled commit 为 `28779236262bd7ffaf71e286b27b95854c5cd3e1`，publication timestamp 为 `2026-06-26T01:29:21Z`。v0.16.1 是 patch queue，不移动 tag、不覆盖 release、不授权 production cutover。
+
 ## GH-1112 Release v0.16.0 Stage Audit / Release Docs Closeout
 
 - GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS
