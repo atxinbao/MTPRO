@@ -15,7 +15,7 @@
 - publication timestamp：`2026-06-26T01:29:21Z`
 - release type：stable；非 draft；非 prerelease
 
-GH-1134 增加 manual evidence bundle content guard：workflow 必须读取 redacted bundle JSON 内容，并校验 schema、action sequence、checksum references、reconciliation 和 no-secret / no-production markers。GH-1135 将 v0.16 operator beta artifact redaction policy 收敛为 `ReleaseV0161OperatorBetaArtifactRedactionPolicy`，artifact store、manual workflow validator、Dashboard read model 和 tests 共同复用同一 forbidden marker / validation anchor source。GH-1136 增加 redaction regression coverage：Binance sensitive header、signed query marker、listenKey / secret variants、production Binance hosts、raw broker / order payload variants 都必须由同一共享 policy fail closed。后续 #1137..#1138 仍必须按 GitHub fallback queue、WIP=1、dependency order 和各自 issue scope 单独执行。
+GH-1134 增加 manual evidence bundle content guard：workflow 必须读取 redacted bundle JSON 内容，并校验 schema、action sequence、checksum references、reconciliation 和 no-secret / no-production markers。GH-1135 将 v0.16 operator beta artifact redaction policy 收敛为 `ReleaseV0161OperatorBetaArtifactRedactionPolicy`，artifact store、manual workflow validator、Dashboard read model 和 tests 共同复用同一 forbidden marker / validation anchor source。GH-1136 增加 redaction regression coverage：Binance sensitive header、signed query marker、listenKey / secret variants、production Binance hosts、raw broker / order payload variants 都必须由同一共享 policy fail closed。GH-1137 澄清 status query evidence wording：`networkStatusQueryPerformed=false` 只属于 request evidence flag，表示 request construction evidence 不直接声明 transport side effect；guarded Testnet status transport result evidence 仍由 `ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult` 单独记录。该分层不是 fabricated / mocked status wording，也不扩大为 production readiness。后续 #1138 仍必须按 GitHub fallback queue、WIP=1、dependency order 和 issue scope 单独执行。
 
 ## Validation Anchors
 
@@ -47,6 +47,12 @@ GH-1134 增加 manual evidence bundle content guard：workflow 必须读取 reda
 - `V0161-004-PRODUCTION-HOST-MARKERS`
 - `V0161-004-RAW-BROKER-ORDER-PAYLOAD-MARKERS`
 - `V0161-004-WORKFLOW-BUNDLE-REGRESSION-COVERAGE`
+- `GH-1137-VERIFY-V0161-STATUS-QUERY-TRANSPORT-WORDING`
+- `TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING`
+- `V0161-005-REQUEST-EVIDENCE-FLAG-CLARIFIED`
+- `V0161-005-TRANSPORT-RESULT-EVIDENCE-CLARIFIED`
+- `V0161-005-NO-FAKE-STATUS-QUERY-WORDING`
+- `V0161-005-NO-PRODUCTION-READINESS-OVERSTATEMENT`
 
 Focused verifier:
 
@@ -55,6 +61,7 @@ bash checks/verify-v0.16.1-release-fact-sync.sh
 bash checks/verify-v0.16.1-manual-evidence-bundle-content.sh
 bash checks/verify-v0.16.1-central-artifact-redaction-policy.sh
 bash checks/verify-v0.16.1-redaction-regression-coverage.sh
+bash checks/verify-v0.16.1-status-query-transport-wording.sh
 ```
 
 Focused test:
@@ -64,6 +71,7 @@ swift test --filter TargetGraphTests/testGH1133ReleaseV0161V0160ReleaseFactSyncG
 swift test --filter TargetGraphTests/testGH1134ReleaseV0161ManualEvidenceBundleContentValidationReadsBundle
 swift test --filter TargetGraphTests/testGH1135ReleaseV0161CentralArtifactRedactionPolicyIsSharedAcrossSurfaces
 swift test --filter TargetGraphTests/testGH1136ReleaseV0161RedactionRegressionCoverageRejectsSensitiveMarkers
+swift test --filter TargetGraphTests/testGH1137ReleaseV0161StatusQueryTransportEvidenceWording
 ```
 
 Full validation remains:
@@ -79,7 +87,7 @@ bash checks/run.sh
 - `v0.16.1` 是 v0.16.0 后的 patch queue，不是新的 production cutover gate。
 - `v0.16.0` tag remains fixed at `28779236262bd7ffaf71e286b27b95854c5cd3e1`。
 - GH-1133 不创建、不移动、不重写任何 tag 或 GitHub Release。
-- GH-1133 不推进 #1134..#1138；GH-1134 只处理 manual evidence bundle content validation；GH-1135 只处理 central artifact redaction policy，不推进 #1136..#1138；GH-1136 只处理 redaction regression coverage，不推进 #1137..#1138；后续 issue 必须等待当前 issue 完整 Done 后再由 queue preflight 推进。
+- GH-1133 不推进 #1134..#1138；GH-1134 只处理 manual evidence bundle content validation；GH-1135 只处理 central artifact redaction policy，不推进 #1136..#1138；GH-1136 只处理 redaction regression coverage，不推进 #1137..#1138；GH-1137 只澄清 status query request-evidence flag 与 guarded Testnet transport-result evidence 的措辞，不推进 #1138；后续 issue 必须等待当前 issue 完整 Done 后再由 queue preflight 推进。
 - production trading 仍默认关闭。
 - 不读取 production secret。
 - 不连接 production endpoint / broker endpoint。

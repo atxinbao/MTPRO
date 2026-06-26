@@ -6,6 +6,15 @@
 
 本文档定义 #1105 / GH-1105 的 Binance Spot Testnet signed order status query 合同。该合同只覆盖 `MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta` 的 `spot-testnet-status-query` CLI slice，不授权 production cutover。
 
+GH-1137-VERIFY-V0161-STATUS-QUERY-TRANSPORT-WORDING
+TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING
+V0161-005-REQUEST-EVIDENCE-FLAG-CLARIFIED
+V0161-005-TRANSPORT-RESULT-EVIDENCE-CLARIFIED
+V0161-005-NO-FAKE-STATUS-QUERY-WORDING
+V0161-005-NO-PRODUCTION-READINESS-OVERSTATEMENT
+
+GH-1137 wording clarification：`networkStatusQueryPerformed=false` 是 signed request evidence 的 flag，表示 request construction evidence 不直接声明 transport side effect；guarded Testnet status transport result evidence 仍由 `ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult`、redacted request / response evidence、artifact path 和 checksum 单独表达。该分层不表示 status query 是 fake / mock，也不表示 production readiness 已授权。
+
 ## Anchors
 
 - `GH-1105-VERIFY-V0160-SIGNED-ORDER-STATUS-QUERY`

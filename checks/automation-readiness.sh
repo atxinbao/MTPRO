@@ -120,6 +120,7 @@ require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
 require_file "checks/verify-v0.16.1-redaction-regression-coverage.sh"
+require_file "checks/verify-v0.16.1-status-query-transport-wording.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -226,6 +227,37 @@ require_contains "docs/release/release-publication-policy.md" "GH-1136 adds regr
 require_contains "checks/run.sh" "bash checks/verify-v0.16.1-redaction-regression-coverage.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.1-redaction-regression-coverage.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1136ReleaseV0161RedactionRegressionCoverageRejectsSensitiveMarkers"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift" \
+  "docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" \
+  "checks/verify-v0.16.1-status-query-transport-wording.sh" \
+  "checks/run.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1137-VERIFY-V0161-STATUS-QUERY-TRANSPORT-WORDING"
+  require_contains "$file" "TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING"
+  require_contains "$file" "V0161-005-REQUEST-EVIDENCE-FLAG-CLARIFIED"
+  require_contains "$file" "V0161-005-TRANSPORT-RESULT-EVIDENCE-CLARIFIED"
+  require_contains "$file" "V0161-005-NO-FAKE-STATUS-QUERY-WORDING"
+  require_contains "$file" "V0161-005-NO-PRODUCTION-READINESS-OVERSTATEMENT"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift" "requestEvidenceNetworkStatusQueryPerformed=false"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift" "statusTransportResultEvidence=guarded-testnet-status-result"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.1 status query transport wording anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1137 Release v0.16.1 Status Query Transport Evidence Wording Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING"
+require_contains "docs/release/release-publication-policy.md" "request-construction evidence does not itself assert a network side effect"
+require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "request evidence flag"
+require_contains "docs/validation/latest-verification-summary.md" "guarded Testnet status transport result evidence"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.1-status-query-transport-wording.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.1-status-query-transport-wording.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1137ReleaseV0161StatusQueryTransportEvidenceWording"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"
