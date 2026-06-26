@@ -8,6 +8,22 @@
 
 ## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 
+## TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
+
+- TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
+- GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
+- V0170-001-V0161-PREFLIGHT-GATE
+- V0170-001-ARTIFACT-STATUS-RUNTIME-HARDENING-SCOPE
+- V0170-001-BINANCE-SPOT-TESTNET-ONLY
+- V0170-001-REDACTED-ARTIFACT-EVIDENCE-REQUIRED
+- V0170-001-QUEUE-ORDER
+- V0170-001-NO-PRODUCTION-CUTOVER
+- GH-1139 Release v0.17.0 Operator Beta Runtime Hardening Contract
+- `bash checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh`
+- `swift test --filter TargetGraphTests/testGH1139ReleaseV0170OperatorBetaRuntimeHardeningContract`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaRuntimeHardeningContract.swift`、`docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1139 defines the v0.17.0 operator beta artifact / status runtime hardening contract for `GH-1139..GH-1148` after GH-1138. It keeps WIP=1, limits the queue to Binance Spot Testnet operator beta hardening, requires redacted artifact evidence, and defers artifact ingest / status retry / resume / reconciliation / Dashboard / CLI runtime to later scoped issues. It does not read credential values, connect endpoints, send testnet or production orders, create a tag / GitHub Release, start the next milestone, or authorize production cutover. production cutover not authorized.
+
 - TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 - GH-1138-VERIFY-V0161-PATCH-AUDIT-RELEASE-NOTES
 - V0161-006-PATCH-AUDIT

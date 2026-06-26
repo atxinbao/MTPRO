@@ -46099,6 +46099,159 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1139ReleaseV0170OperatorBetaRuntimeHardeningContract() throws {
+        // 测试场景：GH-1139 只定义 v0.17.0 operator beta artifact / status runtime
+        // hardening contract。
+        // 验证目的：确认 contract、root docs、validation docs 和 automation guards
+        // 都固定 #1139..#1148 的 WIP=1 顺序，并继续拒绝 credential read、endpoint
+        // connection、testnet / production order、tag / release publication 和 production cutover。
+        // GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
+        // TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
+        // V0170-001-V0161-PREFLIGHT-GATE
+        // V0170-001-ARTIFACT-STATUS-RUNTIME-HARDENING-SCOPE
+        // V0170-001-BINANCE-SPOT-TESTNET-ONLY
+        // V0170-001-REDACTED-ARTIFACT-EVIDENCE-REQUIRED
+        // V0170-001-QUEUE-ORDER
+        // V0170-001-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT",
+            "TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT",
+            "V0170-001-V0161-PREFLIGHT-GATE",
+            "V0170-001-ARTIFACT-STATUS-RUNTIME-HARDENING-SCOPE",
+            "V0170-001-BINANCE-SPOT-TESTNET-ONLY",
+            "V0170-001-REDACTED-ARTIFACT-EVIDENCE-REQUIRED",
+            "V0170-001-QUEUE-ORDER",
+            "V0170-001-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaRuntimeHardeningContract.swift",
+            "docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let contract = try ReleaseV0170OperatorBetaRuntimeHardeningContract.deterministicFixture()
+
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.preflightBoundaryHeld)
+        XCTAssertTrue(contract.implementationDeferredByThisIssue)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-1139")
+        XCTAssertEqual(contract.blockedByIssueID.rawValue, "GH-1138")
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), (1140...1148).map { "GH-\($0)" })
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-1139..GH-1148")
+        XCTAssertEqual(contract.projectName, "MTPRO Release v0.17.0 Operator Beta Artifact + Status Runtime Hardening")
+        XCTAssertEqual(contract.releaseVersion, "v0.17.0")
+        XCTAssertEqual(contract.allowedVenue, "Binance")
+        XCTAssertEqual(contract.allowedProductTypes, ["spot"])
+        XCTAssertEqual(contract.allowedModes, ReleaseV0170OperatorBetaHardeningMode.allCases)
+        XCTAssertTrue(contract.allowedModes.contains(.artifactBundleIngestReplayValidator))
+        XCTAssertTrue(contract.allowedModes.contains(.signedStatusRetryTimeoutFailureModel))
+        XCTAssertTrue(contract.allowedModes.contains(.operatorRunResumeFromArtifactStore))
+        XCTAssertTrue(contract.allowedModes.contains(.cancelStatusReconciliationRecovery))
+        XCTAssertTrue(contract.allowedModes.contains(.dashboardArtifactValidationErrorSurface))
+        XCTAssertTrue(contract.allowedModes.contains(.cliArtifactVerifyCommand))
+        XCTAssertTrue(contract.allowedModes.contains(.manualWorkflowArtifactTransferValidation))
+        XCTAssertTrue(contract.allowedModes.contains(.betaSafetyPolicyProfileEvidence))
+        XCTAssertTrue(contract.preflightRequirements.contains(.previousV0161QueueClosed))
+        XCTAssertTrue(contract.preflightRequirements.contains(.blockingIssue1138Done))
+        XCTAssertTrue(contract.preflightRequirements.contains(.githubQueueWIPOne))
+        XCTAssertTrue(contract.preflightRequirements.contains(.redactedArtifactEvidenceRequired))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.productionCutoverAuthorization))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.testnetCredentialValueReadByThisIssue))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.testnetNetworkConnectionByThisIssue))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.testnetOrderSubmissionByThisIssue))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.tagOrReleasePublication))
+        XCTAssertFalse(contract.testnetCredentialValueReadEnabledByThisIssue)
+        XCTAssertFalse(contract.testnetNetworkConnectionEnabledByThisIssue)
+        XCTAssertFalse(contract.testnetOrderSubmissionImplementedByThisIssue)
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretReadEnabled)
+        XCTAssertFalse(contract.productionEndpointConnectionEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+        XCTAssertFalse(contract.createsTagOrRelease)
+        XCTAssertFalse(contract.startsNextMilestone)
+        XCTAssertEqual(contract.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            contract.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1139ReleaseV0170OperatorBetaRuntimeHardeningContract",
+                "bash checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        XCTAssertThrowsError(try ReleaseV0170OperatorBetaRuntimeHardeningContract(blockedByIssueID: .constant("GH-1137")))
+        XCTAssertThrowsError(try ReleaseV0170OperatorBetaRuntimeHardeningContract(allowedProductTypes: ["spot", "usdsPerpetual"]))
+        XCTAssertThrowsError(try ReleaseV0170OperatorBetaRuntimeHardeningContract(v0161CloseoutRequired: false))
+        XCTAssertThrowsError(
+            try ReleaseV0170OperatorBetaRuntimeHardeningContract(testnetCredentialValueReadEnabledByThisIssue: true)
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0170OperatorBetaRuntimeHardeningContract(testnetNetworkConnectionEnabledByThisIssue: true)
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0170OperatorBetaRuntimeHardeningContract(testnetOrderSubmissionImplementedByThisIssue: true)
+        )
+        XCTAssertThrowsError(try ReleaseV0170OperatorBetaRuntimeHardeningContract(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0170OperatorBetaRuntimeHardeningContract(createsTagOrRelease: true))
+        XCTAssertThrowsError(try ReleaseV0170OperatorBetaRuntimeHardeningContract(startsNextMilestone: true))
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let contractDoc = try read("docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh")
+
+        XCTAssertTrue(contractDoc.contains("#1140 / GH-1140"))
+        XCTAssertTrue(contractDoc.contains("#1148 / GH-1148"))
+        XCTAssertTrue(readiness.contains("Release v0.17.0 operator beta runtime hardening contract anchor"))
+        XCTAssertTrue(latest.contains("v0.17.0 operator beta artifact + status runtime hardening contract"))
+        XCTAssertTrue(plan.contains("GH-1139 Release v0.17.0 Operator Beta Runtime Hardening Contract"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1139ReleaseV0170OperatorBetaRuntimeHardeningContract"))
+
+        for source in [contractDoc, latest, plan, matrix] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("testnetCredentialValueReadEnabledByThisIssue=true"))
+            XCTAssertFalse(source.contains("testnetNetworkConnectionEnabledByThisIssue=true"))
+            XCTAssertFalse(source.contains("testnetOrderSubmissionImplementedByThisIssue=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,

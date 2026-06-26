@@ -117,12 +117,14 @@ require_file "docs/contracts/production-cutover-runtime-hardening-contract.md"
 require_file "docs/contracts/production-credential-reference-environment-isolation-contract.md"
 require_file "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md"
 require_file "docs/audit/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-stage-code-audit.md"
+require_file "docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
 require_file "checks/verify-v0.16.1-redaction-regression-coverage.sh"
 require_file "checks/verify-v0.16.1-status-query-transport-wording.sh"
 require_file "checks/verify-v0.16.1-patch-audit-release-notes.sh"
+require_file "checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -298,6 +300,39 @@ require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.1-patch-a
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1138ReleaseV0161PatchAuditReleaseNotesCloseout"
 require_absent "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "后续 #1138"
 require_absent "docs/release/release-publication-policy.md" "不推进 #1138"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaRuntimeHardeningContract.swift" \
+  "docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh" \
+  "checks/run.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT"
+  require_contains "$file" "TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT"
+  require_contains "$file" "V0170-001-V0161-PREFLIGHT-GATE"
+  require_contains "$file" "V0170-001-ARTIFACT-STATUS-RUNTIME-HARDENING-SCOPE"
+  require_contains "$file" "V0170-001-BINANCE-SPOT-TESTNET-ONLY"
+  require_contains "$file" "V0170-001-REDACTED-ARTIFACT-EVIDENCE-REQUIRED"
+  require_contains "$file" "V0170-001-QUEUE-ORDER"
+  require_contains "$file" "V0170-001-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaRuntimeHardeningContract.swift" "ReleaseV0170OperatorBetaRuntimeHardeningContract"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaRuntimeHardeningContract.swift" "GH-1139..GH-1148"
+require_contains "docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md" "#1148 / GH-1148"
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.0 operator beta runtime hardening contract anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1139 Release v0.17.0 Operator Beta Runtime Hardening Contract"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1139ReleaseV0170OperatorBetaRuntimeHardeningContract"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"
