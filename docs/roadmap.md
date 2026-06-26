@@ -105,6 +105,17 @@ Current GitHub fallback queue is `MTPRO Release v0.17.0 Operator Beta Artifact +
 
 GH-1140 adds the local artifact bundle ingest / replay validator for v0.17.0. It validates redacted operator beta bundles from disk with schema / checksum / action sequence / reconciliation checks and deterministic pass/fail output. It does not read credential values, connect endpoints, send orders, publish a tag / GitHub Release, or authorize production cutover.
 
+`GH-1141-VERIFY-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL`
+`TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL`
+`V0170-003-BOUNDED-STATUS-QUERY-RETRY`
+`V0170-003-PER-ATTEMPT-TIMEOUT`
+`V0170-003-CLASSIFIED-FAILURE-EVIDENCE`
+`V0170-003-RETRY-LIMIT-FAIL-CLOSED`
+`V0170-003-REDACTED-FAILURE-EVIDENCE`
+`V0170-003-NO-PRODUCTION-CUTOVER`
+
+GH-1141 adds bounded retry, per-attempt timeout and classified redacted failure evidence around the Binance Spot Testnet signed status query path. It does not read credential values, connect production endpoint / broker endpoint, send orders, publish a tag / GitHub Release, or authorize production cutover.
+
 `GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
 
 `GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`

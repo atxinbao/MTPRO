@@ -8,6 +8,22 @@
 
 ## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 
+## TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+
+- TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+- GH-1141-VERIFY-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+- V0170-003-BOUNDED-STATUS-QUERY-RETRY
+- V0170-003-PER-ATTEMPT-TIMEOUT
+- V0170-003-CLASSIFIED-FAILURE-EVIDENCE
+- V0170-003-RETRY-LIMIT-FAIL-CLOSED
+- V0170-003-REDACTED-FAILURE-EVIDENCE
+- V0170-003-NO-PRODUCTION-CUTOVER
+- GH-1141 Release v0.17.0 Signed Status Query Retry / Timeout Failure Model
+- `bash checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh`
+- `swift test --filter TargetGraphTests/testGH1141ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift`、`docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-failure-model-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1141 wraps the Binance Spot Testnet signed status query path with bounded retry, per-attempt timeout and classified redacted failure evidence. It does not read credential values, connect production endpoints / broker endpoints, send testnet or production orders, create a tag / GitHub Release, start the next milestone, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR
 
 - TVM-RELEASE-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR

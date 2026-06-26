@@ -119,6 +119,7 @@ require_file "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardenin
 require_file "docs/audit/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-stage-code-audit.md"
 require_file "docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md"
 require_file "docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-replay-validator-contract.md"
+require_file "docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-failure-model-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
@@ -127,6 +128,7 @@ require_file "checks/verify-v0.16.1-status-query-transport-wording.sh"
 require_file "checks/verify-v0.16.1-patch-audit-release-notes.sh"
 require_file "checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh"
 require_file "checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"
+require_file "checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -367,6 +369,39 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "checks/run.sh" "bash checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1140ReleaseV0170ArtifactBundleReplayValidator"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel.swift" \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift" \
+  "docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-failure-model-contract.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh" \
+  "checks/run.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1141-VERIFY-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL"
+  require_contains "$file" "TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL"
+  require_contains "$file" "V0170-003-BOUNDED-STATUS-QUERY-RETRY"
+  require_contains "$file" "V0170-003-PER-ATTEMPT-TIMEOUT"
+  require_contains "$file" "V0170-003-CLASSIFIED-FAILURE-EVIDENCE"
+  require_contains "$file" "V0170-003-RETRY-LIMIT-FAIL-CLOSED"
+  require_contains "$file" "V0170-003-REDACTED-FAILURE-EVIDENCE"
+  require_contains "$file" "V0170-003-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel.swift" "ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel"
+require_contains "docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-failure-model-contract.md" "#1141 / GH-1141"
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.0 signed status query retry / timeout failure model anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1141 Release v0.17.0 Signed Status Query Retry / Timeout Failure Model"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1141ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"
