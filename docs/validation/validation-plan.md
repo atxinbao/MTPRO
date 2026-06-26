@@ -48,6 +48,20 @@
 - Evidence files: `Sources/DomainModel/ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`、`Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`checks/verify-v0.16.1-central-artifact-redaction-policy.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1135 只把 v0.16 operator beta artifact redaction policy 收敛为 DomainModel 共享来源，并让 artifact store、manual workflow validator、Dashboard read model 和测试复用同一 forbidden marker / validation anchor。它不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
 
+## GH-1136 Release v0.16.1 Redaction Regression Coverage Guard
+
+- GH-1136-VERIFY-V0161-REDACTION-REGRESSION-COVERAGE
+- TVM-RELEASE-V0161-REDACTION-REGRESSION-COVERAGE
+- V0161-004-BINANCE-SENSITIVE-HEADER-MARKERS
+- V0161-004-SIGNED-QUERY-MARKERS
+- V0161-004-PRODUCTION-HOST-MARKERS
+- V0161-004-RAW-BROKER-ORDER-PAYLOAD-MARKERS
+- V0161-004-WORKFLOW-BUNDLE-REGRESSION-COVERAGE
+- focused verifier: `bash checks/verify-v0.16.1-redaction-regression-coverage.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1136ReleaseV0161RedactionRegressionCoverageRejectsSensitiveMarkers`
+- Evidence files: `Sources/DomainModel/ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`、`Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`checks/verify-v0.16.1-redaction-regression-coverage.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1136 只给共享 redaction policy 增加 Binance sensitive header、signed query marker、listenKey / secret variants、production Binance hosts、raw broker / order payload variants 的 regression coverage。它不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
+
 ## GH-1112 Release v0.16.0 Stage Audit / Release Docs Closeout
 
 - GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS

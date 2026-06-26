@@ -15,6 +15,13 @@ import Foundation
 // brokerEndpointConnected=false
 // productionOrderSubmitted=false
 // productionCutoverAuthorized=false
+// GH-1136-VERIFY-V0161-REDACTION-REGRESSION-COVERAGE
+// TVM-RELEASE-V0161-REDACTION-REGRESSION-COVERAGE
+// V0161-004-BINANCE-SENSITIVE-HEADER-MARKERS
+// V0161-004-SIGNED-QUERY-MARKERS
+// V0161-004-PRODUCTION-HOST-MARKERS
+// V0161-004-RAW-BROKER-ORDER-PAYLOAD-MARKERS
+// V0161-004-WORKFLOW-BUNDLE-REGRESSION-COVERAGE
 
 /// ReleaseV0160ManualTestnetValidationWorkflowError 描述 #1111 manual workflow 的 fail-closed 错误。
 ///

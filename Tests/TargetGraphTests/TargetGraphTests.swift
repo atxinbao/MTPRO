@@ -45811,6 +45811,127 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1136ReleaseV0161RedactionRegressionCoverageRejectsSensitiveMarkers() throws {
+        // 测试场景：GH-1136 补齐 Binance header、signed query、listenKey / secret、
+        // production host 和 raw broker / order payload 的脱敏回归样本。
+        // 验证目的：新增敏感 marker 必须从共享 policy 生效，并被 artifact store 与 manual workflow
+        // validator 同步消费，避免 evidence bundle 泄露 credential、production endpoint 或原始 broker payload。
+        // GH-1136-VERIFY-V0161-REDACTION-REGRESSION-COVERAGE
+        // TVM-RELEASE-V0161-REDACTION-REGRESSION-COVERAGE
+        // V0161-004-BINANCE-SENSITIVE-HEADER-MARKERS
+        // V0161-004-SIGNED-QUERY-MARKERS
+        // V0161-004-PRODUCTION-HOST-MARKERS
+        // V0161-004-RAW-BROKER-ORDER-PAYLOAD-MARKERS
+        // V0161-004-WORKFLOW-BUNDLE-REGRESSION-COVERAGE
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let policy = ReleaseV0161OperatorBetaArtifactRedactionPolicy.current
+        let regressionSamples: [(sample: String, expectedMarker: String)] = [
+            ("header X-MBX-APIKEY: redacted must not appear", "x-mbx-apikey"),
+            ("query symbol=BTCUSDT&signature=redacted", "signature="),
+            ("query signature%3Dredacted", "signature%3d"),
+            ("listenKey=redacted", "listenkey="),
+            ("listen-key redacted", "listen-key"),
+            ("secret=redacted", "secret="),
+            ("api-secret redacted", "api-secret"),
+            ("https://api.binance.com/api/v3/order", "api.binance.com"),
+            ("https://api1.binance.com/api/v3/order", "api1.binance.com"),
+            ("https://api2.binance.com/api/v3/order", "api2.binance.com"),
+            ("https://api3.binance.com/api/v3/order", "api3.binance.com"),
+            ("https://api4.binance.com/api/v3/order", "api4.binance.com"),
+            ("https://fapi.binance.com/fapi/v1/order", "fapi.binance.com"),
+            ("https://dapi.binance.com/dapi/v1/order", "dapi.binance.com"),
+            ("wss://stream.binance.com/ws/redacted", "stream.binance.com"),
+            ("wss://fstream.binance.com/ws/redacted", "fstream.binance.com"),
+            ("wss://dstream.binance.com/ws/redacted", "dstream.binance.com"),
+            ("raw order payload redacted", "raw order payload"),
+            ("raw_order payload redacted", "raw_order"),
+            ("raw_order_payload redacted", "raw_order_payload"),
+            ("raw broker payload redacted", "raw broker payload"),
+            ("raw_broker payload redacted", "raw_broker"),
+            ("raw_broker_payload redacted", "raw_broker_payload"),
+            ("broker_payload redacted", "broker_payload"),
+            ("raw execution report redacted", "raw execution report")
+        ]
+
+        XCTAssertTrue(policy.policyHeld)
+        for regressionSample in regressionSamples {
+            XCTAssertTrue(
+                policy.forbiddenMarkers.contains(regressionSample.expectedMarker),
+                "\(regressionSample.expectedMarker) must be centralized in the shared policy"
+            )
+            XCTAssertTrue(
+                policy.forbiddenMarkers(in: regressionSample.sample).contains(regressionSample.expectedMarker),
+                "\(regressionSample.expectedMarker) must be detected by the shared policy"
+            )
+            XCTAssertTrue(
+                ReleaseV0160LocalExecutionArtifactPayload
+                    .forbiddenRawMarkers(in: regressionSample.sample)
+                    .contains(regressionSample.expectedMarker),
+                "\(regressionSample.expectedMarker) must be detected by artifact payload validation"
+            )
+            XCTAssertTrue(
+                ReleaseV0161ManualTestnetValidationEvidenceBundle
+                    .forbiddenContentMarkers(in: regressionSample.sample)
+                    .contains(regressionSample.expectedMarker),
+                "\(regressionSample.expectedMarker) must be detected by manual bundle validation"
+            )
+        }
+
+        let headerLeakData = Data(#"{"schemaVersion":"mtpro.release.v0.16.1.manual-evidence-bundle-content.v1","header":"X-MBX-APIKEY"}"#.utf8)
+        XCTAssertThrowsError(try ReleaseV0161ManualTestnetValidationEvidenceBundle.decodeAndValidate(data: headerLeakData))
+        XCTAssertThrowsError(
+            try ReleaseV0161ManualTestnetValidationEvidenceBundle.decodeAndValidate(
+                filePath: "https://fapi.binance.com/operator-evidence.json"
+            )
+        )
+
+        let requiredAnchors = [
+            "GH-1136-VERIFY-V0161-REDACTION-REGRESSION-COVERAGE",
+            "TVM-RELEASE-V0161-REDACTION-REGRESSION-COVERAGE",
+            "V0161-004-BINANCE-SENSITIVE-HEADER-MARKERS",
+            "V0161-004-SIGNED-QUERY-MARKERS",
+            "V0161-004-PRODUCTION-HOST-MARKERS",
+            "V0161-004-RAW-BROKER-ORDER-PAYLOAD-MARKERS",
+            "V0161-004-WORKFLOW-BUNDLE-REGRESSION-COVERAGE"
+        ]
+        let policySource = try read("Sources/DomainModel/ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift")
+        let artifactStore = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift")
+        let workflow = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift")
+        let dashboard = try read("Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift")
+        let verifier = try read("checks/verify-v0.16.1-redaction-regression-coverage.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let notes = try read("docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1136ReleaseV0161RedactionRegressionCoverageRejectsSensitiveMarkers"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.1-redaction-regression-coverage.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.1-redaction-regression-coverage.sh"))
+        for anchor in requiredAnchors {
+            XCTAssertTrue(policySource.contains(anchor), "\(anchor) must stay in shared policy source")
+            XCTAssertTrue(artifactStore.contains(anchor), "\(anchor) must stay in artifact store")
+            XCTAssertTrue(workflow.contains(anchor), "\(anchor) must stay in workflow validator")
+            XCTAssertTrue(dashboard.contains(anchor), "\(anchor) must stay in Dashboard read model")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(notes.contains(anchor), "\(anchor) must stay in v0.16.1 patch notes")
+            XCTAssertTrue(runScript.contains(anchor), "\(anchor) must stay in run.sh")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
