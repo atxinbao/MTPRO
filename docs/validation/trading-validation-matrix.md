@@ -37,7 +37,7 @@
 - `bash checks/verify-v0.16.0-stage-audit-release-docs.sh`
 - `swift test --filter TargetGraphTests/testGH1112ReleaseV0160StageAuditReleaseDocsCloseout`
 - Evidence files: `docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md`、`docs/release/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-notes.md`、`docs/operators/release-v0.16.0-binance-spot-testnet-operator-execution-beta-runbook.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.0-stage-audit-release-docs.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
-- Boundary: GH-1112 closes v0.16.0 construction evidence only. It does not create a tag / GitHub Release, does not create the next Project / Issue, does not authorize production cutover, does not read production secrets, does not connect production endpoint / broker endpoint, and does not submit production orders.
+- Boundary: GH-1112 closes v0.16.0 construction evidence only. The #1112 closeout itself does not create a tag / GitHub Release, does not create the next Project / Issue, does not authorize production cutover, does not read production secrets, does not connect production endpoint / broker endpoint, and does not submit production orders. A subsequent independent Release Publication Gate published the stable v0.16.0 GitHub Release at `https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`, tag peeled commit `28779236262bd7ffaf71e286b27b95854c5cd3e1`, without authorizing production cutover.
 
 ## TVM-RELEASE-V0160-OPERATOR-RUN-MODEL
 
