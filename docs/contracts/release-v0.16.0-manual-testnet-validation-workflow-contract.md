@@ -7,6 +7,24 @@
 
 `GH-1111-VERIFY-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW`
 
+## GH-1134 / V0161-002
+
+`GH-1134-VERIFY-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT`
+
+`TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT`
+
+`V0161-002-BUNDLE-SCHEMA-PARSED`
+
+`V0161-002-ACTION-SEQUENCE-CHECKED`
+
+`V0161-002-CHECKSUM-REFERENCES-CHECKED`
+
+`V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS`
+
+`V0161-002-NO-PRODUCTION-CUTOVER`
+
+GH-1134 是 v0.16.1 evidence hardening patch 的第二个切片。它不改变 #1111 手动 workflow 的执行边界，只要求 workflow 读取 `evidence_bundle_path` 指向的 redacted bundle JSON 内容，并校验 schema、submit -> status -> cancel -> status -> reconciliation passed 顺序、`sha256:` checksum references、reconciliation passed flag 和 no-secret / no-production markers。
+
 ## Scope
 
 GH-1111 只为 `MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta` 增加手动 testnet validation workflow 和 redacted evidence bundle 合同。它要求 operator 在本地手动完成：
@@ -34,6 +52,14 @@ submit -> status-after-submit -> cancel -> status-after-cancel -> reconciliation
 ## GitHub Workflow
 
 `.github/workflows/release-v0.16.0-manual-testnet-validation.yml` 只能通过 `workflow_dispatch` 手动触发。它只验证 operator 提供的 redacted bundle path 和本地 deterministic guard，不读取 GitHub secrets，不接受 production credential name，不连接 endpoint，不发送 submit / cancel / replace。
+
+GH-1134 后，该 workflow 还必须运行：
+
+```bash
+swift run mtpro validate-manual-evidence-bundle "${{ inputs.evidence_bundle_path }}"
+```
+
+该命令只读取本地 redacted bundle JSON 内容，并通过 `ReleaseV0161ManualTestnetValidationEvidenceBundle` fail-closed 校验。它不读取 GitHub secrets，不连接 testnet / production endpoint，不发送 testnet 或 production order，不授权 production cutover。
 
 ## Evidence
 

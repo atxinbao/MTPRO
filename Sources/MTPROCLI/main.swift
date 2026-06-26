@@ -49,6 +49,17 @@ private enum MTPROStrictCLI {
     static let releaseV090ValidationAnchor = "TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
     static let releaseV090OperatorUXVerificationAnchor = "GH-855-VERIFY-V090-DASHBOARD-CLI-OPERATOR-UX"
     static let releaseV090OperatorUXValidationAnchor = "TVM-RELEASE-V090-DASHBOARD-CLI-OPERATOR-UX"
+    static let releaseV0161ManualEvidenceBundleContentVerificationAnchor =
+        "GH-1134-VERIFY-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT"
+    static let releaseV0161ManualEvidenceBundleContentValidationAnchor =
+        "TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT"
+    static let releaseV0161ManualEvidenceBundleContentRequiredAnchors = [
+        "V0161-002-BUNDLE-SCHEMA-PARSED",
+        "V0161-002-ACTION-SEQUENCE-CHECKED",
+        "V0161-002-CHECKSUM-REFERENCES-CHECKED",
+        "V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS",
+        "V0161-002-NO-PRODUCTION-CUTOVER"
+    ]
     static let releaseV0100VerificationAnchor = "GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
     static let releaseV0100ValidationAnchor = "TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
     static let cliVerifyV0100WordingAnchor = "GH-909-VERIFY-V0101-CLI-V0100-WORDING"
@@ -164,6 +175,29 @@ private enum MTPROStrictCLI {
         ReleaseV0160CLISubmitExecutionFlow.cliCommand,
         ReleaseV0160CLICancelExecutionFlow.cliCommand,
         ReleaseV0160CLIOrderStatusQueryFlow.cliCommand,
+        "validate-manual-evidence-bundle",
+        ReleaseV030CLIRehearsalSurface.cliCommand,
+        ReleaseV040UnifiedRunSurface.cliCommand,
+        ReleaseV050RunObserverSurface.cliCommand,
+        ReleaseV060RunDetailObserverSurface.cliCommand,
+        ReleaseV060TestnetReadOnlyProbe.cliCommand,
+        "verify-fast",
+        "verify-release"
+    ]
+    static let publicHelpCommands = [
+        "help",
+        "run",
+        "status",
+        "stop",
+        "recover",
+        "risk-policy",
+        "readiness",
+        "monitor",
+        "verify",
+        ReleaseV0150BinanceSpotTestnetCLIOperatorFlow.cliCommand,
+        ReleaseV0160CLISubmitExecutionFlow.cliCommand,
+        ReleaseV0160CLICancelExecutionFlow.cliCommand,
+        ReleaseV0160CLIOrderStatusQueryFlow.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -207,6 +241,11 @@ private enum MTPROStrictCLI {
             return try await ReleaseV0160CLICancelExecutionFlow.commandLineOutput(arguments: arguments)
         case ReleaseV0160CLIOrderStatusQueryFlow.cliCommand:
             return try await ReleaseV0160CLIOrderStatusQueryFlow.commandLineOutput(arguments: arguments)
+        case "validate-manual-evidence-bundle":
+            try requireExactCount(arguments, expected: 2, command: command)
+            return try ReleaseV0160ManualTestnetValidationWorkflow.contentValidationCommandOutput(
+                bundlePath: arguments[1]
+            )
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -233,7 +272,7 @@ private enum MTPROStrictCLI {
     }
 
     private static func helpOutput() -> String {
-        let commandList = supportedCommands.joined(separator: ",")
+        let commandList = publicHelpCommands.joined(separator: ",")
         return [
             "mtpro help",
             "issue=GH-781",
@@ -273,6 +312,10 @@ private enum MTPROStrictCLI {
             "releaseV0160CLIOrderStatusQueryValidationAnchor=TVM-RELEASE-V0160-SIGNED-ORDER-STATUS-QUERY",
             "releaseV0160CLIOrderStatusQueryVerificationAnchor=GH-1105-VERIFY-V0160-SIGNED-ORDER-STATUS-QUERY",
             "releaseV0160CLIOrderStatusQueryConfirmationPhrase=\(ReleaseV0160OperatorRunMetadata.requiredOperatorConfirmationPhrase)",
+            "releaseV0161ManualEvidenceBundleContentCommand=validate-manual-evidence-bundle",
+            "releaseV0161ManualEvidenceBundleContentValidationAnchor=\(releaseV0161ManualEvidenceBundleContentValidationAnchor)",
+            "releaseV0161ManualEvidenceBundleContentVerificationAnchor=\(releaseV0161ManualEvidenceBundleContentVerificationAnchor)",
+            "releaseV0161ManualEvidenceBundleContentRequiredAnchors=\(releaseV0161ManualEvidenceBundleContentRequiredAnchors.joined(separator: ","))",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
             "productionReadinessArtifactStoreImplemented=true",

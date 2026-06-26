@@ -216,6 +216,14 @@ bash checks/verify-v0.16.0-stage-audit-release-docs.sh
 # v0.16.0 tag peeled commit: 28779236262bd7ffaf71e286b27b95854c5cd3e1
 # v0.16.0 publication timestamp: 2026-06-26T01:29:21Z
 bash checks/verify-v0.16.1-release-fact-sync.sh
+# GH-1134-VERIFY-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT
+# TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT
+# V0161-002-BUNDLE-SCHEMA-PARSED
+# V0161-002-ACTION-SEQUENCE-CHECKED
+# V0161-002-CHECKSUM-REFERENCES-CHECKED
+# V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS
+# V0161-002-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.16.1-manual-evidence-bundle-content.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

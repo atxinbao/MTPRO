@@ -45615,6 +45615,113 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1134ReleaseV0161ManualEvidenceBundleContentValidationReadsBundle() throws {
+        // 测试场景：GH-1134 将 #1111 manual workflow 从 path guard 提升为 redacted bundle 内容校验。
+        // 验证目的：schema、action sequence、checksum references、reconciliation 和 no-production
+        // markers 必须从 bundle JSON 中解析验证，而不是只检查 evidence_bundle_path 字符串。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1134-VERIFY-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT",
+            "TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT",
+            "V0161-002-BUNDLE-SCHEMA-PARSED",
+            "V0161-002-ACTION-SEQUENCE-CHECKED",
+            "V0161-002-CHECKSUM-REFERENCES-CHECKED",
+            "V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS",
+            "V0161-002-NO-PRODUCTION-CUTOVER"
+        ]
+
+        let bundle = try ReleaseV0161ManualTestnetValidationEvidenceBundle.fixture()
+        let encoded = try ReleaseV0161ManualTestnetValidationEvidenceBundle.fixtureData()
+        let temporaryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("gh-1134-redacted-manual-evidence-bundle-\(UUID().uuidString).json")
+        try encoded.write(to: temporaryURL)
+        defer { try? FileManager.default.removeItem(at: temporaryURL) }
+
+        let decoded = try ReleaseV0161ManualTestnetValidationEvidenceBundle.decodeAndValidate(data: encoded)
+        let fileValidated = try ReleaseV0160ManualTestnetValidationWorkflow.validateBundleFile(
+            path: temporaryURL.path
+        )
+        let commandOutput = try ReleaseV0160ManualTestnetValidationWorkflow.contentValidationCommandOutput(
+            bundlePath: temporaryURL.path
+        )
+
+        XCTAssertTrue(bundle.bundleHeld)
+        XCTAssertEqual(decoded, bundle)
+        XCTAssertEqual(fileValidated, bundle)
+        XCTAssertEqual(bundle.schemaVersion, ReleaseV0161ManualTestnetValidationEvidenceBundle.schemaVersion)
+        XCTAssertEqual(bundle.contentValidationAnchors, requiredAnchors)
+        XCTAssertTrue(bundle.contentParsed)
+        XCTAssertTrue(bundle.bundleSchemaValidated)
+        XCTAssertTrue(bundle.actionSequenceValidated)
+        XCTAssertTrue(bundle.checksumReferencesValidated)
+        XCTAssertTrue(bundle.reconciliationValidated)
+        XCTAssertTrue(bundle.noSecretMarkersDetected)
+        XCTAssertTrue(bundle.noProductionMarkersDetected)
+        XCTAssertFalse(bundle.productionTradingEnabledByDefault)
+        XCTAssertFalse(bundle.productionSecretAutoRead)
+        XCTAssertFalse(bundle.productionEndpointConnected)
+        XCTAssertFalse(bundle.brokerEndpointConnected)
+        XCTAssertFalse(bundle.productionOrderSubmitted)
+        XCTAssertFalse(bundle.productionCutoverAuthorized)
+        XCTAssertTrue(commandOutput.contains("workflowReadsEvidenceBundleContent=true"))
+        XCTAssertTrue(commandOutput.contains("schemaParsed=true"))
+        XCTAssertTrue(commandOutput.contains("contentParsed=true"))
+        XCTAssertTrue(commandOutput.contains("actionSequenceValidated=true"))
+        XCTAssertTrue(commandOutput.contains("checksumReferencesValidated=true"))
+        XCTAssertTrue(commandOutput.contains("reconciliationValidated=true"))
+        XCTAssertTrue(commandOutput.contains("noSecretMarkersDetected=true"))
+        XCTAssertTrue(commandOutput.contains("productionCutoverAuthorized=false"))
+
+        XCTAssertThrowsError(try ReleaseV0161ManualTestnetValidationEvidenceBundle(
+            schemaVersion: "wrong-schema",
+            report: bundle.report
+        ))
+        let rawMarkerData = Data(#"{"schemaVersion":"mtpro.release.v0.16.1.manual-evidence-bundle-content.v1","apiKey":"must-not-appear"}"#.utf8)
+        XCTAssertThrowsError(try ReleaseV0161ManualTestnetValidationEvidenceBundle.decodeAndValidate(data: rawMarkerData))
+        XCTAssertThrowsError(try ReleaseV0161ManualTestnetValidationEvidenceBundle.decodeAndValidate(filePath: "api.binance.com-redacted.json"))
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift")
+        let cli = try read("Sources/MTPROCLI/main.swift")
+        let workflow = try read(".github/workflows/release-v0.16.0-manual-testnet-validation.yml")
+        let contract = try read("docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md")
+        let runbook = try read("docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md")
+        let verifier = try read("checks/verify-v0.16.1-manual-evidence-bundle-content.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertEqual(ReleaseV0161ManualTestnetValidationEvidenceBundle.requiredContentValidationAnchors, requiredAnchors)
+        for anchor in requiredAnchors {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in source")
+            XCTAssertTrue(cli.contains(anchor), "\(anchor) must stay in CLI")
+            XCTAssertTrue(workflow.contains(anchor), "\(anchor) must stay in workflow")
+            XCTAssertTrue(contract.contains(anchor), "\(anchor) must stay in contract docs")
+            XCTAssertTrue(runbook.contains(anchor), "\(anchor) must stay in runbook")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(runScript.contains(anchor), "\(anchor) must stay in run.sh")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+        XCTAssertTrue(cli.contains("validate-manual-evidence-bundle"))
+        XCTAssertTrue(workflow.contains("swift run mtpro validate-manual-evidence-bundle"))
+        XCTAssertTrue(source.contains("workflowReadsEvidenceBundleContent=true"))
+        XCTAssertTrue(contract.contains("GH-1134 / V0161-002"))
+        XCTAssertTrue(runbook.contains("读取 redacted evidence bundle JSON 内容"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.1-manual-evidence-bundle-content.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.1-manual-evidence-bundle-content.sh"))
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,

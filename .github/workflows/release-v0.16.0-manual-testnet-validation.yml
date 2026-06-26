@@ -61,5 +61,16 @@ jobs:
           echo "productionOrderSubmitted=false"
           echo "productionCutoverAuthorized=false"
 
+      - name: Validate redacted evidence bundle content
+        run: |
+          swift run mtpro validate-manual-evidence-bundle "${{ inputs.evidence_bundle_path }}"
+          echo "GH-1134-VERIFY-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT"
+          echo "TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT"
+          echo "V0161-002-BUNDLE-SCHEMA-PARSED"
+          echo "V0161-002-ACTION-SEQUENCE-CHECKED"
+          echo "V0161-002-CHECKSUM-REFERENCES-CHECKED"
+          echo "V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS"
+          echo "V0161-002-NO-PRODUCTION-CUTOVER"
+
       - name: Verify deterministic #1111 guard
         run: bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh
