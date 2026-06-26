@@ -227,6 +227,34 @@ bash checks/run.sh
 
 GH-1136 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
 
+## Release v0.16.1 Status Query Transport Evidence Wording Snapshot
+
+`GH-1137-VERIFY-V0161-STATUS-QUERY-TRANSPORT-WORDING`
+
+`TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING`
+
+`V0161-005-REQUEST-EVIDENCE-FLAG-CLARIFIED`
+
+`V0161-005-TRANSPORT-RESULT-EVIDENCE-CLARIFIED`
+
+`V0161-005-NO-FAKE-STATUS-QUERY-WORDING`
+
+`V0161-005-NO-PRODUCTION-READINESS-OVERSTATEMENT`
+
+GH-1137 澄清 #1105 status query 的两层 evidence：`networkStatusQueryPerformed=false` 只属于 signed request evidence，表示 request construction evidence 不直接声明 transport side effect；guarded Testnet status transport result evidence 仍由 `ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult`、redacted request / response evidence、artifact path 和 checksum 单独表达。该 wording guard 防止把 status query 误写成 fake / mock，也防止把 Testnet transport evidence 夸大为 production readiness。
+
+Required validation：
+
+```bash
+bash checks/verify-v0.16.1-status-query-transport-wording.sh
+swift test --filter TargetGraphTests/testGH1137ReleaseV0161StatusQueryTransportEvidenceWording
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/run.sh
+```
+
+GH-1137 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
+
 ## Release v0.16.0 Stage Audit / Release Docs Closeout Snapshot
 
 `GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS`

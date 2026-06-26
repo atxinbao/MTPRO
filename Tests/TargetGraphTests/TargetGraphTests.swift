@@ -45932,6 +45932,84 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1137ReleaseV0161StatusQueryTransportEvidenceWording() throws {
+        // 测试场景：GH-1137 澄清 #1105 status query 的 request evidence 与 transport result evidence 分层。
+        // 验证目的：`networkStatusQueryPerformed=false` 只能表示 request evidence 不直接声明
+        // transport side effect；guarded Testnet status result 仍由 transport result evidence 表达，
+        // 且文档不能暗示 status query 是伪造流程或 production readiness。
+        // GH-1137-VERIFY-V0161-STATUS-QUERY-TRANSPORT-WORDING
+        // TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING
+        // V0161-005-REQUEST-EVIDENCE-FLAG-CLARIFIED
+        // V0161-005-TRANSPORT-RESULT-EVIDENCE-CLARIFIED
+        // V0161-005-NO-FAKE-STATUS-QUERY-WORDING
+        // V0161-005-NO-PRODUCTION-READINESS-OVERSTATEMENT
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1137-VERIFY-V0161-STATUS-QUERY-TRANSPORT-WORDING",
+            "TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING",
+            "V0161-005-REQUEST-EVIDENCE-FLAG-CLARIFIED",
+            "V0161-005-TRANSPORT-RESULT-EVIDENCE-CLARIFIED",
+            "V0161-005-NO-FAKE-STATUS-QUERY-WORDING",
+            "V0161-005-NO-PRODUCTION-READINESS-OVERSTATEMENT"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift",
+            "docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md",
+            "checks/verify-v0.16.1-status-query-transport-wording.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let statusSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift")
+        let contract = try read("docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let notes = try read("docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md")
+        let verifier = try read("checks/verify-v0.16.1-status-query-transport-wording.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(statusSource.contains("requestEvidenceNetworkStatusQueryPerformed=false"))
+        XCTAssertTrue(statusSource.contains("statusTransportResultEvidence=guarded-testnet-status-result"))
+        XCTAssertTrue(statusSource.contains("ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult"))
+        XCTAssertTrue(contract.contains("networkStatusQueryPerformed=false"))
+        XCTAssertTrue(contract.contains("guarded Testnet status transport result evidence"))
+        XCTAssertTrue(latest.contains("guarded Testnet status transport result evidence"))
+        XCTAssertTrue(plan.contains("request evidence flag"))
+        XCTAssertTrue(matrix.contains("request-evidence flag"))
+        XCTAssertTrue(policy.contains("request-construction evidence does not itself assert a network side effect"))
+        XCTAssertTrue(notes.contains("request evidence flag"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1137ReleaseV0161StatusQueryTransportEvidenceWording"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.1-status-query-transport-wording.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.1-status-query-transport-wording.sh"))
+
+        for source in [contract, latest, plan, matrix, policy, notes] {
+            XCTAssertFalse(source.contains("fake status query"))
+            XCTAssertFalse(source.contains("mock status query"))
+            XCTAssertFalse(source.contains("networkStatusQueryPerformed=false means no transport result"))
+            XCTAssertFalse(source.contains("production readiness authorized"))
+        }
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
