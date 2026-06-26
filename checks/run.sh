@@ -206,6 +206,16 @@ bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh
 # V0160-012-NO-PRODUCTION-CUTOVER
 # V0160-012-NO-TAG-OR-RELEASE-PUBLICATION
 bash checks/verify-v0.16.0-stage-audit-release-docs.sh
+# GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC
+# V0161-001-V0160-RELEASE-FACT-SYNC-GUARD
+# TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC
+# V0161-001-V0160-TAG-FIXED
+# V0161-001-PATCH-QUEUE-NOT-PUBLICATION
+# V0161-001-NO-PRODUCTION-CUTOVER
+# v0.16.0 stable release: https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0
+# v0.16.0 tag peeled commit: 28779236262bd7ffaf71e286b27b95854c5cd3e1
+# v0.16.0 publication timestamp: 2026-06-26T01:29:21Z
+bash checks/verify-v0.16.1-release-fact-sync.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

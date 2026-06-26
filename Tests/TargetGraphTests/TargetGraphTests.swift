@@ -45553,6 +45553,68 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1133ReleaseV0161V0160ReleaseFactSyncGuard() throws {
+        // 测试场景：GH-1133 只同步 v0.16.0 public release facts 到 v0.16.1 patch guard。
+        // 验证目的：v0.16.1 不能移动 v0.16.0 tag、不能覆盖 release、不能授权 production cutover。
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = [
+            "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC",
+            "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD",
+            "TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC",
+            "V0161-001-V0160-TAG-FIXED",
+            "V0161-001-PATCH-QUEUE-NOT-PUBLICATION",
+            "V0161-001-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/automation/automation-readiness.md",
+            "docs/release/release-publication-policy.md",
+            "checks/verify-v0.16.1-release-fact-sync.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh"
+        ]
+        let releaseURL = "https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0"
+        let tagCommit = "28779236262bd7ffaf71e286b27b95854c5cd3e1"
+        let publishedAt = "2026-06-26T01:29:21Z"
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+            XCTAssertTrue(source.contains(releaseURL), "\(file) must keep v0.16.0 release URL synchronized")
+            XCTAssertTrue(source.contains(tagCommit), "\(file) must keep v0.16.0 tag commit synchronized")
+            XCTAssertTrue(source.contains(publishedAt), "\(file) must keep v0.16.0 publication timestamp synchronized")
+        }
+
+        let notes = try read("docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let verifier = try read("checks/verify-v0.16.1-release-fact-sync.sh")
+
+        XCTAssertTrue(notes.contains("v0.16.1 是后续 evidence hardening patch queue"))
+        XCTAssertTrue(policy.contains("GH-1133 不移动 `v0.16.0` tag"))
+        XCTAssertTrue(readiness.contains("Release v0.16.1 v0.16.0 release fact sync anchor"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1133ReleaseV0161V0160ReleaseFactSyncGuard"))
+
+        for source in [notes, policy] {
+            XCTAssertTrue(source.contains("production cutover not authorized") || source.contains("不授权 production cutover"))
+            XCTAssertFalse(source.contains("v0.16.0 tag pending"))
+            XCTAssertFalse(source.contains("v0.16.0 release pending"))
+            XCTAssertFalse(source.contains("v0.16.0 GitHub Release not created"))
+        }
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
