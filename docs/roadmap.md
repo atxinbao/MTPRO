@@ -69,6 +69,24 @@ Machine guard anchors:
 
 ## Current Release Construction Scope / 当前 release 建设口径
 
+`GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT`
+
+`TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT`
+
+`V0170-001-V0161-PREFLIGHT-GATE`
+
+`V0170-001-ARTIFACT-STATUS-RUNTIME-HARDENING-SCOPE`
+
+`V0170-001-BINANCE-SPOT-TESTNET-ONLY`
+
+`V0170-001-REDACTED-ARTIFACT-EVIDENCE-REQUIRED`
+
+`V0170-001-QUEUE-ORDER`
+
+`V0170-001-NO-PRODUCTION-CUTOVER`
+
+Current GitHub fallback queue is `MTPRO Release v0.17.0 Operator Beta Artifact + Status Runtime Hardening`, issue range `GH-1139..GH-1148`. GH-1139 is the contract / preflight issue only: it defines v0.16.1 closeout dependency, WIP=1 queue order, Binance Spot Testnet operator beta artifact / status runtime hardening scope, redacted artifact evidence and no-production-cutover guard. It does not read credential values, connect testnet or production endpoints, submit testnet or production orders, publish a tag / GitHub Release, or authorize production cutover.
+
 `GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
 
 `GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`

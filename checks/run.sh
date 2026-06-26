@@ -257,6 +257,15 @@ bash checks/verify-v0.16.1-status-query-transport-wording.sh
 # V0161-006-NO-PRODUCTION-CUTOVER
 # V0161-006-NO-TAG-OR-RELEASE-PUBLICATION
 bash checks/verify-v0.16.1-patch-audit-release-notes.sh
+# GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
+# TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
+# V0170-001-V0161-PREFLIGHT-GATE
+# V0170-001-ARTIFACT-STATUS-RUNTIME-HARDENING-SCOPE
+# V0170-001-BINANCE-SPOT-TESTNET-ONLY
+# V0170-001-REDACTED-ARTIFACT-EVIDENCE-REQUIRED
+# V0170-001-QUEUE-ORDER
+# V0170-001-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

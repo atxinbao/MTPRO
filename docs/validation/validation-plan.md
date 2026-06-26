@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1139 Release v0.17.0 Operator Beta Runtime Hardening Contract
+
+- GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
+- TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
+- V0170-001-V0161-PREFLIGHT-GATE
+- V0170-001-ARTIFACT-STATUS-RUNTIME-HARDENING-SCOPE
+- V0170-001-BINANCE-SPOT-TESTNET-ONLY
+- V0170-001-REDACTED-ARTIFACT-EVIDENCE-REQUIRED
+- V0170-001-QUEUE-ORDER
+- V0170-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1139ReleaseV0170OperatorBetaRuntimeHardeningContract`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaRuntimeHardeningContract.swift`、`docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1139 只定义 v0.17.0 operator beta artifact / status runtime hardening contract、GH-1138 dependency、GH-1140..GH-1148 queue order、Binance Spot Testnet only scope、redacted artifact evidence 和 no-production-cutover guard。GH-1139 不读取 credential value，不连接 testnet / production endpoint，不提交 testnet / production order，不创建 tag / GitHub Release，不启动下一 milestone，不授权 production cutover。
+
 ## GH-1138 Release v0.16.1 Patch Audit / Release Notes Closeout
 
 - GH-1138-VERIFY-V0161-PATCH-AUDIT-RELEASE-NOTES
