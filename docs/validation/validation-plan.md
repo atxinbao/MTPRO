@@ -33,6 +33,21 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`、`Sources/MTPROCLI/main.swift`、`.github/workflows/release-v0.16.0-manual-testnet-validation.yml`、`docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md`、`docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.1-manual-evidence-bundle-content.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1134 只让 manual workflow 读取 redacted evidence bundle JSON 内容并校验 schema、action sequence、checksum references、reconciliation 和 no-secret / no-production markers。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
 
+## GH-1135 Release v0.16.1 Central Artifact Redaction Policy Guard
+
+- GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+- TVM-RELEASE-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+- V0161-003-SHARED-REDACTION-POLICY-SOURCE
+- V0161-003-ARTIFACT-STORE-POLICY-USES-SHARED-SOURCE
+- V0161-003-WORKFLOW-BUNDLE-POLICY-USES-SHARED-SOURCE
+- V0161-003-DASHBOARD-READ-MODEL-POLICY-USES-SHARED-SOURCE
+- V0161-003-NO-SECRET-NO-PRODUCTION-MARKERS
+- V0161-003-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.16.1-central-artifact-redaction-policy.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1135ReleaseV0161CentralArtifactRedactionPolicyIsSharedAcrossSurfaces`
+- Evidence files: `Sources/DomainModel/ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`、`Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`checks/verify-v0.16.1-central-artifact-redaction-policy.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1135 只把 v0.16 operator beta artifact redaction policy 收敛为 DomainModel 共享来源，并让 artifact store、manual workflow validator、Dashboard read model 和测试复用同一 forbidden marker / validation anchor。它不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
+
 ## GH-1112 Release v0.16.0 Stage Audit / Release Docs Closeout
 
 - GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS

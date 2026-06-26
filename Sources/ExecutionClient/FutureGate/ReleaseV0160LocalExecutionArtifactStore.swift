@@ -16,6 +16,14 @@ import Foundation
 // brokerEndpointConnected=false
 // productionOrderSubmitted=false
 // productionCutoverAuthorized=false
+// GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+// TVM-RELEASE-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+// V0161-003-SHARED-REDACTION-POLICY-SOURCE
+// V0161-003-ARTIFACT-STORE-POLICY-USES-SHARED-SOURCE
+// V0161-003-WORKFLOW-BUNDLE-POLICY-USES-SHARED-SOURCE
+// V0161-003-DASHBOARD-READ-MODEL-POLICY-USES-SHARED-SOURCE
+// V0161-003-NO-SECRET-NO-PRODUCTION-MARKERS
+// V0161-003-NO-PRODUCTION-CUTOVER
 
 /// ReleaseV0160LocalExecutionArtifactStoreError 描述 GH-1106 本地 artifact store 的 fail-closed 错误。
 ///
@@ -125,6 +133,7 @@ public struct ReleaseV0160LocalExecutionArtifactPayload: Codable, Equatable, Sen
             && brokerEndpointConnected == false
             && productionOrderSubmitted == false
             && productionCutoverAuthorized == false
+            && Self.redactionPolicy.policyHeld
             && Self.forbiddenRawMarkers(in: redactedSummary).isEmpty
             && redactedEvidenceReferences.allSatisfy { Self.forbiddenRawMarkers(in: $0).isEmpty }
     }
@@ -201,21 +210,14 @@ public struct ReleaseV0160LocalExecutionArtifactPayload: Codable, Equatable, Sen
     }
 
     public static func forbiddenRawMarkers(in text: String) -> [String] {
-        let lowered = text.lowercased()
-        return forbiddenRawMarkers.filter { lowered.contains($0) }
+        redactionPolicy.forbiddenMarkers(in: text)
     }
 
-    public static let forbiddenRawMarkers = [
-        "api key:",
-        "secret key:",
-        "listenkey",
-        "signature=",
-        "raw order",
-        "raw broker",
-        "production endpoint",
-        "api.binance.com",
-        "submit / cancel / replace authorized"
-    ]
+    public static var forbiddenRawMarkers: [String] {
+        redactionPolicy.forbiddenMarkers
+    }
+
+    public static let redactionPolicy = ReleaseV0161OperatorBetaArtifactRedactionPolicy.current
 }
 
 /// ReleaseV0160LocalExecutionArtifactRecord 是 append-only JSONL 的单条记录。

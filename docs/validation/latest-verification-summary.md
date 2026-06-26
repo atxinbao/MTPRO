@@ -165,6 +165,38 @@ bash checks/run.sh
 
 GH-1134 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
 
+## Release v0.16.1 Central Artifact Redaction Policy Snapshot
+
+`GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY`
+
+`TVM-RELEASE-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY`
+
+`V0161-003-SHARED-REDACTION-POLICY-SOURCE`
+
+`V0161-003-ARTIFACT-STORE-POLICY-USES-SHARED-SOURCE`
+
+`V0161-003-WORKFLOW-BUNDLE-POLICY-USES-SHARED-SOURCE`
+
+`V0161-003-DASHBOARD-READ-MODEL-POLICY-USES-SHARED-SOURCE`
+
+`V0161-003-NO-SECRET-NO-PRODUCTION-MARKERS`
+
+`V0161-003-NO-PRODUCTION-CUTOVER`
+
+GH-1135 将 v0.16 operator beta artifact redaction policy 收敛到 `ReleaseV0161OperatorBetaArtifactRedactionPolicy`。`ReleaseV0160LocalExecutionArtifactPayload`、`ReleaseV0161ManualTestnetValidationEvidenceBundle`、`ReleaseV0160DashboardArtifactBackedExecutionViewModel` 和 focused tests 共同引用同一 forbidden marker / validation anchor source，避免 artifact store、manual workflow validator 和 Dashboard read model 各自维护 marker 列表。
+
+Required validation：
+
+```bash
+bash checks/verify-v0.16.1-central-artifact-redaction-policy.sh
+swift test --filter TargetGraphTests/testGH1135ReleaseV0161CentralArtifactRedactionPolicyIsSharedAcrossSurfaces
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/run.sh
+```
+
+GH-1135 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
+
 ## Release v0.16.0 Stage Audit / Release Docs Closeout Snapshot
 
 `GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS`

@@ -339,6 +339,14 @@ public struct ReleaseV0160ManualTestnetValidationReport: Codable, Equatable, Sen
 /// endpoint，不发送 submit / cancel / replace，也不授权 production cutover。它把 #1111 的
 /// report schema 包进显式 schemaVersion 和 bundle checksum，使 GitHub manual workflow 能
 /// 对文件内容做 fail-closed 校验，而不是只检查 evidence bundle path 字符串。
+// GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+// TVM-RELEASE-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+// V0161-003-SHARED-REDACTION-POLICY-SOURCE
+// V0161-003-ARTIFACT-STORE-POLICY-USES-SHARED-SOURCE
+// V0161-003-WORKFLOW-BUNDLE-POLICY-USES-SHARED-SOURCE
+// V0161-003-DASHBOARD-READ-MODEL-POLICY-USES-SHARED-SOURCE
+// V0161-003-NO-SECRET-NO-PRODUCTION-MARKERS
+// V0161-003-NO-PRODUCTION-CUTOVER
 public struct ReleaseV0161ManualTestnetValidationEvidenceBundle: Codable, Equatable, Sendable {
     public let schemaVersion: String
     public let report: ReleaseV0160ManualTestnetValidationReport
@@ -433,6 +441,7 @@ public struct ReleaseV0161ManualTestnetValidationEvidenceBundle: Codable, Equata
             && brokerEndpointConnected == false
             && productionOrderSubmitted == false
             && productionCutoverAuthorized == false
+            && Self.redactionPolicy.policyHeld
             && report.productionTradingEnabledByDefault == false
             && report.productionSecretAutoRead == false
             && report.productionEndpointConnected == false
@@ -444,9 +453,11 @@ public struct ReleaseV0161ManualTestnetValidationEvidenceBundle: Codable, Equata
     public var contentSummaryLines: [String] {
         [
             "issue=GH-1134",
+            "redactionPolicyIssue=GH-1135",
             "release=v0.16.1",
             "sourceRelease=v0.16.0",
             "schemaVersion=\(schemaVersion)",
+            "redactionPolicyID=\(Self.redactionPolicy.policyID)",
             "bundleChecksum=\(bundleChecksum)",
             "contentParsed=\(contentParsed)",
             "bundleSchemaValidated=\(bundleSchemaValidated)",
@@ -477,6 +488,8 @@ public struct ReleaseV0161ManualTestnetValidationEvidenceBundle: Codable, Equata
         "V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS",
         "V0161-002-NO-PRODUCTION-CUTOVER"
     ]
+
+    public static let redactionPolicy = ReleaseV0161OperatorBetaArtifactRedactionPolicy.current
 
     public static func fixture(
         report: ReleaseV0160ManualTestnetValidationReport? = nil
@@ -549,20 +562,7 @@ public struct ReleaseV0161ManualTestnetValidationEvidenceBundle: Codable, Equata
     }
 
     public static func forbiddenContentMarkers(in text: String) -> [String] {
-        let lowered = text.lowercased()
-        let markers = ReleaseV0160LocalExecutionArtifactPayload.forbiddenRawMarkers + [
-            "api_key",
-            "apikey",
-            "secret_key",
-            "secretkey",
-            "raw_order_id",
-            "signature:",
-            "signature\"",
-            "listen_key",
-            "broker-endpoint",
-            "production cutover authorized"
-        ]
-        return Array(Set(markers.filter { lowered.contains($0) })).sorted()
+        redactionPolicy.forbiddenMarkers(in: text)
     }
 }
 

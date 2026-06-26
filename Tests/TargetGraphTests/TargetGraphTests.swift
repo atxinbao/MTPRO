@@ -45722,6 +45722,95 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationScript.contains("checks/verify-v0.16.1-manual-evidence-bundle-content.sh"))
     }
 
+    func testGH1135ReleaseV0161CentralArtifactRedactionPolicyIsSharedAcrossSurfaces() throws {
+        // 测试场景：GH-1135 将 v0.16 operator beta artifact 脱敏 marker 收敛到 DomainModel 共享策略。
+        // 验证目的：artifact store、manual workflow validator、Dashboard read model 和测试必须引用同一策略，
+        // 避免每个 surface 各自维护 marker 列表导致 no-secret / no-production guard 漂移。
+        // GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+        // TVM-RELEASE-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY
+        // V0161-003-SHARED-REDACTION-POLICY-SOURCE
+        // V0161-003-ARTIFACT-STORE-POLICY-USES-SHARED-SOURCE
+        // V0161-003-WORKFLOW-BUNDLE-POLICY-USES-SHARED-SOURCE
+        // V0161-003-DASHBOARD-READ-MODEL-POLICY-USES-SHARED-SOURCE
+        // V0161-003-NO-SECRET-NO-PRODUCTION-MARKERS
+        // V0161-003-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+        let requiredAnchors = ReleaseV0161OperatorBetaArtifactRedactionPolicy.requiredValidationAnchors
+        let policy = ReleaseV0161OperatorBetaArtifactRedactionPolicy.current
+        let markerProbe = """
+        redacted evidence accidentally contained api key: value, api_key, apiKey, secret key: value,
+        secret_key, listenKey, listen_key, signature=abc, signature:abc, signature"abc,
+        raw order, raw_order_id, raw broker, production endpoint, api.binance.com,
+        broker-endpoint, production cutover authorized, submit / cancel / replace authorized
+        """
+
+        XCTAssertTrue(policy.policyHeld)
+        XCTAssertEqual(policy.policyID, ReleaseV0161OperatorBetaArtifactRedactionPolicy.requiredPolicyID)
+        XCTAssertEqual(policy.issueID, "GH-1135")
+        XCTAssertEqual(policy.releaseVersion, "v0.16.1")
+        XCTAssertEqual(policy.sourceReleaseVersion, "v0.16.0")
+        XCTAssertEqual(policy.validationAnchors, requiredAnchors)
+        XCTAssertEqual(policy.forbiddenMarkers, ReleaseV0161OperatorBetaArtifactRedactionPolicy.requiredForbiddenMarkers)
+        XCTAssertEqual(policy.forbiddenMarkers(in: markerProbe), ReleaseV0160LocalExecutionArtifactPayload.forbiddenRawMarkers(in: markerProbe))
+        XCTAssertEqual(
+            policy.forbiddenMarkers(in: markerProbe),
+            ReleaseV0161ManualTestnetValidationEvidenceBundle.forbiddenContentMarkers(in: markerProbe)
+        )
+        XCTAssertEqual(ReleaseV0160LocalExecutionArtifactPayload.redactionPolicy, policy)
+        XCTAssertEqual(ReleaseV0161ManualTestnetValidationEvidenceBundle.redactionPolicy, policy)
+
+        let dashboardSurface = ReleaseV0160DashboardArtifactBackedExecutionViewModel.deterministicFixture
+        XCTAssertTrue(dashboardSurface.boundaryHeld)
+        XCTAssertTrue(dashboardSurface.redactionPolicyHeld)
+        XCTAssertEqual(dashboardSurface.redactionPolicyID, policy.policyID)
+        XCTAssertEqual(dashboardSurface.redactionPolicyIssueID, "GH-1135")
+        XCTAssertEqual(dashboardSurface.redactionPolicyValidationAnchors, requiredAnchors)
+        XCTAssertTrue(dashboardSurface.details.contains("Redaction policy: \(policy.policyID)"))
+
+        let policySource = try read("Sources/DomainModel/ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift")
+        let package = try read("Package.swift")
+        let artifactStore = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift")
+        let workflow = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift")
+        let dashboard = try read("Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift")
+        let verifier = try read("checks/verify-v0.16.1-central-artifact-redaction-policy.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let notes = try read("docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(package.contains("ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift"))
+        XCTAssertTrue(artifactStore.contains("ReleaseV0161OperatorBetaArtifactRedactionPolicy.current"))
+        XCTAssertTrue(workflow.contains("ReleaseV0161OperatorBetaArtifactRedactionPolicy.current"))
+        XCTAssertTrue(dashboard.contains("ReleaseV0161OperatorBetaArtifactRedactionPolicy.current"))
+        XCTAssertFalse(workflow.contains("let markers = ReleaseV0160LocalExecutionArtifactPayload.forbiddenRawMarkers + ["))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1135ReleaseV0161CentralArtifactRedactionPolicyIsSharedAcrossSurfaces"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.1-central-artifact-redaction-policy.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.1-central-artifact-redaction-policy.sh"))
+
+        for anchor in requiredAnchors {
+            XCTAssertTrue(policySource.contains(anchor), "\(anchor) must stay in shared policy source")
+            XCTAssertTrue(artifactStore.contains(anchor), "\(anchor) must stay in artifact store")
+            XCTAssertTrue(workflow.contains(anchor), "\(anchor) must stay in workflow validator")
+            XCTAssertTrue(dashboard.contains(anchor), "\(anchor) must stay in Dashboard read model")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(readiness.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification summary")
+            XCTAssertTrue(plan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(matrix.contains(anchor), "\(anchor) must stay in trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release publication policy")
+            XCTAssertTrue(notes.contains(anchor), "\(anchor) must stay in v0.16.1 patch notes")
+            XCTAssertTrue(runScript.contains(anchor), "\(anchor) must stay in run.sh")
+            XCTAssertTrue(automationScript.contains(anchor), "\(anchor) must stay in automation readiness script")
+        }
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,
