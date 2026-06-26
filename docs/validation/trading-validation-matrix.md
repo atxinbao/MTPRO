@@ -20,6 +20,21 @@
 - Evidence files: `docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.1-release-fact-sync.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1133 fixes v0.16.0 publication facts for v0.16.1 patch evidence. `https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0` remains the v0.16.0 stable GitHub Release, tag peeled commit remains `28779236262bd7ffaf71e286b27b95854c5cd3e1`, publication timestamp remains `2026-06-26T01:29:21Z`. v0.16.1 is patch evidence only; it does not move tag, overwrite release, or authorize production cutover. production cutover not authorized.
 
+## TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT
+
+- TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT
+- GH-1134-VERIFY-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT
+- V0161-002-BUNDLE-SCHEMA-PARSED
+- V0161-002-ACTION-SEQUENCE-CHECKED
+- V0161-002-CHECKSUM-REFERENCES-CHECKED
+- V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS
+- V0161-002-NO-PRODUCTION-CUTOVER
+- GH-1134 Release v0.16.1 Manual Evidence Bundle Content Guard
+- `bash checks/verify-v0.16.1-manual-evidence-bundle-content.sh`
+- `swift test --filter TargetGraphTests/testGH1134ReleaseV0161ManualEvidenceBundleContentValidationReadsBundle`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`、`Sources/MTPROCLI/main.swift`、`.github/workflows/release-v0.16.0-manual-testnet-validation.yml`、`docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md`、`docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.1-manual-evidence-bundle-content.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1134 hardens the v0.16 manual validation workflow by reading the redacted bundle JSON content and checking schema, action sequence, checksum references, reconciliation and no-secret / no-production markers. It does not read production secret, connect production endpoint / broker endpoint, send testnet or production order, or authorize production cutover.
+
 ## TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT
 
 - TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT

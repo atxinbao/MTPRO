@@ -19,6 +19,20 @@
 - Evidence files: `docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.1-release-fact-sync.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1133 只同步 v0.16.0 已发布事实到 v0.16.1 patch guard。v0.16.0 stable GitHub Release URL 为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`，tag peeled commit 为 `28779236262bd7ffaf71e286b27b95854c5cd3e1`，publication timestamp 为 `2026-06-26T01:29:21Z`。v0.16.1 是 patch queue，不移动 tag、不覆盖 release、不授权 production cutover。
 
+## GH-1134 Release v0.16.1 Manual Evidence Bundle Content Guard
+
+- GH-1134-VERIFY-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT
+- TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT
+- V0161-002-BUNDLE-SCHEMA-PARSED
+- V0161-002-ACTION-SEQUENCE-CHECKED
+- V0161-002-CHECKSUM-REFERENCES-CHECKED
+- V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS
+- V0161-002-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.16.1-manual-evidence-bundle-content.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1134ReleaseV0161ManualEvidenceBundleContentValidationReadsBundle`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`、`Sources/MTPROCLI/main.swift`、`.github/workflows/release-v0.16.0-manual-testnet-validation.yml`、`docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md`、`docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.1-manual-evidence-bundle-content.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1134 只让 manual workflow 读取 redacted evidence bundle JSON 内容并校验 schema、action sequence、checksum references、reconciliation 和 no-secret / no-production markers。不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
+
 ## GH-1112 Release v0.16.0 Stage Audit / Release Docs Closeout
 
 - GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS

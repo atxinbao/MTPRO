@@ -117,9 +117,44 @@ require_file "docs/contracts/production-cutover-runtime-hardening-contract.md"
 require_file "docs/contracts/production-credential-reference-environment-isolation-contract.md"
 require_file "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
+require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" \
+  "docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md" \
+  "docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.16.1-manual-evidence-bundle-content.sh" \
+  "checks/run.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1134-VERIFY-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT"
+  require_contains "$file" "TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT"
+  require_contains "$file" "V0161-002-BUNDLE-SCHEMA-PARSED"
+  require_contains "$file" "V0161-002-ACTION-SEQUENCE-CHECKED"
+  require_contains "$file" "V0161-002-CHECKSUM-REFERENCES-CHECKED"
+  require_contains "$file" "V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS"
+  require_contains "$file" "V0161-002-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "ReleaseV0161ManualTestnetValidationEvidenceBundle"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "workflowReadsEvidenceBundleContent=true"
+require_contains "Sources/MTPROCLI/main.swift" "validate-manual-evidence-bundle"
+require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "swift run mtpro validate-manual-evidence-bundle"
+require_contains "docs/automation/automation-readiness.md" "Release v0.16.1 manual evidence bundle content anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1134 Release v0.16.1 Manual Evidence Bundle Content Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT"
+require_contains "docs/release/release-publication-policy.md" "GH-1134 只强化 v0.16.0 manual testnet validation workflow"
+require_contains "checks/run.sh" "bash checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1134ReleaseV0161ManualEvidenceBundleContentValidationReadsBundle"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"

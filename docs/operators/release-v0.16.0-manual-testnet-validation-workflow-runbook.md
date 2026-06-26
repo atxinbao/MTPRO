@@ -48,14 +48,39 @@ bundle 必须只包含：
 
 bundle 不得包含 raw API key、secret、listenKey、signature、raw order id、raw broker payload、production endpoint、broker endpoint 或 production cutover approval。
 
+## GH-1134 Content Validation
+
+`GH-1134-VERIFY-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT`
+
+`TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT`
+
+`V0161-002-BUNDLE-SCHEMA-PARSED`
+
+`V0161-002-ACTION-SEQUENCE-CHECKED`
+
+`V0161-002-CHECKSUM-REFERENCES-CHECKED`
+
+`V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS`
+
+`V0161-002-NO-PRODUCTION-CUTOVER`
+
+v0.16.1 patch 要求 workflow 读取 redacted evidence bundle JSON 内容，而不是只检查 path 字符串。operator 提供的 bundle 必须使用 `mtpro.release.v0.16.1.manual-evidence-bundle-content.v1` schema，并由本地命令验证：
+
+```bash
+swift run mtpro validate-manual-evidence-bundle ".local/mtpro/v0.16.0/operator-runs/<run-id>/export/redacted-manual-testnet-validation-bundle.json"
+```
+
+该命令确认 bundle schema 已解析、action sequence 已检查、checksum references 已检查、reconciliation 已通过、no-secret / no-production markers 已保持。它不读取 secret，不连接 endpoint，不发送 testnet 或 production order。
+
 ## GitHub Manual Workflow
 
-`.github/workflows/release-v0.16.0-manual-testnet-validation.yml` 只能通过 `workflow_dispatch` 手动触发。该 workflow 只验证 redacted evidence bundle 的 deterministic guard；不读取 secrets，不连接 network endpoint，不发送 testnet 或 production order。
+`.github/workflows/release-v0.16.0-manual-testnet-validation.yml` 只能通过 `workflow_dispatch` 手动触发。该 workflow 先验证 manual-only 输入，再调用 `swift run mtpro validate-manual-evidence-bundle "${{ inputs.evidence_bundle_path }}"` 读取 redacted evidence bundle JSON 内容；不读取 secrets，不连接 network endpoint，不发送 testnet 或 production order。
 
 ## Validation
 
 ```bash
 bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh
+bash checks/verify-v0.16.1-manual-evidence-bundle-content.sh
 git diff --check
 bash checks/automation-readiness.sh
 bash checks/run.sh

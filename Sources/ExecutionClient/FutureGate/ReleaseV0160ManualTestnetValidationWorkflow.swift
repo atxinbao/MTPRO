@@ -333,6 +333,239 @@ public struct ReleaseV0160ManualTestnetValidationReport: Codable, Equatable, Sen
     }
 }
 
+/// ReleaseV0161ManualTestnetValidationEvidenceBundle 是 #1134 的 redacted bundle 内容校验层。
+///
+/// 该类型只解析 operator 已经脱敏导出的本地 JSON bundle，不读取 credential，不连接
+/// endpoint，不发送 submit / cancel / replace，也不授权 production cutover。它把 #1111 的
+/// report schema 包进显式 schemaVersion 和 bundle checksum，使 GitHub manual workflow 能
+/// 对文件内容做 fail-closed 校验，而不是只检查 evidence bundle path 字符串。
+public struct ReleaseV0161ManualTestnetValidationEvidenceBundle: Codable, Equatable, Sendable {
+    public let schemaVersion: String
+    public let report: ReleaseV0160ManualTestnetValidationReport
+    public let bundleChecksum: String
+    public let contentValidationAnchors: [String]
+    public let contentParsed: Bool
+    public let bundleSchemaValidated: Bool
+    public let actionSequenceValidated: Bool
+    public let checksumReferencesValidated: Bool
+    public let reconciliationValidated: Bool
+    public let noSecretMarkersDetected: Bool
+    public let noProductionMarkersDetected: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretAutoRead: Bool
+    public let productionEndpointConnected: Bool
+    public let brokerEndpointConnected: Bool
+    public let productionOrderSubmitted: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public init(
+        schemaVersion: String = Self.schemaVersion,
+        report: ReleaseV0160ManualTestnetValidationReport,
+        bundleChecksum: String? = nil,
+        contentValidationAnchors: [String] = Self.requiredContentValidationAnchors,
+        contentParsed: Bool = true,
+        bundleSchemaValidated: Bool = true,
+        actionSequenceValidated: Bool = true,
+        checksumReferencesValidated: Bool = true,
+        reconciliationValidated: Bool = true,
+        noSecretMarkersDetected: Bool = true,
+        noProductionMarkersDetected: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretAutoRead: Bool = false,
+        productionEndpointConnected: Bool = false,
+        brokerEndpointConnected: Bool = false,
+        productionOrderSubmitted: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        let resolvedChecksum = bundleChecksum ?? Self.deterministicBundleChecksum(
+            schemaVersion: schemaVersion,
+            report: report
+        )
+        self.schemaVersion = schemaVersion
+        self.report = report
+        self.bundleChecksum = resolvedChecksum
+        self.contentValidationAnchors = contentValidationAnchors
+        self.contentParsed = contentParsed
+        self.bundleSchemaValidated = bundleSchemaValidated
+        self.actionSequenceValidated = actionSequenceValidated
+        self.checksumReferencesValidated = checksumReferencesValidated
+        self.reconciliationValidated = reconciliationValidated
+        self.noSecretMarkersDetected = noSecretMarkersDetected
+        self.noProductionMarkersDetected = noProductionMarkersDetected
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretAutoRead = productionSecretAutoRead
+        self.productionEndpointConnected = productionEndpointConnected
+        self.brokerEndpointConnected = brokerEndpointConnected
+        self.productionOrderSubmitted = productionOrderSubmitted
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard bundleHeld else {
+            throw ReleaseV0160ManualTestnetValidationWorkflowError.boundaryDrift(
+                "manualEvidenceBundleContent"
+            )
+        }
+    }
+
+    public var bundleHeld: Bool {
+        schemaVersion == Self.schemaVersion
+            && report.reportHeld
+            && bundleChecksum == Self.deterministicBundleChecksum(schemaVersion: schemaVersion, report: report)
+            && ReleaseV0160LocalExecutionArtifactRecord.isSHA256(bundleChecksum)
+            && contentValidationAnchors == Self.requiredContentValidationAnchors
+            && contentParsed
+            && bundleSchemaValidated
+            && actionSequenceValidated
+            && checksumReferencesValidated
+            && reconciliationValidated
+            && noSecretMarkersDetected
+            && noProductionMarkersDetected
+            && report.requiredActionSequence == ReleaseV0160ManualTestnetValidationStep.requiredSequence
+            && report.evidenceEntries.map(\.step) == ReleaseV0160ManualTestnetValidationStep.requiredSequence
+            && report.checksumReferences.count == ReleaseV0160ManualTestnetValidationStep.requiredSequence.count
+            && report.checksumReferences.allSatisfy(ReleaseV0160LocalExecutionArtifactRecord.isSHA256Reference)
+            && report.submitStatusCancelStatusReconciliationPassed
+            && report.containsCredentialValue == false
+            && report.containsRawOrderIdentity == false
+            && report.containsRawBrokerPayload == false
+            && productionTradingEnabledByDefault == false
+            && productionSecretAutoRead == false
+            && productionEndpointConnected == false
+            && brokerEndpointConnected == false
+            && productionOrderSubmitted == false
+            && productionCutoverAuthorized == false
+            && report.productionTradingEnabledByDefault == false
+            && report.productionSecretAutoRead == false
+            && report.productionEndpointConnected == false
+            && report.brokerEndpointConnected == false
+            && report.productionOrderSubmitted == false
+            && report.productionCutoverAuthorized == false
+    }
+
+    public var contentSummaryLines: [String] {
+        [
+            "issue=GH-1134",
+            "release=v0.16.1",
+            "sourceRelease=v0.16.0",
+            "schemaVersion=\(schemaVersion)",
+            "bundleChecksum=\(bundleChecksum)",
+            "contentParsed=\(contentParsed)",
+            "bundleSchemaValidated=\(bundleSchemaValidated)",
+            "actionSequenceValidated=\(actionSequenceValidated)",
+            "checksumReferencesValidated=\(checksumReferencesValidated)",
+            "reconciliationValidated=\(reconciliationValidated)",
+            "noSecretMarkersDetected=\(noSecretMarkersDetected)",
+            "noProductionMarkersDetected=\(noProductionMarkersDetected)",
+            "sequence=\(report.requiredActionSequence.map(\.rawValue).joined(separator: " -> "))",
+            "checksumReferenceCount=\(report.checksumReferences.count)",
+            "productionTradingEnabledByDefault=\(productionTradingEnabledByDefault)",
+            "productionSecretAutoRead=\(productionSecretAutoRead)",
+            "productionEndpointConnected=\(productionEndpointConnected)",
+            "brokerEndpointConnected=\(brokerEndpointConnected)",
+            "productionOrderSubmitted=\(productionOrderSubmitted)",
+            "productionCutoverAuthorized=\(productionCutoverAuthorized)"
+        ]
+    }
+
+    public static let schemaVersion = "mtpro.release.v0.16.1.manual-evidence-bundle-content.v1"
+
+    public static let requiredContentValidationAnchors = [
+        "GH-1134-VERIFY-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT",
+        "TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT",
+        "V0161-002-BUNDLE-SCHEMA-PARSED",
+        "V0161-002-ACTION-SEQUENCE-CHECKED",
+        "V0161-002-CHECKSUM-REFERENCES-CHECKED",
+        "V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS",
+        "V0161-002-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static func fixture(
+        report: ReleaseV0160ManualTestnetValidationReport? = nil
+    ) throws -> ReleaseV0161ManualTestnetValidationEvidenceBundle {
+        let resolvedReport: ReleaseV0160ManualTestnetValidationReport
+        if let report {
+            resolvedReport = report
+        } else {
+            resolvedReport = try ReleaseV0160ManualTestnetValidationWorkflow.fixture()
+        }
+        return try ReleaseV0161ManualTestnetValidationEvidenceBundle(report: resolvedReport)
+    }
+
+    public static func fixtureData() throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return try encoder.encode(try fixture())
+    }
+
+    public static func decodeAndValidate(data: Data) throws -> ReleaseV0161ManualTestnetValidationEvidenceBundle {
+        let text = String(decoding: data, as: UTF8.self)
+        let forbiddenMarkers = forbiddenContentMarkers(in: text)
+        guard forbiddenMarkers.isEmpty else {
+            throw ReleaseV0160ManualTestnetValidationWorkflowError.boundaryDrift(
+                "manualEvidenceBundleContent.forbiddenMarkers:\(forbiddenMarkers.joined(separator: ","))"
+            )
+        }
+        let bundle = try JSONDecoder().decode(ReleaseV0161ManualTestnetValidationEvidenceBundle.self, from: data)
+        guard bundle.bundleHeld else {
+            throw ReleaseV0160ManualTestnetValidationWorkflowError.boundaryDrift(
+                "manualEvidenceBundleContent.decodedBundle"
+            )
+        }
+        return bundle
+    }
+
+    public static func decodeAndValidate(filePath: String) throws -> ReleaseV0161ManualTestnetValidationEvidenceBundle {
+        let normalizedPath = filePath.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard normalizedPath.isEmpty == false else {
+            throw ReleaseV0160ManualTestnetValidationWorkflowError.emptyEvidence("evidence_bundle_path")
+        }
+        let pathMarkers = forbiddenContentMarkers(in: normalizedPath)
+        guard pathMarkers.isEmpty else {
+            throw ReleaseV0160ManualTestnetValidationWorkflowError.boundaryDrift(
+                "evidence_bundle_path.forbiddenMarkers:\(pathMarkers.joined(separator: ","))"
+            )
+        }
+        return try decodeAndValidate(data: Data(contentsOf: URL(fileURLWithPath: normalizedPath)))
+    }
+
+    public static func deterministicBundleChecksum(
+        schemaVersion: String,
+        report: ReleaseV0160ManualTestnetValidationReport
+    ) -> String {
+        releaseV0160ManualWorkflowSHA256([
+            "GH-1134",
+            schemaVersion,
+            report.reportID.rawValue,
+            report.runID.rawValue,
+            report.requiredActionSequence.map(\.rawValue).joined(separator: ","),
+            report.checksumReferences.joined(separator: ","),
+            String(report.submitStatusCancelStatusReconciliationPassed),
+            String(report.productionTradingEnabledByDefault),
+            String(report.productionSecretAutoRead),
+            String(report.productionEndpointConnected),
+            String(report.brokerEndpointConnected),
+            String(report.productionOrderSubmitted),
+            String(report.productionCutoverAuthorized)
+        ])
+    }
+
+    public static func forbiddenContentMarkers(in text: String) -> [String] {
+        let lowered = text.lowercased()
+        let markers = ReleaseV0160LocalExecutionArtifactPayload.forbiddenRawMarkers + [
+            "api_key",
+            "apikey",
+            "secret_key",
+            "secretkey",
+            "raw_order_id",
+            "signature:",
+            "signature\"",
+            "listen_key",
+            "broker-endpoint",
+            "production cutover authorized"
+        ]
+        return Array(Set(markers.filter { lowered.contains($0) })).sorted()
+    }
+}
+
 /// ReleaseV0160ManualTestnetValidationWorkflow 是 #1111 的本地验证入口。
 public enum ReleaseV0160ManualTestnetValidationWorkflow {
     @discardableResult
@@ -343,6 +576,41 @@ public enum ReleaseV0160ManualTestnetValidationWorkflow {
             throw ReleaseV0160ManualTestnetValidationWorkflowError.boundaryDrift("report")
         }
         return report
+    }
+
+    @discardableResult
+    public static func validate(
+        bundle: ReleaseV0161ManualTestnetValidationEvidenceBundle
+    ) throws -> ReleaseV0161ManualTestnetValidationEvidenceBundle {
+        guard bundle.bundleHeld else {
+            throw ReleaseV0160ManualTestnetValidationWorkflowError.boundaryDrift("bundle")
+        }
+        return bundle
+    }
+
+    public static func validateBundleFile(path: String) throws -> ReleaseV0161ManualTestnetValidationEvidenceBundle {
+        try validate(bundle: ReleaseV0161ManualTestnetValidationEvidenceBundle.decodeAndValidate(filePath: path))
+    }
+
+    public static func contentValidationCommandOutput(bundlePath: String) throws -> String {
+        let bundle = try validateBundleFile(path: bundlePath)
+        return ([
+            "mtpro validate-manual-evidence-bundle v0.16.1",
+            "validationAnchor=TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT",
+            "verificationAnchor=GH-1134-VERIFY-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT",
+            "requiredAnchors=\(ReleaseV0161ManualTestnetValidationEvidenceBundle.requiredContentValidationAnchors.joined(separator: ","))",
+            "workflowReadsEvidenceBundleContent=true",
+            "schemaParsed=true",
+            "bundleSchemaValidated=true",
+            "actionSequenceValidated=true",
+            "checksumReferencesValidated=true",
+            "reconciliationValidated=true",
+            "noSecretMarkersDetected=true",
+            "noProductionMarkersDetected=true",
+            "productionCapabilityGatedNotMissing=true"
+        ] + bundle.contentSummaryLines + [
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
     }
 
     public static func fixture(runID: Identifier = .constant("gh-1111-v0160-manual-testnet-validation-run")) throws -> ReleaseV0160ManualTestnetValidationReport {
@@ -364,6 +632,12 @@ public enum ReleaseV0160ManualTestnetValidationWorkflow {
             )
         }
         return try ReleaseV0160ManualTestnetValidationReport(runID: runID, evidenceEntries: entries)
+    }
+}
+
+private extension ReleaseV0160LocalExecutionArtifactRecord {
+    static func isSHA256Reference(_ value: String) -> Bool {
+        value.contains("sha256:")
     }
 }
 
