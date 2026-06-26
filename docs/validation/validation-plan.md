@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1141 Release v0.17.0 Signed Status Query Retry / Timeout Failure Model
+
+- GH-1141-VERIFY-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+- TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+- V0170-003-BOUNDED-STATUS-QUERY-RETRY
+- V0170-003-PER-ATTEMPT-TIMEOUT
+- V0170-003-CLASSIFIED-FAILURE-EVIDENCE
+- V0170-003-RETRY-LIMIT-FAIL-CLOSED
+- V0170-003-REDACTED-FAILURE-EVIDENCE
+- V0170-003-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1141ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift`、`docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-failure-model-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1141 只包装 Binance Spot Testnet signed status query path，增加 bounded retry、per-attempt timeout 和 classified redacted failure evidence。GH-1141 不读取 credential value，不连接 production endpoint / broker endpoint，不提交 testnet / production order，不创建 tag / GitHub Release，不启动下一 milestone，不授权 production cutover。
+
 ## GH-1140 Release v0.17.0 Artifact Bundle Replay Validator
 
 - GH-1140-VERIFY-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR

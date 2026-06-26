@@ -46441,6 +46441,261 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1141ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel() async throws {
+        // 测试场景：GH-1141 在 #1105 signed status query 之上增加 bounded retry、timeout
+        // 和 classified failure evidence。
+        // 验证目的：status query 失败必须被分类、脱敏并 fail closed；retry 有上限，
+        // timeout 有明确 evidence，4xx 非 retryable，且不读取 production secret、不连接
+        // production endpoint、不发送 production order、不授权 production cutover。
+        // GH-1141-VERIFY-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+        // TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+        // V0170-003-BOUNDED-STATUS-QUERY-RETRY
+        // V0170-003-PER-ATTEMPT-TIMEOUT
+        // V0170-003-CLASSIFIED-FAILURE-EVIDENCE
+        // V0170-003-RETRY-LIMIT-FAIL-CLOSED
+        // V0170-003-REDACTED-FAILURE-EVIDENCE
+        // V0170-003-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1141-VERIFY-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL",
+            "TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL",
+            "V0170-003-BOUNDED-STATUS-QUERY-RETRY",
+            "V0170-003-PER-ATTEMPT-TIMEOUT",
+            "V0170-003-CLASSIFIED-FAILURE-EVIDENCE",
+            "V0170-003-RETRY-LIMIT-FAIL-CLOSED",
+            "V0170-003-REDACTED-FAILURE-EVIDENCE",
+            "V0170-003-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel.swift",
+            "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift",
+            "docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-failure-model-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let sourceTransport = GH1097RecordingSpotTestnetTransport()
+        let sourceArtifacts = try await makeGH1097SourceSubmitArtifacts(
+            transport: sourceTransport,
+            action: "status-retry",
+            runID: "gh-1141-v0170-status-run",
+            timestampSeconds: 1_704_067_420,
+            observedAtMilliseconds: 1_704_067_420_000,
+            credentialReferenceID: "gh-1141-binance-spot-testnet-credential",
+            apiKeyHeaderValue: "gh-1141-testnet-api-key",
+            signingSecretValue: "gh-1141-testnet-secret",
+            correlationPrefix: "gh-1141",
+            sourceSequence: 1141
+        )
+        let credentialReference = try ReleaseV0150BinanceSpotTestnetCredentialReference(
+            referenceID: .constant("gh-1141-binance-spot-testnet-credential"),
+            providerKind: .testnetEnvironmentReference
+        )
+        let credential = try ReleaseV0150BinanceSpotTestnetCredentialMaterial(
+            reference: credentialReference,
+            apiKeyHeaderValue: "gh-1141-testnet-api-key",
+            signingSecretValue: "gh-1141-testnet-secret"
+        )
+        let orderIdentity = try ReleaseV0150BinanceSpotTestnetCancelOrderIdentityMaterial
+            .derivedFromSubmitEvidence(sourceArtifacts.evidence)
+        let signedRequest = try ReleaseV0150BinanceSpotTestnetSignedRequestBuilder()
+            .buildOrderStatusQueryRequest(
+                sourceSubmitEvidence: sourceArtifacts.evidence,
+                credential: credential,
+                orderIdentity: orderIdentity,
+                symbol: Symbol.constant("BTCUSDT"),
+                timestamp: Date(timeIntervalSince1970: 1_704_067_420)
+            )
+        let responseDigest = ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult.redactedDigest(
+            statusCode: 200,
+            acknowledgement: "gh-1141-redacted-status-ok"
+        )
+        let successTransportResult = try ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult(
+            transportResultID: ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult.deterministicID(
+                signedStatusQueryRequestID: signedRequest.requestID,
+                httpStatusCode: 200,
+                redactedResponseDigest: responseDigest
+            ),
+            signedRequest: signedRequest,
+            httpStatusCode: 200,
+            redactedResponseDigest: responseDigest
+        )
+        let model = ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel()
+        let retryPolicy = try ReleaseV0170SignedStatusQueryRetryPolicy(
+            maxAttempts: 3,
+            perAttemptTimeoutMilliseconds: 25
+        )
+
+        let retryThenSuccessScript = GH1141StatusQueryAttemptScript(outcomes: [.retryableHTTPStatus, .success])
+        let recovered = try await model.execute(
+            signedRequest: signedRequest,
+            orderIdentity: orderIdentity,
+            credential: credential,
+            retryPolicy: retryPolicy
+        ) { _, _, _, _ in
+            try await retryThenSuccessScript.next(success: successTransportResult)
+        }
+
+        XCTAssertTrue(recovered.resultHeld)
+        XCTAssertEqual(recovered.issueID.rawValue, "GH-1141")
+        XCTAssertEqual(recovered.blockedByIssueID.rawValue, "GH-1139")
+        XCTAssertEqual(recovered.mode, .signedStatusRetryTimeoutFailureModel)
+        XCTAssertEqual(recovered.status, .passed)
+        XCTAssertEqual(recovered.finalTransportResultID, successTransportResult.transportResultID)
+        XCTAssertEqual(recovered.finalTransportResult, successTransportResult)
+        XCTAssertEqual(recovered.attempts.count, 2)
+        XCTAssertEqual(recovered.attempts[0].failure?.reason, .retryableHTTPStatus)
+        XCTAssertTrue(recovered.attempts[0].retryScheduled)
+        XCTAssertEqual(recovered.attempts[1].status, .passed)
+        XCTAssertTrue(recovered.boundedRetry)
+        XCTAssertTrue(recovered.timeoutClassification)
+        XCTAssertTrue(recovered.classifiedFailureEvidence)
+        XCTAssertTrue(recovered.retryLimitFailClosed)
+        XCTAssertTrue(recovered.redactedFailureEvidenceOnly)
+        XCTAssertFalse(recovered.productionTradingEnabledByDefault)
+        XCTAssertFalse(recovered.productionSecretReadEnabled)
+        XCTAssertFalse(recovered.productionEndpointConnectionEnabled)
+        XCTAssertFalse(recovered.productionBrokerConnectionEnabled)
+        XCTAssertFalse(recovered.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(recovered.productionCutoverAuthorized)
+
+        let timeoutScript = GH1141StatusQueryAttemptScript(outcomes: [.sleepPastTimeout, .sleepPastTimeout])
+        let timedOut = try await model.execute(
+            signedRequest: signedRequest,
+            orderIdentity: orderIdentity,
+            credential: credential,
+            retryPolicy: try ReleaseV0170SignedStatusQueryRetryPolicy(
+                maxAttempts: 2,
+                perAttemptTimeoutMilliseconds: 1
+            )
+        ) { _, _, _, _ in
+            try await timeoutScript.next(success: successTransportResult)
+        }
+        XCTAssertTrue(timedOut.resultHeld)
+        XCTAssertEqual(timedOut.status, .failed)
+        XCTAssertNil(timedOut.finalTransportResultID)
+        XCTAssertTrue(timedOut.failures.contains { $0.reason == .timeout })
+        XCTAssertTrue(timedOut.failures.contains { $0.reason == .retryLimitExceeded })
+        XCTAssertFalse(timedOut.attempts.last?.retryScheduled ?? true)
+
+        let nonRetryableScript = GH1141StatusQueryAttemptScript(outcomes: [.nonRetryableHTTPStatus])
+        let nonRetryable = try await model.execute(
+            signedRequest: signedRequest,
+            orderIdentity: orderIdentity,
+            credential: credential,
+            retryPolicy: retryPolicy
+        ) { _, _, _, _ in
+            try await nonRetryableScript.next(success: successTransportResult)
+        }
+        XCTAssertEqual(nonRetryable.status, .failed)
+        XCTAssertEqual(nonRetryable.attempts.count, 1)
+        XCTAssertEqual(nonRetryable.failures.first?.reason, .nonRetryableHTTPStatus)
+        XCTAssertFalse(nonRetryable.attempts[0].retryScheduled)
+
+        let redactedFailure = try ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel.classifiedFailure(
+            ReleaseV0170SignedStatusQueryRuntimeError.transportFailure("API " + "Key: should not persist"),
+            retryPolicy: retryPolicy
+        )
+        XCTAssertEqual(redactedFailure.reason, .transportFailure)
+        XCTAssertEqual(redactedFailure.detail, "redaction policy rejected forbidden marker")
+        XCTAssertTrue(redactedFailure.failureHeld)
+
+        XCTAssertEqual(ReleaseV0170SignedStatusQueryResult.requiredValidationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            ReleaseV0170SignedStatusQueryResult.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1141ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel",
+                "bash checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let modelSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel.swift")
+        let statusSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift")
+        let contractDoc = try read("docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-failure-model-contract.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh")
+
+        XCTAssertTrue(modelSource.contains("signedStatusQueryRetryTimeoutFailureModel=ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel"))
+        XCTAssertTrue(modelSource.contains("boundedRetry=true"))
+        XCTAssertTrue(modelSource.contains("timeoutClassification=true"))
+        XCTAssertTrue(modelSource.contains("classifiedFailureEvidence=true"))
+        XCTAssertTrue(statusSource.contains("ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel"))
+        XCTAssertTrue(contractDoc.contains("#1141 / GH-1141"))
+        XCTAssertTrue(contractDoc.contains("retry / timeout / classified failure"))
+        XCTAssertTrue(contractDoc.contains("不授权 production cutover"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1141ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel"))
+
+        for artifact in [modelSource, contractDoc, verifier] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
+    private enum GH1141StatusQueryScriptOutcome: Sendable {
+        case retryableHTTPStatus
+        case nonRetryableHTTPStatus
+        case sleepPastTimeout
+        case success
+    }
+
+    private actor GH1141StatusQueryAttemptScript {
+        private var outcomes: [GH1141StatusQueryScriptOutcome]
+
+        init(outcomes: [GH1141StatusQueryScriptOutcome]) {
+            self.outcomes = outcomes
+        }
+
+        func next(
+            success: ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult
+        ) async throws -> ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult {
+            guard outcomes.isEmpty == false else {
+                throw ReleaseV0170SignedStatusQueryRuntimeError.transportFailure("script exhausted")
+            }
+            let outcome = outcomes.removeFirst()
+            switch outcome {
+            case .retryableHTTPStatus:
+                throw ReleaseV0151BinanceSpotTestnetURLSessionTransportError.httpStatus(500)
+            case .nonRetryableHTTPStatus:
+                throw ReleaseV0151BinanceSpotTestnetURLSessionTransportError.httpStatus(400)
+            case .sleepPastTimeout:
+                try await Task.sleep(nanoseconds: 50_000_000)
+                return success
+            case .success:
+                return success
+            }
+        }
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,

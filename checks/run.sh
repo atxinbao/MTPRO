@@ -275,6 +275,15 @@ bash checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh
 # V0170-002-DETERMINISTIC-PASS-FAIL-RESULT
 # V0170-002-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.17.0-artifact-bundle-replay-validator.sh
+# GH-1141-VERIFY-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+# TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+# V0170-003-BOUNDED-STATUS-QUERY-RETRY
+# V0170-003-PER-ATTEMPT-TIMEOUT
+# V0170-003-CLASSIFIED-FAILURE-EVIDENCE
+# V0170-003-RETRY-LIMIT-FAIL-CLOSED
+# V0170-003-REDACTED-FAILURE-EVIDENCE
+# V0170-003-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

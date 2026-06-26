@@ -960,11 +960,27 @@ public enum ReleaseV0160CLIOrderStatusQueryFlow {
         } else {
             resolvedTransport = try ReleaseV0151BinanceSpotTestnetURLSessionTransport()
         }
-        let transportResult = try await resolvedTransport.querySpotTestnetOrderStatus(
+        // GH-1141-VERIFY-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+        // TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+        // V0170-003-BOUNDED-STATUS-QUERY-RETRY
+        // V0170-003-PER-ATTEMPT-TIMEOUT
+        // V0170-003-CLASSIFIED-FAILURE-EVIDENCE
+        // V0170-003-RETRY-LIMIT-FAIL-CLOSED
+        // V0170-003-REDACTED-FAILURE-EVIDENCE
+        // V0170-003-NO-PRODUCTION-CUTOVER
+        let statusQueryModel = ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel()
+        let statusQueryResult = try await statusQueryModel.execute(
             signedRequest: signedRequest,
             orderIdentity: orderIdentity,
-            credential: credential
+            credential: credential,
+            retryPolicy: try ReleaseV0170SignedStatusQueryRetryPolicy(),
+            transport: resolvedTransport
         )
+        guard let transportResult = statusQueryResult.finalTransportResult,
+              statusQueryResult.finalTransportResultID == transportResult.transportResultID,
+              statusQueryResult.status == .passed else {
+            throw ReleaseV0170SignedStatusQueryRetryTimeoutFailureError(result: statusQueryResult)
+        }
         let operatorRunModel = try ReleaseV0160OperatorRunModel
             .created(
                 runID: command.runID,
