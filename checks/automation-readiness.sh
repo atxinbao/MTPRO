@@ -118,6 +118,7 @@ require_file "docs/contracts/production-credential-reference-environment-isolati
 require_file "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md"
 require_file "docs/audit/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-stage-code-audit.md"
 require_file "docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md"
+require_file "docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-replay-validator-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
@@ -125,6 +126,7 @@ require_file "checks/verify-v0.16.1-redaction-regression-coverage.sh"
 require_file "checks/verify-v0.16.1-status-query-transport-wording.sh"
 require_file "checks/verify-v0.16.1-patch-audit-release-notes.sh"
 require_file "checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh"
+require_file "checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -333,6 +335,38 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "checks/run.sh" "bash checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1139ReleaseV0170OperatorBetaRuntimeHardeningContract"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaArtifactBundleReplayValidator.swift" \
+  "docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-replay-validator-contract.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.17.0-artifact-bundle-replay-validator.sh" \
+  "checks/run.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1140-VERIFY-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR"
+  require_contains "$file" "TVM-RELEASE-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR"
+  require_contains "$file" "V0170-002-REAL-ARTIFACT-BUNDLE-INGEST"
+  require_contains "$file" "V0170-002-SCHEMA-CHECKSUM-REPLAY-VALIDATION"
+  require_contains "$file" "V0170-002-ACTION-SEQUENCE-VALIDATION"
+  require_contains "$file" "V0170-002-RECONCILIATION-ARTIFACT-REQUIRED"
+  require_contains "$file" "V0170-002-DETERMINISTIC-PASS-FAIL-RESULT"
+  require_contains "$file" "V0170-002-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaArtifactBundleReplayValidator.swift" "ReleaseV0170OperatorBetaArtifactBundleReplayValidator"
+require_contains "docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-replay-validator-contract.md" "#1140 / GH-1140"
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.0 artifact bundle replay validator anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1140 Release v0.17.0 Artifact Bundle Replay Validator"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1140ReleaseV0170ArtifactBundleReplayValidator"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"

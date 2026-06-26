@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1140 Release v0.17.0 Artifact Bundle Replay Validator
+
+- GH-1140-VERIFY-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR
+- TVM-RELEASE-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR
+- V0170-002-REAL-ARTIFACT-BUNDLE-INGEST
+- V0170-002-SCHEMA-CHECKSUM-REPLAY-VALIDATION
+- V0170-002-ACTION-SEQUENCE-VALIDATION
+- V0170-002-RECONCILIATION-ARTIFACT-REQUIRED
+- V0170-002-DETERMINISTIC-PASS-FAIL-RESULT
+- V0170-002-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.17.0-artifact-bundle-replay-validator.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1140ReleaseV0170ArtifactBundleReplayValidator`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaArtifactBundleReplayValidator.swift`、`docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-replay-validator-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-artifact-bundle-replay-validator.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1140 只读取本地 redacted operator beta artifact bundle，并校验 schema / checksum / action sequence / reconciliation，输出 deterministic pass/fail result。GH-1140 不读取 credential value，不连接 testnet / production endpoint，不提交 testnet / production order，不创建 tag / GitHub Release，不启动下一 milestone，不授权 production cutover。
+
 ## GH-1139 Release v0.17.0 Operator Beta Runtime Hardening Contract
 
 - GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT
