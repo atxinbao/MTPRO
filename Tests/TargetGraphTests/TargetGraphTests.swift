@@ -46010,6 +46010,95 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1138ReleaseV0161PatchAuditReleaseNotesCloseout() throws {
+        // 测试场景：GH-1138 只收口 v0.16.1 patch audit、release notes、
+        // validation matrix 和 publication guidance。
+        // 验证目的：确保 closeout evidence 已落到 root docs、audit、release notes、
+        // automation readiness 和 focused verifier，并继续拒绝 tag / release publication
+        // 与 production cutover 授权。
+        // GH-1138-VERIFY-V0161-PATCH-AUDIT-RELEASE-NOTES
+        // TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
+        // V0161-006-PATCH-AUDIT
+        // V0161-006-RELEASE-NOTES
+        // V0161-006-VALIDATION-MATRIX
+        // V0161-006-PUBLICATION-GUIDANCE
+        // V0161-006-NO-PRODUCTION-CUTOVER
+        // V0161-006-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1138-VERIFY-V0161-PATCH-AUDIT-RELEASE-NOTES",
+            "TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES",
+            "V0161-006-PATCH-AUDIT",
+            "V0161-006-RELEASE-NOTES",
+            "V0161-006-VALIDATION-MATRIX",
+            "V0161-006-PUBLICATION-GUIDANCE",
+            "V0161-006-NO-PRODUCTION-CUTOVER",
+            "V0161-006-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "checks/verify-v0.16.1-patch-audit-release-notes.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let audit = try read("docs/audit/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.16.1-patch-audit-release-notes.sh")
+
+        XCTAssertTrue(audit.contains("Issue Completion Evidence"))
+        XCTAssertTrue(audit.contains("Boundary Audit"))
+        XCTAssertTrue(audit.contains("Validation Summary"))
+        XCTAssertTrue(audit.contains("Residual Risk"))
+        XCTAssertTrue(audit.contains("Next Handoff"))
+        XCTAssertTrue(notes.contains("#1138"))
+        XCTAssertTrue(notes.contains("bash checks/verify-v0.16.1-patch-audit-release-notes.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.16.1 patch audit / release notes closeout anchor"))
+        XCTAssertTrue(plan.contains("GH-1138 Release v0.16.1 Patch Audit / Release Notes Closeout"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES"))
+        XCTAssertTrue(policy.contains("GH-1138 closes the v0.16.1 patch audit"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.16.1-patch-audit-release-notes.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.16.1-patch-audit-release-notes.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1138ReleaseV0161PatchAuditReleaseNotesCloseout"))
+
+        for source in [notes, policy] {
+            XCTAssertFalse(source.contains("后续 #1138"))
+            XCTAssertFalse(source.contains("#1138 仍必须"))
+            XCTAssertFalse(source.contains("不推进 #1138"))
+        }
+        for source in [audit, notes, policy] {
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+            XCTAssertTrue(source.contains("does not create") || source.contains("不创建"))
+        }
+    }
+
     private func gh1097Arguments(
         action: String,
         runID: String,

@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1138 Release v0.16.1 Patch Audit / Release Notes Closeout
+
+- GH-1138-VERIFY-V0161-PATCH-AUDIT-RELEASE-NOTES
+- TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
+- V0161-006-PATCH-AUDIT
+- V0161-006-RELEASE-NOTES
+- V0161-006-VALIDATION-MATRIX
+- V0161-006-PUBLICATION-GUIDANCE
+- V0161-006-NO-PRODUCTION-CUTOVER
+- V0161-006-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.16.1-patch-audit-release-notes.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1138ReleaseV0161PatchAuditReleaseNotesCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.16.1-patch-audit-release-notes.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1138 只收口 v0.16.1 patch audit、release notes、validation matrix 和 publication guidance。它不创建 tag / GitHub Release，不移动 v0.16.0 tag，不覆盖 release，不创建下一 Project / Issue，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
+
 ## GH-1133 Release v0.16.1 v0.16.0 Release Fact Sync Guard
 
 - GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC

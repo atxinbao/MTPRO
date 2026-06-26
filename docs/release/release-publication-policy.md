@@ -947,4 +947,28 @@ GH-1136 不创建 tag，不创建 GitHub Release，不移动 `v0.16.0` tag，不
 
 GH-1137 fixes release wording around the #1105 status query evidence layers. `networkStatusQueryPerformed=false` belongs to the signed request evidence and means the request-construction evidence does not itself assert a network side effect. Guarded Testnet status transport result evidence remains represented by `ReleaseV0160BinanceSpotTestnetOrderStatusTransportResult`, its redacted request / response evidence, artifact path and checksum. This distinction must not be described as fabricated or mocked status wording, and it must not be overstated as production readiness.
 
-GH-1137 不创建 tag，不创建 GitHub Release，不移动 `v0.16.0` tag，不覆盖 release，不推进 #1138，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order。production cutover not authorized。
+GH-1137 不创建 tag，不创建 GitHub Release，不移动 `v0.16.0` tag，不覆盖 release，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order。production cutover not authorized。
+
+## GH-1138 Release v0.16.1 Patch Audit / Release Notes Closeout Policy
+
+`GH-1138-VERIFY-V0161-PATCH-AUDIT-RELEASE-NOTES`
+
+`TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES`
+
+`V0161-006-PATCH-AUDIT`
+
+`V0161-006-RELEASE-NOTES`
+
+`V0161-006-VALIDATION-MATRIX`
+
+`V0161-006-PUBLICATION-GUIDANCE`
+
+`V0161-006-NO-PRODUCTION-CUTOVER`
+
+`V0161-006-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1138 closes the v0.16.1 patch audit, release notes, validation matrix and publication guidance. It records GH-1133..GH-1137 evidence, adds `docs/audit/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-stage-code-audit.md`, refreshes the v0.16.1 patch notes, and registers `checks/verify-v0.16.1-patch-audit-release-notes.sh` in automation readiness.
+
+GH-1138 does not create a `v0.16.1` tag, does not create a GitHub Release, does not move the `v0.16.0` tag, does not overwrite the `v0.16.0` release, does not create the next Project / Issue, and does not authorize production cutover.
+
+If Human later requests `v0.16.1` publication, it must be handled by a separate explicit Release Publication Gate after clean `main`, open PR = 0, open active issue = 0, and validation evidence are re-confirmed. production cutover not authorized；production trading remains disabled by default；production secret read, production endpoint / broker endpoint connection and production submit / cancel / replace remain unauthorized.

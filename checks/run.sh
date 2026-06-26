@@ -248,6 +248,15 @@ bash checks/verify-v0.16.1-redaction-regression-coverage.sh
 # V0161-005-NO-FAKE-STATUS-QUERY-WORDING
 # V0161-005-NO-PRODUCTION-READINESS-OVERSTATEMENT
 bash checks/verify-v0.16.1-status-query-transport-wording.sh
+# GH-1138-VERIFY-V0161-PATCH-AUDIT-RELEASE-NOTES
+# TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
+# V0161-006-PATCH-AUDIT
+# V0161-006-RELEASE-NOTES
+# V0161-006-VALIDATION-MATRIX
+# V0161-006-PUBLICATION-GUIDANCE
+# V0161-006-NO-PRODUCTION-CUTOVER
+# V0161-006-NO-TAG-OR-RELEASE-PUBLICATION
+bash checks/verify-v0.16.1-patch-audit-release-notes.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
