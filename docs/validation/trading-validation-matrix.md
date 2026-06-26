@@ -51,6 +51,21 @@
 - Evidence files: `Sources/DomainModel/ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`、`Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`checks/verify-v0.16.1-central-artifact-redaction-policy.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
 - Boundary: GH-1135 centralizes the v0.16 operator beta artifact redaction policy in DomainModel and reuses it from artifact store, manual workflow validator, Dashboard read model and tests. It does not read production secret, connect production endpoint / broker endpoint, send testnet or production order, or authorize production cutover.
 
+## TVM-RELEASE-V0161-REDACTION-REGRESSION-COVERAGE
+
+- TVM-RELEASE-V0161-REDACTION-REGRESSION-COVERAGE
+- GH-1136-VERIFY-V0161-REDACTION-REGRESSION-COVERAGE
+- V0161-004-BINANCE-SENSITIVE-HEADER-MARKERS
+- V0161-004-SIGNED-QUERY-MARKERS
+- V0161-004-PRODUCTION-HOST-MARKERS
+- V0161-004-RAW-BROKER-ORDER-PAYLOAD-MARKERS
+- V0161-004-WORKFLOW-BUNDLE-REGRESSION-COVERAGE
+- GH-1136 Release v0.16.1 Redaction Regression Coverage Guard
+- `bash checks/verify-v0.16.1-redaction-regression-coverage.sh`
+- `swift test --filter TargetGraphTests/testGH1136ReleaseV0161RedactionRegressionCoverageRejectsSensitiveMarkers`
+- Evidence files: `Sources/DomainModel/ReleaseV0161OperatorBetaArtifactRedactionPolicy.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift`、`Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md`、`checks/verify-v0.16.1-redaction-regression-coverage.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1136 only adds regression coverage for Binance sensitive headers, signed query markers, listenKey / secret variants, production Binance hosts, raw broker payload variants and raw order payload variants to the shared v0.16.1 redaction policy. It does not read production secret, connect production endpoint / broker endpoint, send testnet or production order, or authorize production cutover.
+
 ## TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT
 
 - TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT

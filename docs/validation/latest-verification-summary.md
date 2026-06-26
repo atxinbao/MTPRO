@@ -197,6 +197,36 @@ bash checks/run.sh
 
 GH-1135 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
 
+## Release v0.16.1 Redaction Regression Coverage Snapshot
+
+`GH-1136-VERIFY-V0161-REDACTION-REGRESSION-COVERAGE`
+
+`TVM-RELEASE-V0161-REDACTION-REGRESSION-COVERAGE`
+
+`V0161-004-BINANCE-SENSITIVE-HEADER-MARKERS`
+
+`V0161-004-SIGNED-QUERY-MARKERS`
+
+`V0161-004-PRODUCTION-HOST-MARKERS`
+
+`V0161-004-RAW-BROKER-ORDER-PAYLOAD-MARKERS`
+
+`V0161-004-WORKFLOW-BUNDLE-REGRESSION-COVERAGE`
+
+GH-1136 在 `ReleaseV0161OperatorBetaArtifactRedactionPolicy` 内补齐 Binance sensitive header、signed query marker、listenKey / secret variants、production Binance hosts、raw broker / order payload variants 的 regression coverage。`ReleaseV0160LocalExecutionArtifactPayload`、`ReleaseV0161ManualTestnetValidationEvidenceBundle`、`ReleaseV0160DashboardArtifactBackedExecutionViewModel` 和 focused tests 必须继续复用同一 forbidden marker / validation anchor source。
+
+Required validation：
+
+```bash
+bash checks/verify-v0.16.1-redaction-regression-coverage.sh
+swift test --filter TargetGraphTests/testGH1136ReleaseV0161RedactionRegressionCoverageRejectsSensitiveMarkers
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/run.sh
+```
+
+GH-1136 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
+
 ## Release v0.16.0 Stage Audit / Release Docs Closeout Snapshot
 
 `GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS`

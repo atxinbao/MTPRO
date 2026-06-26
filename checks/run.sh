@@ -233,6 +233,14 @@ bash checks/verify-v0.16.1-manual-evidence-bundle-content.sh
 # V0161-003-NO-SECRET-NO-PRODUCTION-MARKERS
 # V0161-003-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.16.1-central-artifact-redaction-policy.sh
+# GH-1136-VERIFY-V0161-REDACTION-REGRESSION-COVERAGE
+# TVM-RELEASE-V0161-REDACTION-REGRESSION-COVERAGE
+# V0161-004-BINANCE-SENSITIVE-HEADER-MARKERS
+# V0161-004-SIGNED-QUERY-MARKERS
+# V0161-004-PRODUCTION-HOST-MARKERS
+# V0161-004-RAW-BROKER-ORDER-PAYLOAD-MARKERS
+# V0161-004-WORKFLOW-BUNDLE-REGRESSION-COVERAGE
+bash checks/verify-v0.16.1-redaction-regression-coverage.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

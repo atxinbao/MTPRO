@@ -25,6 +25,8 @@
 - `GH-1112 V160-012 Close v0.16.0 audit / runbook / release docs`
 - `GH-1133 V161-001 Sync v0.16.0 publication facts into v0.16.1 patch docs`
 - `GH-1134 V161-002 Validate manual evidence bundle content in GitHub workflow`
+- `GH-1135 V161-003 Centralize v0.16 artifact redaction policy`
+- `GH-1136 V161-004 Add redaction regression coverage for Binance headers, signed query and production hosts`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -908,3 +910,23 @@ GH-1134 不创建 tag，不创建 GitHub Release，不移动 `v0.16.0` tag，不
 GH-1135 将 v0.16 operator beta artifact redaction policy 收敛为 `ReleaseV0161OperatorBetaArtifactRedactionPolicy`，并要求 `ReleaseV0160LocalExecutionArtifactPayload`、`ReleaseV0161ManualTestnetValidationEvidenceBundle`、`ReleaseV0160DashboardArtifactBackedExecutionViewModel` 和 focused tests 共同引用同一 forbidden marker / validation anchor source。
 
 GH-1135 不创建 tag，不创建 GitHub Release，不移动 `v0.16.0` tag，不覆盖 release，不推进 #1136..#1138，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order。production cutover not authorized。
+
+## GH-1136 Release v0.16.1 Redaction Regression Coverage Policy
+
+`GH-1136-VERIFY-V0161-REDACTION-REGRESSION-COVERAGE`
+
+`TVM-RELEASE-V0161-REDACTION-REGRESSION-COVERAGE`
+
+`V0161-004-BINANCE-SENSITIVE-HEADER-MARKERS`
+
+`V0161-004-SIGNED-QUERY-MARKERS`
+
+`V0161-004-PRODUCTION-HOST-MARKERS`
+
+`V0161-004-RAW-BROKER-ORDER-PAYLOAD-MARKERS`
+
+`V0161-004-WORKFLOW-BUNDLE-REGRESSION-COVERAGE`
+
+GH-1136 adds regression coverage for Binance sensitive headers, signed query markers, listenKey / secret variants, production Binance hosts, raw broker payload variants and raw order payload variants. 这些 markers 必须由 `ReleaseV0161OperatorBetaArtifactRedactionPolicy` 统一维护，并被 local execution artifact store、manual evidence bundle validator、Dashboard read model 和 focused tests 共同消费。
+
+GH-1136 不创建 tag，不创建 GitHub Release，不移动 `v0.16.0` tag，不覆盖 release，不推进 #1137..#1138，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order。production cutover not authorized。
