@@ -6,6 +6,22 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1148 Release v0.17.0 Stage Audit / Release Docs Closeout
+
+- GH-1148-VERIFY-V0170-STAGE-AUDIT-RELEASE-DOCS
+- TVM-RELEASE-V0170-STAGE-AUDIT-RELEASE-DOCS
+- V0170-010-STAGE-CODE-AUDIT
+- V0170-010-RELEASE-NOTES
+- V0170-010-VALIDATION-MATRIX
+- V0170-010-ROOT-DOCS-REFRESH
+- V0170-010-STALE-WORDING-GUARD
+- V0170-010-NO-PRODUCTION-CUTOVER
+- V0170-010-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.17.0-stage-audit-release-docs.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1148ReleaseV0170StageAuditReleaseDocsCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md`、`docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/release/release-publication-policy.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-stage-audit-release-docs.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1148 只收口 v0.17.0 Stage Code Audit、release notes、validation matrix、root docs refresh 和 stale wording guard。GH-1148 不读取 credential value，不连接 testnet / production endpoint，不发送 testnet / production order，不创建 tag / GitHub Release，不启动下一 milestone，不授权 production cutover。production cutover not authorized。
+
 ## GH-1147 Release v0.17.0 Beta Safety Policy Profile Evidence
 
 - GH-1147-VERIFY-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE

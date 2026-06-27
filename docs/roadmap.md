@@ -85,7 +85,7 @@ Machine guard anchors:
 
 `V0170-001-NO-PRODUCTION-CUTOVER`
 
-Current GitHub fallback queue is `MTPRO Release v0.17.0 Operator Beta Artifact + Status Runtime Hardening`, issue range `GH-1139..GH-1148`. GH-1139 is the contract / preflight issue only: it defines v0.16.1 closeout dependency, WIP=1 queue order, Binance Spot Testnet operator beta artifact / status runtime hardening scope, redacted artifact evidence and no-production-cutover guard. It does not read credential values, connect testnet or production endpoints, submit testnet or production orders, publish a tag / GitHub Release, or authorize production cutover.
+Completed GitHub fallback queue is `MTPRO Release v0.17.0 Operator Beta Artifact + Status Runtime Hardening`, issue range `GH-1139..GH-1148`. GH-1139 is the contract / preflight issue only: it defines v0.16.1 closeout dependency, WIP=1 queue order, Binance Spot Testnet operator beta artifact / status runtime hardening scope, redacted artifact evidence and no-production-cutover guard. It does not read credential values, connect testnet or production endpoints, submit testnet or production orders, publish a tag / GitHub Release, or authorize production cutover.
 
 `GH-1140-VERIFY-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR`
 
@@ -182,6 +182,18 @@ GH-1146 adds manual workflow artifact upload/download validation for v0.17.0. It
 `V0170-009-NO-PRODUCTION-CUTOVER`
 
 GH-1147 adds beta safety policy profile evidence for v0.17.0. It records active safety policy profile, venue / product / symbol / notional / order-count limits and production-disabled guard state as local redacted evidence inherited from GH-1110 beta safety guard evidence. It does not read credential values, connect endpoints, submit orders, publish a tag / GitHub Release, or authorize production cutover.
+
+`GH-1148-VERIFY-V0170-STAGE-AUDIT-RELEASE-DOCS`
+`TVM-RELEASE-V0170-STAGE-AUDIT-RELEASE-DOCS`
+`V0170-010-STAGE-CODE-AUDIT`
+`V0170-010-RELEASE-NOTES`
+`V0170-010-VALIDATION-MATRIX`
+`V0170-010-ROOT-DOCS-REFRESH`
+`V0170-010-STALE-WORDING-GUARD`
+`V0170-010-NO-PRODUCTION-CUTOVER`
+`V0170-010-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1148 closes v0.17.0 Stage Code Audit, release notes, validation matrix, root docs refresh and stale wording guard. The v0.17.0 construction queue `GH-1139..GH-1148` is closed / done. GH-1148 does not publish a tag / GitHub Release, does not create the next Project / Issue, and does not authorize production cutover. production cutover not authorized.
 
 `GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
 
