@@ -127,6 +127,7 @@ require_file "docs/contracts/release-v0.17.0-manual-workflow-artifact-validation
 require_file "docs/contracts/release-v0.17.0-beta-safety-policy-profile-evidence-contract.md"
 require_file "docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md"
 require_file "docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md"
+require_file "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
@@ -144,6 +145,7 @@ require_file "checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh"
 require_file "checks/verify-v0.17.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh"
 require_file "checks/verify-v0.17.1-manual-workflow-fail-closed.sh"
+require_file "checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -11769,5 +11771,43 @@ require_contains "checks/verify-v0.17.1.sh" "bash checks/verify-v0.17.1-release-
 require_contains "checks/run.sh" "bash checks/verify-v0.17.1.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.1.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1171ReleaseV0171AggregatePatchAuditReleaseNotesCloseout"
+for file in \
+  "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1176-VERIFY-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT"
+  require_contains "$file" "TVM-RELEASE-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT"
+  require_contains "$file" "V0180-001-DEPENDENCIES-CLOSED-DONE"
+  require_contains "$file" "V0180-001-NAMESPACE-CONTRACT"
+  require_contains "$file" "V0180-001-BINANCE-OKX-TARGET-ARCHITECTURE"
+  require_contains "$file" "V0180-001-ARTIFACT-LIFECYCLE-SCOPE"
+  require_contains "$file" "V0180-001-STATUS-RESUME-RECONCILIATION"
+  require_contains "$file" "V0180-001-CLI-NEXT-ACTION-DASHBOARD-DRILLDOWN"
+  require_contains "$file" "V0180-001-NO-PRODUCTION-CUTOVER"
+done
+require_contains "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" "#1168 closed / done"
+require_contains "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" "#1169 closed / done"
+require_contains "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" "#1170 closed / done"
+require_contains "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" "#1171 closed / done"
+require_contains "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" "{venue, product, environment, accountProfile, runID}"
+require_contains "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" "artifact lifecycle"
+require_contains "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" "status query persistence"
+require_contains "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" "reconciliation replay"
+require_contains "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" "CLI next-action"
+require_contains "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" "Dashboard drilldown"
+require_contains "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md" "No new OKX runtime implementation"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.0 venue/product-aware lifecycle recovery contract anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1176 Release v0.18.0 Venue/Product-aware Operator Lifecycle Recovery Contract"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT"
+require_contains "docs/release/release-publication-policy.md" "GH-1176 defines the v0.18.0 venue/product-aware operator lifecycle recovery contract"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1176ReleaseV0180VenueProductAwareOperatorLifecycleRecoveryContract"
 
 printf 'MTPRO automation readiness checks passed.\n'

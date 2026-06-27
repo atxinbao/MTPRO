@@ -6051,3 +6051,21 @@ swift test
 - validation surface: aggregate guard replays #1166 CLI failed-validation nonzero exit, #1167 manual workflow failed bundle rejection, #1168 negative regressions, #1169 release fact sync and #1170 stale wording guard before accepting v0.17.1 patch audit / release notes.
 - handoff evidence: Venue/Product-aware lifecycle recovery is recorded as v0.18 planning context only; this patch does not implement multi-venue runtime and does not promote v0.18.0.
 - boundary evidence: no tag movement, no GitHub Release creation, no production cutover, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.
+
+## GH-1176 Release v0.18.0 Venue/Product-aware Operator Lifecycle Recovery Contract
+
+- GH-1176-VERIFY-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT
+- TVM-RELEASE-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT
+- V0180-001-DEPENDENCIES-CLOSED-DONE
+- V0180-001-NAMESPACE-CONTRACT
+- V0180-001-BINANCE-OKX-TARGET-ARCHITECTURE
+- V0180-001-ARTIFACT-LIFECYCLE-SCOPE
+- V0180-001-STATUS-RESUME-RECONCILIATION
+- V0180-001-CLI-NEXT-ACTION-DASHBOARD-DRILLDOWN
+- V0180-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1176ReleaseV0180VenueProductAwareOperatorLifecycleRecoveryContract`
+- validation surface: v0.18.0 operator lifecycle recovery evidence must use the same `{venue, product, environment, accountProfile, runID}` namespace across artifact lifecycle, status query persistence, resume, reconciliation replay, CLI next-action and Dashboard drilldown.
+- preflight evidence: #1168, #1169, #1170 and #1171 must be closed / done before v0.18.0 can start.
+- target architecture evidence: Binance / OKX venue-product semantics are defined as a contract boundary only; GH-1176 does not implement OKX runtime or activate new venue/product execution.
+- boundary evidence: no tag movement, no GitHub Release creation, no production cutover, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.

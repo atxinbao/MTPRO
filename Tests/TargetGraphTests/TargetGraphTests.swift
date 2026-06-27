@@ -48527,6 +48527,113 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1176ReleaseV0180VenueProductAwareOperatorLifecycleRecoveryContract() throws {
+        // 测试场景：GH-1176 定义 v0.18.0 venue/product-aware operator lifecycle
+        // recovery contract。
+        // 验证目的：artifact lifecycle、status query persistence、resume、reconciliation
+        // replay、CLI next-action 和 Dashboard drilldown 必须共享同一个 namespace，并继续拒绝
+        // OKX runtime implementation、production secret、production endpoint 和 production order。
+        // GH-1176-VERIFY-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT
+        // TVM-RELEASE-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT
+        // V0180-001-DEPENDENCIES-CLOSED-DONE
+        // V0180-001-NAMESPACE-CONTRACT
+        // V0180-001-BINANCE-OKX-TARGET-ARCHITECTURE
+        // V0180-001-ARTIFACT-LIFECYCLE-SCOPE
+        // V0180-001-STATUS-RESUME-RECONCILIATION
+        // V0180-001-CLI-NEXT-ACTION-DASHBOARD-DRILLDOWN
+        // V0180-001-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let contract = try read("docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let verifier = try read("checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        let anchors = [
+            "GH-1176-VERIFY-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT",
+            "TVM-RELEASE-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT",
+            "V0180-001-DEPENDENCIES-CLOSED-DONE",
+            "V0180-001-NAMESPACE-CONTRACT",
+            "V0180-001-BINANCE-OKX-TARGET-ARCHITECTURE",
+            "V0180-001-ARTIFACT-LIFECYCLE-SCOPE",
+            "V0180-001-STATUS-RESUME-RECONCILIATION",
+            "V0180-001-CLI-NEXT-ACTION-DASHBOARD-DRILLDOWN",
+            "V0180-001-NO-PRODUCTION-CUTOVER"
+        ]
+        for source in [contract, readiness, validationPlan, tradingMatrix, releasePolicy, verifier, runScript, automationScript] {
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "missing \(anchor)")
+            }
+        }
+
+        for dependency in ["#1168 closed / done", "#1169 closed / done", "#1170 closed / done", "#1171 closed / done"] {
+            XCTAssertTrue(contract.contains(dependency), "missing dependency evidence \(dependency)")
+        }
+
+        for namespaceField in ["venue", "product", "environment", "accountProfile", "runID"] {
+            XCTAssertTrue(contract.contains(namespaceField), "namespace must include \(namespaceField)")
+        }
+
+        for surface in [
+            "artifact lifecycle",
+            "status query persistence",
+            "resume",
+            "reconciliation replay",
+            "CLI next-action",
+            "Dashboard drilldown"
+        ] {
+            XCTAssertTrue(contract.contains(surface), "contract must cover \(surface)")
+        }
+
+        for phrase in [
+            "Binance",
+            "OKX",
+            "spot",
+            "usdmFutures",
+            "swap",
+            "No new OKX runtime implementation",
+            "newOKXRuntimeImplemented=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretReadEnabled=false",
+            "productionEndpointConnectionEnabled=false",
+            "productionBrokerConnectionEnabled=false",
+            "productionOrderSubmitCancelReplaceEnabled=false",
+            "productionCutoverAuthorized=false",
+            "production cutover not authorized"
+        ] {
+            XCTAssertTrue(contract.contains(phrase), "contract must contain \(phrase)")
+        }
+
+        XCTAssertTrue(readiness.contains("Release v0.18.0 venue/product-aware lifecycle recovery contract anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1176 Release v0.18.0 Venue/Product-aware Operator Lifecycle Recovery Contract"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT"))
+        XCTAssertTrue(releasePolicy.contains("GH-1176 defines the v0.18.0 venue/product-aware operator lifecycle recovery contract"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1176ReleaseV0180VenueProductAwareOperatorLifecycleRecoveryContract"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh"))
+
+        for forbidden in [
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true"
+        ] {
+            XCTAssertFalse(contract.contains(forbidden))
+            XCTAssertFalse(releasePolicy.contains(forbidden))
+            XCTAssertFalse(readiness.contains(forbidden))
+            XCTAssertFalse(validationPlan.contains(forbidden))
+            XCTAssertFalse(tradingMatrix.contains(forbidden))
+        }
+    }
+
     func testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence() throws {
         // 测试场景：GH-1147 将 operator beta safety profile 显式记录到 v0.17 evidence。
         // 验证目的：venue、product、symbol、notional、order-count 和 production-disabled state
