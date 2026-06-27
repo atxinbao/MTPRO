@@ -6,6 +6,31 @@ ROADMAP 只定义阶段地图，不授权执行。正式执行必须来自 Human
 
 完整产品终局和 Future Construction Zones / 未来建设区见 `BLUEPRINT.md`；工程模块细节见 `architecture.md`。
 
+## Target Goal Revision / 目标口径修正
+
+截至 2026-06-27，MTPRO 长期目标从“Binance-first 专业交易工作台”修正为“Binance + OKX 的实盘原生交易系统”：
+
+```text
+Venue
+  Binance
+    Spot
+    USDⓈ-M Futures
+  OKX
+    Spot
+    Swap
+```
+
+当前实现和当前 release queue 仍不得被误读为完整目标已实现。Binance Spot 是当前最成熟 testnet / operator beta path；Binance USDⓈ-M Futures、OKX Spot、OKX Swap 是后续目标能力，需要独立 venue / product-aware planning、GitHub issues、PR evidence、validation gates 和 Human approval。Bybit Spot / Linear Perpetual 只作为 future candidate，当前不进入 active roadmap commitment。
+
+路线优先级：
+
+1. 先完成当前 v0.17.1 artifact validation fail-closed patch，确保 operator evidence failure 真的 fail closed。
+2. 再进入 venue / product-aware lifecycle foundation，让 artifact、credential、status query、OMS、risk、reconciliation、Dashboard / CLI 都携带 `{venue, productType, environment, accountProfile, runID}`。
+3. 然后逐步补 Binance USDⓈ-M Futures 与 OKX Spot / Swap 的 read-only、testnet、execution、OMS、risk 和 reconciliation 能力。
+4. 最后才讨论 production shadow、controlled canary 和 Human-approved production cutover。
+
+该目标修正只更新路线方向，不授权 production trading、不读取 production secret、不连接 production endpoint / broker endpoint、不创建 OKX active source 或 order path。
+
 ## Roadmap Responsibility / 路线职责
 
 `docs/roadmap.md` 只回答四个问题：
@@ -51,7 +76,7 @@ GOAL.md
 
 Completed Project 的完整证据见 `docs/audit/`。当前 Project、active issue、Todo / In Progress / In Review 状态必须从 Human 指定的 live queue source 和 Parent Codex queue preview 实时读取，不写死在仓库文档中。
 
-Roadmap 里的 `production trading 默认保持关闭`、`production cutover 未授权` 和各 release 的 `not authorized` 都是当前阶段的 gate 状态，不是永久禁止实盘。MTPRO 的目标仍包含受控 Live trading；路线必须先完成本地 evidence-driven readiness、testnet closed loop、production read-only / signed endpoint、shadow live、controlled canary 等阶段，再由 Human approval 明确授权。
+Roadmap 里的 `production trading 默认保持关闭`、`production cutover 未授权` 和各 release 的 `not authorized` 都是当前阶段的 gate 状态，不是永久禁止实盘。MTPRO 的目标仍包含受控 Live trading；路线必须先完成本地 evidence-driven readiness、venue / product-aware testnet closed loop、production read-only / signed endpoint、shadow live、controlled canary 等阶段，再由 Human approval 明确授权。
 
 Machine guard anchors:
 

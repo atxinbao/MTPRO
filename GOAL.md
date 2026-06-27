@@ -6,13 +6,13 @@
 
 ## 项目使命
 
-MTPRO 的目标是构建一个 local-first 的 macOS 原生专业交易工作台。它先以 Research -> Backtest -> Report -> Paper 建立可追溯、可回放、可验证的交易证据链，再逐步演进为支持 Live trading、实盘监控、实盘执行控制、实盘风险控制和实盘审计 / 事故回放 / 停机控制的专业版本产品。
+MTPRO 的目标是构建一个 local-first、macOS-native、evidence-first 的完整实盘原生交易系统。它先以 Research -> Backtest -> Report -> Paper -> Testnet / Operator Beta 建立可追溯、可回放、可验证的交易证据链，再逐步演进为支持多 venue / 多 product 的实盘监控、实盘执行控制、实盘风险控制、OMS、账户 / 持仓、对账、审计 / 事故回放 / 停机控制和受控 production trading 的专业版本产品。
 
 MTPRO 不是 NautilusTrader 的 Swift 包装，也不是 `macos-trader` 的整仓迁移。它把参考项目和既有产品经验收敛成自己的 SwiftPM-first、macOS-native、evidence-first、local-first 工作台。
 
 ## 服务对象
 
-MTPRO 首先服务个人专业交易者 / 独立策略研究者：在本机 Mac 上研究策略、回测策略、生成报告，使用 Binance public market data 建立可追溯 evidence chain，并在不触碰真实交易的前提下观察 Backtest / Paper / Risk / Portfolio consistency。
+MTPRO 首先服务个人专业交易者 / 独立策略研究者：在本机 Mac 上研究策略、回测策略、生成报告，并以 Binance / OKX 作为目标 venue 建立可追溯 evidence chain、testnet / operator beta execution evidence、risk / OMS / reconciliation evidence 和最终受控实盘执行能力。
 
 ## 核心承诺
 
@@ -21,17 +21,30 @@ MTPRO 首先服务个人专业交易者 / 独立策略研究者：在本机 Mac 
 | Local-first | 核心研究、回测、Paper、报告和审计优先在本地工作台闭环完成。 |
 | Evidence chain first | 工作台导航以 Research -> Backtest -> Report -> Paper -> Events 为主，不以交易按钮为中心。 |
 | 少量可解释策略优先 | 当前 active strategy scope 是 EMA + RSI；其他策略只能作为 future candidate。 |
-| Binance boundary | Binance 是当前 active venue；production secret / endpoint / broker / real order 当前默认关闭，但不是永久禁止；后续只能按 readiness gates 逐层放权。 |
+| Venue / Product target boundary | 长期目标 venue / product 是 Binance Spot、Binance USDⓈ-M Futures、OKX Spot、OKX Swap；production secret / endpoint / broker / real order 当前默认关闭，但不是永久禁止；后续只能按 venue / product-aware readiness gates 逐层放权。 |
 | Paper / Live 隔离 | Paper 证据不能被解释为真实订单、真实成交或 broker action。 |
 | Live gated | Live trading 是最终产品目标的一部分，但只能在独立 Human decision、独立 Project Definition、signed endpoint / broker / risk / operations gates 之后进入执行范围。 |
 
 因此，`productionTradingEnabledByDefault == false` 表示当前版本线默认 fail-closed；它不是“永远禁止实盘”。MTPRO 的 live 能力路线是先完成本地 evidence-driven readiness，再进入 testnet closed loop、production read-only / signed endpoint、shadow live、controlled canary，最后才可能由 Human approval 授权真实生产交易。
+
+## 目标 Venue / Product Matrix
+
+| Venue | Product | 目标定位 | 当前执行口径 |
+| --- | --- | --- | --- |
+| Binance | Spot | 当前主线 venue / product，先完成 testnet / operator beta，再进入受控 production gates | 已有 Binance Spot Testnet operator beta / artifact / status hardening evidence；production cutover 未授权 |
+| Binance | USDⓈ-M Futures | 目标原生产品线，用于合约 / perpetual 路线 | 后续 venue / product-aware lifecycle、adapter、risk、OMS、reconciliation gate 后推进 |
+| OKX | Spot | 目标第二 venue spot 产品线 | 后续 VenueRegistry / ProductRegistry / OKX adapter planning 后推进 |
+| OKX | Swap | 目标第二 venue swap 产品线 | 后续 OKX signed endpoint、risk、OMS、reconciliation gate 后推进 |
+| Bybit | Spot / Linear Perpetual | 未来候选 venue / product，不进入当前目标承诺 | 仅作为 future candidate，不创建 active source / issue scope，除非 Human 单独确认 |
+
+目标矩阵调整不等于当前仓库已经实现 OKX 或 production trading。它只把 MTPRO 的长期产品目标从“Binance-only 工作台”修正为“Binance + OKX 的实盘原生交易系统”；任何新增 venue / product 执行能力仍必须通过独立 issue、PR、验证和 Human approval。
 
 ## 当前成功标准
 
 - `BLUEPRINT.md` 保持最终产品 / 系统 / 设计蓝图清楚。
 - `architecture.md` 保持工程模块地图、边界、数据流和不变量清楚。
 - `docs/roadmap.md` 保持已批准阶段、目标切片和两层进度条清楚。
+- Root docs 必须区分 target venue/product matrix、current active implementation scope 和 production cutover authorization，不得把目标矩阵误写为当前已授权实盘能力。
 - Linear / PR / Stage Code Audit evidence 能追溯每个已完成建设阶段。
 - SwiftPM baseline、Dashboard smoke 和统一验证入口 `bash checks/run.sh` 持续可运行。
 - 正式开发只从唯一 live queue source 中的 configured executable issue 进入。
