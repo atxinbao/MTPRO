@@ -149,6 +149,16 @@ GH-1143 adds the cancel/status reconciliation recovery path for v0.17.0. It clas
 
 GH-1144 adds the Dashboard artifact validation error surface for v0.17.0. It exposes GH-1140 artifact validation result and GH-1143 recovery report as read-only Dashboard status, failure reasons and recovery summary. It does not add command handlers, trading buttons, order forms, live commands, endpoint connections, order submission, tag / GitHub Release publication, or production cutover authorization.
 
+`GH-1145-VERIFY-V0170-CLI-ARTIFACT-VERIFY-COMMAND`
+`TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND`
+`V0170-007-LOCAL-ARTIFACT-BUNDLE-VERIFY`
+`V0170-007-LOCAL-ONLY-NO-NETWORK`
+`V0170-007-DETERMINISTIC-VALIDATION-REPLAY-OUTPUT`
+`V0170-007-REDACTED-OUTPUT`
+`V0170-007-NO-PRODUCTION-CUTOVER`
+
+GH-1145 adds the CLI artifact verify command for v0.17.0. It exposes GH-1140 artifact bundle replay validation as local `mtpro verify-operator-beta-artifact-bundle <storageRoot> <runID>` output with deterministic validation / replay evidence. It only reads the local redacted artifact store and does not read credential values, connect endpoints, submit orders, publish a tag / GitHub Release, or authorize production cutover.
+
 `GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
 
 `GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`

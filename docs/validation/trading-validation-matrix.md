@@ -8,6 +8,21 @@
 
 ## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 
+## TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND
+
+- TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND
+- GH-1145-VERIFY-V0170-CLI-ARTIFACT-VERIFY-COMMAND
+- V0170-007-LOCAL-ARTIFACT-BUNDLE-VERIFY
+- V0170-007-LOCAL-ONLY-NO-NETWORK
+- V0170-007-DETERMINISTIC-VALIDATION-REPLAY-OUTPUT
+- V0170-007-REDACTED-OUTPUT
+- V0170-007-NO-PRODUCTION-CUTOVER
+- GH-1145 Release v0.17.0 CLI Artifact Verify Command
+- `bash checks/verify-v0.17.0-cli-artifact-verify-command.sh`
+- `swift test --filter TargetGraphTests/testGH1145ReleaseV0170CLIArtifactVerifyCommand`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.17.0-cli-artifact-verify-command-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-cli-artifact-verify-command.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1145 exposes GH-1140 artifact bundle replay validation as local CLI output. It reads only local redacted artifact store and does not read credential values, connect endpoints, submit testnet or production orders, publish a tag / GitHub Release, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE
 
 - TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE

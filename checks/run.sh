@@ -311,6 +311,14 @@ bash checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh
 # V0170-006-DASHBOARD-READ-ONLY-NO-COMMANDS
 # V0170-006-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh
+# GH-1145-VERIFY-V0170-CLI-ARTIFACT-VERIFY-COMMAND
+# TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND
+# V0170-007-LOCAL-ARTIFACT-BUNDLE-VERIFY
+# V0170-007-LOCAL-ONLY-NO-NETWORK
+# V0170-007-DETERMINISTIC-VALIDATION-REPLAY-OUTPUT
+# V0170-007-REDACTED-OUTPUT
+# V0170-007-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.17.0-cli-artifact-verify-command.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1145 Release v0.17.0 CLI Artifact Verify Command
+
+- GH-1145-VERIFY-V0170-CLI-ARTIFACT-VERIFY-COMMAND
+- TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND
+- V0170-007-LOCAL-ARTIFACT-BUNDLE-VERIFY
+- V0170-007-LOCAL-ONLY-NO-NETWORK
+- V0170-007-DETERMINISTIC-VALIDATION-REPLAY-OUTPUT
+- V0170-007-REDACTED-OUTPUT
+- V0170-007-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.17.0-cli-artifact-verify-command.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1145ReleaseV0170CLIArtifactVerifyCommand`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.17.0-cli-artifact-verify-command-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-cli-artifact-verify-command.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1145 只将 GH-1140 artifact bundle replay validator 暴露为本地 CLI artifact verify command。GH-1145 不读取 credential value，不连接 testnet / production endpoint，不发送 testnet / production order，不创建 tag / GitHub Release，不启动下一 milestone，不授权 production cutover。
+
 ## GH-1144 Release v0.17.0 Dashboard Artifact Validation Error Surface
 
 - GH-1144-VERIFY-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE

@@ -60,6 +60,19 @@ private enum MTPROStrictCLI {
         "V0161-002-NO-SECRET-NO-PRODUCTION-MARKERS",
         "V0161-002-NO-PRODUCTION-CUTOVER"
     ]
+    static let releaseV0170CLIArtifactVerifyCommandVerificationAnchor =
+        "GH-1145-VERIFY-V0170-CLI-ARTIFACT-VERIFY-COMMAND"
+    static let releaseV0170CLIArtifactVerifyCommandValidationAnchor =
+        "TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND"
+    static let releaseV0170CLIArtifactVerifyCommandRequiredAnchors = [
+        "GH-1145-VERIFY-V0170-CLI-ARTIFACT-VERIFY-COMMAND",
+        "TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND",
+        "V0170-007-LOCAL-ARTIFACT-BUNDLE-VERIFY",
+        "V0170-007-LOCAL-ONLY-NO-NETWORK",
+        "V0170-007-DETERMINISTIC-VALIDATION-REPLAY-OUTPUT",
+        "V0170-007-REDACTED-OUTPUT",
+        "V0170-007-NO-PRODUCTION-CUTOVER"
+    ]
     static let releaseV0100VerificationAnchor = "GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
     static let releaseV0100ValidationAnchor = "TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
     static let cliVerifyV0100WordingAnchor = "GH-909-VERIFY-V0101-CLI-V0100-WORDING"
@@ -176,6 +189,7 @@ private enum MTPROStrictCLI {
         ReleaseV0160CLICancelExecutionFlow.cliCommand,
         ReleaseV0160CLIOrderStatusQueryFlow.cliCommand,
         "validate-manual-evidence-bundle",
+        ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -246,6 +260,9 @@ private enum MTPROStrictCLI {
             return try ReleaseV0160ManualTestnetValidationWorkflow.contentValidationCommandOutput(
                 bundlePath: arguments[1]
             )
+        case ReleaseV0170CLIArtifactVerifyCommand.cliCommand:
+            try requireExactCount(arguments, expected: 3, command: command)
+            return try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -316,6 +333,11 @@ private enum MTPROStrictCLI {
             "releaseV0161ManualEvidenceBundleContentValidationAnchor=\(releaseV0161ManualEvidenceBundleContentValidationAnchor)",
             "releaseV0161ManualEvidenceBundleContentVerificationAnchor=\(releaseV0161ManualEvidenceBundleContentVerificationAnchor)",
             "releaseV0161ManualEvidenceBundleContentRequiredAnchors=\(releaseV0161ManualEvidenceBundleContentRequiredAnchors.joined(separator: ","))",
+            "releaseV0170CLIArtifactVerifyCommand=\(ReleaseV0170CLIArtifactVerifyCommand.cliCommand)",
+            "releaseV0170CLIArtifactVerifyCommandLiteral=verify-operator-beta-artifact-bundle",
+            "releaseV0170CLIArtifactVerifyCommandValidationAnchor=\(releaseV0170CLIArtifactVerifyCommandValidationAnchor)",
+            "releaseV0170CLIArtifactVerifyCommandVerificationAnchor=\(releaseV0170CLIArtifactVerifyCommandVerificationAnchor)",
+            "releaseV0170CLIArtifactVerifyCommandRequiredAnchors=\(releaseV0170CLIArtifactVerifyCommandRequiredAnchors.joined(separator: ","))",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
             "productionReadinessArtifactStoreImplemented=true",
