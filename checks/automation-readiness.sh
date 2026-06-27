@@ -713,6 +713,31 @@ require_contains "checks/run.sh" "bash checks/verify-v0.17.1-manual-workflow-fai
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.1-manual-workflow-fail-closed.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1167ReleaseV0171ManualWorkflowRejectsFailedArtifactStatus"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift" \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" \
+  "checks/verify-v0.17.1-artifact-negative-regressions.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1168-VERIFY-V0171-ARTIFACT-NEGATIVE-REGRESSIONS"
+  require_contains "$file" "TVM-RELEASE-V0171-ARTIFACT-NEGATIVE-REGRESSIONS"
+  require_contains "$file" "V0171-003-CORRUPT-BUNDLE-FAILS-CLOSED"
+  require_contains "$file" "V0171-003-MISSING-ARTIFACT-FAILS-CLOSED"
+  require_contains "$file" "V0171-003-MISSING-MANIFEST-FAILS-CLOSED"
+  require_contains "$file" "V0171-003-RECONCILIATION-MISSING-FAILS-CLOSED"
+  require_contains "$file" "V0171-003-REDACTED-OPERATOR-READABLE-EVIDENCE"
+  require_contains "$file" "V0171-003-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift" "failureDetails="
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift" "corruptBundleValidationFailsClosed=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift" "missingArtifactValidationFailsClosed=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "missingManifestValidationFailsClosed=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "releaseV0171ArtifactNegativeRegressionAnchors"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.1-artifact-negative-regressions.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.1-artifact-negative-regressions.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1168ReleaseV0171ArtifactNegativeRegressionsFailClosed"
+
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC"

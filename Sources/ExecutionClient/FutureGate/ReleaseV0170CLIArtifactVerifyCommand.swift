@@ -19,6 +19,20 @@ import Foundation
 // failedBundleReportStillRedacted=true
 // localReportingPathDoesNotWeakenFailClosedDefault=true
 // productionCutoverAuthorized=false
+// GH-1168 static patch boundary:
+// GH-1168-VERIFY-V0171-ARTIFACT-NEGATIVE-REGRESSIONS
+// TVM-RELEASE-V0171-ARTIFACT-NEGATIVE-REGRESSIONS
+// V0171-003-CORRUPT-BUNDLE-FAILS-CLOSED
+// V0171-003-MISSING-ARTIFACT-FAILS-CLOSED
+// V0171-003-MISSING-MANIFEST-FAILS-CLOSED
+// V0171-003-RECONCILIATION-MISSING-FAILS-CLOSED
+// V0171-003-REDACTED-OPERATOR-READABLE-EVIDENCE
+// V0171-003-NO-PRODUCTION-CUTOVER
+// corruptBundleValidationFailsClosed=true
+// missingArtifactValidationFailsClosed=true
+// missingManifestValidationFailsClosed=true
+// reconciliationMissingValidationFailsClosed=true
+// negativeFailureDetailsOperatorReadable=true
 
 /// ReleaseV0170CLIArtifactVerifyCommandOutput 是 GH-1145 的 CLI 输出模型。
 ///
@@ -140,6 +154,7 @@ public struct ReleaseV0170CLIArtifactVerifyCommandOutput: Equatable, Sendable {
             "manifestChecksum=\(validationResult.sourceManifestChecksum ?? "none")",
             "recordChecksumCount=\(validationResult.sourceRecordChecksums.count)",
             "failureReasons=\(validationResult.failures.map { $0.reason.rawValue }.joined(separator: ","))",
+            "failureDetails=\(validationResult.failures.map { "\($0.field):\($0.reason.rawValue):\($0.detail)" }.joined(separator: "|"))",
             "localArtifactBundleVerify=\(localArtifactBundleVerify)",
             "localOnlyNoNetwork=\(localOnlyNoNetwork)",
             "deterministicValidationReplayOutput=\(deterministicValidationReplayOutput)",

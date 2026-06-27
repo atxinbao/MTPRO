@@ -22,6 +22,12 @@ import Foundation
 // workflowRequiresPassedStatus=true
 // failedStatusCannotSatisfyWorkflow=true
 // cliFailedValidationPropagatesNonzeroExit=true
+// GH-1168 static patch boundary:
+// corruptBundleValidationFailsClosed=true
+// missingArtifactValidationFailsClosed=true
+// missingManifestValidationFailsClosed=true
+// reconciliationMissingValidationFailsClosed=true
+// negativeFailureDetailsOperatorReadable=true
 
 /// ReleaseV0170ManualWorkflowArtifactValidationStatus 固定 GH-1146 手动 workflow artifact 校验结果。
 ///
@@ -271,6 +277,25 @@ public struct ReleaseV0170ManualWorkflowArtifactValidationReport: Equatable, Sen
     public static let releaseV0171ManualWorkflowFailClosedValidationCommands = [
         "swift test --filter TargetGraphTests/testGH1167ReleaseV0171ManualWorkflowRejectsFailedArtifactStatus",
         "bash checks/verify-v0.17.1-manual-workflow-fail-closed.sh",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+
+    public static let releaseV0171ArtifactNegativeRegressionAnchors = [
+        "GH-1168-VERIFY-V0171-ARTIFACT-NEGATIVE-REGRESSIONS",
+        "TVM-RELEASE-V0171-ARTIFACT-NEGATIVE-REGRESSIONS",
+        "V0171-003-CORRUPT-BUNDLE-FAILS-CLOSED",
+        "V0171-003-MISSING-ARTIFACT-FAILS-CLOSED",
+        "V0171-003-MISSING-MANIFEST-FAILS-CLOSED",
+        "V0171-003-RECONCILIATION-MISSING-FAILS-CLOSED",
+        "V0171-003-REDACTED-OPERATOR-READABLE-EVIDENCE",
+        "V0171-003-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static let releaseV0171ArtifactNegativeRegressionValidationCommands = [
+        "swift test --filter TargetGraphTests/testGH1168ReleaseV0171ArtifactNegativeRegressionsFailClosed",
+        "bash checks/verify-v0.17.1-artifact-negative-regressions.sh",
         "git diff --check",
         "bash checks/automation-readiness.sh",
         "bash checks/run.sh"

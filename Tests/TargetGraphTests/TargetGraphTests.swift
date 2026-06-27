@@ -48042,6 +48042,216 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1168ReleaseV0171ArtifactNegativeRegressionsFailClosed() throws {
+        // 测试场景：GH-1168 将 corrupt bundle、missing artifact、missing manifest 和
+        // reconciliation-missing 四类 operator beta artifact negative case 固定为回归用例。
+        // 验证目的：每个负例都必须在 CLI shell path 上非零失败，同时本地 report path 保留
+        // redacted、operator-readable 的 failureReasons / failureDetails，不能触发任何 production 行为。
+        // GH-1168-VERIFY-V0171-ARTIFACT-NEGATIVE-REGRESSIONS
+        // TVM-RELEASE-V0171-ARTIFACT-NEGATIVE-REGRESSIONS
+        // V0171-003-CORRUPT-BUNDLE-FAILS-CLOSED
+        // V0171-003-MISSING-ARTIFACT-FAILS-CLOSED
+        // V0171-003-MISSING-MANIFEST-FAILS-CLOSED
+        // V0171-003-RECONCILIATION-MISSING-FAILS-CLOSED
+        // V0171-003-REDACTED-OPERATOR-READABLE-EVIDENCE
+        // V0171-003-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        func makeBundle(
+            suffix: String,
+            runID: Identifier,
+            kinds: [ReleaseV0160LocalExecutionArtifactKind]
+        ) throws -> (
+            root: URL,
+            store: ReleaseV0160LocalExecutionArtifactStore,
+            records: [ReleaseV0160LocalExecutionArtifactRecord]
+        ) {
+            let tempRoot = FileManager.default.temporaryDirectory
+                .appendingPathComponent("mtpro-gh1168-\(suffix)-\(UUID().uuidString)", isDirectory: true)
+            let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+            let start = Date(timeIntervalSince1970: 1_704_084_000)
+            var records: [ReleaseV0160LocalExecutionArtifactRecord] = []
+            for (index, kind) in kinds.enumerated() {
+                let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                    kind: kind,
+                    suffix: "\(suffix)-\(index + 1)",
+                    observedAt: start.addingTimeInterval(TimeInterval(index))
+                )
+                records.append(try store.append(
+                    runID: runID,
+                    payload: payload,
+                    appendedAt: start.addingTimeInterval(TimeInterval(index))
+                ))
+            }
+            return (tempRoot, store, records)
+        }
+
+        @discardableResult
+        func assertFailedCLI(
+            root: URL,
+            runID: Identifier,
+            expectedReason: String,
+            expectedDetail: String
+        ) throws -> String {
+            let reportOutput = try ReleaseV0170CLIArtifactVerifyCommand.commandLineReportOutput(arguments: [
+                ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
+                root.path,
+                runID.rawValue
+            ])
+            XCTAssertTrue(reportOutput.contains("status=failed"))
+            XCTAssertTrue(reportOutput.contains("failureReasons=\(expectedReason)"))
+            XCTAssertTrue(reportOutput.contains("failureDetails="))
+            XCTAssertTrue(reportOutput.contains(expectedDetail), reportOutput)
+            XCTAssertTrue(reportOutput.contains("redactedOutputOnly=true"))
+            XCTAssertTrue(reportOutput.contains("productionEndpointConnectionEnabled=false"))
+            XCTAssertTrue(reportOutput.contains("productionBrokerConnectionEnabled=false"))
+            XCTAssertTrue(reportOutput.contains("productionOrderSubmitCancelReplaceEnabled=false"))
+            XCTAssertTrue(reportOutput.contains("productionCutoverAuthorized=false"))
+
+            XCTAssertThrowsError(try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: [
+                ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
+                root.path,
+                runID.rawValue
+            ])) { error in
+                let failClosed = error as? ReleaseV0170CLIArtifactVerifyCommandFailedValidation
+                XCTAssertNotNil(failClosed)
+                XCTAssertTrue(failClosed?.failClosedHeld == true)
+                XCTAssertNotEqual(failClosed?.exitCode, 0)
+                XCTAssertTrue(failClosed?.renderedOutput.contains("status=failed") == true)
+                XCTAssertTrue(failClosed?.renderedOutput.contains(expectedReason) == true)
+                XCTAssertTrue(failClosed?.renderedOutput.contains("redactedOutputOnly=true") == true)
+            }
+            return reportOutput
+        }
+
+        let expectedSequence = ReleaseV0170OperatorBetaArtifactBundleValidationResult.requiredActionSequence
+
+        let corruptRunID = Identifier.constant("gh-1168-corrupt-bundle")
+        let corrupt = try makeBundle(suffix: "corrupt", runID: corruptRunID, kinds: expectedSequence)
+        defer { try? FileManager.default.removeItem(at: corrupt.root) }
+        try Data("{\"tampered\":\"redacted\"}".utf8).write(
+            to: corrupt.store.fileURL(forRelativePath: corrupt.records[0].payloadPath),
+            options: .atomic
+        )
+        try assertFailedCLI(
+            root: corrupt.root,
+            runID: corruptRunID,
+            expectedReason: "checksumMismatch",
+            expectedDetail: "checksum mismatch"
+        )
+
+        let missingArtifactRunID = Identifier.constant("gh-1168-missing-artifact")
+        let missingArtifact = try makeBundle(
+            suffix: "missing-artifact",
+            runID: missingArtifactRunID,
+            kinds: expectedSequence
+        )
+        defer { try? FileManager.default.removeItem(at: missingArtifact.root) }
+        try FileManager.default.removeItem(
+            at: missingArtifact.store.fileURL(forRelativePath: missingArtifact.records[0].payloadPath)
+        )
+        try assertFailedCLI(
+            root: missingArtifact.root,
+            runID: missingArtifactRunID,
+            expectedReason: "bundleReadFailed",
+            expectedDetail: "missing artifact"
+        )
+
+        let missingManifestRunID = Identifier.constant("gh-1168-missing-manifest")
+        let missingManifest = try makeBundle(
+            suffix: "missing-manifest",
+            runID: missingManifestRunID,
+            kinds: expectedSequence
+        )
+        defer { try? FileManager.default.removeItem(at: missingManifest.root) }
+        try FileManager.default.removeItem(
+            at: missingManifest.store.fileURL(
+                forRelativePath:
+                    ".local/mtpro/v0.16.0/operator-runs/\(missingManifestRunID.rawValue)/run-manifest.json"
+            )
+        )
+        try assertFailedCLI(
+            root: missingManifest.root,
+            runID: missingManifestRunID,
+            expectedReason: "bundleReadFailed",
+            expectedDetail: "run-manifest.json"
+        )
+
+        let missingReconciliationRunID = Identifier.constant("gh-1168-missing-reconciliation")
+        let missingReconciliation = try makeBundle(
+            suffix: "missing-reconciliation",
+            runID: missingReconciliationRunID,
+            kinds: Array(expectedSequence.dropLast())
+        )
+        defer { try? FileManager.default.removeItem(at: missingReconciliation.root) }
+        let missingReconciliationOutput = try assertFailedCLI(
+            root: missingReconciliation.root,
+            runID: missingReconciliationRunID,
+            expectedReason: "actionSequenceMismatch,reconciliationArtifactMissing",
+            expectedDetail: "final artifact must be reconciliation"
+        )
+        XCTAssertTrue(missingReconciliationOutput.contains("reconciliationValidated=false"))
+
+        let requiredAnchors = [
+            "GH-1168-VERIFY-V0171-ARTIFACT-NEGATIVE-REGRESSIONS",
+            "TVM-RELEASE-V0171-ARTIFACT-NEGATIVE-REGRESSIONS",
+            "V0171-003-CORRUPT-BUNDLE-FAILS-CLOSED",
+            "V0171-003-MISSING-ARTIFACT-FAILS-CLOSED",
+            "V0171-003-MISSING-MANIFEST-FAILS-CLOSED",
+            "V0171-003-RECONCILIATION-MISSING-FAILS-CLOSED",
+            "V0171-003-REDACTED-OPERATOR-READABLE-EVIDENCE",
+            "V0171-003-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(
+            ReleaseV0170ManualWorkflowArtifactValidationReport
+                .releaseV0171ArtifactNegativeRegressionAnchors,
+            requiredAnchors
+        )
+        XCTAssertEqual(
+            ReleaseV0170ManualWorkflowArtifactValidationReport
+                .releaseV0171ArtifactNegativeRegressionValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1168ReleaseV0171ArtifactNegativeRegressionsFailClosed",
+                "bash checks/verify-v0.17.1-artifact-negative-regressions.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift")
+        let manualSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.17.1-artifact-negative-regressions.sh")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+
+        for artifact in [source, manualSource, runScript, automationScript, verifier, tests] {
+            for anchor in requiredAnchors {
+                XCTAssertTrue(artifact.contains(anchor), "artifact must contain \(anchor)")
+            }
+        }
+
+        XCTAssertTrue(source.contains("failureDetails="))
+        XCTAssertTrue(source.contains("corruptBundleValidationFailsClosed=true"))
+        XCTAssertTrue(manualSource.contains("missingManifestValidationFailsClosed=true"))
+        XCTAssertTrue(verifier.contains("testGH1168ReleaseV0171ArtifactNegativeRegressionsFailClosed"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.1-artifact-negative-regressions.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.1-artifact-negative-regressions.sh"))
+
+        for artifact in [source, manualSource, verifier] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     func testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence() throws {
         // 测试场景：GH-1147 将 operator beta safety profile 显式记录到 v0.17 evidence。
         // 验证目的：venue、product、symbol、notional、order-count 和 production-disabled state
