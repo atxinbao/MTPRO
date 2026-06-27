@@ -1,6 +1,7 @@
 name: MTPRO v0.17.0 Manual Artifact Validation
 
 # workflowName=release-v0.17.0-manual-artifact-validation
+# GH-1167-VERIFY-V0171-MANUAL-WORKFLOW-FAIL-CLOSED
 
 on:
   workflow_dispatch:
@@ -62,6 +63,12 @@ jobs:
           echo "V0170-008-LOCAL-ONLY-NO-NETWORK"
           echo "V0170-008-REDACTED-EVIDENCE-RECORDED"
           echo "V0170-008-NO-PRODUCTION-CUTOVER"
+          echo "GH-1167-VERIFY-V0171-MANUAL-WORKFLOW-FAIL-CLOSED"
+          echo "TVM-RELEASE-V0171-MANUAL-WORKFLOW-FAIL-CLOSED"
+          echo "V0171-002-UPLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW"
+          echo "V0171-002-DOWNLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW"
+          echo "V0171-002-REQUIRE-PASSED-STATUS"
+          echo "V0171-002-NO-PRODUCTION-CUTOVER"
           echo "productionTradingEnabledByDefault=false"
           echo "productionSecretReadEnabled=false"
           echo "productionEndpointConnectionEnabled=false"
@@ -71,11 +78,19 @@ jobs:
 
       - name: Validate uploaded artifact bundle through shared CLI path
         run: |
-          swift run mtpro verify-operator-beta-artifact-bundle "${{ inputs.uploaded_artifact_storage_root }}" "${{ inputs.run_id }}"
+          set -euo pipefail
+          uploaded_output="$(swift run mtpro verify-operator-beta-artifact-bundle "${{ inputs.uploaded_artifact_storage_root }}" "${{ inputs.run_id }}")"
+          printf '%s\n' "$uploaded_output"
+          grep -Fq "status=passed" <<<"$uploaded_output"
+          grep -Fq "boundaryHeld=true" <<<"$uploaded_output"
 
       - name: Validate downloaded artifact bundle through shared CLI path
         run: |
-          swift run mtpro verify-operator-beta-artifact-bundle "${{ inputs.downloaded_artifact_storage_root }}" "${{ inputs.run_id }}"
+          set -euo pipefail
+          downloaded_output="$(swift run mtpro verify-operator-beta-artifact-bundle "${{ inputs.downloaded_artifact_storage_root }}" "${{ inputs.run_id }}")"
+          printf '%s\n' "$downloaded_output"
+          grep -Fq "status=passed" <<<"$downloaded_output"
+          grep -Fq "boundaryHeld=true" <<<"$downloaded_output"
 
       - name: Verify deterministic #1146 guard
         run: bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh

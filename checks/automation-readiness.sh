@@ -143,6 +143,7 @@ require_file "checks/verify-v0.17.0-manual-workflow-artifact-validation.sh"
 require_file "checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh"
 require_file "checks/verify-v0.17.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh"
+require_file "checks/verify-v0.17.1-manual-workflow-fail-closed.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -688,6 +689,29 @@ require_contains "Sources/MTPROCLI/main.swift" "Foundation.exit(error.exitCode)"
 require_contains "checks/run.sh" "bash checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1166ReleaseV0171CLIArtifactVerifyCommandFailsClosed"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" \
+  ".github/workflows/release-v0.17.0-manual-artifact-validation.yml" \
+  "checks/verify-v0.17.1-manual-workflow-fail-closed.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1167-VERIFY-V0171-MANUAL-WORKFLOW-FAIL-CLOSED"
+  require_contains "$file" "TVM-RELEASE-V0171-MANUAL-WORKFLOW-FAIL-CLOSED"
+  require_contains "$file" "V0171-002-UPLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW"
+  require_contains "$file" "V0171-002-DOWNLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW"
+  require_contains "$file" "V0171-002-REQUIRE-PASSED-STATUS"
+  require_contains "$file" "V0171-002-NO-PRODUCTION-CUTOVER"
+done
+require_contains ".github/workflows/release-v0.17.0-manual-artifact-validation.yml" "grep -Fq \"status=passed\""
+require_contains ".github/workflows/release-v0.17.0-manual-artifact-validation.yml" "grep -Fq \"boundaryHeld=true\""
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "workflowFailClosedHeld"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "failedUploadedArtifactRejectsWorkflow=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "failedDownloadedArtifactRejectsWorkflow=true"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.1-manual-workflow-fail-closed.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.1-manual-workflow-fail-closed.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1167ReleaseV0171ManualWorkflowRejectsFailedArtifactStatus"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"
