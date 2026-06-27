@@ -50135,6 +50135,292 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1179ResumeAfterInterruptionCommandUsesArtifactStoreEvidence() async throws {
+        // 测试场景：GH-1179 在 GH-1177 lifecycle namespace、GH-1178 status-query
+        // retry snapshot 和 GH-1142 artifact-store resume cursor 之上生成本地 resume command。
+        // 验证目的：resume 必须由本地 artifact evidence 驱动；缺少 lifecycle manifest、
+        // status-query evidence、reconciliation evidence 或跨 venue/product namespace 复用时必须
+        // fail closed，不得自动网络 retry、broker mutation 或 production cutover。
+        // GH-1179-VERIFY-V0180-RESUME-AFTER-INTERRUPTION-COMMAND
+        // TVM-RELEASE-V0180-RESUME-AFTER-INTERRUPTION-COMMAND
+        // V0180-004-DEPENDENCIES-GH1177-GH1178-DONE
+        // V0180-004-LOCAL-ARTIFACT-BACKED-RESUME
+        // V0180-004-LIFECYCLE-MANIFEST-REQUIRED
+        // V0180-004-STATUS-QUERY-EVIDENCE-REQUIRED
+        // V0180-004-RECONCILIATION-EVIDENCE-REQUIRED
+        // V0180-004-CROSS-VENUE-PRODUCT-REUSE-REJECTED
+        // V0180-004-NO-AUTOMATIC-NETWORK-RETRY
+        // V0180-004-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let expectedSequence = ReleaseV0170OperatorBetaArtifactBundleValidationResult.requiredActionSequence
+        let journal = try await ReleaseV050DurableLocalRunJournalContract.deterministicJournal()
+        let runID = journal.paths.runID
+
+        let lifecycleRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH1179-LifecycleManifest-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        let executionRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH1179-ExecutionArtifacts-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: lifecycleRoot)
+            try? FileManager.default.removeItem(at: executionRoot)
+        }
+
+        let writer = ReleaseV060LocalRunJournalWriter(storageRootURL: lifecycleRoot)
+        _ = try writer.writeCompletedRun(journal: journal)
+        let lifecycleNamespace = try ReleaseV0180RunArtifactLifecycleNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let lifecycleManifest = try writer.writeVenueProductAwareLifecycleManifest(namespace: lifecycleNamespace)
+        let lifecycleValidation = try writer.validateVenueProductAwareLifecycleManifest(
+            expectedNamespace: lifecycleNamespace
+        )
+        XCTAssertTrue(lifecycleManifest.manifestHeld)
+        XCTAssertTrue(lifecycleValidation.validationHeld)
+
+        let statusNamespace = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        XCTAssertEqual(statusNamespace.namespaceKey, lifecycleNamespace.namespaceKey)
+
+        let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: executionRoot)
+        let start = Date(timeIntervalSince1970: 1_704_067_900)
+        for (index, kind) in expectedSequence.enumerated() {
+            let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                kind: kind,
+                suffix: "gh1179-\(index + 1)",
+                observedAt: start.addingTimeInterval(TimeInterval(index))
+            )
+            _ = try store.append(
+                runID: runID,
+                payload: payload,
+                appendedAt: start.addingTimeInterval(TimeInterval(index))
+            )
+        }
+
+        let baseResume = try ReleaseV0170OperatorRunResumeFromArtifactStore().resume(
+            runID: runID,
+            storageRootURL: executionRoot
+        )
+        XCTAssertTrue(baseResume.resultHeld)
+        XCTAssertEqual(baseResume.status, .passed)
+        XCTAssertTrue(baseResume.replayedKinds.contains(.reconciliation))
+        XCTAssertEqual(baseResume.resumeCursor?.lastArtifactKind, .reconciliation)
+
+        let retryPolicy = try ReleaseV0170SignedStatusQueryRetryPolicy(
+            maxAttempts: 2,
+            perAttemptTimeoutMilliseconds: 10
+        )
+        let timeoutFailure = try ReleaseV0170SignedStatusQueryAttemptFailure(
+            reason: .timeout,
+            field: "timeout",
+            detail: "status query timed out before redacted response",
+            retryable: true
+        )
+        let retryLimitFailure = try ReleaseV0170SignedStatusQueryAttemptFailure(
+            reason: .retryLimitExceeded,
+            field: "retryLimit",
+            detail: "maxAttempts=2",
+            retryable: false
+        )
+        let result = try ReleaseV0170SignedStatusQueryResult(
+            signedStatusQueryRequestID: .constant(
+                "gh-1179-redacted-status-query-request",
+                field: "testGH1179.signedStatusQueryRequestID"
+            ),
+            status: .failed,
+            finalTransportResultID: nil,
+            attempts: [
+                try ReleaseV0170SignedStatusQueryAttemptEvidence(
+                    attemptIndex: 1,
+                    timeoutMilliseconds: retryPolicy.perAttemptTimeoutMilliseconds,
+                    status: .failed,
+                    transportResultID: nil,
+                    failure: timeoutFailure,
+                    retryScheduled: true
+                ),
+                try ReleaseV0170SignedStatusQueryAttemptEvidence(
+                    attemptIndex: 2,
+                    timeoutMilliseconds: retryPolicy.perAttemptTimeoutMilliseconds,
+                    status: .failed,
+                    transportResultID: nil,
+                    failure: retryLimitFailure,
+                    retryScheduled: false
+                )
+            ],
+            retryPolicy: retryPolicy
+        )
+        let statusPersistence = try store.appendStatusQueryRetryResult(
+            runID: runID,
+            namespace: statusNamespace,
+            result: result,
+            observedAt: start.addingTimeInterval(10)
+        )
+        XCTAssertTrue(statusPersistence.persistenceHeld)
+        XCTAssertEqual(statusPersistence.snapshot.namespace.namespaceKey, lifecycleNamespace.namespaceKey)
+
+        let command = ReleaseV0180ResumeAfterInterruptionCommand()
+        let input = ReleaseV0180ResumeAfterInterruptionInput(
+            namespace: statusNamespace,
+            lifecycleManifestNamespaceKey: lifecycleManifest.resumeNamespace,
+            lifecycleManifestValidated: lifecycleValidation.validationHeld,
+            statusQueryPersistence: statusPersistence,
+            baseResumeResult: baseResume
+        )
+        XCTAssertTrue(input.inputHeld)
+        let resumed = try command.resume(input: input)
+        XCTAssertTrue(resumed.resultHeld)
+        XCTAssertEqual(resumed.issueID.rawValue, "GH-1179")
+        XCTAssertEqual(resumed.blockedByIssueIDs.map(\.rawValue), ["GH-1177", "GH-1178"])
+        XCTAssertEqual(resumed.status, .passed)
+        XCTAssertTrue(resumed.failures.isEmpty)
+        XCTAssertEqual(resumed.namespace.namespaceKey, lifecycleNamespace.namespaceKey)
+        XCTAssertEqual(resumed.lifecycleManifestNamespaceKey, lifecycleNamespace.namespaceKey)
+        XCTAssertTrue(resumed.lifecycleManifestValidated)
+        XCTAssertTrue(resumed.statusQuerySnapshotValidated)
+        XCTAssertTrue(resumed.reconciliationEvidenceValidated)
+        XCTAssertEqual(resumed.resumeCursor, baseResume.resumeCursor)
+        XCTAssertEqual(
+            resumed.operatorCommand,
+            "mtpro operator-run resume --run-id \(runID.rawValue) --venue binance --product spot --environment testnet --account-profile operator-beta"
+        )
+        XCTAssertEqual(resumed.operatorNextAction, "continue-from-local-artifact-resume-cursor")
+        XCTAssertTrue(resumed.localArtifactBackedResume)
+        XCTAssertTrue(resumed.failClosedResume)
+        XCTAssertTrue(resumed.crossVenueProductReuseRejected)
+        XCTAssertTrue(resumed.noAutomaticNetworkRetry)
+        XCTAssertFalse(resumed.brokerMutationEnabled)
+        XCTAssertFalse(resumed.productionTradingEnabledByDefault)
+        XCTAssertFalse(resumed.productionSecretReadEnabled)
+        XCTAssertFalse(resumed.productionEndpointConnectionEnabled)
+        XCTAssertFalse(resumed.productionBrokerConnectionEnabled)
+        XCTAssertFalse(resumed.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(resumed.productionCutoverAuthorized)
+
+        let productMismatch = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "usdmFutures",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let mismatched = try command.resume(input: ReleaseV0180ResumeAfterInterruptionInput(
+            namespace: productMismatch,
+            lifecycleManifestNamespaceKey: lifecycleManifest.resumeNamespace,
+            lifecycleManifestValidated: lifecycleValidation.validationHeld,
+            statusQueryPersistence: statusPersistence,
+            baseResumeResult: baseResume
+        ))
+        XCTAssertTrue(mismatched.resultHeld)
+        XCTAssertEqual(mismatched.status, .failed)
+        XCTAssertNil(mismatched.resumeCursor)
+        XCTAssertTrue(mismatched.failures.contains { $0.reason == .namespaceMismatch })
+        XCTAssertFalse(mismatched.productionCutoverAuthorized)
+
+        let missingLifecycle = try command.resume(input: ReleaseV0180ResumeAfterInterruptionInput(
+            namespace: statusNamespace,
+            lifecycleManifestNamespaceKey: lifecycleManifest.resumeNamespace,
+            lifecycleManifestValidated: false,
+            statusQueryPersistence: statusPersistence,
+            baseResumeResult: baseResume
+        ))
+        XCTAssertTrue(missingLifecycle.resultHeld)
+        XCTAssertEqual(missingLifecycle.status, .failed)
+        XCTAssertNil(missingLifecycle.resumeCursor)
+        XCTAssertTrue(missingLifecycle.failures.contains { $0.reason == .lifecycleManifestMissingOrInvalid })
+
+        let requiredAnchors = [
+            "GH-1179-VERIFY-V0180-RESUME-AFTER-INTERRUPTION-COMMAND",
+            "TVM-RELEASE-V0180-RESUME-AFTER-INTERRUPTION-COMMAND",
+            "V0180-004-DEPENDENCIES-GH1177-GH1178-DONE",
+            "V0180-004-LOCAL-ARTIFACT-BACKED-RESUME",
+            "V0180-004-LIFECYCLE-MANIFEST-REQUIRED",
+            "V0180-004-STATUS-QUERY-EVIDENCE-REQUIRED",
+            "V0180-004-RECONCILIATION-EVIDENCE-REQUIRED",
+            "V0180-004-CROSS-VENUE-PRODUCT-REUSE-REJECTED",
+            "V0180-004-NO-AUTOMATIC-NETWORK-RETRY",
+            "V0180-004-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(ReleaseV0180ResumeAfterInterruptionResult.requiredValidationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            ReleaseV0180ResumeAfterInterruptionResult.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1179ResumeAfterInterruptionCommandUsesArtifactStoreEvidence",
+                "bash checks/verify-v0.18.0-resume-after-interruption-command.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0180ResumeAfterInterruptionCommand.swift")
+        let contractDoc = try read("docs/contracts/release-v0.18.0-resume-after-interruption-command-contract.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let automationReadiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let runScript = try read("checks/run.sh")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let verifier = try read("checks/verify-v0.18.0-resume-after-interruption-command.sh")
+
+        for sourceText in [
+            source,
+            contractDoc,
+            validationPlan,
+            tradingMatrix,
+            automationReadiness,
+            readinessScript,
+            runScript,
+            policy,
+            verifier
+        ] {
+            for anchor in requiredAnchors {
+                XCTAssertTrue(sourceText.contains(anchor), "missing \(anchor)")
+            }
+        }
+
+        XCTAssertTrue(source.contains("resumeAfterInterruptionCommand=ReleaseV0180ResumeAfterInterruptionCommand"))
+        XCTAssertTrue(source.contains("ReleaseV0180ResumeAfterInterruptionInput"))
+        XCTAssertTrue(source.contains("ReleaseV0180ResumeAfterInterruptionResult"))
+        XCTAssertTrue(source.contains("lifecycleManifestValidationRequired=true"))
+        XCTAssertTrue(source.contains("statusQueryRetryEvidenceRequired=true"))
+        XCTAssertTrue(source.contains("reconciliationEvidenceRequired=true"))
+        XCTAssertTrue(contractDoc.contains("#1177 closed / done"))
+        XCTAssertTrue(contractDoc.contains("#1178 closed / done"))
+        XCTAssertTrue(contractDoc.contains("mtpro operator-run resume"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.0-resume-after-interruption-command.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.18.0-resume-after-interruption-command.sh"))
+        XCTAssertTrue(verifier.contains("testGH1179ResumeAfterInterruptionCommandUsesArtifactStoreEvidence"))
+        for artifact in [source, contractDoc] {
+            XCTAssertFalse(artifact.contains("api.binance.com"))
+            XCTAssertFalse(artifact.contains("www.okx.com"))
+            XCTAssertFalse(artifact.contains("URLSession"))
+            XCTAssertFalse(artifact.contains("URLRequest"))
+            XCTAssertFalse(artifact.contains("submitOrder"))
+            XCTAssertFalse(artifact.contains("cancelOrder"))
+            XCTAssertFalse(artifact.contains("replaceOrder"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     func testGH784RuntimeEventLogWriterAppendsValidatesAndRecoversPartialLines() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

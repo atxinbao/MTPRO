@@ -4199,3 +4199,21 @@
 - failure evidence surface: failed status-query result must preserve timeout + retryLimitExceeded classification, redaction status and operator-visible next action.
 - replay surface: status-query evidence must replay from local artifact store without reconnecting endpoint or re-running the query.
 - forbidden scope: no status-query endpoint execution, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
+
+## TVM-RELEASE-V0180-RESUME-AFTER-INTERRUPTION-COMMAND
+
+- GH-1179-VERIFY-V0180-RESUME-AFTER-INTERRUPTION-COMMAND
+- V0180-004-DEPENDENCIES-GH1177-GH1178-DONE
+- V0180-004-LOCAL-ARTIFACT-BACKED-RESUME
+- V0180-004-LIFECYCLE-MANIFEST-REQUIRED
+- V0180-004-STATUS-QUERY-EVIDENCE-REQUIRED
+- V0180-004-RECONCILIATION-EVIDENCE-REQUIRED
+- V0180-004-CROSS-VENUE-PRODUCT-REUSE-REJECTED
+- V0180-004-NO-AUTOMATIC-NETWORK-RETRY
+- V0180-004-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-resume-after-interruption-command.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1179ResumeAfterInterruptionCommandUsesArtifactStoreEvidence`
+- resume surface: `ReleaseV0180ResumeAfterInterruptionCommand` must build an operator-visible `mtpro operator-run resume` command only from validated local artifact evidence.
+- namespace surface: lifecycle manifest, status-query persistence and resume cursor must share the same venue/product/environment/accountProfile/runID namespace.
+- fail-closed surface: missing manifest, missing status-query evidence, missing reconciliation evidence and cross-product reuse all reject resume with no cursor.
+- forbidden scope: no automatic network retry, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.

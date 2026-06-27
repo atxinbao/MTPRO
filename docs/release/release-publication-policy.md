@@ -1139,3 +1139,29 @@ GH-1177 is local evidence only. It does not implement OKX runtime, does not acti
 GH-1178 persists signed status-query retry / timeout / failure classification results into the local append-only artifact store. The persisted `statusQueryRetrySnapshot` records retry attempts, timeout result, classified failures, redaction status, operator next-action and `{venue, product, environment, accountProfile, runID}` namespace.
 
 GH-1178 is local evidence only. It does not re-run status query, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
+
+## GH-1179 Release v0.18.0 Resume After Interruption Command Policy
+
+`GH-1179-VERIFY-V0180-RESUME-AFTER-INTERRUPTION-COMMAND`
+
+`TVM-RELEASE-V0180-RESUME-AFTER-INTERRUPTION-COMMAND`
+
+`V0180-004-DEPENDENCIES-GH1177-GH1178-DONE`
+
+`V0180-004-LOCAL-ARTIFACT-BACKED-RESUME`
+
+`V0180-004-LIFECYCLE-MANIFEST-REQUIRED`
+
+`V0180-004-STATUS-QUERY-EVIDENCE-REQUIRED`
+
+`V0180-004-RECONCILIATION-EVIDENCE-REQUIRED`
+
+`V0180-004-CROSS-VENUE-PRODUCT-REUSE-REJECTED`
+
+`V0180-004-NO-AUTOMATIC-NETWORK-RETRY`
+
+`V0180-004-NO-PRODUCTION-CUTOVER`
+
+GH-1179 adds the resume-after-interruption command on top of local artifact evidence. The command must consume validated lifecycle manifest namespace, persisted status-query retry evidence and reconciliation resume cursor before producing `mtpro operator-run resume`.
+
+GH-1179 is local evidence only. It does not automatically retry network calls, does not mutate broker state, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
