@@ -48252,6 +48252,91 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1169ReleaseV0171V0170ReleaseFactSyncGuard() throws {
+        // 测试场景：GH-1169 将 v0.17.0 stable GitHub Release 的已发布事实同步到
+        // v0.17.1 patch guard、root docs、release policy、Stage Audit 和 release notes。
+        // 验证目的：v0.17.1 patch queue 只能引用 v0.17.0 publication facts，不能移动 tag、
+        // 覆盖 release、把 #1148 历史 construction closeout 误写成当前未发布事实，或授权 production cutover。
+        // GH-1169-VERIFY-V0171-V0170-RELEASE-FACT-SYNC
+        // V0171-004-V0170-RELEASE-FACT-SYNC-GUARD
+        // TVM-RELEASE-V0171-V0170-RELEASE-FACT-SYNC
+        // V0171-004-V0170-TAG-FIXED
+        // V0171-004-PATCH-QUEUE-NOT-PUBLICATION
+        // V0171-004-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1169-VERIFY-V0171-V0170-RELEASE-FACT-SYNC",
+            "V0171-004-V0170-RELEASE-FACT-SYNC-GUARD",
+            "TVM-RELEASE-V0171-V0170-RELEASE-FACT-SYNC",
+            "V0171-004-V0170-TAG-FIXED",
+            "V0171-004-PATCH-QUEUE-NOT-PUBLICATION",
+            "V0171-004-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/automation/automation-readiness.md",
+            "docs/release/release-publication-policy.md",
+            "checks/verify-v0.17.1-release-fact-sync.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh"
+        ]
+        let releaseURL = "https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0"
+        let tagCommit = "c83879f80a525665c3484878d7071b1f5214da20"
+        let publishedAt = "2026-06-27T06:37:33Z"
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+            XCTAssertTrue(source.contains(releaseURL), "\(file) must keep v0.17.0 release URL synchronized")
+            XCTAssertTrue(source.contains(tagCommit), "\(file) must keep v0.17.0 tag commit synchronized")
+            XCTAssertTrue(source.contains(publishedAt), "\(file) must keep v0.17.0 publication timestamp synchronized")
+        }
+
+        let audit = try read("docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let verifier = try read("checks/verify-v0.17.1-release-fact-sync.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(notes.contains("v0.17.1 是后续 artifact validation fail-closed patch queue"))
+        XCTAssertTrue(policy.contains("v0.17.1 是 v0.17.0 后的 artifact validation fail-closed patch queue"))
+        XCTAssertTrue(policy.contains("GH-1169 不移动 `v0.17.0` tag"))
+        XCTAssertTrue(latest.contains("v0.17.0 stable GitHub Release"))
+        XCTAssertTrue(readiness.contains("Release v0.17.1 v0.17.0 release fact sync anchor"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1169ReleaseV0171V0170ReleaseFactSyncGuard"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.1-release-fact-sync.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.1-release-fact-sync.sh"))
+
+        for source in [audit, notes, policy, latest] {
+            XCTAssertTrue(source.contains("production cutover not authorized") || source.contains("不授权 production cutover"))
+            XCTAssertFalse(source.contains("v0.17.0 tag pending"))
+            XCTAssertFalse(source.contains("v0.17.0 release pending"))
+            XCTAssertFalse(source.contains("v0.17.0 GitHub Release not created"))
+            XCTAssertFalse(source.contains("A future `v0.17.0` publication requires"))
+            XCTAssertFalse(source.contains("publication 必须由后续独立 Release Publication Gate"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+        }
+    }
+
     func testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence() throws {
         // 测试场景：GH-1147 将 operator beta safety profile 显式记录到 v0.17 evidence。
         // 验证目的：venue、product、symbol、notional、order-count 和 production-disabled state

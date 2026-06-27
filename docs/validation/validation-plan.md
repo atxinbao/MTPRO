@@ -6003,3 +6003,19 @@ swift test
 - validation surface: `ReleaseV0160ManualTestnetValidationWorkflow` validates manual workflow_dispatch and redacted evidence bundle after operator manually completes submit -> status -> cancel -> status -> reconciliation passed.
 - fail-closed evidence: missing or reordered steps, non-SHA256 checksum, non-redacted artifact path, production endpoint marker and credential marker fail closed before a report is accepted.
 - boundary evidence: no production cutover, no production secret read, no production endpoint / broker endpoint connection, no raw secret / raw credential / raw order identity / raw broker payload, and no production order.
+
+## GH-1169 Release v0.17.1 v0.17.0 Release Fact Sync Guard
+
+- GH-1169-VERIFY-V0171-V0170-RELEASE-FACT-SYNC
+- V0171-004-V0170-RELEASE-FACT-SYNC-GUARD
+- TVM-RELEASE-V0171-V0170-RELEASE-FACT-SYNC
+- V0171-004-V0170-TAG-FIXED
+- V0171-004-PATCH-QUEUE-NOT-PUBLICATION
+- V0171-004-NO-PRODUCTION-CUTOVER
+- release fact: v0.17.0 stable GitHub Release `https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0`
+- tag peeled commit: `c83879f80a525665c3484878d7071b1f5214da20`
+- publication timestamp: `2026-06-27T06:37:33Z`
+- focused verifier: `bash checks/verify-v0.17.1-release-fact-sync.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1169ReleaseV0171V0170ReleaseFactSyncGuard`
+- sync surface: README、GOAL、BLUEPRINT、roadmap、latest verification summary、validation plan、trading validation matrix、automation readiness、release publication policy、v0.17.0 audit and release notes.
+- boundary evidence: v0.17.1 是 v0.17.0 后的 artifact validation fail-closed patch queue；不移动 `v0.17.0` tag，不覆盖 GitHub Release，不创建 production cutover authorization；production cutover not authorized.

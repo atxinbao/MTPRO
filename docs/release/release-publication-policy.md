@@ -997,3 +997,27 @@ If Human later requests `v0.16.1` publication, it must be handled by a separate 
 GH-1148 closes the v0.17.0 stage audit, release notes, validation matrix, root docs refresh and stale wording guard. It records GH-1139..GH-1147 evidence, adds `docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md`, adds `docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md`, and registers `checks/verify-v0.17.0-stage-audit-release-docs.sh` in automation readiness.
 
 GH-1148 does not create a `v0.17.0` tag, does not create a GitHub Release, does not move any existing tag, does not create the next Project / Issue, does not submit testnet or production orders, and does not authorize production cutover. production cutover not authorized.
+
+## GH-1169 Release v0.17.1 v0.17.0 Release Fact Sync Policy
+
+`GH-1169-VERIFY-V0171-V0170-RELEASE-FACT-SYNC`
+
+`V0171-004-V0170-RELEASE-FACT-SYNC-GUARD`
+
+`TVM-RELEASE-V0171-V0170-RELEASE-FACT-SYNC`
+
+`V0171-004-V0170-TAG-FIXED`
+
+`V0171-004-PATCH-QUEUE-NOT-PUBLICATION`
+
+`V0171-004-NO-PRODUCTION-CUTOVER`
+
+v0.17.1 是 v0.17.0 后的 artifact validation fail-closed patch queue。GH-1169 只同步 v0.17.0 publication facts 到 patch docs、validation matrix、automation readiness、Stage Audit、release notes 和 stale wording guard。
+
+v0.17.0 stable GitHub Release facts:
+
+- release URL：`https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0`
+- tag peeled commit：`c83879f80a525665c3484878d7071b1f5214da20`
+- publication timestamp：`2026-06-27T06:37:33Z`
+
+GH-1169 不移动 `v0.17.0` tag，不覆盖 GitHub Release，不创建 `v0.17.1` public release，不推进 #1170..#1171，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。production cutover not authorized。
