@@ -4217,3 +4217,22 @@
 - namespace surface: lifecycle manifest, status-query persistence and resume cursor must share the same venue/product/environment/accountProfile/runID namespace.
 - fail-closed surface: missing manifest, missing status-query evidence, missing reconciliation evidence and cross-product reuse all reject resume with no cursor.
 - forbidden scope: no automatic network retry, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
+
+## TVM-RELEASE-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND
+
+- GH-1180-VERIFY-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND
+- V0180-005-DEPENDENCIES-GH1178-GH1179-DONE
+- V0180-005-LOCAL-ARTIFACT-REPLAY
+- V0180-005-CANCEL-STATUS-OBSERVED-EXPECTED-EXPLAINED
+- V0180-005-MISSING-RECONCILIATION-FAILS-CLOSED
+- V0180-005-MISMATCH-RECONCILIATION-FAILS-CLOSED
+- V0180-005-READ-ONLY-OPERATOR-ACTION
+- V0180-005-CROSS-VENUE-PRODUCT-REUSE-REJECTED
+- V0180-005-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1180CancelStatusReconciliationReplayCommandUsesLocalArtifacts`
+- replay surface: `ReleaseV0180CancelStatusReconciliationReplayCommand` must replay cancel/status reconciliation from local artifact evidence only.
+- namespace surface: status-query persistence, resume result, observed reconciliation report and recovery report must share venue/product/environment/accountProfile/runID namespace.
+- observed / expected surface: result must expose expected lifecycle state, observed lifecycle state, reconciliation report status and recovery case count.
+- fail-closed surface: missing reconciliation evidence, mismatch, recovery cases or cross-product reuse all return failed result with read-only operator next action.
+- forbidden scope: no automatic network retry, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.

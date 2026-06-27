@@ -50421,6 +50421,333 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1180CancelStatusReconciliationReplayCommandUsesLocalArtifacts() throws {
+        // 测试场景：GH-1180 在 GH-1178 status-query persistence 和 GH-1179 resume
+        // evidence 之上重放 cancel/status reconciliation。
+        // 验证目的：command 必须从本地 artifact evidence 解释 expected / observed lifecycle
+        // state；缺失 reconciliation evidence、mismatch 或跨 product reuse 都必须 fail closed，
+        // 且只能输出只读 operator action。
+        // GH-1180-VERIFY-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND
+        // TVM-RELEASE-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND
+        // V0180-005-DEPENDENCIES-GH1178-GH1179-DONE
+        // V0180-005-LOCAL-ARTIFACT-REPLAY
+        // V0180-005-CANCEL-STATUS-OBSERVED-EXPECTED-EXPLAINED
+        // V0180-005-MISSING-RECONCILIATION-FAILS-CLOSED
+        // V0180-005-MISMATCH-RECONCILIATION-FAILS-CLOSED
+        // V0180-005-READ-ONLY-OPERATOR-ACTION
+        // V0180-005-CROSS-VENUE-PRODUCT-REUSE-REJECTED
+        // V0180-005-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let executionRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH1180-CancelStatusReplay-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: executionRoot)
+        }
+        let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: executionRoot)
+        let runID = Identifier.constant("gh-1180-v0180-cancel-status-replay-run")
+        let start = Date(timeIntervalSince1970: 1_704_068_180)
+        let sequence = ReleaseV0170OperatorBetaArtifactBundleValidationResult.requiredActionSequence
+        var recordsByKind: [ReleaseV0160LocalExecutionArtifactKind: ReleaseV0160LocalExecutionArtifactRecord] = [:]
+        for (index, kind) in sequence.enumerated() {
+            let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                kind: kind,
+                suffix: "gh1180-\(index + 1)",
+                observedAt: start.addingTimeInterval(TimeInterval(index))
+            )
+            recordsByKind[kind] = try store.append(
+                runID: runID,
+                payload: payload,
+                appendedAt: start.addingTimeInterval(TimeInterval(index))
+            )
+        }
+
+        let replay = try store.replay(runID: runID)
+        let statusArtifact = try XCTUnwrap(recordsByKind[.status])
+        let engine = try ReleaseV0160OMSObservedStatusReconciliationEngine()
+        let passedObservedEvidence = try ReleaseV0160OMSObservedStatusEvidence(
+            statusArtifact: statusArtifact,
+            rawBinanceStatus: "CANCELED"
+        )
+        let passedReconciliationReport = try engine.reconcile(
+            replay: replay,
+            observedStatusEvidence: passedObservedEvidence,
+            expectedState: .cancelObserved
+        )
+        XCTAssertEqual(passedReconciliationReport.status, .passed)
+        XCTAssertEqual(passedReconciliationReport.expectedState, .cancelObserved)
+        XCTAssertEqual(passedReconciliationReport.observedStatus, .canceled)
+
+        let mismatchObservedEvidence = try ReleaseV0160OMSObservedStatusEvidence(
+            statusArtifact: statusArtifact,
+            rawBinanceStatus: "NEW"
+        )
+        let mismatchReconciliationReport = try engine.reconcile(
+            replay: replay,
+            observedStatusEvidence: mismatchObservedEvidence,
+            expectedState: .cancelObserved
+        )
+        XCTAssertEqual(mismatchReconciliationReport.status, .failed)
+        XCTAssertTrue(mismatchReconciliationReport.failures.contains { $0.reason == .cancelStateMismatch })
+
+        let baseResume = try ReleaseV0170OperatorRunResumeFromArtifactStore().resume(
+            runID: runID,
+            storageRootURL: executionRoot
+        )
+        XCTAssertEqual(baseResume.status, .passed)
+        XCTAssertEqual(baseResume.resumeCursor?.lastArtifactKind, .reconciliation)
+
+        let retryPolicy = try ReleaseV0170SignedStatusQueryRetryPolicy(
+            maxAttempts: 2,
+            perAttemptTimeoutMilliseconds: 10
+        )
+        let timeoutFailure = try ReleaseV0170SignedStatusQueryAttemptFailure(
+            reason: .timeout,
+            field: "timeout",
+            detail: "status query timed out before redacted response",
+            retryable: true
+        )
+        let retryLimitFailure = try ReleaseV0170SignedStatusQueryAttemptFailure(
+            reason: .retryLimitExceeded,
+            field: "retryLimit",
+            detail: "maxAttempts=2",
+            retryable: false
+        )
+        let statusQueryResult = try ReleaseV0170SignedStatusQueryResult(
+            signedStatusQueryRequestID: .constant(
+                "gh-1180-redacted-status-query-request",
+                field: "testGH1180.signedStatusQueryRequestID"
+            ),
+            status: .failed,
+            finalTransportResultID: nil,
+            attempts: [
+                try ReleaseV0170SignedStatusQueryAttemptEvidence(
+                    attemptIndex: 1,
+                    timeoutMilliseconds: retryPolicy.perAttemptTimeoutMilliseconds,
+                    status: .failed,
+                    transportResultID: nil,
+                    failure: timeoutFailure,
+                    retryScheduled: true
+                ),
+                try ReleaseV0170SignedStatusQueryAttemptEvidence(
+                    attemptIndex: 2,
+                    timeoutMilliseconds: retryPolicy.perAttemptTimeoutMilliseconds,
+                    status: .failed,
+                    transportResultID: nil,
+                    failure: retryLimitFailure,
+                    retryScheduled: false
+                )
+            ],
+            retryPolicy: retryPolicy
+        )
+        let namespace = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let statusPersistence = try store.appendStatusQueryRetryResult(
+            runID: runID,
+            namespace: namespace,
+            result: statusQueryResult,
+            observedAt: start.addingTimeInterval(10)
+        )
+        XCTAssertTrue(statusPersistence.persistenceHeld)
+
+        let resumeResult = try ReleaseV0180ResumeAfterInterruptionCommand().resume(input: ReleaseV0180ResumeAfterInterruptionInput(
+            namespace: namespace,
+            lifecycleManifestNamespaceKey: namespace.namespaceKey,
+            lifecycleManifestValidated: true,
+            statusQueryPersistence: statusPersistence,
+            baseResumeResult: baseResume
+        ))
+        XCTAssertEqual(resumeResult.status, .passed)
+
+        let recoveryPath = try ReleaseV0170CancelStatusReconciliationRecoveryPath()
+        let passedRecoveryReport = try recoveryPath.recover(
+            resumeResult: baseResume,
+            reconciliationReport: passedReconciliationReport
+        )
+        XCTAssertEqual(passedRecoveryReport.status, .passed)
+        XCTAssertTrue(passedRecoveryReport.cases.isEmpty)
+
+        let mismatchRecoveryReport = try recoveryPath.recover(
+            resumeResult: baseResume,
+            reconciliationReport: mismatchReconciliationReport
+        )
+        XCTAssertEqual(mismatchRecoveryReport.status, .failed)
+        XCTAssertFalse(mismatchRecoveryReport.cases.isEmpty)
+
+        let command = ReleaseV0180CancelStatusReconciliationReplayCommand()
+        let passed = try command.replay(input: ReleaseV0180CancelStatusReconciliationReplayInput(
+            namespace: namespace,
+            statusQueryPersistence: statusPersistence,
+            resumeResult: resumeResult,
+            observedReconciliationReport: passedReconciliationReport,
+            recoveryReport: passedRecoveryReport
+        ))
+        XCTAssertTrue(passed.resultHeld)
+        XCTAssertEqual(passed.issueID.rawValue, "GH-1180")
+        XCTAssertEqual(passed.blockedByIssueIDs.map(\.rawValue), ["GH-1178", "GH-1179"])
+        XCTAssertEqual(passed.status, .passed)
+        XCTAssertEqual(passed.expectedLifecycleState, "cancelObserved")
+        XCTAssertEqual(passed.observedLifecycleState, "CANCELED")
+        XCTAssertEqual(passed.reconciliationReportStatus, "passed")
+        XCTAssertEqual(passed.recoveryReportStatus, "passed")
+        XCTAssertEqual(passed.recoveryCaseCount, 0)
+        XCTAssertEqual(
+            passed.operatorCommand,
+            "mtpro operator-run replay-cancel-status-reconciliation --run-id \(runID.rawValue) --venue binance --product spot --environment testnet --account-profile operator-beta"
+        )
+        XCTAssertEqual(
+            passed.operatorNextAction,
+            "continue-local-operator-review-from-replayed-cancel-status-reconciliation"
+        )
+        XCTAssertTrue(passed.localArtifactReplayRequired)
+        XCTAssertTrue(passed.observedExpectedLifecycleStateExplained)
+        XCTAssertTrue(passed.missingReconciliationFailsClosed)
+        XCTAssertTrue(passed.mismatchReconciliationFailsClosed)
+        XCTAssertTrue(passed.readOnlyOperatorAction)
+        XCTAssertTrue(passed.crossVenueProductReuseRejected)
+        XCTAssertFalse(passed.productionTradingEnabledByDefault)
+        XCTAssertFalse(passed.productionSecretReadEnabled)
+        XCTAssertFalse(passed.productionEndpointConnectionEnabled)
+        XCTAssertFalse(passed.productionBrokerConnectionEnabled)
+        XCTAssertFalse(passed.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(passed.productionCutoverAuthorized)
+
+        let mismatched = try command.replay(input: ReleaseV0180CancelStatusReconciliationReplayInput(
+            namespace: namespace,
+            statusQueryPersistence: statusPersistence,
+            resumeResult: resumeResult,
+            observedReconciliationReport: mismatchReconciliationReport,
+            recoveryReport: mismatchRecoveryReport
+        ))
+        XCTAssertTrue(mismatched.resultHeld)
+        XCTAssertEqual(mismatched.status, .failed)
+        XCTAssertEqual(mismatched.expectedLifecycleState, "cancelObserved")
+        XCTAssertEqual(mismatched.observedLifecycleState, "NEW")
+        XCTAssertTrue(mismatched.failures.contains { $0.reason == .reconciliationMismatch })
+        XCTAssertEqual(mismatched.operatorCommand, "cancel-status-reconciliation-replay-refused-fail-closed")
+        XCTAssertTrue(mismatched.readOnlyOperatorAction)
+        XCTAssertFalse(mismatched.productionCutoverAuthorized)
+
+        let missingReconciliation = try command.replay(input: ReleaseV0180CancelStatusReconciliationReplayInput(
+            namespace: namespace,
+            statusQueryPersistence: statusPersistence,
+            resumeResult: resumeResult,
+            observedReconciliationReport: nil,
+            recoveryReport: nil
+        ))
+        XCTAssertTrue(missingReconciliation.resultHeld)
+        XCTAssertEqual(missingReconciliation.status, .failed)
+        XCTAssertTrue(missingReconciliation.failures.contains { $0.reason == .reconciliationEvidenceMissing })
+        XCTAssertTrue(missingReconciliation.failures.contains { $0.reason == .recoveryReportMissingOrInvalid })
+
+        let productMismatch = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "usdmFutures",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let mismatchedNamespace = try command.replay(input: ReleaseV0180CancelStatusReconciliationReplayInput(
+            namespace: productMismatch,
+            statusQueryPersistence: statusPersistence,
+            resumeResult: resumeResult,
+            observedReconciliationReport: passedReconciliationReport,
+            recoveryReport: passedRecoveryReport
+        ))
+        XCTAssertTrue(mismatchedNamespace.resultHeld)
+        XCTAssertEqual(mismatchedNamespace.status, .failed)
+        XCTAssertTrue(mismatchedNamespace.failures.contains { $0.reason == .namespaceMismatch })
+        XCTAssertFalse(mismatchedNamespace.productionCutoverAuthorized)
+
+        let requiredAnchors = [
+            "GH-1180-VERIFY-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND",
+            "TVM-RELEASE-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND",
+            "V0180-005-DEPENDENCIES-GH1178-GH1179-DONE",
+            "V0180-005-LOCAL-ARTIFACT-REPLAY",
+            "V0180-005-CANCEL-STATUS-OBSERVED-EXPECTED-EXPLAINED",
+            "V0180-005-MISSING-RECONCILIATION-FAILS-CLOSED",
+            "V0180-005-MISMATCH-RECONCILIATION-FAILS-CLOSED",
+            "V0180-005-READ-ONLY-OPERATOR-ACTION",
+            "V0180-005-CROSS-VENUE-PRODUCT-REUSE-REJECTED",
+            "V0180-005-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(ReleaseV0180CancelStatusReconciliationReplayResult.requiredValidationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            ReleaseV0180CancelStatusReconciliationReplayResult.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1180CancelStatusReconciliationReplayCommandUsesLocalArtifacts",
+                "bash checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0180CancelStatusReconciliationReplayCommand.swift")
+        let contractDoc = try read("docs/contracts/release-v0.18.0-cancel-status-reconciliation-replay-command-contract.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let automationReadiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let runScript = try read("checks/run.sh")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let verifier = try read("checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh")
+
+        for sourceText in [
+            source,
+            contractDoc,
+            validationPlan,
+            tradingMatrix,
+            automationReadiness,
+            readinessScript,
+            runScript,
+            policy,
+            verifier
+        ] {
+            for anchor in requiredAnchors {
+                XCTAssertTrue(sourceText.contains(anchor), "missing \(anchor)")
+            }
+        }
+
+        XCTAssertTrue(source.contains("cancelStatusReconciliationReplayCommand=ReleaseV0180CancelStatusReconciliationReplayCommand"))
+        XCTAssertTrue(source.contains("ReleaseV0180CancelStatusReconciliationReplayInput"))
+        XCTAssertTrue(source.contains("ReleaseV0180CancelStatusReconciliationReplayResult"))
+        XCTAssertTrue(source.contains("localArtifactReplayRequired=true"))
+        XCTAssertTrue(source.contains("observedExpectedLifecycleStateExplained=true"))
+        XCTAssertTrue(source.contains("missingReconciliationFailsClosed=true"))
+        XCTAssertTrue(source.contains("mismatchReconciliationFailsClosed=true"))
+        XCTAssertTrue(source.contains("readOnlyOperatorAction=true"))
+        XCTAssertTrue(contractDoc.contains("#1178 closed / done"))
+        XCTAssertTrue(contractDoc.contains("#1179 closed / done"))
+        XCTAssertTrue(contractDoc.contains("mtpro operator-run replay-cancel-status-reconciliation"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh"))
+        XCTAssertTrue(verifier.contains("testGH1180CancelStatusReconciliationReplayCommandUsesLocalArtifacts"))
+        for artifact in [source, contractDoc] {
+            XCTAssertFalse(artifact.contains("api.binance.com"))
+            XCTAssertFalse(artifact.contains("www.okx.com"))
+            XCTAssertFalse(artifact.contains("URLSession"))
+            XCTAssertFalse(artifact.contains("URLRequest"))
+            XCTAssertFalse(artifact.contains("submitOrder"))
+            XCTAssertFalse(artifact.contains("cancelOrder"))
+            XCTAssertFalse(artifact.contains("replaceOrder"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     func testGH784RuntimeEventLogWriterAppendsValidatesAndRecoversPartialLines() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

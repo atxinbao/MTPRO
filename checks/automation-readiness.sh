@@ -11920,5 +11920,39 @@ require_contains "docs/release/release-publication-policy.md" "GH-1179 adds the 
 require_contains "checks/run.sh" "bash checks/verify-v0.18.0-resume-after-interruption-command.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-resume-after-interruption-command.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1179ResumeAfterInterruptionCommandUsesArtifactStoreEvidence"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0180CancelStatusReconciliationReplayCommand.swift" \
+  "docs/contracts/release-v0.18.0-cancel-status-reconciliation-replay-command-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1180-VERIFY-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND"
+  require_contains "$file" "TVM-RELEASE-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND"
+  require_contains "$file" "V0180-005-DEPENDENCIES-GH1178-GH1179-DONE"
+  require_contains "$file" "V0180-005-LOCAL-ARTIFACT-REPLAY"
+  require_contains "$file" "V0180-005-CANCEL-STATUS-OBSERVED-EXPECTED-EXPLAINED"
+  require_contains "$file" "V0180-005-MISSING-RECONCILIATION-FAILS-CLOSED"
+  require_contains "$file" "V0180-005-MISMATCH-RECONCILIATION-FAILS-CLOSED"
+  require_contains "$file" "V0180-005-READ-ONLY-OPERATOR-ACTION"
+  require_contains "$file" "V0180-005-CROSS-VENUE-PRODUCT-REUSE-REJECTED"
+  require_contains "$file" "V0180-005-NO-PRODUCTION-CUTOVER"
+done
+require_contains "docs/contracts/release-v0.18.0-cancel-status-reconciliation-replay-command-contract.md" "#1178 closed / done"
+require_contains "docs/contracts/release-v0.18.0-cancel-status-reconciliation-replay-command-contract.md" "#1179 closed / done"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180CancelStatusReconciliationReplayCommand.swift" "cancelStatusReconciliationReplayCommand=ReleaseV0180CancelStatusReconciliationReplayCommand"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180CancelStatusReconciliationReplayCommand.swift" "ReleaseV0180CancelStatusReconciliationReplayInput"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180CancelStatusReconciliationReplayCommand.swift" "ReleaseV0180CancelStatusReconciliationReplayResult"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.0 cancel/status reconciliation replay command anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1180 Release v0.18.0 Cancel / Status Reconciliation Replay Command"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND"
+require_contains "docs/release/release-publication-policy.md" "GH-1180 adds the cancel/status reconciliation replay command"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1180CancelStatusReconciliationReplayCommandUsesLocalArtifacts"
 
 printf 'MTPRO automation readiness checks passed.\n'
