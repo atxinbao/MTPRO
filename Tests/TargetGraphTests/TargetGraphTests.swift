@@ -49694,6 +49694,199 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("replaceOrder"))
     }
 
+    func testGH1177RunArtifactLifecycleManifestRecordsNamespaceAndRejectsReuse() async throws {
+        // 测试场景：GH-1177 为本地 run artifact lifecycle manifest 增加 venue/product/environment
+        // namespace。
+        // 验证目的：manifest 必须记录 venue、product、environment、accountProfile 和 runID；
+        // 同一 artifact bundle 不能跨 venue/product/environment 复用，且仍然是 local evidence only。
+        // GH-1177-VERIFY-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
+        // TVM-RELEASE-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
+        // V0180-002-DEPENDENCY-GH1176-DONE
+        // V0180-002-LIFECYCLE-MANIFEST-SCHEMA
+        // V0180-002-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE
+        // V0180-002-ACCOUNT-RUNID-BINDING
+        // V0180-002-BOUNDARY-REUSE-REJECTION
+        // V0180-002-LOCAL-EVIDENCE-ONLY
+        // V0180-002-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        let source = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/Database/ReleaseV060LocalRunJournalWriter.swift"),
+            encoding: .utf8
+        )
+        let contractDoc = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "docs/contracts/release-v0.18.0-run-artifact-lifecycle-manifest-namespace-contract.md"
+            ),
+            encoding: .utf8
+        )
+        let validationPlan = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/validation-plan.md"),
+            encoding: .utf8
+        )
+        let tradingMatrix = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/trading-validation-matrix.md"),
+            encoding: .utf8
+        )
+        let automationReadiness = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("docs/automation/automation-readiness.md"),
+            encoding: .utf8
+        )
+        let readinessScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
+            encoding: .utf8
+        )
+        let runScript = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("checks/run.sh"),
+            encoding: .utf8
+        )
+        let verifier = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh"
+            ),
+            encoding: .utf8
+        )
+
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH1177-RunArtifactLifecycleManifest-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+
+        let writer = ReleaseV060LocalRunJournalWriter(storageRootURL: storageRoot)
+        let journal = try await ReleaseV050DurableLocalRunJournalContract.deterministicJournal()
+        let completed = try writer.writeCompletedRun(journal: journal)
+        let namespace = try ReleaseV0180RunArtifactLifecycleNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: journal.paths.runID
+        )
+        let manifest = try writer.writeVenueProductAwareLifecycleManifest(namespace: namespace)
+        XCTAssertTrue(manifest.manifestHeld)
+        XCTAssertEqual(manifest.namespace, namespace)
+        XCTAssertEqual(manifest.sourceRunManifestPath, completed.manifestJSONPath)
+        XCTAssertEqual(manifest.requiredArtifactFileNames, [
+            "events.jsonl",
+            "projection.json",
+            "summary.json",
+            "_RUN_STATUS.json"
+        ])
+        XCTAssertEqual(manifest.statusQueryPersistenceNamespace, namespace.namespaceKey)
+        XCTAssertEqual(manifest.resumeNamespace, namespace.namespaceKey)
+        XCTAssertEqual(manifest.reconciliationReplayNamespace, namespace.namespaceKey)
+        XCTAssertEqual(manifest.cliNextActionNamespace, namespace.namespaceKey)
+        XCTAssertEqual(manifest.dashboardDrilldownNamespace, namespace.namespaceKey)
+        XCTAssertTrue(manifest.localEvidenceOnly)
+        XCTAssertFalse(manifest.productionTradingEnabledByDefault)
+        XCTAssertFalse(manifest.productionSecretReadEnabled)
+        XCTAssertFalse(manifest.productionEndpointConnectionEnabled)
+        XCTAssertFalse(manifest.productionBrokerConnectionEnabled)
+        XCTAssertFalse(manifest.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(manifest.productionCutoverAuthorized)
+
+        let validation = try writer.validateVenueProductAwareLifecycleManifest(expectedNamespace: namespace)
+        XCTAssertTrue(validation.validationHeld)
+        XCTAssertTrue(validation.namespaceMatched)
+        XCTAssertTrue(validation.venueProductEnvironmentMatched)
+        XCTAssertTrue(validation.sourceRunManifestValidation.validationHeld)
+        XCTAssertTrue(validation.lifecycleChecksum.hasPrefix("sha256:"))
+
+        let lifecycleURL = storageRoot.appendingPathComponent(journal.paths.runID.rawValue)
+            .appendingPathComponent(ReleaseV060LocalRunJournalWriter.v0180LifecycleManifestFileName)
+        let lifecycleJSON = try String(contentsOf: lifecycleURL, encoding: .utf8)
+        for requiredField in ["venue", "product", "environment", "accountProfile", "runID"] {
+            XCTAssertTrue(lifecycleJSON.contains(requiredField), "lifecycle manifest must contain \(requiredField)")
+        }
+        XCTAssertTrue(lifecycleJSON.contains("binance"))
+        XCTAssertTrue(lifecycleJSON.contains("spot"))
+        XCTAssertTrue(lifecycleJSON.contains("testnet"))
+        XCTAssertTrue(lifecycleJSON.contains("operator-beta"))
+
+        let productMismatch = try ReleaseV0180RunArtifactLifecycleNamespace(
+            venue: "binance",
+            product: "usdmFutures",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: journal.paths.runID
+        )
+        XCTAssertThrowsError(
+            try writer.validateVenueProductAwareLifecycleManifest(expectedNamespace: productMismatch)
+        ) { error in
+            guard let writerError = error as? ReleaseV060LocalRunJournalWriterError,
+                  case .artifactMetadataMismatch = writerError else {
+                return XCTFail("product namespace reuse must fail closed, got \(error)")
+            }
+        }
+
+        let environmentMismatch = try ReleaseV0180RunArtifactLifecycleNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "shadow",
+            accountProfile: "operator-beta",
+            runID: journal.paths.runID
+        )
+        XCTAssertThrowsError(
+            try writer.validateVenueProductAwareLifecycleManifest(expectedNamespace: environmentMismatch)
+        ) { error in
+            guard let writerError = error as? ReleaseV060LocalRunJournalWriterError,
+                  case .artifactMetadataMismatch = writerError else {
+                return XCTFail("environment namespace reuse must fail closed, got \(error)")
+            }
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV0180RunArtifactLifecycleNamespace(
+                venue: "",
+                product: "spot",
+                environment: "testnet",
+                accountProfile: "operator-beta",
+                runID: journal.paths.runID
+            )
+        ) { error in
+            guard let writerError = error as? ReleaseV060LocalRunJournalWriterError,
+                  case .artifactMetadataMismatch = writerError else {
+                return XCTFail("missing venue must fail closed, got \(error)")
+            }
+        }
+
+        let anchors = [
+            "GH-1177-VERIFY-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE",
+            "TVM-RELEASE-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE",
+            "V0180-002-DEPENDENCY-GH1176-DONE",
+            "V0180-002-LIFECYCLE-MANIFEST-SCHEMA",
+            "V0180-002-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE",
+            "V0180-002-ACCOUNT-RUNID-BINDING",
+            "V0180-002-BOUNDARY-REUSE-REJECTION",
+            "V0180-002-LOCAL-EVIDENCE-ONLY",
+            "V0180-002-NO-PRODUCTION-CUTOVER"
+        ]
+        for sourceText in [source, contractDoc, validationPlan, tradingMatrix, automationReadiness, readinessScript, runScript, verifier] {
+            for anchor in anchors {
+                XCTAssertTrue(sourceText.contains(anchor), "missing \(anchor)")
+            }
+        }
+
+        XCTAssertTrue(source.contains("ReleaseV0180RunArtifactLifecycleNamespace"))
+        XCTAssertTrue(source.contains("ReleaseV0180RunArtifactLifecycleManifest"))
+        XCTAssertTrue(source.contains("ReleaseV0180RunArtifactLifecycleManifestValidation"))
+        XCTAssertTrue(source.contains("writeVenueProductAwareLifecycleManifest"))
+        XCTAssertTrue(source.contains("validateVenueProductAwareLifecycleManifest"))
+        XCTAssertTrue(source.contains("lifecycle-manifest-v0.18.0.json"))
+        XCTAssertTrue(verifier.contains("testGH1177RunArtifactLifecycleManifestRecordsNamespaceAndRejectsReuse"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh"))
+        XCTAssertFalse(source.contains("URLSession"))
+        XCTAssertFalse(source.contains("URLRequest"))
+        XCTAssertFalse(source.contains("api.binance.com"))
+        XCTAssertFalse(source.contains("www.okx.com"))
+        XCTAssertFalse(source.contains("submitOrder"))
+        XCTAssertFalse(source.contains("cancelOrder"))
+        XCTAssertFalse(source.contains("replaceOrder"))
+    }
+
     func testGH784RuntimeEventLogWriterAppendsValidatesAndRecoversPartialLines() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

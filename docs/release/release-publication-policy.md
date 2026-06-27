@@ -1089,3 +1089,27 @@ GH-1171 may record Venue/Product-aware lifecycle recovery as the next planning c
 GH-1176 defines the v0.18.0 venue/product-aware operator lifecycle recovery contract. The contract requires `{venue, product, environment, accountProfile, runID}` on artifact lifecycle, status query persistence, resume, reconciliation replay, CLI next-action and Dashboard drilldown evidence.
 
 GH-1176 also fixes the v0.18.0 preflight boundary: #1168, #1169, #1170 and #1171 must be closed / done before v0.18.0 can start. Binance / OKX target architecture is documented as recovery taxonomy only. GH-1176 does not implement OKX runtime, does not activate a new venue/product, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
+
+## GH-1177 Release v0.18.0 Run Artifact Lifecycle Manifest Namespace Policy
+
+`GH-1177-VERIFY-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE`
+
+`TVM-RELEASE-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE`
+
+`V0180-002-DEPENDENCY-GH1176-DONE`
+
+`V0180-002-LIFECYCLE-MANIFEST-SCHEMA`
+
+`V0180-002-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE`
+
+`V0180-002-ACCOUNT-RUNID-BINDING`
+
+`V0180-002-BOUNDARY-REUSE-REJECTION`
+
+`V0180-002-LOCAL-EVIDENCE-ONLY`
+
+`V0180-002-NO-PRODUCTION-CUTOVER`
+
+GH-1177 adds the v0.18.0 run artifact lifecycle manifest namespace guard. `lifecycle-manifest-v0.18.0.json` is a local companion manifest for `.local/mtpro/runs/<runID>/manifest.json`; it records `venue`, `product`, `environment`, `accountProfile` and `runID`, and rejects product / environment namespace reuse.
+
+GH-1177 is local evidence only. It does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。

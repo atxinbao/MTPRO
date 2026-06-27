@@ -38,6 +38,75 @@ public enum ReleaseV060LocalRunJournalWriterError: Error, Equatable, Sendable, C
     }
 }
 
+/// ReleaseV0180RunArtifactLifecycleNamespace 固定 GH-1177 的 venue/product/environment namespace。
+///
+/// Namespace 是 v0.18.0 run artifact lifecycle manifest 的唯一边界键。它只用于本地
+/// evidence 关联和 fail-closed validation，不会触发 endpoint、broker、secret 或订单能力。
+/// GH-1177-VERIFY-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
+/// TVM-RELEASE-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
+/// V0180-002-DEPENDENCY-GH1176-DONE
+/// V0180-002-LIFECYCLE-MANIFEST-SCHEMA
+/// V0180-002-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE
+/// V0180-002-ACCOUNT-RUNID-BINDING
+/// V0180-002-BOUNDARY-REUSE-REJECTION
+/// V0180-002-LOCAL-EVIDENCE-ONLY
+/// V0180-002-NO-PRODUCTION-CUTOVER
+public struct ReleaseV0180RunArtifactLifecycleNamespace: Codable, Equatable, Sendable {
+    public let venue: String
+    public let product: String
+    public let environment: String
+    public let accountProfile: String
+    public let runID: Identifier
+
+    public var namespaceKey: String {
+        [
+            "venue=\(venue)",
+            "product=\(product)",
+            "environment=\(environment)",
+            "accountProfile=\(accountProfile)",
+            "runID=\(runID.rawValue)"
+        ].joined(separator: "|")
+    }
+
+    public var venueProductPairSupported: Bool {
+        switch (venue, product) {
+        case ("binance", "spot"), ("binance", "usdmFutures"), ("okx", "spot"), ("okx", "swap"):
+            true
+        default:
+            false
+        }
+    }
+
+    public var namespaceHeld: Bool {
+        venue.isEmpty == false
+            && product.isEmpty == false
+            && environment.isEmpty == false
+            && accountProfile.isEmpty == false
+            && runID.rawValue.isEmpty == false
+            && venueProductPairSupported
+    }
+
+    public init(
+        venue: String,
+        product: String,
+        environment: String,
+        accountProfile: String,
+        runID: Identifier
+    ) throws {
+        self.venue = venue
+        self.product = product
+        self.environment = environment
+        self.accountProfile = accountProfile
+        self.runID = runID
+
+        guard namespaceHeld else {
+            throw ReleaseV060LocalRunJournalWriterError.artifactMetadataMismatch(
+                "GH-1177 namespace requires venue/product/environment/accountProfile/runID"
+            )
+        }
+    }
+}
+
 /// ReleaseV060LocalRunJournalWriterState 是 `_RUN_STATUS.json` 的 run 状态枚举。
 ///
 /// `completed` 只有在 manifest 与所有 required artifacts 存在时才会被 inspect 视为完成；
@@ -320,6 +389,231 @@ public struct ReleaseV060LocalRunJournalManifestValidation: Codable, Equatable, 
 
         guard validationHeld else {
             throw ReleaseV060LocalRunJournalWriterError.artifactMetadataMismatch("GH-757 validation result")
+        }
+    }
+}
+
+/// ReleaseV0180RunArtifactLifecycleManifest 是 GH-1177 的 v0.18.0 lifecycle manifest。
+///
+/// 它把既有本地 run manifest 绑定到 `{venue, product, environment, accountProfile, runID}`
+/// namespace。该 manifest 只描述本地 artifact lifecycle，不授权 production cutover、secret
+/// read、endpoint connection、broker connection 或 submit / cancel / replace。
+public struct ReleaseV0180RunArtifactLifecycleManifest: Codable, Equatable, Sendable {
+    public static let schemaVersion = "v0.18.0.run-artifact-lifecycle-manifest.v1"
+
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let schemaVersion: String
+    public let namespace: ReleaseV0180RunArtifactLifecycleNamespace
+    public let runDirectoryPath: String
+    public let sourceRunManifestPath: String
+    public let sourceRunManifestSchemaVersion: String
+    public let requiredArtifactFileNames: [String]
+    public let requiredArtifactChecksums: [String]
+    public let artifactLifecycleState: String
+    public let statusQueryPersistenceNamespace: String
+    public let resumeNamespace: String
+    public let reconciliationReplayNamespace: String
+    public let cliNextActionNamespace: String
+    public let dashboardDrilldownNamespace: String
+    public let lifecycleChecksum: String
+    public let localEvidenceOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretReadEnabled: Bool
+    public let productionEndpointConnectionEnabled: Bool
+    public let productionBrokerConnectionEnabled: Bool
+    public let productionOrderSubmitCancelReplaceEnabled: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var manifestHeld: Bool {
+        issueID.rawValue == "GH-1177"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-1176"]
+            && releaseVersion == "v0.18.0"
+            && schemaVersion == Self.schemaVersion
+            && namespace.namespaceHeld
+            && runDirectoryPath.isEmpty == false
+            && sourceRunManifestPath.hasSuffix(ReleaseV060LocalRunJournalWriter.manifestFileName)
+            && sourceRunManifestSchemaVersion == ReleaseV060LocalRunJournalArtifactMetadata.schemaVersion
+            && requiredArtifactFileNames == ["events.jsonl", "projection.json", "summary.json", "_RUN_STATUS.json"]
+            && requiredArtifactChecksums.count == requiredArtifactFileNames.count
+            && requiredArtifactChecksums.allSatisfy { $0.hasPrefix("sha256:") }
+            && artifactLifecycleState == "completed-local-run-artifacts-validated"
+            && statusQueryPersistenceNamespace == namespace.namespaceKey
+            && resumeNamespace == namespace.namespaceKey
+            && reconciliationReplayNamespace == namespace.namespaceKey
+            && cliNextActionNamespace == namespace.namespaceKey
+            && dashboardDrilldownNamespace == namespace.namespaceKey
+            && lifecycleChecksum == Self.stableLifecycleChecksum(
+                namespace: namespace,
+                sourceRunManifestPath: sourceRunManifestPath,
+                requiredArtifactChecksums: requiredArtifactChecksums
+            )
+            && localEvidenceOnly
+            && productionTradingEnabledByDefault == false
+            && productionSecretReadEnabled == false
+            && productionEndpointConnectionEnabled == false
+            && productionBrokerConnectionEnabled == false
+            && productionOrderSubmitCancelReplaceEnabled == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-1177"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-1176")],
+        releaseVersion: String = "v0.18.0",
+        schemaVersion: String = Self.schemaVersion,
+        namespace: ReleaseV0180RunArtifactLifecycleNamespace,
+        runDirectoryPath: String,
+        sourceRunManifestPath: String,
+        sourceValidation: ReleaseV060LocalRunJournalManifestValidation,
+        artifactLifecycleState: String = "completed-local-run-artifacts-validated",
+        localEvidenceOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretReadEnabled: Bool = false,
+        productionEndpointConnectionEnabled: Bool = false,
+        productionBrokerConnectionEnabled: Bool = false,
+        productionOrderSubmitCancelReplaceEnabled: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.schemaVersion = schemaVersion
+        self.namespace = namespace
+        self.runDirectoryPath = runDirectoryPath
+        self.sourceRunManifestPath = sourceRunManifestPath
+        self.sourceRunManifestSchemaVersion = sourceValidation.artifactMetadataSchemaVersion
+        self.requiredArtifactFileNames = sourceValidation.artifacts.map {
+            URL(fileURLWithPath: $0.path).lastPathComponent
+        }
+        self.requiredArtifactChecksums = sourceValidation.artifacts.map(\.sha256)
+        self.artifactLifecycleState = artifactLifecycleState
+        self.statusQueryPersistenceNamespace = namespace.namespaceKey
+        self.resumeNamespace = namespace.namespaceKey
+        self.reconciliationReplayNamespace = namespace.namespaceKey
+        self.cliNextActionNamespace = namespace.namespaceKey
+        self.dashboardDrilldownNamespace = namespace.namespaceKey
+        self.lifecycleChecksum = Self.stableLifecycleChecksum(
+            namespace: namespace,
+            sourceRunManifestPath: sourceRunManifestPath,
+            requiredArtifactChecksums: sourceValidation.artifacts.map(\.sha256)
+        )
+        self.localEvidenceOnly = localEvidenceOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretReadEnabled = productionSecretReadEnabled
+        self.productionEndpointConnectionEnabled = productionEndpointConnectionEnabled
+        self.productionBrokerConnectionEnabled = productionBrokerConnectionEnabled
+        self.productionOrderSubmitCancelReplaceEnabled = productionOrderSubmitCancelReplaceEnabled
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard manifestHeld else {
+            throw ReleaseV060LocalRunJournalWriterError.artifactMetadataMismatch(
+                "GH-1177 lifecycle manifest"
+            )
+        }
+    }
+
+    public static func stableLifecycleChecksum(
+        namespace: ReleaseV0180RunArtifactLifecycleNamespace,
+        sourceRunManifestPath: String,
+        requiredArtifactChecksums: [String]
+    ) -> String {
+        ReleaseV060LocalRunJournalWriter.sha256Hex(
+            Data(([
+                "GH-1177",
+                "v0.18.0",
+                Self.schemaVersion,
+                namespace.namespaceKey,
+                sourceRunManifestPath
+            ] + requiredArtifactChecksums).joined(separator: "|").utf8)
+        )
+    }
+}
+
+/// ReleaseV0180RunArtifactLifecycleManifestValidation 是 GH-1177 的 namespace-aware 校验结果。
+///
+/// Validation 必须同时证明旧 run manifest artifact 完整，以及 v0.18 lifecycle manifest 未被跨
+/// venue/product/environment/accountProfile/runID 重用。任何 namespace mismatch 都必须 fail closed。
+public struct ReleaseV0180RunArtifactLifecycleManifestValidation: Codable, Equatable, Sendable {
+    public let issueID: Identifier
+    public let upstreamIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let expectedNamespace: ReleaseV0180RunArtifactLifecycleNamespace
+    public let observedNamespace: ReleaseV0180RunArtifactLifecycleNamespace
+    public let namespaceMatched: Bool
+    public let venueProductEnvironmentMatched: Bool
+    public let sourceRunManifestValidation: ReleaseV060LocalRunJournalManifestValidation
+    public let lifecycleChecksum: String
+    public let validationPassed: Bool
+    public let localEvidenceOnly: Bool
+    public let productionTradingEnabledByDefault: Bool
+    public let productionSecretReadEnabled: Bool
+    public let productionEndpointConnectionEnabled: Bool
+    public let productionBrokerConnectionEnabled: Bool
+    public let productionOrderSubmitCancelReplaceEnabled: Bool
+    public let productionCutoverAuthorized: Bool
+
+    public var validationHeld: Bool {
+        issueID.rawValue == "GH-1177"
+            && upstreamIssueIDs.map(\.rawValue) == ["GH-1176"]
+            && releaseVersion == "v0.18.0"
+            && expectedNamespace.namespaceHeld
+            && observedNamespace.namespaceHeld
+            && namespaceMatched
+            && venueProductEnvironmentMatched
+            && sourceRunManifestValidation.validationHeld
+            && lifecycleChecksum.hasPrefix("sha256:")
+            && validationPassed
+            && localEvidenceOnly
+            && productionTradingEnabledByDefault == false
+            && productionSecretReadEnabled == false
+            && productionEndpointConnectionEnabled == false
+            && productionBrokerConnectionEnabled == false
+            && productionOrderSubmitCancelReplaceEnabled == false
+            && productionCutoverAuthorized == false
+    }
+
+    public init(
+        issueID: Identifier = Identifier.constant("GH-1177"),
+        upstreamIssueIDs: [Identifier] = [Identifier.constant("GH-1176")],
+        releaseVersion: String = "v0.18.0",
+        expectedNamespace: ReleaseV0180RunArtifactLifecycleNamespace,
+        manifest: ReleaseV0180RunArtifactLifecycleManifest,
+        sourceRunManifestValidation: ReleaseV060LocalRunJournalManifestValidation,
+        validationPassed: Bool = true,
+        localEvidenceOnly: Bool = true,
+        productionTradingEnabledByDefault: Bool = false,
+        productionSecretReadEnabled: Bool = false,
+        productionEndpointConnectionEnabled: Bool = false,
+        productionBrokerConnectionEnabled: Bool = false,
+        productionOrderSubmitCancelReplaceEnabled: Bool = false,
+        productionCutoverAuthorized: Bool = false
+    ) throws {
+        self.issueID = issueID
+        self.upstreamIssueIDs = upstreamIssueIDs
+        self.releaseVersion = releaseVersion
+        self.expectedNamespace = expectedNamespace
+        self.observedNamespace = manifest.namespace
+        self.namespaceMatched = expectedNamespace == manifest.namespace
+        self.venueProductEnvironmentMatched = expectedNamespace.venue == manifest.namespace.venue
+            && expectedNamespace.product == manifest.namespace.product
+            && expectedNamespace.environment == manifest.namespace.environment
+        self.sourceRunManifestValidation = sourceRunManifestValidation
+        self.lifecycleChecksum = manifest.lifecycleChecksum
+        self.validationPassed = validationPassed
+        self.localEvidenceOnly = localEvidenceOnly
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionSecretReadEnabled = productionSecretReadEnabled
+        self.productionEndpointConnectionEnabled = productionEndpointConnectionEnabled
+        self.productionBrokerConnectionEnabled = productionBrokerConnectionEnabled
+        self.productionOrderSubmitCancelReplaceEnabled = productionOrderSubmitCancelReplaceEnabled
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+
+        guard validationHeld else {
+            throw ReleaseV060LocalRunJournalWriterError.artifactMetadataMismatch(
+                "GH-1177 lifecycle namespace mismatch"
+            )
         }
     }
 }
@@ -919,6 +1213,7 @@ public struct ReleaseV080RuntimeEventLogQuarantineResult: Codable, Equatable, Se
 public struct ReleaseV060LocalRunJournalWriter {
     public static let statusFileName = "_RUN_STATUS.json"
     public static let manifestFileName = "manifest.json"
+    public static let v0180LifecycleManifestFileName = "lifecycle-manifest-v0.18.0.json"
 
     private let storageRootURL: URL
     private let fileManager: FileManager
@@ -1069,6 +1364,46 @@ public struct ReleaseV060LocalRunJournalWriter {
         return try ReleaseV060LocalRunJournalManifestValidation(
             runID: runID,
             artifacts: manifest.artifacts
+        )
+    }
+
+    @discardableResult
+    public func writeVenueProductAwareLifecycleManifest(
+        namespace: ReleaseV0180RunArtifactLifecycleNamespace
+    ) throws -> ReleaseV0180RunArtifactLifecycleManifest {
+        let urls = artifactURLs(runID: namespace.runID)
+        let sourceValidation = try validateRunManifest(runID: namespace.runID)
+        let manifest = try ReleaseV0180RunArtifactLifecycleManifest(
+            namespace: namespace,
+            runDirectoryPath: urls.runDirectoryURL.path,
+            sourceRunManifestPath: urls.manifestURL.path,
+            sourceValidation: sourceValidation
+        )
+        try writeAtomicJSON(manifest, to: urls.lifecycleManifestURL)
+        return manifest
+    }
+
+    public func validateVenueProductAwareLifecycleManifest(
+        expectedNamespace: ReleaseV0180RunArtifactLifecycleNamespace
+    ) throws -> ReleaseV0180RunArtifactLifecycleManifestValidation {
+        let urls = artifactURLs(runID: expectedNamespace.runID)
+        guard fileManager.fileExists(atPath: urls.lifecycleManifestURL.path) else {
+            throw ReleaseV060LocalRunJournalWriterError.missingArtifact(urls.lifecycleManifestURL.path)
+        }
+        let manifest = try decodeJSON(
+            ReleaseV0180RunArtifactLifecycleManifest.self,
+            from: urls.lifecycleManifestURL
+        )
+        guard manifest.namespace == expectedNamespace else {
+            throw ReleaseV060LocalRunJournalWriterError.artifactMetadataMismatch(
+                "GH-1177 namespace mismatch expected \(expectedNamespace.namespaceKey) actual \(manifest.namespace.namespaceKey)"
+            )
+        }
+        let sourceValidation = try validateRunManifest(runID: expectedNamespace.runID)
+        return try ReleaseV0180RunArtifactLifecycleManifestValidation(
+            expectedNamespace: expectedNamespace,
+            manifest: manifest,
+            sourceRunManifestValidation: sourceValidation
         )
     }
 
@@ -1607,7 +1942,8 @@ public struct ReleaseV060LocalRunJournalWriter {
             projectionURL: runDirectoryURL.appendingPathComponent("projection.json"),
             summaryURL: runDirectoryURL.appendingPathComponent("summary.json"),
             statusURL: runDirectoryURL.appendingPathComponent(Self.statusFileName),
-            manifestURL: runDirectoryURL.appendingPathComponent(Self.manifestFileName)
+            manifestURL: runDirectoryURL.appendingPathComponent(Self.manifestFileName),
+            lifecycleManifestURL: runDirectoryURL.appendingPathComponent(Self.v0180LifecycleManifestFileName)
         )
     }
 
@@ -1618,5 +1954,6 @@ public struct ReleaseV060LocalRunJournalWriter {
         let summaryURL: URL
         let statusURL: URL
         let manifestURL: URL
+        let lifecycleManifestURL: URL
     }
 }

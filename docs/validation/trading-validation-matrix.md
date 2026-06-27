@@ -4163,3 +4163,20 @@
 - dependency surface: v0.18.0 cannot start until #1168, #1169, #1170 and #1171 are closed / done.
 - target architecture surface: Binance and OKX product semantics are defined for recovery taxonomy only; no new OKX runtime and no new venue/product activation are authorized by GH-1176.
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
+
+## TVM-RELEASE-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
+
+- GH-1177-VERIFY-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
+- V0180-002-DEPENDENCY-GH1176-DONE
+- V0180-002-LIFECYCLE-MANIFEST-SCHEMA
+- V0180-002-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE
+- V0180-002-ACCOUNT-RUNID-BINDING
+- V0180-002-BOUNDARY-REUSE-REJECTION
+- V0180-002-LOCAL-EVIDENCE-ONLY
+- V0180-002-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1177RunArtifactLifecycleManifestRecordsNamespaceAndRejectsReuse`
+- validation surface: the v0.18.0 lifecycle companion manifest records venue, product, environment, accountProfile and runID while preserving v0.6 local run manifest checksum validation.
+- boundary reuse surface: the same local run artifact bundle cannot validate as another product or environment; namespace mismatch is a fail-closed validation error.
+- local evidence surface: lifecycle manifest evidence includes source run manifest path, required artifact file names, required artifact checksums, lifecycle checksum and namespace equality proof only.
+- forbidden scope: no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
