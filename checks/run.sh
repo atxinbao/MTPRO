@@ -368,6 +368,15 @@ bash checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh
 # V0171-002-REQUIRE-PASSED-STATUS
 # V0171-002-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.17.1-manual-workflow-fail-closed.sh
+# GH-1168-VERIFY-V0171-ARTIFACT-NEGATIVE-REGRESSIONS
+# TVM-RELEASE-V0171-ARTIFACT-NEGATIVE-REGRESSIONS
+# V0171-003-CORRUPT-BUNDLE-FAILS-CLOSED
+# V0171-003-MISSING-ARTIFACT-FAILS-CLOSED
+# V0171-003-MISSING-MANIFEST-FAILS-CLOSED
+# V0171-003-RECONCILIATION-MISSING-FAILS-CLOSED
+# V0171-003-REDACTED-OPERATOR-READABLE-EVIDENCE
+# V0171-003-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.17.1-artifact-negative-regressions.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
