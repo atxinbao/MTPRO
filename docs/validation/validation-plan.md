@@ -6069,3 +6069,23 @@ swift test
 - preflight evidence: #1168, #1169, #1170 and #1171 must be closed / done before v0.18.0 can start.
 - target architecture evidence: Binance / OKX venue-product semantics are defined as a contract boundary only; GH-1176 does not implement OKX runtime or activate new venue/product execution.
 - boundary evidence: no tag movement, no GitHub Release creation, no production cutover, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.
+
+## GH-1177 Release v0.18.0 Run Artifact Lifecycle Manifest Namespace
+
+- GH-1177-VERIFY-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
+- TVM-RELEASE-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
+- V0180-002-DEPENDENCY-GH1176-DONE
+- V0180-002-LIFECYCLE-MANIFEST-SCHEMA
+- V0180-002-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE
+- V0180-002-ACCOUNT-RUNID-BINDING
+- V0180-002-BOUNDARY-REUSE-REJECTION
+- V0180-002-LOCAL-EVIDENCE-ONLY
+- V0180-002-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1177RunArtifactLifecycleManifestRecordsNamespaceAndRejectsReuse`
+- source: `Sources/Database/ReleaseV060LocalRunJournalWriter.swift`
+- contract doc: `docs/contracts/release-v0.18.0-run-artifact-lifecycle-manifest-namespace-contract.md`
+- validation surface: `lifecycle-manifest-v0.18.0.json` must record `venue`, `product`, `environment`, `accountProfile` and `runID`, bind to the existing local run manifest checksums, and validate the same namespace across status query persistence, resume, reconciliation replay, CLI next-action and Dashboard drilldown.
+- fail-closed evidence: missing namespace fields, unsupported venue/product pair, product mismatch and environment mismatch reject the lifecycle manifest.
+- dependency evidence: #1176 must be closed / done before GH-1177 can execute.
+- boundary evidence: local evidence only; no OKX runtime implementation, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.

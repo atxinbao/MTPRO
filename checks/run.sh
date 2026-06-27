@@ -407,6 +407,16 @@ bash checks/verify-v0.17.1.sh
 # V0180-001-CLI-NEXT-ACTION-DASHBOARD-DRILLDOWN
 # V0180-001-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh
+# GH-1177-VERIFY-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
+# TVM-RELEASE-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
+# V0180-002-DEPENDENCY-GH1176-DONE
+# V0180-002-LIFECYCLE-MANIFEST-SCHEMA
+# V0180-002-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE
+# V0180-002-ACCOUNT-RUNID-BINDING
+# V0180-002-BOUNDARY-REUSE-REJECTION
+# V0180-002-LOCAL-EVIDENCE-ONLY
+# V0180-002-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

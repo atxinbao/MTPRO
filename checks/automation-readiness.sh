@@ -128,6 +128,7 @@ require_file "docs/contracts/release-v0.17.0-beta-safety-policy-profile-evidence
 require_file "docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md"
 require_file "docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md"
 require_file "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md"
+require_file "docs/contracts/release-v0.18.0-run-artifact-lifecycle-manifest-namespace-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
@@ -146,6 +147,7 @@ require_file "checks/verify-v0.17.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh"
 require_file "checks/verify-v0.17.1-manual-workflow-fail-closed.sh"
 require_file "checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh"
+require_file "checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -11809,5 +11811,42 @@ require_contains "docs/release/release-publication-policy.md" "GH-1176 defines t
 require_contains "checks/run.sh" "bash checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1176ReleaseV0180VenueProductAwareOperatorLifecycleRecoveryContract"
+for file in \
+  "Sources/Database/ReleaseV060LocalRunJournalWriter.swift" \
+  "docs/contracts/release-v0.18.0-run-artifact-lifecycle-manifest-namespace-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1177-VERIFY-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE"
+  require_contains "$file" "TVM-RELEASE-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE"
+  require_contains "$file" "V0180-002-DEPENDENCY-GH1176-DONE"
+  require_contains "$file" "V0180-002-LIFECYCLE-MANIFEST-SCHEMA"
+  require_contains "$file" "V0180-002-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE"
+  require_contains "$file" "V0180-002-ACCOUNT-RUNID-BINDING"
+  require_contains "$file" "V0180-002-BOUNDARY-REUSE-REJECTION"
+  require_contains "$file" "V0180-002-LOCAL-EVIDENCE-ONLY"
+  require_contains "$file" "V0180-002-NO-PRODUCTION-CUTOVER"
+done
+require_contains "docs/contracts/release-v0.18.0-run-artifact-lifecycle-manifest-namespace-contract.md" "#1176 closed / done"
+require_contains "Sources/Database/ReleaseV060LocalRunJournalWriter.swift" "ReleaseV0180RunArtifactLifecycleNamespace"
+require_contains "Sources/Database/ReleaseV060LocalRunJournalWriter.swift" "ReleaseV0180RunArtifactLifecycleManifest"
+require_contains "Sources/Database/ReleaseV060LocalRunJournalWriter.swift" "ReleaseV0180RunArtifactLifecycleManifestValidation"
+require_contains "Sources/Database/ReleaseV060LocalRunJournalWriter.swift" "writeVenueProductAwareLifecycleManifest"
+require_contains "Sources/Database/ReleaseV060LocalRunJournalWriter.swift" "validateVenueProductAwareLifecycleManifest"
+require_contains "Sources/Database/ReleaseV060LocalRunJournalWriter.swift" "lifecycle-manifest-v0.18.0.json"
+require_contains "docs/contracts/release-v0.18.0-run-artifact-lifecycle-manifest-namespace-contract.md" "same runID reused as a different product"
+require_contains "docs/contracts/release-v0.18.0-run-artifact-lifecycle-manifest-namespace-contract.md" "same runID reused as a different environment"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.0 run artifact lifecycle manifest namespace anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1177 Release v0.18.0 Run Artifact Lifecycle Manifest Namespace"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE"
+require_contains "docs/release/release-publication-policy.md" "GH-1177 adds the v0.18.0 run artifact lifecycle manifest namespace guard"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1177RunArtifactLifecycleManifestRecordsNamespaceAndRejectsReuse"
 
 printf 'MTPRO automation readiness checks passed.\n'
