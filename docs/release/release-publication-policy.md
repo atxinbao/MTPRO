@@ -27,6 +27,7 @@
 - `GH-1134 V161-002 Validate manual evidence bundle content in GitHub workflow`
 - `GH-1135 V161-003 Centralize v0.16 artifact redaction policy`
 - `GH-1136 V161-004 Add redaction regression coverage for Binance headers, signed query and production hosts`
+- `GH-1148 V170-010 Close v0.17.0 stage audit and release docs`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -972,3 +973,27 @@ GH-1138 closes the v0.16.1 patch audit, release notes, validation matrix and pub
 GH-1138 does not create a `v0.16.1` tag, does not create a GitHub Release, does not move the `v0.16.0` tag, does not overwrite the `v0.16.0` release, does not create the next Project / Issue, and does not authorize production cutover.
 
 If Human later requests `v0.16.1` publication, it must be handled by a separate explicit Release Publication Gate after clean `main`, open PR = 0, open active issue = 0, and validation evidence are re-confirmed. production cutover not authorized；production trading remains disabled by default；production secret read, production endpoint / broker endpoint connection and production submit / cancel / replace remain unauthorized.
+
+## GH-1148 Release v0.17.0 Stage Audit / Release Docs Closeout Policy
+
+`GH-1148-VERIFY-V0170-STAGE-AUDIT-RELEASE-DOCS`
+
+`TVM-RELEASE-V0170-STAGE-AUDIT-RELEASE-DOCS`
+
+`V0170-010-STAGE-CODE-AUDIT`
+
+`V0170-010-RELEASE-NOTES`
+
+`V0170-010-VALIDATION-MATRIX`
+
+`V0170-010-ROOT-DOCS-REFRESH`
+
+`V0170-010-STALE-WORDING-GUARD`
+
+`V0170-010-NO-PRODUCTION-CUTOVER`
+
+`V0170-010-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1148 closes the v0.17.0 stage audit, release notes, validation matrix, root docs refresh and stale wording guard. It records GH-1139..GH-1147 evidence, adds `docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md`, adds `docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md`, and registers `checks/verify-v0.17.0-stage-audit-release-docs.sh` in automation readiness.
+
+GH-1148 does not create a `v0.17.0` tag, does not create a GitHub Release, does not move any existing tag, does not create the next Project / Issue, does not submit testnet or production orders, and does not authorize production cutover. production cutover not authorized.

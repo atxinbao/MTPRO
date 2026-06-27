@@ -339,6 +339,16 @@ bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh
 # V0170-009-REDACTED-POLICY-EVIDENCE
 # V0170-009-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh
+# GH-1148-VERIFY-V0170-STAGE-AUDIT-RELEASE-DOCS
+# TVM-RELEASE-V0170-STAGE-AUDIT-RELEASE-DOCS
+# V0170-010-STAGE-CODE-AUDIT
+# V0170-010-RELEASE-NOTES
+# V0170-010-VALIDATION-MATRIX
+# V0170-010-ROOT-DOCS-REFRESH
+# V0170-010-STALE-WORDING-GUARD
+# V0170-010-NO-PRODUCTION-CUTOVER
+# V0170-010-NO-TAG-OR-RELEASE-PUBLICATION
+bash checks/verify-v0.17.0-stage-audit-release-docs.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

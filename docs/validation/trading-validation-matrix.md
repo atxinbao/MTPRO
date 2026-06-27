@@ -8,6 +8,23 @@
 
 ## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 
+## TVM-RELEASE-V0170-STAGE-AUDIT-RELEASE-DOCS
+
+- TVM-RELEASE-V0170-STAGE-AUDIT-RELEASE-DOCS
+- GH-1148-VERIFY-V0170-STAGE-AUDIT-RELEASE-DOCS
+- V0170-010-STAGE-CODE-AUDIT
+- V0170-010-RELEASE-NOTES
+- V0170-010-VALIDATION-MATRIX
+- V0170-010-ROOT-DOCS-REFRESH
+- V0170-010-STALE-WORDING-GUARD
+- V0170-010-NO-PRODUCTION-CUTOVER
+- V0170-010-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1148 Release v0.17.0 Stage Audit / Release Docs Closeout
+- `bash checks/verify-v0.17.0-stage-audit-release-docs.sh`
+- `swift test --filter TargetGraphTests/testGH1148ReleaseV0170StageAuditReleaseDocsCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md`、`docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`checks/verify-v0.17.0-stage-audit-release-docs.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1148 closes v0.17.0 Stage Code Audit, release notes, validation matrix, root docs refresh and stale wording guard. It does not publish a tag / GitHub Release, create the next Project / Issue, submit testnet or production orders, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE
 
 - TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE
