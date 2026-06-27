@@ -17329,3 +17329,23 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `bash checks/automation-readiness.sh`: pass.
   - `bash checks/verify-v0.10.0.sh`: pass; required because this PR refreshed root docs carrying v0.10.x historical guards.
   - `bash checks/run.sh`: pass, 609 tests / 0 failures.
+
+## 2026-06-27 - Target Venue / Product Goal Revision
+
+- Executor: Codex.
+- Scope:
+  - Updated `GOAL.md`, `BLUEPRINT.md`, `README.md`, `architecture.md`, `docs/roadmap.md`, and `docs/validation/latest-verification-summary.md`.
+  - Reframed MTPRO as a local-first, macOS-native, evidence-first live-native trading system.
+  - Clarified the long-term target venue / product matrix: Binance Spot, Binance USDⓈ-M Futures, OKX Spot, and OKX Swap.
+  - Recorded Bybit Spot / Linear Perpetual as future candidates only, not part of the current active commitment.
+  - Updated automation readiness wording guards so future root-doc edits must preserve the Binance / OKX target matrix.
+- Boundary:
+  - Did not change business code, `Package.swift`, SwiftPM targets, or `Sources`.
+  - Did not add OKX, Binance futures, Bybit, or new venue runtime implementation.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Production trading remains explicit-gate only and default-off.
+- Validation:
+  - `git diff --check`: pass.
+  - `bash checks/automation-readiness.sh`: pass.
+  - `bash checks/run.sh`: pass, 725 tests / 0 failures.

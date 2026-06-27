@@ -4,7 +4,7 @@
 
 本文档是 MTPRO 的 Engineering Module Map / 工程模块地图。它是根目录高权重承接文档，负责把 `BLUEPRINT.md` 的完整蓝图翻译成系统模块、模块边界、数据流、接口关系、依赖方向和架构不变量。本文档不能推翻 `BLUEPRINT.md`，不重新定义产品目标，不作为 Stage Code Audit、validation 或 PR evidence 流水账。
 
-MTPRO 是 SwiftPM-first、Swift-only、local-first 的 macOS 交易研究工作台。架构借鉴 NautilusTrader 的 Kernel、MessageBus、Cache、DataEngine、StrategyEngine、RiskEngine、ExecutionEngine、Portfolio 和 Adapter 职责拆分，但不引入 NautilusTrader 作为运行依赖。
+MTPRO 是 SwiftPM-first、Swift-only、local-first 的 macOS 实盘原生交易系统。架构借鉴 NautilusTrader 的 Kernel、MessageBus、Cache、DataEngine、StrategyEngine、RiskEngine、ExecutionEngine、Portfolio 和 Adapter 职责拆分，但不引入 NautilusTrader 作为运行依赖。
 
 ## Architecture Responsibility / 架构职责
 
@@ -25,7 +25,7 @@ DataClient/<venue>
 
 | 模块 | 大白话职责 | 禁止越界 |
 | --- | --- | --- |
-| `DataClient/<venue>/` | 交易所 / venue 输入适配器；一个 venue 一个目录 | 不接非授权 venue，不把 testnet / dry-run / read-only evidence 升级成 production command |
+| `DataClient/<venue>/` | 交易所 / venue 输入适配器；一个 venue 一个目录，product identity 必须进入 event / artifact namespace | 不接非授权 venue，不把 testnet / dry-run / read-only evidence 升级成 production command |
 | `DataEngine/` | ingest、replay、quality、scenario、cursor、freshness | 不直接写 UI，不执行交易，不绕过 MessageBus / Cache / Database |
 | `MessageBus/` | 内部 facts / events / commands / request-response spine | 不暴露 HTTP、broker payload、adapter request、DB schema 或 UI command surface |
 | `Cache/`、`Database/` | 可重建 state、durable facts / projections | 不成为 UI contract，不保存 broker truth |
@@ -33,7 +33,7 @@ DataClient/<venue>
 | `Trader/Coordination` | account、strategy、portfolio、risk、execution context 协调 | binding / adapter 语义归这里，不作为具体 strategy code 落点 |
 | `Portfolio`、`RiskEngine` | financial read model / projection context 和 pre-execution risk evidence | 不读取 broker account state，不调用 broker / ExecutionClient |
 | `ExecutionEngine` | paper / simulated lifecycle、future OMS boundary | 不调用交易所，不实现 broker adapter，不处理 real order lifecycle |
-| `ExecutionClient` | 把订单发出去的 gated boundary | production default、secret auto-read、production endpoint auto-connect 和 real order 都禁止 |
+| `ExecutionClient` | 把订单发出去的 gated boundary；后续按 venue / product 拆 Binance / OKX execution adapter | production default、secret auto-read、production endpoint auto-connect 和 real order 默认禁止，除非独立 production gate 授权 |
 | `Dashboard` | 只读消费 ReadModel / ViewModel | 不读 Runtime object、Adapter request、DB schema，不提供 trading button / live command |
 
 `GH-596-RELEASE-V020-ROOT-DOCS-REFRESH`
@@ -43,6 +43,30 @@ DataClient/<venue>
 `MTPRO Release v0.2.0` 已完成 GitHub fallback queue closure；Stage Code Audit Report 位于 `docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md`，operator runbook 位于 `docs/operators/release-v0.2.0-operator-runbook.md`。
 
 Current release construction scope：activeVenue == Binance；activeProductTypes == [spot, usdsPerpetual]；activeStrategies == [ema, rsi]；productionTradingEnabledByDefault == false；productionCapabilityGatedNotMissing == true；oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true。
+
+## Target Venue / Product Architecture
+
+长期目标架构必须按 venue / product 建模，而不是把交易所和产品写成单个全局常量：
+
+```text
+Venue/
+  Binance/
+    Spot
+    USDⓈ-M Futures
+  OKX/
+    Spot
+    Swap
+```
+
+Bybit Spot / Linear Perpetual 只作为 future candidate，不进入当前 canonical target architecture。若 Human 后续确认 Bybit，必须先创建独立 planning / issue queue，再引入 active source、tests 或 Package target。
+
+工程不变量：
+
+- 每个 run、artifact、order intent、OMS event、risk decision、credential reference、status query、reconciliation record 和 Dashboard read model 都必须能携带 `{venue, productType, environment, accountProfile, runID}`。
+- `DataClient/<venue>/` 负责 venue 输入与 product identity；`ExecutionClient/<venue>/` 负责 future signed / execution adapter boundary；两者不能混用。
+- Binance Spot 是当前最成熟 implementation path；Binance USDⓈ-M Futures、OKX Spot、OKX Swap 是目标能力，不是当前已实现或已授权 production 能力。
+- production trading 可以成为未来版本目标，但必须按 venue / product 逐项通过 credential、signed endpoint、OMS、risk、reconciliation、audit、rollback 和 Human approval gate。
+- 当前文档目标调整不移动 `Sources/`，不修改 `Package.swift`，不授权 OKX、USDⓈ-M Futures、production endpoint、production broker 或 production order。
 
 正确心智：策略只提出建议 -> Trader 协调上下文 -> RiskEngine 做风险门 -> ExecutionEngine 处理内部 paper / simulated lifecycle -> ExecutionClient 只在 release issue 明确授权且 production 默认关闭的 gate 后才可能接外部交易所 / broker。
 
@@ -66,6 +90,15 @@ Sources/
 ```
 
 当前 active UI surface 是 Dashboard read-model-only boundary；`Workbench` product / target 和 `Sources/Workbench/` 已退休；`TargetGraph Anchor Retirement / Real Module Source Root Migration before L4` 已完成。
+
+Target planned roots（不代表当前已存在 source，不授权 execution）：
+
+```text
+Sources/DataClient/Binance/{Spot,USDⓈ-M Futures}/
+Sources/DataClient/OKX/{Spot,Swap}/
+Sources/ExecutionClient/Binance/{Spot,USDⓈ-M Futures}/
+Sources/ExecutionClient/OKX/{Spot,Swap}/
+```
 
 ## Package Dependency Direction / SwiftPM 依赖方向
 

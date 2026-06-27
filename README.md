@@ -1,6 +1,8 @@
 # MTPRO
 
-MTPRO 是 SwiftPM-first、local-first 的 macOS 原生专业交易工作台。它以 Research -> Backtest -> Report -> Paper -> guarded runtime evidence 的可追溯链路为基础，最终目标是专业版交易工作台：Live trading、实盘监控、实盘执行控制、实盘风险控制、实盘审计、事故回放和停机控制。
+MTPRO 是 SwiftPM-first、local-first 的 macOS 原生实盘交易系统。它以 Research -> Backtest -> Report -> Paper -> guarded runtime evidence 的可追溯链路为基础，最终目标是支持 Binance Spot、Binance USDⓈ-M Futures、OKX Spot、OKX Swap 的专业交易系统：Live trading、实盘监控、实盘执行控制、实盘风险控制、OMS、账户 / 持仓、对账、实盘审计、事故回放和停机控制。
+
+当前目标调整不代表 OKX、Binance USDⓈ-M Futures 或 production trading 已实现或已授权。当前 release line 仍按唯一 live queue source、WIP=1、venue / product-aware gates 和 Human approval 逐层放权；Bybit Spot / Linear Perpetual 只作为 future candidate，不是当前目标承诺。
 
 Latest completed release construction scope: `MTPRO Release v0.17.0 Operator Beta Artifact + Status Runtime Hardening`。
 
@@ -74,13 +76,13 @@ MTPRO 借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapte
 | Latest patch statement | `MTPRO Release v0.15.1 Real Testnet Execution Hardening Patch complete as real testnet execution hardening patch without tag publication and without production cutover authorization` |
 | Latest v0.15.1 patch queue | `MTPRO Release v0.15.1 Real Testnet Execution Hardening Patch`；#1094..#1100 closed / done；`GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT`；release/v0.15.1 queue closed；patch closeout evidence only and publication requires a separate Release Publication Gate；production cutover not authorized |
 | Latest v0.16.0 operator beta queue | `MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta`；#1101..#1112 closed / done；`GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS`；Stage Code Audit / release notes / operator runbook closeout complete；construction closeout 本身不创建 tag / GitHub Release；独立 publication gate 已发布 stable GitHub Release `https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`，tag peeled commit `28779236262bd7ffaf71e286b27b95854c5cd3e1`，publication timestamp `2026-06-26T01:29:21Z`；Binance Spot Testnet only；production cutover not authorized |
-| Active venue / products / strategies | `activeVenue == Binance`；`activeProductTypes == [spot, usdsPerpetual]`；`activeStrategies == [ema, rsi]` |
+| Active venue / products / strategies | 当前实现仍以 `activeVenue == Binance`、`activeProductTypes == [spot, usdsPerpetual]`、`activeStrategies == [ema, rsi]` 为主；长期 target matrix 是 Binance Spot / USDⓈ-M Futures + OKX Spot / Swap |
 | Runtime modes | `runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]` |
 | Production default | `productionTradingEnabledByDefault == false`；这是当前 release line 的默认关闭策略，不是永久禁止实盘。 |
 | Production capability | `productionCapabilityGatedNotMissing == true` |
 | Historical boundary | `oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true` |
 
-Production trading、production secret、production endpoint、production broker connection、testnet / production submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.13.0 授权。这里的“不授权 / 默认关闭”是当前阶段的 readiness gate，不是 MTPRO 的永久产品限制。MTPRO 的长期目标仍包含受控 Live trading；后续只能在 evidence-driven readiness、signed endpoint / credential、OMS、pre-trade / post-trade risk、kill switch、reconciliation、audit trail、operator runbook 和 Human approval 全部满足后，按唯一 live queue source 逐层启用。
+Production trading、production secret、production endpoint、production broker connection、testnet / production submit / cancel / replace、production OMS 和 production cutover 都没有默认启用，也没有被 v0.13.0 授权。这里的“不授权 / 默认关闭”是当前阶段的 readiness gate，不是 MTPRO 的永久产品限制。MTPRO 的长期目标仍包含受控 Live trading；后续只能在 evidence-driven readiness、signed endpoint / credential、OMS、pre-trade / post-trade risk、kill switch、reconciliation、audit trail、operator runbook、venue / product scope 和 Human approval 全部满足后，按唯一 live queue source 逐层启用。
 
 最新完成的 GitHub fallback queue 为 `release/v0.15.0` issues `#1065..#1076`。`#1066` 至 `#1076` 已完成 release contract、credential / signed request、guarded Spot Testnet submit / cancel / cancel-replace runtime evidence、network event log、OMS state sync / reconciliation、CLI operator flow、Dashboard read-only status、failure simulation 和 release CI / manual workflow / audit closeout。`v0.15.0` 已通过独立 Release Publication Gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`，tag peeled commit：`1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`，publication timestamp：`2026-06-23T01:26:30Z`。v0.15.0 publication 不授权 production cutover。
 
