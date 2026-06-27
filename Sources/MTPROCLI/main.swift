@@ -9,6 +9,9 @@ do {
     let arguments = Array(CommandLine.arguments.dropFirst())
     let output = try await MTPROStrictCLI.commandLineOutput(arguments: arguments)
     print(output)
+} catch let error as ReleaseV0170CLIArtifactVerifyCommandFailedValidation {
+    print(error.renderedOutput)
+    Foundation.exit(error.exitCode)
 } catch {
     print("mtpro error: \(error)")
     Foundation.exit(64)
@@ -72,6 +75,18 @@ private enum MTPROStrictCLI {
         "V0170-007-DETERMINISTIC-VALIDATION-REPLAY-OUTPUT",
         "V0170-007-REDACTED-OUTPUT",
         "V0170-007-NO-PRODUCTION-CUTOVER"
+    ]
+    static let releaseV0171CLIArtifactVerifyFailClosedVerificationAnchor =
+        "GH-1166-VERIFY-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED"
+    static let releaseV0171CLIArtifactVerifyFailClosedValidationAnchor =
+        "TVM-RELEASE-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED"
+    static let releaseV0171CLIArtifactVerifyFailClosedRequiredAnchors = [
+        "GH-1166-VERIFY-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED",
+        "TVM-RELEASE-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED",
+        "V0171-001-FAILED-VALIDATION-NONZERO-EXIT",
+        "V0171-001-VALID-BUNDLE-EXIT-ZERO",
+        "V0171-001-LOCAL-REPORTING-PATH-REDACTED",
+        "V0171-001-NO-PRODUCTION-CUTOVER"
     ]
     static let releaseV0100VerificationAnchor = "GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
     static let releaseV0100ValidationAnchor = "TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
@@ -338,6 +353,10 @@ private enum MTPROStrictCLI {
             "releaseV0170CLIArtifactVerifyCommandValidationAnchor=\(releaseV0170CLIArtifactVerifyCommandValidationAnchor)",
             "releaseV0170CLIArtifactVerifyCommandVerificationAnchor=\(releaseV0170CLIArtifactVerifyCommandVerificationAnchor)",
             "releaseV0170CLIArtifactVerifyCommandRequiredAnchors=\(releaseV0170CLIArtifactVerifyCommandRequiredAnchors.joined(separator: ","))",
+            "releaseV0171CLIArtifactVerifyFailClosedValidationAnchor=\(releaseV0171CLIArtifactVerifyFailClosedValidationAnchor)",
+            "releaseV0171CLIArtifactVerifyFailClosedVerificationAnchor=\(releaseV0171CLIArtifactVerifyFailClosedVerificationAnchor)",
+            "releaseV0171CLIArtifactVerifyFailClosedRequiredAnchors=\(releaseV0171CLIArtifactVerifyFailClosedRequiredAnchors.joined(separator: ","))",
+            "releaseV0171CLIArtifactVerifyFailedValidationNonzeroExit=true",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
             "productionReadinessArtifactStoreImplemented=true",

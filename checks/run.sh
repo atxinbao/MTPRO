@@ -349,6 +349,13 @@ bash checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh
 # V0170-010-NO-PRODUCTION-CUTOVER
 # V0170-010-NO-TAG-OR-RELEASE-PUBLICATION
 bash checks/verify-v0.17.0-stage-audit-release-docs.sh
+# GH-1166-VERIFY-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED
+# TVM-RELEASE-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED
+# V0171-001-FAILED-VALIDATION-NONZERO-EXIT
+# V0171-001-VALID-BUNDLE-EXIT-ZERO
+# V0171-001-LOCAL-REPORTING-PATH-REDACTED
+# V0171-001-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
