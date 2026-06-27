@@ -361,6 +361,13 @@ bash checks/verify-v0.17.0-stage-audit-release-docs.sh
 # V0171-001-LOCAL-REPORTING-PATH-REDACTED
 # V0171-001-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh
+# GH-1167-VERIFY-V0171-MANUAL-WORKFLOW-FAIL-CLOSED
+# TVM-RELEASE-V0171-MANUAL-WORKFLOW-FAIL-CLOSED
+# V0171-002-UPLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW
+# V0171-002-DOWNLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW
+# V0171-002-REQUIRE-PASSED-STATUS
+# V0171-002-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.17.1-manual-workflow-fail-closed.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

@@ -47869,6 +47869,179 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1167ReleaseV0171ManualWorkflowRejectsFailedArtifactStatus() throws {
+        // 测试场景：GH-1167 将 manual workflow 的 uploaded/downloaded failed status 明确固定为
+        // workflow failure，而不是只生成失败报告后继续成功。
+        // 验证目的：上传或下载任一 artifact bundle 失败时，workflow 必须要求 CLI 非零退出或
+        // `status=passed` grep 失败；该路径仍只处理本地 redacted artifact evidence。
+        // GH-1167-VERIFY-V0171-MANUAL-WORKFLOW-FAIL-CLOSED
+        // TVM-RELEASE-V0171-MANUAL-WORKFLOW-FAIL-CLOSED
+        // V0171-002-UPLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW
+        // V0171-002-DOWNLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW
+        // V0171-002-REQUIRE-PASSED-STATUS
+        // V0171-002-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        func makeBundle(
+            suffix: String,
+            runID: Identifier,
+            tamperFirstRecord: Bool
+        ) throws -> URL {
+            let tempRoot = FileManager.default.temporaryDirectory
+                .appendingPathComponent("mtpro-gh1167-\(suffix)-\(UUID().uuidString)", isDirectory: true)
+            let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+            let start = Date(timeIntervalSince1970: 1_704_084_000)
+            var records: [ReleaseV0160LocalExecutionArtifactRecord] = []
+            for (index, kind) in ReleaseV0170OperatorBetaArtifactBundleValidationResult
+                .requiredActionSequence
+                .enumerated()
+            {
+                let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                    kind: kind,
+                    suffix: "\(suffix)-\(index + 1)",
+                    observedAt: start.addingTimeInterval(TimeInterval(index))
+                )
+                records.append(try store.append(
+                    runID: runID,
+                    payload: payload,
+                    appendedAt: start.addingTimeInterval(TimeInterval(index))
+                ))
+            }
+            if tamperFirstRecord {
+                try Data("{\"tampered\":\"redacted\"}".utf8).write(
+                    to: store.fileURL(forRelativePath: records[0].payloadPath),
+                    options: .atomic
+                )
+            }
+            return tempRoot
+        }
+
+        let runID = Identifier.constant("gh-1167-v0171-manual-workflow-fail-closed")
+        let validUploadedRoot = try makeBundle(
+            suffix: "valid-uploaded",
+            runID: runID,
+            tamperFirstRecord: false
+        )
+        let validDownloadedRoot = try makeBundle(
+            suffix: "valid-downloaded",
+            runID: runID,
+            tamperFirstRecord: false
+        )
+        let failedUploadedRoot = try makeBundle(
+            suffix: "failed-uploaded",
+            runID: runID,
+            tamperFirstRecord: true
+        )
+        let failedDownloadedRoot = try makeBundle(
+            suffix: "failed-downloaded",
+            runID: runID,
+            tamperFirstRecord: true
+        )
+        defer {
+            try? FileManager.default.removeItem(at: validUploadedRoot)
+            try? FileManager.default.removeItem(at: validDownloadedRoot)
+            try? FileManager.default.removeItem(at: failedUploadedRoot)
+            try? FileManager.default.removeItem(at: failedDownloadedRoot)
+        }
+
+        let passedReport = try ReleaseV0170ManualWorkflowArtifactValidationReport.validate(
+            uploadedStorageRootPath: validUploadedRoot.path,
+            downloadedStorageRootPath: validDownloadedRoot.path,
+            runID: runID.rawValue
+        )
+        XCTAssertEqual(passedReport.status, .passed)
+        XCTAssertTrue(passedReport.workflowFailClosedHeld)
+        XCTAssertTrue(passedReport.rendered().contains("workflowRequiresPassedStatus=true"))
+
+        let failedUploadedReport = try ReleaseV0170ManualWorkflowArtifactValidationReport.validate(
+            uploadedStorageRootPath: failedUploadedRoot.path,
+            downloadedStorageRootPath: validDownloadedRoot.path,
+            runID: runID.rawValue
+        )
+        XCTAssertEqual(failedUploadedReport.status, .failed)
+        XCTAssertEqual(failedUploadedReport.uploadedArtifact.validationResult.status, .failed)
+        XCTAssertEqual(failedUploadedReport.downloadedArtifact.validationResult.status, .passed)
+        XCTAssertTrue(failedUploadedReport.workflowFailClosedHeld)
+        XCTAssertTrue(failedUploadedReport.rendered().contains("failedUploadedArtifactRejectsWorkflow=true"))
+        XCTAssertTrue(failedUploadedReport.rendered().contains("failedStatusCannotSatisfyWorkflow=true"))
+
+        let failedDownloadedReport = try ReleaseV0170ManualWorkflowArtifactValidationReport.validate(
+            uploadedStorageRootPath: validUploadedRoot.path,
+            downloadedStorageRootPath: failedDownloadedRoot.path,
+            runID: runID.rawValue
+        )
+        XCTAssertEqual(failedDownloadedReport.status, .failed)
+        XCTAssertEqual(failedDownloadedReport.uploadedArtifact.validationResult.status, .passed)
+        XCTAssertEqual(failedDownloadedReport.downloadedArtifact.validationResult.status, .failed)
+        XCTAssertTrue(failedDownloadedReport.workflowFailClosedHeld)
+        XCTAssertTrue(failedDownloadedReport.rendered().contains("failedDownloadedArtifactRejectsWorkflow=true"))
+        XCTAssertTrue(failedDownloadedReport.rendered().contains("cliFailedValidationPropagatesNonzeroExit=true"))
+
+        XCTAssertEqual(
+            ReleaseV0170ManualWorkflowArtifactValidationReport
+                .releaseV0171ManualWorkflowFailClosedAnchors,
+            [
+                "GH-1167-VERIFY-V0171-MANUAL-WORKFLOW-FAIL-CLOSED",
+                "TVM-RELEASE-V0171-MANUAL-WORKFLOW-FAIL-CLOSED",
+                "V0171-002-UPLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW",
+                "V0171-002-DOWNLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW",
+                "V0171-002-REQUIRE-PASSED-STATUS",
+                "V0171-002-NO-PRODUCTION-CUTOVER"
+            ]
+        )
+        XCTAssertEqual(
+            ReleaseV0170ManualWorkflowArtifactValidationReport
+                .releaseV0171ManualWorkflowFailClosedValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1167ReleaseV0171ManualWorkflowRejectsFailedArtifactStatus",
+                "bash checks/verify-v0.17.1-manual-workflow-fail-closed.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift")
+        let workflow = try read(".github/workflows/release-v0.17.0-manual-artifact-validation.yml")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.17.1-manual-workflow-fail-closed.sh")
+
+        for artifact in [source, workflow, runScript, automationScript, verifier] {
+            for anchor in ReleaseV0170ManualWorkflowArtifactValidationReport
+                .releaseV0171ManualWorkflowFailClosedAnchors
+            {
+                XCTAssertTrue(artifact.contains(anchor), "artifact must contain \(anchor)")
+            }
+        }
+
+        XCTAssertTrue(workflow.contains("set -euo pipefail"))
+        XCTAssertTrue(workflow.contains("uploaded_output=\"$(swift run mtpro verify-operator-beta-artifact-bundle"))
+        XCTAssertTrue(workflow.contains("downloaded_output=\"$(swift run mtpro verify-operator-beta-artifact-bundle"))
+        XCTAssertTrue(workflow.contains("grep -Fq \"status=passed\" <<<\"$uploaded_output\""))
+        XCTAssertTrue(workflow.contains("grep -Fq \"status=passed\" <<<\"$downloaded_output\""))
+        XCTAssertTrue(workflow.contains("grep -Fq \"boundaryHeld=true\" <<<\"$uploaded_output\""))
+        XCTAssertTrue(workflow.contains("grep -Fq \"boundaryHeld=true\" <<<\"$downloaded_output\""))
+        XCTAssertTrue(source.contains("workflowRequiresPassedStatus=true"))
+        XCTAssertTrue(source.contains("failedStatusCannotSatisfyWorkflow=true"))
+        XCTAssertTrue(source.contains("cliFailedValidationPropagatesNonzeroExit=true"))
+        XCTAssertTrue(verifier.contains("testGH1167ReleaseV0171ManualWorkflowRejectsFailedArtifactStatus"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.1-manual-workflow-fail-closed.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.1-manual-workflow-fail-closed.sh"))
+
+        for artifact in [source, workflow, verifier] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     func testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence() throws {
         // 测试场景：GH-1147 将 operator beta safety profile 显式记录到 v0.17 evidence。
         // 验证目的：venue、product、symbol、notional、order-count 和 production-disabled state

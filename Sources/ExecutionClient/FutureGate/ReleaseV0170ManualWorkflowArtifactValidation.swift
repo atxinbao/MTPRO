@@ -16,6 +16,12 @@ import Foundation
 // productionBrokerConnectionEnabled=false
 // productionOrderSubmitCancelReplaceEnabled=false
 // productionCutoverAuthorized=false
+// GH-1167 static patch boundary:
+// failedUploadedArtifactRejectsWorkflow=true
+// failedDownloadedArtifactRejectsWorkflow=true
+// workflowRequiresPassedStatus=true
+// failedStatusCannotSatisfyWorkflow=true
+// cliFailedValidationPropagatesNonzeroExit=true
 
 /// ReleaseV0170ManualWorkflowArtifactValidationStatus 固定 GH-1146 手动 workflow artifact 校验结果。
 ///
@@ -48,6 +54,11 @@ public struct ReleaseV0170ManualWorkflowArtifactValidationReport: Equatable, Sen
     public let uploadedArtifact: ReleaseV0170CLIArtifactVerifyCommandOutput
     public let downloadedArtifact: ReleaseV0170CLIArtifactVerifyCommandOutput
     public let status: ReleaseV0170ManualWorkflowArtifactValidationStatus
+    public let failedUploadedArtifactRejectsWorkflow: Bool
+    public let failedDownloadedArtifactRejectsWorkflow: Bool
+    public let workflowRequiresPassedStatus: Bool
+    public let failedStatusCannotSatisfyWorkflow: Bool
+    public let cliFailedValidationPropagatesNonzeroExit: Bool
     public let uploadedArtifactBundleValidation: Bool
     public let downloadedArtifactBundleValidation: Bool
     public let sharedRuntimeValidatorUsed: Bool
@@ -80,6 +91,7 @@ public struct ReleaseV0170ManualWorkflowArtifactValidationReport: Equatable, Sen
                 uploadedArtifact: uploadedArtifact,
                 downloadedArtifact: downloadedArtifact
             )
+            && workflowFailClosedHeld
             && uploadedArtifactBundleValidation
             && downloadedArtifactBundleValidation
             && sharedRuntimeValidatorUsed
@@ -89,6 +101,16 @@ public struct ReleaseV0170ManualWorkflowArtifactValidationReport: Equatable, Sen
             && redactedEvidenceOnly
             && productionDefaultsClosed
             && validationAnchors == Self.requiredValidationAnchors
+    }
+
+    public var workflowFailClosedHeld: Bool {
+        failedUploadedArtifactRejectsWorkflow
+            && failedDownloadedArtifactRejectsWorkflow
+            && workflowRequiresPassedStatus
+            && failedStatusCannotSatisfyWorkflow
+            && cliFailedValidationPropagatesNonzeroExit
+            && ReleaseV0170CLIArtifactVerifyCommandFailedValidation.requiredValidationAnchors
+                .contains("V0171-001-FAILED-VALIDATION-NONZERO-EXIT")
     }
 
     public var productionDefaultsClosed: Bool {
@@ -110,6 +132,11 @@ public struct ReleaseV0170ManualWorkflowArtifactValidationReport: Equatable, Sen
         ],
         releaseVersion: String = "v0.17.0",
         workflowName: String = Self.workflowName,
+        failedUploadedArtifactRejectsWorkflow: Bool = true,
+        failedDownloadedArtifactRejectsWorkflow: Bool = true,
+        workflowRequiresPassedStatus: Bool = true,
+        failedStatusCannotSatisfyWorkflow: Bool = true,
+        cliFailedValidationPropagatesNonzeroExit: Bool = true,
         uploadedArtifactBundleValidation: Bool = true,
         downloadedArtifactBundleValidation: Bool = true,
         sharedRuntimeValidatorUsed: Bool = true,
@@ -141,6 +168,11 @@ public struct ReleaseV0170ManualWorkflowArtifactValidationReport: Equatable, Sen
         self.uploadedArtifact = uploadedArtifact
         self.downloadedArtifact = downloadedArtifact
         self.status = status
+        self.failedUploadedArtifactRejectsWorkflow = failedUploadedArtifactRejectsWorkflow
+        self.failedDownloadedArtifactRejectsWorkflow = failedDownloadedArtifactRejectsWorkflow
+        self.workflowRequiresPassedStatus = workflowRequiresPassedStatus
+        self.failedStatusCannotSatisfyWorkflow = failedStatusCannotSatisfyWorkflow
+        self.cliFailedValidationPropagatesNonzeroExit = cliFailedValidationPropagatesNonzeroExit
         self.uploadedArtifactBundleValidation = uploadedArtifactBundleValidation
         self.downloadedArtifactBundleValidation = downloadedArtifactBundleValidation
         self.sharedRuntimeValidatorUsed = sharedRuntimeValidatorUsed
@@ -183,6 +215,11 @@ public struct ReleaseV0170ManualWorkflowArtifactValidationReport: Equatable, Sen
             "downloadedArtifactManifestChecksum=\(downloadedArtifact.validationResult.sourceManifestChecksum ?? "none")",
             "uploadedFailureReasons=\(uploadedArtifact.validationResult.failures.map { $0.reason.rawValue }.joined(separator: ","))",
             "downloadedFailureReasons=\(downloadedArtifact.validationResult.failures.map { $0.reason.rawValue }.joined(separator: ","))",
+            "failedUploadedArtifactRejectsWorkflow=\(failedUploadedArtifactRejectsWorkflow)",
+            "failedDownloadedArtifactRejectsWorkflow=\(failedDownloadedArtifactRejectsWorkflow)",
+            "workflowRequiresPassedStatus=\(workflowRequiresPassedStatus)",
+            "failedStatusCannotSatisfyWorkflow=\(failedStatusCannotSatisfyWorkflow)",
+            "cliFailedValidationPropagatesNonzeroExit=\(cliFailedValidationPropagatesNonzeroExit)",
             "uploadedArtifactBundleValidation=\(uploadedArtifactBundleValidation)",
             "downloadedArtifactBundleValidation=\(downloadedArtifactBundleValidation)",
             "sharedRuntimeValidatorUsed=\(sharedRuntimeValidatorUsed)",
@@ -217,6 +254,23 @@ public struct ReleaseV0170ManualWorkflowArtifactValidationReport: Equatable, Sen
     public static let requiredValidationCommands = [
         "swift test --filter TargetGraphTests/testGH1146ReleaseV0170ManualWorkflowArtifactValidation",
         "bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+
+    public static let releaseV0171ManualWorkflowFailClosedAnchors = [
+        "GH-1167-VERIFY-V0171-MANUAL-WORKFLOW-FAIL-CLOSED",
+        "TVM-RELEASE-V0171-MANUAL-WORKFLOW-FAIL-CLOSED",
+        "V0171-002-UPLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW",
+        "V0171-002-DOWNLOADED-BUNDLE-FAILED-STATUS-REJECTS-WORKFLOW",
+        "V0171-002-REQUIRE-PASSED-STATUS",
+        "V0171-002-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static let releaseV0171ManualWorkflowFailClosedValidationCommands = [
+        "swift test --filter TargetGraphTests/testGH1167ReleaseV0171ManualWorkflowRejectsFailedArtifactStatus",
+        "bash checks/verify-v0.17.1-manual-workflow-fail-closed.sh",
         "git diff --check",
         "bash checks/automation-readiness.sh",
         "bash checks/run.sh"
