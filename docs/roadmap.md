@@ -139,6 +139,16 @@ GH-1142 adds operator run resume from the local redacted artifact store for v0.1
 
 GH-1143 adds the cancel/status reconciliation recovery path for v0.17.0. It classifies cancel/status mismatch and interrupted status evidence from GH-1142 resume cursor, GH-1107 reconciliation report and GH-1141 status query failure evidence into a local fail-closed recovery report. It does not read credential values, connect endpoints, resubmit orders, publish a tag / GitHub Release, or authorize production cutover.
 
+`GH-1144-VERIFY-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE`
+`TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE`
+`V0170-006-ARTIFACT-VALIDATION-STATUS-VISIBLE`
+`V0170-006-FAILURE-REASONS-VISIBLE`
+`V0170-006-RECOVERY-CASE-SUMMARY-VISIBLE`
+`V0170-006-DASHBOARD-READ-ONLY-NO-COMMANDS`
+`V0170-006-NO-PRODUCTION-CUTOVER`
+
+GH-1144 adds the Dashboard artifact validation error surface for v0.17.0. It exposes GH-1140 artifact validation result and GH-1143 recovery report as read-only Dashboard status, failure reasons and recovery summary. It does not add command handlers, trading buttons, order forms, live commands, endpoint connections, order submission, tag / GitHub Release publication, or production cutover authorization.
+
 `GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
 
 `GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`

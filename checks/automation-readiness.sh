@@ -121,6 +121,7 @@ require_file "docs/contracts/release-v0.17.0-operator-beta-artifact-status-runti
 require_file "docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-replay-validator-contract.md"
 require_file "docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-failure-model-contract.md"
 require_file "docs/contracts/release-v0.17.0-cancel-status-reconciliation-recovery-path-contract.md"
+require_file "docs/contracts/release-v0.17.0-dashboard-artifact-validation-error-surface-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
@@ -131,6 +132,7 @@ require_file "checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh"
 require_file "checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"
 require_file "checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh"
 require_file "checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh"
+require_file "checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -469,6 +471,41 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "checks/run.sh" "bash checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1143ReleaseV0170CancelStatusReconciliationRecoveryPath"
+
+for file in \
+  "Sources/Dashboard/Report/ReleaseV0170DashboardArtifactValidationErrorSurface.swift" \
+  "Sources/Dashboard/DashboardShell.swift" \
+  "docs/contracts/release-v0.17.0-dashboard-artifact-validation-error-surface-contract.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh" \
+  "checks/run.sh" \
+  "Tests/AppTests/AppTests.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1144-VERIFY-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE"
+  require_contains "$file" "TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE"
+  require_contains "$file" "V0170-006-ARTIFACT-VALIDATION-STATUS-VISIBLE"
+  require_contains "$file" "V0170-006-FAILURE-REASONS-VISIBLE"
+  require_contains "$file" "V0170-006-RECOVERY-CASE-SUMMARY-VISIBLE"
+  require_contains "$file" "V0170-006-DASHBOARD-READ-ONLY-NO-COMMANDS"
+  require_contains "$file" "V0170-006-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/Dashboard/Report/ReleaseV0170DashboardArtifactValidationErrorSurface.swift" "ReleaseV0170DashboardArtifactValidationErrorSurfaceViewModel"
+require_contains "Sources/Dashboard/DashboardShell.swift" "DashboardReleaseV0170ArtifactValidationErrorPanel"
+require_contains "docs/contracts/release-v0.17.0-dashboard-artifact-validation-error-surface-contract.md" "#1144 / GH-1144"
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.0 Dashboard artifact validation error surface anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1144 Release v0.17.0 Dashboard Artifact Validation Error Surface"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh"
+require_contains "Tests/AppTests/AppTests.swift" "testGH1144DashboardArtifactValidationErrorSurfaceShowsFailuresWithoutCommands"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1144DashboardArtifactValidationErrorSurfaceIsAnchoredInV0170Guards"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"
