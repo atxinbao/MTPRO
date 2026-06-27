@@ -4146,3 +4146,20 @@
 - validation surface: aggregate guard covers #1166 failed artifact CLI exit, #1167 manual failed bundle rejection, #1168 corrupt / missing / reconciliation-missing regressions, #1169 v0.17.0 release facts and #1170 stale wording guard before patch closeout.
 - handoff surface: Venue/Product-aware lifecycle recovery taxonomy is documented as next planning context only.
 - forbidden scope: no v0.18.0 implementation, no tag or GitHub Release creation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.
+
+## TVM-RELEASE-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT
+
+- GH-1176-VERIFY-V0180-VENUE-PRODUCT-LIFECYCLE-RECOVERY-CONTRACT
+- V0180-001-DEPENDENCIES-CLOSED-DONE
+- V0180-001-NAMESPACE-CONTRACT
+- V0180-001-BINANCE-OKX-TARGET-ARCHITECTURE
+- V0180-001-ARTIFACT-LIFECYCLE-SCOPE
+- V0180-001-STATUS-RESUME-RECONCILIATION
+- V0180-001-CLI-NEXT-ACTION-DASHBOARD-DRILLDOWN
+- V0180-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1176ReleaseV0180VenueProductAwareOperatorLifecycleRecoveryContract`
+- validation surface: every operator lifecycle artifact and evidence surface must carry `{venue, product, environment, accountProfile, runID}` and use that namespace for status query persistence, resume cursor, reconciliation replay, CLI next-action and Dashboard drilldown.
+- dependency surface: v0.18.0 cannot start until #1168, #1169, #1170 and #1171 are closed / done.
+- target architecture surface: Binance and OKX product semantics are defined for recovery taxonomy only; no new OKX runtime and no new venue/product activation are authorized by GH-1176.
+- forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
