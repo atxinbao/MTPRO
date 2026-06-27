@@ -47203,6 +47203,205 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1145ReleaseV0170CLIArtifactVerifyCommand() throws {
+        // 测试场景：GH-1145 在 GH-1140 artifact bundle replay validator 之上增加
+        // `mtpro verify-operator-beta-artifact-bundle <storageRoot> <runID>` 本地 CLI。
+        // 验证目的：CLI 必须只读取本地 artifact store，输出 deterministic validation / replay
+        // evidence，不读取 credential，不连接 endpoint，不提交订单，也不授权 production cutover。
+        // GH-1145-VERIFY-V0170-CLI-ARTIFACT-VERIFY-COMMAND
+        // TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND
+        // V0170-007-LOCAL-ARTIFACT-BUNDLE-VERIFY
+        // V0170-007-LOCAL-ONLY-NO-NETWORK
+        // V0170-007-DETERMINISTIC-VALIDATION-REPLAY-OUTPUT
+        // V0170-007-REDACTED-OUTPUT
+        // V0170-007-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1145-VERIFY-V0170-CLI-ARTIFACT-VERIFY-COMMAND",
+            "TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND",
+            "V0170-007-LOCAL-ARTIFACT-BUNDLE-VERIFY",
+            "V0170-007-LOCAL-ONLY-NO-NETWORK",
+            "V0170-007-DETERMINISTIC-VALIDATION-REPLAY-OUTPUT",
+            "V0170-007-REDACTED-OUTPUT",
+            "V0170-007-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift",
+            "Sources/MTPROCLI/main.swift",
+            "docs/contracts/release-v0.17.0-cli-artifact-verify-command-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.17.0-cli-artifact-verify-command.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        func makeBundle(
+            suffix: String,
+            kinds: [ReleaseV0160LocalExecutionArtifactKind]
+        ) throws -> (
+            URL,
+            Identifier,
+            ReleaseV0160LocalExecutionArtifactStore,
+            [ReleaseV0160LocalExecutionArtifactRecord]
+        ) {
+            let tempRoot = FileManager.default.temporaryDirectory
+                .appendingPathComponent("mtpro-gh1145-\(suffix)-\(UUID().uuidString)", isDirectory: true)
+            let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+            let runID = Identifier.constant("gh-1145-v0170-\(suffix)-artifact-verify")
+            let start = Date(timeIntervalSince1970: 1_704_083_000)
+            var records: [ReleaseV0160LocalExecutionArtifactRecord] = []
+            for (index, kind) in kinds.enumerated() {
+                let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                    kind: kind,
+                    suffix: "\(suffix)-\(index + 1)",
+                    observedAt: start.addingTimeInterval(TimeInterval(index))
+                )
+                records.append(try store.append(
+                    runID: runID,
+                    payload: payload,
+                    appendedAt: start.addingTimeInterval(TimeInterval(index))
+                ))
+            }
+            return (tempRoot, runID, store, records)
+        }
+
+        let expectedSequence = ReleaseV0170OperatorBetaArtifactBundleValidationResult.requiredActionSequence
+        let (validRoot, validRunID, _, validRecords) = try makeBundle(
+            suffix: "valid",
+            kinds: expectedSequence
+        )
+        defer { try? FileManager.default.removeItem(at: validRoot) }
+
+        let commandOutput = try ReleaseV0170CLIArtifactVerifyCommand.commandOutput(
+            storageRootPath: validRoot.path,
+            runID: validRunID.rawValue
+        )
+        XCTAssertTrue(commandOutput.outputHeld)
+        XCTAssertEqual(commandOutput.issueID.rawValue, "GH-1145")
+        XCTAssertEqual(commandOutput.blockedByIssueIDs.map(\.rawValue), ["GH-1140", "GH-1143"])
+        XCTAssertEqual(commandOutput.command, ReleaseV0170CLIArtifactVerifyCommand.cliCommand)
+        XCTAssertEqual(commandOutput.validationResult.status, .passed)
+        XCTAssertEqual(commandOutput.validationResult.replayedKinds, expectedSequence)
+        XCTAssertEqual(commandOutput.validationResult.sourceRecordChecksums, validRecords.map(\.recordChecksum))
+        XCTAssertTrue(commandOutput.localArtifactBundleVerify)
+        XCTAssertTrue(commandOutput.localOnlyNoNetwork)
+        XCTAssertTrue(commandOutput.deterministicValidationReplayOutput)
+        XCTAssertTrue(commandOutput.redactedOutputOnly)
+        XCTAssertFalse(commandOutput.productionTradingEnabledByDefault)
+        XCTAssertFalse(commandOutput.productionSecretReadEnabled)
+        XCTAssertFalse(commandOutput.productionEndpointConnectionEnabled)
+        XCTAssertFalse(commandOutput.productionBrokerConnectionEnabled)
+        XCTAssertFalse(commandOutput.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(commandOutput.productionCutoverAuthorized)
+
+        let rendered = try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: [
+            ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
+            validRoot.path,
+            validRunID.rawValue
+        ])
+        XCTAssertTrue(rendered.contains("issue=GH-1145"))
+        XCTAssertTrue(rendered.contains("status=passed"))
+        XCTAssertTrue(rendered.contains("replayedKinds=submit,cancel,status,reconciliation"))
+        XCTAssertTrue(rendered.contains("localOnlyNoNetwork=true"))
+        XCTAssertTrue(rendered.contains("deterministicValidationReplayOutput=true"))
+        XCTAssertTrue(rendered.contains("redactedOutputOnly=true"))
+        XCTAssertTrue(rendered.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(rendered.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(rendered.contains("boundaryHeld=true"))
+
+        let (tamperedRoot, tamperedRunID, tamperedStore, tamperedRecords) = try makeBundle(
+            suffix: "tampered",
+            kinds: expectedSequence
+        )
+        defer { try? FileManager.default.removeItem(at: tamperedRoot) }
+        try Data("{\"tampered\":\"redacted\"}".utf8).write(
+            to: tamperedStore.fileURL(forRelativePath: tamperedRecords[0].payloadPath),
+            options: .atomic
+        )
+        let failedOutput = try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: [
+            ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
+            tamperedRoot.path,
+            tamperedRunID.rawValue
+        ])
+        XCTAssertTrue(failedOutput.contains("status=failed"))
+        XCTAssertTrue(failedOutput.contains("failureReasons=checksumMismatch"))
+        XCTAssertTrue(failedOutput.contains("localOnlyNoNetwork=true"))
+        XCTAssertTrue(failedOutput.contains("productionOrderSubmitCancelReplaceEnabled=false"))
+
+        XCTAssertThrowsError(try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: [
+            ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
+            validRoot.path
+        ]))
+        XCTAssertEqual(ReleaseV0170CLIArtifactVerifyCommandOutput.requiredValidationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            ReleaseV0170CLIArtifactVerifyCommandOutput.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1145ReleaseV0170CLIArtifactVerifyCommand",
+                "bash checks/verify-v0.17.0-cli-artifact-verify-command.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift")
+        let cli = try read("Sources/MTPROCLI/main.swift")
+        let contractDoc = try read("docs/contracts/release-v0.17.0-cli-artifact-verify-command-contract.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.17.0-cli-artifact-verify-command.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+
+        XCTAssertTrue(source.contains("cliArtifactVerifyCommand=ReleaseV0170CLIArtifactVerifyCommand"))
+        XCTAssertTrue(source.contains("localArtifactBundleVerify=true"))
+        XCTAssertTrue(source.contains("localOnlyNoNetwork=true"))
+        XCTAssertTrue(source.contains("deterministicValidationReplayOutput=true"))
+        XCTAssertTrue(source.contains("redactedOutputOnly=true"))
+        XCTAssertTrue(cli.contains("ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput"))
+        XCTAssertTrue(cli.contains("releaseV0170CLIArtifactVerifyCommandVerificationAnchor"))
+        XCTAssertTrue(contractDoc.contains("#1145 / GH-1145"))
+        XCTAssertTrue(contractDoc.contains("CLI artifact verify command"))
+        XCTAssertTrue(contractDoc.contains("不授权 production cutover"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.0-cli-artifact-verify-command.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.0-cli-artifact-verify-command.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1145ReleaseV0170CLIArtifactVerifyCommand"))
+        XCTAssertTrue(readiness.contains("Release v0.17.0 CLI artifact verify command anchor"))
+        XCTAssertTrue(latest.contains("v0.17.0 CLI artifact verify command"))
+        XCTAssertTrue(plan.contains("GH-1145 Release v0.17.0 CLI Artifact Verify Command"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND"))
+
+        for artifact in [source, cli, contractDoc, verifier] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     private enum GH1141StatusQueryScriptOutcome: Sendable {
         case retryableHTTPStatus
         case nonRetryableHTTPStatus

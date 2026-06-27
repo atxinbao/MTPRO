@@ -122,6 +122,7 @@ require_file "docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-repla
 require_file "docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-failure-model-contract.md"
 require_file "docs/contracts/release-v0.17.0-cancel-status-reconciliation-recovery-path-contract.md"
 require_file "docs/contracts/release-v0.17.0-dashboard-artifact-validation-error-surface-contract.md"
+require_file "docs/contracts/release-v0.17.0-cli-artifact-verify-command-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
@@ -133,6 +134,7 @@ require_file "checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"
 require_file "checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh"
 require_file "checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh"
 require_file "checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh"
+require_file "checks/verify-v0.17.0-cli-artifact-verify-command.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -506,6 +508,39 @@ require_contains "checks/run.sh" "bash checks/verify-v0.17.0-dashboard-artifact-
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh"
 require_contains "Tests/AppTests/AppTests.swift" "testGH1144DashboardArtifactValidationErrorSurfaceShowsFailuresWithoutCommands"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1144DashboardArtifactValidationErrorSurfaceIsAnchoredInV0170Guards"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "docs/contracts/release-v0.17.0-cli-artifact-verify-command-contract.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.17.0-cli-artifact-verify-command.sh" \
+  "checks/run.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1145-VERIFY-V0170-CLI-ARTIFACT-VERIFY-COMMAND"
+  require_contains "$file" "TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND"
+  require_contains "$file" "V0170-007-LOCAL-ARTIFACT-BUNDLE-VERIFY"
+  require_contains "$file" "V0170-007-LOCAL-ONLY-NO-NETWORK"
+  require_contains "$file" "V0170-007-DETERMINISTIC-VALIDATION-REPLAY-OUTPUT"
+  require_contains "$file" "V0170-007-REDACTED-OUTPUT"
+  require_contains "$file" "V0170-007-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift" "ReleaseV0170CLIArtifactVerifyCommandOutput"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput"
+require_contains "docs/contracts/release-v0.17.0-cli-artifact-verify-command-contract.md" "#1145 / GH-1145"
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.0 CLI artifact verify command anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1145 Release v0.17.0 CLI Artifact Verify Command"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.0-cli-artifact-verify-command.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-cli-artifact-verify-command.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1145ReleaseV0170CLIArtifactVerifyCommand"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"
