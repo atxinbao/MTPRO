@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1144 Release v0.17.0 Dashboard Artifact Validation Error Surface
+
+- GH-1144-VERIFY-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE
+- TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE
+- V0170-006-ARTIFACT-VALIDATION-STATUS-VISIBLE
+- V0170-006-FAILURE-REASONS-VISIBLE
+- V0170-006-RECOVERY-CASE-SUMMARY-VISIBLE
+- V0170-006-DASHBOARD-READ-ONLY-NO-COMMANDS
+- V0170-006-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh`
+- focused tests: `swift test --filter AppTests/testGH1144DashboardArtifactValidationErrorSurfaceShowsFailuresWithoutCommands` and `swift test --filter TargetGraphTests/testGH1144DashboardArtifactValidationErrorSurfaceIsAnchoredInV0170Guards`
+- Evidence files: `Sources/Dashboard/Report/ReleaseV0170DashboardArtifactValidationErrorSurface.swift`、`Sources/Dashboard/DashboardShell.swift`、`docs/contracts/release-v0.17.0-dashboard-artifact-validation-error-surface-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`Tests/AppTests/AppTests.swift` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1144 只展示 GH-1140 artifact validation status、failure reasons 和 GH-1143 recovery case summary。GH-1144 不新增 command handler、trading button、order form、live command，不读取 credential value，不连接 testnet / production endpoint，不发送 testnet / production order，不创建 tag / GitHub Release，不启动下一 milestone，不授权 production cutover。
+
 ## GH-1143 Release v0.17.0 Cancel Status Reconciliation Recovery Path
 
 - GH-1143-VERIFY-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH

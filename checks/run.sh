@@ -303,6 +303,14 @@ bash checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh
 # V0170-005-REDACTED-RECOVERY-EVIDENCE
 # V0170-005-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh
+# GH-1144-VERIFY-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE
+# TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE
+# V0170-006-ARTIFACT-VALIDATION-STATUS-VISIBLE
+# V0170-006-FAILURE-REASONS-VISIBLE
+# V0170-006-RECOVERY-CASE-SUMMARY-VISIBLE
+# V0170-006-DASHBOARD-READ-ONLY-NO-COMMANDS
+# V0170-006-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

@@ -47071,6 +47071,138 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1144DashboardArtifactValidationErrorSurfaceIsAnchoredInV0170Guards() throws {
+        // 测试场景：GH-1144 将 GH-1140 artifact validation result 和 GH-1143 recovery
+        // report 暴露到 Dashboard 只读错误面。
+        // 验证目的：Dashboard 只能展示 artifact validation status、failure reasons 和
+        // recovery case summary，不得引入 command handler、交易按钮、order form 或 production cutover。
+        // GH-1144-VERIFY-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE
+        // TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE
+        // V0170-006-ARTIFACT-VALIDATION-STATUS-VISIBLE
+        // V0170-006-FAILURE-REASONS-VISIBLE
+        // V0170-006-RECOVERY-CASE-SUMMARY-VISIBLE
+        // V0170-006-DASHBOARD-READ-ONLY-NO-COMMANDS
+        // V0170-006-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1144-VERIFY-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE",
+            "TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE",
+            "V0170-006-ARTIFACT-VALIDATION-STATUS-VISIBLE",
+            "V0170-006-FAILURE-REASONS-VISIBLE",
+            "V0170-006-RECOVERY-CASE-SUMMARY-VISIBLE",
+            "V0170-006-DASHBOARD-READ-ONLY-NO-COMMANDS",
+            "V0170-006-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/Dashboard/Report/ReleaseV0170DashboardArtifactValidationErrorSurface.swift",
+            "Sources/Dashboard/DashboardShell.swift",
+            "docs/contracts/release-v0.17.0-dashboard-artifact-validation-error-surface-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh",
+            "checks/automation-readiness.sh",
+            "Tests/AppTests/AppTests.swift",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        let surface = ReleaseV0170DashboardArtifactValidationErrorSurfaceViewModel.deterministicFixture
+        XCTAssertEqual(ReleaseV0170DashboardArtifactValidationErrorSurfaceViewModel.requiredValidationAnchors, requiredAnchors)
+        XCTAssertEqual(surface.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            ReleaseV0170DashboardArtifactValidationErrorSurfaceViewModel.requiredValidationCommands,
+            [
+                "swift test --filter AppTests/testGH1144DashboardArtifactValidationErrorSurfaceShowsFailuresWithoutCommands",
+                "swift test --filter TargetGraphTests/testGH1144DashboardArtifactValidationErrorSurfaceIsAnchoredInV0170Guards",
+                "bash checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.issueID, "GH-1144")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-1140", "GH-1143"])
+        XCTAssertTrue(surface.artifactValidationStatusVisible)
+        XCTAssertTrue(surface.failureReasonsVisible)
+        XCTAssertTrue(surface.recoveryCaseSummaryVisible)
+        XCTAssertFalse(surface.dashboardDependsOnExecutionClientTarget)
+        XCTAssertFalse(surface.dashboardCommandSurfaceEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/Dashboard/Report/ReleaseV0170DashboardArtifactValidationErrorSurface.swift")
+        let shell = try read("Sources/Dashboard/DashboardShell.swift")
+        let contractDoc = try read("docs/contracts/release-v0.17.0-dashboard-artifact-validation-error-surface-contract.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let appTests = try read("Tests/AppTests/AppTests.swift")
+
+        XCTAssertTrue(source.contains("dashboardArtifactValidationErrorSurface=ReleaseV0170DashboardArtifactValidationErrorSurfaceViewModel"))
+        XCTAssertTrue(source.contains("artifactValidationStatusVisible=true"))
+        XCTAssertTrue(source.contains("failureReasonsVisible=true"))
+        XCTAssertTrue(source.contains("recoveryCaseSummaryVisible=true"))
+        XCTAssertTrue(source.contains("dashboardCommandSurfaceEnabled=false"))
+        XCTAssertTrue(source.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(source.contains("orderFormVisible=false"))
+        XCTAssertTrue(source.contains("liveCommandVisible=false"))
+        XCTAssertTrue(source.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(source.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(shell.contains("releaseV0170DashboardArtifactValidationErrorSurface"))
+        XCTAssertTrue(shell.contains("DashboardReleaseV0170ArtifactValidationErrorPanel"))
+        XCTAssertTrue(contractDoc.contains("#1144 / GH-1144"))
+        XCTAssertTrue(contractDoc.contains("Dashboard artifact validation error surface"))
+        XCTAssertTrue(contractDoc.contains("不授权 production cutover"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter AppTests/testGH1144DashboardArtifactValidationErrorSurfaceShowsFailuresWithoutCommands"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1144DashboardArtifactValidationErrorSurfaceIsAnchoredInV0170Guards"))
+        XCTAssertTrue(readiness.contains("Release v0.17.0 Dashboard artifact validation error surface anchor"))
+        XCTAssertTrue(latest.contains("v0.17.0 Dashboard artifact validation error surface"))
+        XCTAssertTrue(plan.contains("GH-1144 Release v0.17.0 Dashboard Artifact Validation Error Surface"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE"))
+        XCTAssertTrue(appTests.contains("testGH1144DashboardArtifactValidationErrorSurfaceShowsFailuresWithoutCommands"))
+
+        for artifact in [source, shell, contractDoc, verifier] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     private enum GH1141StatusQueryScriptOutcome: Sendable {
         case retryableHTTPStatus
         case nonRetryableHTTPStatus

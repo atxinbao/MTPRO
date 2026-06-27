@@ -8,6 +8,22 @@
 
 ## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 
+## TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE
+
+- TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE
+- GH-1144-VERIFY-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE
+- V0170-006-ARTIFACT-VALIDATION-STATUS-VISIBLE
+- V0170-006-FAILURE-REASONS-VISIBLE
+- V0170-006-RECOVERY-CASE-SUMMARY-VISIBLE
+- V0170-006-DASHBOARD-READ-ONLY-NO-COMMANDS
+- V0170-006-NO-PRODUCTION-CUTOVER
+- GH-1144 Release v0.17.0 Dashboard Artifact Validation Error Surface
+- `bash checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh`
+- `swift test --filter AppTests/testGH1144DashboardArtifactValidationErrorSurfaceShowsFailuresWithoutCommands`
+- `swift test --filter TargetGraphTests/testGH1144DashboardArtifactValidationErrorSurfaceIsAnchoredInV0170Guards`
+- Evidence files: `Sources/Dashboard/Report/ReleaseV0170DashboardArtifactValidationErrorSurface.swift`、`Sources/Dashboard/DashboardShell.swift`、`docs/contracts/release-v0.17.0-dashboard-artifact-validation-error-surface-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1144 exposes GH-1140 artifact validation result and GH-1143 recovery report as read-only Dashboard status, failure reasons and recovery summary. It does not add command handlers, trading buttons, order forms, live commands, endpoint connections, testnet or production order submission, tag / GitHub Release publication, or production cutover authorization. production cutover not authorized.
+
 ## TVM-RELEASE-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH
 
 - TVM-RELEASE-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH
