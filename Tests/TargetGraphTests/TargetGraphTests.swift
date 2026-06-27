@@ -47329,7 +47329,7 @@ final class TargetGraphTests: XCTestCase {
             to: tamperedStore.fileURL(forRelativePath: tamperedRecords[0].payloadPath),
             options: .atomic
         )
-        let failedOutput = try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: [
+        let failedOutput = try ReleaseV0170CLIArtifactVerifyCommand.commandLineReportOutput(arguments: [
             ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
             tamperedRoot.path,
             tamperedRunID.rawValue
@@ -47338,6 +47338,18 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(failedOutput.contains("failureReasons=checksumMismatch"))
         XCTAssertTrue(failedOutput.contains("localOnlyNoNetwork=true"))
         XCTAssertTrue(failedOutput.contains("productionOrderSubmitCancelReplaceEnabled=false"))
+        XCTAssertThrowsError(try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: [
+            ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
+            tamperedRoot.path,
+            tamperedRunID.rawValue
+        ])) { error in
+            let failClosed = error as? ReleaseV0170CLIArtifactVerifyCommandFailedValidation
+            XCTAssertNotNil(failClosed)
+            XCTAssertNotEqual(failClosed?.exitCode, 0)
+            XCTAssertTrue(failClosed?.renderedOutput.contains("status=failed") == true)
+            XCTAssertTrue(failClosed?.renderedOutput.contains("redactedOutputOnly=true") == true)
+            XCTAssertTrue(failClosed?.renderedOutput.contains("productionOrderSubmitCancelReplaceEnabled=false") == true)
+        }
 
         XCTAssertThrowsError(try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: [
             ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
@@ -47392,6 +47404,162 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(matrix.contains("TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND"))
 
         for artifact in [source, cli, contractDoc, verifier] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
+    func testGH1166ReleaseV0171CLIArtifactVerifyCommandFailsClosed() throws {
+        // 测试场景：GH-1166 将 v0.17.0 operator artifact verify CLI 从“报告 failed 但
+        // shell 仍成功”收紧为默认 fail closed。
+        // 验证目的：有效 bundle 仍返回 zero-success output；failed validation 通过专用错误暴露
+        // 非零 exit code，同时保留本地 redacted report path，不读取 credential、不连接 endpoint、
+        // 不提交订单，也不授权 production cutover。
+        // GH-1166-VERIFY-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED
+        // TVM-RELEASE-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED
+        // V0171-001-FAILED-VALIDATION-NONZERO-EXIT
+        // V0171-001-VALID-BUNDLE-EXIT-ZERO
+        // V0171-001-LOCAL-REPORTING-PATH-REDACTED
+        // V0171-001-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        func makeBundle(
+            suffix: String,
+            kinds: [ReleaseV0160LocalExecutionArtifactKind]
+        ) throws -> (
+            URL,
+            Identifier,
+            ReleaseV0160LocalExecutionArtifactStore,
+            [ReleaseV0160LocalExecutionArtifactRecord]
+        ) {
+            let tempRoot = FileManager.default.temporaryDirectory
+                .appendingPathComponent("mtpro-gh1166-\(suffix)-\(UUID().uuidString)", isDirectory: true)
+            let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+            let runID = Identifier.constant("gh-1166-v0171-\(suffix)-artifact-verify")
+            let start = Date(timeIntervalSince1970: 1_704_084_000)
+            var records: [ReleaseV0160LocalExecutionArtifactRecord] = []
+            for (index, kind) in kinds.enumerated() {
+                let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                    kind: kind,
+                    suffix: "\(suffix)-\(index + 1)",
+                    observedAt: start.addingTimeInterval(TimeInterval(index))
+                )
+                records.append(try store.append(
+                    runID: runID,
+                    payload: payload,
+                    appendedAt: start.addingTimeInterval(TimeInterval(index))
+                ))
+            }
+            return (tempRoot, runID, store, records)
+        }
+
+        let expectedSequence = ReleaseV0170OperatorBetaArtifactBundleValidationResult.requiredActionSequence
+        let (validRoot, validRunID, _, _) = try makeBundle(
+            suffix: "valid",
+            kinds: expectedSequence
+        )
+        defer { try? FileManager.default.removeItem(at: validRoot) }
+
+        let passedOutput = try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: [
+            ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
+            validRoot.path,
+            validRunID.rawValue
+        ])
+        XCTAssertTrue(passedOutput.contains("status=passed"))
+        XCTAssertTrue(passedOutput.contains("boundaryHeld=true"))
+        XCTAssertTrue(passedOutput.contains("productionCutoverAuthorized=false"))
+
+        let (tamperedRoot, tamperedRunID, tamperedStore, tamperedRecords) = try makeBundle(
+            suffix: "tampered",
+            kinds: expectedSequence
+        )
+        defer { try? FileManager.default.removeItem(at: tamperedRoot) }
+        try Data("{\"tampered\":\"redacted\"}".utf8).write(
+            to: tamperedStore.fileURL(forRelativePath: tamperedRecords[0].payloadPath),
+            options: .atomic
+        )
+
+        let reportOutput = try ReleaseV0170CLIArtifactVerifyCommand.commandLineReportOutput(arguments: [
+            ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
+            tamperedRoot.path,
+            tamperedRunID.rawValue
+        ])
+        XCTAssertTrue(reportOutput.contains("status=failed"))
+        XCTAssertTrue(reportOutput.contains("failureReasons=checksumMismatch"))
+        XCTAssertTrue(reportOutput.contains("redactedOutputOnly=true"))
+        XCTAssertTrue(reportOutput.contains("productionEndpointConnectionEnabled=false"))
+        XCTAssertTrue(reportOutput.contains("productionOrderSubmitCancelReplaceEnabled=false"))
+
+        XCTAssertThrowsError(try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: [
+            ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
+            tamperedRoot.path,
+            tamperedRunID.rawValue
+        ])) { error in
+            let failClosed = error as? ReleaseV0170CLIArtifactVerifyCommandFailedValidation
+            XCTAssertNotNil(failClosed)
+            XCTAssertTrue(failClosed?.failClosedHeld == true)
+            XCTAssertEqual(failClosed?.output.validationResult.status, .failed)
+            XCTAssertNotEqual(failClosed?.exitCode, 0)
+            XCTAssertTrue(failClosed?.renderedOutput.contains("status=failed") == true)
+            XCTAssertTrue(failClosed?.renderedOutput.contains("redactedOutputOnly=true") == true)
+            XCTAssertTrue(failClosed?.renderedOutput.contains("productionCutoverAuthorized=false") == true)
+        }
+
+        let requiredAnchors = [
+            "GH-1166-VERIFY-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED",
+            "TVM-RELEASE-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED",
+            "V0171-001-FAILED-VALIDATION-NONZERO-EXIT",
+            "V0171-001-VALID-BUNDLE-EXIT-ZERO",
+            "V0171-001-LOCAL-REPORTING-PATH-REDACTED",
+            "V0171-001-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(
+            ReleaseV0170CLIArtifactVerifyCommandFailedValidation.requiredValidationAnchors,
+            requiredAnchors
+        )
+        XCTAssertEqual(
+            ReleaseV0170CLIArtifactVerifyCommandFailedValidation.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1166ReleaseV0171CLIArtifactVerifyCommandFailsClosed",
+                "bash checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift")
+        let cli = try read("Sources/MTPROCLI/main.swift")
+        let verifier = try read("checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
+
+        for artifact in [source, cli, verifier, runScript, automationScript, tests] {
+            for anchor in requiredAnchors {
+                XCTAssertTrue(artifact.contains(anchor), "artifact must contain \(anchor)")
+            }
+        }
+
+        XCTAssertTrue(source.contains("failedValidationNonzeroExit=true"))
+        XCTAssertTrue(source.contains("validBundleExitZero=true"))
+        XCTAssertTrue(source.contains("ReleaseV0170CLIArtifactVerifyCommandFailedValidation"))
+        XCTAssertTrue(source.contains("commandLineReportOutput"))
+        XCTAssertTrue(cli.contains("catch let error as ReleaseV0170CLIArtifactVerifyCommandFailedValidation"))
+        XCTAssertTrue(cli.contains("Foundation.exit(error.exitCode)"))
+        XCTAssertTrue(verifier.contains("testGH1166ReleaseV0171CLIArtifactVerifyCommandFailsClosed"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh"))
+
+        for artifact in [source, cli, verifier] {
             XCTAssertFalse(artifact.contains("API Key:"))
             XCTAssertFalse(artifact.contains("Secret Key:"))
             XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))

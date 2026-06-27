@@ -13,6 +13,12 @@ import Foundation
 // productionBrokerConnectionEnabled=false
 // productionOrderSubmitCancelReplaceEnabled=false
 // productionCutoverAuthorized=false
+// GH-1166 static patch boundary:
+// failedValidationNonzeroExit=true
+// validBundleExitZero=true
+// failedBundleReportStillRedacted=true
+// localReportingPathDoesNotWeakenFailClosedDefault=true
+// productionCutoverAuthorized=false
 
 /// ReleaseV0170CLIArtifactVerifyCommandOutput 是 GH-1145 的 CLI 输出模型。
 ///
@@ -167,6 +173,73 @@ public struct ReleaseV0170CLIArtifactVerifyCommandOutput: Equatable, Sendable {
     ]
 }
 
+/// ReleaseV0170CLIArtifactVerifyCommandFailedValidation 是 GH-1166 的 fail-closed CLI 错误。
+///
+/// 该错误只在本地 artifact bundle 校验结果为 `status=failed` 时抛出。它保留 redacted
+/// rendered output 供 operator 排查，但通过非零 exit code 阻止 shell / workflow 把 failed
+/// artifact validation 当作成功执行。
+public struct ReleaseV0170CLIArtifactVerifyCommandFailedValidation:
+    Error,
+    CustomStringConvertible,
+    Equatable,
+    Sendable
+{
+    public let output: ReleaseV0170CLIArtifactVerifyCommandOutput
+    public let renderedOutput: String
+    public let exitCode: Int32
+    public let validationAnchors: [String]
+
+    public var description: String {
+        renderedOutput
+    }
+
+    public var failClosedHeld: Bool {
+        output.outputHeld
+            && output.validationResult.status == .failed
+            && renderedOutput.contains("status=failed")
+            && renderedOutput.contains("redactedOutputOnly=true")
+            && renderedOutput.contains("productionOrderSubmitCancelReplaceEnabled=false")
+            && exitCode != 0
+            && validationAnchors == Self.requiredValidationAnchors
+    }
+
+    public init(
+        output: ReleaseV0170CLIArtifactVerifyCommandOutput,
+        exitCode: Int32 = 65,
+        validationAnchors: [String] = Self.requiredValidationAnchors
+    ) throws {
+        self.output = output
+        self.renderedOutput = output.rendered()
+        self.exitCode = exitCode
+        self.validationAnchors = validationAnchors
+
+        guard failClosedHeld else {
+            throw CoreError.liveTradingBoundaryContractMismatch(
+                field: "releaseV0171CLIArtifactVerifyCommand.failedValidationExit",
+                expected: "failed validation must surface redacted output and exit nonzero",
+                actual: output.validationResult.status.rawValue
+            )
+        }
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-1166-VERIFY-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED",
+        "TVM-RELEASE-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED",
+        "V0171-001-FAILED-VALIDATION-NONZERO-EXIT",
+        "V0171-001-VALID-BUNDLE-EXIT-ZERO",
+        "V0171-001-LOCAL-REPORTING-PATH-REDACTED",
+        "V0171-001-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static let requiredValidationCommands = [
+        "swift test --filter TargetGraphTests/testGH1166ReleaseV0171CLIArtifactVerifyCommandFailsClosed",
+        "bash checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+}
+
 /// ReleaseV0170CLIArtifactVerifyCommand 固定 GH-1145 的本地 CLI artifact verification 入口。
 ///
 /// 命令只接受本地 artifact store root 和 runID，委托 GH-1140 validator 读取本地 append-only
@@ -176,6 +249,23 @@ public enum ReleaseV0170CLIArtifactVerifyCommand {
     public static let cliCommand = "verify-operator-beta-artifact-bundle"
 
     public static func commandLineOutput(arguments: [String]) throws -> String {
+        let output = try commandOutput(arguments: arguments)
+        guard output.validationResult.status == .passed else {
+            let error = try ReleaseV0170CLIArtifactVerifyCommandFailedValidation(output: output)
+            throw error
+        }
+        return output.rendered()
+    }
+
+    /// 只读 report path 保留 failed bundle 的 redacted diagnostic output。
+    ///
+    /// 默认 CLI path 仍由 `commandLineOutput` fail closed；该函数只供测试、Dashboard read model
+    /// 或明确的本地报告调用使用，不能作为 shell / workflow 成功条件。
+    public static func commandLineReportOutput(arguments: [String]) throws -> String {
+        try commandOutput(arguments: arguments).rendered()
+    }
+
+    private static func commandOutput(arguments: [String]) throws -> ReleaseV0170CLIArtifactVerifyCommandOutput {
         guard arguments.count == 3 else {
             throw CoreError.liveTradingBoundaryContractMismatch(
                 field: "releaseV0170CLIArtifactVerifyCommand.arguments",
@@ -186,7 +276,7 @@ public enum ReleaseV0170CLIArtifactVerifyCommand {
         return try commandOutput(
             storageRootPath: arguments[1],
             runID: arguments[2]
-        ).rendered()
+        )
     }
 
     public static func commandOutput(

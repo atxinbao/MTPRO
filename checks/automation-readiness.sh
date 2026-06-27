@@ -142,6 +142,7 @@ require_file "checks/verify-v0.17.0-cli-artifact-verify-command.sh"
 require_file "checks/verify-v0.17.0-manual-workflow-artifact-validation.sh"
 require_file "checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh"
 require_file "checks/verify-v0.17.0-stage-audit-release-docs.sh"
+require_file "checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -664,6 +665,29 @@ require_contains "docs/release/release-publication-policy.md" "GH-1148 closes th
 require_contains "checks/run.sh" "bash checks/verify-v0.17.0-stage-audit-release-docs.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-stage-audit-release-docs.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1148ReleaseV0170StageAuditReleaseDocsCloseout"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1166-VERIFY-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED"
+  require_contains "$file" "TVM-RELEASE-V0171-CLI-ARTIFACT-VERIFY-FAIL-CLOSED"
+  require_contains "$file" "V0171-001-FAILED-VALIDATION-NONZERO-EXIT"
+  require_contains "$file" "V0171-001-VALID-BUNDLE-EXIT-ZERO"
+  require_contains "$file" "V0171-001-LOCAL-REPORTING-PATH-REDACTED"
+  require_contains "$file" "V0171-001-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift" "ReleaseV0170CLIArtifactVerifyCommandFailedValidation"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift" "failedValidationNonzeroExit=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift" "commandLineReportOutput"
+require_contains "Sources/MTPROCLI/main.swift" "catch let error as ReleaseV0170CLIArtifactVerifyCommandFailedValidation"
+require_contains "Sources/MTPROCLI/main.swift" "Foundation.exit(error.exitCode)"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1166ReleaseV0171CLIArtifactVerifyCommandFailsClosed"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"
