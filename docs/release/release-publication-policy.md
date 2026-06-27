@@ -1041,3 +1041,27 @@ Historical #1148 / GH-1148 construction closeout wording is allowed only when it
 - publication timestamp：`2026-06-27T06:37:33Z`
 
 GH-1170 不移动 `v0.17.0` tag，不覆盖 GitHub Release，不创建 `v0.17.1` public release，不推进下一 Project / Issue，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。production cutover not authorized。
+
+## GH-1171 Release v0.17.1 Aggregate Patch Audit / Release Notes Closeout Policy
+
+`GH-1171-VERIFY-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES`
+
+`TVM-RELEASE-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES`
+
+`V0171-006-AGGREGATE-GUARD`
+
+`V0171-006-PATCH-AUDIT`
+
+`V0171-006-RELEASE-NOTES`
+
+`V0171-006-VALIDATION-MATRIX`
+
+`V0171-006-V0180-HANDOFF`
+
+`V0171-006-NO-PRODUCTION-CUTOVER`
+
+`V0171-006-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1171 closes the v0.17.1 patch audit by adding `checks/verify-v0.17.1.sh`, v0.17.1 Stage Code Audit, v0.17.1 release notes, validation matrix anchors and publication guidance. The aggregate guard must cover #1166, #1167, #1168, #1169 and #1170 before #1171 can close.
+
+GH-1171 may record Venue/Product-aware lifecycle recovery as the next planning context only. It does not implement v0.18.0, does not create or publish a tag / GitHub Release, does not move `v0.17.0`, does not overwrite GitHub Release facts, does not promote any v0.18.0 Todo, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
