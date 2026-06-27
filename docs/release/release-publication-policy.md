@@ -1021,3 +1021,23 @@ v0.17.0 stable GitHub Release facts:
 - publication timestamp：`2026-06-27T06:37:33Z`
 
 GH-1169 不移动 `v0.17.0` tag，不覆盖 GitHub Release，不创建 `v0.17.1` public release，不推进 #1170..#1171，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。production cutover not authorized。
+
+## GH-1170 Release v0.17.1 v0.17.0 Stale Wording Guard Policy
+
+`GH-1170-VERIFY-V0171-V0170-STALE-WORDING-GUARD`
+
+`V0171-005-V0170-STALE-WORDING-GUARD`
+
+`V0171-005-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`
+
+`TVM-RELEASE-V0171-V0170-STALE-WORDING-GUARD`
+
+GH-1170 rejects unqualified stale v0.17.0 publication wording after GH-1169 synced the v0.17.0 stable GitHub Release facts. It scans root docs, release notes, Stage Audit and release policy for v0.17.0 pending release / pending tag / release not created / construction-only current-fact wording.
+
+Historical #1148 / GH-1148 construction closeout wording is allowed only when it is clearly scoped as historical closeout evidence and the same file also carries the current v0.17.0 release URL, tag peeled commit and publication timestamp:
+
+- release URL：`https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0`
+- tag peeled commit：`c83879f80a525665c3484878d7071b1f5214da20`
+- publication timestamp：`2026-06-27T06:37:33Z`
+
+GH-1170 不移动 `v0.17.0` tag，不覆盖 GitHub Release，不创建 `v0.17.1` public release，不推进下一 Project / Issue，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。production cutover not authorized。

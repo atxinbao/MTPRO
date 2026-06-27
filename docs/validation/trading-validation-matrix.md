@@ -4117,3 +4117,16 @@
 - focused test: `swift test --filter TargetGraphTests/testGH1169ReleaseV0171V0170ReleaseFactSyncGuard`
 - validation surface: v0.17.1 patch guard keeps the already-published v0.17.0 release URL, tag target and publication timestamp synchronized across root docs, release policy, audit notes and automation readiness.
 - forbidden scope: no tag movement, no GitHub Release overwrite, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.
+
+## TVM-RELEASE-V0171-V0170-STALE-WORDING-GUARD
+
+- GH-1170-VERIFY-V0171-V0170-STALE-WORDING-GUARD
+- V0171-005-V0170-STALE-WORDING-GUARD
+- V0171-005-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST
+- release fact required in scanned docs: v0.17.0 stable GitHub Release `https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0`
+- tag peeled commit required in scanned docs: `c83879f80a525665c3484878d7071b1f5214da20`
+- publication timestamp required in scanned docs: `2026-06-27T06:37:33Z`
+- focused verifier: `bash checks/verify-v0.17.1-release-fact-sync.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1170ReleaseV0171V0170StaleWordingGuardRejectsUnqualifiedPublicationDrift`
+- validation surface: the v0.17.1 verifier rejects stale v0.17.0 publication wording unless it is explicitly historical #1148 / GH-1148 construction closeout wording and is paired with current release facts in the same file.
+- forbidden scope: no tag movement, no GitHub Release overwrite, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.

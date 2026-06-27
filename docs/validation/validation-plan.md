@@ -6019,3 +6019,18 @@ swift test
 - focused test: `swift test --filter TargetGraphTests/testGH1169ReleaseV0171V0170ReleaseFactSyncGuard`
 - sync surface: README、GOAL、BLUEPRINT、roadmap、latest verification summary、validation plan、trading validation matrix、automation readiness、release publication policy、v0.17.0 audit and release notes.
 - boundary evidence: v0.17.1 是 v0.17.0 后的 artifact validation fail-closed patch queue；不移动 `v0.17.0` tag，不覆盖 GitHub Release，不创建 production cutover authorization；production cutover not authorized.
+
+## GH-1170 Release v0.17.1 v0.17.0 Stale Wording Guard
+
+- GH-1170-VERIFY-V0171-V0170-STALE-WORDING-GUARD
+- V0171-005-V0170-STALE-WORDING-GUARD
+- V0171-005-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST
+- TVM-RELEASE-V0171-V0170-STALE-WORDING-GUARD
+- release fact required in scanned docs: v0.17.0 stable GitHub Release `https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0`
+- tag peeled commit required in scanned docs: `c83879f80a525665c3484878d7071b1f5214da20`
+- publication timestamp required in scanned docs: `2026-06-27T06:37:33Z`
+- focused verifier: `bash checks/verify-v0.17.1-release-fact-sync.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1170ReleaseV0171V0170StaleWordingGuardRejectsUnqualifiedPublicationDrift`
+- stale wording guard: reject unqualified v0.17.0 pending release / pending tag / release not created / construction-only current-fact wording across root docs, release notes, Stage Audit and release policy.
+- historical exception: clearly scoped #1148 / GH-1148 construction closeout wording is allowed only when the same file also contains the current v0.17.0 release URL, tag peeled commit and publication timestamp.
+- boundary evidence: no tag movement, no GitHub Release overwrite, no production cutover, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.

@@ -48338,6 +48338,107 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1170ReleaseV0171V0170StaleWordingGuardRejectsUnqualifiedPublicationDrift() throws {
+        // 测试场景：GH-1170 在 GH-1169 release fact sync 之后扩展 v0.17.0 stale wording guard。
+        // 验证目的：未限定为历史 #1148 construction closeout 的“待发布 / 未创建 release /
+        // construction-only current fact”话术必须 fail closed；历史 closeout 说明只有在同文件携带
+        // 当前 release URL、tag peeled commit 和 publication timestamp 时才允许保留。
+        // GH-1170-VERIFY-V0171-V0170-STALE-WORDING-GUARD
+        // V0171-005-V0170-STALE-WORDING-GUARD
+        // V0171-005-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST
+        // TVM-RELEASE-V0171-V0170-STALE-WORDING-GUARD
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let verifier = try read("checks/verify-v0.17.1-release-fact-sync.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+
+        for anchor in [
+            "GH-1170-VERIFY-V0171-V0170-STALE-WORDING-GUARD",
+            "V0171-005-V0170-STALE-WORDING-GUARD",
+            "V0171-005-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST",
+            "TVM-RELEASE-V0171-V0170-STALE-WORDING-GUARD"
+        ] {
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in the release fact verifier")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(readinessDoc.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in the validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in the trading validation matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in the release policy")
+        }
+
+        for stalePhrase in [
+            "publication pending",
+            "release pending",
+            "tag pending",
+            "release not created",
+            "GitHub Release not created",
+            "not a Git tag publication",
+            "not a GitHub Release publication",
+            "construction closeout only",
+            "construction closeout final state",
+            "未创建 release",
+            "待发布",
+            "release artifact 缺失"
+        ] {
+            XCTAssertTrue(verifier.contains(stalePhrase), "\(stalePhrase) must be rejected by the v0.17.0 stale wording regex")
+        }
+
+        for allowlistMarker in [
+            "#1148",
+            "GH-1148",
+            "V0170-010-NO-TAG-OR-RELEASE-PUBLICATION",
+            "construction closeout evidence",
+            "V0170_RELEASE_URL",
+            "V0170_TARGET_COMMIT",
+            "V0170_PUBLICATION_TIMESTAMP"
+        ] {
+            XCTAssertTrue(verifier.contains(allowlistMarker), "\(allowlistMarker) must stay in the historical closeout allowlist")
+        }
+
+        let releaseURL = "https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0"
+        let tagCommit = "c83879f80a525665c3484878d7071b1f5214da20"
+        let publishedAt = "2026-06-27T06:37:33Z"
+
+        for file in [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md",
+            "docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md",
+            "docs/release/release-publication-policy.md"
+        ] {
+            let source = try read(file)
+            XCTAssertTrue(source.contains(releaseURL), "\(file) must keep the v0.17.0 release URL")
+            XCTAssertTrue(source.contains(tagCommit), "\(file) must keep the v0.17.0 tag commit")
+            XCTAssertTrue(source.contains(publishedAt), "\(file) must keep the v0.17.0 publication timestamp")
+        }
+
+        XCTAssertTrue(verifier.contains("reject_unqualified_stale_v0170_wording"))
+        XCTAssertTrue(verifier.contains("grep -En \"$forbidden_regex\""))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1170ReleaseV0171V0170StaleWordingGuardRejectsUnqualifiedPublicationDrift"))
+        XCTAssertTrue(releasePolicy.contains("GH-1170 rejects unqualified stale v0.17.0 publication wording"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.17.1 v0.17.0 stale wording guard anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1170 Release v0.17.1 v0.17.0 Stale Wording Guard"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0171-V0170-STALE-WORDING-GUARD"))
+
+        for source in [verifier, releasePolicy, readinessDoc, validationPlan, tradingMatrix] {
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("productionSecretRead=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnected=true"))
+            XCTAssertFalse(source.contains("productionBrokerConnected=true"))
+            XCTAssertFalse(source.contains("productionOrderSubmitted=true"))
+        }
+    }
+
     func testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence() throws {
         // 测试场景：GH-1147 将 operator beta safety profile 显式记录到 v0.17 evidence。
         // 验证目的：venue、product、symbol、notional、order-count 和 production-disabled state
