@@ -11886,5 +11886,39 @@ require_contains "docs/release/release-publication-policy.md" "GH-1178 persists 
 require_contains "checks/run.sh" "bash checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1178StatusQueryRetryResultPersistsNamespaceAndFailureIntoArtifactStore"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0180ResumeAfterInterruptionCommand.swift" \
+  "docs/contracts/release-v0.18.0-resume-after-interruption-command-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.18.0-resume-after-interruption-command.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1179-VERIFY-V0180-RESUME-AFTER-INTERRUPTION-COMMAND"
+  require_contains "$file" "TVM-RELEASE-V0180-RESUME-AFTER-INTERRUPTION-COMMAND"
+  require_contains "$file" "V0180-004-DEPENDENCIES-GH1177-GH1178-DONE"
+  require_contains "$file" "V0180-004-LOCAL-ARTIFACT-BACKED-RESUME"
+  require_contains "$file" "V0180-004-LIFECYCLE-MANIFEST-REQUIRED"
+  require_contains "$file" "V0180-004-STATUS-QUERY-EVIDENCE-REQUIRED"
+  require_contains "$file" "V0180-004-RECONCILIATION-EVIDENCE-REQUIRED"
+  require_contains "$file" "V0180-004-CROSS-VENUE-PRODUCT-REUSE-REJECTED"
+  require_contains "$file" "V0180-004-NO-AUTOMATIC-NETWORK-RETRY"
+  require_contains "$file" "V0180-004-NO-PRODUCTION-CUTOVER"
+done
+require_contains "docs/contracts/release-v0.18.0-resume-after-interruption-command-contract.md" "#1177 closed / done"
+require_contains "docs/contracts/release-v0.18.0-resume-after-interruption-command-contract.md" "#1178 closed / done"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180ResumeAfterInterruptionCommand.swift" "resumeAfterInterruptionCommand=ReleaseV0180ResumeAfterInterruptionCommand"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180ResumeAfterInterruptionCommand.swift" "ReleaseV0180ResumeAfterInterruptionInput"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180ResumeAfterInterruptionCommand.swift" "ReleaseV0180ResumeAfterInterruptionResult"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.0 resume-after-interruption command anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1179 Release v0.18.0 Resume After Interruption Command"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0180-RESUME-AFTER-INTERRUPTION-COMMAND"
+require_contains "docs/release/release-publication-policy.md" "GH-1179 adds the resume-after-interruption command"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.0-resume-after-interruption-command.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-resume-after-interruption-command.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1179ResumeAfterInterruptionCommandUsesArtifactStoreEvidence"
 
 printf 'MTPRO automation readiness checks passed.\n'

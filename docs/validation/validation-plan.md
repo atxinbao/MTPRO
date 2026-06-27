@@ -6111,3 +6111,24 @@ swift test
 - replay surface: `validateStatusQueryRetryResult` must replay the latest `.status` artifact from local storage and reject product / environment namespace mismatch.
 - dependency evidence: #1177 must be closed / done before GH-1178 can execute.
 - boundary evidence: no status-query endpoint execution, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
+
+## GH-1179 Release v0.18.0 Resume After Interruption Command
+
+- GH-1179-VERIFY-V0180-RESUME-AFTER-INTERRUPTION-COMMAND
+- TVM-RELEASE-V0180-RESUME-AFTER-INTERRUPTION-COMMAND
+- V0180-004-DEPENDENCIES-GH1177-GH1178-DONE
+- V0180-004-LOCAL-ARTIFACT-BACKED-RESUME
+- V0180-004-LIFECYCLE-MANIFEST-REQUIRED
+- V0180-004-STATUS-QUERY-EVIDENCE-REQUIRED
+- V0180-004-RECONCILIATION-EVIDENCE-REQUIRED
+- V0180-004-CROSS-VENUE-PRODUCT-REUSE-REJECTED
+- V0180-004-NO-AUTOMATIC-NETWORK-RETRY
+- V0180-004-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-resume-after-interruption-command.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1179ResumeAfterInterruptionCommandUsesArtifactStoreEvidence`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0180ResumeAfterInterruptionCommand.swift`
+- contract doc: `docs/contracts/release-v0.18.0-resume-after-interruption-command-contract.md`
+- validation surface: resume-after-interruption command must consume validated lifecycle manifest namespace, status-query retry persistence and reconciliation resume cursor from local artifact evidence.
+- fail-closed surface: missing lifecycle manifest, invalid status-query evidence, missing reconciliation evidence or namespace mismatch must return failed resume result with nil cursor.
+- dependency evidence: #1177 and #1178 must be closed / done before GH-1179 can execute.
+- boundary evidence: no automatic network retry, no broker mutation, no endpoint / broker connection, no production secret read, no order action, no tag / GitHub Release creation and no production cutover.

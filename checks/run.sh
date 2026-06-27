@@ -428,6 +428,17 @@ bash checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh
 # V0180-003-LOCAL-ARTIFACT-STORE-REPLAY
 # V0180-003-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh
+# GH-1179-VERIFY-V0180-RESUME-AFTER-INTERRUPTION-COMMAND
+# TVM-RELEASE-V0180-RESUME-AFTER-INTERRUPTION-COMMAND
+# V0180-004-DEPENDENCIES-GH1177-GH1178-DONE
+# V0180-004-LOCAL-ARTIFACT-BACKED-RESUME
+# V0180-004-LIFECYCLE-MANIFEST-REQUIRED
+# V0180-004-STATUS-QUERY-EVIDENCE-REQUIRED
+# V0180-004-RECONCILIATION-EVIDENCE-REQUIRED
+# V0180-004-CROSS-VENUE-PRODUCT-REUSE-REJECTED
+# V0180-004-NO-AUTOMATIC-NETWORK-RETRY
+# V0180-004-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.18.0-resume-after-interruption-command.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
