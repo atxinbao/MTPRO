@@ -8,6 +8,23 @@
 
 ## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 
+## TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE
+
+- TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE
+- GH-1147-VERIFY-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE
+- V0170-009-ACTIVE-SAFETY-POLICY-PROFILE
+- V0170-009-VENUE-PRODUCT-SYMBOL-LIMITS
+- V0170-009-NOTIONAL-LIMIT-EVIDENCE
+- V0170-009-ORDER-COUNT-LIMIT-EVIDENCE
+- V0170-009-PRODUCTION-GUARD-STATE
+- V0170-009-REDACTED-POLICY-EVIDENCE
+- V0170-009-NO-PRODUCTION-CUTOVER
+- GH-1147 Release v0.17.0 Beta Safety Policy Profile Evidence
+- `bash checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh`
+- `swift test --filter TargetGraphTests/testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift`、`docs/contracts/release-v0.17.0-beta-safety-policy-profile-evidence-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1147 records active safety policy profile, venue / product / symbol / notional / order-count limits and production-disabled guard state as local redacted evidence. It does not read credential values, connect endpoints, submit testnet or production orders, publish a tag / GitHub Release, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
 
 - TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION

@@ -329,6 +329,16 @@ bash checks/verify-v0.17.0-cli-artifact-verify-command.sh
 # V0170-008-REDACTED-EVIDENCE-RECORDED
 # V0170-008-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh
+# GH-1147-VERIFY-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE
+# TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE
+# V0170-009-ACTIVE-SAFETY-POLICY-PROFILE
+# V0170-009-VENUE-PRODUCT-SYMBOL-LIMITS
+# V0170-009-NOTIONAL-LIMIT-EVIDENCE
+# V0170-009-ORDER-COUNT-LIMIT-EVIDENCE
+# V0170-009-PRODUCTION-GUARD-STATE
+# V0170-009-REDACTED-POLICY-EVIDENCE
+# V0170-009-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

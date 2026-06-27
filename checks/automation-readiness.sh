@@ -124,6 +124,7 @@ require_file "docs/contracts/release-v0.17.0-cancel-status-reconciliation-recove
 require_file "docs/contracts/release-v0.17.0-dashboard-artifact-validation-error-surface-contract.md"
 require_file "docs/contracts/release-v0.17.0-cli-artifact-verify-command-contract.md"
 require_file "docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md"
+require_file "docs/contracts/release-v0.17.0-beta-safety-policy-profile-evidence-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
@@ -137,6 +138,7 @@ require_file "checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.s
 require_file "checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh"
 require_file "checks/verify-v0.17.0-cli-artifact-verify-command.sh"
 require_file "checks/verify-v0.17.0-manual-workflow-artifact-validation.sh"
+require_file "checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -579,6 +581,47 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "checks/run.sh" "bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-manual-workflow-artifact-validation.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1146ReleaseV0170ManualWorkflowArtifactValidation"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" \
+  "docs/contracts/release-v0.17.0-beta-safety-policy-profile-evidence-contract.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh" \
+  "checks/run.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1147-VERIFY-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE"
+  require_contains "$file" "TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE"
+  require_contains "$file" "V0170-009-ACTIVE-SAFETY-POLICY-PROFILE"
+  require_contains "$file" "V0170-009-VENUE-PRODUCT-SYMBOL-LIMITS"
+  require_contains "$file" "V0170-009-NOTIONAL-LIMIT-EVIDENCE"
+  require_contains "$file" "V0170-009-ORDER-COUNT-LIMIT-EVIDENCE"
+  require_contains "$file" "V0170-009-PRODUCTION-GUARD-STATE"
+  require_contains "$file" "V0170-009-REDACTED-POLICY-EVIDENCE"
+  require_contains "$file" "V0170-009-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "betaSafetyPolicyProfileEvidence=ReleaseV0170BetaSafetyPolicyProfileEvidence"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "activeSafetyPolicyProfileRecorded=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "venueLimitEvidenceRecorded=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "productLimitEvidenceRecorded=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "symbolLimitEvidenceRecorded=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "notionalLimitEvidenceRecorded=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "orderCountLimitEvidenceRecorded=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "productionGuardStateRecorded=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "ReleaseV0160BetaSafetyGuardEvidence"
+require_contains "docs/contracts/release-v0.17.0-beta-safety-policy-profile-evidence-contract.md" "#1147 / GH-1147"
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.0 beta safety policy profile evidence anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1147 Release v0.17.0 Beta Safety Policy Profile Evidence"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"

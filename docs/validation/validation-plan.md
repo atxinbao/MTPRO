@@ -6,6 +6,22 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1147 Release v0.17.0 Beta Safety Policy Profile Evidence
+
+- GH-1147-VERIFY-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE
+- TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE
+- V0170-009-ACTIVE-SAFETY-POLICY-PROFILE
+- V0170-009-VENUE-PRODUCT-SYMBOL-LIMITS
+- V0170-009-NOTIONAL-LIMIT-EVIDENCE
+- V0170-009-ORDER-COUNT-LIMIT-EVIDENCE
+- V0170-009-PRODUCTION-GUARD-STATE
+- V0170-009-REDACTED-POLICY-EVIDENCE
+- V0170-009-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift`、`docs/contracts/release-v0.17.0-beta-safety-policy-profile-evidence-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1147 只把 active safety policy profile、venue / product / symbol / notional / order-count limits 和 production-disabled guard state 固定为本地 redacted evidence。GH-1147 不读取 credential value，不连接 testnet / production endpoint，不发送 testnet / production order，不创建 tag / GitHub Release，不启动下一 milestone，不授权 production cutover。
+
 ## GH-1146 Release v0.17.0 Manual Workflow Artifact Validation
 
 - GH-1146-VERIFY-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
