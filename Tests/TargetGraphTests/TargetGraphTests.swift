@@ -49887,6 +49887,254 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(source.contains("replaceOrder"))
     }
 
+    func testGH1178StatusQueryRetryResultPersistsNamespaceAndFailureIntoArtifactStore() throws {
+        // 测试场景：GH-1178 将 GH-1141 signed status-query retry / timeout / classified
+        // failure result 写入 GH-1106 append-only artifact store，并绑定 GH-1177 同形 namespace。
+        // 验证目的：失败 status-query evidence 必须包含 venue/product/environment、retry attempts、
+        // timeout result、failure classification、redaction status、operator next action，并可从本地
+        // artifact store replay；不连接 endpoint、不读取 secret、不授权 production cutover。
+        // GH-1178-VERIFY-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE
+        // TVM-RELEASE-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE
+        // V0180-003-DEPENDENCY-GH1177-DONE
+        // V0180-003-STATUS-QUERY-RETRY-RESULT-PERSISTED
+        // V0180-003-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE
+        // V0180-003-RETRY-TIMEOUT-FAILURE-CLASSIFICATION
+        // V0180-003-REDACTION-STATUS-PERSISTED
+        // V0180-003-OPERATOR-VISIBLE-FAIL-CLOSED-EVIDENCE
+        // V0180-003-LOCAL-ARTIFACT-STORE-REPLAY
+        // V0180-003-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let runID = Identifier.constant(
+            "gh-1178-v0180-status-query-run",
+            field: "testGH1178.runID"
+        )
+        let lifecycleNamespace = try ReleaseV0180RunArtifactLifecycleNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let namespace = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        XCTAssertEqual(namespace.namespaceKey, lifecycleNamespace.namespaceKey)
+        XCTAssertTrue(namespace.namespaceHeld)
+
+        let retryPolicy = try ReleaseV0170SignedStatusQueryRetryPolicy(
+            maxAttempts: 2,
+            perAttemptTimeoutMilliseconds: 10
+        )
+        let timeoutFailure = try ReleaseV0170SignedStatusQueryAttemptFailure(
+            reason: .timeout,
+            field: "timeout",
+            detail: "status query timed out before redacted response",
+            retryable: true
+        )
+        let retryLimitFailure = try ReleaseV0170SignedStatusQueryAttemptFailure(
+            reason: .retryLimitExceeded,
+            field: "retryLimit",
+            detail: "maxAttempts=2",
+            retryable: false
+        )
+        let timedOutAttempt = try ReleaseV0170SignedStatusQueryAttemptEvidence(
+            attemptIndex: 1,
+            timeoutMilliseconds: retryPolicy.perAttemptTimeoutMilliseconds,
+            status: .failed,
+            transportResultID: nil,
+            failure: timeoutFailure,
+            retryScheduled: true
+        )
+        let retryLimitAttempt = try ReleaseV0170SignedStatusQueryAttemptEvidence(
+            attemptIndex: 2,
+            timeoutMilliseconds: retryPolicy.perAttemptTimeoutMilliseconds,
+            status: .failed,
+            transportResultID: nil,
+            failure: retryLimitFailure,
+            retryScheduled: false
+        )
+        let result = try ReleaseV0170SignedStatusQueryResult(
+            signedStatusQueryRequestID: .constant(
+                "gh-1178-redacted-status-query-request",
+                field: "testGH1178.signedStatusQueryRequestID"
+            ),
+            status: .failed,
+            finalTransportResultID: nil,
+            attempts: [timedOutAttempt, retryLimitAttempt],
+            retryPolicy: retryPolicy
+        )
+
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH1178-StatusQueryRetryArtifact-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+        let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: storageRoot)
+        let observedAt = Date(timeIntervalSince1970: 1_704_067_421)
+        let persistence = try store.appendStatusQueryRetryResult(
+            runID: runID,
+            namespace: namespace,
+            result: result,
+            observedAt: observedAt
+        )
+        XCTAssertTrue(persistence.persistenceHeld)
+        XCTAssertEqual(persistence.record.kind, .status)
+        XCTAssertEqual(persistence.payload.statusQueryRetrySnapshot, persistence.snapshot)
+        XCTAssertEqual(persistence.snapshot.namespace, namespace)
+        XCTAssertEqual(persistence.snapshot.status, .failed)
+        XCTAssertEqual(persistence.snapshot.attemptSnapshots.count, 2)
+        XCTAssertTrue(persistence.snapshot.timeoutResultPersisted)
+        XCTAssertTrue(persistence.snapshot.classifiedFailurePersisted)
+        XCTAssertEqual(
+            persistence.snapshot.classifiedFailureReasons,
+            [.timeout, .retryLimitExceeded]
+        )
+        XCTAssertEqual(persistence.snapshot.redactionStatus, "redactedEvidenceOnly")
+        XCTAssertTrue(persistence.snapshot.operatorVisibleFailureEvidence)
+        XCTAssertTrue(persistence.snapshot.failedStatusQueryFailClosed)
+        XCTAssertTrue(persistence.snapshot.localArtifactStoreReplayable)
+        XCTAssertFalse(persistence.snapshot.productionTradingEnabledByDefault)
+        XCTAssertFalse(persistence.snapshot.productionSecretReadEnabled)
+        XCTAssertFalse(persistence.snapshot.productionEndpointConnectionEnabled)
+        XCTAssertFalse(persistence.snapshot.productionBrokerConnectionEnabled)
+        XCTAssertFalse(persistence.snapshot.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(persistence.snapshot.productionCutoverAuthorized)
+        XCTAssertTrue(persistence.replay.replayedKinds.contains(.status))
+
+        let replayed = try store.validateStatusQueryRetryResult(
+            runID: runID,
+            namespace: namespace
+        )
+        XCTAssertEqual(replayed.snapshot, persistence.snapshot)
+        XCTAssertEqual(replayed.record.recordChecksum, persistence.record.recordChecksum)
+        XCTAssertTrue(replayed.persistenceHeld)
+
+        let payloadJSON = try String(
+            contentsOf: store.fileURL(forRelativePath: persistence.record.payloadPath),
+            encoding: .utf8
+        )
+        for expected in [
+            "statusQueryRetrySnapshot",
+            "retryAttemptsPersisted",
+            "timeoutResultPersisted",
+            "classifiedFailurePersisted",
+            "redactionStatusPersisted",
+            "venueProductEnvironmentNamespacePersisted",
+            "operatorVisibleFailureEvidence",
+            "binance",
+            "spot",
+            "testnet",
+            "operator-beta"
+        ] {
+            XCTAssertTrue(payloadJSON.contains(expected), "payload JSON must contain \(expected)")
+        }
+        XCTAssertFalse(payloadJSON.contains("api_key"))
+        XCTAssertFalse(payloadJSON.contains("signature="))
+        XCTAssertFalse(payloadJSON.contains("Secret Key"))
+        XCTAssertFalse(payloadJSON.contains("productionEndpointConnected\":true"))
+        XCTAssertFalse(payloadJSON.contains("productionCutoverAuthorized\":true"))
+
+        let productMismatch = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "usdmFutures",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        XCTAssertThrowsError(
+            try store.validateStatusQueryRetryResult(runID: runID, namespace: productMismatch)
+        ) { error in
+            guard let storeError = error as? ReleaseV0160LocalExecutionArtifactStoreError,
+                  case .boundaryDrift = storeError else {
+                return XCTFail("product namespace reuse must fail closed, got \(error)")
+            }
+        }
+
+        let requiredAnchors = [
+            "GH-1178-VERIFY-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE",
+            "TVM-RELEASE-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE",
+            "V0180-003-DEPENDENCY-GH1177-DONE",
+            "V0180-003-STATUS-QUERY-RETRY-RESULT-PERSISTED",
+            "V0180-003-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE",
+            "V0180-003-RETRY-TIMEOUT-FAILURE-CLASSIFICATION",
+            "V0180-003-REDACTION-STATUS-PERSISTED",
+            "V0180-003-OPERATOR-VISIBLE-FAIL-CLOSED-EVIDENCE",
+            "V0180-003-LOCAL-ARTIFACT-STORE-REPLAY",
+            "V0180-003-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(ReleaseV0180StatusQueryRetryArtifactSnapshot.requiredValidationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            ReleaseV0180StatusQueryRetryArtifactSnapshot.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1178StatusQueryRetryResultPersistsNamespaceAndFailureIntoArtifactStore",
+                "bash checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift")
+        let artifactStoreSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift")
+        let contractDoc = try read("docs/contracts/release-v0.18.0-status-query-retry-artifact-persistence-contract.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let automationReadiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let runScript = try read("checks/run.sh")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let verifier = try read("checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh")
+
+        for sourceText in [
+            source,
+            artifactStoreSource,
+            contractDoc,
+            validationPlan,
+            tradingMatrix,
+            automationReadiness,
+            readinessScript,
+            runScript,
+            policy,
+            verifier
+        ] {
+            for anchor in requiredAnchors {
+                XCTAssertTrue(sourceText.contains(anchor), "missing \(anchor)")
+            }
+        }
+
+        XCTAssertTrue(source.contains("ReleaseV0180StatusQueryRetryArtifactNamespace"))
+        XCTAssertTrue(source.contains("ReleaseV0180StatusQueryRetryArtifactSnapshot"))
+        XCTAssertTrue(source.contains("appendStatusQueryRetryResult"))
+        XCTAssertTrue(source.contains("validateStatusQueryRetryResult"))
+        XCTAssertTrue(artifactStoreSource.contains("statusQueryRetrySnapshot"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh"))
+        XCTAssertTrue(verifier.contains("testGH1178StatusQueryRetryResultPersistsNamespaceAndFailureIntoArtifactStore"))
+        for artifact in [source, artifactStoreSource, contractDoc] {
+            XCTAssertFalse(artifact.contains("api.binance.com"))
+            XCTAssertFalse(artifact.contains("www.okx.com"))
+            XCTAssertFalse(artifact.contains("URLSession"))
+            XCTAssertFalse(artifact.contains("URLRequest"))
+            XCTAssertFalse(artifact.contains("submitOrder"))
+            XCTAssertFalse(artifact.contains("cancelOrder"))
+            XCTAssertFalse(artifact.contains("replaceOrder"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     func testGH784RuntimeEventLogWriterAppendsValidatesAndRecoversPartialLines() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

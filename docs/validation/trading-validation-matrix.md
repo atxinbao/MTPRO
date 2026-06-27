@@ -4180,3 +4180,22 @@
 - boundary reuse surface: the same local run artifact bundle cannot validate as another product or environment; namespace mismatch is a fail-closed validation error.
 - local evidence surface: lifecycle manifest evidence includes source run manifest path, required artifact file names, required artifact checksums, lifecycle checksum and namespace equality proof only.
 - forbidden scope: no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
+
+## TVM-RELEASE-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE
+
+- GH-1178-VERIFY-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE
+- V0180-003-DEPENDENCY-GH1177-DONE
+- V0180-003-STATUS-QUERY-RETRY-RESULT-PERSISTED
+- V0180-003-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE
+- V0180-003-RETRY-TIMEOUT-FAILURE-CLASSIFICATION
+- V0180-003-REDACTION-STATUS-PERSISTED
+- V0180-003-OPERATOR-VISIBLE-FAIL-CLOSED-EVIDENCE
+- V0180-003-LOCAL-ARTIFACT-STORE-REPLAY
+- V0180-003-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1178StatusQueryRetryResultPersistsNamespaceAndFailureIntoArtifactStore`
+- persistence surface: signed status-query retry / timeout / classified failure result is persisted as `statusQueryRetrySnapshot` in the local append-only artifact payload.
+- namespace surface: venue, product, environment, accountProfile and runID must match the v0.18 lifecycle namespace key; product / environment reuse is rejected.
+- failure evidence surface: failed status-query result must preserve timeout + retryLimitExceeded classification, redaction status and operator-visible next action.
+- replay surface: status-query evidence must replay from local artifact store without reconnecting endpoint or re-running the query.
+- forbidden scope: no status-query endpoint execution, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.

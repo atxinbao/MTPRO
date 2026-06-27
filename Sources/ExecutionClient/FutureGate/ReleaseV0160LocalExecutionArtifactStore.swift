@@ -31,6 +31,16 @@ import Foundation
 // V0161-004-PRODUCTION-HOST-MARKERS
 // V0161-004-RAW-BROKER-ORDER-PAYLOAD-MARKERS
 // V0161-004-WORKFLOW-BUNDLE-REGRESSION-COVERAGE
+// GH-1178-VERIFY-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE
+// TVM-RELEASE-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE
+// V0180-003-DEPENDENCY-GH1177-DONE
+// V0180-003-STATUS-QUERY-RETRY-RESULT-PERSISTED
+// V0180-003-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE
+// V0180-003-RETRY-TIMEOUT-FAILURE-CLASSIFICATION
+// V0180-003-REDACTION-STATUS-PERSISTED
+// V0180-003-OPERATOR-VISIBLE-FAIL-CLOSED-EVIDENCE
+// V0180-003-LOCAL-ARTIFACT-STORE-REPLAY
+// V0180-003-NO-PRODUCTION-CUTOVER
 
 /// ReleaseV0160LocalExecutionArtifactStoreError 描述 GH-1106 本地 artifact store 的 fail-closed 错误。
 ///
@@ -123,6 +133,7 @@ public struct ReleaseV0160LocalExecutionArtifactPayload: Codable, Equatable, Sen
     public let brokerEndpointConnected: Bool
     public let productionOrderSubmitted: Bool
     public let productionCutoverAuthorized: Bool
+    public let statusQueryRetrySnapshot: ReleaseV0180StatusQueryRetryArtifactSnapshot?
 
     public var boundaryHeld: Bool {
         payloadID == Self.deterministicID(kind: kind, evidenceID: evidenceID)
@@ -140,6 +151,7 @@ public struct ReleaseV0160LocalExecutionArtifactPayload: Codable, Equatable, Sen
             && brokerEndpointConnected == false
             && productionOrderSubmitted == false
             && productionCutoverAuthorized == false
+            && (statusQueryRetrySnapshot?.snapshotHeld ?? true)
             && Self.redactionPolicy.policyHeld
             && Self.forbiddenRawMarkers(in: redactedSummary).isEmpty
             && redactedEvidenceReferences.allSatisfy { Self.forbiddenRawMarkers(in: $0).isEmpty }
@@ -162,7 +174,8 @@ public struct ReleaseV0160LocalExecutionArtifactPayload: Codable, Equatable, Sen
         productionEndpointConnected: Bool = false,
         brokerEndpointConnected: Bool = false,
         productionOrderSubmitted: Bool = false,
-        productionCutoverAuthorized: Bool = false
+        productionCutoverAuthorized: Bool = false,
+        statusQueryRetrySnapshot: ReleaseV0180StatusQueryRetryArtifactSnapshot? = nil
     ) throws {
         guard evidenceID.rawValue.isEmpty == false else {
             throw ReleaseV0160LocalExecutionArtifactStoreError.invalidPayload("evidenceID")
@@ -184,6 +197,7 @@ public struct ReleaseV0160LocalExecutionArtifactPayload: Codable, Equatable, Sen
         self.brokerEndpointConnected = brokerEndpointConnected
         self.productionOrderSubmitted = productionOrderSubmitted
         self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.statusQueryRetrySnapshot = statusQueryRetrySnapshot
 
         guard boundaryHeld else {
             throw ReleaseV0160LocalExecutionArtifactStoreError.invalidPayload(kind.rawValue)

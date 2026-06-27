@@ -129,6 +129,7 @@ require_file "docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-r
 require_file "docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md"
 require_file "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md"
 require_file "docs/contracts/release-v0.18.0-run-artifact-lifecycle-manifest-namespace-contract.md"
+require_file "docs/contracts/release-v0.18.0-status-query-retry-artifact-persistence-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
@@ -148,6 +149,7 @@ require_file "checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh"
 require_file "checks/verify-v0.17.1-manual-workflow-fail-closed.sh"
 require_file "checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh"
 require_file "checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh"
+require_file "checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -11848,5 +11850,41 @@ require_contains "docs/release/release-publication-policy.md" "GH-1177 adds the 
 require_contains "checks/run.sh" "bash checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1177RunArtifactLifecycleManifestRecordsNamespaceAndRejectsReuse"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" \
+  "docs/contracts/release-v0.18.0-status-query-retry-artifact-persistence-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1178-VERIFY-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE"
+  require_contains "$file" "TVM-RELEASE-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE"
+  require_contains "$file" "V0180-003-DEPENDENCY-GH1177-DONE"
+  require_contains "$file" "V0180-003-STATUS-QUERY-RETRY-RESULT-PERSISTED"
+  require_contains "$file" "V0180-003-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE"
+  require_contains "$file" "V0180-003-RETRY-TIMEOUT-FAILURE-CLASSIFICATION"
+  require_contains "$file" "V0180-003-REDACTION-STATUS-PERSISTED"
+  require_contains "$file" "V0180-003-OPERATOR-VISIBLE-FAIL-CLOSED-EVIDENCE"
+  require_contains "$file" "V0180-003-LOCAL-ARTIFACT-STORE-REPLAY"
+  require_contains "$file" "V0180-003-NO-PRODUCTION-CUTOVER"
+done
+require_contains "docs/contracts/release-v0.18.0-status-query-retry-artifact-persistence-contract.md" "#1177 closed / done"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" "ReleaseV0180StatusQueryRetryArtifactNamespace"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" "ReleaseV0180StatusQueryRetryArtifactSnapshot"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" "appendStatusQueryRetryResult"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" "validateStatusQueryRetryResult"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" "statusQueryRetrySnapshot"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.0 status query retry artifact persistence anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1178 Release v0.18.0 Status Query Retry Artifact Persistence"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE"
+require_contains "docs/release/release-publication-policy.md" "GH-1178 persists signed status-query retry / timeout / failure classification results"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1178StatusQueryRetryResultPersistsNamespaceAndFailureIntoArtifactStore"
 
 printf 'MTPRO automation readiness checks passed.\n'

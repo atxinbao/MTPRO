@@ -6089,3 +6089,25 @@ swift test
 - fail-closed evidence: missing namespace fields, unsupported venue/product pair, product mismatch and environment mismatch reject the lifecycle manifest.
 - dependency evidence: #1176 must be closed / done before GH-1177 can execute.
 - boundary evidence: local evidence only; no OKX runtime implementation, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
+
+## GH-1178 Release v0.18.0 Status Query Retry Artifact Persistence
+
+- GH-1178-VERIFY-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE
+- TVM-RELEASE-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE
+- V0180-003-DEPENDENCY-GH1177-DONE
+- V0180-003-STATUS-QUERY-RETRY-RESULT-PERSISTED
+- V0180-003-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE
+- V0180-003-RETRY-TIMEOUT-FAILURE-CLASSIFICATION
+- V0180-003-REDACTION-STATUS-PERSISTED
+- V0180-003-OPERATOR-VISIBLE-FAIL-CLOSED-EVIDENCE
+- V0180-003-LOCAL-ARTIFACT-STORE-REPLAY
+- V0180-003-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1178StatusQueryRetryResultPersistsNamespaceAndFailureIntoArtifactStore`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift`
+- artifact store source: `Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift`
+- contract doc: `docs/contracts/release-v0.18.0-status-query-retry-artifact-persistence-contract.md`
+- validation surface: `statusQueryRetrySnapshot` must persist retry attempts, timeout result, classified failures, redaction status, operator next-action and `{venue, product, environment, accountProfile, runID}` namespace inside the append-only local artifact store payload JSON.
+- replay surface: `validateStatusQueryRetryResult` must replay the latest `.status` artifact from local storage and reject product / environment namespace mismatch.
+- dependency evidence: #1177 must be closed / done before GH-1178 can execute.
+- boundary evidence: no status-query endpoint execution, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
