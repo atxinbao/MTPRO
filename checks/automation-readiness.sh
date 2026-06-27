@@ -3348,19 +3348,36 @@ require_contains "docs/validation/validation-plan.md" "GH-737 Release v0.5.0 Das
 require_contains "docs/automation/automation-readiness.md" "Release v0.5.0 Dashboard / CLI run observer anchor"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH737DashboardCLIRunObserverReadsJournalProjectionAndBoundaryByRunID"
 require_file "checks/verify-v0.5.0-ci-hardening.sh"
+require_file "checks/verify-ci-pr-fast-lane-release-matrix.sh"
 require_contains "checks/verify-v0.5.0-ci-hardening.sh" "GH-738-VERIFY-V050-CI-HARDENING"
 require_contains "checks/verify-v0.5.0-ci-hardening.sh" "TVM-RELEASE-V050-CI-HARDENING"
 require_contains "checks/verify-v0.5.0-ci-hardening.sh" "dashboard_macos:"
 require_contains "checks/verify-v0.5.0-ci-hardening.sh" "MTPRO required checks aggregate"
 require_contains "checks/verify-v0.5.0-ci-hardening.sh" "bash checks/verify-v0.5.0-preflight.sh"
 require_contains "checks/run.sh" "bash checks/verify-v0.5.0-ci-hardening.sh"
+require_contains "checks/run.sh" "bash checks/verify-ci-pr-fast-lane-release-matrix.sh"
 require_contains ".github/workflows/checks.yml" "workflow_dispatch:"
 require_contains ".github/workflows/checks.yml" "\"v*\""
+require_contains ".github/workflows/checks.yml" "\"release/**\""
+require_contains ".github/workflows/checks.yml" "pr_fast_checks:"
 require_contains ".github/workflows/checks.yml" "linux_checks:"
 require_contains ".github/workflows/checks.yml" "dashboard_macos:"
-require_contains ".github/workflows/checks.yml" "needs.linux_checks.result"
-require_contains ".github/workflows/checks.yml" "needs.dashboard_macos.result"
+require_contains ".github/workflows/checks.yml" "needs.pr_fast_checks.result"
 require_contains "docs/automation/ci-reproducibility.md" "GH-738-CI-DASHBOARD-MACOS-REQUIRED-GATE"
+for file in \
+  ".github/workflows/checks.yml" \
+  "checks/verify-ci-pr-fast-lane-release-matrix.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/automation/automation-readiness.md" \
+  "docs/automation/ci-reproducibility.md" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "CI-PR-FAST-LANE-RELEASE-MATRIX"
+  require_contains "$file" "CI-PR-FAST-LANE-REQUIRED-CHECKS"
+  require_contains "$file" "CI-RELEASE-FULL-LINUX-MACOS-MATRIX"
+  require_contains "$file" "CI-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testCIRequiredChecksUsePRFastLaneAndReleaseFullMatrix"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V050-CI-HARDENING"
 require_contains "docs/validation/validation-plan.md" "GH-738 Release v0.5.0 CI Hardening Validation"
 require_contains "docs/automation/automation-readiness.md" "Release v0.5.0 CI hardening anchor"

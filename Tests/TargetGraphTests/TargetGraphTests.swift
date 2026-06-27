@@ -29110,6 +29110,75 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(macOSGuardScript.contains("swift run mtpro replace"))
     }
 
+    func testCIRequiredChecksUsePRFastLaneAndReleaseFullMatrix() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let workflowSource = try read(".github/workflows/checks.yml")
+        let verifier = try read("checks/verify-ci-pr-fast-lane-release-matrix.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let ciDoc = try read("docs/automation/ci-reproducibility.md")
+
+        for anchor in [
+            "CI-PR-FAST-LANE-RELEASE-MATRIX",
+            "CI-PR-FAST-LANE-REQUIRED-CHECKS",
+            "CI-RELEASE-FULL-LINUX-MACOS-MATRIX",
+            "CI-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(workflowSource.contains(anchor), "\(anchor) must stay in workflow policy")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in verifier")
+            XCTAssertTrue(runScript.contains(anchor), "\(anchor) must stay in run.sh")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(readinessDoc.contains(anchor), "\(anchor) must stay in automation readiness docs")
+            XCTAssertTrue(ciDoc.contains(anchor), "\(anchor) must stay in CI reproducibility docs")
+        }
+
+        let fastLane = try XCTUnwrap(workflowSource.range(of: "  pr_fast_checks:"))
+        let linuxLane = try XCTUnwrap(workflowSource.range(of: "  linux_checks:"))
+        let macOSLane = try XCTUnwrap(workflowSource.range(of: "  dashboard_macos:"))
+        let aggregateLane = try XCTUnwrap(workflowSource.range(of: "  checks:"))
+        let fastLaneSource = String(workflowSource[fastLane.lowerBound..<linuxLane.lowerBound])
+        let linuxLaneSource = String(workflowSource[linuxLane.lowerBound..<macOSLane.lowerBound])
+        let macOSLaneSource = String(workflowSource[macOSLane.lowerBound..<aggregateLane.lowerBound])
+        let aggregateSource = String(workflowSource[aggregateLane.lowerBound..<workflowSource.endIndex])
+
+        XCTAssertTrue(fastLaneSource.contains("name: pr-fast-checks"))
+        XCTAssertTrue(fastLaneSource.contains("git diff --check"))
+        XCTAssertTrue(fastLaneSource.contains("bash checks/automation-readiness.sh"))
+        XCTAssertTrue(fastLaneSource.contains("bash checks/verify-ci-pr-fast-lane-release-matrix.sh"))
+        XCTAssertFalse(fastLaneSource.contains("bash checks/run.sh"))
+        XCTAssertFalse(fastLaneSource.contains("swift build --product Dashboard"))
+        XCTAssertFalse(fastLaneSource.contains("DASHBOARD_SMOKE=1 swift run Dashboard"))
+
+        let releaseCondition =
+            "github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release/')"
+        XCTAssertTrue(linuxLaneSource.contains(releaseCondition))
+        XCTAssertTrue(macOSLaneSource.contains(releaseCondition))
+        XCTAssertTrue(linuxLaneSource.contains("bash checks/run.sh"))
+        XCTAssertTrue(macOSLaneSource.contains("swift build --product Dashboard"))
+        XCTAssertTrue(macOSLaneSource.contains("DASHBOARD_SMOKE=1 swift run Dashboard"))
+
+        XCTAssertTrue(aggregateSource.contains("- pr_fast_checks"))
+        XCTAssertTrue(aggregateSource.contains("needs.pr_fast_checks.result"))
+        XCTAssertFalse(aggregateSource.contains("- linux_checks"))
+        XCTAssertFalse(aggregateSource.contains("- dashboard_macos"))
+        XCTAssertFalse(aggregateSource.contains("needs.linux_checks.result"))
+        XCTAssertFalse(aggregateSource.contains("needs.dashboard_macos.result"))
+
+        XCTAssertTrue(workflowSource.contains("\"release/**\""))
+        XCTAssertTrue(workflowSource.contains("\"v*\""))
+        XCTAssertTrue(runScript.contains("bash checks/verify-ci-pr-fast-lane-release-matrix.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testCIRequiredChecksUsePRFastLaneAndReleaseFullMatrix"))
+        XCTAssertFalse(workflowSource.contains("pull_request_target"))
+        XCTAssertFalse(workflowSource.contains("secrets."))
+        XCTAssertFalse(workflowSource.contains("productionTradingEnabledByDefault=true"))
+        XCTAssertFalse(workflowSource.contains("productionCutoverAuthorized=true"))
+    }
+
     func testGH836DashboardMacOSChecksRunV080FocusedGuards() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let workflowSource = try String(

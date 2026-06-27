@@ -70,6 +70,11 @@ bash checks/verify-v0.3.1.sh
 bash checks/verify-v0.4.0.sh
 bash checks/verify-v0.5.0-preflight.sh
 bash checks/verify-v0.5.0-ci-hardening.sh
+# CI-PR-FAST-LANE-RELEASE-MATRIX
+# CI-PR-FAST-LANE-REQUIRED-CHECKS
+# CI-RELEASE-FULL-LINUX-MACOS-MATRIX
+# CI-NO-PRODUCTION-CUTOVER
+bash checks/verify-ci-pr-fast-lane-release-matrix.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh
