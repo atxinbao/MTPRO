@@ -11684,4 +11684,39 @@ require_absent "GOAL.md" "#1111 manual testnet validation workflow is current WI
 require_absent "BLUEPRINT.md" "#1104 是当前 WIP=1"
 require_absent "docs/roadmap.md" "#1104 CLI cancel flow 是当前 WIP=1"
 
+for file in \
+  "docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.17.1-release-fact-sync.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1169-VERIFY-V0171-V0170-RELEASE-FACT-SYNC"
+  require_contains "$file" "V0171-004-V0170-RELEASE-FACT-SYNC-GUARD"
+  require_contains "$file" "TVM-RELEASE-V0171-V0170-RELEASE-FACT-SYNC"
+  require_contains "$file" "V0171-004-V0170-TAG-FIXED"
+  require_contains "$file" "V0171-004-PATCH-QUEUE-NOT-PUBLICATION"
+  require_contains "$file" "V0171-004-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0"
+  require_contains "$file" "c83879f80a525665c3484878d7071b1f5214da20"
+  require_contains "$file" "2026-06-27T06:37:33Z"
+done
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.1 v0.17.0 release fact sync anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1169 Release v0.17.1 v0.17.0 Release Fact Sync Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0171-V0170-RELEASE-FACT-SYNC"
+require_contains "docs/release/release-publication-policy.md" "v0.17.1 是 v0.17.0 后的 artifact validation fail-closed patch queue"
+require_contains "checks/verify-v0.17.1-release-fact-sync.sh" "GH-1169-VERIFY-V0171-V0170-RELEASE-FACT-SYNC"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.1-release-fact-sync.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.1-release-fact-sync.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1169ReleaseV0171V0170ReleaseFactSyncGuard"
+
 printf 'MTPRO automation readiness checks passed.\n'

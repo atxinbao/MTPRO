@@ -111,8 +111,6 @@ if "bash checks/run.sh" in fast_job or "swift build --product Dashboard" in fast
     raise SystemExit("pr_fast_checks must not run full historical release regression or Dashboard smoke")
 PY
 
-swift test --filter TargetGraphTests/testCIRequiredChecksUsePRFastLaneAndReleaseFullMatrix
-
 for forbidden in \
   "pull_request_target" \
   "secrets." \

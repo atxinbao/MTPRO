@@ -4102,3 +4102,18 @@
 - validation surface: manual workflow_dispatch only validates redacted bundle references; it never reads secrets and never runs network execution.
 - fail-closed evidence: submit -> status -> cancel -> status -> reconciliation passed sequence and every sha256 checksum reference must be present.
 - forbidden scope: no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.
+
+## TVM-RELEASE-V0171-V0170-RELEASE-FACT-SYNC
+
+- GH-1169-VERIFY-V0171-V0170-RELEASE-FACT-SYNC
+- V0171-004-V0170-RELEASE-FACT-SYNC-GUARD
+- V0171-004-V0170-TAG-FIXED
+- V0171-004-PATCH-QUEUE-NOT-PUBLICATION
+- V0171-004-NO-PRODUCTION-CUTOVER
+- release fact: v0.17.0 stable GitHub Release `https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0`
+- tag peeled commit: `c83879f80a525665c3484878d7071b1f5214da20`
+- publication timestamp: `2026-06-27T06:37:33Z`
+- focused verifier: `bash checks/verify-v0.17.1-release-fact-sync.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1169ReleaseV0171V0170ReleaseFactSyncGuard`
+- validation surface: v0.17.1 patch guard keeps the already-published v0.17.0 release URL, tag target and publication timestamp synchronized across root docs, release policy, audit notes and automation readiness.
+- forbidden scope: no tag movement, no GitHub Release overwrite, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.

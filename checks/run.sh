@@ -377,6 +377,16 @@ bash checks/verify-v0.17.1-manual-workflow-fail-closed.sh
 # V0171-003-REDACTED-OPERATOR-READABLE-EVIDENCE
 # V0171-003-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.17.1-artifact-negative-regressions.sh
+# GH-1169-VERIFY-V0171-V0170-RELEASE-FACT-SYNC
+# V0171-004-V0170-RELEASE-FACT-SYNC-GUARD
+# TVM-RELEASE-V0171-V0170-RELEASE-FACT-SYNC
+# V0171-004-V0170-TAG-FIXED
+# V0171-004-PATCH-QUEUE-NOT-PUBLICATION
+# V0171-004-NO-PRODUCTION-CUTOVER
+# https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0
+# c83879f80a525665c3484878d7071b1f5214da20
+# 2026-06-27T06:37:33Z
+bash checks/verify-v0.17.1-release-fact-sync.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

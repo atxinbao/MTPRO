@@ -8,7 +8,9 @@
 
 `MTPRO Release v0.17.0 Operator Beta Artifact + Status Runtime Hardening` 收口 GitHub fallback issues `#1139..#1148`。本 release construction queue 基于 v0.16.1 evidence hardening patch，继续在 Binance Spot Testnet operator beta 范围内强化本地 redacted artifact bundle replay、signed status retry / timeout failure evidence、operator run resume、cancel/status reconciliation recovery、Dashboard read-only error surface、CLI artifact verify command、manual workflow artifact validation 和 beta safety policy profile evidence。
 
-本 Stage Code Audit 只记录 v0.17.0 construction closeout evidence。它本身不创建 tag，不创建 GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。若后续需要发布 `v0.17.0` tag / GitHub Release，必须执行独立 Release Publication Gate；该 gate 仍不得默认开启 production trading。
+本 Stage Code Audit 只记录 v0.17.0 construction closeout evidence。它本身不创建 tag，不创建 GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。后续独立 Release Publication Gate 已发布 v0.17.0 stable GitHub Release，但该 publication 仍不等于 production cutover authorization，仍不得默认开启 production trading。
+
+Post-publication fact sync：GH-1169 使用 `GH-1169-VERIFY-V0171-V0170-RELEASE-FACT-SYNC`、`V0171-004-V0170-RELEASE-FACT-SYNC-GUARD`、`TVM-RELEASE-V0171-V0170-RELEASE-FACT-SYNC`、`V0171-004-V0170-TAG-FIXED`、`V0171-004-PATCH-QUEUE-NOT-PUBLICATION` 和 `V0171-004-NO-PRODUCTION-CUTOVER` 将 v0.17.0 已发布事实同步回 audit / release notes / root docs / validation docs：stable GitHub Release `https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0`，tag peeled commit `c83879f80a525665c3484878d7071b1f5214da20`，publication timestamp `2026-06-27T06:37:33Z`。v0.17.1 是 v0.17.0 后的 artifact validation fail-closed patch queue，不移动 `v0.17.0` tag，不覆盖 GitHub Release，不授权 production cutover；production cutover not authorized。
 
 ## Issue Completion Evidence
 
@@ -34,6 +36,12 @@
 - `V0170-010-STALE-WORDING-GUARD`
 - `V0170-010-NO-PRODUCTION-CUTOVER`
 - `V0170-010-NO-TAG-OR-RELEASE-PUBLICATION`
+- `GH-1169-VERIFY-V0171-V0170-RELEASE-FACT-SYNC`
+- `V0171-004-V0170-RELEASE-FACT-SYNC-GUARD`
+- `TVM-RELEASE-V0171-V0170-RELEASE-FACT-SYNC`
+- `V0171-004-V0170-TAG-FIXED`
+- `V0171-004-PATCH-QUEUE-NOT-PUBLICATION`
+- `V0171-004-NO-PRODUCTION-CUTOVER`
 
 ## Validation Summary
 
@@ -62,7 +70,7 @@ swift test --filter TargetGraphTests/testGH1148ReleaseV0170StageAuditReleaseDocs
 - 不发送 testnet 或 production submit / cancel / replace order。
 - 不授权 production cutover。
 - 不新增 Dashboard trading button、order form、live command 或 production cutover control。
-- 本 Stage Code Audit 不创建 tag 或 GitHub Release；publication 必须由后续独立 Release Publication Gate 显式触发。
+- 本 Stage Code Audit 不创建 tag 或 GitHub Release；后续独立 Release Publication Gate 已显式发布 v0.17.0 stable GitHub Release，且不授权 production cutover。
 - 不创建下一 Project / Issue，不推进下一 Todo。
 - 不使用 Linear、Symphony、Graphify、code-index 或 Figma。
 
@@ -72,8 +80,8 @@ v0.17.0 是 operator beta artifact / status runtime hardening construction close
 
 ## Root Docs Delta
 
-本 closeout 将 root docs、validation docs、automation readiness 和 release publication policy 同步到已发生事实：`release/v0.17.0` queue `#1139..#1148` 完成，#1148 收口 audit / release docs / validation matrix / stale wording guard。#1148 本身不创建 public release publication，不授权 production cutover。production cutover not authorized。
+本 closeout 将 root docs、validation docs、automation readiness 和 release publication policy 同步到已发生事实：`release/v0.17.0` queue `#1139..#1148` 完成，#1148 收口 audit / release docs / validation matrix / stale wording guard。#1148 本身不创建 public release publication，不授权 production cutover。GH-1169 后续同步 v0.17.0 已发布事实：Release URL `https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0`，tag peeled commit `c83879f80a525665c3484878d7071b1f5214da20`，publication timestamp `2026-06-27T06:37:33Z`。production cutover not authorized。
 
 ## Next Handoff
 
-`v0.17.0` tag / GitHub Release 若需要发布，必须由 Human 显式触发独立 Release Publication Gate。本 Stage Code Audit 不自动发布、不推进下一阶段、不创建下一 GitHub issue queue。
+`v0.17.0` tag / GitHub Release 已由后续独立 Release Publication Gate 显式发布；本 Stage Code Audit 不移动 tag、不覆盖 release、不推进下一阶段、不创建下一 GitHub issue queue。v0.17.1 patch queue 只允许在 WIP=1 下继续 artifact validation fail-closed hardening，仍不授权 production cutover。
