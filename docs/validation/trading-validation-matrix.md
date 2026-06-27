@@ -8,6 +8,23 @@
 
 ## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 
+## TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
+
+- TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
+- GH-1146-VERIFY-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
+- V0170-008-MANUAL-WORKFLOW-UPLOAD-DOWNLOAD-VALIDATION
+- V0170-008-SHARED-RUNTIME-VALIDATOR-PATH
+- V0170-008-UPLOADED-BUNDLE-VALIDATED
+- V0170-008-DOWNLOADED-BUNDLE-VALIDATED
+- V0170-008-LOCAL-ONLY-NO-NETWORK
+- V0170-008-REDACTED-EVIDENCE-RECORDED
+- V0170-008-NO-PRODUCTION-CUTOVER
+- GH-1146 Release v0.17.0 Manual Workflow Artifact Validation
+- `bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh`
+- `swift test --filter TargetGraphTests/testGH1146ReleaseV0170ManualWorkflowArtifactValidation`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift`、`.github/workflows/release-v0.17.0-manual-artifact-validation.yml`、`docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-manual-workflow-artifact-validation.sh`、`checks/run.sh` 和 `checks/automation-readiness.sh`。
+- Boundary: GH-1146 validates uploaded and downloaded manual workflow artifact bundle roots through the same local CLI / GH-1140 shared validator path. It records deterministic local evidence and does not read credential values, connect endpoints, submit testnet or production orders, publish a tag / GitHub Release, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND
 
 - TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND

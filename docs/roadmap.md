@@ -159,6 +159,18 @@ GH-1144 adds the Dashboard artifact validation error surface for v0.17.0. It exp
 
 GH-1145 adds the CLI artifact verify command for v0.17.0. It exposes GH-1140 artifact bundle replay validation as local `mtpro verify-operator-beta-artifact-bundle <storageRoot> <runID>` output with deterministic validation / replay evidence. It only reads the local redacted artifact store and does not read credential values, connect endpoints, submit orders, publish a tag / GitHub Release, or authorize production cutover.
 
+`GH-1146-VERIFY-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION`
+`TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION`
+`V0170-008-MANUAL-WORKFLOW-UPLOAD-DOWNLOAD-VALIDATION`
+`V0170-008-SHARED-RUNTIME-VALIDATOR-PATH`
+`V0170-008-UPLOADED-BUNDLE-VALIDATED`
+`V0170-008-DOWNLOADED-BUNDLE-VALIDATED`
+`V0170-008-LOCAL-ONLY-NO-NETWORK`
+`V0170-008-REDACTED-EVIDENCE-RECORDED`
+`V0170-008-NO-PRODUCTION-CUTOVER`
+
+GH-1146 adds manual workflow artifact upload/download validation for v0.17.0. It validates uploaded and downloaded local artifact store roots through the same `mtpro verify-operator-beta-artifact-bundle` CLI / GH-1140 shared validator path, records deterministic local evidence, and does not read credential values, connect endpoints, submit orders, publish a tag / GitHub Release, or authorize production cutover.
+
 `GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
 
 `GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`

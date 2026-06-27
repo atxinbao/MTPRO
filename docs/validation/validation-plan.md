@@ -6,6 +6,22 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1146 Release v0.17.0 Manual Workflow Artifact Validation
+
+- GH-1146-VERIFY-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
+- TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
+- V0170-008-MANUAL-WORKFLOW-UPLOAD-DOWNLOAD-VALIDATION
+- V0170-008-SHARED-RUNTIME-VALIDATOR-PATH
+- V0170-008-UPLOADED-BUNDLE-VALIDATED
+- V0170-008-DOWNLOADED-BUNDLE-VALIDATED
+- V0170-008-LOCAL-ONLY-NO-NETWORK
+- V0170-008-REDACTED-EVIDENCE-RECORDED
+- V0170-008-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1146ReleaseV0170ManualWorkflowArtifactValidation`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift`、`.github/workflows/release-v0.17.0-manual-artifact-validation.yml`、`docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/automation/automation-readiness.md`、`checks/verify-v0.17.0-manual-workflow-artifact-validation.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1146 只将 manual workflow uploaded / downloaded artifact bundle validation 固定到同一本地 CLI / shared runtime validator path。GH-1146 不读取 credential value，不连接 testnet / production endpoint，不发送 testnet / production order，不创建 tag / GitHub Release，不启动下一 milestone，不授权 production cutover。
+
 ## GH-1145 Release v0.17.0 CLI Artifact Verify Command
 
 - GH-1145-VERIFY-V0170-CLI-ARTIFACT-VERIFY-COMMAND

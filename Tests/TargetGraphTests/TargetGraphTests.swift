@@ -47402,6 +47402,236 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1146ReleaseV0170ManualWorkflowArtifactValidation() throws {
+        // 测试场景：GH-1146 将手动 workflow 的 uploaded/downloaded artifact bundle 都压到
+        // GH-1145 CLI output builder 与 GH-1140 shared runtime validator 这条路径。
+        // 验证目的：workflow 只验证本地 redacted artifact store，不读取 credential，不连接 endpoint，
+        // 不提交订单，也不授权 production cutover。
+        // GH-1146-VERIFY-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
+        // TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
+        // V0170-008-MANUAL-WORKFLOW-UPLOAD-DOWNLOAD-VALIDATION
+        // V0170-008-SHARED-RUNTIME-VALIDATOR-PATH
+        // V0170-008-UPLOADED-BUNDLE-VALIDATED
+        // V0170-008-DOWNLOADED-BUNDLE-VALIDATED
+        // V0170-008-LOCAL-ONLY-NO-NETWORK
+        // V0170-008-REDACTED-EVIDENCE-RECORDED
+        // V0170-008-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1146-VERIFY-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION",
+            "TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION",
+            "V0170-008-MANUAL-WORKFLOW-UPLOAD-DOWNLOAD-VALIDATION",
+            "V0170-008-SHARED-RUNTIME-VALIDATOR-PATH",
+            "V0170-008-UPLOADED-BUNDLE-VALIDATED",
+            "V0170-008-DOWNLOADED-BUNDLE-VALIDATED",
+            "V0170-008-LOCAL-ONLY-NO-NETWORK",
+            "V0170-008-REDACTED-EVIDENCE-RECORDED",
+            "V0170-008-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift",
+            ".github/workflows/release-v0.17.0-manual-artifact-validation.yml",
+            "docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.17.0-manual-workflow-artifact-validation.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        func makeBundle(
+            suffix: String,
+            runID: Identifier,
+            kinds: [ReleaseV0160LocalExecutionArtifactKind]
+        ) throws -> (
+            URL,
+            ReleaseV0160LocalExecutionArtifactStore,
+            [ReleaseV0160LocalExecutionArtifactRecord]
+        ) {
+            let tempRoot = FileManager.default.temporaryDirectory
+                .appendingPathComponent("mtpro-gh1146-\(suffix)-\(UUID().uuidString)", isDirectory: true)
+            let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+            let start = Date(timeIntervalSince1970: 1_704_084_000)
+            var records: [ReleaseV0160LocalExecutionArtifactRecord] = []
+            for (index, kind) in kinds.enumerated() {
+                let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                    kind: kind,
+                    suffix: "\(suffix)-\(index + 1)",
+                    observedAt: start.addingTimeInterval(TimeInterval(index))
+                )
+                records.append(try store.append(
+                    runID: runID,
+                    payload: payload,
+                    appendedAt: start.addingTimeInterval(TimeInterval(index))
+                ))
+            }
+            return (tempRoot, store, records)
+        }
+
+        let runID = Identifier.constant("gh-1146-v0170-manual-workflow-artifact-validation")
+        let expectedSequence = ReleaseV0170OperatorBetaArtifactBundleValidationResult.requiredActionSequence
+        let (uploadedRoot, _, _) = try makeBundle(
+            suffix: "uploaded",
+            runID: runID,
+            kinds: expectedSequence
+        )
+        let (downloadedRoot, _, _) = try makeBundle(
+            suffix: "downloaded",
+            runID: runID,
+            kinds: expectedSequence
+        )
+        defer {
+            try? FileManager.default.removeItem(at: uploadedRoot)
+            try? FileManager.default.removeItem(at: downloadedRoot)
+        }
+
+        let report = try ReleaseV0170ManualWorkflowArtifactValidationReport.validate(
+            uploadedStorageRootPath: uploadedRoot.path,
+            downloadedStorageRootPath: downloadedRoot.path,
+            runID: runID.rawValue
+        )
+        XCTAssertTrue(report.reportHeld)
+        XCTAssertEqual(report.issueID.rawValue, "GH-1146")
+        XCTAssertEqual(report.blockedByIssueIDs.map(\.rawValue), ["GH-1144", "GH-1145"])
+        XCTAssertEqual(report.status, .passed)
+        XCTAssertEqual(report.uploadedArtifact.validationResult.status, .passed)
+        XCTAssertEqual(report.downloadedArtifact.validationResult.status, .passed)
+        XCTAssertTrue(report.uploadedArtifactBundleValidation)
+        XCTAssertTrue(report.downloadedArtifactBundleValidation)
+        XCTAssertTrue(report.sharedRuntimeValidatorUsed)
+        XCTAssertTrue(report.cliValidatorPathUsed)
+        XCTAssertTrue(report.uploadDownloadEvidenceRecorded)
+        XCTAssertTrue(report.localOnlyNoNetwork)
+        XCTAssertTrue(report.redactedEvidenceOnly)
+        XCTAssertFalse(report.productionTradingEnabledByDefault)
+        XCTAssertFalse(report.productionSecretReadEnabled)
+        XCTAssertFalse(report.productionEndpointConnectionEnabled)
+        XCTAssertFalse(report.productionBrokerConnectionEnabled)
+        XCTAssertFalse(report.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(report.productionCutoverAuthorized)
+
+        let rendered = try ReleaseV0170ManualWorkflowArtifactValidationReport.commandOutput(
+            uploadedStorageRootPath: uploadedRoot.path,
+            downloadedStorageRootPath: downloadedRoot.path,
+            runID: runID.rawValue
+        )
+        XCTAssertTrue(rendered.contains("issue=GH-1146"))
+        XCTAssertTrue(rendered.contains("status=passed"))
+        XCTAssertTrue(rendered.contains("uploadedArtifactStatus=passed"))
+        XCTAssertTrue(rendered.contains("downloadedArtifactStatus=passed"))
+        XCTAssertTrue(rendered.contains("sharedRuntimeValidatorUsed=true"))
+        XCTAssertTrue(rendered.contains("cliValidatorPathUsed=true"))
+        XCTAssertTrue(rendered.contains("uploadDownloadEvidenceRecorded=true"))
+        XCTAssertTrue(rendered.contains("localOnlyNoNetwork=true"))
+        XCTAssertTrue(rendered.contains("redactedEvidenceOnly=true"))
+        XCTAssertTrue(rendered.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(rendered.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(rendered.contains("boundaryHeld=true"))
+
+        let (tamperedUploadedRoot, _, _) = try makeBundle(
+            suffix: "tampered-uploaded",
+            runID: runID,
+            kinds: expectedSequence
+        )
+        let (tamperedDownloadedRoot, tamperedDownloadedStore, tamperedDownloadedRecords) = try makeBundle(
+            suffix: "tampered-downloaded",
+            runID: runID,
+            kinds: expectedSequence
+        )
+        defer {
+            try? FileManager.default.removeItem(at: tamperedUploadedRoot)
+            try? FileManager.default.removeItem(at: tamperedDownloadedRoot)
+        }
+        try Data("{\"tampered\":\"redacted\"}".utf8).write(
+            to: tamperedDownloadedStore.fileURL(forRelativePath: tamperedDownloadedRecords[0].payloadPath),
+            options: .atomic
+        )
+        let failedReport = try ReleaseV0170ManualWorkflowArtifactValidationReport.validate(
+            uploadedStorageRootPath: tamperedUploadedRoot.path,
+            downloadedStorageRootPath: tamperedDownloadedRoot.path,
+            runID: runID.rawValue
+        )
+        XCTAssertTrue(failedReport.reportHeld)
+        XCTAssertEqual(failedReport.status, .failed)
+        XCTAssertEqual(failedReport.uploadedArtifact.validationResult.status, .passed)
+        XCTAssertEqual(failedReport.downloadedArtifact.validationResult.status, .failed)
+        XCTAssertEqual(failedReport.downloadedArtifact.validationResult.failures.map(\.reason), [.checksumMismatch])
+        XCTAssertTrue(failedReport.localOnlyNoNetwork)
+        XCTAssertFalse(failedReport.productionOrderSubmitCancelReplaceEnabled)
+
+        XCTAssertEqual(
+            ReleaseV0170ManualWorkflowArtifactValidationReport.requiredValidationAnchors,
+            requiredAnchors
+        )
+        XCTAssertEqual(
+            ReleaseV0170ManualWorkflowArtifactValidationReport.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1146ReleaseV0170ManualWorkflowArtifactValidation",
+                "bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift")
+        let workflow = try read(".github/workflows/release-v0.17.0-manual-artifact-validation.yml")
+        let contractDoc = try read("docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.17.0-manual-workflow-artifact-validation.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+
+        XCTAssertTrue(source.contains("manualWorkflowArtifactValidation=ReleaseV0170ManualWorkflowArtifactValidationReport"))
+        XCTAssertTrue(source.contains("uploadedArtifactBundleValidation=true"))
+        XCTAssertTrue(source.contains("downloadedArtifactBundleValidation=true"))
+        XCTAssertTrue(source.contains("sharedRuntimeValidatorUsed=true"))
+        XCTAssertTrue(source.contains("cliValidatorPathUsed=true"))
+        XCTAssertTrue(source.contains("ReleaseV0170CLIArtifactVerifyCommand.commandOutput"))
+        XCTAssertTrue(workflow.contains("release-v0.17.0-manual-artifact-validation"))
+        XCTAssertTrue(workflow.contains("swift run mtpro verify-operator-beta-artifact-bundle"))
+        XCTAssertTrue(contractDoc.contains("#1146 / GH-1146"))
+        XCTAssertTrue(contractDoc.contains("manual workflow artifact upload/download validation"))
+        XCTAssertTrue(contractDoc.contains("不授权 production cutover"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.0-manual-workflow-artifact-validation.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1146ReleaseV0170ManualWorkflowArtifactValidation"))
+        XCTAssertTrue(readiness.contains("Release v0.17.0 manual workflow artifact validation anchor"))
+        XCTAssertTrue(latest.contains("v0.17.0 manual workflow artifact validation"))
+        XCTAssertTrue(plan.contains("GH-1146 Release v0.17.0 Manual Workflow Artifact Validation"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION"))
+
+        for artifact in [source, workflow, contractDoc, verifier] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     private enum GH1141StatusQueryScriptOutcome: Sendable {
         case retryableHTTPStatus
         case nonRetryableHTTPStatus

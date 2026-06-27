@@ -319,6 +319,16 @@ bash checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh
 # V0170-007-REDACTED-OUTPUT
 # V0170-007-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.17.0-cli-artifact-verify-command.sh
+# GH-1146-VERIFY-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
+# TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
+# V0170-008-MANUAL-WORKFLOW-UPLOAD-DOWNLOAD-VALIDATION
+# V0170-008-SHARED-RUNTIME-VALIDATOR-PATH
+# V0170-008-UPLOADED-BUNDLE-VALIDATED
+# V0170-008-DOWNLOADED-BUNDLE-VALIDATED
+# V0170-008-LOCAL-ONLY-NO-NETWORK
+# V0170-008-REDACTED-EVIDENCE-RECORDED
+# V0170-008-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
