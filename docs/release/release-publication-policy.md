@@ -1165,3 +1165,29 @@ GH-1178 is local evidence only. It does not re-run status query, does not implem
 GH-1179 adds the resume-after-interruption command on top of local artifact evidence. The command must consume validated lifecycle manifest namespace, persisted status-query retry evidence and reconciliation resume cursor before producing `mtpro operator-run resume`.
 
 GH-1179 is local evidence only. It does not automatically retry network calls, does not mutate broker state, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
+
+## GH-1180 Release v0.18.0 Cancel / Status Reconciliation Replay Command Policy
+
+`GH-1180-VERIFY-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND`
+
+`TVM-RELEASE-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND`
+
+`V0180-005-DEPENDENCIES-GH1178-GH1179-DONE`
+
+`V0180-005-LOCAL-ARTIFACT-REPLAY`
+
+`V0180-005-CANCEL-STATUS-OBSERVED-EXPECTED-EXPLAINED`
+
+`V0180-005-MISSING-RECONCILIATION-FAILS-CLOSED`
+
+`V0180-005-MISMATCH-RECONCILIATION-FAILS-CLOSED`
+
+`V0180-005-READ-ONLY-OPERATOR-ACTION`
+
+`V0180-005-CROSS-VENUE-PRODUCT-REUSE-REJECTED`
+
+`V0180-005-NO-PRODUCTION-CUTOVER`
+
+GH-1180 adds the cancel/status reconciliation replay command on top of local artifact evidence. The command must consume GH-1178 status-query retry persistence, GH-1179 resume result, GH-1107 observed-status reconciliation report and GH-1143 recovery report before producing `mtpro operator-run replay-cancel-status-reconciliation`.
+
+GH-1180 is local evidence only. It does not automatically retry network calls, does not mutate broker state, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。

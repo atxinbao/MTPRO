@@ -6132,3 +6132,25 @@ swift test
 - fail-closed surface: missing lifecycle manifest, invalid status-query evidence, missing reconciliation evidence or namespace mismatch must return failed resume result with nil cursor.
 - dependency evidence: #1177 and #1178 must be closed / done before GH-1179 can execute.
 - boundary evidence: no automatic network retry, no broker mutation, no endpoint / broker connection, no production secret read, no order action, no tag / GitHub Release creation and no production cutover.
+
+## GH-1180 Release v0.18.0 Cancel / Status Reconciliation Replay Command
+
+- GH-1180-VERIFY-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND
+- TVM-RELEASE-V0180-CANCEL-STATUS-RECONCILIATION-REPLAY-COMMAND
+- V0180-005-DEPENDENCIES-GH1178-GH1179-DONE
+- V0180-005-LOCAL-ARTIFACT-REPLAY
+- V0180-005-CANCEL-STATUS-OBSERVED-EXPECTED-EXPLAINED
+- V0180-005-MISSING-RECONCILIATION-FAILS-CLOSED
+- V0180-005-MISMATCH-RECONCILIATION-FAILS-CLOSED
+- V0180-005-READ-ONLY-OPERATOR-ACTION
+- V0180-005-CROSS-VENUE-PRODUCT-REUSE-REJECTED
+- V0180-005-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1180CancelStatusReconciliationReplayCommandUsesLocalArtifacts`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0180CancelStatusReconciliationReplayCommand.swift`
+- contract doc: `docs/contracts/release-v0.18.0-cancel-status-reconciliation-replay-command-contract.md`
+- validation surface: cancel/status reconciliation replay command must consume GH-1178 status-query retry persistence, GH-1179 resume result, GH-1107 observed-status reconciliation report and GH-1143 recovery report from local artifact evidence.
+- observed / expected surface: result must explain expected lifecycle state and observed lifecycle state per venue/product/environment/accountProfile/runID namespace.
+- fail-closed surface: missing reconciliation report, missing recovery report, observed / expected mismatch, recovery cases or namespace mismatch must return failed result with read-only operator next action.
+- dependency evidence: #1178 and #1179 must be closed / done before GH-1180 can execute.
+- boundary evidence: no automatic network retry, no broker mutation, no endpoint / broker connection, no production secret read, no order action, no tag / GitHub Release creation and no production cutover.
