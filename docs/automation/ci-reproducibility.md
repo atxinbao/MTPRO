@@ -41,7 +41,7 @@ Release v0.5.0 的 GH-738 历史上将 GitHub required check `checks` 从单一 
 
 当前 CI 策略把 review feedback loop 分成两条 lane：
 
-- `CI-PR-FAST-LANE-REQUIRED-CHECKS`：普通 PR 的 required `checks` 只聚合 `pr-fast-checks`，覆盖 whitespace、automation readiness、CI lane policy guard 和 focused TargetGraph policy test。
+- `CI-PR-FAST-LANE-REQUIRED-CHECKS`：普通 PR 的 required `checks` 只聚合 `pr-fast-checks`，覆盖 whitespace、automation readiness 和 shell / Python-only CI lane policy guard；TargetGraph Swift policy test 仍由本地完整验证和 release full lane 覆盖，不在普通 PR fast lane 里触发 SwiftPM build。
 - `CI-RELEASE-FULL-LINUX-MACOS-MATRIX`：发布验证使用 manual `workflow_dispatch`、`v*` tag push 或 `release/**` branch push 触发 `linux-checks` 与 `dashboard-macos`，覆盖 `bash checks/run.sh`、Dashboard focused guards、Dashboard build 和 Dashboard smoke。
 - `CI-NO-PRODUCTION-CUTOVER`：两条 lane 都不读取 secrets，不连接 production / broker endpoint，不提交真实订单，不授权 production cutover。
 
