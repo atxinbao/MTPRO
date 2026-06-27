@@ -11718,5 +11718,23 @@ require_contains "checks/verify-v0.17.1-release-fact-sync.sh" "GH-1169-VERIFY-V0
 require_contains "checks/run.sh" "bash checks/verify-v0.17.1-release-fact-sync.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.1-release-fact-sync.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1169ReleaseV0171V0170ReleaseFactSyncGuard"
+for file in \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.17.1-release-fact-sync.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1170-VERIFY-V0171-V0170-STALE-WORDING-GUARD"
+  require_contains "$file" "V0171-005-V0170-STALE-WORDING-GUARD"
+  require_contains "$file" "V0171-005-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST"
+  require_contains "$file" "TVM-RELEASE-V0171-V0170-STALE-WORDING-GUARD"
+done
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.1 v0.17.0 stale wording guard anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1170 Release v0.17.1 v0.17.0 Stale Wording Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0171-V0170-STALE-WORDING-GUARD"
+require_contains "docs/release/release-publication-policy.md" "GH-1170 rejects unqualified stale v0.17.0 publication wording"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1170ReleaseV0171V0170StaleWordingGuardRejectsUnqualifiedPublicationDrift"
 
 printf 'MTPRO automation readiness checks passed.\n'
