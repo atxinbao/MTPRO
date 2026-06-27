@@ -123,6 +123,7 @@ require_file "docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-f
 require_file "docs/contracts/release-v0.17.0-cancel-status-reconciliation-recovery-path-contract.md"
 require_file "docs/contracts/release-v0.17.0-dashboard-artifact-validation-error-surface-contract.md"
 require_file "docs/contracts/release-v0.17.0-cli-artifact-verify-command-contract.md"
+require_file "docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
@@ -135,6 +136,7 @@ require_file "checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-mo
 require_file "checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh"
 require_file "checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh"
 require_file "checks/verify-v0.17.0-cli-artifact-verify-command.sh"
+require_file "checks/verify-v0.17.0-manual-workflow-artifact-validation.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -541,6 +543,42 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "checks/run.sh" "bash checks/verify-v0.17.0-cli-artifact-verify-command.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-cli-artifact-verify-command.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1145ReleaseV0170CLIArtifactVerifyCommand"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" \
+  ".github/workflows/release-v0.17.0-manual-artifact-validation.yml" \
+  "docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.17.0-manual-workflow-artifact-validation.sh" \
+  "checks/run.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1146-VERIFY-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION"
+  require_contains "$file" "TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION"
+  require_contains "$file" "V0170-008-MANUAL-WORKFLOW-UPLOAD-DOWNLOAD-VALIDATION"
+  require_contains "$file" "V0170-008-SHARED-RUNTIME-VALIDATOR-PATH"
+  require_contains "$file" "V0170-008-UPLOADED-BUNDLE-VALIDATED"
+  require_contains "$file" "V0170-008-DOWNLOADED-BUNDLE-VALIDATED"
+  require_contains "$file" "V0170-008-LOCAL-ONLY-NO-NETWORK"
+  require_contains "$file" "V0170-008-REDACTED-EVIDENCE-RECORDED"
+  require_contains "$file" "V0170-008-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "ReleaseV0170ManualWorkflowArtifactValidationReport"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "ReleaseV0170CLIArtifactVerifyCommand.commandOutput"
+require_contains ".github/workflows/release-v0.17.0-manual-artifact-validation.yml" "swift run mtpro verify-operator-beta-artifact-bundle"
+require_contains "docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md" "#1146 / GH-1146"
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.0 manual workflow artifact validation anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1146 Release v0.17.0 Manual Workflow Artifact Validation"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.0-manual-workflow-artifact-validation.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1146ReleaseV0170ManualWorkflowArtifactValidation"
 
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "V0161-001-V0160-RELEASE-FACT-SYNC-GUARD"

@@ -1,0 +1,81 @@
+name: MTPRO v0.17.0 Manual Artifact Validation
+
+# workflowName=release-v0.17.0-manual-artifact-validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Manual operator run id shared by uploaded and downloaded artifact bundles."
+        required: true
+        type: string
+      uploaded_artifact_storage_root:
+        description: "Redacted local storage root copied from the operator upload bundle."
+        required: true
+        default: ".local/mtpro/v0.17.0/operator-runs/<run-id>/uploaded-artifact-store"
+        type: string
+      downloaded_artifact_storage_root:
+        description: "Redacted local storage root copied from the workflow downloaded bundle."
+        required: true
+        default: ".local/mtpro/v0.17.0/operator-runs/<run-id>/downloaded-artifact-store"
+        type: string
+      operator_confirmed_redaction:
+        description: "Operator confirms uploaded and downloaded bundles contain only redacted evidence."
+        required: true
+        default: false
+        type: boolean
+      dry_run_only:
+        description: "Must stay true; this workflow validates local artifacts only."
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  validate-manual-artifacts:
+    name: validate-manual-artifacts
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard manual-only artifact inputs
+        run: |
+          test "${{ inputs.dry_run_only }}" = "true"
+          test "${{ inputs.operator_confirmed_redaction }}" = "true"
+          test -n "${{ inputs.run_id }}"
+          for path in "${{ inputs.uploaded_artifact_storage_root }}" "${{ inputs.downloaded_artifact_storage_root }}"; do
+            case "$path" in
+              *api-key*|*api_key*|*secret*|*production*|*api.binance.com*|*broker*)
+                echo "Artifact storage root must be redacted and local-only." >&2
+                exit 1
+                ;;
+            esac
+          done
+          echo "GH-1146-VERIFY-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION"
+          echo "TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION"
+          echo "V0170-008-MANUAL-WORKFLOW-UPLOAD-DOWNLOAD-VALIDATION"
+          echo "V0170-008-SHARED-RUNTIME-VALIDATOR-PATH"
+          echo "V0170-008-UPLOADED-BUNDLE-VALIDATED"
+          echo "V0170-008-DOWNLOADED-BUNDLE-VALIDATED"
+          echo "V0170-008-LOCAL-ONLY-NO-NETWORK"
+          echo "V0170-008-REDACTED-EVIDENCE-RECORDED"
+          echo "V0170-008-NO-PRODUCTION-CUTOVER"
+          echo "productionTradingEnabledByDefault=false"
+          echo "productionSecretReadEnabled=false"
+          echo "productionEndpointConnectionEnabled=false"
+          echo "productionBrokerConnectionEnabled=false"
+          echo "productionOrderSubmitCancelReplaceEnabled=false"
+          echo "productionCutoverAuthorized=false"
+
+      - name: Validate uploaded artifact bundle through shared CLI path
+        run: |
+          swift run mtpro verify-operator-beta-artifact-bundle "${{ inputs.uploaded_artifact_storage_root }}" "${{ inputs.run_id }}"
+
+      - name: Validate downloaded artifact bundle through shared CLI path
+        run: |
+          swift run mtpro verify-operator-beta-artifact-bundle "${{ inputs.downloaded_artifact_storage_root }}" "${{ inputs.run_id }}"
+
+      - name: Verify deterministic #1146 guard
+        run: bash checks/verify-v0.17.0-manual-workflow-artifact-validation.sh
