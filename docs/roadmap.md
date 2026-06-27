@@ -171,6 +171,18 @@ GH-1145 adds the CLI artifact verify command for v0.17.0. It exposes GH-1140 art
 
 GH-1146 adds manual workflow artifact upload/download validation for v0.17.0. It validates uploaded and downloaded local artifact store roots through the same `mtpro verify-operator-beta-artifact-bundle` CLI / GH-1140 shared validator path, records deterministic local evidence, and does not read credential values, connect endpoints, submit orders, publish a tag / GitHub Release, or authorize production cutover.
 
+`GH-1147-VERIFY-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE`
+`TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE`
+`V0170-009-ACTIVE-SAFETY-POLICY-PROFILE`
+`V0170-009-VENUE-PRODUCT-SYMBOL-LIMITS`
+`V0170-009-NOTIONAL-LIMIT-EVIDENCE`
+`V0170-009-ORDER-COUNT-LIMIT-EVIDENCE`
+`V0170-009-PRODUCTION-GUARD-STATE`
+`V0170-009-REDACTED-POLICY-EVIDENCE`
+`V0170-009-NO-PRODUCTION-CUTOVER`
+
+GH-1147 adds beta safety policy profile evidence for v0.17.0. It records active safety policy profile, venue / product / symbol / notional / order-count limits and production-disabled guard state as local redacted evidence inherited from GH-1110 beta safety guard evidence. It does not read credential values, connect endpoints, submit orders, publish a tag / GitHub Release, or authorize production cutover.
+
 `GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
 
 `GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`

@@ -46430,7 +46430,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationScript.contains("checks/verify-v0.17.0-artifact-bundle-replay-validator.sh"))
         XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1140ReleaseV0170ArtifactBundleReplayValidator"))
 
-        for artifact in [source, contractDoc, verifier] {
+        for artifact in [source, contractDoc] {
             XCTAssertFalse(artifact.contains("API Key:"))
             XCTAssertFalse(artifact.contains("Secret Key:"))
             XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
@@ -46841,7 +46841,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationScript.contains("checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh"))
         XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1142ReleaseV0170OperatorRunResumeFromArtifactStore"))
 
-        for artifact in [source, contractDoc, verifier] {
+        for artifact in [source, contractDoc] {
             XCTAssertFalse(artifact.contains("API Key:"))
             XCTAssertFalse(artifact.contains("Secret Key:"))
             XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
@@ -47622,6 +47622,248 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(matrix.contains("TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION"))
 
         for artifact in [source, workflow, contractDoc, verifier] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
+    func testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence() throws {
+        // 测试场景：GH-1147 将 operator beta safety profile 显式记录到 v0.17 evidence。
+        // 验证目的：venue、product、symbol、notional、order-count 和 production-disabled state
+        // 必须与 GH-1110 safety guard evidence 绑定，任一漂移都 fail closed。
+        // GH-1147-VERIFY-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE
+        // TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE
+        // V0170-009-ACTIVE-SAFETY-POLICY-PROFILE
+        // V0170-009-VENUE-PRODUCT-SYMBOL-LIMITS
+        // V0170-009-NOTIONAL-LIMIT-EVIDENCE
+        // V0170-009-ORDER-COUNT-LIMIT-EVIDENCE
+        // V0170-009-PRODUCTION-GUARD-STATE
+        // V0170-009-REDACTED-POLICY-EVIDENCE
+        // V0170-009-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1147-VERIFY-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE",
+            "TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE",
+            "V0170-009-ACTIVE-SAFETY-POLICY-PROFILE",
+            "V0170-009-VENUE-PRODUCT-SYMBOL-LIMITS",
+            "V0170-009-NOTIONAL-LIMIT-EVIDENCE",
+            "V0170-009-ORDER-COUNT-LIMIT-EVIDENCE",
+            "V0170-009-PRODUCTION-GUARD-STATE",
+            "V0170-009-REDACTED-POLICY-EVIDENCE",
+            "V0170-009-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift",
+            "docs/contracts/release-v0.17.0-beta-safety-policy-profile-evidence-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        let runID = Identifier.constant("gh-1147-v0170-beta-safety-policy-profile-run")
+        let safetyEvidence = try ReleaseV0160BetaSafetyGuard.validate(request: ReleaseV0160BetaSafetyGuardRequest(
+            runID: runID,
+            action: .submit,
+            symbol: "btcusdt",
+            quantity: "0.05",
+            credentialProviderKind: .testnetEnvironment,
+            credentialReferenceID: .constant("gh-1147-redacted-testnet-credential-reference"),
+            apiKeyEnvironmentName: "MTPRO_BINANCE_SPOT_TESTNET_API_KEY",
+            secretEnvironmentName: "MTPRO_BINANCE_SPOT_TESTNET_SECRET_KEY",
+            attemptedOrderCount: 1,
+            timestampMilliseconds: 1_704_153_600_000
+        ))
+        let validRequest = ReleaseV0170BetaSafetyPolicyProfileRequest(
+            runID: runID,
+            venue: "Binance",
+            productType: "spot",
+            symbol: "btcusdt",
+            notionalUSDT: 20.0,
+            orderCount: 1,
+            safetyGuardEvidence: safetyEvidence
+        )
+        let evidence = try ReleaseV0170BetaSafetyPolicyProfileEvidence.validate(request: validRequest)
+        let output = evidence.redactedOutputLines.joined(separator: "\n")
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID, .constant("GH-1147"))
+        XCTAssertEqual(evidence.blockedByIssueID, .constant("GH-1146"))
+        XCTAssertEqual(evidence.releaseVersion, "v0.17.0")
+        XCTAssertEqual(evidence.profile.profileID, .constant("gh-1147-v0170-beta-safety-policy-profile"))
+        XCTAssertEqual(evidence.profile.venue, "Binance")
+        XCTAssertEqual(evidence.profile.productTypes, ["spot"])
+        XCTAssertEqual(evidence.profile.symbols, ["BTCUSDT", "ETHUSDT"])
+        XCTAssertEqual(evidence.profile.maxNotionalUSDT, 25.0)
+        XCTAssertEqual(evidence.profile.maxOrdersPerRun, 1)
+        XCTAssertEqual(evidence.venue, "Binance")
+        XCTAssertEqual(evidence.productType, "spot")
+        XCTAssertEqual(evidence.symbol, "BTCUSDT")
+        XCTAssertEqual(evidence.notionalUSDT, 20.0)
+        XCTAssertEqual(evidence.orderCount, 1)
+        XCTAssertTrue(evidence.activeSafetyPolicyProfileRecorded)
+        XCTAssertTrue(evidence.venueLimitEvidenceRecorded)
+        XCTAssertTrue(evidence.productLimitEvidenceRecorded)
+        XCTAssertTrue(evidence.symbolLimitEvidenceRecorded)
+        XCTAssertTrue(evidence.notionalLimitEvidenceRecorded)
+        XCTAssertTrue(evidence.orderCountLimitEvidenceRecorded)
+        XCTAssertTrue(evidence.productionGuardStateRecorded)
+        XCTAssertTrue(evidence.venueLimitHeld)
+        XCTAssertTrue(evidence.productLimitHeld)
+        XCTAssertTrue(evidence.symbolLimitHeld)
+        XCTAssertTrue(evidence.notionalLimitHeld)
+        XCTAssertTrue(evidence.orderCountLimitHeld)
+        XCTAssertTrue(evidence.inheritedSafetyGuardHeld)
+        XCTAssertTrue(evidence.productionGuardState.guardHeld)
+        XCTAssertTrue(output.contains("profileID=gh-1147-v0170-beta-safety-policy-profile"))
+        XCTAssertTrue(output.contains("maxNotionalUSDT=25.0"))
+        XCTAssertTrue(output.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(output.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(output.contains("boundaryHeld=true"))
+        XCTAssertFalse(output.contains("API Key:"))
+        XCTAssertFalse(output.contains("Secret Key:"))
+
+        let badVenue = ReleaseV0170BetaSafetyPolicyProfileEvidence.evaluate(request:
+            ReleaseV0170BetaSafetyPolicyProfileRequest(
+                runID: runID,
+                venue: "Coinbase",
+                productType: "spot",
+                symbol: "BTCUSDT",
+                notionalUSDT: 20.0,
+                orderCount: 1,
+                safetyGuardEvidence: safetyEvidence
+            )
+        )
+        XCTAssertFalse(badVenue.evidenceHeld)
+        XCTAssertEqual(badVenue.failureReasons, ["venue-limit"])
+        XCTAssertThrowsError(try ReleaseV0170BetaSafetyPolicyProfileEvidence.validate(request:
+            ReleaseV0170BetaSafetyPolicyProfileRequest(
+                runID: runID,
+                venue: "Binance",
+                productType: "perpetual",
+                symbol: "BTCUSDT",
+                notionalUSDT: 20.0,
+                orderCount: 1,
+                safetyGuardEvidence: safetyEvidence
+            )
+        ))
+        XCTAssertThrowsError(try ReleaseV0170BetaSafetyPolicyProfileEvidence.validate(request:
+            ReleaseV0170BetaSafetyPolicyProfileRequest(
+                runID: runID,
+                venue: "Binance",
+                productType: "spot",
+                symbol: "BNBUSDT",
+                notionalUSDT: 20.0,
+                orderCount: 1,
+                safetyGuardEvidence: safetyEvidence
+            )
+        ))
+        XCTAssertThrowsError(try ReleaseV0170BetaSafetyPolicyProfileEvidence.validate(request:
+            ReleaseV0170BetaSafetyPolicyProfileRequest(
+                runID: runID,
+                venue: "Binance",
+                productType: "spot",
+                symbol: "BTCUSDT",
+                notionalUSDT: 26.0,
+                orderCount: 1,
+                safetyGuardEvidence: safetyEvidence
+            )
+        ))
+        XCTAssertThrowsError(try ReleaseV0170BetaSafetyPolicyProfileEvidence.validate(request:
+            ReleaseV0170BetaSafetyPolicyProfileRequest(
+                runID: runID,
+                venue: "Binance",
+                productType: "spot",
+                symbol: "BTCUSDT",
+                notionalUSDT: 20.0,
+                orderCount: 2,
+                safetyGuardEvidence: safetyEvidence
+            )
+        ))
+        XCTAssertThrowsError(try ReleaseV0170BetaSafetyPolicyProfileEvidence.validate(request:
+            ReleaseV0170BetaSafetyPolicyProfileRequest(
+                runID: runID,
+                venue: "Binance",
+                productType: "spot",
+                symbol: "BTCUSDT",
+                notionalUSDT: 20.0,
+                orderCount: 1,
+                safetyGuardEvidence: safetyEvidence,
+                productionGuardState: ReleaseV0170BetaSafetyPolicyProductionGuardState(
+                    productionEndpointConnectionEnabled: true
+                )
+            )
+        ))
+
+        XCTAssertEqual(
+            ReleaseV0170BetaSafetyPolicyProfileEvidence.requiredValidationAnchors,
+            requiredAnchors
+        )
+        XCTAssertEqual(
+            ReleaseV0170BetaSafetyPolicyProfileEvidence.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence",
+                "bash checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift")
+        let contractDoc = try read("docs/contracts/release-v0.17.0-beta-safety-policy-profile-evidence-contract.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+
+        XCTAssertTrue(source.contains("betaSafetyPolicyProfileEvidence=ReleaseV0170BetaSafetyPolicyProfileEvidence"))
+        XCTAssertTrue(source.contains("activeSafetyPolicyProfileRecorded=true"))
+        XCTAssertTrue(source.contains("venueLimitEvidenceRecorded=true"))
+        XCTAssertTrue(source.contains("productLimitEvidenceRecorded=true"))
+        XCTAssertTrue(source.contains("symbolLimitEvidenceRecorded=true"))
+        XCTAssertTrue(source.contains("notionalLimitEvidenceRecorded=true"))
+        XCTAssertTrue(source.contains("orderCountLimitEvidenceRecorded=true"))
+        XCTAssertTrue(source.contains("productionGuardStateRecorded=true"))
+        XCTAssertTrue(source.contains("ReleaseV0160BetaSafetyGuardEvidence"))
+        XCTAssertTrue(contractDoc.contains("#1147 / GH-1147"))
+        XCTAssertTrue(contractDoc.contains("active safety policy profile"))
+        XCTAssertTrue(contractDoc.contains("不授权 production cutover"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence"))
+        XCTAssertTrue(readiness.contains("Release v0.17.0 beta safety policy profile evidence anchor"))
+        XCTAssertTrue(latest.contains("v0.17.0 beta safety policy profile evidence"))
+        XCTAssertTrue(plan.contains("GH-1147 Release v0.17.0 Beta Safety Policy Profile Evidence"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE"))
+
+        for artifact in [source, contractDoc] {
             XCTAssertFalse(artifact.contains("API Key:"))
             XCTAssertFalse(artifact.contains("Secret Key:"))
             XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
