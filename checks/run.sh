@@ -387,6 +387,16 @@ bash checks/verify-v0.17.1-artifact-negative-regressions.sh
 # c83879f80a525665c3484878d7071b1f5214da20
 # 2026-06-27T06:37:33Z
 bash checks/verify-v0.17.1-release-fact-sync.sh
+# GH-1171-VERIFY-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES
+# TVM-RELEASE-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES
+# V0171-006-AGGREGATE-GUARD
+# V0171-006-PATCH-AUDIT
+# V0171-006-RELEASE-NOTES
+# V0171-006-VALIDATION-MATRIX
+# V0171-006-V0180-HANDOFF
+# V0171-006-NO-PRODUCTION-CUTOVER
+# V0171-006-NO-TAG-OR-RELEASE-PUBLICATION
+bash checks/verify-v0.17.1.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

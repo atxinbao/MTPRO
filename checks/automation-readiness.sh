@@ -11736,5 +11736,38 @@ require_contains "docs/validation/validation-plan.md" "GH-1170 Release v0.17.1 v
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0171-V0170-STALE-WORDING-GUARD"
 require_contains "docs/release/release-publication-policy.md" "GH-1170 rejects unqualified stale v0.17.0 publication wording"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1170ReleaseV0171V0170StaleWordingGuardRejectsUnqualifiedPublicationDrift"
+for file in \
+  "docs/audit/mtpro-release-v0.17.1-operator-beta-artifact-validation-fail-closed-patch-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.17.1-operator-beta-artifact-validation-fail-closed-patch-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.17.1.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1171-VERIFY-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "TVM-RELEASE-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "V0171-006-AGGREGATE-GUARD"
+  require_contains "$file" "V0171-006-PATCH-AUDIT"
+  require_contains "$file" "V0171-006-RELEASE-NOTES"
+  require_contains "$file" "V0171-006-VALIDATION-MATRIX"
+  require_contains "$file" "V0171-006-V0180-HANDOFF"
+  require_contains "$file" "V0171-006-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0171-006-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "docs/audit/mtpro-release-v0.17.1-operator-beta-artifact-validation-fail-closed-patch-stage-code-audit.md" "Issue Completion Evidence"
+require_contains "docs/audit/mtpro-release-v0.17.1-operator-beta-artifact-validation-fail-closed-patch-stage-code-audit.md" "Boundary Audit"
+require_contains "docs/audit/mtpro-release-v0.17.1-operator-beta-artifact-validation-fail-closed-patch-stage-code-audit.md" "Next Handoff"
+require_contains "docs/release/mtpro-release-v0.17.1-operator-beta-artifact-validation-fail-closed-patch-notes.md" "Venue/Product-aware lifecycle recovery"
+require_contains "docs/automation/automation-readiness.md" "Release v0.17.1 aggregate patch audit / release notes anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1171 Release v0.17.1 Aggregate Patch Audit / Release Notes Closeout"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "docs/release/release-publication-policy.md" "GH-1171 closes the v0.17.1 patch audit"
+require_contains "checks/verify-v0.17.1.sh" "bash checks/verify-v0.17.1-release-fact-sync.sh"
+require_contains "checks/run.sh" "bash checks/verify-v0.17.1.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.17.1.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1171ReleaseV0171AggregatePatchAuditReleaseNotesCloseout"
 
 printf 'MTPRO automation readiness checks passed.\n'

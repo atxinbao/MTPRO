@@ -6034,3 +6034,20 @@ swift test
 - stale wording guard: reject unqualified v0.17.0 pending release / pending tag / release not created / construction-only current-fact wording across root docs, release notes, Stage Audit and release policy.
 - historical exception: clearly scoped #1148 / GH-1148 construction closeout wording is allowed only when the same file also contains the current v0.17.0 release URL, tag peeled commit and publication timestamp.
 - boundary evidence: no tag movement, no GitHub Release overwrite, no production cutover, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.
+
+## GH-1171 Release v0.17.1 Aggregate Patch Audit / Release Notes Closeout
+
+- GH-1171-VERIFY-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES
+- TVM-RELEASE-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES
+- V0171-006-AGGREGATE-GUARD
+- V0171-006-PATCH-AUDIT
+- V0171-006-RELEASE-NOTES
+- V0171-006-VALIDATION-MATRIX
+- V0171-006-V0180-HANDOFF
+- V0171-006-NO-PRODUCTION-CUTOVER
+- V0171-006-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.17.1.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1171ReleaseV0171AggregatePatchAuditReleaseNotesCloseout`
+- validation surface: aggregate guard replays #1166 CLI failed-validation nonzero exit, #1167 manual workflow failed bundle rejection, #1168 negative regressions, #1169 release fact sync and #1170 stale wording guard before accepting v0.17.1 patch audit / release notes.
+- handoff evidence: Venue/Product-aware lifecycle recovery is recorded as v0.18 planning context only; this patch does not implement multi-venue runtime and does not promote v0.18.0.
+- boundary evidence: no tag movement, no GitHub Release creation, no production cutover, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.

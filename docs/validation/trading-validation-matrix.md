@@ -4130,3 +4130,19 @@
 - focused test: `swift test --filter TargetGraphTests/testGH1170ReleaseV0171V0170StaleWordingGuardRejectsUnqualifiedPublicationDrift`
 - validation surface: the v0.17.1 verifier rejects stale v0.17.0 publication wording unless it is explicitly historical #1148 / GH-1148 construction closeout wording and is paired with current release facts in the same file.
 - forbidden scope: no tag movement, no GitHub Release overwrite, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.
+
+## TVM-RELEASE-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES
+
+- GH-1171-VERIFY-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES
+- V0171-006-AGGREGATE-GUARD
+- V0171-006-PATCH-AUDIT
+- V0171-006-RELEASE-NOTES
+- V0171-006-VALIDATION-MATRIX
+- V0171-006-V0180-HANDOFF
+- V0171-006-NO-PRODUCTION-CUTOVER
+- V0171-006-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.17.1.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1171ReleaseV0171AggregatePatchAuditReleaseNotesCloseout`
+- validation surface: aggregate guard covers #1166 failed artifact CLI exit, #1167 manual failed bundle rejection, #1168 corrupt / missing / reconciliation-missing regressions, #1169 v0.17.0 release facts and #1170 stale wording guard before patch closeout.
+- handoff surface: Venue/Product-aware lifecycle recovery taxonomy is documented as next planning context only.
+- forbidden scope: no v0.18.0 implementation, no tag or GitHub Release creation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command.

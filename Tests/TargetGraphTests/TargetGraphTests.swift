@@ -48439,6 +48439,94 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1171ReleaseV0171AggregatePatchAuditReleaseNotesCloseout() throws {
+        // 测试场景：GH-1171 收口 v0.17.1 aggregate verifier、Stage Code Audit 和 release notes。
+        // 验证目的：#1166..#1170 的 fail-closed / release fact / stale wording guards 必须被 aggregate
+        // gate 串联，v0.18 handoff 只能作为 planning context，不得变成 runtime 或 production cutover。
+        // GH-1171-VERIFY-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES
+        // TVM-RELEASE-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES
+        // V0171-006-AGGREGATE-GUARD
+        // V0171-006-PATCH-AUDIT
+        // V0171-006-RELEASE-NOTES
+        // V0171-006-VALIDATION-MATRIX
+        // V0171-006-V0180-HANDOFF
+        // V0171-006-NO-PRODUCTION-CUTOVER
+        // V0171-006-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let audit = try read("docs/audit/mtpro-release-v0.17.1-operator-beta-artifact-validation-fail-closed-patch-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.17.1-operator-beta-artifact-validation-fail-closed-patch-notes.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        let verifier = try read("checks/verify-v0.17.1.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        let anchors = [
+            "GH-1171-VERIFY-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES",
+            "TVM-RELEASE-V0171-AGGREGATE-PATCH-AUDIT-RELEASE-NOTES",
+            "V0171-006-AGGREGATE-GUARD",
+            "V0171-006-PATCH-AUDIT",
+            "V0171-006-RELEASE-NOTES",
+            "V0171-006-VALIDATION-MATRIX",
+            "V0171-006-V0180-HANDOFF",
+            "V0171-006-NO-PRODUCTION-CUTOVER",
+            "V0171-006-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        for source in [audit, notes, readiness, validationPlan, tradingMatrix, releasePolicy, verifier, runScript, automationScript] {
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "missing \(anchor)")
+            }
+        }
+
+        for verifierCall in [
+            "bash checks/verify-v0.17.1-cli-artifact-verify-fail-closed.sh",
+            "bash checks/verify-v0.17.1-manual-workflow-fail-closed.sh",
+            "bash checks/verify-v0.17.1-artifact-negative-regressions.sh",
+            "bash checks/verify-v0.17.1-release-fact-sync.sh"
+        ] {
+            XCTAssertTrue(verifier.contains(verifierCall))
+        }
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1171ReleaseV0171AggregatePatchAuditReleaseNotesCloseout"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.17.1.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.17.1.sh"))
+
+        for issue in ["#1166", "#1167", "#1168", "#1169", "#1170", "#1171"] {
+            XCTAssertTrue(notes.contains(issue), "release notes must mention \(issue)")
+        }
+        for phrase in [
+            "Issue Completion Evidence",
+            "Boundary Audit",
+            "Validation Summary",
+            "Residual Risk",
+            "Next Handoff",
+            "Venue/Product-aware lifecycle recovery",
+            "Binance",
+            "OKX",
+            "Bybit",
+            "production cutover not authorized"
+        ] {
+            XCTAssertTrue(audit.contains(phrase) || notes.contains(phrase) || releasePolicy.contains(phrase), "missing \(phrase)")
+        }
+
+        for forbidden in [
+            "productionCutoverAuthorized=true",
+            "productionSecretRead=true",
+            "productionEndpointConnected=true",
+            "productionBrokerConnected=true",
+            "productionOrderSubmitted=true"
+        ] {
+            XCTAssertFalse(audit.contains(forbidden))
+            XCTAssertFalse(notes.contains(forbidden))
+            XCTAssertFalse(releasePolicy.contains(forbidden))
+        }
+    }
+
     func testGH1147ReleaseV0170BetaSafetyPolicyProfileEvidence() throws {
         // 测试场景：GH-1147 将 operator beta safety profile 显式记录到 v0.17 evidence。
         // 验证目的：venue、product、symbol、notional、order-count 和 production-disabled state
