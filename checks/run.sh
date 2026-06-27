@@ -417,6 +417,17 @@ bash checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh
 # V0180-002-LOCAL-EVIDENCE-ONLY
 # V0180-002-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh
+# GH-1178-VERIFY-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE
+# TVM-RELEASE-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE
+# V0180-003-DEPENDENCY-GH1177-DONE
+# V0180-003-STATUS-QUERY-RETRY-RESULT-PERSISTED
+# V0180-003-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE
+# V0180-003-RETRY-TIMEOUT-FAILURE-CLASSIFICATION
+# V0180-003-REDACTION-STATUS-PERSISTED
+# V0180-003-OPERATOR-VISIBLE-FAIL-CLOSED-EVIDENCE
+# V0180-003-LOCAL-ARTIFACT-STORE-REPLAY
+# V0180-003-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

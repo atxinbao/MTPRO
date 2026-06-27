@@ -1113,3 +1113,29 @@ GH-1176 also fixes the v0.18.0 preflight boundary: #1168, #1169, #1170 and #1171
 GH-1177 adds the v0.18.0 run artifact lifecycle manifest namespace guard. `lifecycle-manifest-v0.18.0.json` is a local companion manifest for `.local/mtpro/runs/<runID>/manifest.json`; it records `venue`, `product`, `environment`, `accountProfile` and `runID`, and rejects product / environment namespace reuse.
 
 GH-1177 is local evidence only. It does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
+
+## GH-1178 Release v0.18.0 Status Query Retry Artifact Persistence Policy
+
+`GH-1178-VERIFY-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE`
+
+`TVM-RELEASE-V0180-STATUS-QUERY-RETRY-ARTIFACT-PERSISTENCE`
+
+`V0180-003-DEPENDENCY-GH1177-DONE`
+
+`V0180-003-STATUS-QUERY-RETRY-RESULT-PERSISTED`
+
+`V0180-003-VENUE-PRODUCT-ENVIRONMENT-NAMESPACE`
+
+`V0180-003-RETRY-TIMEOUT-FAILURE-CLASSIFICATION`
+
+`V0180-003-REDACTION-STATUS-PERSISTED`
+
+`V0180-003-OPERATOR-VISIBLE-FAIL-CLOSED-EVIDENCE`
+
+`V0180-003-LOCAL-ARTIFACT-STORE-REPLAY`
+
+`V0180-003-NO-PRODUCTION-CUTOVER`
+
+GH-1178 persists signed status-query retry / timeout / failure classification results into the local append-only artifact store. The persisted `statusQueryRetrySnapshot` records retry attempts, timeout result, classified failures, redaction status, operator next-action and `{venue, product, environment, accountProfile, runID}` namespace.
+
+GH-1178 is local evidence only. It does not re-run status query, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
