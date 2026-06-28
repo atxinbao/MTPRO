@@ -4356,3 +4356,19 @@
 - release publication evidence must include GitHub Actions workflow run id、workflow job ids: pr_fast_checks, linux_checks, dashboard_macos, release_publication_checks、GitHub Actions run log、job summary、Linux `checks/run.sh` output 和 Dashboard macOS build / smoke output.
 - release publication cannot be represented as complete by pr-fast-checks or checks aggregate alone; linux-checks and dashboard-macos must both be SUCCESS for tag publication evidence.
 - forbidden scope: no tag creation in GH-1201, no release publication in GH-1201, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
+
+## TVM-RELEASE-V0181-OPERATOR-RUN-CLI-COMMANDS
+
+- GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS
+- V0181-003-OPERATOR-RUN-HELP-VISIBLE
+- V0181-003-RESUME-CLI-ROUTE
+- V0181-003-REPLAY-CLI-ROUTE
+- V0181-003-EXPLAIN-FAILURE-CLI-ROUTE
+- V0181-003-FAILED-EVIDENCE-READ-ONLY-REPORT-PATH
+- V0181-003-LOCAL-ONLY-REDACTED-OUTPUT
+- V0181-003-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.1-operator-run-cli-commands.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1202OperatorRunCLICommandsAreHelpVisibleAndFailClosed`
+- command surface: `mtpro operator-run help` exposes resume, replay / replay-cancel-status-reconciliation and explain-failure.
+- evidence path: failed local evidence output includes a classified read-only report path under `.local/mtpro/runs/<venue>/<product>/<environment>/<accountProfile>/<runID>/operator-run/`.
+- forbidden scope: no tag creation in GH-1202, no release publication in GH-1202, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.

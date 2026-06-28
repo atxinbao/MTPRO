@@ -29291,6 +29291,131 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(workflowSource.contains("productionCutoverAuthorized=true"))
     }
 
+    func testGH1202OperatorRunCLICommandsAreHelpVisibleAndFailClosed() throws {
+        // 测试场景：GH-1202 把 v0.18 operator-run resume / replay / explain-failure
+        // 本地模型接入公开 CLI help 和 strict router。
+        // 验证目的：命令必须输出只读 report path 或非零退出建议，不得读取 secret、连接
+        // endpoint / broker，或授权 production cutover。
+        // GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS
+        // TVM-RELEASE-V0181-OPERATOR-RUN-CLI-COMMANDS
+        // V0181-003-OPERATOR-RUN-HELP-VISIBLE
+        // V0181-003-RESUME-CLI-ROUTE
+        // V0181-003-REPLAY-CLI-ROUTE
+        // V0181-003-EXPLAIN-FAILURE-CLI-ROUTE
+        // V0181-003-FAILED-EVIDENCE-READ-ONLY-REPORT-PATH
+        // V0181-003-LOCAL-ONLY-REDACTED-OUTPUT
+        // V0181-003-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0181OperatorRunCLICommand.swift")
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let verifier = try read("checks/verify-v0.18.1-operator-run-cli-commands.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+
+        for anchor in [
+            "GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS",
+            "TVM-RELEASE-V0181-OPERATOR-RUN-CLI-COMMANDS",
+            "V0181-003-OPERATOR-RUN-HELP-VISIBLE",
+            "V0181-003-RESUME-CLI-ROUTE",
+            "V0181-003-REPLAY-CLI-ROUTE",
+            "V0181-003-EXPLAIN-FAILURE-CLI-ROUTE",
+            "V0181-003-FAILED-EVIDENCE-READ-ONLY-REPORT-PATH",
+            "V0181-003-LOCAL-ONLY-REDACTED-OUTPUT",
+            "V0181-003-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in CLI binder")
+            XCTAssertTrue(verifier.contains(anchor), "\(anchor) must stay in focused verifier")
+            XCTAssertTrue(runScript.contains(anchor), "\(anchor) must stay in run.sh")
+            XCTAssertTrue(readinessScript.contains(anchor), "\(anchor) must stay in automation readiness")
+            XCTAssertTrue(readinessDoc.contains(anchor), "\(anchor) must stay in readiness docs")
+            XCTAssertTrue(latest.contains(anchor), "\(anchor) must stay in latest verification")
+            XCTAssertTrue(validationPlan.contains(anchor), "\(anchor) must stay in validation plan")
+            XCTAssertTrue(tradingMatrix.contains(anchor), "\(anchor) must stay in trading matrix")
+            XCTAssertTrue(releasePolicy.contains(anchor), "\(anchor) must stay in release policy")
+        }
+
+        XCTAssertTrue(cliSource.contains("ReleaseV0181OperatorRunCLICommand.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0181OperatorRunCLICommand.commandLineOutput"))
+        XCTAssertTrue(cliSource.contains("operatorRunActions="))
+        XCTAssertTrue(cliSource.contains("operatorRunFailedEvidenceNonzeroOrReadOnlyReportPath=true"))
+
+        let help = ReleaseV0181OperatorRunCLICommand.helpOutput()
+        XCTAssertTrue(help.contains("operator-run resume"))
+        XCTAssertTrue(help.contains("operator-run replay"))
+        XCTAssertTrue(help.contains("operator-run replay-cancel-status-reconciliation"))
+        XCTAssertTrue(help.contains("operator-run explain-failure"))
+        XCTAssertTrue(help.contains("failedEvidenceNonzeroOrReadOnlyReportPath=true"))
+        XCTAssertTrue(help.contains("productionCutoverAuthorized=false"))
+
+        let baseArguments = [
+            "--run-id", "gh-1202-operator-run-alpha",
+            "--venue", "binance",
+            "--product", "spot",
+            "--environment", "testnet",
+            "--account-profile", "operator-beta"
+        ]
+        let resume = try ReleaseV0181OperatorRunCLICommand.commandLineOutput(
+            arguments: ["operator-run", "resume"] + baseArguments
+        )
+        XCTAssertTrue(resume.contains("mtpro operator-run resume"))
+        XCTAssertTrue(resume.contains("routedModel=ReleaseV0180ResumeAfterInterruptionResult"))
+        XCTAssertTrue(resume.contains("status=failed"))
+        XCTAssertTrue(resume.contains("readOnlyReportPath=.local/mtpro/runs/binance/spot/testnet/operator-beta/gh-1202-operator-run-alpha/operator-run/resume-report.json"))
+        XCTAssertTrue(resume.contains("recommendedExitCodeForFailedEvidence=64"))
+        XCTAssertTrue(resume.contains("failureReasons=lifecycleManifestMissingOrInvalid"))
+
+        let replay = try ReleaseV0181OperatorRunCLICommand.commandLineOutput(
+            arguments: ["operator-run", "replay-cancel-status-reconciliation"] + baseArguments
+        )
+        XCTAssertTrue(replay.contains("mtpro operator-run replay-cancel-status-reconciliation"))
+        XCTAssertTrue(replay.contains("routedModel=ReleaseV0180CancelStatusReconciliationReplayResult"))
+        XCTAssertTrue(replay.contains("status=failed"))
+        XCTAssertTrue(replay.contains("readOnlyOperatorAction=true"))
+        XCTAssertTrue(replay.contains("failureReasons=reconciliationEvidenceMissing"))
+
+        let explain = try ReleaseV0181OperatorRunCLICommand.commandLineOutput(
+            arguments: ["operator-run", "explain-failure"] + baseArguments + [
+                "--stage", "resume",
+                "--reason", "resumeEvidenceMissingOrInvalid",
+                "--next-action", "manualReview"
+            ]
+        )
+        XCTAssertTrue(explain.contains("mtpro operator-run explain-failure"))
+        XCTAssertTrue(explain.contains("routedModel=ReleaseV0180OperatorFailureClassificationNextActionResult"))
+        XCTAssertTrue(explain.contains("requestedStage=resume"))
+        XCTAssertTrue(explain.contains("requestedReason=resumeEvidenceMissingOrInvalid"))
+        XCTAssertTrue(explain.contains("requestedNextAction=manualReview"))
+        XCTAssertTrue(explain.contains("classificationReasons=artifactManifestMissingOrInvalid,statusQueryEvidenceMissingOrInvalid,resumeEvidenceMissingOrInvalid,reconciliationEvidenceMissing"))
+        XCTAssertTrue(explain.contains("automaticRemediationEnabled=false"))
+
+        for output in [help, resume, replay, explain] {
+            XCTAssertTrue(output.contains("localOnlyRedactedOutput=true"))
+            XCTAssertTrue(output.contains("productionTradingEnabledByDefault=false"))
+            XCTAssertTrue(output.contains("productionSecretReadEnabled=false"))
+            XCTAssertTrue(output.contains("productionEndpointConnectionEnabled=false"))
+            XCTAssertTrue(output.contains("productionBrokerConnectionEnabled=false"))
+            XCTAssertTrue(output.contains("productionOrderSubmitCancelReplaceEnabled=false"))
+            XCTAssertTrue(output.contains("productionCutoverAuthorized=false"))
+            XCTAssertFalse(output.contains("api.binance.com"))
+            XCTAssertFalse(output.contains("URLSession"))
+            XCTAssertFalse(output.contains("secret-value"))
+            XCTAssertFalse(output.contains("productionCutoverAuthorized=true"))
+        }
+
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1202OperatorRunCLICommandsAreHelpVisibleAndFailClosed"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.1-operator-run-cli-commands.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.18.1-operator-run-cli-commands.sh"))
+    }
+
     func testGH836DashboardMacOSChecksRunV080FocusedGuards() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let workflowSource = try String(
