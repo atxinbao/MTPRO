@@ -73,8 +73,16 @@ bash checks/verify-v0.5.0-ci-hardening.sh
 # CI-PR-FAST-LANE-RELEASE-MATRIX
 # CI-PR-FAST-LANE-REQUIRED-CHECKS
 # CI-RELEASE-FULL-LINUX-MACOS-MATRIX
+# GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+# TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+# V0181-002-RELEASE-FULL-MATRIX-REQUIRED
+# V0181-002-LINUX-CHECKS-JOB-EVIDENCE
+# V0181-002-DASHBOARD-MACOS-JOB-EVIDENCE
+# V0181-002-PR-FAST-NOT-PUBLICATION-EVIDENCE
+# V0181-002-NO-PRODUCTION-CUTOVER
 # CI-NO-PRODUCTION-CUTOVER
 bash checks/verify-ci-pr-fast-lane-release-matrix.sh
+bash checks/verify-v0.18.1-release-full-matrix-publication-gate.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh

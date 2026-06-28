@@ -4341,3 +4341,18 @@
 - publication surface: v0.18.0 stable GitHub Release facts must be synchronized after the independent Release Publication Gate.
 - construction-history surface: #1185 remains historical construction closeout only; stale wording is allowed only when scoped to #1185 and paired with current release URL, tag commit and publication timestamp.
 - forbidden scope: no tag movement, no release overwrite, no v0.18.1 publication, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
+
+## TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+
+- GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+- V0181-002-RELEASE-FULL-MATRIX-REQUIRED
+- V0181-002-LINUX-CHECKS-JOB-EVIDENCE
+- V0181-002-DASHBOARD-MACOS-JOB-EVIDENCE
+- V0181-002-PR-FAST-NOT-PUBLICATION-EVIDENCE
+- V0181-002-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.1-release-full-matrix-publication-gate.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1201ReleaseFullMatrixPublicationGateRequiresLinuxAndDashboardEvidence`
+- workflow evidence: `.github/workflows/checks.yml` keeps ordinary PR required `checks` fast-lane-only and adds `release-publication-checks` for workflow_dispatch / `v*` tag / `release/**` branch evidence.
+- release publication evidence must include GitHub Actions workflow run id、workflow job ids: pr_fast_checks, linux_checks, dashboard_macos, release_publication_checks、GitHub Actions run log、job summary、Linux `checks/run.sh` output 和 Dashboard macOS build / smoke output.
+- release publication cannot be represented as complete by pr-fast-checks or checks aggregate alone; linux-checks and dashboard-macos must both be SUCCESS for tag publication evidence.
+- forbidden scope: no tag creation in GH-1201, no release publication in GH-1201, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.

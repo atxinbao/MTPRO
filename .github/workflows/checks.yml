@@ -3,6 +3,13 @@ name: AEP Checks
 # CI-PR-FAST-LANE-RELEASE-MATRIX
 # CI-PR-FAST-LANE-REQUIRED-CHECKS
 # CI-RELEASE-FULL-LINUX-MACOS-MATRIX
+# GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+# TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+# V0181-002-RELEASE-FULL-MATRIX-REQUIRED
+# V0181-002-LINUX-CHECKS-JOB-EVIDENCE
+# V0181-002-DASHBOARD-MACOS-JOB-EVIDENCE
+# V0181-002-PR-FAST-NOT-PUBLICATION-EVIDENCE
+# V0181-002-NO-PRODUCTION-CUTOVER
 # CI-NO-PRODUCTION-CUTOVER
 
 on:
@@ -121,6 +128,42 @@ jobs:
 
       - name: Run Dashboard smoke
         run: DASHBOARD_SMOKE=1 swift run Dashboard
+
+  release_publication_checks:
+    name: release-publication-checks
+    runs-on: ubuntu-24.04
+    needs:
+      - pr_fast_checks
+      - linux_checks
+      - dashboard_macos
+    if: ${{ always() && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release/')) }}
+
+    steps:
+      - name: Aggregate release publication matrix evidence
+        run: |
+          # GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+          # TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+          # V0181-002-RELEASE-FULL-MATRIX-REQUIRED
+          # V0181-002-LINUX-CHECKS-JOB-EVIDENCE
+          # V0181-002-DASHBOARD-MACOS-JOB-EVIDENCE
+          # V0181-002-PR-FAST-NOT-PUBLICATION-EVIDENCE
+          # V0181-002-NO-PRODUCTION-CUTOVER
+          echo "MTPRO release publication matrix: workflow=${{ github.workflow }} run_id=${{ github.run_id }} run_attempt=${{ github.run_attempt }}"
+          echo "MTPRO release publication workflow job ids: pr_fast_checks linux_checks dashboard_macos release_publication_checks"
+          echo "MTPRO release publication job results: pr-fast-checks=${{ needs.pr_fast_checks.result }} linux-checks=${{ needs.linux_checks.result }} dashboard-macos=${{ needs.dashboard_macos.result }}"
+          echo "MTPRO release publication evidence artifacts: GitHub Actions run log, job summary, linux checks/run.sh output, dashboard macOS build/smoke output"
+          {
+            echo "### MTPRO release publication matrix evidence"
+            echo "- workflow: ${{ github.workflow }}"
+            echo "- run_id: ${{ github.run_id }}"
+            echo "- run_attempt: ${{ github.run_attempt }}"
+            echo "- job ids: pr_fast_checks, linux_checks, dashboard_macos, release_publication_checks"
+            echo "- results: pr-fast-checks=${{ needs.pr_fast_checks.result }}, linux-checks=${{ needs.linux_checks.result }}, dashboard-macos=${{ needs.dashboard_macos.result }}"
+            echo "- artifacts: GitHub Actions run log, job summary, linux checks/run.sh output, dashboard macOS build/smoke output"
+          } >> "$GITHUB_STEP_SUMMARY"
+          test "${{ needs.pr_fast_checks.result }}" = "success"
+          test "${{ needs.linux_checks.result }}" = "success"
+          test "${{ needs.dashboard_macos.result }}" = "success"
 
   checks:
     name: checks

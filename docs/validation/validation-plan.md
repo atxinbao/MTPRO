@@ -6,6 +6,20 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1201 Release v0.18.1 Full Matrix Publication Gate
+
+- GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+- TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+- V0181-002-RELEASE-FULL-MATRIX-REQUIRED
+- V0181-002-LINUX-CHECKS-JOB-EVIDENCE
+- V0181-002-DASHBOARD-MACOS-JOB-EVIDENCE
+- V0181-002-PR-FAST-NOT-PUBLICATION-EVIDENCE
+- V0181-002-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.1-release-full-matrix-publication-gate.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1201ReleaseFullMatrixPublicationGateRequiresLinuxAndDashboardEvidence`
+- Evidence files: `.github/workflows/checks.yml`、`checks/verify-ci-pr-fast-lane-release-matrix.sh`、`checks/verify-v0.18.1-release-full-matrix-publication-gate.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/ci-reproducibility.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1201 keeps ordinary PR required `checks` fast-lane-only, but release publication evidence must include GitHub Actions workflow run id、workflow job ids: pr_fast_checks, linux_checks, dashboard_macos, release_publication_checks、GitHub Actions run log、job summary、Linux `checks/run.sh` output 和 Dashboard macOS build / smoke output。release publication cannot be represented as complete by pr-fast-checks or checks aggregate alone；linux-checks and dashboard-macos must both be SUCCESS for tag publication evidence。GH-1201 不创建 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。
+
 ## GH-1148 Release v0.17.0 Stage Audit / Release Docs Closeout
 
 - GH-1148-VERIFY-V0170-STAGE-AUDIT-RELEASE-DOCS
