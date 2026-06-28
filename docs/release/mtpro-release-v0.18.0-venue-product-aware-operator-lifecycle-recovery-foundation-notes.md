@@ -10,6 +10,8 @@
 
 GH-1185 使用 `GH-1185-VERIFY-V0180-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS`、`V0180-010-STAGE-CODE-AUDIT`、`V0180-010-RELEASE-NOTES`、`V0180-010-VALIDATION-MATRIX`、`V0180-010-ROOT-DOCS-REFRESH`、`V0180-010-STALE-WORDING-GUARD`、`V0180-010-NO-PRODUCTION-CUTOVER` 和 `V0180-010-NO-TAG-OR-RELEASE-PUBLICATION` 收口 Stage Code Audit、release notes、validation matrix、root docs refresh 和 stale wording guard。#1185 不创建 tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。
 
+Post-publication fact sync：GH-1200 使用 `GH-1200-VERIFY-V0181-V0180-RELEASE-FACT-SYNC`、`V0181-001-V0180-RELEASE-FACT-SYNC-GUARD`、`TVM-RELEASE-V0181-V0180-RELEASE-FACT-SYNC`、`V0181-001-V0180-TAG-FIXED`、`V0181-001-PATCH-QUEUE-NOT-PUBLICATION`、`V0181-001-V0180-STALE-WORDING-GUARD` 和 `V0181-001-NO-PRODUCTION-CUTOVER` 将 v0.18.0 已发布事实同步到本 release notes：stable GitHub Release `https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0`，tag peeled commit `cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9`，publication timestamp `2026-06-28T04:55:36Z`。#1185 仍是 historical construction closeout；后续独立 Release Publication Gate 已发布 v0.18.0 stable release。GH-1200 不移动 `v0.18.0` tag，不覆盖 GitHub Release，不创建 v0.18.1 tag / GitHub Release，不授权 production cutover；production cutover not authorized。
+
 ## Issue Evidence
 
 - #1176：venue/product-aware operator lifecycle recovery contract。
@@ -70,7 +72,9 @@ bash checks/run.sh
 - #1185 is construction closeout only.
 - #1185 does not create `v0.18.0` tag.
 - #1185 does not create GitHub Release.
-- Publication, if requested, must be a separate Release Publication Gate.
+- Subsequent independent Release Publication Gate has published `v0.18.0` as stable GitHub Release at `https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0`.
+- tag peeled commit is `cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9`.
+- publication timestamp is `2026-06-28T04:55:36Z`.
 - production trading remains disabled by default.
 - 不读取 production secret。
 - 不连接 production endpoint / broker endpoint。

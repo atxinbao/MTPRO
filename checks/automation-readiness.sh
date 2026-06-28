@@ -155,6 +155,7 @@ require_file "checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh
 require_file "checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh"
 require_file "checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh"
 require_file "checks/verify-v0.18.0-stage-audit-release-docs.sh"
+require_file "checks/verify-v0.18.1-release-fact-sync.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -12155,5 +12156,40 @@ require_contains "docs/release/release-publication-policy.md" "GH-1185 closes th
 require_contains "checks/run.sh" "bash checks/verify-v0.18.0-stage-audit-release-docs.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-stage-audit-release-docs.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1185ReleaseV0180StageAuditReleaseDocsCloseout"
+
+for file in \
+  "docs/audit/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-notes.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.18.1-release-fact-sync.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1200-VERIFY-V0181-V0180-RELEASE-FACT-SYNC"
+  require_contains "$file" "V0181-001-V0180-RELEASE-FACT-SYNC-GUARD"
+  require_contains "$file" "TVM-RELEASE-V0181-V0180-RELEASE-FACT-SYNC"
+  require_contains "$file" "V0181-001-V0180-TAG-FIXED"
+  require_contains "$file" "V0181-001-PATCH-QUEUE-NOT-PUBLICATION"
+  require_contains "$file" "V0181-001-V0180-STALE-WORDING-GUARD"
+  require_contains "$file" "V0181-001-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0"
+  require_contains "$file" "cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9"
+  require_contains "$file" "2026-06-28T04:55:36Z"
+done
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 v0.18.0 release fact sync anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1200 Release v0.18.1 v0.18.0 Release Fact Sync Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-V0180-RELEASE-FACT-SYNC"
+require_contains "docs/release/release-publication-policy.md" "GH-1200 rejects unqualified stale v0.18.0 publication wording"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.1-release-fact-sync.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.1-release-fact-sync.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1200ReleaseV0181V0180ReleaseFactSyncGuard"
 
 printf 'MTPRO automation readiness checks passed.\n'

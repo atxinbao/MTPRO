@@ -6259,3 +6259,21 @@ swift test
 - validation surface: #1176..#1185 completion, PR #1190..#1198 merge evidence, required `checks` success, local validation commands and root docs delta must be recorded as completed facts only.
 - dependency evidence: #1182, #1183 and #1184 must be closed / done before GH-1185 can execute.
 - boundary evidence: construction closeout only; no tag / GitHub Release creation, no next Project / Issue, no next Todo, no Linear / Symphony / Graphify / code-index / Figma, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover.
+
+## GH-1200 Release v0.18.1 v0.18.0 Release Fact Sync Guard
+
+- GH-1200-VERIFY-V0181-V0180-RELEASE-FACT-SYNC
+- V0181-001-V0180-RELEASE-FACT-SYNC-GUARD
+- TVM-RELEASE-V0181-V0180-RELEASE-FACT-SYNC
+- V0181-001-V0180-TAG-FIXED
+- V0181-001-PATCH-QUEUE-NOT-PUBLICATION
+- V0181-001-V0180-STALE-WORDING-GUARD
+- V0181-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.1-release-fact-sync.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1200ReleaseV0181V0180ReleaseFactSyncGuard`
+- release URL: `https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0`
+- tag peeled commit: `cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9`
+- publication timestamp: `2026-06-28T04:55:36Z`
+- validation surface: root docs, release notes, Stage Audit, latest verification summary, validation plan, trading validation matrix, release publication policy, automation readiness and stale wording guard must sync the published v0.18.0 facts.
+- boundary evidence: GH-1200 keeps the existing `v0.18.0` tag fixed and preserves the existing GitHub Release metadata.
+- patch boundary evidence: GH-1200 does not create v0.18.1 tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace and does not authorize production cutover.

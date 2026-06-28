@@ -4324,3 +4324,20 @@
 - closeout surface: Stage Code Audit and release notes must summarize #1176..#1185 issue completion, PR #1190..#1198 merge evidence, required `checks` success and local validation commands.
 - root docs surface: README, GOAL, BLUEPRINT, roadmap, latest verification summary, validation plan, trading validation matrix and release publication policy must record completed facts only.
 - forbidden scope: no tag or GitHub Release creation, no next Project / Issue, no next Todo, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command and no production cutover.
+
+## TVM-RELEASE-V0181-V0180-RELEASE-FACT-SYNC
+
+- GH-1200-VERIFY-V0181-V0180-RELEASE-FACT-SYNC
+- V0181-001-V0180-RELEASE-FACT-SYNC-GUARD
+- V0181-001-V0180-TAG-FIXED
+- V0181-001-PATCH-QUEUE-NOT-PUBLICATION
+- V0181-001-V0180-STALE-WORDING-GUARD
+- V0181-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.1-release-fact-sync.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1200ReleaseV0181V0180ReleaseFactSyncGuard`
+- release URL: `https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0`
+- tag peeled commit: `cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9`
+- publication timestamp: `2026-06-28T04:55:36Z`
+- publication surface: v0.18.0 stable GitHub Release facts must be synchronized after the independent Release Publication Gate.
+- construction-history surface: #1185 remains historical construction closeout only; stale wording is allowed only when scoped to #1185 and paired with current release URL, tag commit and publication timestamp.
+- forbidden scope: no tag movement, no release overwrite, no v0.18.1 publication, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.

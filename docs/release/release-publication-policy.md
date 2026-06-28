@@ -28,6 +28,7 @@
 - `GH-1135 V161-003 Centralize v0.16 artifact redaction policy`
 - `GH-1136 V161-004 Add redaction regression coverage for Binance headers, signed query and production hosts`
 - `GH-1148 V170-010 Close v0.17.0 stage audit and release docs`
+- `GH-1200 V181-001 Sync v0.18.0 publication facts`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -1317,3 +1318,41 @@ GH-1184 is local evidence only. It does not implement OKX runtime, does not acti
 GH-1185 closes the v0.18.0 stage audit by adding the Stage Code Audit, release notes, validation matrix anchors, root docs refresh and stale wording guard. It records `#1176..#1185` issue completion, PR #1190..#1198 merge evidence, required `checks` success and local validation commands as completed facts only.
 
 GH-1185 does not create or publish a `v0.18.0` tag / GitHub Release, does not create the next Project / Issue, does not promote a next Todo, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
+
+## GH-1200 Release v0.18.1 v0.18.0 Release Fact Sync Policy
+
+`GH-1200-VERIFY-V0181-V0180-RELEASE-FACT-SYNC`
+
+`V0181-001-V0180-RELEASE-FACT-SYNC-GUARD`
+
+`TVM-RELEASE-V0181-V0180-RELEASE-FACT-SYNC`
+
+`V0181-001-V0180-TAG-FIXED`
+
+`V0181-001-PATCH-QUEUE-NOT-PUBLICATION`
+
+`V0181-001-V0180-STALE-WORDING-GUARD`
+
+`V0181-001-NO-PRODUCTION-CUTOVER`
+
+v0.18.1 是 v0.18.0 后的 Venue/Product Lifecycle Recovery CLI + Release Fact Patch queue。GH-1200 只同步 v0.18.0 publication facts 到 patch docs、validation matrix、automation readiness、Stage Audit、release notes 和 stale wording guard。
+
+v0.18.0 当前存在 stable GitHub Release：
+
+- release tag：`v0.18.0`
+- release URL：`https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0`
+- release type：stable release；非 draft；非 prerelease
+- tag peeled commit：`cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9`
+- publication timestamp：`2026-06-28T04:55:36Z`
+
+GH-1200 不移动 `v0.18.0` tag，不覆盖 GitHub Release，不创建 `v0.18.1` tag，不创建 `v0.18.1` GitHub Release，不授权 production cutover。
+
+GH-1200 rejects unqualified stale v0.18.0 publication wording after the independent Release Publication Gate published the v0.18.0 stable GitHub Release facts. It scans root docs, release notes, Stage Audit and release publication policy for v0.18.0 pending release / pending tag / release not created / construction-only current-fact wording.
+
+Historical #1185 / GH-1185 construction closeout wording is allowed only when it is clearly scoped as historical closeout evidence and the same file also carries the current v0.18.0 release URL, tag peeled commit and publication timestamp:
+
+- release URL：`https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0`
+- tag peeled commit：`cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9`
+- publication timestamp：`2026-06-28T04:55:36Z`
+
+If Human later requests `v0.18.1` publication, it must be handled by a separate explicit Release Publication Gate after clean `main`, open PR = 0, open active issue = 0, and validation evidence are re-confirmed. production cutover not authorized；production trading remains disabled by default；production secret read, production endpoint / broker endpoint connection and production submit / cancel / replace remain unauthorized.

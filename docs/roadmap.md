@@ -114,6 +114,8 @@ Machine guard anchors:
 
 Completed GitHub fallback queue is `MTPRO Release v0.18.0 Venue/Product-aware Operator Lifecycle Recovery Foundation`, issue range `GH-1176..GH-1185`. GH-1185 closes the v0.18.0 stage audit / release docs, validation matrix, root docs refresh and stale wording guard. The closeout records completed facts only: it does not create `v0.18.0` tag, does not create GitHub Release, does not create the next Project / Issue, does not promote a next Todo, and does not authorize production cutover. production cutover not authorized.
 
+GH-1200 uses `GH-1200-VERIFY-V0181-V0180-RELEASE-FACT-SYNC`, `V0181-001-V0180-RELEASE-FACT-SYNC-GUARD`, `TVM-RELEASE-V0181-V0180-RELEASE-FACT-SYNC`, `V0181-001-V0180-TAG-FIXED`, `V0181-001-PATCH-QUEUE-NOT-PUBLICATION`, `V0181-001-V0180-STALE-WORDING-GUARD` and `V0181-001-NO-PRODUCTION-CUTOVER` to sync the later v0.18.0 stable GitHub Release fact into the v0.18.1 patch guard and root docs. The v0.18.0 Release URL is `https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0`, the tag peeled commit is `cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9`, and the publication timestamp is `2026-06-28T04:55:36Z`. v0.18.1 是 v0.18.0 后的 Venue/Product Lifecycle Recovery CLI + Release Fact Patch queue；GH-1200 不移动 `v0.18.0` tag，不覆盖 GitHub Release，不创建 v0.18.1 tag / GitHub Release，不授权 production cutover；production cutover not authorized.
+
 `GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT`
 
 `TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT`
