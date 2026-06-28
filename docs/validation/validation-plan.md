@@ -6220,3 +6220,23 @@ swift test
 - fail-closed surface: every negative case must produce failed checks and `workflowStatus=failed`; a failed uploaded/downloaded bundle cannot pass the workflow by printing a failed status string.
 - dependency evidence: #1177 and #1178 must be closed / done before GH-1183 can execute.
 - boundary evidence: local artifact evidence only; no secret upload, no order artifact generated from workflow alone, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
+
+## GH-1184 Release v0.18.0 Beta Safety Profile Drift Detector
+
+- GH-1184-VERIFY-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR
+- TVM-RELEASE-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR
+- V0180-009-DEPENDENCIES-GH1177-GH1181-GH1183-DONE
+- V0180-009-VENUE-PRODUCT-ENVIRONMENT-SCOPE
+- V0180-009-BINANCE-SPOT-TO-OKX-SWAP-REUSE-REJECTED
+- V0180-009-BINANCE-SPOT-TO-USDM-FUTURES-REUSE-REJECTED
+- V0180-009-WRONG-ENVIRONMENT-REUSE-REJECTED
+- V0180-009-CROSS-PRODUCT-EVIDENCE-REUSE-FAILS-CLOSED
+- V0180-009-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1184BetaSafetyProfileDriftDetectorRejectsCrossVenueProductReuse`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift`
+- contract doc: `docs/contracts/release-v0.18.0-beta-safety-profile-drift-detector-contract.md`
+- validation surface: detector must bind source beta safety policy evidence to expected and observed venue / product / environment / accountProfile / runID scope.
+- fail-closed surface: Binance Spot evidence reused as OKX Swap, Binance USDⓈ-M Futures, unsupported product or wrong environment evidence must return `validationStatus=failed` and throw from `validateNoDrift`.
+- dependency evidence: #1177, #1181 and #1183 must be closed / done before GH-1184 can execute.
+- boundary evidence: local redacted evidence only; no new live adapter implementation, no new venue/product runtime activation, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.

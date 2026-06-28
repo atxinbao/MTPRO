@@ -4291,3 +4291,20 @@
 - fail-closed surface: failed uploaded/downloaded bundles must produce failed checks and cannot satisfy workflow success by emitting a failed status string.
 - namespace surface: wrong venue, wrong product and wrong environment fixtures must compare against the same `{venue, product, environment, accountProfile, runID}` namespace contract introduced for v0.18.0.
 - forbidden scope: no secret upload, no order artifact generated from workflow alone, no endpoint / broker connection, no production secret read, no production cutover, no production trading by default, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
+
+## TVM-RELEASE-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR
+
+- GH-1184-VERIFY-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR
+- V0180-009-DEPENDENCIES-GH1177-GH1181-GH1183-DONE
+- V0180-009-VENUE-PRODUCT-ENVIRONMENT-SCOPE
+- V0180-009-BINANCE-SPOT-TO-OKX-SWAP-REUSE-REJECTED
+- V0180-009-BINANCE-SPOT-TO-USDM-FUTURES-REUSE-REJECTED
+- V0180-009-WRONG-ENVIRONMENT-REUSE-REJECTED
+- V0180-009-CROSS-PRODUCT-EVIDENCE-REUSE-FAILS-CLOSED
+- V0180-009-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1184BetaSafetyProfileDriftDetectorRejectsCrossVenueProductReuse`
+- detector surface: expected and observed beta safety profile scope must include venue, product, environment, accountProfile and runID.
+- fail-closed surface: Binance Spot evidence reused as OKX Swap, Binance USDⓈ-M Futures, unsupported product or wrong environment evidence must produce `validationStatus=failed` and throw from `validateNoDrift`.
+- namespace surface: detector output must show expected and observed namespace keys plus drift reasons without exposing credential value, endpoint response, broker payload or order authorization.
+- forbidden scope: no new live adapter implementation, no new venue/product runtime activation, no endpoint / broker connection, no production secret read, no production cutover, no production trading by default, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.

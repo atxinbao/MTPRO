@@ -370,3 +370,342 @@ public struct ReleaseV0170BetaSafetyPolicyProfileEvidence: Codable, Equatable, S
         )
     }
 }
+
+// GH-1184 static contract boundary:
+// betaSafetyProfileDriftDetector=ReleaseV0180BetaSafetyProfileDriftDetector
+// venueProductEnvironmentScopeRecorded=true
+// binanceSpotToOKXSwapReuseRejected=true
+// binanceSpotToUSDMFuturesReuseRejected=true
+// wrongEnvironmentReuseRejected=true
+// crossProductEvidenceReuseFailsClosed=true
+// driftedEvidenceProducesFailedValidation=true
+// noNewLiveAdapterImplementation=true
+// productionTradingEnabledByDefault=false
+// productionSecretReadEnabled=false
+// productionEndpointConnectionEnabled=false
+// productionBrokerConnectionEnabled=false
+// productionOrderSubmitCancelReplaceEnabled=false
+// productionCutoverAuthorized=false
+
+/// ReleaseV0180BetaSafetyProfileScope 固定 GH-1184 的 beta safety profile 使用范围。
+///
+/// Scope 只描述本地 evidence 所属的 venue / product / environment / account / runID。
+/// 它不会创建 venue runtime，也不会连接 endpoint、broker 或 production secret。
+public struct ReleaseV0180BetaSafetyProfileScope: Codable, Equatable, Sendable {
+    public let venue: String
+    public let product: String
+    public let environment: String
+    public let accountProfile: String
+    public let runID: Identifier
+
+    public var namespaceKey: String {
+        [
+            "venue=\(venue)",
+            "product=\(product)",
+            "environment=\(environment)",
+            "accountProfile=\(accountProfile)",
+            "runID=\(runID.rawValue)"
+        ].joined(separator: "|")
+    }
+
+    public var fieldsPresent: Bool {
+        venue.isEmpty == false
+            && product.isEmpty == false
+            && environment.isEmpty == false
+            && accountProfile.isEmpty == false
+            && runID.rawValue.isEmpty == false
+    }
+
+    public var venueProductPairSupported: Bool {
+        switch (venue, product) {
+        case ("binance", "spot"), ("binance", "usdmFutures"), ("okx", "spot"), ("okx", "swap"):
+            true
+        default:
+            false
+        }
+    }
+
+    public var scopeHeld: Bool {
+        fieldsPresent && venueProductPairSupported
+    }
+
+    public init(
+        venue: String,
+        product: String,
+        environment: String,
+        accountProfile: String,
+        runID: Identifier
+    ) {
+        self.venue = Self.normalizeVenue(venue)
+        self.product = Self.normalizeProduct(product)
+        self.environment = environment.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        self.accountProfile = accountProfile.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.runID = runID
+    }
+
+    private static func normalizeVenue(_ value: String) -> String {
+        value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    private static func normalizeProduct(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let key = trimmed
+            .replacingOccurrences(of: "_", with: "-")
+            .replacingOccurrences(of: " ", with: "-")
+            .lowercased()
+
+        switch key {
+        case "spot":
+            return "spot"
+        case "swap":
+            return "swap"
+        case "usdmfutures", "usdm-futures", "usdm-perpetual":
+            return "usdmFutures"
+        default:
+            return trimmed
+        }
+    }
+}
+
+/// ReleaseV0180BetaSafetyProfileDriftReason 描述 GH-1184 可解释的 fail-closed 原因。
+public enum ReleaseV0180BetaSafetyProfileDriftReason: String, Codable, CaseIterable, Equatable, Sendable {
+    case venueDrift = "venue-drift"
+    case productDrift = "product-drift"
+    case environmentDrift = "environment-drift"
+    case accountProfileDrift = "account-profile-drift"
+    case runIDDrift = "run-id-drift"
+    case unsupportedExpectedVenueProduct = "unsupported-expected-venue-product"
+    case unsupportedObservedVenueProduct = "unsupported-observed-venue-product"
+    case sourceEvidenceBoundaryFailed = "source-evidence-boundary-failed"
+    case productionGuardStateFailed = "production-guard-state-failed"
+}
+
+/// ReleaseV0180BetaSafetyProfileDriftEvidence 是 GH-1184 的 venue/product-aware drift detector 输出。
+///
+/// 它把 expected scope、observed scope 和 v0.17 beta safety profile evidence 绑定在一起。
+/// 任何 cross-product 或 cross-environment 复用都必须得到 failed validation，而不是成功状态里的失败字串。
+public struct ReleaseV0180BetaSafetyProfileDriftEvidence: Codable, Equatable, Sendable {
+    public let evidenceID: Identifier
+    public let issueID: Identifier
+    public let blockedByIssueIDs: [Identifier]
+    public let releaseVersion: String
+    public let expectedScope: ReleaseV0180BetaSafetyProfileScope
+    public let observedScope: ReleaseV0180BetaSafetyProfileScope
+    public let sourceEvidenceID: Identifier
+    public let sourceEvidenceIssueID: Identifier
+    public let sourceEvidenceVenue: String
+    public let sourceEvidenceProduct: String
+    public let sourceEvidenceBoundaryHeld: Bool
+    public let venueProductEnvironmentScopeRecorded: Bool
+    public let venueDriftDetected: Bool
+    public let productDriftDetected: Bool
+    public let environmentDriftDetected: Bool
+    public let accountProfileDriftDetected: Bool
+    public let runIDDriftDetected: Bool
+    public let unsupportedExpectedVenueProductDetected: Bool
+    public let unsupportedObservedVenueProductDetected: Bool
+    public let productionGuardStateHeld: Bool
+    public let crossProductEvidenceReuseRejected: Bool
+    public let validationStatus: String
+    public let validationAnchors: [String]
+
+    public var driftDetected: Bool {
+        venueDriftDetected
+            || productDriftDetected
+            || environmentDriftDetected
+            || accountProfileDriftDetected
+            || runIDDriftDetected
+            || unsupportedExpectedVenueProductDetected
+            || unsupportedObservedVenueProductDetected
+            || sourceEvidenceBoundaryHeld == false
+            || productionGuardStateHeld == false
+    }
+
+    public var detectionHeld: Bool {
+        evidenceID == Self.deterministicID(expectedScope: expectedScope, observedScope: observedScope)
+            && issueID.rawValue == "GH-1184"
+            && blockedByIssueIDs == [.constant("GH-1177"), .constant("GH-1181"), .constant("GH-1183")]
+            && releaseVersion == "v0.18.0"
+            && expectedScope.fieldsPresent
+            && observedScope.fieldsPresent
+            && sourceEvidenceIssueID.rawValue == "GH-1147"
+            && venueProductEnvironmentScopeRecorded
+            && crossProductEvidenceReuseRejected == driftDetected
+            && validationStatus == (driftDetected ? "failed" : "passed")
+            && validationAnchors == Self.requiredValidationAnchors
+    }
+
+    public var failureReasons: [String] {
+        var reasons: [String] = []
+        if venueDriftDetected { reasons.append(ReleaseV0180BetaSafetyProfileDriftReason.venueDrift.rawValue) }
+        if productDriftDetected { reasons.append(ReleaseV0180BetaSafetyProfileDriftReason.productDrift.rawValue) }
+        if environmentDriftDetected { reasons.append(ReleaseV0180BetaSafetyProfileDriftReason.environmentDrift.rawValue) }
+        if accountProfileDriftDetected { reasons.append(ReleaseV0180BetaSafetyProfileDriftReason.accountProfileDrift.rawValue) }
+        if runIDDriftDetected { reasons.append(ReleaseV0180BetaSafetyProfileDriftReason.runIDDrift.rawValue) }
+        if unsupportedExpectedVenueProductDetected {
+            reasons.append(ReleaseV0180BetaSafetyProfileDriftReason.unsupportedExpectedVenueProduct.rawValue)
+        }
+        if unsupportedObservedVenueProductDetected {
+            reasons.append(ReleaseV0180BetaSafetyProfileDriftReason.unsupportedObservedVenueProduct.rawValue)
+        }
+        if sourceEvidenceBoundaryHeld == false {
+            reasons.append(ReleaseV0180BetaSafetyProfileDriftReason.sourceEvidenceBoundaryFailed.rawValue)
+        }
+        if productionGuardStateHeld == false {
+            reasons.append(ReleaseV0180BetaSafetyProfileDriftReason.productionGuardStateFailed.rawValue)
+        }
+        return reasons
+    }
+
+    public var redactedOutputLines: [String] {
+        [
+            "betaSafetyProfileDriftDetector=ReleaseV0180BetaSafetyProfileDriftDetector",
+            "issue=GH-1184",
+            "blockedBy=GH-1177,GH-1181,GH-1183",
+            "releaseVersion=\(releaseVersion)",
+            "expectedNamespace=\(expectedScope.namespaceKey)",
+            "observedNamespace=\(observedScope.namespaceKey)",
+            "sourceEvidenceID=\(sourceEvidenceID.rawValue)",
+            "sourceEvidenceVenue=\(sourceEvidenceVenue)",
+            "sourceEvidenceProduct=\(sourceEvidenceProduct)",
+            "venueProductEnvironmentScopeRecorded=\(venueProductEnvironmentScopeRecorded)",
+            "venueDriftDetected=\(venueDriftDetected)",
+            "productDriftDetected=\(productDriftDetected)",
+            "environmentDriftDetected=\(environmentDriftDetected)",
+            "accountProfileDriftDetected=\(accountProfileDriftDetected)",
+            "runIDDriftDetected=\(runIDDriftDetected)",
+            "crossProductEvidenceReuseRejected=\(crossProductEvidenceReuseRejected)",
+            "validationStatus=\(validationStatus)",
+            "failureReasons=\(failureReasons.joined(separator: ","))",
+            "productionCutoverAuthorized=false"
+        ]
+    }
+
+    public init(
+        expectedScope: ReleaseV0180BetaSafetyProfileScope,
+        observedScope: ReleaseV0180BetaSafetyProfileScope,
+        sourceEvidence: ReleaseV0170BetaSafetyPolicyProfileEvidence,
+        venueProductEnvironmentScopeRecorded: Bool = true,
+        validationAnchors: [String] = Self.requiredValidationAnchors
+    ) {
+        let sourceScope = ReleaseV0180BetaSafetyProfileScope(
+            venue: sourceEvidence.venue,
+            product: sourceEvidence.productType,
+            environment: observedScope.environment,
+            accountProfile: observedScope.accountProfile,
+            runID: sourceEvidence.runID
+        )
+        let venueDriftDetected = expectedScope.venue != observedScope.venue
+            || expectedScope.venue != sourceScope.venue
+        let productDriftDetected = expectedScope.product != observedScope.product
+            || expectedScope.product != sourceScope.product
+        let environmentDriftDetected = expectedScope.environment != observedScope.environment
+        let accountProfileDriftDetected = expectedScope.accountProfile != observedScope.accountProfile
+        let runIDDriftDetected = expectedScope.runID != observedScope.runID
+            || expectedScope.runID != sourceEvidence.runID
+        let unsupportedExpectedVenueProductDetected = expectedScope.venueProductPairSupported == false
+        let unsupportedObservedVenueProductDetected = observedScope.venueProductPairSupported == false
+        let sourceEvidenceBoundaryHeld = sourceEvidence.evidenceHeld
+        let productionGuardStateHeld = sourceEvidence.productionGuardState.guardHeld
+        let failed = venueDriftDetected
+            || productDriftDetected
+            || environmentDriftDetected
+            || accountProfileDriftDetected
+            || runIDDriftDetected
+            || unsupportedExpectedVenueProductDetected
+            || unsupportedObservedVenueProductDetected
+            || sourceEvidenceBoundaryHeld == false
+            || productionGuardStateHeld == false
+
+        self.evidenceID = Self.deterministicID(expectedScope: expectedScope, observedScope: observedScope)
+        self.issueID = .constant("GH-1184")
+        self.blockedByIssueIDs = [.constant("GH-1177"), .constant("GH-1181"), .constant("GH-1183")]
+        self.releaseVersion = "v0.18.0"
+        self.expectedScope = expectedScope
+        self.observedScope = observedScope
+        self.sourceEvidenceID = sourceEvidence.evidenceID
+        self.sourceEvidenceIssueID = sourceEvidence.issueID
+        self.sourceEvidenceVenue = sourceScope.venue
+        self.sourceEvidenceProduct = sourceScope.product
+        self.sourceEvidenceBoundaryHeld = sourceEvidenceBoundaryHeld
+        self.venueProductEnvironmentScopeRecorded = venueProductEnvironmentScopeRecorded
+        self.venueDriftDetected = venueDriftDetected
+        self.productDriftDetected = productDriftDetected
+        self.environmentDriftDetected = environmentDriftDetected
+        self.accountProfileDriftDetected = accountProfileDriftDetected
+        self.runIDDriftDetected = runIDDriftDetected
+        self.unsupportedExpectedVenueProductDetected = unsupportedExpectedVenueProductDetected
+        self.unsupportedObservedVenueProductDetected = unsupportedObservedVenueProductDetected
+        self.productionGuardStateHeld = productionGuardStateHeld
+        self.crossProductEvidenceReuseRejected = failed
+        self.validationStatus = failed ? "failed" : "passed"
+        self.validationAnchors = validationAnchors
+    }
+
+    public static let requiredValidationAnchors = [
+        "GH-1184-VERIFY-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR",
+        "TVM-RELEASE-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR",
+        "V0180-009-DEPENDENCIES-GH1177-GH1181-GH1183-DONE",
+        "V0180-009-VENUE-PRODUCT-ENVIRONMENT-SCOPE",
+        "V0180-009-BINANCE-SPOT-TO-OKX-SWAP-REUSE-REJECTED",
+        "V0180-009-BINANCE-SPOT-TO-USDM-FUTURES-REUSE-REJECTED",
+        "V0180-009-WRONG-ENVIRONMENT-REUSE-REJECTED",
+        "V0180-009-CROSS-PRODUCT-EVIDENCE-REUSE-FAILS-CLOSED",
+        "V0180-009-NO-PRODUCTION-CUTOVER"
+    ]
+
+    public static let requiredValidationCommands = [
+        "swift test --filter TargetGraphTests/testGH1184BetaSafetyProfileDriftDetectorRejectsCrossVenueProductReuse",
+        "bash checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh",
+        "git diff --check",
+        "bash checks/automation-readiness.sh",
+        "bash checks/run.sh"
+    ]
+
+    public static func deterministicID(
+        expectedScope: ReleaseV0180BetaSafetyProfileScope,
+        observedScope: ReleaseV0180BetaSafetyProfileScope
+    ) -> Identifier {
+        .constant(
+            [
+                "gh-1184-v0180-beta-safety-profile-drift-detector",
+                expectedScope.namespaceKey,
+                observedScope.namespaceKey
+            ].joined(separator: ":")
+        )
+    }
+}
+
+/// ReleaseV0180BetaSafetyProfileDriftDetector 是 GH-1184 的 fail-closed 校验入口。
+public enum ReleaseV0180BetaSafetyProfileDriftDetector {
+    public static func evaluate(
+        sourceEvidence: ReleaseV0170BetaSafetyPolicyProfileEvidence,
+        expectedScope: ReleaseV0180BetaSafetyProfileScope,
+        observedScope: ReleaseV0180BetaSafetyProfileScope
+    ) -> ReleaseV0180BetaSafetyProfileDriftEvidence {
+        ReleaseV0180BetaSafetyProfileDriftEvidence(
+            expectedScope: expectedScope,
+            observedScope: observedScope,
+            sourceEvidence: sourceEvidence
+        )
+    }
+
+    @discardableResult
+    public static func validateNoDrift(
+        sourceEvidence: ReleaseV0170BetaSafetyPolicyProfileEvidence,
+        expectedScope: ReleaseV0180BetaSafetyProfileScope,
+        observedScope: ReleaseV0180BetaSafetyProfileScope
+    ) throws -> ReleaseV0180BetaSafetyProfileDriftEvidence {
+        let evidence = evaluate(
+            sourceEvidence: sourceEvidence,
+            expectedScope: expectedScope,
+            observedScope: observedScope
+        )
+        guard evidence.detectionHeld, evidence.driftDetected == false else {
+            throw CoreError.liveTradingBoundaryForbiddenCapability(
+                "releaseV0180BetaSafetyProfileDriftDetector.\(evidence.failureReasons.joined(separator: "+"))"
+            )
+        }
+        return evidence
+    }
+}
