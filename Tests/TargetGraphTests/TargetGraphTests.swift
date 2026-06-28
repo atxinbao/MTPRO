@@ -29569,6 +29569,188 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(releasePolicy.contains("productionCutoverAuthorized=true"))
     }
 
+    func testGH1204TypedVenueProductNamespaceModelValidatesCriticalV018Recovery() throws {
+        // 测试场景：GH-1204 将 critical v0.18 lifecycle recovery namespace 的
+        // venue/product/environment/account profile 从 raw string switch 收敛到 typed model。
+        // 验证目的：allowed venue/product pairs、productionLive 禁止、JSON 迁移和 account profile
+        // credential marker 拒绝都由统一 policy 证明，不打开 production cutover。
+        // GH-1204-VERIFY-V0181-TYPED-NAMESPACE-MODEL
+        // TVM-RELEASE-V0181-TYPED-NAMESPACE-MODEL
+        // V0181-005-TYPED-VENUE-PRODUCT-ENVIRONMENT
+        // V0181-005-ACCOUNT-PROFILE-ID
+        // V0181-005-ALLOWED-PAIRS-FAIL-CLOSED
+        // V0181-005-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+        // V0181-005-JSON-CODEC-MIGRATION
+        // V0181-005-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1204-VERIFY-V0181-TYPED-NAMESPACE-MODEL",
+            "TVM-RELEASE-V0181-TYPED-NAMESPACE-MODEL",
+            "V0181-005-TYPED-VENUE-PRODUCT-ENVIRONMENT",
+            "V0181-005-ACCOUNT-PROFILE-ID",
+            "V0181-005-ALLOWED-PAIRS-FAIL-CLOSED",
+            "V0181-005-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT",
+            "V0181-005-JSON-CODEC-MIGRATION",
+            "V0181-005-NO-PRODUCTION-CUTOVER"
+        ]
+        let typedSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift")
+        let statusSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift")
+        let betaSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift")
+        let verifier = try read("checks/verify-v0.18.1-typed-namespace-model.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+
+        for anchor in anchors {
+            for source in [
+                typedSource,
+                statusSource,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix,
+                releasePolicy
+            ] {
+                XCTAssertTrue(source.contains(anchor), "\(anchor) must stay anchored in v0.18.1 typed namespace evidence")
+            }
+        }
+
+        XCTAssertEqual(ReleaseV0181VenueID.allCases.map(\.rawValue), ["binance", "okx"])
+        XCTAssertEqual(ReleaseV0181ProductKind.allCases.map(\.rawValue), ["spot", "usdmFutures", "swap"])
+        XCTAssertEqual(ReleaseV0181TradingEnvironment.allCases.map(\.rawValue), [
+            "testnet",
+            "productionShadow",
+            "productionLive"
+        ])
+        XCTAssertEqual(try ReleaseV0181ProductKind(validating: "usdm-perpetual"), .usdmFutures)
+        XCTAssertEqual(try ReleaseV0181TradingEnvironment(validating: "production-shadow"), .productionShadow)
+        XCTAssertEqual(try ReleaseV0181AccountProfileID("operator-beta-redacted").rawValue, "operator-beta-redacted")
+        XCTAssertThrowsError(try ReleaseV0181AccountProfileID(""))
+        XCTAssertThrowsError(try ReleaseV0181AccountProfileID("api-key"))
+
+        let allowedPairs: [(ReleaseV0181VenueID, ReleaseV0181ProductKind)] = [
+            (.binance, .spot),
+            (.binance, .usdmFutures),
+            (.okx, .spot),
+            (.okx, .swap)
+        ]
+        for (venueID, productKind) in allowedPairs {
+            XCTAssertTrue(
+                ReleaseV0181VenueProductNamespacePolicy.supportsPair(
+                    venueID: venueID,
+                    productKind: productKind
+                )
+            )
+        }
+        XCTAssertFalse(ReleaseV0181VenueProductNamespacePolicy.supportsPair(venueID: .binance, productKind: .swap))
+        XCTAssertFalse(ReleaseV0181VenueProductNamespacePolicy.supportsPair(venueID: .okx, productKind: .usdmFutures))
+        XCTAssertTrue(ReleaseV0181VenueProductNamespacePolicy.supportsCriticalNamespaceEnvironment(.testnet))
+        XCTAssertTrue(ReleaseV0181VenueProductNamespacePolicy.supportsCriticalNamespaceEnvironment(.productionShadow))
+        XCTAssertFalse(ReleaseV0181VenueProductNamespacePolicy.supportsCriticalNamespaceEnvironment(.productionLive))
+
+        let runID = Identifier.constant("gh-1204-v0181-typed-namespace-model", field: "testGH1204.runID")
+        let namespace = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "usdm-perpetual",
+            environment: "production-shadow",
+            accountProfile: "operator-beta-redacted",
+            runID: runID
+        )
+        XCTAssertEqual(namespace.venueID, .binance)
+        XCTAssertEqual(namespace.productKind, .usdmFutures)
+        XCTAssertEqual(namespace.tradingEnvironment, .productionShadow)
+        XCTAssertEqual(namespace.venue, "binance")
+        XCTAssertEqual(namespace.product, "usdmFutures")
+        XCTAssertEqual(namespace.environment, "productionShadow")
+        XCTAssertTrue(namespace.namespaceHeld)
+        XCTAssertTrue(namespace.venueProductPairSupported)
+
+        let encoded = try JSONEncoder().encode(namespace)
+        let encodedString = try XCTUnwrap(String(data: encoded, encoding: .utf8))
+        XCTAssertTrue(encodedString.contains("\"venue\":\"binance\""))
+        XCTAssertTrue(encodedString.contains("\"product\":\"usdmFutures\""))
+        XCTAssertTrue(encodedString.contains("\"environment\":\"productionShadow\""))
+        XCTAssertTrue(encodedString.contains("\"accountProfile\":\"operator-beta-redacted\""))
+        XCTAssertEqual(try JSONDecoder().decode(ReleaseV0180StatusQueryRetryArtifactNamespace.self, from: encoded), namespace)
+
+        XCTAssertThrowsError(try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "coinbase",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta-redacted",
+            runID: runID
+        ))
+        XCTAssertThrowsError(try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "swap",
+            environment: "testnet",
+            accountProfile: "operator-beta-redacted",
+            runID: runID
+        ))
+        XCTAssertThrowsError(try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "productionLive",
+            accountProfile: "operator-beta-redacted",
+            runID: runID
+        ))
+        XCTAssertThrowsError(try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "api-key",
+            runID: runID
+        ))
+
+        let betaScope = ReleaseV0180BetaSafetyProfileScope(
+            venue: "binance",
+            product: "usdm-perpetual",
+            environment: "testnet",
+            accountProfile: "operator-beta-redacted",
+            runID: runID
+        )
+        XCTAssertEqual(betaScope.product, "usdmFutures")
+        XCTAssertTrue(betaScope.venueProductPairSupported)
+        XCTAssertTrue(betaScope.scopeHeld)
+        let unsupportedScope = ReleaseV0180BetaSafetyProfileScope(
+            venue: "coinbase",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta-redacted",
+            runID: runID
+        )
+        XCTAssertFalse(unsupportedScope.venueProductPairSupported)
+        XCTAssertFalse(unsupportedScope.scopeHeld)
+
+        XCTAssertTrue(typedSource.contains("public enum ReleaseV0181VenueID"))
+        XCTAssertTrue(typedSource.contains("public enum ReleaseV0181ProductKind"))
+        XCTAssertTrue(typedSource.contains("public enum ReleaseV0181TradingEnvironment"))
+        XCTAssertTrue(typedSource.contains("ReleaseV0181AccountProfileID"))
+        XCTAssertTrue(statusSource.contains("ReleaseV0181VenueProductNamespacePolicy.supportsCriticalNamespace"))
+        XCTAssertTrue(betaSource.contains("ReleaseV0181VenueProductNamespacePolicy.supportsRawPair"))
+        XCTAssertFalse(statusSource.contains("case (\"binance\", \"spot\")"))
+        XCTAssertTrue(verifier.contains("testGH1204TypedVenueProductNamespaceModelValidatesCriticalV018Recovery"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.1-typed-namespace-model.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.18.1-typed-namespace-model.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.18.1 typed namespace model anchor"))
+        XCTAssertTrue(latest.contains("v0.18.1 typed namespace model"))
+        XCTAssertTrue(validationPlan.contains("GH-1204 Release v0.18.1 Typed Namespace Model"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0181-TYPED-NAMESPACE-MODEL"))
+        XCTAssertTrue(releasePolicy.contains("GH-1204 replaces critical v0.18 namespace raw string switches"))
+        XCTAssertFalse(releasePolicy.contains("productionCutoverAuthorized=true"))
+    }
+
     func testGH836DashboardMacOSChecksRunV080FocusedGuards() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let workflowSource = try String(
@@ -48731,7 +48913,7 @@ final class TargetGraphTests: XCTestCase {
         let casesByKind = Dictionary(uniqueKeysWithValues: suite.cases.map { ($0.kind, $0) })
         XCTAssertEqual(casesByKind[.wrongVenue]?.observedNamespace.venue, "okx")
         XCTAssertEqual(casesByKind[.wrongProduct]?.observedNamespace.product, "usdmFutures")
-        XCTAssertEqual(casesByKind[.wrongEnvironment]?.observedNamespace.environment, "testnet-mismatch")
+        XCTAssertEqual(casesByKind[.wrongEnvironment]?.observedNamespace.environment, "productionShadow")
         for evidence in suite.cases {
             XCTAssertTrue(evidence.evidenceHeld)
             XCTAssertEqual(evidence.workflowStatus, .failed)

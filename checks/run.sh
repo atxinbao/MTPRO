@@ -101,6 +101,15 @@ bash checks/verify-v0.18.1-operator-run-cli-commands.sh
 # V0181-004-OLD-VERSION-FIXTURES-PRESERVED
 # V0181-004-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.18.1-artifact-namespace-paths.sh
+# GH-1204-VERIFY-V0181-TYPED-NAMESPACE-MODEL
+# TVM-RELEASE-V0181-TYPED-NAMESPACE-MODEL
+# V0181-005-TYPED-VENUE-PRODUCT-ENVIRONMENT
+# V0181-005-ACCOUNT-PROFILE-ID
+# V0181-005-ALLOWED-PAIRS-FAIL-CLOSED
+# V0181-005-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+# V0181-005-JSON-CODEC-MIGRATION
+# V0181-005-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.18.1-typed-namespace-model.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh
