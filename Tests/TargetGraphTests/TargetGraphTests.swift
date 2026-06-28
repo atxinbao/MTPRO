@@ -29416,6 +29416,159 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(readinessScript.contains("checks/verify-v0.18.1-operator-run-cli-commands.sh"))
     }
 
+    func testGH1203ArtifactNamespacePathsUseVenueProductEnvironmentRoot() throws {
+        // 测试场景：GH-1203 将 v0.18 lifecycle recovery active evidence path 收敛到
+        // `.local/mtpro/runs/<venue>/<product>/<environment>/<accountProfile>/<runID>/`。
+        // 验证目的：CLI、Dashboard 和 artifact persistence 的 active v0.18 reference 不再混入
+        // v0.16 operator-runs 或 v0.18 operator-runs 旧路径；cross venue/product reuse 继续 fail closed。
+        // GH-1203-VERIFY-V0181-ARTIFACT-NAMESPACE-PATHS
+        // TVM-RELEASE-V0181-ARTIFACT-NAMESPACE-PATHS
+        // V0181-004-RUNS-NAMESPACE-PATH
+        // V0181-004-V0180-ACTIVE-PATHS-MIGRATED
+        // V0181-004-CROSS-VENUE-PRODUCT-REUSE-FAILS-CLOSED
+        // V0181-004-OLD-VERSION-FIXTURES-PRESERVED
+        // V0181-004-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1203-VERIFY-V0181-ARTIFACT-NAMESPACE-PATHS",
+            "TVM-RELEASE-V0181-ARTIFACT-NAMESPACE-PATHS",
+            "V0181-004-RUNS-NAMESPACE-PATH",
+            "V0181-004-V0180-ACTIVE-PATHS-MIGRATED",
+            "V0181-004-CROSS-VENUE-PRODUCT-REUSE-FAILS-CLOSED",
+            "V0181-004-OLD-VERSION-FIXTURES-PRESERVED",
+            "V0181-004-NO-PRODUCTION-CUTOVER"
+        ]
+        let statusSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift")
+        let dashboardSource = try read("Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift")
+        let operatorRunSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0181OperatorRunCLICommand.swift")
+        let verifier = try read("checks/verify-v0.18.1-artifact-namespace-paths.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+
+        for anchor in anchors {
+            for source in [
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix,
+                releasePolicy
+            ] {
+                XCTAssertTrue(source.contains(anchor), "\(anchor) must stay anchored in v0.18.1 evidence")
+            }
+        }
+
+        let runID = Identifier.constant("gh-1203-v0181-artifact-namespace", field: "testGH1203.runID")
+        let namespace = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let retryPolicy = try ReleaseV0170SignedStatusQueryRetryPolicy(
+            maxAttempts: 1,
+            perAttemptTimeoutMilliseconds: 10
+        )
+        let failure = try ReleaseV0170SignedStatusQueryAttemptFailure(
+            reason: .timeout,
+            field: "timeout",
+            detail: "status query timed out before redacted response",
+            retryable: false
+        )
+        let attempt = try ReleaseV0170SignedStatusQueryAttemptEvidence(
+            attemptIndex: 1,
+            timeoutMilliseconds: retryPolicy.perAttemptTimeoutMilliseconds,
+            status: .failed,
+            transportResultID: nil,
+            failure: failure,
+            retryScheduled: false
+        )
+        let result = try ReleaseV0170SignedStatusQueryResult(
+            signedStatusQueryRequestID: .constant(
+                "gh-1203-redacted-status-query-request",
+                field: "testGH1203.signedStatusQueryRequestID"
+            ),
+            status: .failed,
+            finalTransportResultID: nil,
+            attempts: [attempt],
+            retryPolicy: retryPolicy
+        )
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH1203-ArtifactNamespace-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+        let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: storageRoot)
+        let persistence = try store.appendStatusQueryRetryResult(
+            runID: runID,
+            namespace: namespace,
+            result: result,
+            observedAt: Date(timeIntervalSince1970: 1_704_067_503)
+        )
+        let statusReference = try XCTUnwrap(persistence.payload.redactedEvidenceReferences.first)
+        XCTAssertTrue(
+            statusReference.hasPrefix(
+                ".local/mtpro/runs/binance/spot/testnet/operator-beta/gh-1203-v0181-artifact-namespace/artifacts/"
+            )
+        )
+        XCTAssertTrue(statusReference.hasSuffix("status-query-retry-result-redacted.json"))
+        XCTAssertFalse(statusReference.contains("/v0.16.0/operator-runs/"))
+
+        let productMismatch = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "usdmFutures",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        XCTAssertThrowsError(try store.validateStatusQueryRetryResult(runID: runID, namespace: productMismatch)) { error in
+            guard let storeError = error as? ReleaseV0160LocalExecutionArtifactStoreError,
+                  case .boundaryDrift = storeError else {
+                return XCTFail("cross product reuse must fail closed, got \(error)")
+            }
+        }
+
+        let dashboard = ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel.deterministicFixture
+        XCTAssertTrue(dashboard.boundaryHeld)
+        XCTAssertTrue(dashboard.input.lifecycleManifestPath.hasPrefix(".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"))
+        XCTAssertTrue(dashboard.rows.allSatisfy { $0.sourceArtifactPath.hasPrefix(".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/") })
+        XCTAssertTrue(dashboard.details.joined(separator: "\n").contains(".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"))
+        XCTAssertFalse(
+            ReleaseV0180DashboardArtifactRecoveryDrilldownInput.isSafeLocalArtifactPath(
+                ".local/mtpro/v0.18.0/" + "operator-runs/gh-1182-v0180-operator-run/artifacts/status-query-retry-result.json"
+            )
+        )
+
+        XCTAssertTrue(operatorRunSource.contains(".local/mtpro/runs/\\(namespace.venue)/\\(namespace.product)/\\(namespace.environment)/\\(namespace.accountProfile)/\\(namespace.runID.rawValue)/operator-run/"))
+        XCTAssertTrue(statusSource.contains(".local/mtpro/runs/\\(snapshot.namespace.venue)/\\(snapshot.namespace.product)/\\(snapshot.namespace.environment)/\\(snapshot.namespace.accountProfile)/\\(snapshot.namespace.runID.rawValue)/artifacts/"))
+        XCTAssertTrue(dashboardSource.contains(".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"))
+        XCTAssertFalse(statusSource.contains(".local/mtpro/v0.16.0/operator-runs/\\(snapshot.namespace.runID.rawValue)"))
+        XCTAssertFalse(dashboardSource.contains(".local/mtpro/v0.18.0/operator-runs/"))
+        XCTAssertTrue(verifier.contains("testGH1203ArtifactNamespacePathsUseVenueProductEnvironmentRoot"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.1-artifact-namespace-paths.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.18.1-artifact-namespace-paths.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.18.1 artifact namespace path anchor"))
+        XCTAssertTrue(latest.contains("v0.18.1 artifact namespace paths"))
+        XCTAssertTrue(validationPlan.contains("GH-1203 Release v0.18.1 Artifact Namespace Paths"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0181-ARTIFACT-NAMESPACE-PATHS"))
+        XCTAssertTrue(releasePolicy.contains("GH-1203 fixes active v0.18 artifact namespace paths"))
+        XCTAssertFalse(releasePolicy.contains("productionCutoverAuthorized=true"))
+    }
+
     func testGH836DashboardMacOSChecksRunV080FocusedGuards() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let workflowSource = try String(
