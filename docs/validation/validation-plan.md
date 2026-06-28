@@ -65,6 +65,23 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift`、`checks/verify-v0.18.1-typed-namespace-model.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1204 将 critical v0.18 namespace 的 venue/product/environment/accountProfile 收敛到 typed VenueID / ProductKind / TradingEnvironment / AccountProfileID。Allowed pairs 保持 binance/spot、binance/usdmFutures、okx/spot、okx/swap；productionLive 和 credential-like account profile 必须 fail closed；JSON 仍编码既有 raw keys 作为 migration evidence。GH-1204 不创建 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。
 
+## GH-1205 Release v0.18.1 Aggregate Audit / Release Notes Closeout
+
+- GH-1205-VERIFY-V0181-AGGREGATE-AUDIT-RELEASE-NOTES
+- TVM-RELEASE-V0181-AGGREGATE-AUDIT-RELEASE-NOTES
+- V0181-006-AGGREGATE-GUARD
+- V0181-006-PATCH-AUDIT
+- V0181-006-RELEASE-NOTES
+- V0181-006-VALIDATION-MATRIX
+- V0181-006-PUBLICATION-GUIDANCE
+- V0181-006-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0181-006-NO-PRODUCTION-CUTOVER
+- V0181-006-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.18.1.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md`、`checks/verify-v0.18.1.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1205 只收口 #1200..#1205 aggregate audit、release notes、validation matrix 和 publication guidance。Human 已明确要求 v0.18.1 publication，但 tag / GitHub Release 仍必须在 #1205 PR merged、clean main、open PR = 0、open active issue = 0、validation evidence 和 GH-1201 full matrix publication evidence 重新确认后，由独立 Release Publication Gate 执行。GH-1205 不推进 v0.19.0，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。
+
 ## GH-1148 Release v0.17.0 Stage Audit / Release Docs Closeout
 
 - GH-1148-VERIFY-V0170-STAGE-AUDIT-RELEASE-DOCS

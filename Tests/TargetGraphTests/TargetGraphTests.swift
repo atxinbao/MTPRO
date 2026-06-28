@@ -29751,6 +29751,120 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(releasePolicy.contains("productionCutoverAuthorized=true"))
     }
 
+    func testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout() throws {
+        // 测试场景：GH-1205 只收口 v0.18.1 patch 的 aggregate audit、release notes、
+        // publication guidance 和验证锚点，不在 construction closeout PR 内创建 tag / Release。
+        // 验证目的：#1200..#1205 证据链、PR #1216..#1220、Release Publication Gate handoff、
+        // no-production-cutover 和 v0.19.0 未启动边界必须同时保留。
+        // GH-1205-VERIFY-V0181-AGGREGATE-AUDIT-RELEASE-NOTES
+        // TVM-RELEASE-V0181-AGGREGATE-AUDIT-RELEASE-NOTES
+        // V0181-006-AGGREGATE-GUARD
+        // V0181-006-PATCH-AUDIT
+        // V0181-006-RELEASE-NOTES
+        // V0181-006-VALIDATION-MATRIX
+        // V0181-006-PUBLICATION-GUIDANCE
+        // V0181-006-RELEASE-PUBLICATION-GATE-HANDOFF
+        // V0181-006-NO-PRODUCTION-CUTOVER
+        // V0181-006-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1205-VERIFY-V0181-AGGREGATE-AUDIT-RELEASE-NOTES",
+            "TVM-RELEASE-V0181-AGGREGATE-AUDIT-RELEASE-NOTES",
+            "V0181-006-AGGREGATE-GUARD",
+            "V0181-006-PATCH-AUDIT",
+            "V0181-006-RELEASE-NOTES",
+            "V0181-006-VALIDATION-MATRIX",
+            "V0181-006-PUBLICATION-GUIDANCE",
+            "V0181-006-RELEASE-PUBLICATION-GATE-HANDOFF",
+            "V0181-006-NO-PRODUCTION-CUTOVER",
+            "V0181-006-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        let audit = try read(
+            "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
+        )
+        let notes = try read(
+            "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
+        )
+        let verifier = try read("checks/verify-v0.18.1.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+
+        for anchor in anchors {
+            for source in [
+                audit,
+                notes,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix,
+                releasePolicy
+            ] {
+                XCTAssertTrue(source.contains(anchor), "\(anchor) must stay anchored in v0.18.1 aggregate closeout")
+            }
+        }
+
+        for subVerifier in [
+            "bash checks/verify-v0.18.1-release-fact-sync.sh",
+            "bash checks/verify-v0.18.1-release-full-matrix-publication-gate.sh",
+            "bash checks/verify-v0.18.1-operator-run-cli-commands.sh",
+            "bash checks/verify-v0.18.1-artifact-namespace-paths.sh",
+            "bash checks/verify-v0.18.1-typed-namespace-model.sh",
+            "testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout"
+        ] {
+            XCTAssertTrue(verifier.contains(subVerifier), "\(subVerifier) must stay in v0.18.1 aggregate verifier")
+        }
+
+        for issue in ["#1200", "#1201", "#1202", "#1203", "#1204", "#1205"] {
+            XCTAssertTrue(audit.contains(issue), "\(issue) must stay in v0.18.1 audit evidence")
+            XCTAssertTrue(notes.contains(issue), "\(issue) must stay in v0.18.1 release notes input")
+        }
+        for pullRequest in ["PR #1216", "PR #1217", "PR #1218", "PR #1219", "PR #1220"] {
+            XCTAssertTrue(audit.contains(pullRequest), "\(pullRequest) must stay in v0.18.1 audit evidence")
+            XCTAssertTrue(notes.contains(pullRequest), "\(pullRequest) must stay in v0.18.1 release notes input")
+        }
+
+        XCTAssertTrue(notes.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0"))
+        XCTAssertTrue(notes.contains("cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9"))
+        XCTAssertTrue(notes.contains("2026-06-28T04:55:36Z"))
+        XCTAssertTrue(audit.contains("Release Publication Gate"))
+        XCTAssertTrue(notes.contains("Release Publication Gate"))
+        XCTAssertTrue(releasePolicy.contains("Release Publication Gate"))
+        XCTAssertTrue(audit.contains("production cutover not authorized"))
+        XCTAssertTrue(notes.contains("production cutover not authorized"))
+        XCTAssertTrue(releasePolicy.contains("production cutover not authorized"))
+        XCTAssertTrue(audit.contains("v0.19.0 is not started"))
+        XCTAssertTrue(notes.contains("v0.19.0 is not started"))
+        XCTAssertTrue(latest.contains("v0.19.0 is not started"))
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.1.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.18.1.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.18.1 aggregate audit / release notes anchor"))
+        XCTAssertTrue(latest.contains("v0.18.1 aggregate audit / release notes"))
+        XCTAssertTrue(validationPlan.contains("GH-1205 Release v0.18.1 Aggregate Audit / Release Notes Closeout"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0181-AGGREGATE-AUDIT-RELEASE-NOTES"))
+        XCTAssertTrue(releasePolicy.contains("GH-1205 closes v0.18.1 aggregate audit"))
+
+        for source in [audit, notes, releasePolicy] {
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("productionSecretRead=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnected=true"))
+            XCTAssertFalse(source.contains("productionBrokerConnected=true"))
+            XCTAssertFalse(source.contains("productionOrderSubmitted=true"))
+        }
+    }
+
     func testGH836DashboardMacOSChecksRunV080FocusedGuards() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let workflowSource = try String(

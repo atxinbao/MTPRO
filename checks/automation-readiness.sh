@@ -158,6 +158,11 @@ require_file "checks/verify-v0.18.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.18.1-release-fact-sync.sh"
 require_file "checks/verify-v0.18.1-release-full-matrix-publication-gate.sh"
 require_file "checks/verify-v0.18.1-operator-run-cli-commands.sh"
+require_file "checks/verify-v0.18.1-artifact-namespace-paths.sh"
+require_file "checks/verify-v0.18.1-typed-namespace-model.sh"
+require_file "checks/verify-v0.18.1.sh"
+require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -12337,5 +12342,54 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 typed
 require_contains "docs/validation/validation-plan.md" "GH-1204 Release v0.18.1 Typed Namespace Model"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-TYPED-NAMESPACE-MODEL"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1204TypedVenueProductNamespaceModelValidatesCriticalV018Recovery"
+
+for file in \
+  "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md" \
+  "checks/verify-v0.18.1.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/automation/automation-readiness.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1205-VERIFY-V0181-AGGREGATE-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "TVM-RELEASE-V0181-AGGREGATE-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "V0181-006-AGGREGATE-GUARD"
+  require_contains "$file" "V0181-006-PATCH-AUDIT"
+  require_contains "$file" "V0181-006-RELEASE-NOTES"
+  require_contains "$file" "V0181-006-VALIDATION-MATRIX"
+  require_contains "$file" "V0181-006-PUBLICATION-GUIDANCE"
+  require_contains "$file" "V0181-006-RELEASE-PUBLICATION-GATE-HANDOFF"
+  require_contains "$file" "V0181-006-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0181-006-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "checks/verify-v0.18.1.sh" "bash checks/verify-v0.18.1-release-fact-sync.sh"
+require_contains "checks/verify-v0.18.1.sh" "bash checks/verify-v0.18.1-release-full-matrix-publication-gate.sh"
+require_contains "checks/verify-v0.18.1.sh" "bash checks/verify-v0.18.1-operator-run-cli-commands.sh"
+require_contains "checks/verify-v0.18.1.sh" "bash checks/verify-v0.18.1-artifact-namespace-paths.sh"
+require_contains "checks/verify-v0.18.1.sh" "bash checks/verify-v0.18.1-typed-namespace-model.sh"
+require_contains "checks/verify-v0.18.1.sh" "testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.1.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.1.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 aggregate audit / release notes anchor"
+require_contains "docs/release/release-publication-policy.md" "GH-1205 closes v0.18.1 aggregate audit"
+require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 aggregate audit / release notes"
+require_contains "docs/validation/validation-plan.md" "GH-1205 Release v0.18.1 Aggregate Audit / Release Notes Closeout"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-AGGREGATE-AUDIT-RELEASE-NOTES"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout"
+require_contains "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md" "Issue Completion Evidence"
+require_contains "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md" "Release Publication Gate"
+require_contains "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md" "Release Publication Gate"
+require_contains "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md" "https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0"
+require_contains "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md" "cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9"
+require_contains "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md" "2026-06-28T04:55:36Z"
+require_contains "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md" "v0.19.0 is not started"
+require_contains "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md" "v0.19.0 is not started"
+require_absent "docs/release/release-publication-policy.md" "productionCutoverAuthorized=true"
+require_absent "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md" "productionCutoverAuthorized=true"
+require_absent "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md" "productionCutoverAuthorized=true"
 
 printf 'MTPRO automation readiness checks passed.\n'

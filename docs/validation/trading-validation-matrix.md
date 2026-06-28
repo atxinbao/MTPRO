@@ -4401,3 +4401,20 @@
 - typed namespace: critical v0.18 status retry and beta safety evidence use typed VenueID / ProductKind / TradingEnvironment / AccountProfileID where practical.
 - fail-closed evidence: unsupported venue/product pairs, productionLive environment, credential-like accountProfile values and JSON decode drift fail closed.
 - forbidden scope: no tag creation in GH-1204, no release publication in GH-1204, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
+
+## TVM-RELEASE-V0181-AGGREGATE-AUDIT-RELEASE-NOTES
+
+- GH-1205-VERIFY-V0181-AGGREGATE-AUDIT-RELEASE-NOTES
+- V0181-006-AGGREGATE-GUARD
+- V0181-006-PATCH-AUDIT
+- V0181-006-RELEASE-NOTES
+- V0181-006-VALIDATION-MATRIX
+- V0181-006-PUBLICATION-GUIDANCE
+- V0181-006-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0181-006-NO-PRODUCTION-CUTOVER
+- V0181-006-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.18.1.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout`
+- aggregate evidence: #1200..#1205 patch evidence and PR #1216..#1220 merge evidence are recorded by the audit / release notes closeout.
+- publication guidance: v0.18.1 tag / GitHub Release requires an independent Release Publication Gate after #1205 merge, clean main, open PR = 0, open active issue = 0, validation evidence and GH-1201 full matrix publication evidence are reconfirmed.
+- forbidden scope: no tag creation in GH-1205, no release publication in GH-1205, no v0.19.0 start, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
