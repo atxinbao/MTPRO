@@ -1219,3 +1219,27 @@ GH-1180 is local evidence only. It does not automatically retry network calls, d
 GH-1181 adds operator-visible failure classification and next-action CLI on top of local artifact evidence. The command must classify artifact manifest, status-query, resume and reconciliation replay failure surfaces before producing `mtpro operator-run explain-failure`.
 
 GH-1181 is local evidence only. It does not automatically remediate failures, does not mutate broker state, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
+
+## GH-1182 Release v0.18.0 Dashboard Artifact Recovery Drilldown Policy
+
+`GH-1182-VERIFY-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN`
+
+`TVM-RELEASE-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN`
+
+`V0180-007-DEPENDENCIES-GH1179-GH1180-GH1181-DONE`
+
+`V0180-007-REAL-LOCAL-BUNDLE-EVIDENCE`
+
+`V0180-007-LIFECYCLE-STATUS-RESUME-RECONCILIATION-DRILLDOWN`
+
+`V0180-007-VENUE-PRODUCT-ENVIRONMENT-DRILLDOWN`
+
+`V0180-007-FAILURE-CLASS-NEXT-ACTION-GUIDANCE`
+
+`V0180-007-DASHBOARD-READ-ONLY-NO-COMMANDS`
+
+`V0180-007-NO-PRODUCTION-CUTOVER`
+
+GH-1182 adds Dashboard artifact / recovery drilldown on top of real local bundle evidence. The Dashboard surface must display lifecycle manifest, status query, resume, reconciliation replay and failure classification next-action state for the same venue/product/environment/accountProfile/runID namespace.
+
+GH-1182 is read-only Dashboard evidence only. It does not depend on ExecutionClient target, does not expose command surface, trading button, order form, live command or submit / cancel / replace, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。

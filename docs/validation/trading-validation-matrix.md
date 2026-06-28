@@ -4255,3 +4255,22 @@
 - next-action surface: failure guidance is exposed as `mtpro operator-run explain-failure` and may only be retry, resume, manualReview or stop.
 - namespace surface: every failure explanation must include venue, product, environment, accountProfile and runID.
 - forbidden scope: no automatic remediation, no broker mutation, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
+
+## TVM-RELEASE-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN
+
+- GH-1182-VERIFY-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN
+- V0180-007-DEPENDENCIES-GH1179-GH1180-GH1181-DONE
+- V0180-007-REAL-LOCAL-BUNDLE-EVIDENCE
+- V0180-007-LIFECYCLE-STATUS-RESUME-RECONCILIATION-DRILLDOWN
+- V0180-007-VENUE-PRODUCT-ENVIRONMENT-DRILLDOWN
+- V0180-007-FAILURE-CLASS-NEXT-ACTION-GUIDANCE
+- V0180-007-DASHBOARD-READ-ONLY-NO-COMMANDS
+- V0180-007-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh`
+- focused tests:
+  - `swift test --filter AppTests/testGH1182DashboardArtifactRecoveryDrilldownShowsRealBundleEvidenceWithoutCommands`
+  - `swift test --filter TargetGraphTests/testGH1182DashboardArtifactRecoveryDrilldownIsAnchoredInV0180Guards`
+- drilldown surface: `ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel` must display real local bundle lifecycle, status query, resume, reconciliation replay and next-action classification state.
+- namespace surface: rows must expose venue, product, environment, accountProfile and runID without leaking credential, broker payload or endpoint response.
+- read-only surface: Dashboard must not depend on ExecutionClient target and must not expose command surface, trading button, order form, live command or submit / cancel / replace.
+- forbidden scope: no synthetic happy-path placeholder, no automatic remediation, no broker mutation, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.

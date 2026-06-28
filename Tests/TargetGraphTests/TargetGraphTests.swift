@@ -50967,6 +50967,148 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1182DashboardArtifactRecoveryDrilldownIsAnchoredInV0180Guards() throws {
+        // 测试场景：GH-1182 将 v0.18.0 本地 artifact bundle drilldown 暴露给 Dashboard。
+        // 验证目的：Dashboard 必须只展示 lifecycle / status / resume / reconciliation /
+        // next-action evidence，不依赖 ExecutionClient target，不提供交易命令或 production cutover。
+        // GH-1182-VERIFY-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN
+        // TVM-RELEASE-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN
+        // V0180-007-DEPENDENCIES-GH1179-GH1180-GH1181-DONE
+        // V0180-007-REAL-LOCAL-BUNDLE-EVIDENCE
+        // V0180-007-LIFECYCLE-STATUS-RESUME-RECONCILIATION-DRILLDOWN
+        // V0180-007-VENUE-PRODUCT-ENVIRONMENT-DRILLDOWN
+        // V0180-007-FAILURE-CLASS-NEXT-ACTION-GUIDANCE
+        // V0180-007-DASHBOARD-READ-ONLY-NO-COMMANDS
+        // V0180-007-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1182-VERIFY-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN",
+            "TVM-RELEASE-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN",
+            "V0180-007-DEPENDENCIES-GH1179-GH1180-GH1181-DONE",
+            "V0180-007-REAL-LOCAL-BUNDLE-EVIDENCE",
+            "V0180-007-LIFECYCLE-STATUS-RESUME-RECONCILIATION-DRILLDOWN",
+            "V0180-007-VENUE-PRODUCT-ENVIRONMENT-DRILLDOWN",
+            "V0180-007-FAILURE-CLASS-NEXT-ACTION-GUIDANCE",
+            "V0180-007-DASHBOARD-READ-ONLY-NO-COMMANDS",
+            "V0180-007-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift",
+            "Sources/Dashboard/DashboardShell.swift",
+            "docs/contracts/release-v0.18.0-dashboard-artifact-recovery-drilldown-contract.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/AppTests/AppTests.swift",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        let surface = ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel.deterministicFixture
+        XCTAssertEqual(ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel.requiredValidationAnchors, requiredAnchors)
+        XCTAssertEqual(surface.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel.requiredValidationCommands,
+            [
+                "swift test --filter AppTests/testGH1182DashboardArtifactRecoveryDrilldownShowsRealBundleEvidenceWithoutCommands",
+                "swift test --filter TargetGraphTests/testGH1182DashboardArtifactRecoveryDrilldownIsAnchoredInV0180Guards",
+                "bash checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.issueID, "GH-1182")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-1179", "GH-1180", "GH-1181"])
+        XCTAssertEqual(surface.previousIssueID, "GH-1181")
+        XCTAssertTrue(surface.localBundleEvidenceVisible)
+        XCTAssertTrue(surface.namespaceVisible)
+        XCTAssertTrue(surface.failureClassVisible)
+        XCTAssertTrue(surface.nextActionGuidanceVisible)
+        XCTAssertFalse(surface.dashboardDependsOnExecutionClientTarget)
+        XCTAssertFalse(surface.dashboardCommandSurfaceEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift")
+        let shell = try read("Sources/Dashboard/DashboardShell.swift")
+        let contractDoc = try read("docs/contracts/release-v0.18.0-dashboard-artifact-recovery-drilldown-contract.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let appTests = try read("Tests/AppTests/AppTests.swift")
+
+        XCTAssertTrue(source.contains("dashboardArtifactRecoveryDrilldownSurface=ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel"))
+        XCTAssertTrue(source.contains("localBundleEvidenceVisible=true"))
+        XCTAssertTrue(source.contains("namespaceVisible=true"))
+        XCTAssertTrue(source.contains("failureClassVisible=true"))
+        XCTAssertTrue(source.contains("nextActionGuidanceVisible=true"))
+        XCTAssertTrue(source.contains("dashboardDependsOnExecutionClientTarget=false"))
+        XCTAssertTrue(source.contains("dashboardCommandSurfaceEnabled=false"))
+        XCTAssertTrue(source.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(source.contains("orderFormVisible=false"))
+        XCTAssertTrue(source.contains("liveCommandVisible=false"))
+        XCTAssertTrue(source.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(source.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(shell.contains("releaseV0180DashboardArtifactRecoveryDrilldownSurface"))
+        XCTAssertTrue(shell.contains("DashboardReleaseV0180ArtifactRecoveryDrilldownPanel"))
+        XCTAssertTrue(contractDoc.contains("#1179 closed / done"))
+        XCTAssertTrue(contractDoc.contains("#1180 closed / done"))
+        XCTAssertTrue(contractDoc.contains("#1181 closed / done"))
+        XCTAssertTrue(contractDoc.contains("Dashboard artifact / recovery drilldown"))
+        XCTAssertTrue(contractDoc.contains("不授权 production cutover"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter AppTests/testGH1182DashboardArtifactRecoveryDrilldownShowsRealBundleEvidenceWithoutCommands"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1182DashboardArtifactRecoveryDrilldownIsAnchoredInV0180Guards"))
+        XCTAssertTrue(readiness.contains("Release v0.18.0 Dashboard artifact recovery drilldown anchor"))
+        XCTAssertTrue(plan.contains("GH-1182 Release v0.18.0 Dashboard Artifact Recovery Drilldown"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN"))
+        XCTAssertTrue(policy.contains("GH-1182 adds Dashboard artifact / recovery drilldown"))
+        XCTAssertTrue(appTests.contains("testGH1182DashboardArtifactRecoveryDrilldownShowsRealBundleEvidenceWithoutCommands"))
+
+        for artifact in [source, contractDoc] {
+            XCTAssertFalse(artifact.contains("api.binance.com"))
+            XCTAssertFalse(artifact.contains("www.okx.com"))
+            XCTAssertFalse(artifact.contains("URLSession"))
+            XCTAssertFalse(artifact.contains("URLRequest"))
+            XCTAssertFalse(artifact.contains("submitOrder"))
+            XCTAssertFalse(artifact.contains("cancelOrder"))
+            XCTAssertFalse(artifact.contains("replaceOrder"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     func testGH784RuntimeEventLogWriterAppendsValidatesAndRecoversPartialLines() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(
