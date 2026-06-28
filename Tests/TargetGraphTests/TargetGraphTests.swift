@@ -30066,6 +30066,187 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX"))
     }
 
+    func testGH1208ReleaseV0190VenueEndpointFamilyRegistryFailsClosed() throws {
+        // 测试场景：GH-1208 在 v0.19.0 venue/product registry 与 capability matrix 之后，
+        // 定义 typed endpoint family registry。验证目的：Binance Spot / USDⓈ-M Futures
+        // 只登记 testnet 与 productionShadow host family，OKX 只登记 placeholder，
+        // productionLive、scheme drift 和 production host misuse 都必须 fail closed。
+        // GH-1208-VERIFY-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY
+        // TVM-RELEASE-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY
+        // V0190-003-ENDPOINT-FAMILY-REGISTRY
+        // V0190-003-BINANCE-SPOT-TESTNET-PRODUCTION-SHADOW
+        // V0190-003-BINANCE-USDM-FUTURES-TESTNET-PRODUCTION-SHADOW
+        // V0190-003-OKX-SPOT-SWAP-PLACEHOLDER
+        // V0190-003-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+        // V0190-003-NO-ENDPOINT-CONNECTION
+        // V0190-003-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1208-VERIFY-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY",
+            "TVM-RELEASE-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY",
+            "V0190-003-ENDPOINT-FAMILY-REGISTRY",
+            "V0190-003-BINANCE-SPOT-TESTNET-PRODUCTION-SHADOW",
+            "V0190-003-BINANCE-USDM-FUTURES-TESTNET-PRODUCTION-SHADOW",
+            "V0190-003-OKX-SPOT-SWAP-PLACEHOLDER",
+            "V0190-003-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT",
+            "V0190-003-NO-ENDPOINT-CONNECTION",
+            "V0190-003-NO-PRODUCTION-CUTOVER"
+        ]
+        let endpointSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0190VenueEndpointFamilyRegistry.swift")
+        let verifier = try read("checks/verify-v0.19.0-venue-endpoint-family-registry.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in anchors {
+            for source in [
+                endpointSource,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix
+            ] {
+                XCTAssertTrue(source.contains(anchor), "\(anchor) must stay anchored in v0.19.0 endpoint family evidence")
+            }
+        }
+
+        XCTAssertEqual(ReleaseV0190VenueEndpointFamilyRegistry.allEntries.count, 8)
+        XCTAssertFalse(ReleaseV0190VenueEndpointFamilyRegistry.productionEndpointConnectionEnabled)
+        XCTAssertFalse(ReleaseV0190VenueEndpointFamilyRegistry.productionTradingEnabledByDefault)
+        XCTAssertFalse(ReleaseV0190VenueEndpointFamilyRegistry.okxRuntimeImplemented)
+        XCTAssertEqual(Set(ReleaseV0190VenueEndpointFamilyState.allCases.map(\.rawValue)), [
+            "activeReference",
+            "productionShadow",
+            "placeholder",
+            "forbidden"
+        ])
+
+        let binanceSpotTestnet = try ReleaseV0190VenueEndpointFamilyRegistry.entry(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .testnet
+        )
+        XCTAssertEqual(binanceSpotTestnet.reference, "https://testnet.binance.vision")
+        XCTAssertEqual(binanceSpotTestnet.hostFamily, .binanceSpotTestnet)
+        XCTAssertEqual(binanceSpotTestnet.state, .activeReference)
+        XCTAssertFalse(binanceSpotTestnet.connectsEndpoint)
+
+        let binanceSpotShadow = try ReleaseV0190VenueEndpointFamilyRegistry.entry(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .productionShadow
+        )
+        XCTAssertEqual(binanceSpotShadow.reference, "https://api.binance.com")
+        XCTAssertEqual(binanceSpotShadow.state, .productionShadow)
+        XCTAssertTrue(binanceSpotShadow.reason.contains("shadow evidence only"))
+
+        let binanceFuturesTestnet = try ReleaseV0190VenueEndpointFamilyRegistry.entry(
+            venueID: .binance,
+            productKind: .usdmFutures,
+            tradingEnvironment: .testnet
+        )
+        XCTAssertEqual(binanceFuturesTestnet.reference, "https://testnet.binancefuture.com")
+        XCTAssertEqual(binanceFuturesTestnet.hostFamily, .binanceUSDMFuturesTestnet)
+        XCTAssertEqual(binanceFuturesTestnet.state, .activeReference)
+
+        let binanceFuturesShadow = try ReleaseV0190VenueEndpointFamilyRegistry.entry(
+            venueID: .binance,
+            productKind: .usdmFutures,
+            tradingEnvironment: .productionShadow
+        )
+        XCTAssertEqual(binanceFuturesShadow.reference, "https://fapi.binance.com")
+        XCTAssertEqual(binanceFuturesShadow.state, .productionShadow)
+
+        let okxSpot = try ReleaseV0190VenueEndpointFamilyRegistry.entry(
+            venueID: .okx,
+            productKind: .spot,
+            tradingEnvironment: .testnet
+        )
+        XCTAssertEqual(okxSpot.reference, "https://www.okx.com")
+        XCTAssertEqual(okxSpot.state, .placeholder)
+        XCTAssertTrue(okxSpot.reason.contains("placeholder evidence only"))
+
+        let okxSwapShadow = try ReleaseV0190VenueEndpointFamilyRegistry.entry(
+            venueID: .okx,
+            productKind: .swap,
+            tradingEnvironment: .productionShadow
+        )
+        XCTAssertEqual(okxSwapShadow.reference, "https://www.okx.com")
+        XCTAssertEqual(okxSwapShadow.state, .placeholder)
+
+        XCTAssertNoThrow(try ReleaseV0190VenueEndpointFamilyRegistry.requireActiveTestnetReference(
+            venueID: .binance,
+            productKind: .spot
+        ))
+        XCTAssertThrowsError(try ReleaseV0190VenueEndpointFamilyRegistry.requireActiveTestnetReference(
+            venueID: .okx,
+            productKind: .swap
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("placeholder"))
+            XCTAssertTrue(String(describing: error).contains("OKX Swap"))
+        }
+        XCTAssertThrowsError(try ReleaseV0190VenueEndpointFamilyRegistry.entry(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .productionLive
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("productionLive"))
+            XCTAssertTrue(String(describing: error).contains("forbidden by default"))
+        }
+        XCTAssertThrowsError(try ReleaseV0190VenueEndpointFamilyEntry.validate(
+            pair: ReleaseV0181VenueProductPair(venueID: .binance, productKind: .spot),
+            tradingEnvironment: .testnet,
+            scheme: "http",
+            host: "testnet.binance.vision",
+            hostFamily: .binanceSpotTestnet,
+            state: .activeReference
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("scheme"))
+        }
+        XCTAssertThrowsError(try ReleaseV0190VenueEndpointFamilyEntry.validate(
+            pair: ReleaseV0181VenueProductPair(venueID: .binance, productKind: .spot),
+            tradingEnvironment: .testnet,
+            scheme: "https",
+            host: "api.binance.com",
+            hostFamily: .binanceSpotTestnet,
+            state: .activeReference
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("testnet.binance.vision"))
+        }
+        XCTAssertThrowsError(try ReleaseV0190VenueEndpointFamilyEntry.validate(
+            pair: ReleaseV0181VenueProductPair(venueID: .binance, productKind: .spot),
+            tradingEnvironment: .testnet,
+            scheme: "https",
+            host: "api.binance.com",
+            hostFamily: .binanceSpotProductionShadow,
+            state: .activeReference
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("hostFamily"))
+        }
+
+        XCTAssertTrue(endpointSource.contains("public enum ReleaseV0190VenueEndpointHostFamily"))
+        XCTAssertTrue(endpointSource.contains("public enum ReleaseV0190VenueEndpointFamilyRegistry"))
+        XCTAssertTrue(endpointSource.contains("productionEndpointConnectionEnabled = false"))
+        XCTAssertTrue(endpointSource.contains("okxRuntimeImplemented = false"))
+        XCTAssertTrue(verifier.contains("testGH1208ReleaseV0190VenueEndpointFamilyRegistryFailsClosed"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.0-venue-endpoint-family-registry.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.19.0-venue-endpoint-family-registry.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.19.0 venue endpoint family registry anchor"))
+        XCTAssertTrue(latest.contains("v0.19.0 venue endpoint family registry"))
+        XCTAssertTrue(validationPlan.contains("GH-1208 Release v0.19.0 Venue Endpoint Family Registry"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY"))
+    }
+
     func testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout() throws {
         // 测试场景：GH-1205 只收口 v0.18.1 patch 的 aggregate audit、release notes、
         // publication guidance 和验证锚点，不在 construction closeout PR 内创建 tag / Release。
