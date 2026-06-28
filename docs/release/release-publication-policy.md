@@ -1243,3 +1243,27 @@ GH-1181 is local evidence only. It does not automatically remediate failures, do
 GH-1182 adds Dashboard artifact / recovery drilldown on top of real local bundle evidence. The Dashboard surface must display lifecycle manifest, status query, resume, reconciliation replay and failure classification next-action state for the same venue/product/environment/accountProfile/runID namespace.
 
 GH-1182 is read-only Dashboard evidence only. It does not depend on ExecutionClient target, does not expose command surface, trading button, order form, live command or submit / cancel / replace, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
+
+## GH-1183 Release v0.18.0 Manual Workflow Fixture Negative Cases Policy
+
+`GH-1183-VERIFY-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES`
+
+`TVM-RELEASE-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES`
+
+`V0180-008-DEPENDENCIES-GH1177-GH1178-DONE`
+
+`V0180-008-CORRUPT-BUNDLE-FAILS-CLOSED`
+
+`V0180-008-MISSING-FIELDS-FAIL-CLOSED`
+
+`V0180-008-WRONG-VENUE-PRODUCT-ENVIRONMENT-FAILS-CLOSED`
+
+`V0180-008-FAILED-VALIDATION-STATE-REJECTS-WORKFLOW`
+
+`V0180-008-FAILED-CHECKS-CANNOT-PASS-WITH-FAILED-STATUS-STRING`
+
+`V0180-008-NO-PRODUCTION-CUTOVER`
+
+GH-1183 adds manual workflow fixture upload / download negative cases on top of v0.18.0 local artifact evidence. The fixture suite must cover corrupt bundle, missing required field, wrong venue, wrong product, wrong environment and failed validation state.
+
+GH-1183 is local evidence only. It does not upload secret material, does not generate an order artifact from workflow alone, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。

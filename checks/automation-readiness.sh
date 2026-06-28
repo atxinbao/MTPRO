@@ -12032,5 +12032,45 @@ require_contains "checks/run.sh" "bash checks/verify-v0.18.0-dashboard-artifact-
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh"
 require_contains "Tests/AppTests/AppTests.swift" "testGH1182DashboardArtifactRecoveryDrilldownShowsRealBundleEvidenceWithoutCommands"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1182DashboardArtifactRecoveryDrilldownIsAnchoredInV0180Guards"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" \
+  "docs/contracts/release-v0.18.0-manual-workflow-fixture-negative-cases-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1183-VERIFY-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES"
+  require_contains "$file" "TVM-RELEASE-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES"
+  require_contains "$file" "V0180-008-DEPENDENCIES-GH1177-GH1178-DONE"
+  require_contains "$file" "V0180-008-CORRUPT-BUNDLE-FAILS-CLOSED"
+  require_contains "$file" "V0180-008-MISSING-FIELDS-FAIL-CLOSED"
+  require_contains "$file" "V0180-008-WRONG-VENUE-PRODUCT-ENVIRONMENT-FAILS-CLOSED"
+  require_contains "$file" "V0180-008-FAILED-VALIDATION-STATE-REJECTS-WORKFLOW"
+  require_contains "$file" "V0180-008-FAILED-CHECKS-CANNOT-PASS-WITH-FAILED-STATUS-STRING"
+  require_contains "$file" "V0180-008-NO-PRODUCTION-CUTOVER"
+done
+require_contains "docs/contracts/release-v0.18.0-manual-workflow-fixture-negative-cases-contract.md" "#1177 closed / done"
+require_contains "docs/contracts/release-v0.18.0-manual-workflow-fixture-negative-cases-contract.md" "#1178 closed / done"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "manualWorkflowFixtureNegativeCases=ReleaseV0180ManualWorkflowFixtureNegativeCaseSuite"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "corruptBundleFixtureFailsClosed=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "missingFieldFixtureFailsClosed=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "wrongVenueFixtureFailsClosed=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "wrongProductFixtureFailsClosed=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "wrongEnvironmentFixtureFailsClosed=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "failedValidationStateRejectsWorkflow=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "failedChecksCannotPassWithFailedStatusString=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "noSecretUpload=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "noOrderArtifactGeneratedFromWorkflowAlone=true"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.0 manual workflow fixture negative cases anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1183 Release v0.18.0 Manual Workflow Fixture Negative Cases"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES"
+require_contains "docs/release/release-publication-policy.md" "GH-1183 adds manual workflow fixture upload / download negative cases"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1183ManualWorkflowFixtureNegativeCasesFailClosed"
 
 printf 'MTPRO automation readiness checks passed.\n'

@@ -4274,3 +4274,20 @@
 - namespace surface: rows must expose venue, product, environment, accountProfile and runID without leaking credential, broker payload or endpoint response.
 - read-only surface: Dashboard must not depend on ExecutionClient target and must not expose command surface, trading button, order form, live command or submit / cancel / replace.
 - forbidden scope: no synthetic happy-path placeholder, no automatic remediation, no broker mutation, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
+
+## TVM-RELEASE-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES
+
+- GH-1183-VERIFY-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES
+- V0180-008-DEPENDENCIES-GH1177-GH1178-DONE
+- V0180-008-CORRUPT-BUNDLE-FAILS-CLOSED
+- V0180-008-MISSING-FIELDS-FAIL-CLOSED
+- V0180-008-WRONG-VENUE-PRODUCT-ENVIRONMENT-FAILS-CLOSED
+- V0180-008-FAILED-VALIDATION-STATE-REJECTS-WORKFLOW
+- V0180-008-FAILED-CHECKS-CANNOT-PASS-WITH-FAILED-STATUS-STRING
+- V0180-008-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1183ManualWorkflowFixtureNegativeCasesFailClosed`
+- fixture surface: corrupt bundle, missing required field, wrong venue, wrong product, wrong environment and failed validation state must each reject the manual workflow.
+- fail-closed surface: failed uploaded/downloaded bundles must produce failed checks and cannot satisfy workflow success by emitting a failed status string.
+- namespace surface: wrong venue, wrong product and wrong environment fixtures must compare against the same `{venue, product, environment, accountProfile, runID}` namespace contract introduced for v0.18.0.
+- forbidden scope: no secret upload, no order artifact generated from workflow alone, no endpoint / broker connection, no production secret read, no production cutover, no production trading by default, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.

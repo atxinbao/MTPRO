@@ -472,6 +472,16 @@ bash checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh
 # V0180-007-DASHBOARD-READ-ONLY-NO-COMMANDS
 # V0180-007-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh
+# GH-1183-VERIFY-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES
+# TVM-RELEASE-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES
+# V0180-008-DEPENDENCIES-GH1177-GH1178-DONE
+# V0180-008-CORRUPT-BUNDLE-FAILS-CLOSED
+# V0180-008-MISSING-FIELDS-FAIL-CLOSED
+# V0180-008-WRONG-VENUE-PRODUCT-ENVIRONMENT-FAILS-CLOSED
+# V0180-008-FAILED-VALIDATION-STATE-REJECTS-WORKFLOW
+# V0180-008-FAILED-CHECKS-CANNOT-PASS-WITH-FAILED-STATUS-STRING
+# V0180-008-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

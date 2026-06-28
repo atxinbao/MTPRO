@@ -6200,3 +6200,23 @@ swift test
 - dependency evidence: #1179, #1180 and #1181 must be closed / done before GH-1182 can execute.
 - boundary evidence: Dashboard remains read-only, does not depend on ExecutionClient target, does not expose command surface, trading button, order form, live command, submit / cancel / replace, endpoint / broker connection, production secret read, tag / GitHub Release creation or production cutover.
 - forbidden scope: no synthetic happy-path placeholder, no automatic remediation, no broker mutation, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
+
+## GH-1183 Release v0.18.0 Manual Workflow Fixture Negative Cases
+
+- GH-1183-VERIFY-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES
+- TVM-RELEASE-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES
+- V0180-008-DEPENDENCIES-GH1177-GH1178-DONE
+- V0180-008-CORRUPT-BUNDLE-FAILS-CLOSED
+- V0180-008-MISSING-FIELDS-FAIL-CLOSED
+- V0180-008-WRONG-VENUE-PRODUCT-ENVIRONMENT-FAILS-CLOSED
+- V0180-008-FAILED-VALIDATION-STATE-REJECTS-WORKFLOW
+- V0180-008-FAILED-CHECKS-CANNOT-PASS-WITH-FAILED-STATUS-STRING
+- V0180-008-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1183ManualWorkflowFixtureNegativeCasesFailClosed`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift`
+- contract doc: `docs/contracts/release-v0.18.0-manual-workflow-fixture-negative-cases-contract.md`
+- validation surface: manual workflow upload/download fixture negative cases must cover corrupt bundle, missing required field, wrong venue, wrong product, wrong environment and failed validation state.
+- fail-closed surface: every negative case must produce failed checks and `workflowStatus=failed`; a failed uploaded/downloaded bundle cannot pass the workflow by printing a failed status string.
+- dependency evidence: #1177 and #1178 must be closed / done before GH-1183 can execute.
+- boundary evidence: local artifact evidence only; no secret upload, no order artifact generated from workflow alone, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
