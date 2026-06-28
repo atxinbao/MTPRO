@@ -1388,3 +1388,13 @@ GH-1203 does not create a tag, does not create a GitHub Release, does not author
 GH-1204 replaces critical v0.18 namespace raw string switches with typed VenueID / ProductKind / TradingEnvironment / AccountProfileID where practical. Allowed pairs remain binance/spot, binance/usdmFutures, okx/spot and okx/swap. productionLive remains forbidden by default, account profile ids reject credential-like markers, and JSON encode/decode keeps the existing raw key migration evidence.
 
 GH-1204 does not create a tag, does not create a GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint and does not submit / cancel / replace any production order.
+
+## v0.18.1 Aggregate Audit / Release Notes / Publication Guidance
+
+`GH-1205-VERIFY-V0181-AGGREGATE-AUDIT-RELEASE-NOTES`、`TVM-RELEASE-V0181-AGGREGATE-AUDIT-RELEASE-NOTES`、`V0181-006-AGGREGATE-GUARD`、`V0181-006-PATCH-AUDIT`、`V0181-006-RELEASE-NOTES`、`V0181-006-VALIDATION-MATRIX`、`V0181-006-PUBLICATION-GUIDANCE`、`V0181-006-RELEASE-PUBLICATION-GATE-HANDOFF`、`V0181-006-NO-PRODUCTION-CUTOVER` 和 `V0181-006-NO-TAG-OR-RELEASE-PUBLICATION` 固定 v0.18.1 aggregate closeout boundary。
+
+GH-1205 closes v0.18.1 aggregate audit / release notes / publication guidance for #1200..#1205 and PR #1216..#1220. It keeps `checks/verify-v0.18.1.sh` as the aggregate verifier and records that v0.19.0 is not started.
+
+Explicit human publication instruction has been received for v0.18.1. Publication still occurs only after #1205 merge via independent Release Publication Gate: clean `main`, open PR = 0, open active issue = 0, worktree clean, validation evidence and GH-1201 full matrix publication evidence must be reconfirmed before creating or reporting any v0.18.1 tag / GitHub Release.
+
+GH-1205 does not create a tag, does not create a GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint and does not submit / cancel / replace any production order. production cutover not authorized.
