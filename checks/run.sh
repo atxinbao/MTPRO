@@ -492,6 +492,16 @@ bash checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh
 # V0180-009-CROSS-PRODUCT-EVIDENCE-REUSE-FAILS-CLOSED
 # V0180-009-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh
+# GH-1185-VERIFY-V0180-STAGE-AUDIT-RELEASE-DOCS
+# TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS
+# V0180-010-STAGE-CODE-AUDIT
+# V0180-010-RELEASE-NOTES
+# V0180-010-VALIDATION-MATRIX
+# V0180-010-ROOT-DOCS-REFRESH
+# V0180-010-STALE-WORDING-GUARD
+# V0180-010-NO-PRODUCTION-CUTOVER
+# V0180-010-NO-TAG-OR-RELEASE-PUBLICATION
+bash checks/verify-v0.18.0-stage-audit-release-docs.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

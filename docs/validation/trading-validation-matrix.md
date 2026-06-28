@@ -4308,3 +4308,19 @@
 - fail-closed surface: Binance Spot evidence reused as OKX Swap, Binance USDⓈ-M Futures, unsupported product or wrong environment evidence must produce `validationStatus=failed` and throw from `validateNoDrift`.
 - namespace surface: detector output must show expected and observed namespace keys plus drift reasons without exposing credential value, endpoint response, broker payload or order authorization.
 - forbidden scope: no new live adapter implementation, no new venue/product runtime activation, no endpoint / broker connection, no production secret read, no production cutover, no production trading by default, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
+
+## TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS
+
+- GH-1185-VERIFY-V0180-STAGE-AUDIT-RELEASE-DOCS
+- V0180-010-STAGE-CODE-AUDIT
+- V0180-010-RELEASE-NOTES
+- V0180-010-VALIDATION-MATRIX
+- V0180-010-ROOT-DOCS-REFRESH
+- V0180-010-STALE-WORDING-GUARD
+- V0180-010-NO-PRODUCTION-CUTOVER
+- V0180-010-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.18.0-stage-audit-release-docs.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1185ReleaseV0180StageAuditReleaseDocsCloseout`
+- closeout surface: Stage Code Audit and release notes must summarize #1176..#1185 issue completion, PR #1190..#1198 merge evidence, required `checks` success and local validation commands.
+- root docs surface: README, GOAL, BLUEPRINT, roadmap, latest verification summary, validation plan, trading validation matrix and release publication policy must record completed facts only.
+- forbidden scope: no tag or GitHub Release creation, no next Project / Issue, no next Todo, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command and no production cutover.

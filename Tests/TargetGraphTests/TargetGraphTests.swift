@@ -48672,6 +48672,122 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1185ReleaseV0180StageAuditReleaseDocsCloseout() throws {
+        // 测试场景：GH-1185 将 v0.18.0 construction queue 收口为 Stage Code Audit、
+        // release notes、validation matrix、root docs refresh 和 stale wording guard。
+        // 验证目的：公开入口必须显示 #1176..#1185 closed / done，且 #1185
+        // 不得被误写成仍在 backlog、当前 active slice、tag publication 或 production cutover。
+        // GH-1185-VERIFY-V0180-STAGE-AUDIT-RELEASE-DOCS
+        // TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS
+        // V0180-010-STAGE-CODE-AUDIT
+        // V0180-010-RELEASE-NOTES
+        // V0180-010-VALIDATION-MATRIX
+        // V0180-010-ROOT-DOCS-REFRESH
+        // V0180-010-STALE-WORDING-GUARD
+        // V0180-010-NO-PRODUCTION-CUTOVER
+        // V0180-010-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1185-VERIFY-V0180-STAGE-AUDIT-RELEASE-DOCS",
+            "TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS",
+            "V0180-010-STAGE-CODE-AUDIT",
+            "V0180-010-RELEASE-NOTES",
+            "V0180-010-VALIDATION-MATRIX",
+            "V0180-010-ROOT-DOCS-REFRESH",
+            "V0180-010-STALE-WORDING-GUARD",
+            "V0180-010-NO-PRODUCTION-CUTOVER",
+            "V0180-010-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-notes.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "checks/verify-v0.18.0-stage-audit-release-docs.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let audit = try read("docs/audit/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-notes.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.18.0-stage-audit-release-docs.sh")
+
+        XCTAssertTrue(audit.contains("Issue Completion Evidence"))
+        XCTAssertTrue(audit.contains("PR / Checks / Merge Evidence"))
+        XCTAssertTrue(audit.contains("Boundary Audit"))
+        XCTAssertTrue(audit.contains("Validation Summary"))
+        XCTAssertTrue(audit.contains("Residual Risk"))
+        XCTAssertTrue(audit.contains("Next Handoff"))
+        XCTAssertTrue(audit.contains("#1176..#1185"))
+        XCTAssertTrue(audit.contains("PR #1190"))
+        XCTAssertTrue(audit.contains("PR #1198"))
+        XCTAssertTrue(notes.contains("#1185"))
+        XCTAssertTrue(notes.contains("bash checks/verify-v0.18.0-stage-audit-release-docs.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.18.0 stage audit / release docs closeout anchor"))
+        XCTAssertTrue(latest.contains("v0.18.0 stage audit / release docs closeout"))
+        XCTAssertTrue(plan.contains("GH-1185 Release v0.18.0 Stage Audit / Release Docs Closeout"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS"))
+        XCTAssertTrue(policy.contains("GH-1185 closes the v0.18.0 stage audit"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.0-stage-audit-release-docs.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.18.0-stage-audit-release-docs.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1185ReleaseV0180StageAuditReleaseDocsCloseout"))
+
+        for artifact in [audit, notes, policy] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+
+        for artifact in [
+            try read("README.md"),
+            try read("GOAL.md"),
+            try read("BLUEPRINT.md"),
+            try read("docs/roadmap.md"),
+            try read("docs/validation/latest-verification-summary.md"),
+            notes,
+            policy
+        ] {
+            XCTAssertFalse(artifact.contains("Current active v0.18.0 implementation slice"))
+            XCTAssertFalse(artifact.contains("Current GitHub fallback queue: `MTPRO Release v0.18.0"))
+            XCTAssertFalse(artifact.contains("Current GitHub fallback queue is `MTPRO Release v0.18.0"))
+            XCTAssertFalse(artifact.contains("Current v0.18.0"))
+            XCTAssertFalse(artifact.contains("后续 #1185"))
+            XCTAssertFalse(artifact.contains("#1185 仍必须"))
+            XCTAssertFalse(artifact.contains("不推进 #1185"))
+            XCTAssertFalse(artifact.contains("#1185 remains backlog"))
+        }
+    }
+
     func testGH1169ReleaseV0171V0170ReleaseFactSyncGuard() throws {
         // 测试场景：GH-1169 将 v0.17.0 stable GitHub Release 的已发布事实同步到
         // v0.17.1 patch guard、root docs、release policy、Stage Audit 和 release notes。

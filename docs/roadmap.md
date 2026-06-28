@@ -24,9 +24,9 @@ Venue
 
 路线优先级：
 
-1. 先完成当前 v0.17.1 artifact validation fail-closed patch，确保 operator evidence failure 真的 fail closed。
-2. 再进入 venue / product-aware lifecycle foundation，让 artifact、credential、status query、OMS、risk、reconciliation、Dashboard / CLI 都携带 `{venue, productType, environment, accountProfile, runID}`。
-3. 然后逐步补 Binance USDⓈ-M Futures 与 OKX Spot / Swap 的 read-only、testnet、execution、OMS、risk 和 reconciliation 能力。
+1. v0.17.1 artifact validation fail-closed patch 已完成，operator evidence failure 进入 fail-closed 语义。
+2. v0.18.0 venue / product-aware lifecycle foundation 已完成 construction closeout，artifact、status query、resume、reconciliation、Dashboard / CLI 和 beta safety profile evidence 已携带 `{venue, product, environment, accountProfile, runID}`。
+3. 后续 planning 才能逐步补 Binance USDⓈ-M Futures 与 OKX Spot / Swap 的 read-only、testnet、execution、OMS、risk 和 reconciliation 能力。
 4. 最后才讨论 production shadow、controlled canary 和 Human-approved production cutover。
 
 该目标修正只更新路线方向，不授权 production trading、不读取 production secret、不连接 production endpoint / broker endpoint、不创建 OKX active source 或 order path。
@@ -84,7 +84,7 @@ Machine guard anchors:
 - Project Closure Count: 45 / 45 (100%)
 - Latest Completed Project：`MTPRO Release v0.15.0 Real Binance Testnet Execution MVP`
 - Latest Completed Patch：`MTPRO Release v0.14.1 Local Execution Evidence Hardening Patch`
-- Current maturity statement：`MTPRO Release v0.15.0 Real Binance Testnet Execution MVP complete and published as stable GitHub Release with production trading disabled by default and production cutover not authorized`
+- Current maturity statement：`MTPRO Release v0.18.0 Venue/Product-aware Operator Lifecycle Recovery Foundation complete as construction closeout with production trading disabled by default and production cutover not authorized`
 - PR #473 至 #493 evidence
 - PR #511 至 #519 evidence
 - final residual hardening PR #448
@@ -93,6 +93,26 @@ Machine guard anchors:
 - TargetGraph Anchor Retirement / Real Module Source Root Migration before L4
 
 ## Current Release Construction Scope / 当前 release 建设口径
+
+`GH-1185-VERIFY-V0180-STAGE-AUDIT-RELEASE-DOCS`
+
+`TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS`
+
+`V0180-010-STAGE-CODE-AUDIT`
+
+`V0180-010-RELEASE-NOTES`
+
+`V0180-010-VALIDATION-MATRIX`
+
+`V0180-010-ROOT-DOCS-REFRESH`
+
+`V0180-010-STALE-WORDING-GUARD`
+
+`V0180-010-NO-PRODUCTION-CUTOVER`
+
+`V0180-010-NO-TAG-OR-RELEASE-PUBLICATION`
+
+Completed GitHub fallback queue is `MTPRO Release v0.18.0 Venue/Product-aware Operator Lifecycle Recovery Foundation`, issue range `GH-1176..GH-1185`. GH-1185 closes the v0.18.0 stage audit / release docs, validation matrix, root docs refresh and stale wording guard. The closeout records completed facts only: it does not create `v0.18.0` tag, does not create GitHub Release, does not create the next Project / Issue, does not promote a next Todo, and does not authorize production cutover. production cutover not authorized.
 
 `GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT`
 
