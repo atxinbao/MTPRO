@@ -739,7 +739,7 @@ public struct ReleaseV0180ManualWorkflowFixtureNegativeCaseSuite: Equatable, Sen
         let wrongEnvironmentNamespace = try ReleaseV0180StatusQueryRetryArtifactNamespace(
             venue: expectedNamespace.venue,
             product: expectedNamespace.product,
-            environment: "testnet-mismatch",
+            environment: "productionShadow",
             accountProfile: expectedNamespace.accountProfile,
             runID: expectedNamespace.runID
         )

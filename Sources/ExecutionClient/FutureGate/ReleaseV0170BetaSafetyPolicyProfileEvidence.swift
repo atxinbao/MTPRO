@@ -417,12 +417,7 @@ public struct ReleaseV0180BetaSafetyProfileScope: Codable, Equatable, Sendable {
     }
 
     public var venueProductPairSupported: Bool {
-        switch (venue, product) {
-        case ("binance", "spot"), ("binance", "usdmFutures"), ("okx", "spot"), ("okx", "swap"):
-            true
-        default:
-            false
-        }
+        ReleaseV0181VenueProductNamespacePolicy.supportsRawPair(venue: venue, product: product)
     }
 
     public var scopeHeld: Bool {
@@ -436,9 +431,12 @@ public struct ReleaseV0180BetaSafetyProfileScope: Codable, Equatable, Sendable {
         accountProfile: String,
         runID: Identifier
     ) {
-        self.venue = Self.normalizeVenue(venue)
-        self.product = Self.normalizeProduct(product)
-        self.environment = environment.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        self.venue = (try? ReleaseV0181VenueID(validating: venue))?.rawValue
+            ?? Self.normalizeVenue(venue)
+        self.product = (try? ReleaseV0181ProductKind(validating: product))?.rawValue
+            ?? product.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.environment = (try? ReleaseV0181TradingEnvironment(validating: environment))?.rawValue
+            ?? environment.trimmingCharacters(in: .whitespacesAndNewlines)
         self.accountProfile = accountProfile.trimmingCharacters(in: .whitespacesAndNewlines)
         self.runID = runID
     }
@@ -447,24 +445,6 @@ public struct ReleaseV0180BetaSafetyProfileScope: Codable, Equatable, Sendable {
         value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 
-    private static func normalizeProduct(_ value: String) -> String {
-        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        let key = trimmed
-            .replacingOccurrences(of: "_", with: "-")
-            .replacingOccurrences(of: " ", with: "-")
-            .lowercased()
-
-        switch key {
-        case "spot":
-            return "spot"
-        case "swap":
-            return "swap"
-        case "usdmfutures", "usdm-futures", "usdm-perpetual":
-            return "usdmFutures"
-        default:
-            return trimmed
-        }
-    }
 }
 
 /// ReleaseV0180BetaSafetyProfileDriftReason 描述 GH-1184 可解释的 fail-closed 原因。

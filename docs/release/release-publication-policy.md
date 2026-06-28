@@ -1380,3 +1380,11 @@ Failed evidence must be represented by an explicitly classified read-only report
 GH-1203 fixes active v0.18 artifact namespace paths so status retry persistence, Dashboard drilldown and operator-run report references use `.local/mtpro/runs/<venue>/<product>/<environment>/<accountProfile>/<runID>/`. Historical v0.16 fixtures stay scoped to old release tests. Cross venue/product namespace reuse must fail closed before replay or Dashboard display.
 
 GH-1203 does not create a tag, does not create a GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint and does not submit / cancel / replace any production order.
+
+## v0.18.1 Typed Namespace Model
+
+`GH-1204-VERIFY-V0181-TYPED-NAMESPACE-MODEL`、`TVM-RELEASE-V0181-TYPED-NAMESPACE-MODEL`、`V0181-005-TYPED-VENUE-PRODUCT-ENVIRONMENT`、`V0181-005-ACCOUNT-PROFILE-ID`、`V0181-005-ALLOWED-PAIRS-FAIL-CLOSED`、`V0181-005-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT`、`V0181-005-JSON-CODEC-MIGRATION` 和 `V0181-005-NO-PRODUCTION-CUTOVER` 固定 v0.18.1 typed namespace model guard。
+
+GH-1204 replaces critical v0.18 namespace raw string switches with typed VenueID / ProductKind / TradingEnvironment / AccountProfileID where practical. Allowed pairs remain binance/spot, binance/usdmFutures, okx/spot and okx/swap. productionLive remains forbidden by default, account profile ids reject credential-like markers, and JSON encode/decode keeps the existing raw key migration evidence.
+
+GH-1204 does not create a tag, does not create a GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint and does not submit / cancel / replace any production order.

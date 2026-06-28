@@ -4386,3 +4386,18 @@
 - artifact namespace: active v0.18 status retry persistence, Dashboard drilldown and operator-run references use `.local/mtpro/runs/<venue>/<product>/<environment>/<accountProfile>/<runID>/`.
 - fail-closed evidence: cross venue/product namespace reuse fails closed before replay or Dashboard display.
 - forbidden scope: no tag creation in GH-1203, no release publication in GH-1203, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
+
+## TVM-RELEASE-V0181-TYPED-NAMESPACE-MODEL
+
+- GH-1204-VERIFY-V0181-TYPED-NAMESPACE-MODEL
+- V0181-005-TYPED-VENUE-PRODUCT-ENVIRONMENT
+- V0181-005-ACCOUNT-PROFILE-ID
+- V0181-005-ALLOWED-PAIRS-FAIL-CLOSED
+- V0181-005-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+- V0181-005-JSON-CODEC-MIGRATION
+- V0181-005-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.1-typed-namespace-model.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1204TypedVenueProductNamespaceModelValidatesCriticalV018Recovery`
+- typed namespace: critical v0.18 status retry and beta safety evidence use typed VenueID / ProductKind / TradingEnvironment / AccountProfileID where practical.
+- fail-closed evidence: unsupported venue/product pairs, productionLive environment, credential-like accountProfile values and JSON decode drift fail closed.
+- forbidden scope: no tag creation in GH-1204, no release publication in GH-1204, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.

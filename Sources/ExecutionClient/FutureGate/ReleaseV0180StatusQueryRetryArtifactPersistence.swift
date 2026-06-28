@@ -34,19 +34,36 @@ import Foundation
 // V0181-004-CROSS-VENUE-PRODUCT-REUSE-FAILS-CLOSED
 // V0181-004-OLD-VERSION-FIXTURES-PRESERVED
 // V0181-004-NO-PRODUCTION-CUTOVER
+// GH-1204-VERIFY-V0181-TYPED-NAMESPACE-MODEL
+// TVM-RELEASE-V0181-TYPED-NAMESPACE-MODEL
+// V0181-005-TYPED-VENUE-PRODUCT-ENVIRONMENT
+// V0181-005-ACCOUNT-PROFILE-ID
+// V0181-005-ALLOWED-PAIRS-FAIL-CLOSED
+// V0181-005-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+// V0181-005-JSON-CODEC-MIGRATION
+// V0181-005-NO-PRODUCTION-CUTOVER
 
 /// ReleaseV0180StatusQueryRetryArtifactNamespace 是 GH-1178 在 ExecutionClient 内使用的
 /// status-query artifact namespace。
 ///
 /// `Database` target 已在 GH-1177 定义 run artifact lifecycle namespace；ExecutionClient
-/// 不能反向依赖 Database，因此这里保留同形字段和同一 namespace key 语义，只用于本地
-/// artifact store 持久化和 replay validation，不触发 endpoint、secret、broker 或订单能力。
+/// 不能反向依赖 Database，因此这里保留同形字段和同一 namespace key 语义。#1204 起，
+/// 关键字段由 typed VenueID / ProductKind / TradingEnvironment / AccountProfileID 存储，
+/// 对外 JSON 仍编码为既有 raw value，便于旧 evidence 迁移。
 public struct ReleaseV0180StatusQueryRetryArtifactNamespace: Codable, Equatable, Sendable {
-    public let venue: String
-    public let product: String
-    public let environment: String
-    public let accountProfile: String
+    public let venueID: ReleaseV0181VenueID
+    public let productKind: ReleaseV0181ProductKind
+    public let tradingEnvironment: ReleaseV0181TradingEnvironment
+    public let accountProfileID: ReleaseV0181AccountProfileID
     public let runID: Identifier
+
+    public var venue: String { venueID.rawValue }
+
+    public var product: String { productKind.rawValue }
+
+    public var environment: String { tradingEnvironment.rawValue }
+
+    public var accountProfile: String { accountProfileID.rawValue }
 
     public var namespaceKey: String {
         [
@@ -59,22 +76,28 @@ public struct ReleaseV0180StatusQueryRetryArtifactNamespace: Codable, Equatable,
     }
 
     public var venueProductPairSupported: Bool {
-        switch (venue, product) {
-        case ("binance", "spot"), ("binance", "usdmFutures"), ("okx", "spot"), ("okx", "swap"):
-            true
-        default:
-            false
-        }
+        ReleaseV0181VenueProductNamespacePolicy.supportsPair(
+            venueID: venueID,
+            productKind: productKind
+        )
     }
 
     public var namespaceHeld: Bool {
-        venue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
-            && product.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
-            && environment.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
-            && accountProfile.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+        ReleaseV0181VenueProductNamespacePolicy.supportsCriticalNamespace(
+            venueID: venueID,
+            productKind: productKind,
+            tradingEnvironment: tradingEnvironment
+        )
             && runID.rawValue.isEmpty == false
-            && venueProductPairSupported
             && ReleaseV0160LocalExecutionArtifactPayload.forbiddenRawMarkers(in: namespaceKey).isEmpty
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case venue
+        case product
+        case environment
+        case accountProfile
+        case runID
     }
 
     public init(
@@ -84,15 +107,57 @@ public struct ReleaseV0180StatusQueryRetryArtifactNamespace: Codable, Equatable,
         accountProfile: String,
         runID: Identifier
     ) throws {
-        self.venue = venue.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.product = product.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.environment = environment.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.accountProfile = accountProfile.trimmingCharacters(in: .whitespacesAndNewlines)
+        try self.init(
+            venueID: ReleaseV0181VenueID(validating: venue, field: "v0180StatusQueryRetryArtifact.venue"),
+            productKind: ReleaseV0181ProductKind(validating: product, field: "v0180StatusQueryRetryArtifact.product"),
+            tradingEnvironment: ReleaseV0181TradingEnvironment(
+                validating: environment,
+                field: "v0180StatusQueryRetryArtifact.environment"
+            ),
+            accountProfileID: ReleaseV0181AccountProfileID(
+                accountProfile,
+                field: "v0180StatusQueryRetryArtifact.accountProfile"
+            ),
+            runID: runID
+        )
+    }
+
+    public init(
+        venueID: ReleaseV0181VenueID,
+        productKind: ReleaseV0181ProductKind,
+        tradingEnvironment: ReleaseV0181TradingEnvironment,
+        accountProfileID: ReleaseV0181AccountProfileID,
+        runID: Identifier
+    ) throws {
+        self.venueID = venueID
+        self.productKind = productKind
+        self.tradingEnvironment = tradingEnvironment
+        self.accountProfileID = accountProfileID
         self.runID = runID
 
         guard namespaceHeld else {
             throw ReleaseV0160LocalExecutionArtifactStoreError.boundaryDrift("v0180StatusQueryRetryArtifact.namespace")
         }
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            venue: container.decode(String.self, forKey: .venue),
+            product: container.decode(String.self, forKey: .product),
+            environment: container.decode(String.self, forKey: .environment),
+            accountProfile: container.decode(String.self, forKey: .accountProfile),
+            runID: container.decode(Identifier.self, forKey: .runID)
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(venue, forKey: .venue)
+        try container.encode(product, forKey: .product)
+        try container.encode(environment, forKey: .environment)
+        try container.encode(accountProfile, forKey: .accountProfile)
+        try container.encode(runID, forKey: .runID)
     }
 }
 
