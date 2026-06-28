@@ -4453,3 +4453,20 @@
 - state surface: active、placeholder、forbidden 和 futureGated are explicit; futureGated and placeholder do not satisfy active capability checks.
 - fail-closed surface: productionLive, unsupported pair and forbidden capability checks return or throw readable fail-closed reasons.
 - forbidden scope: no OKX runtime implementation, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.
+
+## TVM-RELEASE-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY
+
+- GH-1208-VERIFY-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY
+- V0190-003-ENDPOINT-FAMILY-REGISTRY
+- V0190-003-BINANCE-SPOT-TESTNET-PRODUCTION-SHADOW
+- V0190-003-BINANCE-USDM-FUTURES-TESTNET-PRODUCTION-SHADOW
+- V0190-003-OKX-SPOT-SWAP-PLACEHOLDER
+- V0190-003-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+- V0190-003-NO-ENDPOINT-CONNECTION
+- V0190-003-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-venue-endpoint-family-registry.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1208ReleaseV0190VenueEndpointFamilyRegistryFailsClosed`
+- registry surface: typed endpoint family rows cover Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap.
+- host family surface: Binance testnet / productionShadow host families are explicit; OKX Spot / Swap remain placeholder endpoint family evidence only.
+- fail-closed surface: productionLive, invalid scheme, production host misuse and state / hostFamily mismatch throw readable fail-closed errors.
+- forbidden scope: no endpoint connection, no URLSession / URLRequest transport, no credential read, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.

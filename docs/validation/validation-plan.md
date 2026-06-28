@@ -6392,3 +6392,22 @@ swift test
 - state surface: capability state must be one of active、placeholder、forbidden or futureGated; futureGated / placeholder entries cannot satisfy `requireActive`.
 - fail-closed surface: unsupported pair, forbidden capability and productionLive capability checks must fail closed with readable reason.
 - forbidden scope: no OKX runtime, no endpoint connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
+
+## GH-1208 Release v0.19.0 Venue Endpoint Family Registry
+
+- GH-1208-VERIFY-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY
+- TVM-RELEASE-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY
+- V0190-003-ENDPOINT-FAMILY-REGISTRY
+- V0190-003-BINANCE-SPOT-TESTNET-PRODUCTION-SHADOW
+- V0190-003-BINANCE-USDM-FUTURES-TESTNET-PRODUCTION-SHADOW
+- V0190-003-OKX-SPOT-SWAP-PLACEHOLDER
+- V0190-003-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+- V0190-003-NO-ENDPOINT-CONNECTION
+- V0190-003-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-venue-endpoint-family-registry.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1208ReleaseV0190VenueEndpointFamilyRegistryFailsClosed`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0190VenueEndpointFamilyRegistry.swift`
+- validation surface: `ReleaseV0190VenueEndpointFamilyRegistry` must expose typed endpoint family rows for Binance Spot、Binance USDⓈ-M Futures、OKX Spot and OKX Swap.
+- host family surface: Binance Spot testnet / productionShadow must map to `testnet.binance.vision` / `api.binance.com`; Binance USDⓈ-M Futures testnet / productionShadow must map to `testnet.binancefuture.com` / `fapi.binance.com`; OKX Spot / Swap must remain placeholder family evidence.
+- fail-closed surface: productionLive, invalid scheme, production host misuse and state/hostFamily mismatch must fail closed with readable reason.
+- forbidden scope: no network connection, no URLSession / URLRequest transport, no credential read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.

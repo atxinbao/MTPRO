@@ -250,6 +250,28 @@ v0.19.0 venue/product registry 以 #1205 / V181-006 closeout 为依赖。`Releas
 
 v0.19.0 venue/product capability matrix 以 #1206 / V190-001 registry closeout 为依赖。`ReleaseV0190VenueProductCapabilityMatrix` 覆盖 Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap；capability keys 为 submit、cancel、status、position、reconcile、reduceOnly、leverage 和 marginType；capability states 为 active、placeholder、forbidden 和 futureGated。futureGated / placeholder capability 不等于 active，必须通过 `requireActive` fail-closed 验证。productionLive 默认拒绝；不实现 OKX runtime，不连接 endpoint / broker，不读取 production secret，不发送 order，不授权 production cutover。
 
+## Release v0.19.0 Venue Endpoint Family Registry Snapshot
+
+`GH-1208-VERIFY-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY`
+
+`TVM-RELEASE-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY`
+
+`V0190-003-ENDPOINT-FAMILY-REGISTRY`
+
+`V0190-003-BINANCE-SPOT-TESTNET-PRODUCTION-SHADOW`
+
+`V0190-003-BINANCE-USDM-FUTURES-TESTNET-PRODUCTION-SHADOW`
+
+`V0190-003-OKX-SPOT-SWAP-PLACEHOLDER`
+
+`V0190-003-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT`
+
+`V0190-003-NO-ENDPOINT-CONNECTION`
+
+`V0190-003-NO-PRODUCTION-CUTOVER`
+
+v0.19.0 venue endpoint family registry 以 #1207 / V190-002 capability matrix closeout 为依赖。`ReleaseV0190VenueEndpointFamilyRegistry` 覆盖 Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap；Binance 记录 testnet 与 production shadow host family typed references，OKX Spot / Swap 记录 placeholder host family typed references。Registry 只保存 scheme / host / environment / state contract，productionLive 默认拒绝；不打开 endpoint connection，不读取 production secret，不发送 order，不授权 production cutover。
+
 ## Release v0.16.1 Central Artifact Redaction Policy Snapshot
 
 `GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY`
