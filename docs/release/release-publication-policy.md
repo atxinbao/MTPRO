@@ -1267,3 +1267,29 @@ GH-1182 is read-only Dashboard evidence only. It does not depend on ExecutionCli
 GH-1183 adds manual workflow fixture upload / download negative cases on top of v0.18.0 local artifact evidence. The fixture suite must cover corrupt bundle, missing required field, wrong venue, wrong product, wrong environment and failed validation state.
 
 GH-1183 is local evidence only. It does not upload secret material, does not generate an order artifact from workflow alone, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
+
+## GH-1184 Release v0.18.0 Beta Safety Profile Drift Detector Policy
+
+`GH-1184-VERIFY-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR`
+
+`TVM-RELEASE-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR`
+
+`V0180-009-DEPENDENCIES-GH1177-GH1181-GH1183-DONE`
+
+`V0180-009-VENUE-PRODUCT-ENVIRONMENT-SCOPE`
+
+`V0180-009-BINANCE-SPOT-TO-OKX-SWAP-REUSE-REJECTED`
+
+`V0180-009-BINANCE-SPOT-TO-USDM-FUTURES-REUSE-REJECTED`
+
+`V0180-009-WRONG-ENVIRONMENT-REUSE-REJECTED`
+
+`V0180-009-CROSS-PRODUCT-EVIDENCE-REUSE-FAILS-CLOSED`
+
+`V0180-009-NO-PRODUCTION-CUTOVER`
+
+GH-1184 adds beta safety profile drift detection on top of v0.17.0 beta safety policy evidence and v0.18.0 venue/product-aware local artifact evidence. The detector must bind expected and observed venue / product / environment / accountProfile / runID scope before evidence can be accepted.
+
+Binance Spot evidence must not be reused as OKX Swap, Binance USDⓈ-M Futures, unsupported product or wrong environment evidence. Cross-product evidence reuse must produce `validationStatus=failed` and fail closed through `validateNoDrift`.
+
+GH-1184 is local evidence only. It does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。

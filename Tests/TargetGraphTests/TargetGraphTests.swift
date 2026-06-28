@@ -48463,6 +48463,215 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1184BetaSafetyProfileDriftDetectorRejectsCrossVenueProductReuse() throws {
+        // 测试场景：GH-1184 在 v0.17 beta safety policy profile evidence 上增加
+        // venue/product/environment-aware drift detector。
+        // 验证目的：Binance Spot evidence 不能被复用为 OKX Swap、Binance USDⓈ-M Futures
+        // 或错误 environment 的 evidence；漂移必须输出 failed validation 并 fail closed。
+        // GH-1184-VERIFY-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR
+        // TVM-RELEASE-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR
+        // V0180-009-DEPENDENCIES-GH1177-GH1181-GH1183-DONE
+        // V0180-009-VENUE-PRODUCT-ENVIRONMENT-SCOPE
+        // V0180-009-BINANCE-SPOT-TO-OKX-SWAP-REUSE-REJECTED
+        // V0180-009-BINANCE-SPOT-TO-USDM-FUTURES-REUSE-REJECTED
+        // V0180-009-WRONG-ENVIRONMENT-REUSE-REJECTED
+        // V0180-009-CROSS-PRODUCT-EVIDENCE-REUSE-FAILS-CLOSED
+        // V0180-009-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let runID = Identifier.constant("gh-1184-v0180-beta-safety-profile-drift-run")
+        let safetyEvidence = try ReleaseV0160BetaSafetyGuard.validate(request: ReleaseV0160BetaSafetyGuardRequest(
+            runID: runID,
+            action: .submit,
+            symbol: "BTCUSDT",
+            quantity: "0.05",
+            credentialProviderKind: .testnetEnvironment,
+            credentialReferenceID: .constant("gh-1184-redacted-testnet-credential-reference"),
+            apiKeyEnvironmentName: "MTPRO_BINANCE_SPOT_TESTNET_API_KEY",
+            secretEnvironmentName: "MTPRO_BINANCE_SPOT_TESTNET_SECRET_KEY",
+            attemptedOrderCount: 1,
+            timestampMilliseconds: 1_704_240_000_000
+        ))
+        let sourceEvidence = try ReleaseV0170BetaSafetyPolicyProfileEvidence.validate(request:
+            ReleaseV0170BetaSafetyPolicyProfileRequest(
+                runID: runID,
+                venue: "Binance",
+                productType: "spot",
+                symbol: "BTCUSDT",
+                notionalUSDT: 20.0,
+                orderCount: 1,
+                safetyGuardEvidence: safetyEvidence
+            )
+        )
+        let observedBinanceSpot = ReleaseV0180BetaSafetyProfileScope(
+            venue: "Binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let matching = try ReleaseV0180BetaSafetyProfileDriftDetector.validateNoDrift(
+            sourceEvidence: sourceEvidence,
+            expectedScope: observedBinanceSpot,
+            observedScope: observedBinanceSpot
+        )
+        XCTAssertTrue(matching.detectionHeld)
+        XCTAssertFalse(matching.driftDetected)
+        XCTAssertFalse(matching.crossProductEvidenceReuseRejected)
+        XCTAssertEqual(matching.validationStatus, "passed")
+        XCTAssertTrue(matching.redactedOutputLines.joined(separator: "\n").contains("validationStatus=passed"))
+
+        let okxSwap = ReleaseV0180BetaSafetyProfileScope(
+            venue: "OKX",
+            product: "swap",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let okxDrift = ReleaseV0180BetaSafetyProfileDriftDetector.evaluate(
+            sourceEvidence: sourceEvidence,
+            expectedScope: okxSwap,
+            observedScope: observedBinanceSpot
+        )
+        XCTAssertTrue(okxDrift.detectionHeld)
+        XCTAssertTrue(okxDrift.venueDriftDetected)
+        XCTAssertTrue(okxDrift.productDriftDetected)
+        XCTAssertTrue(okxDrift.crossProductEvidenceReuseRejected)
+        XCTAssertEqual(okxDrift.validationStatus, "failed")
+        XCTAssertEqual(okxDrift.failureReasons, ["venue-drift", "product-drift"])
+        XCTAssertThrowsError(try ReleaseV0180BetaSafetyProfileDriftDetector.validateNoDrift(
+            sourceEvidence: sourceEvidence,
+            expectedScope: okxSwap,
+            observedScope: observedBinanceSpot
+        ))
+
+        let usdmFutures = ReleaseV0180BetaSafetyProfileScope(
+            venue: "binance",
+            product: "usdmFutures",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let futuresDrift = ReleaseV0180BetaSafetyProfileDriftDetector.evaluate(
+            sourceEvidence: sourceEvidence,
+            expectedScope: usdmFutures,
+            observedScope: observedBinanceSpot
+        )
+        XCTAssertTrue(futuresDrift.detectionHeld)
+        XCTAssertFalse(futuresDrift.venueDriftDetected)
+        XCTAssertTrue(futuresDrift.productDriftDetected)
+        XCTAssertTrue(futuresDrift.crossProductEvidenceReuseRejected)
+        XCTAssertEqual(futuresDrift.failureReasons, ["product-drift"])
+        XCTAssertEqual(futuresDrift.validationStatus, "failed")
+
+        let productionLikeEnvironment = ReleaseV0180BetaSafetyProfileScope(
+            venue: "binance",
+            product: "spot",
+            environment: "production",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let environmentDrift = ReleaseV0180BetaSafetyProfileDriftDetector.evaluate(
+            sourceEvidence: sourceEvidence,
+            expectedScope: productionLikeEnvironment,
+            observedScope: observedBinanceSpot
+        )
+        XCTAssertTrue(environmentDrift.detectionHeld)
+        XCTAssertTrue(environmentDrift.environmentDriftDetected)
+        XCTAssertTrue(environmentDrift.crossProductEvidenceReuseRejected)
+        XCTAssertEqual(environmentDrift.failureReasons, ["environment-drift"])
+
+        let unsupportedProduct = ReleaseV0180BetaSafetyProfileScope(
+            venue: "binance",
+            product: "options",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let unsupportedDrift = ReleaseV0180BetaSafetyProfileDriftDetector.evaluate(
+            sourceEvidence: sourceEvidence,
+            expectedScope: unsupportedProduct,
+            observedScope: observedBinanceSpot
+        )
+        XCTAssertTrue(unsupportedDrift.detectionHeld)
+        XCTAssertTrue(unsupportedDrift.unsupportedExpectedVenueProductDetected)
+        XCTAssertTrue(unsupportedDrift.productDriftDetected)
+        XCTAssertEqual(unsupportedDrift.validationStatus, "failed")
+        XCTAssertTrue(unsupportedDrift.failureReasons.contains("unsupported-expected-venue-product"))
+
+        XCTAssertEqual(
+            ReleaseV0180BetaSafetyProfileDriftEvidence.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1184BetaSafetyProfileDriftDetectorRejectsCrossVenueProductReuse",
+                "bash checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift",
+            "docs/contracts/release-v0.18.0-beta-safety-profile-drift-detector-contract.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in ReleaseV0180BetaSafetyProfileDriftEvidence.requiredValidationAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift")
+        let contract = try read("docs/contracts/release-v0.18.0-beta-safety-profile-drift-detector-contract.md")
+        let verifier = try read("checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+
+        XCTAssertTrue(source.contains("betaSafetyProfileDriftDetector=ReleaseV0180BetaSafetyProfileDriftDetector"))
+        XCTAssertTrue(source.contains("binanceSpotToOKXSwapReuseRejected=true"))
+        XCTAssertTrue(source.contains("binanceSpotToUSDMFuturesReuseRejected=true"))
+        XCTAssertTrue(source.contains("wrongEnvironmentReuseRejected=true"))
+        XCTAssertTrue(source.contains("crossProductEvidenceReuseFailsClosed=true"))
+        XCTAssertTrue(contract.contains("#1184 / GH-1184"))
+        XCTAssertTrue(contract.contains("#1177 closed / done"))
+        XCTAssertTrue(contract.contains("#1181 closed / done"))
+        XCTAssertTrue(contract.contains("#1183 closed / done"))
+        XCTAssertTrue(contract.contains("Binance Spot evidence"))
+        XCTAssertTrue(contract.contains("OKX Swap"))
+        XCTAssertTrue(contract.contains("Binance USDⓈ-M Futures"))
+        XCTAssertTrue(verifier.contains("testGH1184BetaSafetyProfileDriftDetectorRejectsCrossVenueProductReuse"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.18.0 beta safety profile drift detector anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1184 Release v0.18.0 Beta Safety Profile Drift Detector"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR"))
+        XCTAssertTrue(releasePolicy.contains("GH-1184 adds beta safety profile drift detection"))
+
+        for artifact in [source, contract, verifier, readiness, validationPlan, tradingMatrix, releasePolicy] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     func testGH1169ReleaseV0171V0170ReleaseFactSyncGuard() throws {
         // 测试场景：GH-1169 将 v0.17.0 stable GitHub Release 的已发布事实同步到
         // v0.17.1 patch guard、root docs、release policy、Stage Audit 和 release notes。

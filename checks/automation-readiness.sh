@@ -12073,4 +12073,42 @@ require_contains "checks/run.sh" "bash checks/verify-v0.18.0-manual-workflow-fix
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1183ManualWorkflowFixtureNegativeCasesFailClosed"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" \
+  "docs/contracts/release-v0.18.0-beta-safety-profile-drift-detector-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1184-VERIFY-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR"
+  require_contains "$file" "TVM-RELEASE-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR"
+  require_contains "$file" "V0180-009-DEPENDENCIES-GH1177-GH1181-GH1183-DONE"
+  require_contains "$file" "V0180-009-VENUE-PRODUCT-ENVIRONMENT-SCOPE"
+  require_contains "$file" "V0180-009-BINANCE-SPOT-TO-OKX-SWAP-REUSE-REJECTED"
+  require_contains "$file" "V0180-009-BINANCE-SPOT-TO-USDM-FUTURES-REUSE-REJECTED"
+  require_contains "$file" "V0180-009-WRONG-ENVIRONMENT-REUSE-REJECTED"
+  require_contains "$file" "V0180-009-CROSS-PRODUCT-EVIDENCE-REUSE-FAILS-CLOSED"
+  require_contains "$file" "V0180-009-NO-PRODUCTION-CUTOVER"
+done
+require_contains "docs/contracts/release-v0.18.0-beta-safety-profile-drift-detector-contract.md" "#1177 closed / done"
+require_contains "docs/contracts/release-v0.18.0-beta-safety-profile-drift-detector-contract.md" "#1181 closed / done"
+require_contains "docs/contracts/release-v0.18.0-beta-safety-profile-drift-detector-contract.md" "#1183 closed / done"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "betaSafetyProfileDriftDetector=ReleaseV0180BetaSafetyProfileDriftDetector"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "venueProductEnvironmentScopeRecorded=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "binanceSpotToOKXSwapReuseRejected=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "binanceSpotToUSDMFuturesReuseRejected=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "wrongEnvironmentReuseRejected=true"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "crossProductEvidenceReuseFailsClosed=true"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.0 beta safety profile drift detector anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1184 Release v0.18.0 Beta Safety Profile Drift Detector"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0180-BETA-SAFETY-PROFILE-DRIFT-DETECTOR"
+require_contains "docs/release/release-publication-policy.md" "GH-1184 adds beta safety profile drift detection"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1184BetaSafetyProfileDriftDetectorRejectsCrossVenueProductReuse"
+
 printf 'MTPRO automation readiness checks passed.\n'
