@@ -4435,3 +4435,21 @@
 - valid target surface: allowed typed target pairs are Binance Spot, Binance USDⓈ-M Futures, OKX Spot and OKX Swap.
 - environment / profile surface: every target carries TradingEnvironment and AccountProfileID; productionLive remains disabled by default.
 - forbidden scope: no OKX runtime implementation, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.
+
+## TVM-RELEASE-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX
+
+- GH-1207-VERIFY-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX
+- V0190-002-CAPABILITY-MATRIX
+- V0190-002-SUBMIT-CANCEL-STATUS-POSITION-RECONCILE
+- V0190-002-REDUCE-ONLY-LEVERAGE-MARGIN-TYPE
+- V0190-002-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED
+- V0190-002-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+- V0190-002-FUTURE-CAPABILITIES-NOT-ACTIVE
+- V0190-002-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-venue-product-capability-matrix.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1207ReleaseV0190VenueProductCapabilityMatrixFailsClosed`
+- matrix pair surface: Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap.
+- capability surface: submit、cancel、status、position、reconcile、reduceOnly、leverage 和 marginType.
+- state surface: active、placeholder、forbidden 和 futureGated are explicit; futureGated and placeholder do not satisfy active capability checks.
+- fail-closed surface: productionLive, unsupported pair and forbidden capability checks return or throw readable fail-closed reasons.
+- forbidden scope: no OKX runtime implementation, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.

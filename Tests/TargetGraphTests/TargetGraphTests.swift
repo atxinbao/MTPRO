@@ -29891,6 +29891,181 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY"))
     }
 
+    func testGH1207ReleaseV0190VenueProductCapabilityMatrixFailsClosed() throws {
+        // 测试场景：GH-1207 在 v0.19.0 registry foundation 上定义 typed capability matrix。
+        // 验证目的：每个 venue/product pair 的 submit / cancel / status / position /
+        // reconcile / reduceOnly / leverage / marginType 都必须显式标为 active、
+        // placeholder、forbidden 或 futureGated，productionLive 和 future capability 不能误用。
+        // GH-1207-VERIFY-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX
+        // TVM-RELEASE-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX
+        // V0190-002-CAPABILITY-MATRIX
+        // V0190-002-SUBMIT-CANCEL-STATUS-POSITION-RECONCILE
+        // V0190-002-REDUCE-ONLY-LEVERAGE-MARGIN-TYPE
+        // V0190-002-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED
+        // V0190-002-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+        // V0190-002-FUTURE-CAPABILITIES-NOT-ACTIVE
+        // V0190-002-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1207-VERIFY-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX",
+            "TVM-RELEASE-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX",
+            "V0190-002-CAPABILITY-MATRIX",
+            "V0190-002-SUBMIT-CANCEL-STATUS-POSITION-RECONCILE",
+            "V0190-002-REDUCE-ONLY-LEVERAGE-MARGIN-TYPE",
+            "V0190-002-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED",
+            "V0190-002-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT",
+            "V0190-002-FUTURE-CAPABILITIES-NOT-ACTIVE",
+            "V0190-002-NO-PRODUCTION-CUTOVER"
+        ]
+        let matrixSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductCapabilityMatrix.swift")
+        let verifier = try read("checks/verify-v0.19.0-venue-product-capability-matrix.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in anchors {
+            for source in [
+                matrixSource,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix
+            ] {
+                XCTAssertTrue(source.contains(anchor), "\(anchor) must stay anchored in v0.19.0 capability evidence")
+            }
+        }
+
+        XCTAssertEqual(ReleaseV0190VenueProductCapabilityMatrix.allProfiles.map(\.pair), [
+            ReleaseV0181VenueProductPair(venueID: .binance, productKind: .spot),
+            ReleaseV0181VenueProductPair(venueID: .binance, productKind: .usdmFutures),
+            ReleaseV0181VenueProductPair(venueID: .okx, productKind: .spot),
+            ReleaseV0181VenueProductPair(venueID: .okx, productKind: .swap)
+        ])
+        XCTAssertEqual(ReleaseV0190VenueProductCapability.allCases.map(\.rawValue), [
+            "submit",
+            "cancel",
+            "status",
+            "position",
+            "reconcile",
+            "reduceOnly",
+            "leverage",
+            "marginType"
+        ])
+        XCTAssertEqual(
+            Set([
+                ReleaseV0190VenueProductCapabilityState.active,
+                .placeholder,
+                .forbidden,
+                .futureGated
+            ]),
+            [.active, .placeholder, .forbidden, .futureGated]
+        )
+        XCTAssertFalse(ReleaseV0190VenueProductCapabilityMatrix.productionTradingEnabledByDefault)
+        XCTAssertFalse(ReleaseV0190VenueProductCapabilityMatrix.okxRuntimeImplemented)
+
+        let binanceSpot = try ReleaseV0190VenueProductCapabilityMatrix.profile(venueID: .binance, productKind: .spot)
+        XCTAssertEqual(try binanceSpot.decision(for: .submit).state, .active)
+        XCTAssertEqual(try binanceSpot.decision(for: .cancel).state, .active)
+        XCTAssertEqual(try binanceSpot.decision(for: .status).state, .active)
+        XCTAssertEqual(try binanceSpot.decision(for: .position).state, .active)
+        XCTAssertEqual(try binanceSpot.decision(for: .reconcile).state, .active)
+        XCTAssertEqual(try binanceSpot.decision(for: .reduceOnly).state, .forbidden)
+        XCTAssertEqual(try binanceSpot.decision(for: .leverage).state, .forbidden)
+        XCTAssertEqual(try binanceSpot.decision(for: .marginType).state, .forbidden)
+
+        let binanceFutures = try ReleaseV0190VenueProductCapabilityMatrix.profile(
+            venueID: .binance,
+            productKind: .usdmFutures
+        )
+        for capability in ReleaseV0190VenueProductCapability.allCases {
+            XCTAssertEqual(try binanceFutures.decision(for: capability).state, .active)
+        }
+
+        let okxSpot = try ReleaseV0190VenueProductCapabilityMatrix.profile(venueID: .okx, productKind: .spot)
+        XCTAssertEqual(try okxSpot.decision(for: .status).state, .placeholder)
+        XCTAssertEqual(try okxSpot.decision(for: .position).state, .placeholder)
+        XCTAssertEqual(try okxSpot.decision(for: .submit).state, .futureGated)
+        XCTAssertEqual(try okxSpot.decision(for: .cancel).state, .futureGated)
+        XCTAssertEqual(try okxSpot.decision(for: .reconcile).state, .futureGated)
+        XCTAssertEqual(try okxSpot.decision(for: .reduceOnly).state, .forbidden)
+        XCTAssertEqual(try okxSpot.decision(for: .leverage).state, .forbidden)
+        XCTAssertEqual(try okxSpot.decision(for: .marginType).state, .forbidden)
+
+        let okxSwap = try ReleaseV0190VenueProductCapabilityMatrix.profile(venueID: .okx, productKind: .swap)
+        XCTAssertEqual(try okxSwap.decision(for: .status).state, .placeholder)
+        XCTAssertEqual(try okxSwap.decision(for: .position).state, .placeholder)
+        for capability in [
+            ReleaseV0190VenueProductCapability.submit,
+            .cancel,
+            .reconcile,
+            .reduceOnly,
+            .leverage,
+            .marginType
+        ] {
+            XCTAssertEqual(try okxSwap.decision(for: capability).state, .futureGated)
+        }
+
+        XCTAssertNoThrow(try ReleaseV0190VenueProductCapabilityMatrix.requireActive(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .testnet,
+            capability: .submit
+        ))
+        XCTAssertThrowsError(try ReleaseV0190VenueProductCapabilityMatrix.requireActive(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .testnet,
+            capability: .reduceOnly
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("forbidden"))
+            XCTAssertTrue(String(describing: error).contains("reduceOnly"))
+        }
+        XCTAssertThrowsError(try ReleaseV0190VenueProductCapabilityMatrix.requireActive(
+            venueID: .okx,
+            productKind: .swap,
+            tradingEnvironment: .testnet,
+            capability: .submit
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("futureGated"))
+            XCTAssertTrue(String(describing: error).contains("later explicitly authorized adapter issue"))
+        }
+        let productionDecision = try ReleaseV0190VenueProductCapabilityMatrix.decision(
+            venueID: .binance,
+            productKind: .usdmFutures,
+            tradingEnvironment: .productionLive,
+            capability: .submit
+        )
+        XCTAssertEqual(productionDecision.state, .forbidden)
+        XCTAssertTrue(productionDecision.reason.contains("productionLive is disabled by default"))
+        XCTAssertThrowsError(try ReleaseV0190VenueProductCapabilityMatrix.profile(
+            venueID: .binance,
+            productKind: .swap
+        ))
+
+        XCTAssertTrue(matrixSource.contains("public enum ReleaseV0190VenueProductCapability"))
+        XCTAssertTrue(matrixSource.contains("public enum ReleaseV0190VenueProductCapabilityState"))
+        XCTAssertTrue(matrixSource.contains("public enum ReleaseV0190VenueProductCapabilityMatrix"))
+        XCTAssertTrue(matrixSource.contains("productionTradingEnabledByDefault = false"))
+        XCTAssertTrue(matrixSource.contains("okxRuntimeImplemented = false"))
+        XCTAssertTrue(verifier.contains("testGH1207ReleaseV0190VenueProductCapabilityMatrixFailsClosed"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.0-venue-product-capability-matrix.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.19.0-venue-product-capability-matrix.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.19.0 venue/product capability matrix anchor"))
+        XCTAssertTrue(latest.contains("v0.19.0 venue/product capability matrix"))
+        XCTAssertTrue(validationPlan.contains("GH-1207 Release v0.19.0 Venue/Product Capability Matrix"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX"))
+    }
+
     func testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout() throws {
         // 测试场景：GH-1205 只收口 v0.18.1 patch 的 aggregate audit、release notes、
         // publication guidance 和验证锚点，不在 construction closeout PR 内创建 tag / Release。
