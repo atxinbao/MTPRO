@@ -50748,6 +50748,225 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1181OperatorFailureClassificationNextActionCLIExplainsLocalEvidenceFailures() throws {
+        // 测试场景：GH-1181 汇总 artifact manifest、status-query retry、resume 和
+        // reconciliation replay 的本地 failure evidence，输出 operator 可见的下一步 CLI。
+        // 验证目的：每条 failure explanation 必须包含 venue/product/environment namespace；
+        // retry / manualReview / stop next action 只能作为只读 operator guidance，不得触发
+        // 自动 remediation、broker mutation 或 production cutover。
+        // GH-1181-VERIFY-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI
+        // TVM-RELEASE-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI
+        // V0180-006-DEPENDENCIES-GH1179-GH1180-DONE
+        // V0180-006-ARTIFACT-MANIFEST-FAILURE-CLASSIFIED
+        // V0180-006-STATUS-QUERY-FAILURE-CLASSIFIED
+        // V0180-006-RESUME-FAILURE-CLASSIFIED
+        // V0180-006-RECONCILIATION-REPLAY-FAILURE-CLASSIFIED
+        // V0180-006-NEXT-ACTION-CLI
+        // V0180-006-VENUE-PRODUCT-ENVIRONMENT-EXPLANATION
+        // V0180-006-READ-ONLY-OPERATOR-ACTION
+        // V0180-006-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let runID = Identifier.constant("gh-1181-v0180-failure-classification-run")
+        let namespace = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let retryPolicy = try ReleaseV0170SignedStatusQueryRetryPolicy(
+            maxAttempts: 2,
+            perAttemptTimeoutMilliseconds: 10
+        )
+        let timeoutFailure = try ReleaseV0170SignedStatusQueryAttemptFailure(
+            reason: .timeout,
+            field: "timeout",
+            detail: "status query timed out before redacted response",
+            retryable: true
+        )
+        let retryLimitFailure = try ReleaseV0170SignedStatusQueryAttemptFailure(
+            reason: .retryLimitExceeded,
+            field: "retryLimit",
+            detail: "maxAttempts=2",
+            retryable: false
+        )
+        let statusQueryResult = try ReleaseV0170SignedStatusQueryResult(
+            signedStatusQueryRequestID: .constant(
+                "gh-1181-redacted-status-query-request",
+                field: "testGH1181.signedStatusQueryRequestID"
+            ),
+            status: .failed,
+            finalTransportResultID: nil,
+            attempts: [
+                try ReleaseV0170SignedStatusQueryAttemptEvidence(
+                    attemptIndex: 1,
+                    timeoutMilliseconds: retryPolicy.perAttemptTimeoutMilliseconds,
+                    status: .failed,
+                    transportResultID: nil,
+                    failure: timeoutFailure,
+                    retryScheduled: true
+                ),
+                try ReleaseV0170SignedStatusQueryAttemptEvidence(
+                    attemptIndex: 2,
+                    timeoutMilliseconds: retryPolicy.perAttemptTimeoutMilliseconds,
+                    status: .failed,
+                    transportResultID: nil,
+                    failure: retryLimitFailure,
+                    retryScheduled: false
+                )
+            ],
+            retryPolicy: retryPolicy
+        )
+        let storageRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "MTPRO-GH1181-FailureClassification-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: storageRoot)
+        }
+        let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: storageRoot)
+        let statusPersistence = try store.appendStatusQueryRetryResult(
+            runID: runID,
+            namespace: namespace,
+            result: statusQueryResult,
+            observedAt: Date(timeIntervalSince1970: 1_704_068_181)
+        )
+
+        let command = ReleaseV0180OperatorFailureClassificationNextActionCLI()
+        let result = try command.classify(input: ReleaseV0180OperatorFailureClassificationNextActionInput(
+            namespace: namespace,
+            lifecycleManifestNamespaceKey: "venue=binance|product=usdmFutures|environment=testnet|accountProfile=operator-beta|runID=\(runID.rawValue)",
+            lifecycleManifestValidated: false,
+            statusQueryPersistence: statusPersistence,
+            resumeResult: nil,
+            reconciliationReplayResult: nil
+        ))
+        XCTAssertTrue(result.resultHeld)
+        XCTAssertEqual(result.issueID.rawValue, "GH-1181")
+        XCTAssertEqual(result.blockedByIssueIDs.map(\.rawValue), ["GH-1179", "GH-1180"])
+        XCTAssertEqual(result.status, .failed)
+        XCTAssertEqual(result.topLevelNextAction, .stop)
+        XCTAssertTrue(result.artifactManifestFailureClassified)
+        XCTAssertTrue(result.statusQueryFailureClassified)
+        XCTAssertTrue(result.resumeFailureClassified)
+        XCTAssertTrue(result.reconciliationReplayFailureClassified)
+        XCTAssertTrue(result.nextActionCLIVisible)
+        XCTAssertTrue(result.venueProductEnvironmentFailureExplanation)
+        XCTAssertTrue(result.readOnlyOperatorAction)
+        XCTAssertFalse(result.automaticRemediationEnabled)
+        XCTAssertFalse(result.brokerMutationEnabled)
+        XCTAssertFalse(result.productionTradingEnabledByDefault)
+        XCTAssertFalse(result.productionSecretReadEnabled)
+        XCTAssertFalse(result.productionEndpointConnectionEnabled)
+        XCTAssertFalse(result.productionBrokerConnectionEnabled)
+        XCTAssertFalse(result.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(result.productionCutoverAuthorized)
+        XCTAssertTrue(result.operatorNextActionCLI.contains("mtpro operator-run explain-failure"))
+        XCTAssertTrue(result.operatorNextActionCLI.contains("--venue binance"))
+        XCTAssertTrue(result.operatorNextActionCLI.contains("--product spot"))
+        XCTAssertTrue(result.operatorNextActionCLI.contains("--environment testnet"))
+        XCTAssertTrue(result.operatorNextActionCLI.contains("--next-action stop"))
+        XCTAssertTrue(result.classifications.contains { $0.reason == .artifactManifestMissingOrInvalid && $0.nextAction == .stop })
+        XCTAssertTrue(result.classifications.contains { $0.reason == .statusQueryTimeout && $0.nextAction == .retry })
+        XCTAssertTrue(result.classifications.contains { $0.reason == .statusQueryRetryLimitExceeded && $0.nextAction == .manualReview })
+        XCTAssertTrue(result.classifications.contains { $0.reason == .resumeEvidenceMissingOrInvalid && $0.nextAction == .manualReview })
+        XCTAssertTrue(result.classifications.contains { $0.reason == .reconciliationEvidenceMissing && $0.nextAction == .manualReview })
+        XCTAssertEqual(ReleaseV0180OperatorFailureClassificationNextActionResult.topLevelNextAction(for: []), .resume)
+        for classification in result.classifications {
+            XCTAssertTrue(classification.explanation.contains("venue=binance"))
+            XCTAssertTrue(classification.explanation.contains("product=spot"))
+            XCTAssertTrue(classification.explanation.contains("environment=testnet"))
+            XCTAssertTrue(classification.explanation.contains("accountProfile=operator-beta"))
+            XCTAssertTrue(classification.explanation.contains("runID=\(runID.rawValue)"))
+            XCTAssertTrue(classification.nextActionCLI.contains("--next-action \(classification.nextAction.rawValue)"))
+            XCTAssertTrue(classification.failClosed)
+            XCTAssertTrue(classification.operatorVisible)
+            XCTAssertTrue(classification.readOnlyOperatorAction)
+        }
+
+        let requiredAnchors = [
+            "GH-1181-VERIFY-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI",
+            "TVM-RELEASE-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI",
+            "V0180-006-DEPENDENCIES-GH1179-GH1180-DONE",
+            "V0180-006-ARTIFACT-MANIFEST-FAILURE-CLASSIFIED",
+            "V0180-006-STATUS-QUERY-FAILURE-CLASSIFIED",
+            "V0180-006-RESUME-FAILURE-CLASSIFIED",
+            "V0180-006-RECONCILIATION-REPLAY-FAILURE-CLASSIFIED",
+            "V0180-006-NEXT-ACTION-CLI",
+            "V0180-006-VENUE-PRODUCT-ENVIRONMENT-EXPLANATION",
+            "V0180-006-READ-ONLY-OPERATOR-ACTION",
+            "V0180-006-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(ReleaseV0180OperatorFailureClassificationNextActionResult.requiredValidationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            ReleaseV0180OperatorFailureClassificationNextActionResult.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1181OperatorFailureClassificationNextActionCLIExplainsLocalEvidenceFailures",
+                "bash checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0180OperatorFailureClassificationNextActionCLI.swift")
+        let contractDoc = try read("docs/contracts/release-v0.18.0-operator-failure-classification-next-action-cli-contract.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let automationReadiness = try read("docs/automation/automation-readiness.md")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let runScript = try read("checks/run.sh")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let verifier = try read("checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh")
+
+        for sourceText in [
+            source,
+            contractDoc,
+            validationPlan,
+            tradingMatrix,
+            automationReadiness,
+            readinessScript,
+            runScript,
+            policy,
+            verifier
+        ] {
+            for anchor in requiredAnchors {
+                XCTAssertTrue(sourceText.contains(anchor), "missing \(anchor)")
+            }
+        }
+        XCTAssertTrue(source.contains("operatorFailureClassificationNextActionCLI=ReleaseV0180OperatorFailureClassificationNextActionCLI"))
+        XCTAssertTrue(source.contains("ReleaseV0180OperatorFailureClassificationNextActionInput"))
+        XCTAssertTrue(source.contains("ReleaseV0180OperatorFailureClassificationNextActionResult"))
+        XCTAssertTrue(source.contains("artifactManifestFailureClassified=true"))
+        XCTAssertTrue(source.contains("statusQueryFailureClassified=true"))
+        XCTAssertTrue(source.contains("resumeFailureClassified=true"))
+        XCTAssertTrue(source.contains("reconciliationReplayFailureClassified=true"))
+        XCTAssertTrue(source.contains("nextActionCLIVisible=true"))
+        XCTAssertTrue(contractDoc.contains("#1179 closed / done"))
+        XCTAssertTrue(contractDoc.contains("#1180 closed / done"))
+        XCTAssertTrue(contractDoc.contains("mtpro operator-run explain-failure"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh"))
+        XCTAssertTrue(verifier.contains("testGH1181OperatorFailureClassificationNextActionCLIExplainsLocalEvidenceFailures"))
+        for artifact in [source, contractDoc] {
+            XCTAssertFalse(artifact.contains("api.binance.com"))
+            XCTAssertFalse(artifact.contains("www.okx.com"))
+            XCTAssertFalse(artifact.contains("URLSession"))
+            XCTAssertFalse(artifact.contains("URLRequest"))
+            XCTAssertFalse(artifact.contains("submitOrder"))
+            XCTAssertFalse(artifact.contains("cancelOrder"))
+            XCTAssertFalse(artifact.contains("replaceOrder"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     func testGH784RuntimeEventLogWriterAppendsValidatesAndRecoversPartialLines() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let packageSource = try String(

@@ -6154,3 +6154,25 @@ swift test
 - fail-closed surface: missing reconciliation report, missing recovery report, observed / expected mismatch, recovery cases or namespace mismatch must return failed result with read-only operator next action.
 - dependency evidence: #1178 and #1179 must be closed / done before GH-1180 can execute.
 - boundary evidence: no automatic network retry, no broker mutation, no endpoint / broker connection, no production secret read, no order action, no tag / GitHub Release creation and no production cutover.
+
+## GH-1181 Release v0.18.0 Operator Failure Classification Next Action CLI
+
+- GH-1181-VERIFY-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI
+- TVM-RELEASE-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI
+- V0180-006-DEPENDENCIES-GH1179-GH1180-DONE
+- V0180-006-ARTIFACT-MANIFEST-FAILURE-CLASSIFIED
+- V0180-006-STATUS-QUERY-FAILURE-CLASSIFIED
+- V0180-006-RESUME-FAILURE-CLASSIFIED
+- V0180-006-RECONCILIATION-REPLAY-FAILURE-CLASSIFIED
+- V0180-006-NEXT-ACTION-CLI
+- V0180-006-VENUE-PRODUCT-ENVIRONMENT-EXPLANATION
+- V0180-006-READ-ONLY-OPERATOR-ACTION
+- V0180-006-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1181OperatorFailureClassificationNextActionCLIExplainsLocalEvidenceFailures`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0180OperatorFailureClassificationNextActionCLI.swift`
+- contract doc: `docs/contracts/release-v0.18.0-operator-failure-classification-next-action-cli-contract.md`
+- validation surface: operator failure classification must consume local lifecycle manifest, status-query persistence, resume and reconciliation replay evidence, then output `mtpro operator-run explain-failure` with retry / resume / manualReview / stop guidance.
+- namespace surface: every failure explanation must include venue, product, environment, accountProfile and runID.
+- dependency evidence: #1179 and #1180 must be closed / done before GH-1181 can execute.
+- boundary evidence: read-only operator action only; no automatic remediation, no broker mutation, no endpoint / broker connection, no production secret read, no order action, no tag / GitHub Release creation and no production cutover.
