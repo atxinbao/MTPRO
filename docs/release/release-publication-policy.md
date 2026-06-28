@@ -1293,3 +1293,27 @@ GH-1184 adds beta safety profile drift detection on top of v0.17.0 beta safety p
 Binance Spot evidence must not be reused as OKX Swap, Binance USDⓈ-M Futures, unsupported product or wrong environment evidence. Cross-product evidence reuse must produce `validationStatus=failed` and fail closed through `validateNoDrift`.
 
 GH-1184 is local evidence only. It does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
+
+## GH-1185 Release v0.18.0 Stage Audit / Release Docs Closeout Policy
+
+`GH-1185-VERIFY-V0180-STAGE-AUDIT-RELEASE-DOCS`
+
+`TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS`
+
+`V0180-010-STAGE-CODE-AUDIT`
+
+`V0180-010-RELEASE-NOTES`
+
+`V0180-010-VALIDATION-MATRIX`
+
+`V0180-010-ROOT-DOCS-REFRESH`
+
+`V0180-010-STALE-WORDING-GUARD`
+
+`V0180-010-NO-PRODUCTION-CUTOVER`
+
+`V0180-010-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1185 closes the v0.18.0 stage audit by adding the Stage Code Audit, release notes, validation matrix anchors, root docs refresh and stale wording guard. It records `#1176..#1185` issue completion, PR #1190..#1198 merge evidence, required `checks` success and local validation commands as completed facts only.
+
+GH-1185 does not create or publish a `v0.18.0` tag / GitHub Release, does not create the next Project / Issue, does not promote a next Todo, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。

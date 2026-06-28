@@ -6240,3 +6240,22 @@ swift test
 - fail-closed surface: Binance Spot evidence reused as OKX Swap, Binance USDⓈ-M Futures, unsupported product or wrong environment evidence must return `validationStatus=failed` and throw from `validateNoDrift`.
 - dependency evidence: #1177, #1181 and #1183 must be closed / done before GH-1184 can execute.
 - boundary evidence: local redacted evidence only; no new live adapter implementation, no new venue/product runtime activation, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
+
+## GH-1185 Release v0.18.0 Stage Audit / Release Docs Closeout
+
+- GH-1185-VERIFY-V0180-STAGE-AUDIT-RELEASE-DOCS
+- TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS
+- V0180-010-STAGE-CODE-AUDIT
+- V0180-010-RELEASE-NOTES
+- V0180-010-VALIDATION-MATRIX
+- V0180-010-ROOT-DOCS-REFRESH
+- V0180-010-STALE-WORDING-GUARD
+- V0180-010-NO-PRODUCTION-CUTOVER
+- V0180-010-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.18.0-stage-audit-release-docs.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1185ReleaseV0180StageAuditReleaseDocsCloseout`
+- audit doc: `docs/audit/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-stage-code-audit.md`
+- release notes: `docs/release/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-notes.md`
+- validation surface: #1176..#1185 completion, PR #1190..#1198 merge evidence, required `checks` success, local validation commands and root docs delta must be recorded as completed facts only.
+- dependency evidence: #1182, #1183 and #1184 must be closed / done before GH-1185 can execute.
+- boundary evidence: construction closeout only; no tag / GitHub Release creation, no next Project / Issue, no next Todo, no Linear / Symphony / Graphify / code-index / Figma, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover.
