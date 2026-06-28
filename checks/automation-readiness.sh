@@ -156,6 +156,7 @@ require_file "checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh"
 require_file "checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh"
 require_file "checks/verify-v0.18.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.18.1-release-fact-sync.sh"
+require_file "checks/verify-v0.18.1-release-full-matrix-publication-gate.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -12191,5 +12192,43 @@ require_contains "docs/release/release-publication-policy.md" "GH-1200 rejects u
 require_contains "checks/run.sh" "bash checks/verify-v0.18.1-release-fact-sync.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.1-release-fact-sync.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1200ReleaseV0181V0180ReleaseFactSyncGuard"
+
+for file in \
+  ".github/workflows/checks.yml" \
+  "checks/verify-ci-pr-fast-lane-release-matrix.sh" \
+  "checks/verify-v0.18.1-release-full-matrix-publication-gate.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/automation/ci-reproducibility.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE"
+  require_contains "$file" "TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE"
+  require_contains "$file" "V0181-002-RELEASE-FULL-MATRIX-REQUIRED"
+  require_contains "$file" "V0181-002-LINUX-CHECKS-JOB-EVIDENCE"
+  require_contains "$file" "V0181-002-DASHBOARD-MACOS-JOB-EVIDENCE"
+  require_contains "$file" "V0181-002-PR-FAST-NOT-PUBLICATION-EVIDENCE"
+  require_contains "$file" "V0181-002-NO-PRODUCTION-CUTOVER"
+done
+require_contains ".github/workflows/checks.yml" "release_publication_checks:"
+require_contains ".github/workflows/checks.yml" "name: release-publication-checks"
+require_contains ".github/workflows/checks.yml" "needs.linux_checks.result"
+require_contains ".github/workflows/checks.yml" "needs.dashboard_macos.result"
+require_contains ".github/workflows/checks.yml" "github.run_id"
+require_contains ".github/workflows/checks.yml" "GITHUB_STEP_SUMMARY"
+require_contains "checks/verify-ci-pr-fast-lane-release-matrix.sh" "release_publication_checks:"
+require_contains "checks/verify-v0.18.1-release-full-matrix-publication-gate.sh" "testGH1201ReleaseFullMatrixPublicationGateRequiresLinuxAndDashboardEvidence"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.1-release-full-matrix-publication-gate.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 release full matrix publication gate anchor"
+require_contains "docs/automation/ci-reproducibility.md" "release publication evidence must include GitHub Actions workflow run id"
+require_contains "docs/release/release-publication-policy.md" "release publication cannot be represented as complete by pr-fast-checks or checks aggregate alone"
+require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 release full matrix publication gate"
+require_contains "docs/validation/validation-plan.md" "GH-1201 Release v0.18.1 Full Matrix Publication Gate"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1201ReleaseFullMatrixPublicationGateRequiresLinuxAndDashboardEvidence"
 
 printf 'MTPRO automation readiness checks passed.\n'

@@ -1355,4 +1355,12 @@ Historical #1185 / GH-1185 construction closeout wording is allowed only when it
 - tag peeled commit：`cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9`
 - publication timestamp：`2026-06-28T04:55:36Z`
 
-If Human later requests `v0.18.1` publication, it must be handled by a separate explicit Release Publication Gate after clean `main`, open PR = 0, open active issue = 0, and validation evidence are re-confirmed. production cutover not authorized；production trading remains disabled by default；production secret read, production endpoint / broker endpoint connection and production submit / cancel / replace remain unauthorized.
+## v0.18.1 Release Full Matrix Publication Evidence Gate
+
+`GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE`、`TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE`、`V0181-002-RELEASE-FULL-MATRIX-REQUIRED`、`V0181-002-LINUX-CHECKS-JOB-EVIDENCE`、`V0181-002-DASHBOARD-MACOS-JOB-EVIDENCE`、`V0181-002-PR-FAST-NOT-PUBLICATION-EVIDENCE` 和 `V0181-002-NO-PRODUCTION-CUTOVER` 固定后续 v0.18.1 publication evidence 的 CI gate。
+
+release publication evidence must include GitHub Actions workflow run id, run attempt, workflow job ids: pr_fast_checks, linux_checks, dashboard_macos, release_publication_checks, and evidence artifacts from GitHub Actions run log, job summary, Linux `checks/run.sh` output, and Dashboard macOS build / smoke output.
+
+release publication cannot be represented as complete by pr-fast-checks or checks aggregate alone. linux-checks and dashboard-macos must both be SUCCESS for tag publication evidence. Ordinary PR required `checks` remains fast-lane-only so review PRs do not wait on release full matrix. production cutover not authorized.
+
+If Human later requests `v0.18.1` publication, it must be handled by a separate explicit Release Publication Gate after clean `main`, open PR = 0, open active issue = 0, validation evidence are re-confirmed, and the release full matrix evidence above is present. production cutover not authorized；production trading remains disabled by default；production secret read, production endpoint / broker endpoint connection and production submit / cancel / replace remain unauthorized.

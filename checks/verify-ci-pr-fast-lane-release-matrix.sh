@@ -4,6 +4,13 @@ set -euo pipefail
 # CI-PR-FAST-LANE-RELEASE-MATRIX
 # CI-PR-FAST-LANE-REQUIRED-CHECKS
 # CI-RELEASE-FULL-LINUX-MACOS-MATRIX
+# GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+# TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
+# V0181-002-RELEASE-FULL-MATRIX-REQUIRED
+# V0181-002-LINUX-CHECKS-JOB-EVIDENCE
+# V0181-002-DASHBOARD-MACOS-JOB-EVIDENCE
+# V0181-002-PR-FAST-NOT-PUBLICATION-EVIDENCE
+# V0181-002-NO-PRODUCTION-CUTOVER
 # CI-NO-PRODUCTION-CUTOVER
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -45,6 +52,13 @@ for anchor in \
   "CI-PR-FAST-LANE-RELEASE-MATRIX" \
   "CI-PR-FAST-LANE-REQUIRED-CHECKS" \
   "CI-RELEASE-FULL-LINUX-MACOS-MATRIX" \
+  "GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE" \
+  "TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE" \
+  "V0181-002-RELEASE-FULL-MATRIX-REQUIRED" \
+  "V0181-002-LINUX-CHECKS-JOB-EVIDENCE" \
+  "V0181-002-DASHBOARD-MACOS-JOB-EVIDENCE" \
+  "V0181-002-PR-FAST-NOT-PUBLICATION-EVIDENCE" \
+  "V0181-002-NO-PRODUCTION-CUTOVER" \
   "CI-NO-PRODUCTION-CUTOVER"; do
   require_file_contains "$0" "$anchor"
   require_file_contains "$WORKFLOW" "$anchor"
@@ -69,6 +83,20 @@ require_file_contains "$WORKFLOW" "linux_checks:"
 require_file_contains "$WORKFLOW" "name: linux-checks"
 require_file_contains "$WORKFLOW" "dashboard_macos:"
 require_file_contains "$WORKFLOW" "name: dashboard-macos"
+require_file_contains "$WORKFLOW" "release_publication_checks:"
+require_file_contains "$WORKFLOW" "name: release-publication-checks"
+require_file_contains "$WORKFLOW" "always() &&"
+require_file_contains "$WORKFLOW" "MTPRO release publication matrix: workflow="
+require_file_contains "$WORKFLOW" "run_id="
+require_file_contains "$WORKFLOW" "run_attempt="
+require_file_contains "$WORKFLOW" "MTPRO release publication workflow job ids: pr_fast_checks linux_checks dashboard_macos release_publication_checks"
+require_file_contains "$WORKFLOW" "MTPRO release publication job results: pr-fast-checks="
+require_file_contains "$WORKFLOW" "linux-checks="
+require_file_contains "$WORKFLOW" "dashboard-macos="
+require_file_contains "$WORKFLOW" "MTPRO release publication evidence artifacts: GitHub Actions run log, job summary, linux checks/run.sh output, dashboard macOS build/smoke output"
+require_file_contains "$WORKFLOW" "GITHUB_STEP_SUMMARY"
+require_file_contains "$WORKFLOW" "needs.linux_checks.result"
+require_file_contains "$WORKFLOW" "needs.dashboard_macos.result"
 require_file_contains "$WORKFLOW" "if: \${{ github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release/') }}"
 require_file_contains "$WORKFLOW" "bash checks/run.sh"
 require_file_contains "$WORKFLOW" "swift build --product Dashboard"
@@ -91,13 +119,39 @@ for forbidden in ("- linux_checks", "- dashboard_macos", "needs.linux_checks.res
         raise SystemExit(f"required checks aggregate must not depend on full release matrix: {forbidden}")
 
 linux_job = workflow.split("  linux_checks:", 1)[1].split("  dashboard_macos:", 1)[0]
-dashboard_job = workflow.split("  dashboard_macos:", 1)[1].split("  checks:", 1)[0]
+dashboard_job = workflow.split("  dashboard_macos:", 1)[1].split("  release_publication_checks:", 1)[0]
+release_publication_job = workflow.split("  release_publication_checks:", 1)[1].split("  checks:", 1)[0]
 release_condition = "github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release/')"
 for name, job in (("linux_checks", linux_job), ("dashboard_macos", dashboard_job)):
     if release_condition not in job:
         raise SystemExit(f"{name} must be release/manual only")
     if "pull_request" in job:
         raise SystemExit(f"{name} must not add pull_request-specific execution")
+
+if release_condition not in release_publication_job:
+    raise SystemExit("release_publication_checks must be release/manual only")
+if "always() &&" not in release_publication_job:
+    raise SystemExit("release_publication_checks must run after failed release lanes and report fail-closed evidence")
+for expected in (
+    "- pr_fast_checks",
+    "- linux_checks",
+    "- dashboard_macos",
+    "needs.pr_fast_checks.result",
+    "needs.linux_checks.result",
+    "needs.dashboard_macos.result",
+    "github.run_id",
+    "github.run_attempt",
+    "GITHUB_STEP_SUMMARY",
+):
+    if expected not in release_publication_job:
+        raise SystemExit(f"release_publication_checks must record or require {expected}")
+for expected in (
+    'test "${{ needs.pr_fast_checks.result }}" = "success"',
+    'test "${{ needs.linux_checks.result }}" = "success"',
+    'test "${{ needs.dashboard_macos.result }}" = "success"',
+):
+    if expected not in release_publication_job:
+        raise SystemExit(f"release_publication_checks must fail closed on missing/failed matrix result: {expected}")
 
 fast_job = workflow.split("  pr_fast_checks:", 1)[1].split("  linux_checks:", 1)[0]
 for expected in (

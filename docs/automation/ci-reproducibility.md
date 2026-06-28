@@ -47,6 +47,14 @@ Release v0.5.0 的 GH-738 历史上将 GitHub required check `checks` 从单一 
 
 该拆分只改变 GitHub Actions 调度策略，不降低本地 release gate 要求；需要发布版本时仍必须显式运行完整本地验证和 release full matrix。
 
+## GH-1201 Release Full Matrix Publication Evidence Gate
+
+`GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE` 固定 v0.18.1 patch queue 的 release publication evidence boundary。`TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE`、`V0181-002-RELEASE-FULL-MATRIX-REQUIRED`、`V0181-002-LINUX-CHECKS-JOB-EVIDENCE`、`V0181-002-DASHBOARD-MACOS-JOB-EVIDENCE`、`V0181-002-PR-FAST-NOT-PUBLICATION-EVIDENCE` 和 `V0181-002-NO-PRODUCTION-CUTOVER` 是该 gate 的验证锚点。
+
+release publication evidence must include GitHub Actions workflow run id, run attempt, workflow job ids: pr_fast_checks, linux_checks, dashboard_macos, release_publication_checks, and the evidence artifacts from GitHub Actions run log, job summary, Linux `checks/run.sh` output, and Dashboard macOS build / smoke output.
+
+release publication cannot be represented as complete by pr-fast-checks or checks aggregate alone. linux-checks and dashboard-macos must both be SUCCESS for tag publication evidence, while ordinary PR required `checks` remains fast-lane-only and does not wait for the release full matrix. production cutover not authorized.
+
 ## GH-450-CI-REPRODUCIBILITY-VALIDATION
 
 本切片只允许 CI / local validation reproducibility hardening，不授权业务能力。
