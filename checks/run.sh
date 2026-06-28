@@ -83,6 +83,16 @@ bash checks/verify-v0.5.0-ci-hardening.sh
 # CI-NO-PRODUCTION-CUTOVER
 bash checks/verify-ci-pr-fast-lane-release-matrix.sh
 bash checks/verify-v0.18.1-release-full-matrix-publication-gate.sh
+# GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS
+# TVM-RELEASE-V0181-OPERATOR-RUN-CLI-COMMANDS
+# V0181-003-OPERATOR-RUN-HELP-VISIBLE
+# V0181-003-RESUME-CLI-ROUTE
+# V0181-003-REPLAY-CLI-ROUTE
+# V0181-003-EXPLAIN-FAILURE-CLI-ROUTE
+# V0181-003-FAILED-EVIDENCE-READ-ONLY-REPORT-PATH
+# V0181-003-LOCAL-ONLY-REDACTED-OUTPUT
+# V0181-003-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.18.1-operator-run-cli-commands.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh

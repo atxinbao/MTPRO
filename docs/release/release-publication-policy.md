@@ -1364,3 +1364,11 @@ release publication evidence must include GitHub Actions workflow run id, run at
 release publication cannot be represented as complete by pr-fast-checks or checks aggregate alone. linux-checks and dashboard-macos must both be SUCCESS for tag publication evidence. Ordinary PR required `checks` remains fast-lane-only so review PRs do not wait on release full matrix. production cutover not authorized.
 
 If Human later requests `v0.18.1` publication, it must be handled by a separate explicit Release Publication Gate after clean `main`, open PR = 0, open active issue = 0, validation evidence are re-confirmed, and the release full matrix evidence above is present. production cutover not authorized；production trading remains disabled by default；production secret read, production endpoint / broker endpoint connection and production submit / cancel / replace remain unauthorized.
+
+## v0.18.1 Operator-run CLI Commands
+
+`GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS`、`TVM-RELEASE-V0181-OPERATOR-RUN-CLI-COMMANDS`、`V0181-003-OPERATOR-RUN-HELP-VISIBLE`、`V0181-003-RESUME-CLI-ROUTE`、`V0181-003-REPLAY-CLI-ROUTE`、`V0181-003-EXPLAIN-FAILURE-CLI-ROUTE`、`V0181-003-FAILED-EVIDENCE-READ-ONLY-REPORT-PATH`、`V0181-003-LOCAL-ONLY-REDACTED-OUTPUT` 和 `V0181-003-NO-PRODUCTION-CUTOVER` 固定 v0.18.1 operator-run CLI publication-adjacent safety boundary.
+
+GH-1202 wires operator-run CLI commands into the public MTPRO CLI surface for local read-only artifact model output: `operator-run help`, `operator-run resume`, `operator-run replay`, `operator-run replay-cancel-status-reconciliation` and `operator-run explain-failure`.
+
+Failed evidence must be represented by an explicitly classified read-only report path or a recommended nonzero exit code. GH-1202 does not create a tag, does not create a GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint and does not submit / cancel / replace any production order.

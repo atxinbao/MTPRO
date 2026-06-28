@@ -157,6 +157,7 @@ require_file "checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh"
 require_file "checks/verify-v0.18.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.18.1-release-fact-sync.sh"
 require_file "checks/verify-v0.18.1-release-full-matrix-publication-gate.sh"
+require_file "checks/verify-v0.18.1-operator-run-cli-commands.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -12230,5 +12231,39 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 relea
 require_contains "docs/validation/validation-plan.md" "GH-1201 Release v0.18.1 Full Matrix Publication Gate"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1201ReleaseFullMatrixPublicationGateRequiresLinuxAndDashboardEvidence"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0181OperatorRunCLICommand.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.18.1-operator-run-cli-commands.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/automation/automation-readiness.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md"; do
+  require_contains "$file" "GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS"
+  require_contains "$file" "TVM-RELEASE-V0181-OPERATOR-RUN-CLI-COMMANDS"
+  require_contains "$file" "V0181-003-OPERATOR-RUN-HELP-VISIBLE"
+  require_contains "$file" "V0181-003-RESUME-CLI-ROUTE"
+  require_contains "$file" "V0181-003-REPLAY-CLI-ROUTE"
+  require_contains "$file" "V0181-003-EXPLAIN-FAILURE-CLI-ROUTE"
+  require_contains "$file" "V0181-003-FAILED-EVIDENCE-READ-ONLY-REPORT-PATH"
+  require_contains "$file" "V0181-003-LOCAL-ONLY-REDACTED-OUTPUT"
+  require_contains "$file" "V0181-003-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0181OperatorRunCLICommand.commandLineOutput"
+require_contains "Sources/MTPROCLI/main.swift" "operatorRunActions="
+require_contains "checks/verify-v0.18.1-operator-run-cli-commands.sh" "testGH1202OperatorRunCLICommandsAreHelpVisibleAndFailClosed"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.1-operator-run-cli-commands.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.1-operator-run-cli-commands.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 operator-run CLI commands anchor"
+require_contains "docs/release/release-publication-policy.md" "GH-1202 wires operator-run CLI commands"
+require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 operator-run CLI commands"
+require_contains "docs/validation/validation-plan.md" "GH-1202 Release v0.18.1 Operator-run CLI Commands"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-OPERATOR-RUN-CLI-COMMANDS"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1202OperatorRunCLICommandsAreHelpVisibleAndFailClosed"
 
 printf 'MTPRO automation readiness checks passed.\n'
