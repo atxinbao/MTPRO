@@ -48253,6 +48253,216 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1183ManualWorkflowFixtureNegativeCasesFailClosed() throws {
+        // 测试场景：GH-1183 将 v0.18 manual workflow fixture upload/download 负例扩展到
+        // corrupt bundle、missing field、wrong venue/product/environment 和 failed validation state。
+        // 验证目的：负例必须产生 failed checks 和 workflow failure，不能只打印 failed status 字符串
+        // 之后仍让 workflow 成功；该路径仍只读取本地 redacted artifact evidence。
+        // GH-1183-VERIFY-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES
+        // TVM-RELEASE-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES
+        // V0180-008-DEPENDENCIES-GH1177-GH1178-DONE
+        // V0180-008-CORRUPT-BUNDLE-FAILS-CLOSED
+        // V0180-008-MISSING-FIELDS-FAIL-CLOSED
+        // V0180-008-WRONG-VENUE-PRODUCT-ENVIRONMENT-FAILS-CLOSED
+        // V0180-008-FAILED-VALIDATION-STATE-REJECTS-WORKFLOW
+        // V0180-008-FAILED-CHECKS-CANNOT-PASS-WITH-FAILED-STATUS-STRING
+        // V0180-008-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        func makeBundle(
+            suffix: String,
+            runID: Identifier,
+            tamperFirstRecord: Bool
+        ) throws -> URL {
+            let tempRoot = FileManager.default.temporaryDirectory
+                .appendingPathComponent("mtpro-gh1183-\(suffix)-\(UUID().uuidString)", isDirectory: true)
+            let store = ReleaseV0160LocalExecutionArtifactStore(storageRootURL: tempRoot)
+            let start = Date(timeIntervalSince1970: 1_704_084_000)
+            var records: [ReleaseV0160LocalExecutionArtifactRecord] = []
+            for (index, kind) in ReleaseV0170OperatorBetaArtifactBundleValidationResult
+                .requiredActionSequence
+                .enumerated()
+            {
+                let payload = try ReleaseV0160LocalExecutionArtifactPayload.fixture(
+                    kind: kind,
+                    suffix: "\(suffix)-\(index + 1)",
+                    observedAt: start.addingTimeInterval(TimeInterval(index))
+                )
+                records.append(try store.append(
+                    runID: runID,
+                    payload: payload,
+                    appendedAt: start.addingTimeInterval(TimeInterval(index))
+                ))
+            }
+            if tamperFirstRecord {
+                try Data("{\"tampered\":\"redacted\"}".utf8).write(
+                    to: store.fileURL(forRelativePath: records[0].payloadPath),
+                    options: .atomic
+                )
+            }
+            return tempRoot
+        }
+
+        let runID = Identifier.constant("gh-1183-v0180-manual-workflow-fixture-negative-cases")
+        let expectedNamespace = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "operator-beta",
+            runID: runID
+        )
+        let suite = try ReleaseV0180ManualWorkflowFixtureNegativeCaseSuite.canonical(
+            expectedNamespace: expectedNamespace
+        )
+        XCTAssertTrue(suite.suiteHeld)
+        XCTAssertEqual(suite.issueID.rawValue, "GH-1183")
+        XCTAssertEqual(suite.blockedByIssueIDs.map(\.rawValue), ["GH-1177", "GH-1178"])
+        XCTAssertEqual(Set(suite.cases.map(\.kind)), Set(ReleaseV0180ManualWorkflowFixtureNegativeCaseSuite.requiredKinds))
+        XCTAssertTrue(suite.corruptBundleFixtureFailsClosed)
+        XCTAssertTrue(suite.missingFieldFixtureFailsClosed)
+        XCTAssertTrue(suite.wrongVenueFixtureFailsClosed)
+        XCTAssertTrue(suite.wrongProductFixtureFailsClosed)
+        XCTAssertTrue(suite.wrongEnvironmentFixtureFailsClosed)
+        XCTAssertTrue(suite.failedValidationStateRejectsWorkflow)
+        XCTAssertTrue(suite.failedChecksCannotPassWithFailedStatusString)
+        XCTAssertTrue(suite.manualWorkflowRejectsFailedBundles)
+        XCTAssertTrue(suite.noProductionNetworkFlow)
+        XCTAssertTrue(suite.noSecretUpload)
+        XCTAssertTrue(suite.noOrderArtifactGeneratedFromWorkflowAlone)
+        XCTAssertFalse(suite.productionTradingEnabledByDefault)
+        XCTAssertFalse(suite.productionSecretReadEnabled)
+        XCTAssertFalse(suite.productionEndpointConnectionEnabled)
+        XCTAssertFalse(suite.productionBrokerConnectionEnabled)
+        XCTAssertFalse(suite.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(suite.productionCutoverAuthorized)
+
+        let casesByKind = Dictionary(uniqueKeysWithValues: suite.cases.map { ($0.kind, $0) })
+        XCTAssertEqual(casesByKind[.wrongVenue]?.observedNamespace.venue, "okx")
+        XCTAssertEqual(casesByKind[.wrongProduct]?.observedNamespace.product, "usdmFutures")
+        XCTAssertEqual(casesByKind[.wrongEnvironment]?.observedNamespace.environment, "testnet-mismatch")
+        for evidence in suite.cases {
+            XCTAssertTrue(evidence.evidenceHeld)
+            XCTAssertEqual(evidence.workflowStatus, .failed)
+            XCTAssertEqual(evidence.uploadedArtifactStatus, .failed)
+            XCTAssertEqual(evidence.downloadedArtifactStatus, .failed)
+            XCTAssertFalse(evidence.failedChecks.isEmpty)
+            XCTAssertTrue(evidence.manualWorkflowRejectsFailedBundle)
+            XCTAssertTrue(evidence.failedChecksCannotPassWithFailedStatusString)
+            XCTAssertTrue(evidence.noProductionNetworkFlow)
+            XCTAssertTrue(evidence.noSecretUpload)
+            XCTAssertTrue(evidence.noOrderArtifactGeneratedFromWorkflowAlone)
+            XCTAssertFalse(evidence.productionCutoverAuthorized)
+        }
+
+        let validUploadedRoot = try makeBundle(
+            suffix: "valid-uploaded",
+            runID: runID,
+            tamperFirstRecord: false
+        )
+        let corruptDownloadedRoot = try makeBundle(
+            suffix: "corrupt-downloaded",
+            runID: runID,
+            tamperFirstRecord: true
+        )
+        defer {
+            try? FileManager.default.removeItem(at: validUploadedRoot)
+            try? FileManager.default.removeItem(at: corruptDownloadedRoot)
+        }
+
+        let failedReport = try ReleaseV0170ManualWorkflowArtifactValidationReport.validate(
+            uploadedStorageRootPath: validUploadedRoot.path,
+            downloadedStorageRootPath: corruptDownloadedRoot.path,
+            runID: runID.rawValue
+        )
+        XCTAssertTrue(failedReport.reportHeld)
+        XCTAssertEqual(failedReport.status, .failed)
+        XCTAssertEqual(failedReport.uploadedArtifact.validationResult.status, .passed)
+        XCTAssertEqual(failedReport.downloadedArtifact.validationResult.status, .failed)
+        XCTAssertTrue(failedReport.workflowFailClosedHeld)
+        XCTAssertTrue(failedReport.rendered().contains("status=failed"))
+        XCTAssertTrue(failedReport.rendered().contains("downloadedFailureReasons=checksumMismatch"))
+        XCTAssertTrue(failedReport.rendered().contains("failedStatusCannotSatisfyWorkflow=true"))
+
+        XCTAssertThrowsError(try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: [
+            ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
+            corruptDownloadedRoot.path,
+            runID.rawValue
+        ])) { error in
+            let failClosed = error as? ReleaseV0170CLIArtifactVerifyCommandFailedValidation
+            XCTAssertNotNil(failClosed)
+            XCTAssertTrue(failClosed?.failClosedHeld == true)
+            XCTAssertNotEqual(failClosed?.exitCode, 0)
+            XCTAssertTrue(failClosed?.renderedOutput.contains("status=failed") == true)
+            XCTAssertTrue(failClosed?.renderedOutput.contains("failureReasons=checksumMismatch") == true)
+        }
+
+        XCTAssertEqual(
+            ReleaseV0180ManualWorkflowFixtureNegativeCaseSuite.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1183ManualWorkflowFixtureNegativeCasesFailClosed",
+                "bash checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift",
+            "docs/contracts/release-v0.18.0-manual-workflow-fixture-negative-cases-contract.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in ReleaseV0180ManualWorkflowFixtureNegativeCaseSuite.requiredValidationAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift")
+        let verifier = try read("checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+
+        XCTAssertTrue(source.contains("manualWorkflowFixtureNegativeCases=ReleaseV0180ManualWorkflowFixtureNegativeCaseSuite"))
+        XCTAssertTrue(source.contains("corruptBundleFixtureFailsClosed=true"))
+        XCTAssertTrue(source.contains("missingFieldFixtureFailsClosed=true"))
+        XCTAssertTrue(source.contains("wrongVenueFixtureFailsClosed=true"))
+        XCTAssertTrue(source.contains("wrongProductFixtureFailsClosed=true"))
+        XCTAssertTrue(source.contains("wrongEnvironmentFixtureFailsClosed=true"))
+        XCTAssertTrue(source.contains("failedChecksCannotPassWithFailedStatusString=true"))
+        XCTAssertTrue(verifier.contains("testGH1183ManualWorkflowFixtureNegativeCasesFailClosed"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.18.0-manual-workflow-fixture-negative-cases.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.18.0 manual workflow fixture negative cases anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1183 Release v0.18.0 Manual Workflow Fixture Negative Cases"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0180-MANUAL-WORKFLOW-FIXTURE-NEGATIVE-CASES"))
+        XCTAssertTrue(releasePolicy.contains("GH-1183 adds manual workflow fixture upload / download negative cases"))
+
+        for artifact in [source, verifier, readiness, validationPlan, tradingMatrix, releasePolicy] {
+            XCTAssertFalse(artifact.contains("API Key:"))
+            XCTAssertFalse(artifact.contains("Secret Key:"))
+            XCTAssertFalse(artifact.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(artifact.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(artifact.contains("productionOrderSubmitCancelReplaceEnabled=true"))
+        }
+    }
+
     func testGH1169ReleaseV0171V0170ReleaseFactSyncGuard() throws {
         // 测试场景：GH-1169 将 v0.17.0 stable GitHub Release 的已发布事实同步到
         // v0.17.1 patch guard、root docs、release policy、Stage Audit 和 release notes。
