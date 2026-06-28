@@ -6373,3 +6373,22 @@ swift test
 - dependency evidence: v0.18.1 / V181-006 closeout must be complete before GH-1206 execution.
 - fail-closed surface: Binance Swap、OKX USDⓈ-M Futures and productionLive targets must be rejected.
 - forbidden scope: no OKX runtime, no endpoint connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
+
+## GH-1207 Release v0.19.0 Venue/Product Capability Matrix
+
+- GH-1207-VERIFY-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX
+- TVM-RELEASE-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX
+- V0190-002-CAPABILITY-MATRIX
+- V0190-002-SUBMIT-CANCEL-STATUS-POSITION-RECONCILE
+- V0190-002-REDUCE-ONLY-LEVERAGE-MARGIN-TYPE
+- V0190-002-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED
+- V0190-002-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+- V0190-002-FUTURE-CAPABILITIES-NOT-ACTIVE
+- V0190-002-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-venue-product-capability-matrix.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1207ReleaseV0190VenueProductCapabilityMatrixFailsClosed`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductCapabilityMatrix.swift`
+- validation surface: `ReleaseV0190VenueProductCapabilityMatrix` must cover Binance Spot、Binance USDⓈ-M Futures、OKX Spot and OKX Swap, and every profile must explicitly classify submit、cancel、status、position、reconcile、reduceOnly、leverage and marginType.
+- state surface: capability state must be one of active、placeholder、forbidden or futureGated; futureGated / placeholder entries cannot satisfy `requireActive`.
+- fail-closed surface: unsupported pair, forbidden capability and productionLive capability checks must fail closed with readable reason.
+- forbidden scope: no OKX runtime, no endpoint connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.

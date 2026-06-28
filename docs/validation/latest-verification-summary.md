@@ -228,6 +228,28 @@ GH-1134 不读取 production secret，不连接 production endpoint / broker end
 
 v0.19.0 venue/product registry 以 #1205 / V181-006 closeout 为依赖。`ReleaseV0190VenueRegistry` 包含 Binance 和 OKX；`ReleaseV0190ProductRegistry` 包含 spot、usdmFutures 和 swap；valid target pairs 为 Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap。每个 target 携带 TradingEnvironment 和 AccountProfileID，productionLive 默认拒绝。OKX 仍是 registry-only；不实现 OKX runtime，不连接 endpoint / broker，不读取 production secret，不发送 order，不授权 production cutover。
 
+## Release v0.19.0 Venue/Product Capability Matrix Snapshot
+
+`GH-1207-VERIFY-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX`
+
+`TVM-RELEASE-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX`
+
+`V0190-002-CAPABILITY-MATRIX`
+
+`V0190-002-SUBMIT-CANCEL-STATUS-POSITION-RECONCILE`
+
+`V0190-002-REDUCE-ONLY-LEVERAGE-MARGIN-TYPE`
+
+`V0190-002-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED`
+
+`V0190-002-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT`
+
+`V0190-002-FUTURE-CAPABILITIES-NOT-ACTIVE`
+
+`V0190-002-NO-PRODUCTION-CUTOVER`
+
+v0.19.0 venue/product capability matrix 以 #1206 / V190-001 registry closeout 为依赖。`ReleaseV0190VenueProductCapabilityMatrix` 覆盖 Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap；capability keys 为 submit、cancel、status、position、reconcile、reduceOnly、leverage 和 marginType；capability states 为 active、placeholder、forbidden 和 futureGated。futureGated / placeholder capability 不等于 active，必须通过 `requireActive` fail-closed 验证。productionLive 默认拒绝；不实现 OKX runtime，不连接 endpoint / broker，不读取 production secret，不发送 order，不授权 production cutover。
+
 ## Release v0.16.1 Central Artifact Redaction Policy Snapshot
 
 `GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY`

@@ -162,6 +162,7 @@ require_file "checks/verify-v0.18.1-artifact-namespace-paths.sh"
 require_file "checks/verify-v0.18.1-typed-namespace-model.sh"
 require_file "checks/verify-v0.18.1.sh"
 require_file "checks/verify-v0.19.0-venue-product-registry.sh"
+require_file "checks/verify-v0.19.0-venue-product-capability-matrix.sh"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
 require_file "architecture.md"
@@ -12426,5 +12427,39 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 venue
 require_contains "docs/validation/validation-plan.md" "GH-1206 Release v0.19.0 Venue/Product Registry"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1206ReleaseV0190VenueProductRegistriesDefineCanonicalTargets"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductCapabilityMatrix.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.0-venue-product-capability-matrix.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md"; do
+  require_contains "$file" "GH-1207-VERIFY-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX"
+  require_contains "$file" "TVM-RELEASE-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX"
+  require_contains "$file" "V0190-002-CAPABILITY-MATRIX"
+  require_contains "$file" "V0190-002-SUBMIT-CANCEL-STATUS-POSITION-RECONCILE"
+  require_contains "$file" "V0190-002-REDUCE-ONLY-LEVERAGE-MARGIN-TYPE"
+  require_contains "$file" "V0190-002-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED"
+  require_contains "$file" "V0190-002-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT"
+  require_contains "$file" "V0190-002-FUTURE-CAPABILITIES-NOT-ACTIVE"
+  require_contains "$file" "V0190-002-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductCapabilityMatrix.swift" "public enum ReleaseV0190VenueProductCapability"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductCapabilityMatrix.swift" "public enum ReleaseV0190VenueProductCapabilityState"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductCapabilityMatrix.swift" "public enum ReleaseV0190VenueProductCapabilityMatrix"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductCapabilityMatrix.swift" "productionTradingEnabledByDefault = false"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductCapabilityMatrix.swift" "okxRuntimeImplemented = false"
+require_contains "checks/verify-v0.19.0-venue-product-capability-matrix.sh" "testGH1207ReleaseV0190VenueProductCapabilityMatrixFailsClosed"
+require_contains "checks/run.sh" "bash checks/verify-v0.19.0-venue-product-capability-matrix.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-venue-product-capability-matrix.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 venue/product capability matrix anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 venue/product capability matrix"
+require_contains "docs/validation/validation-plan.md" "GH-1207 Release v0.19.0 Venue/Product Capability Matrix"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1207ReleaseV0190VenueProductCapabilityMatrixFailsClosed"
 
 printf 'MTPRO automation readiness checks passed.\n'
