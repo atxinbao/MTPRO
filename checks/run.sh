@@ -502,6 +502,17 @@ bash checks/verify-v0.18.0-beta-safety-profile-drift-detector.sh
 # V0180-010-NO-PRODUCTION-CUTOVER
 # V0180-010-NO-TAG-OR-RELEASE-PUBLICATION
 bash checks/verify-v0.18.0-stage-audit-release-docs.sh
+# GH-1200-VERIFY-V0181-V0180-RELEASE-FACT-SYNC
+# V0181-001-V0180-RELEASE-FACT-SYNC-GUARD
+# TVM-RELEASE-V0181-V0180-RELEASE-FACT-SYNC
+# V0181-001-V0180-TAG-FIXED
+# V0181-001-PATCH-QUEUE-NOT-PUBLICATION
+# V0181-001-V0180-STALE-WORDING-GUARD
+# V0181-001-NO-PRODUCTION-CUTOVER
+# https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0
+# cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9
+# 2026-06-28T04:55:36Z
+bash checks/verify-v0.18.1-release-fact-sync.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh
