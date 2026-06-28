@@ -206,6 +206,28 @@ bash checks/run.sh
 
 GH-1134 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 testnet 或 production order，不授权 production cutover。
 
+## Release v0.19.0 Venue/Product Registry Snapshot
+
+`GH-1206-VERIFY-V0190-VENUE-PRODUCT-REGISTRY`
+
+`TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY`
+
+`V0190-001-VENUE-REGISTRY`
+
+`V0190-001-PRODUCT-REGISTRY`
+
+`V0190-001-TRADING-ENVIRONMENT-ACCOUNT-PROFILE-USAGE`
+
+`V0190-001-VALID-TARGET-COMBINATIONS`
+
+`V0190-001-V0181-CLOSEOUT-DEPENDENCY`
+
+`V0190-001-PRODUCTION-DISABLED-BY-DEFAULT`
+
+`V0190-001-NO-PRODUCTION-CUTOVER`
+
+v0.19.0 venue/product registry 以 #1205 / V181-006 closeout 为依赖。`ReleaseV0190VenueRegistry` 包含 Binance 和 OKX；`ReleaseV0190ProductRegistry` 包含 spot、usdmFutures 和 swap；valid target pairs 为 Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap。每个 target 携带 TradingEnvironment 和 AccountProfileID，productionLive 默认拒绝。OKX 仍是 registry-only；不实现 OKX runtime，不连接 endpoint / broker，不读取 production secret，不发送 order，不授权 production cutover。
+
 ## Release v0.16.1 Central Artifact Redaction Policy Snapshot
 
 `GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY`

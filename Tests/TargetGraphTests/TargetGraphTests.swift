@@ -29751,6 +29751,146 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(releasePolicy.contains("productionCutoverAuthorized=true"))
     }
 
+    func testGH1206ReleaseV0190VenueProductRegistriesDefineCanonicalTargets() throws {
+        // 测试场景：GH-1206 启动 v0.19.0 venue/product registry foundation，
+        // 在 #1204 typed namespace model 上定义 canonical venue registry、product registry
+        // 和可复用 target，而不实现 OKX runtime、endpoint connection 或 production cutover。
+        // GH-1206-VERIFY-V0190-VENUE-PRODUCT-REGISTRY
+        // TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY
+        // V0190-001-VENUE-REGISTRY
+        // V0190-001-PRODUCT-REGISTRY
+        // V0190-001-TRADING-ENVIRONMENT-ACCOUNT-PROFILE-USAGE
+        // V0190-001-VALID-TARGET-COMBINATIONS
+        // V0190-001-V0181-CLOSEOUT-DEPENDENCY
+        // V0190-001-PRODUCTION-DISABLED-BY-DEFAULT
+        // V0190-001-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1206-VERIFY-V0190-VENUE-PRODUCT-REGISTRY",
+            "TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY",
+            "V0190-001-VENUE-REGISTRY",
+            "V0190-001-PRODUCT-REGISTRY",
+            "V0190-001-TRADING-ENVIRONMENT-ACCOUNT-PROFILE-USAGE",
+            "V0190-001-VALID-TARGET-COMBINATIONS",
+            "V0190-001-V0181-CLOSEOUT-DEPENDENCY",
+            "V0190-001-PRODUCTION-DISABLED-BY-DEFAULT",
+            "V0190-001-NO-PRODUCTION-CUTOVER"
+        ]
+        let registrySource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRegistry.swift")
+        let verifier = try read("checks/verify-v0.19.0-venue-product-registry.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in anchors {
+            for source in [
+                registrySource,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix
+            ] {
+                XCTAssertTrue(source.contains(anchor), "\(anchor) must stay anchored in v0.19.0 registry evidence")
+            }
+        }
+
+        XCTAssertEqual(ReleaseV0190VenueRegistry.all.map(\.venueID), [.binance, .okx])
+        XCTAssertEqual(ReleaseV0190VenueRegistry.binance.runtimeStatus, .existingEvidenceOnly)
+        XCTAssertEqual(ReleaseV0190VenueRegistry.okx.runtimeStatus, .registryOnly)
+        XCTAssertFalse(ReleaseV0190VenueProductTargetRegistry.okxRuntimeImplemented)
+
+        XCTAssertEqual(ReleaseV0190ProductRegistry.all.map(\.productKind), [.spot, .usdmFutures, .swap])
+        XCTAssertEqual(try ReleaseV0190VenueRegistry.entry(for: .okx).displayName, "OKX")
+        XCTAssertEqual(try ReleaseV0190ProductRegistry.entry(for: .usdmFutures).displayName, "USDⓈ-M Futures")
+
+        let allowedPairs: [(ReleaseV0181VenueID, ReleaseV0181ProductKind)] = [
+            (.binance, .spot),
+            (.binance, .usdmFutures),
+            (.okx, .spot),
+            (.okx, .swap)
+        ]
+        for (venueID, productKind) in allowedPairs {
+            XCTAssertTrue(
+                ReleaseV0190VenueProductTargetRegistry.supportsPair(
+                    venueID: venueID,
+                    productKind: productKind
+                )
+            )
+            XCTAssertTrue(
+                ReleaseV0190VenueProductTargetRegistry.supportsTarget(
+                    venueID: venueID,
+                    productKind: productKind,
+                    tradingEnvironment: .testnet
+                )
+            )
+        }
+
+        XCTAssertFalse(ReleaseV0190VenueProductTargetRegistry.supportsPair(venueID: .binance, productKind: .swap))
+        XCTAssertFalse(ReleaseV0190VenueProductTargetRegistry.supportsPair(venueID: .okx, productKind: .usdmFutures))
+        XCTAssertFalse(
+            ReleaseV0190VenueProductTargetRegistry.supportsTarget(
+                venueID: .binance,
+                productKind: .spot,
+                tradingEnvironment: .productionLive
+            )
+        )
+        XCTAssertFalse(ReleaseV0190VenueProductTargetRegistry.productionTradingEnabledByDefault)
+
+        let accountProfileID = try ReleaseV0181AccountProfileID("operator-beta-redacted")
+        let targets = try ReleaseV0190VenueProductTargetRegistry.validTargets(
+            tradingEnvironment: .testnet,
+            accountProfileID: accountProfileID
+        )
+        XCTAssertEqual(targets.map(\.namespaceKey), [
+            "binance/spot/testnet/operator-beta-redacted",
+            "binance/usdmFutures/testnet/operator-beta-redacted",
+            "okx/spot/testnet/operator-beta-redacted",
+            "okx/swap/testnet/operator-beta-redacted"
+        ])
+
+        XCTAssertThrowsError(try ReleaseV0190VenueProductTarget(
+            venueID: .binance,
+            productKind: .swap,
+            tradingEnvironment: .testnet,
+            accountProfileID: accountProfileID
+        ))
+        XCTAssertThrowsError(try ReleaseV0190VenueProductTarget(
+            venueID: .okx,
+            productKind: .usdmFutures,
+            tradingEnvironment: .testnet,
+            accountProfileID: accountProfileID
+        ))
+        XCTAssertThrowsError(try ReleaseV0190VenueProductTarget(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .productionLive,
+            accountProfileID: accountProfileID
+        ))
+
+        XCTAssertTrue(registrySource.contains("public enum ReleaseV0190VenueRegistry"))
+        XCTAssertTrue(registrySource.contains("public enum ReleaseV0190ProductRegistry"))
+        XCTAssertTrue(registrySource.contains("public struct ReleaseV0190VenueProductTarget"))
+        XCTAssertTrue(registrySource.contains("productionTradingEnabledByDefault = false"))
+        XCTAssertTrue(registrySource.contains("okxRuntimeImplemented = false"))
+        XCTAssertTrue(verifier.contains("testGH1206ReleaseV0190VenueProductRegistriesDefineCanonicalTargets"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.0-venue-product-registry.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.19.0-venue-product-registry.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.19.0 venue/product registry anchor"))
+        XCTAssertTrue(latest.contains("v0.19.0 venue/product registry"))
+        XCTAssertTrue(validationPlan.contains("GH-1206 Release v0.19.0 Venue/Product Registry"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY"))
+    }
+
     func testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout() throws {
         // 测试场景：GH-1205 只收口 v0.18.1 patch 的 aggregate audit、release notes、
         // publication guidance 和验证锚点，不在 construction closeout PR 内创建 tag / Release。

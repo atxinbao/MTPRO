@@ -6353,3 +6353,23 @@ swift test
 - validation surface: root docs, release notes, Stage Audit, latest verification summary, validation plan, trading validation matrix, release publication policy, automation readiness and stale wording guard must sync the published v0.18.0 facts.
 - boundary evidence: GH-1200 keeps the existing `v0.18.0` tag fixed and preserves the existing GitHub Release metadata.
 - patch boundary evidence: GH-1200 does not create v0.18.1 tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace and does not authorize production cutover.
+
+## GH-1206 Release v0.19.0 Venue/Product Registry
+
+- GH-1206-VERIFY-V0190-VENUE-PRODUCT-REGISTRY
+- TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY
+- V0190-001-VENUE-REGISTRY
+- V0190-001-PRODUCT-REGISTRY
+- V0190-001-TRADING-ENVIRONMENT-ACCOUNT-PROFILE-USAGE
+- V0190-001-VALID-TARGET-COMBINATIONS
+- V0190-001-V0181-CLOSEOUT-DEPENDENCY
+- V0190-001-PRODUCTION-DISABLED-BY-DEFAULT
+- V0190-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-venue-product-registry.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1206ReleaseV0190VenueProductRegistriesDefineCanonicalTargets`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRegistry.swift`
+- validation surface: `ReleaseV0190VenueRegistry` must expose Binance and OKX, `ReleaseV0190ProductRegistry` must expose spot / usdmFutures / swap, and `ReleaseV0190VenueProductTarget` must carry TradingEnvironment and AccountProfileID for later capability / adapter work.
+- valid combinations: Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap.
+- dependency evidence: v0.18.1 / V181-006 closeout must be complete before GH-1206 execution.
+- fail-closed surface: Binance Swap、OKX USDⓈ-M Futures and productionLive targets must be rejected.
+- forbidden scope: no OKX runtime, no endpoint connection, no production secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
