@@ -93,6 +93,14 @@ bash checks/verify-v0.18.1-release-full-matrix-publication-gate.sh
 # V0181-003-LOCAL-ONLY-REDACTED-OUTPUT
 # V0181-003-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.18.1-operator-run-cli-commands.sh
+# GH-1203-VERIFY-V0181-ARTIFACT-NAMESPACE-PATHS
+# TVM-RELEASE-V0181-ARTIFACT-NAMESPACE-PATHS
+# V0181-004-RUNS-NAMESPACE-PATH
+# V0181-004-V0180-ACTIVE-PATHS-MIGRATED
+# V0181-004-CROSS-VENUE-PRODUCT-REUSE-FAILS-CLOSED
+# V0181-004-OLD-VERSION-FIXTURES-PRESERVED
+# V0181-004-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.18.1-artifact-namespace-paths.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh

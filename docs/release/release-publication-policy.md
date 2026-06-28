@@ -1372,3 +1372,11 @@ If Human later requests `v0.18.1` publication, it must be handled by a separate 
 GH-1202 wires operator-run CLI commands into the public MTPRO CLI surface for local read-only artifact model output: `operator-run help`, `operator-run resume`, `operator-run replay`, `operator-run replay-cancel-status-reconciliation` and `operator-run explain-failure`.
 
 Failed evidence must be represented by an explicitly classified read-only report path or a recommended nonzero exit code. GH-1202 does not create a tag, does not create a GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint and does not submit / cancel / replace any production order.
+
+## v0.18.1 Artifact Namespace Paths
+
+`GH-1203-VERIFY-V0181-ARTIFACT-NAMESPACE-PATHS`、`TVM-RELEASE-V0181-ARTIFACT-NAMESPACE-PATHS`、`V0181-004-RUNS-NAMESPACE-PATH`、`V0181-004-V0180-ACTIVE-PATHS-MIGRATED`、`V0181-004-CROSS-VENUE-PRODUCT-REUSE-FAILS-CLOSED`、`V0181-004-OLD-VERSION-FIXTURES-PRESERVED` 和 `V0181-004-NO-PRODUCTION-CUTOVER` 固定 v0.18.1 artifact namespace path guard.
+
+GH-1203 fixes active v0.18 artifact namespace paths so status retry persistence, Dashboard drilldown and operator-run report references use `.local/mtpro/runs/<venue>/<product>/<environment>/<accountProfile>/<runID>/`. Historical v0.16 fixtures stay scoped to old release tests. Cross venue/product namespace reuse must fail closed before replay or Dashboard display.
+
+GH-1203 does not create a tag, does not create a GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint and does not submit / cancel / replace any production order.

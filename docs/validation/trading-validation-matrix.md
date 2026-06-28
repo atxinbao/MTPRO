@@ -4372,3 +4372,17 @@
 - command surface: `mtpro operator-run help` exposes resume, replay / replay-cancel-status-reconciliation and explain-failure.
 - evidence path: failed local evidence output includes a classified read-only report path under `.local/mtpro/runs/<venue>/<product>/<environment>/<accountProfile>/<runID>/operator-run/`.
 - forbidden scope: no tag creation in GH-1202, no release publication in GH-1202, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
+
+## TVM-RELEASE-V0181-ARTIFACT-NAMESPACE-PATHS
+
+- GH-1203-VERIFY-V0181-ARTIFACT-NAMESPACE-PATHS
+- V0181-004-RUNS-NAMESPACE-PATH
+- V0181-004-V0180-ACTIVE-PATHS-MIGRATED
+- V0181-004-CROSS-VENUE-PRODUCT-REUSE-FAILS-CLOSED
+- V0181-004-OLD-VERSION-FIXTURES-PRESERVED
+- V0181-004-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.1-artifact-namespace-paths.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1203ArtifactNamespacePathsUseVenueProductEnvironmentRoot`
+- artifact namespace: active v0.18 status retry persistence, Dashboard drilldown and operator-run references use `.local/mtpro/runs/<venue>/<product>/<environment>/<accountProfile>/<runID>/`.
+- fail-closed evidence: cross venue/product namespace reuse fails closed before replay or Dashboard display.
+- forbidden scope: no tag creation in GH-1203, no release publication in GH-1203, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.

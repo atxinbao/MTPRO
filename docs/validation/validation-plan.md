@@ -36,6 +36,20 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0181OperatorRunCLICommand.swift`、`Sources/MTPROCLI/main.swift`、`checks/verify-v0.18.1-operator-run-cli-commands.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1202 wires `mtpro operator-run help|resume|replay|replay-cancel-status-reconciliation|explain-failure` to existing v0.18 local artifact model read-only output. Failed evidence produces an explicitly classified read-only report path and recommended nonzero exit code. GH-1202 不创建 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。
 
+## GH-1203 Release v0.18.1 Artifact Namespace Paths
+
+- GH-1203-VERIFY-V0181-ARTIFACT-NAMESPACE-PATHS
+- TVM-RELEASE-V0181-ARTIFACT-NAMESPACE-PATHS
+- V0181-004-RUNS-NAMESPACE-PATH
+- V0181-004-V0180-ACTIVE-PATHS-MIGRATED
+- V0181-004-CROSS-VENUE-PRODUCT-REUSE-FAILS-CLOSED
+- V0181-004-OLD-VERSION-FIXTURES-PRESERVED
+- V0181-004-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.1-artifact-namespace-paths.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1203ArtifactNamespacePathsUseVenueProductEnvironmentRoot`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift`、`Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0181OperatorRunCLICommand.swift`、`checks/verify-v0.18.1-artifact-namespace-paths.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1203 将 active v0.18 lifecycle recovery artifact references 收敛到 `.local/mtpro/runs/<venue>/<product>/<environment>/<accountProfile>/<runID>/`，并保留 v0.16 historical fixtures 仅用于旧 release tests。cross venue/product reuse 必须 fail closed。GH-1203 不创建 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。
+
 ## GH-1148 Release v0.17.0 Stage Audit / Release Docs Closeout
 
 - GH-1148-VERIFY-V0170-STAGE-AUDIT-RELEASE-DOCS

@@ -27,6 +27,13 @@ import Foundation
 // V0180-003-OPERATOR-VISIBLE-FAIL-CLOSED-EVIDENCE
 // V0180-003-LOCAL-ARTIFACT-STORE-REPLAY
 // V0180-003-NO-PRODUCTION-CUTOVER
+// GH-1203-VERIFY-V0181-ARTIFACT-NAMESPACE-PATHS
+// TVM-RELEASE-V0181-ARTIFACT-NAMESPACE-PATHS
+// V0181-004-RUNS-NAMESPACE-PATH
+// V0181-004-V0180-ACTIVE-PATHS-MIGRATED
+// V0181-004-CROSS-VENUE-PRODUCT-REUSE-FAILS-CLOSED
+// V0181-004-OLD-VERSION-FIXTURES-PRESERVED
+// V0181-004-NO-PRODUCTION-CUTOVER
 
 /// ReleaseV0180StatusQueryRetryArtifactNamespace 是 GH-1178 在 ExecutionClient 内使用的
 /// status-query artifact namespace。
@@ -407,7 +414,7 @@ public extension ReleaseV0160LocalExecutionArtifactStore {
         snapshot: ReleaseV0180StatusQueryRetryArtifactSnapshot
     ) -> [String] {
         [
-            ".local/mtpro/v0.16.0/operator-runs/\(snapshot.namespace.runID.rawValue)/evidence/status-query-retry-result-redacted.json",
+            ".local/mtpro/runs/\(snapshot.namespace.venue)/\(snapshot.namespace.product)/\(snapshot.namespace.environment)/\(snapshot.namespace.accountProfile)/\(snapshot.namespace.runID.rawValue)/artifacts/status-query-retry-result-redacted.json",
             "namespace:\(snapshot.namespace.namespaceKey)",
             "resultID:\(snapshot.resultID.rawValue)",
             "redaction:\(snapshot.redactionStatus)",
