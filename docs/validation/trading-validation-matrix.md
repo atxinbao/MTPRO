@@ -4236,3 +4236,22 @@
 - observed / expected surface: result must expose expected lifecycle state, observed lifecycle state, reconciliation report status and recovery case count.
 - fail-closed surface: missing reconciliation evidence, mismatch, recovery cases or cross-product reuse all return failed result with read-only operator next action.
 - forbidden scope: no automatic network retry, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
+
+## TVM-RELEASE-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI
+
+- GH-1181-VERIFY-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI
+- V0180-006-DEPENDENCIES-GH1179-GH1180-DONE
+- V0180-006-ARTIFACT-MANIFEST-FAILURE-CLASSIFIED
+- V0180-006-STATUS-QUERY-FAILURE-CLASSIFIED
+- V0180-006-RESUME-FAILURE-CLASSIFIED
+- V0180-006-RECONCILIATION-REPLAY-FAILURE-CLASSIFIED
+- V0180-006-NEXT-ACTION-CLI
+- V0180-006-VENUE-PRODUCT-ENVIRONMENT-EXPLANATION
+- V0180-006-READ-ONLY-OPERATOR-ACTION
+- V0180-006-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1181OperatorFailureClassificationNextActionCLIExplainsLocalEvidenceFailures`
+- validation surface: `ReleaseV0180OperatorFailureClassificationNextActionCLI` must classify artifact manifest, status-query, resume and reconciliation replay failures from local evidence only.
+- next-action surface: failure guidance is exposed as `mtpro operator-run explain-failure` and may only be retry, resume, manualReview or stop.
+- namespace surface: every failure explanation must include venue, product, environment, accountProfile and runID.
+- forbidden scope: no automatic remediation, no broker mutation, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.

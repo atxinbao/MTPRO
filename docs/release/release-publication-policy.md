@@ -1191,3 +1191,31 @@ GH-1179 is local evidence only. It does not automatically retry network calls, d
 GH-1180 adds the cancel/status reconciliation replay command on top of local artifact evidence. The command must consume GH-1178 status-query retry persistence, GH-1179 resume result, GH-1107 observed-status reconciliation report and GH-1143 recovery report before producing `mtpro operator-run replay-cancel-status-reconciliation`.
 
 GH-1180 is local evidence only. It does not automatically retry network calls, does not mutate broker state, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。
+
+## GH-1181 Release v0.18.0 Operator Failure Classification Next Action CLI Policy
+
+`GH-1181-VERIFY-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI`
+
+`TVM-RELEASE-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI`
+
+`V0180-006-DEPENDENCIES-GH1179-GH1180-DONE`
+
+`V0180-006-ARTIFACT-MANIFEST-FAILURE-CLASSIFIED`
+
+`V0180-006-STATUS-QUERY-FAILURE-CLASSIFIED`
+
+`V0180-006-RESUME-FAILURE-CLASSIFIED`
+
+`V0180-006-RECONCILIATION-REPLAY-FAILURE-CLASSIFIED`
+
+`V0180-006-NEXT-ACTION-CLI`
+
+`V0180-006-VENUE-PRODUCT-ENVIRONMENT-EXPLANATION`
+
+`V0180-006-READ-ONLY-OPERATOR-ACTION`
+
+`V0180-006-NO-PRODUCTION-CUTOVER`
+
+GH-1181 adds operator-visible failure classification and next-action CLI on top of local artifact evidence. The command must classify artifact manifest, status-query, resume and reconciliation replay failure surfaces before producing `mtpro operator-run explain-failure`.
+
+GH-1181 is local evidence only. It does not automatically remediate failures, does not mutate broker state, does not implement OKX runtime, does not activate a new venue/product runtime, does not create or publish a tag / GitHub Release, does not authorize production cutover, does not read production secret, does not connect production endpoint / broker endpoint, and does not submit production order. production cutover not authorized。

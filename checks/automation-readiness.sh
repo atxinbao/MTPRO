@@ -11954,5 +11954,40 @@ require_contains "docs/release/release-publication-policy.md" "GH-1180 adds the 
 require_contains "checks/run.sh" "bash checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1180CancelStatusReconciliationReplayCommandUsesLocalArtifacts"
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0180OperatorFailureClassificationNextActionCLI.swift" \
+  "docs/contracts/release-v0.18.0-operator-failure-classification-next-action-cli-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1181-VERIFY-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI"
+  require_contains "$file" "TVM-RELEASE-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI"
+  require_contains "$file" "V0180-006-DEPENDENCIES-GH1179-GH1180-DONE"
+  require_contains "$file" "V0180-006-ARTIFACT-MANIFEST-FAILURE-CLASSIFIED"
+  require_contains "$file" "V0180-006-STATUS-QUERY-FAILURE-CLASSIFIED"
+  require_contains "$file" "V0180-006-RESUME-FAILURE-CLASSIFIED"
+  require_contains "$file" "V0180-006-RECONCILIATION-REPLAY-FAILURE-CLASSIFIED"
+  require_contains "$file" "V0180-006-NEXT-ACTION-CLI"
+  require_contains "$file" "V0180-006-VENUE-PRODUCT-ENVIRONMENT-EXPLANATION"
+  require_contains "$file" "V0180-006-READ-ONLY-OPERATOR-ACTION"
+  require_contains "$file" "V0180-006-NO-PRODUCTION-CUTOVER"
+done
+require_contains "docs/contracts/release-v0.18.0-operator-failure-classification-next-action-cli-contract.md" "#1179 closed / done"
+require_contains "docs/contracts/release-v0.18.0-operator-failure-classification-next-action-cli-contract.md" "#1180 closed / done"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180OperatorFailureClassificationNextActionCLI.swift" "operatorFailureClassificationNextActionCLI=ReleaseV0180OperatorFailureClassificationNextActionCLI"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180OperatorFailureClassificationNextActionCLI.swift" "ReleaseV0180OperatorFailureClassificationNextActionInput"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180OperatorFailureClassificationNextActionCLI.swift" "ReleaseV0180OperatorFailureClassificationNextActionResult"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.0 operator failure classification next-action CLI anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1181 Release v0.18.0 Operator Failure Classification Next Action CLI"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0180-OPERATOR-FAILURE-CLASSIFICATION-NEXT-ACTION-CLI"
+require_contains "docs/release/release-publication-policy.md" "GH-1181 adds operator-visible failure classification and next-action CLI"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1181OperatorFailureClassificationNextActionCLIExplainsLocalEvidenceFailures"
 
 printf 'MTPRO automation readiness checks passed.\n'
