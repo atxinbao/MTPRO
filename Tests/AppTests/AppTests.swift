@@ -4090,6 +4090,148 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH1182DashboardArtifactRecoveryDrilldownShowsRealBundleEvidenceWithoutCommands() throws {
+        // 测试场景：GH-1182 Dashboard 只能展示 v0.18.0 本地 artifact bundle 恢复 drilldown。
+        // lifecycle / status query / resume / reconciliation 行必须来自脱敏本地 bundle read model；
+        // Dashboard 仍然没有 command surface、交易按钮、order form 或 production cutover。
+        // GH-1182-VERIFY-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN
+        // TVM-RELEASE-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN
+        // V0180-007-DEPENDENCIES-GH1179-GH1180-GH1181-DONE
+        // V0180-007-REAL-LOCAL-BUNDLE-EVIDENCE
+        // V0180-007-LIFECYCLE-STATUS-RESUME-RECONCILIATION-DRILLDOWN
+        // V0180-007-VENUE-PRODUCT-ENVIRONMENT-DRILLDOWN
+        // V0180-007-FAILURE-CLASS-NEXT-ACTION-GUIDANCE
+        // V0180-007-DASHBOARD-READ-ONLY-NO-COMMANDS
+        // V0180-007-NO-PRODUCTION-CUTOVER
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV0180DashboardArtifactRecoveryDrilldownSurface
+
+        XCTAssertEqual(surface.issueID, "GH-1182")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-1179", "GH-1180", "GH-1181"])
+        XCTAssertEqual(surface.previousIssueID, "GH-1181")
+        XCTAssertEqual(surface.releaseVersion, "v0.18.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertTrue(surface.localBundleEvidenceVisible)
+        XCTAssertTrue(surface.namespaceVisible)
+        XCTAssertTrue(surface.failureClassVisible)
+        XCTAssertTrue(surface.nextActionGuidanceVisible)
+        XCTAssertTrue(surface.readOnly)
+        XCTAssertFalse(surface.dashboardDependsOnExecutionClientTarget)
+        XCTAssertFalse(surface.dashboardCommandSurfaceEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        XCTAssertEqual(surface.visibleRowCount, 4)
+        XCTAssertEqual(surface.rows.map(\.stage), ReleaseV0180DashboardArtifactRecoveryDrilldownStage.allCases)
+        XCTAssertEqual(surface.rows.map(\.sequence), [1, 2, 3, 4])
+        XCTAssertTrue(surface.rows.allSatisfy(\.rowHeld))
+        XCTAssertTrue(surface.input.inputHeld)
+        XCTAssertEqual(
+            surface.input.namespaceKey,
+            "binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run"
+        )
+        XCTAssertEqual(surface.input.topLevelNextAction, .stop)
+        XCTAssertTrue(surface.input.operatorNextActionCLI.contains("mtpro operator-run explain-failure"))
+        XCTAssertTrue(surface.failureClassLabels.contains("statusQueryRetryLimitReached"))
+        XCTAssertTrue(surface.failureClassLabels.contains("reconciliationReplayMismatch"))
+        XCTAssertTrue(surface.nextActionLabels.contains("stop"))
+        XCTAssertTrue(surface.nextActionLabels.contains("manualReview"))
+        XCTAssertTrue(surface.details.contains("Dashboard command surface: none"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(surface.details.contains("Production endpoint: none"))
+
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0180DrilldownRows=4"))
+        XCTAssertTrue(
+            snapshot.smokeSummary.contains(
+                "releaseV0180DrilldownNamespace=binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run"
+            )
+        )
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0180DrilldownFailureClasses="))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0180DrilldownNextActions="))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0180DrilldownBoundary=confirmed"))
+
+        let encodedSurface = try JSONEncoder().encode(surface)
+        let decodedSurface = try JSONDecoder().decode(
+            ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel.self,
+            from: encodedSurface
+        )
+        XCTAssertEqual(decodedSurface, surface)
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let artifactJSON = try encoder.encode(ReleaseV0180DashboardArtifactRecoveryDrilldownLocalArtifactInput())
+        let artifactInput = try ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel
+            .localReadModelArtifactInput(fromJSON: artifactJSON)
+        let loadedSurface = try DashboardShellSnapshot
+            .releaseV0180DashboardArtifactRecoveryDrilldownSurface(fromLocalReadModelJSON: artifactJSON)
+        let loadedSnapshot = DashboardShellSnapshot(
+            viewModel: try makeDashboardViewModel(),
+            releaseV0180DashboardArtifactRecoveryDrilldownSurface: loadedSurface
+        )
+
+        XCTAssertTrue(artifactInput.inputHeld)
+        XCTAssertEqual(artifactInput.artifactID, "gh-1182-dashboard-artifact-recovery-drilldown")
+        XCTAssertEqual(
+            artifactInput.schema,
+            ReleaseV0180DashboardArtifactRecoveryDrilldownLocalArtifactInput.schemaID
+        )
+        XCTAssertEqual(artifactInput.releaseVersion, "v0.18.0")
+        XCTAssertTrue(loadedSurface.boundaryHeld)
+        XCTAssertTrue(loadedSnapshot.isReadModelOnly)
+        XCTAssertTrue(loadedSnapshot.smokeSummary.contains("releaseV0180DrilldownBoundary=confirmed"))
+
+        let invalidPath = try encoder.encode(
+            ReleaseV0180DashboardArtifactRecoveryDrilldownLocalArtifactInput(
+                relativePath: "../escape/dashboard-recovery-drilldown.json"
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel
+                .localReadModelArtifact(fromJSON: invalidPath)
+        )
+
+        let commandSurface = try encoder.encode(
+            ReleaseV0180DashboardArtifactRecoveryDrilldownLocalArtifactInput(
+                surface: ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel(
+                    dashboardCommandSurfaceEnabled: true
+                )
+            )
+        )
+        XCTAssertThrowsError(
+            try DashboardShellSnapshot.releaseV0180DashboardArtifactRecoveryDrilldownSurface(
+                fromLocalReadModelJSON: commandSurface
+            )
+        )
+
+        let productionFlag = try encoder.encode(
+            ReleaseV0180DashboardArtifactRecoveryDrilldownLocalArtifactInput(
+                productionTradingEnabledByDefault: true
+            )
+        )
+        XCTAssertThrowsError(
+            try DashboardShellSnapshot.releaseV0180DashboardArtifactRecoveryDrilldownSurface(
+                fromLocalReadModelJSON: productionFlag
+            )
+        )
+
+        for anchor in ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-1182 surface")
+        }
+    }
+
     func testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands() throws {
         // 测试场景：GH-890 Dashboard 只能展示 v0.10.0 production readiness evidence center。
         // Readiness Overview / Environment / Secret / Endpoint / Risk / Kill Switch /

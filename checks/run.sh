@@ -462,6 +462,16 @@ bash checks/verify-v0.18.0-cancel-status-reconciliation-replay-command.sh
 # V0180-006-READ-ONLY-OPERATOR-ACTION
 # V0180-006-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh
+# GH-1182-VERIFY-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN
+# TVM-RELEASE-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN
+# V0180-007-DEPENDENCIES-GH1179-GH1180-GH1181-DONE
+# V0180-007-REAL-LOCAL-BUNDLE-EVIDENCE
+# V0180-007-LIFECYCLE-STATUS-RESUME-RECONCILIATION-DRILLDOWN
+# V0180-007-VENUE-PRODUCT-ENVIRONMENT-DRILLDOWN
+# V0180-007-FAILURE-CLASS-NEXT-ACTION-GUIDANCE
+# V0180-007-DASHBOARD-READ-ONLY-NO-COMMANDS
+# V0180-007-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh
 bash checks/verify-v0.9.0-v080-publication-alignment.sh
 bash checks/verify-v0.9.0-monitor-session-store.sh
 bash checks/verify-v0.9.0-snapshot-freshness-monitor.sh

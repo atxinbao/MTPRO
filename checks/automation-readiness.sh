@@ -130,6 +130,7 @@ require_file "docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-run
 require_file "docs/contracts/release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-contract.md"
 require_file "docs/contracts/release-v0.18.0-run-artifact-lifecycle-manifest-namespace-contract.md"
 require_file "docs/contracts/release-v0.18.0-status-query-retry-artifact-persistence-contract.md"
+require_file "docs/contracts/release-v0.18.0-dashboard-artifact-recovery-drilldown-contract.md"
 require_file "checks/verify-v0.16.1-release-fact-sync.sh"
 require_file "checks/verify-v0.16.1-manual-evidence-bundle-content.sh"
 require_file "checks/verify-v0.16.1-central-artifact-redaction-policy.sh"
@@ -150,6 +151,7 @@ require_file "checks/verify-v0.17.1-manual-workflow-fail-closed.sh"
 require_file "checks/verify-v0.18.0-venue-product-aware-lifecycle-recovery-contract.sh"
 require_file "checks/verify-v0.18.0-run-artifact-lifecycle-manifest-namespace.sh"
 require_file "checks/verify-v0.18.0-status-query-retry-artifact-persistence.sh"
+require_file "checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -11989,5 +11991,46 @@ require_contains "docs/release/release-publication-policy.md" "GH-1181 adds oper
 require_contains "checks/run.sh" "bash checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-operator-failure-classification-next-action-cli.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1181OperatorFailureClassificationNextActionCLIExplainsLocalEvidenceFailures"
+for file in \
+  "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" \
+  "Sources/Dashboard/DashboardShell.swift" \
+  "docs/contracts/release-v0.18.0-dashboard-artifact-recovery-drilldown-contract.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/AppTests/AppTests.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1182-VERIFY-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN"
+  require_contains "$file" "TVM-RELEASE-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN"
+  require_contains "$file" "V0180-007-DEPENDENCIES-GH1179-GH1180-GH1181-DONE"
+  require_contains "$file" "V0180-007-REAL-LOCAL-BUNDLE-EVIDENCE"
+  require_contains "$file" "V0180-007-LIFECYCLE-STATUS-RESUME-RECONCILIATION-DRILLDOWN"
+  require_contains "$file" "V0180-007-VENUE-PRODUCT-ENVIRONMENT-DRILLDOWN"
+  require_contains "$file" "V0180-007-FAILURE-CLASS-NEXT-ACTION-GUIDANCE"
+  require_contains "$file" "V0180-007-DASHBOARD-READ-ONLY-NO-COMMANDS"
+  require_contains "$file" "V0180-007-NO-PRODUCTION-CUTOVER"
+done
+require_contains "docs/contracts/release-v0.18.0-dashboard-artifact-recovery-drilldown-contract.md" "#1179 closed / done"
+require_contains "docs/contracts/release-v0.18.0-dashboard-artifact-recovery-drilldown-contract.md" "#1180 closed / done"
+require_contains "docs/contracts/release-v0.18.0-dashboard-artifact-recovery-drilldown-contract.md" "#1181 closed / done"
+require_contains "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" "dashboardArtifactRecoveryDrilldownSurface=ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel"
+require_contains "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" "localBundleEvidenceVisible=true"
+require_contains "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" "namespaceVisible=true"
+require_contains "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" "failureClassVisible=true"
+require_contains "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" "nextActionGuidanceVisible=true"
+require_contains "Sources/Dashboard/DashboardShell.swift" "releaseV0180DashboardArtifactRecoveryDrilldownSurface"
+require_contains "Sources/Dashboard/DashboardShell.swift" "DashboardReleaseV0180ArtifactRecoveryDrilldownPanel"
+require_contains "docs/automation/automation-readiness.md" "Release v0.18.0 Dashboard artifact recovery drilldown anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1182 Release v0.18.0 Dashboard Artifact Recovery Drilldown"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN"
+require_contains "docs/release/release-publication-policy.md" "GH-1182 adds Dashboard artifact / recovery drilldown"
+require_contains "checks/run.sh" "bash checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh"
+require_contains "Tests/AppTests/AppTests.swift" "testGH1182DashboardArtifactRecoveryDrilldownShowsRealBundleEvidenceWithoutCommands"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1182DashboardArtifactRecoveryDrilldownIsAnchoredInV0180Guards"
 
 printf 'MTPRO automation readiness checks passed.\n'

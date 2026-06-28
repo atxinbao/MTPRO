@@ -6176,3 +6176,27 @@ swift test
 - namespace surface: every failure explanation must include venue, product, environment, accountProfile and runID.
 - dependency evidence: #1179 and #1180 must be closed / done before GH-1181 can execute.
 - boundary evidence: read-only operator action only; no automatic remediation, no broker mutation, no endpoint / broker connection, no production secret read, no order action, no tag / GitHub Release creation and no production cutover.
+
+## GH-1182 Release v0.18.0 Dashboard Artifact Recovery Drilldown
+
+- GH-1182-VERIFY-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN
+- TVM-RELEASE-V0180-DASHBOARD-ARTIFACT-RECOVERY-DRILLDOWN
+- V0180-007-DEPENDENCIES-GH1179-GH1180-GH1181-DONE
+- V0180-007-REAL-LOCAL-BUNDLE-EVIDENCE
+- V0180-007-LIFECYCLE-STATUS-RESUME-RECONCILIATION-DRILLDOWN
+- V0180-007-VENUE-PRODUCT-ENVIRONMENT-DRILLDOWN
+- V0180-007-FAILURE-CLASS-NEXT-ACTION-GUIDANCE
+- V0180-007-DASHBOARD-READ-ONLY-NO-COMMANDS
+- V0180-007-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.18.0-dashboard-artifact-recovery-drilldown.sh`
+- focused tests:
+  - `swift test --filter AppTests/testGH1182DashboardArtifactRecoveryDrilldownShowsRealBundleEvidenceWithoutCommands`
+  - `swift test --filter TargetGraphTests/testGH1182DashboardArtifactRecoveryDrilldownIsAnchoredInV0180Guards`
+- source: `Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift`
+- shell integration: `Sources/Dashboard/DashboardShell.swift`
+- contract doc: `docs/contracts/release-v0.18.0-dashboard-artifact-recovery-drilldown-contract.md`
+- validation surface: Dashboard artifact / recovery drilldown must read real local artifact bundle evidence for lifecycle manifest, status query, resume, reconciliation replay and failure classification next-action state.
+- namespace surface: Dashboard rows must expose venue, product, environment, accountProfile and runID from the local bundle namespace.
+- dependency evidence: #1179, #1180 and #1181 must be closed / done before GH-1182 can execute.
+- boundary evidence: Dashboard remains read-only, does not depend on ExecutionClient target, does not expose command surface, trading button, order form, live command, submit / cancel / replace, endpoint / broker connection, production secret read, tag / GitHub Release creation or production cutover.
+- forbidden scope: no synthetic happy-path placeholder, no automatic remediation, no broker mutation, no OKX runtime implementation, no new venue/product runtime activation, no production cutover, no production trading by default, no production secret read, no production endpoint / broker endpoint connection, no production order, no trading button, no order form, no live command, no tag or GitHub Release creation.
