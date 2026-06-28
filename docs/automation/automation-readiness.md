@@ -580,3 +580,9 @@ queue context 不写成仓库长期事实，不授权启动额外服务。不得
 - 不绕过 GitHub required checks。
 - 不启动 Symphony、Graphify 或替代调度 / 图谱服务。
 - 不提交 `.codex/*`。
+
+## Release v0.19.0 Venue/Product Registry Anchor
+
+| 能力 | 状态 | 证据入口 |
+| --- | --- | --- |
+| Release v0.19.0 venue/product registry anchor | ready | `Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRegistry.swift`、`checks/verify-v0.19.0-venue-product-registry.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift` 的 `GH-1206-VERIFY-V0190-VENUE-PRODUCT-REGISTRY`、`TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY`、`V0190-001-VENUE-REGISTRY`、`V0190-001-PRODUCT-REGISTRY`、`V0190-001-TRADING-ENVIRONMENT-ACCOUNT-PROFILE-USAGE`、`V0190-001-VALID-TARGET-COMBINATIONS`、`V0190-001-V0181-CLOSEOUT-DEPENDENCY`、`V0190-001-PRODUCTION-DISABLED-BY-DEFAULT`、`V0190-001-NO-PRODUCTION-CUTOVER` 和 `testGH1206ReleaseV0190VenueProductRegistriesDefineCanonicalTargets`；GH-1206 defines typed VenueRegistry / ProductRegistry / VenueProductTarget on top of v0.18.1 typed namespace closeout, allows only Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap target pairs, rejects productionLive by default, keeps OKX runtime registry-only and does not connect endpoints, read production secrets, submit orders or authorize production cutover |

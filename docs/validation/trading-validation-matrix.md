@@ -4418,3 +4418,20 @@
 - aggregate evidence: #1200..#1205 patch evidence and PR #1216..#1220 merge evidence are recorded by the audit / release notes closeout.
 - publication guidance: v0.18.1 tag / GitHub Release requires an independent Release Publication Gate after #1205 merge, clean main, open PR = 0, open active issue = 0, validation evidence and GH-1201 full matrix publication evidence are reconfirmed.
 - forbidden scope: no tag creation in GH-1205, no release publication in GH-1205, no v0.19.0 start, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
+
+## TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY
+
+- GH-1206-VERIFY-V0190-VENUE-PRODUCT-REGISTRY
+- V0190-001-VENUE-REGISTRY
+- V0190-001-PRODUCT-REGISTRY
+- V0190-001-TRADING-ENVIRONMENT-ACCOUNT-PROFILE-USAGE
+- V0190-001-VALID-TARGET-COMBINATIONS
+- V0190-001-V0181-CLOSEOUT-DEPENDENCY
+- V0190-001-PRODUCTION-DISABLED-BY-DEFAULT
+- V0190-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-venue-product-registry.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1206ReleaseV0190VenueProductRegistriesDefineCanonicalTargets`
+- registry surface: VenueRegistry contains Binance and OKX; ProductRegistry contains spot, usdmFutures and swap.
+- valid target surface: allowed typed target pairs are Binance Spot, Binance USDⓈ-M Futures, OKX Spot and OKX Swap.
+- environment / profile surface: every target carries TradingEnvironment and AccountProfileID; productionLive remains disabled by default.
+- forbidden scope: no OKX runtime implementation, no endpoint / broker connection, no production secret read, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.
