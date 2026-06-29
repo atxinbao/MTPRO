@@ -29544,9 +29544,9 @@ final class TargetGraphTests: XCTestCase {
 
         let dashboard = ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel.deterministicFixture
         XCTAssertTrue(dashboard.boundaryHeld)
-        XCTAssertTrue(dashboard.input.lifecycleManifestPath.hasPrefix(".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"))
-        XCTAssertTrue(dashboard.rows.allSatisfy { $0.sourceArtifactPath.hasPrefix(".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/") })
-        XCTAssertTrue(dashboard.details.joined(separator: "\n").contains(".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"))
+        XCTAssertTrue(dashboard.input.lifecycleManifestPath.hasPrefix(".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"))
+        XCTAssertTrue(dashboard.rows.allSatisfy { $0.sourceArtifactPath.hasPrefix(".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/") })
+        XCTAssertTrue(dashboard.details.joined(separator: "\n").contains(".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"))
         XCTAssertFalse(
             ReleaseV0180DashboardArtifactRecoveryDrilldownInput.isSafeLocalArtifactPath(
                 ".local/mtpro/v0.18.0/" + "operator-runs/gh-1182-v0180-operator-run/artifacts/status-query-retry-result.json"
@@ -29555,7 +29555,7 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertTrue(operatorRunSource.contains(".local/mtpro/runs/\\(namespace.venue)/\\(namespace.product)/\\(namespace.environment)/\\(namespace.accountProfile)/\\(namespace.runID.rawValue)/operator-run/"))
         XCTAssertTrue(statusSource.contains(".local/mtpro/runs/\\(snapshot.namespace.venue)/\\(snapshot.namespace.product)/\\(snapshot.namespace.environment)/\\(snapshot.namespace.accountProfile)/\\(snapshot.namespace.runID.rawValue)/artifacts/"))
-        XCTAssertTrue(dashboardSource.contains(".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"))
+        XCTAssertTrue(dashboardSource.contains(".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"))
         XCTAssertFalse(statusSource.contains(".local/mtpro/v0.16.0/operator-runs/\\(snapshot.namespace.runID.rawValue)"))
         XCTAssertFalse(dashboardSource.contains(".local/mtpro/v0.18.0/operator-runs/"))
         XCTAssertTrue(verifier.contains("testGH1203ArtifactNamespacePathsUseVenueProductEnvironmentRoot"))
@@ -29597,7 +29597,7 @@ final class TargetGraphTests: XCTestCase {
             "V0181-005-JSON-CODEC-MIGRATION",
             "V0181-005-NO-PRODUCTION-CUTOVER"
         ]
-        let typedSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift")
+        let typedSource = try read("Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift")
         let statusSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift")
         let betaSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift")
         let verifier = try read("checks/verify-v0.18.1-typed-namespace-model.sh")
@@ -30412,6 +30412,157 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(latest.contains("v0.19.0 venue credential profile registry"))
         XCTAssertTrue(validationPlan.contains("GH-1209 Release v0.19.0 Venue Credential Profile Registry"))
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY"))
+    }
+
+    func testGH1210ReleaseV0190MigratesV018LifecycleNamespaceToTypedModel() throws {
+        // 测试场景：GH-1210 把 v0.18 lifecycle manifest namespace 从 raw string 存储迁移到
+        // shared DomainModel typed namespace，同时保留旧 JSON alias decode migration。
+        // 验证目的：lifecycle manifest、status retry 和 Dashboard drilldown 使用同一 canonical
+        // namespace，productionLive / unsupported pair / credential-like profile 均 fail closed。
+        // GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+        // TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+        // V0190-005-TYPED-LIFECYCLE-NAMESPACE
+        // V0190-005-JSON-DECODE-MIGRATION
+        // V0190-005-DASHBOARD-NAMESPACE-CONSISTENCY
+        // V0190-005-NAMESPACE-MISMATCH-FAILS-CLOSED
+        // V0190-005-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE",
+            "TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE",
+            "V0190-005-TYPED-LIFECYCLE-NAMESPACE",
+            "V0190-005-JSON-DECODE-MIGRATION",
+            "V0190-005-DASHBOARD-NAMESPACE-CONSISTENCY",
+            "V0190-005-NAMESPACE-MISMATCH-FAILS-CLOSED",
+            "V0190-005-NO-PRODUCTION-CUTOVER"
+        ]
+        let package = try read("Package.swift")
+        let typedSource = try read("Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift")
+        let lifecycleSource = try read("Sources/Database/ReleaseV060LocalRunJournalWriter.swift")
+        let dashboardSource = try read("Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift")
+        let verifier = try read("checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in anchors {
+            for source in [
+                typedSource,
+                lifecycleSource,
+                dashboardSource,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix
+            ] {
+                XCTAssertTrue(source.contains(anchor), "\(anchor) must stay anchored in GH-1210 evidence")
+            }
+        }
+
+        XCTAssertTrue(package.contains("\"ReleaseV0181TypedNamespaceModel.swift\""))
+        XCTAssertTrue(lifecycleSource.contains("public let venueID: ReleaseV0181VenueID"))
+        XCTAssertTrue(lifecycleSource.contains("public let productKind: ReleaseV0181ProductKind"))
+        XCTAssertTrue(lifecycleSource.contains("public let tradingEnvironment: ReleaseV0181TradingEnvironment"))
+        XCTAssertTrue(lifecycleSource.contains("public let accountProfileID: ReleaseV0181AccountProfileID"))
+        XCTAssertTrue(lifecycleSource.contains("ReleaseV0181VenueProductNamespacePolicy.supportsCriticalNamespace"))
+        XCTAssertTrue(lifecycleSource.contains("public init(from decoder: Decoder) throws"))
+        XCTAssertFalse(lifecycleSource.contains("case (\"binance\", \"spot\")"))
+        XCTAssertFalse(lifecycleSource.contains("case (\"okx\", \"swap\")"))
+
+        let runID = Identifier.constant("gh-1210-v0190-v018-lifecycle-typed-namespace", field: "testGH1210.runID")
+        let lifecycleNamespace = try ReleaseV0180RunArtifactLifecycleNamespace(
+            venue: "binance",
+            product: "usdm-perpetual",
+            environment: "production-shadow",
+            accountProfile: "operator-beta-redacted",
+            runID: runID
+        )
+        XCTAssertEqual(lifecycleNamespace.venueID, .binance)
+        XCTAssertEqual(lifecycleNamespace.productKind, .usdmFutures)
+        XCTAssertEqual(lifecycleNamespace.tradingEnvironment, .productionShadow)
+        XCTAssertEqual(lifecycleNamespace.accountProfileID.rawValue, "operator-beta-redacted")
+        XCTAssertEqual(lifecycleNamespace.venue, "binance")
+        XCTAssertEqual(lifecycleNamespace.product, "usdmFutures")
+        XCTAssertEqual(lifecycleNamespace.environment, "productionShadow")
+        XCTAssertTrue(lifecycleNamespace.namespaceHeld)
+
+        let statusNamespace = try ReleaseV0180StatusQueryRetryArtifactNamespace(
+            venue: "binance",
+            product: "usdm-perpetual",
+            environment: "production-shadow",
+            accountProfile: "operator-beta-redacted",
+            runID: runID
+        )
+        XCTAssertEqual(statusNamespace.namespaceKey, lifecycleNamespace.namespaceKey)
+
+        let encoded = try JSONEncoder().encode(lifecycleNamespace)
+        let encodedString = try XCTUnwrap(String(data: encoded, encoding: .utf8))
+        XCTAssertTrue(encodedString.contains("\"product\":\"usdmFutures\""))
+        XCTAssertTrue(encodedString.contains("\"environment\":\"productionShadow\""))
+        let legacyAliasJSON = encodedString
+            .replacingOccurrences(of: "\"product\":\"usdmFutures\"", with: "\"product\":\"usdm-perpetual\"")
+            .replacingOccurrences(of: "\"environment\":\"productionShadow\"", with: "\"environment\":\"production-shadow\"")
+        let migrated = try JSONDecoder().decode(
+            ReleaseV0180RunArtifactLifecycleNamespace.self,
+            from: Data(legacyAliasJSON.utf8)
+        )
+        XCTAssertEqual(migrated, lifecycleNamespace)
+
+        XCTAssertThrowsError(try ReleaseV0180RunArtifactLifecycleNamespace(
+            venue: "binance",
+            product: "swap",
+            environment: "testnet",
+            accountProfile: "operator-beta-redacted",
+            runID: runID
+        ))
+        XCTAssertThrowsError(try ReleaseV0180RunArtifactLifecycleNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "productionLive",
+            accountProfile: "operator-beta-redacted",
+            runID: runID
+        ))
+        XCTAssertThrowsError(try ReleaseV0180RunArtifactLifecycleNamespace(
+            venue: "binance",
+            product: "spot",
+            environment: "testnet",
+            accountProfile: "api-key",
+            runID: runID
+        ))
+
+        let dashboard = ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel.deterministicFixture
+        XCTAssertEqual(dashboard.input.product, "usdmFutures")
+        XCTAssertTrue(dashboard.input.namespaceKey.contains("binance/usdmFutures/testnet/operator-beta-redacted"))
+        XCTAssertTrue(dashboard.input.lifecycleManifestPath.contains("binance/usdmFutures/testnet/operator-beta-redacted"))
+        XCTAssertTrue(dashboard.rows.allSatisfy { $0.sourceArtifactPath.contains("binance/usdmFutures/testnet/operator-beta-redacted") })
+        XCTAssertTrue(dashboard.details.joined(separator: "\n").contains("binance/usdmFutures/testnet/operator-beta-redacted"))
+        XCTAssertFalse(dashboardSource.contains("binance/usdm-perpetual/testnet/operator-beta-redacted"))
+
+        XCTAssertTrue(verifier.contains("testGH1210ReleaseV0190MigratesV018LifecycleNamespaceToTypedModel"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.19.0 v0.18 lifecycle typed namespace anchor"))
+        XCTAssertTrue(latest.contains("v0.19.0 v0.18 lifecycle typed namespace"))
+        XCTAssertTrue(validationPlan.contains("GH-1210 Release v0.19.0 v0.18 Lifecycle Typed Namespace"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE"))
+
+        for source in [typedSource, lifecycleSource, dashboardSource] {
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("productionSecretRead=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnected=true"))
+            XCTAssertFalse(source.contains("productionBrokerConnected=true"))
+            XCTAssertFalse(source.contains("productionOrderSubmitted=true"))
+        }
     }
 
     func testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout() throws {
@@ -51829,7 +51980,7 @@ final class TargetGraphTests: XCTestCase {
         let environmentMismatch = try ReleaseV0180RunArtifactLifecycleNamespace(
             venue: "binance",
             product: "spot",
-            environment: "shadow",
+            environment: "productionShadow",
             accountProfile: "operator-beta",
             runID: journal.paths.runID
         )
@@ -51851,10 +52002,10 @@ final class TargetGraphTests: XCTestCase {
                 runID: journal.paths.runID
             )
         ) { error in
-            guard let writerError = error as? ReleaseV060LocalRunJournalWriterError,
-                  case .artifactMetadataMismatch = writerError else {
-                return XCTFail("missing venue must fail closed, got \(error)")
-            }
+            XCTAssertTrue(
+                String(describing: error).contains("v0180RunArtifactLifecycle.venue"),
+                "missing venue must fail closed with typed namespace field, got \(error)"
+            )
         }
 
         let anchors = [

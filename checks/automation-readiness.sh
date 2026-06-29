@@ -12296,7 +12296,7 @@ for file in \
   require_contains "$file" "V0181-004-NO-PRODUCTION-CUTOVER"
 done
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" ".local/mtpro/runs/\\(snapshot.namespace.venue)/\\(snapshot.namespace.product)/\\(snapshot.namespace.environment)/\\(snapshot.namespace.accountProfile)/\\(snapshot.namespace.runID.rawValue)/artifacts/status-query-retry-result-redacted.json"
-require_contains "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"
+require_contains "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181OperatorRunCLICommand.swift" ".local/mtpro/runs/\\(namespace.venue)/\\(namespace.product)/\\(namespace.environment)/\\(namespace.accountProfile)/\\(namespace.runID.rawValue)/operator-run/"
 require_contains "checks/verify-v0.18.1-artifact-namespace-paths.sh" "testGH1203ArtifactNamespacePathsUseVenueProductEnvironmentRoot"
 require_contains "checks/run.sh" "bash checks/verify-v0.18.1-artifact-namespace-paths.sh"
@@ -12309,7 +12309,7 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1203ArtifactNamespacePathsUseVenueProductEnvironmentRoot"
 
 for file in \
-  "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" \
+  "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" \
   "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" \
   "Tests/TargetGraphTests/TargetGraphTests.swift" \
   "checks/verify-v0.18.1-typed-namespace-model.sh" \
@@ -12329,11 +12329,11 @@ for file in \
   require_contains "$file" "V0181-005-JSON-CODEC-MIGRATION"
   require_contains "$file" "V0181-005-NO-PRODUCTION-CUTOVER"
 done
-require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181VenueID"
-require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181ProductKind"
-require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181TradingEnvironment"
-require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" "public struct ReleaseV0181AccountProfileID"
-require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" "credentialLikeMarkers"
+require_contains "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181VenueID"
+require_contains "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181ProductKind"
+require_contains "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181TradingEnvironment"
+require_contains "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" "public struct ReleaseV0181AccountProfileID"
+require_contains "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" "credentialLikeMarkers"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" "ReleaseV0181VenueProductNamespacePolicy.supportsCriticalNamespace"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "ReleaseV0181VenueProductNamespacePolicy.supportsRawPair"
 require_contains "checks/verify-v0.18.1-typed-namespace-model.sh" "testGH1204TypedVenueProductNamespaceModelValidatesCriticalV018Recovery"
@@ -12529,5 +12529,39 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 venue
 require_contains "docs/validation/validation-plan.md" "GH-1209 Release v0.19.0 Venue Credential Profile Registry"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1209ReleaseV0190VenueCredentialProfileRegistryFailsClosed"
+
+for file in \
+  "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" \
+  "Sources/Database/ReleaseV060LocalRunJournalWriter.swift" \
+  "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md"; do
+  require_contains "$file" "GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE"
+  require_contains "$file" "TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE"
+  require_contains "$file" "V0190-005-TYPED-LIFECYCLE-NAMESPACE"
+  require_contains "$file" "V0190-005-JSON-DECODE-MIGRATION"
+  require_contains "$file" "V0190-005-DASHBOARD-NAMESPACE-CONSISTENCY"
+  require_contains "$file" "V0190-005-NAMESPACE-MISMATCH-FAILS-CLOSED"
+  require_contains "$file" "V0190-005-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Package.swift" "\"ReleaseV0181TypedNamespaceModel.swift\""
+require_contains "Sources/Database/ReleaseV060LocalRunJournalWriter.swift" "public let venueID: ReleaseV0181VenueID"
+require_contains "Sources/Database/ReleaseV060LocalRunJournalWriter.swift" "ReleaseV0181VenueProductNamespacePolicy.supportsCriticalNamespace"
+require_contains "Sources/Database/ReleaseV060LocalRunJournalWriter.swift" "public init(from decoder: Decoder) throws"
+require_contains "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" "binance/usdmFutures/testnet/operator-beta-redacted"
+require_contains "checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh" "testGH1210ReleaseV0190MigratesV018LifecycleNamespaceToTypedModel"
+require_contains "checks/run.sh" "bash checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 v0.18 lifecycle typed namespace anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 v0.18 lifecycle typed namespace"
+require_contains "docs/validation/validation-plan.md" "GH-1210 Release v0.19.0 v0.18 Lifecycle Typed Namespace"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1210ReleaseV0190MigratesV018LifecycleNamespaceToTypedModel"
 
 printf 'MTPRO automation readiness checks passed.\n'

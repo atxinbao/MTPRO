@@ -42,6 +42,8 @@ public enum ReleaseV060LocalRunJournalWriterError: Error, Equatable, Sendable, C
 ///
 /// Namespace 是 v0.18.0 run artifact lifecycle manifest 的唯一边界键。它只用于本地
 /// evidence 关联和 fail-closed validation，不会触发 endpoint、broker、secret 或订单能力。
+/// #1210 起，关键字段使用 DomainModel 的 typed VenueID / ProductKind / TradingEnvironment /
+/// AccountProfileID 存储；JSON 仍按旧 raw key 编码，便于历史 fixture migration。
 /// GH-1177-VERIFY-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
 /// TVM-RELEASE-V0180-RUN-ARTIFACT-LIFECYCLE-MANIFEST-NAMESPACE
 /// V0180-002-DEPENDENCY-GH1176-DONE
@@ -51,12 +53,27 @@ public enum ReleaseV060LocalRunJournalWriterError: Error, Equatable, Sendable, C
 /// V0180-002-BOUNDARY-REUSE-REJECTION
 /// V0180-002-LOCAL-EVIDENCE-ONLY
 /// V0180-002-NO-PRODUCTION-CUTOVER
+/// GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+/// TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+/// V0190-005-TYPED-LIFECYCLE-NAMESPACE
+/// V0190-005-JSON-DECODE-MIGRATION
+/// V0190-005-DASHBOARD-NAMESPACE-CONSISTENCY
+/// V0190-005-NAMESPACE-MISMATCH-FAILS-CLOSED
+/// V0190-005-NO-PRODUCTION-CUTOVER
 public struct ReleaseV0180RunArtifactLifecycleNamespace: Codable, Equatable, Sendable {
-    public let venue: String
-    public let product: String
-    public let environment: String
-    public let accountProfile: String
+    public let venueID: ReleaseV0181VenueID
+    public let productKind: ReleaseV0181ProductKind
+    public let tradingEnvironment: ReleaseV0181TradingEnvironment
+    public let accountProfileID: ReleaseV0181AccountProfileID
     public let runID: Identifier
+
+    public var venue: String { venueID.rawValue }
+
+    public var product: String { productKind.rawValue }
+
+    public var environment: String { tradingEnvironment.rawValue }
+
+    public var accountProfile: String { accountProfileID.rawValue }
 
     public var namespaceKey: String {
         [
@@ -69,21 +86,28 @@ public struct ReleaseV0180RunArtifactLifecycleNamespace: Codable, Equatable, Sen
     }
 
     public var venueProductPairSupported: Bool {
-        switch (venue, product) {
-        case ("binance", "spot"), ("binance", "usdmFutures"), ("okx", "spot"), ("okx", "swap"):
-            true
-        default:
-            false
-        }
+        ReleaseV0181VenueProductNamespacePolicy.supportsPair(
+            venueID: venueID,
+            productKind: productKind
+        )
     }
 
     public var namespaceHeld: Bool {
-        venue.isEmpty == false
-            && product.isEmpty == false
-            && environment.isEmpty == false
-            && accountProfile.isEmpty == false
+        ReleaseV0181VenueProductNamespacePolicy.supportsCriticalNamespace(
+            venueID: venueID,
+            productKind: productKind,
+            tradingEnvironment: tradingEnvironment
+        )
             && runID.rawValue.isEmpty == false
-            && venueProductPairSupported
+            && ReleaseV0161OperatorBetaArtifactRedactionPolicy.forbiddenMarkers(in: namespaceKey).isEmpty
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case venue
+        case product
+        case environment
+        case accountProfile
+        case runID
     }
 
     public init(
@@ -93,10 +117,32 @@ public struct ReleaseV0180RunArtifactLifecycleNamespace: Codable, Equatable, Sen
         accountProfile: String,
         runID: Identifier
     ) throws {
-        self.venue = venue
-        self.product = product
-        self.environment = environment
-        self.accountProfile = accountProfile
+        try self.init(
+            venueID: ReleaseV0181VenueID(validating: venue, field: "v0180RunArtifactLifecycle.venue"),
+            productKind: ReleaseV0181ProductKind(validating: product, field: "v0180RunArtifactLifecycle.product"),
+            tradingEnvironment: ReleaseV0181TradingEnvironment(
+                validating: environment,
+                field: "v0180RunArtifactLifecycle.environment"
+            ),
+            accountProfileID: ReleaseV0181AccountProfileID(
+                accountProfile,
+                field: "v0180RunArtifactLifecycle.accountProfile"
+            ),
+            runID: runID
+        )
+    }
+
+    public init(
+        venueID: ReleaseV0181VenueID,
+        productKind: ReleaseV0181ProductKind,
+        tradingEnvironment: ReleaseV0181TradingEnvironment,
+        accountProfileID: ReleaseV0181AccountProfileID,
+        runID: Identifier
+    ) throws {
+        self.venueID = venueID
+        self.productKind = productKind
+        self.tradingEnvironment = tradingEnvironment
+        self.accountProfileID = accountProfileID
         self.runID = runID
 
         guard namespaceHeld else {
@@ -104,6 +150,26 @@ public struct ReleaseV0180RunArtifactLifecycleNamespace: Codable, Equatable, Sen
                 "GH-1177 namespace requires venue/product/environment/accountProfile/runID"
             )
         }
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(
+            venue: container.decode(String.self, forKey: .venue),
+            product: container.decode(String.self, forKey: .product),
+            environment: container.decode(String.self, forKey: .environment),
+            accountProfile: container.decode(String.self, forKey: .accountProfile),
+            runID: container.decode(Identifier.self, forKey: .runID)
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(venue, forKey: .venue)
+        try container.encode(product, forKey: .product)
+        try container.encode(environment, forKey: .environment)
+        try container.encode(accountProfile, forKey: .accountProfile)
+        try container.encode(runID, forKey: .runID)
     }
 }
 

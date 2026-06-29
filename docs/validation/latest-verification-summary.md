@@ -296,6 +296,24 @@ v0.19.0 venue endpoint family registry 以 #1207 / V190-002 capability matrix cl
 
 v0.19.0 venue credential profile registry 以 #1206 / V190-001 registry closeout 为依赖。`ReleaseV0190VenueCredentialProfileRegistry` 覆盖 Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap 的 testnet 与 productionShadow credential profile identity row；Binance row 为 testnetReference / productionShadow，OKX row 仍是 placeholder evidence。Registry 只保存 profile identity、namespace key 和 redacted evidence reference；跨 venue / product / environment profile reuse fail closed；productionLive 默认拒绝；不读取 secret value，不保存 secret value，不连接 endpoint / broker，不发送 order，不授权 production cutover。
 
+## Release v0.19.0 v0.18 Lifecycle Typed Namespace Snapshot
+
+`GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE`
+
+`TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE`
+
+`V0190-005-TYPED-LIFECYCLE-NAMESPACE`
+
+`V0190-005-JSON-DECODE-MIGRATION`
+
+`V0190-005-DASHBOARD-NAMESPACE-CONSISTENCY`
+
+`V0190-005-NAMESPACE-MISMATCH-FAILS-CLOSED`
+
+`V0190-005-NO-PRODUCTION-CUTOVER`
+
+v0.19.0 v0.18 lifecycle typed namespace 以 #1206 / V190-001 和 #1207 / V190-002 closeout 为依赖。`ReleaseV0181TypedNamespaceModel` 提升到 DomainModel，`ReleaseV0180RunArtifactLifecycleNamespace` 使用 typed VenueID / ProductKind / TradingEnvironment / AccountProfileID 存储，JSON 仍按旧 `venue` / `product` / `environment` / `accountProfile` / `runID` key 编码以保留 migration evidence。Lifecycle manifest、status retry、resume、replay、Dashboard drilldown 和 failure classification 继续使用同一 canonical namespaceKey；Dashboard fixture path 已从旧 alias `usdm-perpetual` 收敛到 canonical `usdmFutures`。Namespace mismatch、unsupported pair、credential-like account profile 和 productionLive 均 fail closed；不读取 production secret，不连接 endpoint / broker，不发送 order，不授权 production cutover。
+
 ## Release v0.16.1 Central Artifact Redaction Policy Snapshot
 
 `GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY`

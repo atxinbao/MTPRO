@@ -162,6 +162,14 @@ bash checks/verify-v0.19.0-venue-endpoint-family-registry.sh
 # V0190-004-NO-SECRET-READ
 # V0190-004-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.19.0-venue-credential-profile-registry.sh
+# GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+# TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+# V0190-005-TYPED-LIFECYCLE-NAMESPACE
+# V0190-005-JSON-DECODE-MIGRATION
+# V0190-005-DASHBOARD-NAMESPACE-CONSISTENCY
+# V0190-005-NAMESPACE-MISMATCH-FAILS-CLOSED
+# V0190-005-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh

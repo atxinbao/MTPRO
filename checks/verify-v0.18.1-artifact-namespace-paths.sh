@@ -53,7 +53,7 @@ for file in \
 done
 
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" ".local/mtpro/runs/\\(snapshot.namespace.venue)/\\(snapshot.namespace.product)/\\(snapshot.namespace.environment)/\\(snapshot.namespace.accountProfile)/\\(snapshot.namespace.runID.rawValue)/artifacts/status-query-retry-result-redacted.json"
-require_contains "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"
+require_contains "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181OperatorRunCLICommand.swift" ".local/mtpro/runs/\\(namespace.venue)/\\(namespace.product)/\\(namespace.environment)/\\(namespace.accountProfile)/\\(namespace.runID.rawValue)/operator-run/"
 require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 artifact namespace path anchor"
 require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 artifact namespace paths"

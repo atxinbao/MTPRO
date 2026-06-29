@@ -1,4 +1,3 @@
-import DomainModel
 import Foundation
 
 // GH-1204 static contract boundary:
@@ -24,6 +23,13 @@ import Foundation
 // V0181-005-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
 // V0181-005-JSON-CODEC-MIGRATION
 // V0181-005-NO-PRODUCTION-CUTOVER
+// GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+// TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+// V0190-005-TYPED-LIFECYCLE-NAMESPACE
+// V0190-005-JSON-DECODE-MIGRATION
+// V0190-005-DASHBOARD-NAMESPACE-CONSISTENCY
+// V0190-005-NAMESPACE-MISMATCH-FAILS-CLOSED
+// V0190-005-NO-PRODUCTION-CUTOVER
 
 /// ReleaseV0181VenueID 是 #1204 的 typed venue identity。
 ///
@@ -141,7 +147,7 @@ public struct ReleaseV0181AccountProfileID:
         }
         guard trimmed.isEmpty == false,
               safeCharacters,
-              ReleaseV0160LocalExecutionArtifactPayload.forbiddenRawMarkers(in: trimmed).isEmpty,
+              ReleaseV0161OperatorBetaArtifactRedactionPolicy.forbiddenMarkers(in: trimmed).isEmpty,
               Self.credentialLikeMarkers.allSatisfy({ lowered.contains($0) == false }) else {
             throw CoreError.liveTradingBoundaryContractMismatch(
                 field: field,

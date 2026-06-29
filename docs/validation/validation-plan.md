@@ -62,7 +62,7 @@
 - V0181-005-NO-PRODUCTION-CUTOVER
 - focused verifier: `bash checks/verify-v0.18.1-typed-namespace-model.sh`
 - focused test: `swift test --filter TargetGraphTests/testGH1204TypedVenueProductNamespaceModelValidatesCriticalV018Recovery`
-- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift`、`checks/verify-v0.18.1-typed-namespace-model.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Evidence files: `Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift`、`Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift`、`checks/verify-v0.18.1-typed-namespace-model.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1204 将 critical v0.18 namespace 的 venue/product/environment/accountProfile 收敛到 typed VenueID / ProductKind / TradingEnvironment / AccountProfileID。Allowed pairs 保持 binance/spot、binance/usdmFutures、okx/spot、okx/swap；productionLive 和 credential-like account profile 必须 fail closed；JSON 仍编码既有 raw keys 作为 migration evidence。GH-1204 不创建 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。
 
 ## GH-1205 Release v0.18.1 Aggregate Audit / Release Notes Closeout
@@ -6431,3 +6431,22 @@ swift test
 - profile surface: registry rows store profile identity, namespace key and redacted evidence reference only; they must not read or persist secret values.
 - fail-closed surface: productionLive, cross venue/product/environment profile reuse, raw evidence reference and secret-read attempts must fail closed with readable reason.
 - forbidden scope: no secret manager integration, no environment secret probe, no endpoint / broker connection, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
+
+### GH-1210 Release v0.19.0 v0.18 Lifecycle Typed Namespace
+
+- GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+- TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+- V0190-005-TYPED-LIFECYCLE-NAMESPACE
+- V0190-005-JSON-DECODE-MIGRATION
+- V0190-005-DASHBOARD-NAMESPACE-CONSISTENCY
+- V0190-005-NAMESPACE-MISMATCH-FAILS-CLOSED
+- V0190-005-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1210ReleaseV0190MigratesV018LifecycleNamespaceToTypedModel`
+- source: `Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift`
+- source: `Sources/Database/ReleaseV060LocalRunJournalWriter.swift`
+- dashboard source: `Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift`
+- validation surface: `ReleaseV0180RunArtifactLifecycleNamespace` must store typed VenueID / ProductKind / TradingEnvironment / AccountProfileID while preserving raw JSON key decode / encode.
+- consistency surface: lifecycle manifest, status retry, resume, replay, Dashboard drilldown and failure classification must use the same canonical namespaceKey; Dashboard fixture path uses canonical `usdmFutures`.
+- fail-closed surface: unsupported pair, productionLive, credential-like account profile and namespace mismatch must fail closed.
+- forbidden scope: no endpoint / broker connection, no secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
