@@ -196,6 +196,15 @@ bash checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh
 # V0190-008-DASHBOARD-READ-ONLY-NO-COMMANDS
 # V0190-008-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh
+# GH-1214-VERIFY-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT
+# TVM-RELEASE-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT
+# V0190-009-CLI-REGISTRY-LIST
+# V0190-009-CLI-CAPABILITIES-INSPECT
+# V0190-009-CLI-EXPLAIN-UNSUPPORTED
+# V0190-009-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED
+# V0190-009-READ-ONLY-NO-COMMANDS
+# V0190-009-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh

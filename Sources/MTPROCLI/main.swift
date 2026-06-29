@@ -103,6 +103,18 @@ private enum MTPROStrictCLI {
         "V0181-003-LOCAL-ONLY-REDACTED-OUTPUT",
         "V0181-003-NO-PRODUCTION-CUTOVER"
     ]
+    // GH-1214-VERIFY-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT
+    // TVM-RELEASE-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT
+    // V0190-009-CLI-REGISTRY-LIST
+    // V0190-009-CLI-CAPABILITIES-INSPECT
+    // V0190-009-CLI-EXPLAIN-UNSUPPORTED
+    // V0190-009-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED
+    // V0190-009-READ-ONLY-NO-COMMANDS
+    // V0190-009-NO-PRODUCTION-CUTOVER
+    static let releaseV0190VenueProductRegistryInspectVerificationAnchor =
+        ReleaseV0190CLIVenueProductRegistryInspect.verificationAnchor
+    static let releaseV0190VenueProductRegistryInspectValidationAnchor =
+        ReleaseV0190CLIVenueProductRegistryInspect.validationAnchor
     static let releaseV0100VerificationAnchor = "GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
     static let releaseV0100ValidationAnchor = "TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
     static let cliVerifyV0100WordingAnchor = "GH-909-VERIFY-V0101-CLI-V0100-WORDING"
@@ -221,6 +233,7 @@ private enum MTPROStrictCLI {
         "validate-manual-evidence-bundle",
         ReleaseV0170CLIArtifactVerifyCommand.cliCommand,
         ReleaseV0181OperatorRunCLICommand.cliCommand,
+        ReleaseV0190CLIVenueProductRegistryInspect.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -244,6 +257,7 @@ private enum MTPROStrictCLI {
         ReleaseV0160CLICancelExecutionFlow.cliCommand,
         ReleaseV0160CLIOrderStatusQueryFlow.cliCommand,
         ReleaseV0181OperatorRunCLICommand.cliCommand,
+        ReleaseV0190CLIVenueProductRegistryInspect.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -297,6 +311,8 @@ private enum MTPROStrictCLI {
             return try ReleaseV0170CLIArtifactVerifyCommand.commandLineOutput(arguments: arguments)
         case ReleaseV0181OperatorRunCLICommand.cliCommand:
             return try ReleaseV0181OperatorRunCLICommand.commandLineOutput(arguments: arguments)
+        case ReleaseV0190CLIVenueProductRegistryInspect.cliCommand:
+            return try ReleaseV0190CLIVenueProductRegistryInspect.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -381,6 +397,10 @@ private enum MTPROStrictCLI {
             "releaseV0181OperatorRunCLICommandVerificationAnchor=\(releaseV0181OperatorRunCLICommandVerificationAnchor)",
             "releaseV0181OperatorRunCLICommandRequiredAnchors=\(releaseV0181OperatorRunCLICommandRequiredAnchors.joined(separator: ","))",
             "operatorRunActions=\(ReleaseV0181OperatorRunCLICommand.supportedActions.joined(separator: ","))",
+            "releaseV0190VenueProductRegistryInspectCommand=\(ReleaseV0190CLIVenueProductRegistryInspect.cliCommand)",
+            "releaseV0190VenueProductRegistryInspectValidationAnchor=\(releaseV0190VenueProductRegistryInspectValidationAnchor)",
+            "releaseV0190VenueProductRegistryInspectVerificationAnchor=\(releaseV0190VenueProductRegistryInspectVerificationAnchor)",
+            "venueProductRegistryInspectActions=\(ReleaseV0190CLIVenueProductRegistryInspect.supportedActions.joined(separator: ","))",
             "operatorRunFailedEvidenceNonzeroOrReadOnlyReportPath=true",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",

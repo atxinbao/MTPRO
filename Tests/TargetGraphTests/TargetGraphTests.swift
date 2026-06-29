@@ -31069,6 +31069,130 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE"))
     }
 
+    func testGH1214CLIVenueProductRegistryInspectShowsReadOnlyRegistryState() throws {
+        // 测试场景：GH-1214 为 v0.19.0 venue/product registry 增加 CLI 只读 inspect 命令。
+        // 验证目的：CLI 必须展示 list / capabilities / explain 三个只读入口，并且 unknown
+        // 或 unsupported venue/product 必须 fail closed，不引入 submit / cancel / replace command path。
+        // GH-1214-VERIFY-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT
+        // TVM-RELEASE-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT
+        // V0190-009-CLI-REGISTRY-LIST
+        // V0190-009-CLI-CAPABILITIES-INSPECT
+        // V0190-009-CLI-EXPLAIN-UNSUPPORTED
+        // V0190-009-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED
+        // V0190-009-READ-ONLY-NO-COMMANDS
+        // V0190-009-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1214-VERIFY-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT",
+            "TVM-RELEASE-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT",
+            "V0190-009-CLI-REGISTRY-LIST",
+            "V0190-009-CLI-CAPABILITIES-INSPECT",
+            "V0190-009-CLI-EXPLAIN-UNSUPPORTED",
+            "V0190-009-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED",
+            "V0190-009-READ-ONLY-NO-COMMANDS",
+            "V0190-009-NO-PRODUCTION-CUTOVER"
+        ]
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift")
+        let cli = try read("Sources/MTPROCLI/main.swift")
+        let verifier = try read("checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in anchors {
+            for evidenceSource in [
+                source,
+                cli,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix
+            ] {
+                XCTAssertTrue(evidenceSource.contains(anchor), "\(anchor) must stay anchored in GH-1214 evidence")
+            }
+        }
+
+        let rows = try ReleaseV0190CLIVenueProductRegistryInspect.deterministicRows()
+        XCTAssertEqual(rows.map(\.pairKey), ["binance/spot", "binance/usdmFutures", "okx/spot", "okx/swap"])
+        XCTAssertEqual(rows.map(\.supportStatus), ["active", "future-gated", "placeholder", "future-gated"])
+        XCTAssertTrue(rows.allSatisfy(\.boundaryHeld))
+
+        let list = try ReleaseV0190CLIVenueProductRegistryInspect.commandLineOutput(
+            arguments: ["venue-product", "list"]
+        )
+        XCTAssertTrue(list.contains("mtpro venue-product list"))
+        XCTAssertTrue(list.contains("registryRows=4"))
+        XCTAssertTrue(list.contains("states=active,placeholder,forbidden,future-gated"))
+        XCTAssertTrue(list.contains("row=binance/spot"))
+        XCTAssertTrue(list.contains("status=active"))
+        XCTAssertTrue(list.contains("row=binance/usdmFutures"))
+        XCTAssertTrue(list.contains("status=future-gated"))
+        XCTAssertTrue(list.contains("row=okx/spot"))
+        XCTAssertTrue(list.contains("status=placeholder"))
+        XCTAssertTrue(list.contains("row=okx/swap"))
+        XCTAssertTrue(list.contains("futureGated=submit,cancel,reconcile,reduceOnly,leverage,marginType"))
+
+        let capabilities = try ReleaseV0190CLIVenueProductRegistryInspect.commandLineOutput(
+            arguments: ["venue-product", "capabilities", "--venue", "binance", "--product", "spot"]
+        )
+        XCTAssertTrue(capabilities.contains("mtpro venue-product capabilities"))
+        XCTAssertTrue(capabilities.contains("target=binance/spot"))
+        XCTAssertTrue(capabilities.contains("capability.submit=active"))
+        XCTAssertTrue(capabilities.contains("capability.reduceOnly=forbidden"))
+        XCTAssertTrue(capabilities.contains("readOnlyInspectOnly=true"))
+        XCTAssertTrue(capabilities.contains("productionCutoverAuthorized=false"))
+
+        let explain = try ReleaseV0190CLIVenueProductRegistryInspect.commandLineOutput(
+            arguments: ["venue-product", "explain", "--venue", "okx", "--product", "spot"]
+        )
+        XCTAssertTrue(explain.contains("mtpro venue-product explain"))
+        XCTAssertTrue(explain.contains("target=okx/spot"))
+        XCTAssertTrue(explain.contains("status=placeholder"))
+        XCTAssertTrue(explain.contains("runtime=unsupported:"))
+        XCTAssertTrue(explain.contains("OKX runtime"))
+        XCTAssertTrue(explain.contains("commandPathIntroduced=false"))
+        XCTAssertTrue(explain.contains("submitCancelReplaceCommandPath=false"))
+
+        XCTAssertThrowsError(try ReleaseV0190CLIVenueProductRegistryInspect.commandLineOutput(
+            arguments: ["venue-product", "capabilities", "--venue", "binance", "--product", "swap"]
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("unsupported venue/product"))
+            XCTAssertTrue(String(describing: error).contains("binance/swap"))
+        }
+        XCTAssertThrowsError(try ReleaseV0190CLIVenueProductRegistryInspect.commandLineOutput(
+            arguments: ["venue-product", "explain", "--venue", "coinbase", "--product", "spot"]
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("mtpro.venueProduct.venue"))
+            XCTAssertTrue(String(describing: error).contains("coinbase"))
+        }
+
+        XCTAssertTrue(source.contains("public enum ReleaseV0190CLIVenueProductRegistryInspect"))
+        XCTAssertTrue(source.contains("public static let cliCommand = \"venue-product\""))
+        XCTAssertTrue(source.contains("commandPathIntroduced=false"))
+        XCTAssertTrue(source.contains("productionSecretReadEnabled: Bool"))
+        XCTAssertTrue(cli.contains("ReleaseV0190CLIVenueProductRegistryInspect.cliCommand"))
+        XCTAssertTrue(cli.contains("ReleaseV0190CLIVenueProductRegistryInspect.commandLineOutput"))
+        XCTAssertTrue(verifier.contains("swift run mtpro venue-product list"))
+        XCTAssertTrue(verifier.contains("swift run mtpro venue-product capabilities --venue binance --product spot"))
+        XCTAssertTrue(verifier.contains("swift run mtpro venue-product explain --venue okx --product spot"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.19.0 CLI venue/product registry inspect anchor"))
+        XCTAssertTrue(latest.contains("v0.19.0 CLI venue/product registry inspect"))
+        XCTAssertTrue(validationPlan.contains("GH-1214 Release v0.19.0 CLI Venue/Product Registry Inspect"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT"))
+    }
+
     func testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout() throws {
         // 测试场景：GH-1205 只收口 v0.18.1 patch 的 aggregate audit、release notes、
         // publication guidance 和验证锚点，不在 construction closeout PR 内创建 tag / Release。

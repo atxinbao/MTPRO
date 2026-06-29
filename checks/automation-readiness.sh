@@ -12679,4 +12679,50 @@ require_absent "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegist
 require_absent "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" "brokerEndpointConnected=true"
 require_absent "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" "submitCancelReplaceEnabled=true"
 
+require_file "checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md"; do
+  require_contains "$file" "GH-1214-VERIFY-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT"
+  require_contains "$file" "TVM-RELEASE-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT"
+  require_contains "$file" "V0190-009-CLI-REGISTRY-LIST"
+  require_contains "$file" "V0190-009-CLI-CAPABILITIES-INSPECT"
+  require_contains "$file" "V0190-009-CLI-EXPLAIN-UNSUPPORTED"
+  require_contains "$file" "V0190-009-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED"
+  require_contains "$file" "V0190-009-READ-ONLY-NO-COMMANDS"
+  require_contains "$file" "V0190-009-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "public enum ReleaseV0190CLIVenueProductRegistryInspect"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "public static let cliCommand = \"venue-product\""
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "listOutput()"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "capabilitiesOutput"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "explainOutput"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "ReleaseV0190VenueProductCapabilityMatrix.profile"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "ReleaseV0190VenueProductRuntimeRegistry.registration"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "commandPathIntroduced=false"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0190CLIVenueProductRegistryInspect.cliCommand"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0190CLIVenueProductRegistryInspect.commandLineOutput"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1214CLIVenueProductRegistryInspectShowsReadOnlyRegistryState"
+require_contains "checks/run.sh" "bash checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 CLI venue/product registry inspect anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 CLI venue/product registry inspect"
+require_contains "docs/validation/validation-plan.md" "GH-1214 Release v0.19.0 CLI Venue/Product Registry Inspect"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT"
+require_absent "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "productionCutoverAuthorized=true"
+require_absent "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "productionSecretRead=true"
+require_absent "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "productionEndpointConnected=true"
+require_absent "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "brokerEndpointConnected=true"
+require_absent "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "submitCancelReplaceEnabled=true"
+
 printf 'MTPRO automation readiness checks passed.\n'
