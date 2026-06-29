@@ -4551,3 +4551,23 @@
 - status surface: active、placeholder、futureGated and forbidden capability states are explicit, and unsupported operation reasons are visible.
 - read-only surface: Dashboard shell exposes metrics / details only; it does not bind command handlers or create order controls.
 - forbidden scope: no secret manager, no endpoint / broker connection, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.
+
+## TVM-RELEASE-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT
+
+- GH-1214-VERIFY-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT
+- V0190-009-CLI-REGISTRY-LIST
+- V0190-009-CLI-CAPABILITIES-INSPECT
+- V0190-009-CLI-EXPLAIN-UNSUPPORTED
+- V0190-009-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED
+- V0190-009-READ-ONLY-NO-COMMANDS
+- V0190-009-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1214CLIVenueProductRegistryInspectShowsReadOnlyRegistryState`
+- CLI smoke: `swift run mtpro venue-product list`
+- CLI smoke: `swift run mtpro venue-product capabilities --venue binance --product spot`
+- CLI smoke: `swift run mtpro venue-product explain --venue okx --product spot`
+- CLI surface: Binance Spot、Binance USDⓈ-M Futures、OKX Spot and OKX Swap support rows are visible from `mtpro venue-product`.
+- status surface: active、placeholder、forbidden and future-gated states are explicit, and unsupported operation reasons are visible.
+- read-only surface: CLI exposes inspection text only; it does not introduce submit / cancel / replace commands or order controls.
+- fail-closed surface: unknown or unsupported venue/product input exits non-zero with readable contract mismatch evidence.
+- forbidden scope: no secret manager, no endpoint / broker connection, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.

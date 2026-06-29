@@ -6506,3 +6506,25 @@ swift test
 - state scope: active、placeholder、futureGated and forbidden capability states must be visible, including unsupported operation reasons.
 - fail-closed surface: runtime registration failures, placeholder rows and future-gated rows remain read-only status rows rather than command controls.
 - forbidden scope: no trading button, no order form, no live command, no endpoint / broker connection, no secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
+
+## GH-1214 Release v0.19.0 CLI Venue/Product Registry Inspect
+
+- GH-1214-VERIFY-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT
+- TVM-RELEASE-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT
+- V0190-009-CLI-REGISTRY-LIST
+- V0190-009-CLI-CAPABILITIES-INSPECT
+- V0190-009-CLI-EXPLAIN-UNSUPPORTED
+- V0190-009-ACTIVE-PLACEHOLDER-FORBIDDEN-FUTURE-GATED
+- V0190-009-READ-ONLY-NO-COMMANDS
+- V0190-009-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1214CLIVenueProductRegistryInspectShowsReadOnlyRegistryState`
+- CLI smoke: `swift run mtpro venue-product list`
+- CLI smoke: `swift run mtpro venue-product capabilities --venue binance --product spot`
+- CLI smoke: `swift run mtpro venue-product explain --venue okx --product spot`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift`
+- CLI route: `Sources/MTPROCLI/main.swift`
+- surface scope: CLI must show Binance Spot、Binance USDⓈ-M Futures、OKX Spot and OKX Swap registry support states.
+- state scope: active、placeholder、forbidden and future-gated states must be visible, including unsupported operation reasons.
+- fail-closed surface: unknown or unsupported venue/product input must fail closed with readable output.
+- forbidden scope: no submit / cancel / replace command path, no endpoint / broker connection, no secret read, no tag / GitHub Release creation and no production cutover.
