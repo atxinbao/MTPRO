@@ -51,6 +51,8 @@ require_file "docs/automation/ci-reproducibility.md"
 require_file "docs/automation/parent-codex-supervision.md"
 require_file "docs/automation/post-issue-ledger.md"
 require_file "docs/automation/verified-operations.md"
+require_file "docs/audit/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-notes.md"
 require_file "docs/planning/project-role-map.md"
 [[ -d "docs/planning/projects" ]] || fail "missing required directory: docs/planning/projects"
 require_file "docs/planning/projects/mtpro-guidance-plan.md"
@@ -12957,5 +12959,39 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.19.1 aggre
 require_contains "docs/validation/validation-plan.md" "GH-1236 Release v0.19.1 Aggregate Verification Anchor"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1236ReleaseV0191AggregateVerificationAnchor"
+
+for file in \
+  "docs/release/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-notes.md" \
+  "docs/audit/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-stage-code-audit.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.1.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh"; do
+  require_contains "$file" "GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "V0191-006-PATCH-AUDIT"
+  require_contains "$file" "V0191-006-RELEASE-NOTES"
+  require_contains "$file" "V0191-006-ISSUE-EVIDENCE"
+  require_contains "$file" "V0191-006-VALIDATION-MATRIX"
+  require_contains "$file" "V0191-006-RELEASE-PUBLICATION-GATE-HANDOFF"
+  require_contains "$file" "V0191-006-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0191-006-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "checks/verify-v0.19.1.sh" "testGH1237ReleaseV0191PatchAuditReleaseNotesCloseout"
+require_contains "docs/release/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-notes.md" "#1232"
+require_contains "docs/audit/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-stage-code-audit.md" "#1237"
+require_contains "checks/run.sh" "GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "checks/automation-readiness.sh" "GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.1 patch audit / release notes anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.19.1 patch audit / release notes closeout"
+require_contains "docs/validation/validation-plan.md" "GH-1237 Release v0.19.1 Patch Audit / Release Notes Closeout"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "docs/release/release-publication-policy.md" "GH-1237 closes v0.19.1 patch audit"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1237ReleaseV0191PatchAuditReleaseNotesCloseout"
 
 printf 'MTPRO automation readiness checks passed.\n'

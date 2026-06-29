@@ -31,6 +31,7 @@
 - `GH-1200 V181-001 Sync v0.18.0 publication facts`
 - `GH-1233 V191-002 Rewrite v0.19.0 construction closeout wording as historical context`
 - `GH-1234 V191-003 Harden v0.19.0 stale wording guard`
+- `GH-1237 V191-006 Close v0.19.1 patch audit / release notes`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -42,6 +43,32 @@ MTPRO release line 必须区分两类 gate：
 - public release publication gate：在 construction closeout 完成后，单独确认 tag、GitHub Release、release notes、target commit、source checksum expectation 和 publication boundary。
 
 construction closeout 不等于 public release publication。public release publication 也不等于 production cutover。
+
+## GH-1237-V0191-PATCH-AUDIT-RELEASE-NOTES
+
+`GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES`
+
+`TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES`
+
+`V0191-006-PATCH-AUDIT`
+
+`V0191-006-RELEASE-NOTES`
+
+`V0191-006-ISSUE-EVIDENCE`
+
+`V0191-006-VALIDATION-MATRIX`
+
+`V0191-006-RELEASE-PUBLICATION-GATE-HANDOFF`
+
+`V0191-006-NO-PRODUCTION-CUTOVER`
+
+`V0191-006-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1237 closes v0.19.1 patch audit / release notes for #1232..#1237 and PR #1251..#1255. The closeout documents confirm v0.19.0 stable GitHub Release facts, v0.19.1 patch evidence, aggregate verifier coverage and production cutover boundary.
+
+#1237 construction closeout does not create the `v0.19.1` tag or GitHub Release. Human has explicitly requested v0.19.1 publication；publication remains an independent Release Publication Gate after #1237 PR merge, required `checks` SUCCESS, clean `main`, open PR = 0, open active issue = 0, worktree clean and validation evidence are reconfirmed.
+
+GH-1237 does not move `v0.19.0` tag, does not overwrite GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
 
 ## V080-002-V070-ACTUAL-GITHUB-RELEASE
 
