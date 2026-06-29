@@ -31486,6 +31486,100 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1236ReleaseV0191AggregateVerificationAnchor() throws {
+        // 测试场景：GH-1236 为 v0.19.1 patch 增加 aggregate verifier。
+        // 验证目的：aggregate verifier 必须覆盖 #1232 release fact sync、#1233 historical
+        // wording、#1234 stale wording guard 和 #1235 publication fact markers，但不得创建
+        // v0.19.1 tag / GitHub Release 或授权 production cutover。
+        // GH-1236-VERIFY-V0191-AGGREGATE-VERIFICATION-ANCHOR
+        // TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR
+        // V0191-005-AGGREGATE-GUARD
+        // V0191-005-FOCUSED-GUARDS-COVERED
+        // V0191-005-PUBLICATION-FACTS-COVERED
+        // V0191-005-RUN-AUTOMATION-WIRING
+        // V0191-005-NO-PRODUCTION-CUTOVER
+        // V0191-005-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1236-VERIFY-V0191-AGGREGATE-VERIFICATION-ANCHOR",
+            "TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR",
+            "V0191-005-AGGREGATE-GUARD",
+            "V0191-005-FOCUSED-GUARDS-COVERED",
+            "V0191-005-PUBLICATION-FACTS-COVERED",
+            "V0191-005-RUN-AUTOMATION-WIRING",
+            "V0191-005-NO-PRODUCTION-CUTOVER",
+            "V0191-005-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        let requiredFiles = [
+            "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md",
+            "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.19.1.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let verifier = try read("checks/verify-v0.19.1.sh")
+        let notes = try read("docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md")
+        let audit = try read("docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        for subVerifier in [
+            "bash checks/verify-v0.19.1-v0190-release-fact-sync.sh",
+            "bash checks/verify-v0.19.1-v0190-historical-closeout-wording.sh",
+            "bash checks/verify-v0.19.1-v0190-stale-wording-guard.sh",
+            "testGH1236ReleaseV0191AggregateVerificationAnchor"
+        ] {
+            XCTAssertTrue(verifier.contains(subVerifier), "\(subVerifier) must stay in v0.19.1 aggregate verifier")
+        }
+
+        for marker in [
+            "V0191-004-V0190-RELEASE-NOTES-PUBLICATION-FACTS",
+            "V0191-004-V0190-STAGE-AUDIT-PUBLICATION-FACTS",
+            "V0191-004-V0190-STABLE-RELEASE-FACT",
+            "V0191-004-NO-PRODUCTION-CUTOVER"
+        ] {
+            XCTAssertTrue(notes.contains(marker), "release notes must keep #1235 publication fact marker \(marker)")
+            XCTAssertTrue(audit.contains(marker), "stage audit must keep #1235 publication fact marker \(marker)")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.1.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.19.1.sh"))
+        XCTAssertTrue(readiness.contains("Release v0.19.1 aggregate verification anchor"))
+        XCTAssertTrue(latest.contains("v0.19.1 aggregate verification anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1236 Release v0.19.1 Aggregate Verification Anchor"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR"))
+
+        for source in [notes, audit, readiness, latest, validationPlan, tradingMatrix] {
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("productionSecretRead=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnected=true"))
+            XCTAssertFalse(source.contains("productionBrokerConnected=true"))
+            XCTAssertFalse(source.contains("productionOrderSubmitted=true"))
+        }
+    }
+
     func testGH1215ReleaseV0190StageAuditReleaseDocsCloseout() throws {
         // 测试场景：GH-1215 将 v0.19.0 construction queue 收口为 Stage Code Audit、
         // release notes、validation matrix、root docs refresh 和 stale wording guard。

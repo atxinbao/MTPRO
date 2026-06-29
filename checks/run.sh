@@ -245,6 +245,15 @@ bash checks/verify-v0.19.1-v0190-historical-closeout-wording.sh
 # 53e9b1e81db075ef464b74f8f35c66ebd61ea03c
 # 2026-06-29T13:42:34Z
 bash checks/verify-v0.19.1-v0190-stale-wording-guard.sh
+# GH-1236-VERIFY-V0191-AGGREGATE-VERIFICATION-ANCHOR
+# TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR
+# V0191-005-AGGREGATE-GUARD
+# V0191-005-FOCUSED-GUARDS-COVERED
+# V0191-005-PUBLICATION-FACTS-COVERED
+# V0191-005-RUN-AUTOMATION-WIRING
+# V0191-005-NO-PRODUCTION-CUTOVER
+# V0191-005-NO-TAG-OR-RELEASE-PUBLICATION
+bash checks/verify-v0.19.1.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh

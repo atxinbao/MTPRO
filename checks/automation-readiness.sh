@@ -166,6 +166,7 @@ require_file "checks/verify-v0.19.0-venue-product-capability-matrix.sh"
 require_file "checks/verify-v0.19.0-venue-endpoint-family-registry.sh"
 require_file "checks/verify-v0.19.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.19.1-v0190-release-fact-sync.sh"
+require_file "checks/verify-v0.19.1.sh"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
 require_file "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md"
@@ -12922,5 +12923,39 @@ require_contains "docs/release/release-publication-policy.md" "GH-1234 rejects c
 require_contains "checks/run.sh" "bash checks/verify-v0.19.1-v0190-stale-wording-guard.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.1-v0190-stale-wording-guard.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1234ReleaseV0191V0190StaleWordingGuardRejectsCurrentFacingDrift"
+
+for file in \
+  "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" \
+  "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.1.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh"; do
+  require_contains "$file" "GH-1236-VERIFY-V0191-AGGREGATE-VERIFICATION-ANCHOR"
+  require_contains "$file" "TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR"
+  require_contains "$file" "V0191-005-AGGREGATE-GUARD"
+  require_contains "$file" "V0191-005-FOCUSED-GUARDS-COVERED"
+  require_contains "$file" "V0191-005-PUBLICATION-FACTS-COVERED"
+  require_contains "$file" "V0191-005-RUN-AUTOMATION-WIRING"
+  require_contains "$file" "V0191-005-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0191-005-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "checks/verify-v0.19.1.sh" "bash checks/verify-v0.19.1-v0190-release-fact-sync.sh"
+require_contains "checks/verify-v0.19.1.sh" "bash checks/verify-v0.19.1-v0190-historical-closeout-wording.sh"
+require_contains "checks/verify-v0.19.1.sh" "bash checks/verify-v0.19.1-v0190-stale-wording-guard.sh"
+require_contains "checks/verify-v0.19.1.sh" "testGH1236ReleaseV0191AggregateVerificationAnchor"
+require_contains "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" "V0191-004-V0190-RELEASE-NOTES-PUBLICATION-FACTS"
+require_contains "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" "V0191-004-V0190-STAGE-AUDIT-PUBLICATION-FACTS"
+require_contains "checks/run.sh" "bash checks/verify-v0.19.1.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.1.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.1 aggregate verification anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.19.1 aggregate verification anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1236 Release v0.19.1 Aggregate Verification Anchor"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1236ReleaseV0191AggregateVerificationAnchor"
 
 printf 'MTPRO automation readiness checks passed.\n'
