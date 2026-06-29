@@ -4503,3 +4503,19 @@
 - consistency surface: lifecycle manifest, status retry, resume, replay, Dashboard drilldown and failure classification share canonical namespaceKey; Dashboard fixture path uses canonical `usdmFutures`.
 - fail-closed surface: unsupported pair, productionLive, credential-like account profile and namespace mismatch fail closed.
 - forbidden scope: no secret manager, no endpoint / broker connection, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.
+
+## TVM-RELEASE-V0190-RUNTIME-ADAPTER-PROTOCOL
+
+- GH-1211-VERIFY-V0190-RUNTIME-ADAPTER-PROTOCOL
+- V0190-006-RUNTIME-ADAPTER-PROTOCOL
+- V0190-006-CAPABILITY-GATED-OPERATIONS
+- V0190-006-TYPED-NAMESPACE-SELECTION
+- V0190-006-UNSUPPORTED-FAILS-CLOSED
+- V0190-006-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1211ReleaseV0190VenueProductRuntimeAdapterProtocolFailsClosed`
+- protocol surface: submit、cancel、queryStatus、queryPosition、reconcile and recover are declared on `ReleaseV0190VenueProductRuntimeAdapter`.
+- selection surface: runtime adapter selection requires typed venue/product/environment/accountProfile namespace plus capability, endpoint family and credential profile registry evidence.
+- capability surface: operations must pass active capability checks; recover maps to reconcile capability and does not expand the #1207 matrix.
+- fail-closed surface: OKX placeholder / futureGated capabilities, productionShadow local execution, productionLive targets, cross profile reuse and endpoint / secret / broker flags fail closed.
+- forbidden scope: no secret manager, no endpoint / broker connection, no production live implementation, no tag or GitHub Release creation and no production cutover.

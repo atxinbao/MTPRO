@@ -12564,4 +12564,39 @@ require_contains "docs/validation/validation-plan.md" "GH-1210 Release v0.19.0 v
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1210ReleaseV0190MigratesV018LifecycleNamespaceToTypedModel"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeAdapterProtocol.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md"; do
+  require_contains "$file" "GH-1211-VERIFY-V0190-RUNTIME-ADAPTER-PROTOCOL"
+  require_contains "$file" "TVM-RELEASE-V0190-RUNTIME-ADAPTER-PROTOCOL"
+  require_contains "$file" "V0190-006-RUNTIME-ADAPTER-PROTOCOL"
+  require_contains "$file" "V0190-006-CAPABILITY-GATED-OPERATIONS"
+  require_contains "$file" "V0190-006-TYPED-NAMESPACE-SELECTION"
+  require_contains "$file" "V0190-006-UNSUPPORTED-FAILS-CLOSED"
+  require_contains "$file" "V0190-006-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeAdapterProtocol.swift" "public protocol ReleaseV0190VenueProductRuntimeAdapter"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeAdapterProtocol.swift" "public struct ReleaseV0190VenueProductRuntimeAdapterSelection"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeAdapterProtocol.swift" "public struct ReleaseV0190LocalEvidenceVenueProductRuntimeAdapter"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeAdapterProtocol.swift" "ReleaseV0190VenueProductCapabilityMatrix.requireActive"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeAdapterProtocol.swift" "ReleaseV0190VenueEndpointFamilyRegistry.entry"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeAdapterProtocol.swift" "ReleaseV0190VenueCredentialProfileRegistry.entry"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeAdapterProtocol.swift" "localExecutableEvidenceBoundaryHeld"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeAdapterProtocol.swift" "localEvidenceAdapterOnly=true"
+require_contains "checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh" "testGH1211ReleaseV0190VenueProductRuntimeAdapterProtocolFailsClosed"
+require_contains "checks/run.sh" "bash checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 venue/product runtime adapter protocol anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 venue/product runtime adapter protocol"
+require_contains "docs/validation/validation-plan.md" "GH-1211 Release v0.19.0 Venue/Product Runtime Adapter Protocol"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-RUNTIME-ADAPTER-PROTOCOL"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1211ReleaseV0190VenueProductRuntimeAdapterProtocolFailsClosed"
+
 printf 'MTPRO automation readiness checks passed.\n'

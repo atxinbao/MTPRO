@@ -30565,6 +30565,212 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1211ReleaseV0190VenueProductRuntimeAdapterProtocolFailsClosed() throws {
+        // 测试场景：GH-1211 新增 registry-aware runtime adapter 协议、typed selection 和
+        // local evidence adapter。
+        // 验证目的：adapter 选择必须绑定 typed venue/product/environment/profile namespace，
+        // 操作必须经过 capability matrix；OKX、productionShadow、productionLive、跨 profile 复用
+        // 和 endpoint/secret/broker flags 都 fail closed，且不授权 production cutover。
+        // GH-1211-VERIFY-V0190-RUNTIME-ADAPTER-PROTOCOL
+        // TVM-RELEASE-V0190-RUNTIME-ADAPTER-PROTOCOL
+        // V0190-006-RUNTIME-ADAPTER-PROTOCOL
+        // V0190-006-CAPABILITY-GATED-OPERATIONS
+        // V0190-006-TYPED-NAMESPACE-SELECTION
+        // V0190-006-UNSUPPORTED-FAILS-CLOSED
+        // V0190-006-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1211-VERIFY-V0190-RUNTIME-ADAPTER-PROTOCOL",
+            "TVM-RELEASE-V0190-RUNTIME-ADAPTER-PROTOCOL",
+            "V0190-006-RUNTIME-ADAPTER-PROTOCOL",
+            "V0190-006-CAPABILITY-GATED-OPERATIONS",
+            "V0190-006-TYPED-NAMESPACE-SELECTION",
+            "V0190-006-UNSUPPORTED-FAILS-CLOSED",
+            "V0190-006-NO-PRODUCTION-CUTOVER"
+        ]
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeAdapterProtocol.swift")
+        let verifier = try read("checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in anchors {
+            for evidenceSource in [
+                source,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix
+            ] {
+                XCTAssertTrue(evidenceSource.contains(anchor), "\(anchor) must stay anchored in GH-1211 evidence")
+            }
+        }
+
+        let binanceSpotPair = ReleaseV0181VenueProductPair(venueID: .binance, productKind: .spot)
+        let binanceSpotProfile = try ReleaseV0181AccountProfileID(
+            ReleaseV0190VenueCredentialProfileEntry.expectedProfileID(
+                pair: binanceSpotPair,
+                tradingEnvironment: .testnet
+            )
+        )
+        let adapter = try ReleaseV0190LocalEvidenceVenueProductRuntimeAdapter.select(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .testnet,
+            accountProfileID: binanceSpotProfile
+        )
+        XCTAssertTrue(adapter.selection.selectionHeld)
+        XCTAssertTrue(adapter.selection.localExecutableEvidenceBoundaryHeld)
+
+        let statusRequest = try ReleaseV0190VenueProductRuntimeAdapterRequest(
+            requestID: Identifier.constant("gh-1211-binance-spot-status"),
+            target: adapter.selection.target,
+            operation: .queryStatus,
+            reason: "local runtime adapter protocol status evidence"
+        )
+        let statusEvidence = try adapter.queryStatus(statusRequest)
+        XCTAssertTrue(statusEvidence.boundaryHeld)
+        XCTAssertEqual(statusEvidence.operation, .queryStatus)
+        XCTAssertEqual(statusEvidence.capabilityDecision.capability, .status)
+        XCTAssertEqual(statusEvidence.namespaceKey, "binance/spot/testnet/binance-spot-testnet-credential-profile-ref")
+        XCTAssertFalse(statusEvidence.readsSecretValue)
+        XCTAssertFalse(statusEvidence.connectsEndpoint)
+        XCTAssertFalse(statusEvidence.touchesBrokerGateway)
+        XCTAssertFalse(statusEvidence.productionCutoverAuthorized)
+
+        let protocolAdapter: any ReleaseV0190VenueProductRuntimeAdapter = adapter
+        let recoverRequest = try ReleaseV0190VenueProductRuntimeAdapterRequest(
+            requestID: Identifier.constant("gh-1211-binance-spot-recover"),
+            target: adapter.selection.target,
+            operation: .recover,
+            reason: "local runtime adapter protocol recover evidence"
+        )
+        let recoverEvidence = try protocolAdapter.recover(recoverRequest)
+        XCTAssertTrue(recoverEvidence.boundaryHeld)
+        XCTAssertEqual(recoverEvidence.operation, .recover)
+        XCTAssertEqual(recoverEvidence.capabilityDecision.capability, .reconcile)
+
+        let okxSpotPair = ReleaseV0181VenueProductPair(venueID: .okx, productKind: .spot)
+        let okxSpotProfile = try ReleaseV0181AccountProfileID(
+            ReleaseV0190VenueCredentialProfileEntry.expectedProfileID(
+                pair: okxSpotPair,
+                tradingEnvironment: .testnet
+            )
+        )
+        let okxAdapter = try ReleaseV0190LocalEvidenceVenueProductRuntimeAdapter.select(
+            venueID: .okx,
+            productKind: .spot,
+            tradingEnvironment: .testnet,
+            accountProfileID: okxSpotProfile
+        )
+        let okxStatusRequest = try ReleaseV0190VenueProductRuntimeAdapterRequest(
+            requestID: Identifier.constant("gh-1211-okx-spot-status"),
+            target: okxAdapter.selection.target,
+            operation: .queryStatus,
+            reason: "local runtime adapter protocol OKX placeholder evidence"
+        )
+        XCTAssertThrowsError(try okxAdapter.queryStatus(okxStatusRequest)) { error in
+            XCTAssertTrue(String(describing: error).contains("placeholder"))
+            XCTAssertTrue(String(describing: error).contains("capabilityMatrix.status"))
+        }
+
+        let okxSubmitRequest = try ReleaseV0190VenueProductRuntimeAdapterRequest(
+            requestID: Identifier.constant("gh-1211-okx-spot-submit"),
+            target: okxAdapter.selection.target,
+            operation: .submit,
+            reason: "local runtime adapter protocol OKX future gated evidence"
+        )
+        XCTAssertThrowsError(try okxAdapter.submit(okxSubmitRequest)) { error in
+            XCTAssertTrue(String(describing: error).contains("futureGated"))
+            XCTAssertTrue(String(describing: error).contains("capabilityMatrix.submit"))
+        }
+
+        let shadowProfile = try ReleaseV0181AccountProfileID(
+            ReleaseV0190VenueCredentialProfileEntry.expectedProfileID(
+                pair: binanceSpotPair,
+                tradingEnvironment: .productionShadow
+            )
+        )
+        let shadowAdapter = try ReleaseV0190LocalEvidenceVenueProductRuntimeAdapter.select(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .productionShadow,
+            accountProfileID: shadowProfile
+        )
+        let shadowStatusRequest = try ReleaseV0190VenueProductRuntimeAdapterRequest(
+            requestID: Identifier.constant("gh-1211-binance-spot-shadow-status"),
+            target: shadowAdapter.selection.target,
+            operation: .queryStatus,
+            reason: "local runtime adapter protocol production shadow fail closed evidence"
+        )
+        XCTAssertThrowsError(try shadowAdapter.queryStatus(shadowStatusRequest)) { error in
+            XCTAssertTrue(String(describing: error).contains("localExecutableBoundary"))
+            XCTAssertTrue(String(describing: error).contains("productionShadow"))
+        }
+
+        XCTAssertThrowsError(try ReleaseV0190VenueProductRuntimeAdapterSelection.select(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .productionLive,
+            accountProfileID: binanceSpotProfile
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("productionLive"))
+        }
+
+        let reusedUSDMProfile = try ReleaseV0181AccountProfileID(
+            ReleaseV0190VenueCredentialProfileEntry.expectedProfileID(
+                pair: ReleaseV0181VenueProductPair(venueID: .binance, productKind: .usdmFutures),
+                tradingEnvironment: .testnet
+            )
+        )
+        XCTAssertThrowsError(try ReleaseV0190LocalEvidenceVenueProductRuntimeAdapter.select(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .testnet,
+            accountProfileID: reusedUSDMProfile
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("namespaceReuse"))
+        }
+
+        XCTAssertThrowsError(try ReleaseV0190VenueProductRuntimeAdapterRequest(
+            requestID: Identifier.constant("gh-1211-request-connects-endpoint"),
+            target: adapter.selection.target,
+            operation: .queryStatus,
+            reason: "local runtime adapter protocol forbidden endpoint flag",
+            connectsEndpoint: true
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("connectsEndpoint"))
+        }
+
+        XCTAssertTrue(source.contains("public protocol ReleaseV0190VenueProductRuntimeAdapter"))
+        XCTAssertTrue(source.contains("public struct ReleaseV0190LocalEvidenceVenueProductRuntimeAdapter"))
+        XCTAssertTrue(source.contains("localExecutableEvidenceBoundaryHeld"))
+        XCTAssertTrue(source.contains("operation.requiredCapability"))
+        XCTAssertTrue(source.contains("ReleaseV0190VenueProductCapabilityMatrix.requireActive"))
+        XCTAssertTrue(source.contains("ReleaseV0190VenueEndpointFamilyRegistry.entry"))
+        XCTAssertTrue(source.contains("ReleaseV0190VenueCredentialProfileRegistry.entry"))
+        XCTAssertTrue(source.contains("localEvidenceAdapterOnly=true"))
+        XCTAssertTrue(source.contains("productionEndpointConnectionEnabled=false"))
+        XCTAssertTrue(source.contains("productionOrderSubmitCancelReplaceEnabled=false"))
+        XCTAssertTrue(verifier.contains("testGH1211ReleaseV0190VenueProductRuntimeAdapterProtocolFailsClosed"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.19.0 venue/product runtime adapter protocol anchor"))
+        XCTAssertTrue(latest.contains("v0.19.0 venue/product runtime adapter protocol"))
+        XCTAssertTrue(validationPlan.contains("GH-1211 Release v0.19.0 Venue/Product Runtime Adapter Protocol"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-RUNTIME-ADAPTER-PROTOCOL"))
+    }
+
     func testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout() throws {
         // 测试场景：GH-1205 只收口 v0.18.1 patch 的 aggregate audit、release notes、
         // publication guidance 和验证锚点，不在 construction closeout PR 内创建 tag / Release。

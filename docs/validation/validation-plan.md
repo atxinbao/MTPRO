@@ -6450,3 +6450,21 @@ swift test
 - consistency surface: lifecycle manifest, status retry, resume, replay, Dashboard drilldown and failure classification must use the same canonical namespaceKey; Dashboard fixture path uses canonical `usdmFutures`.
 - fail-closed surface: unsupported pair, productionLive, credential-like account profile and namespace mismatch must fail closed.
 - forbidden scope: no endpoint / broker connection, no secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
+
+## GH-1211 Release v0.19.0 Venue/Product Runtime Adapter Protocol
+
+- GH-1211-VERIFY-V0190-RUNTIME-ADAPTER-PROTOCOL
+- TVM-RELEASE-V0190-RUNTIME-ADAPTER-PROTOCOL
+- V0190-006-RUNTIME-ADAPTER-PROTOCOL
+- V0190-006-CAPABILITY-GATED-OPERATIONS
+- V0190-006-TYPED-NAMESPACE-SELECTION
+- V0190-006-UNSUPPORTED-FAILS-CLOSED
+- V0190-006-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1211ReleaseV0190VenueProductRuntimeAdapterProtocolFailsClosed`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeAdapterProtocol.swift`
+- validation surface: `ReleaseV0190VenueProductRuntimeAdapter` must expose submit、cancel、queryStatus、queryPosition、reconcile and recover protocol methods without adding a production runtime implementation.
+- selection surface: adapter selection must bind typed VenueID / ProductKind / TradingEnvironment / AccountProfileID to capability profile, endpoint family and credential profile registry evidence.
+- capability surface: every operation must require `ReleaseV0190VenueProductCapabilityMatrix.requireActive`; `recover` reuses reconcile capability rather than expanding the matrix.
+- fail-closed surface: OKX placeholder / futureGated capabilities, productionShadow local execution, productionLive targets, cross profile reuse and endpoint / secret / broker flags must fail closed.
+- forbidden scope: no endpoint / broker connection, no secret read, no production live implementation, no tag / GitHub Release creation and no production cutover.
