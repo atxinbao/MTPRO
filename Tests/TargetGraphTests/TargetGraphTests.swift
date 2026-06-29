@@ -31580,6 +31580,109 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1237ReleaseV0191PatchAuditReleaseNotesCloseout() throws {
+        // 测试场景：GH-1237 收口 v0.19.1 patch audit、release notes、
+        // validation matrix 和 Release Publication Gate handoff。
+        // 验证目的：#1232..#1237 证据链、PR #1251..#1255、v0.19.0 已发布事实、
+        // no-production-cutover 和 no-tag-or-release-in-closeout 边界必须同时保留。
+        // GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES
+        // TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES
+        // V0191-006-PATCH-AUDIT
+        // V0191-006-RELEASE-NOTES
+        // V0191-006-ISSUE-EVIDENCE
+        // V0191-006-VALIDATION-MATRIX
+        // V0191-006-RELEASE-PUBLICATION-GATE-HANDOFF
+        // V0191-006-NO-PRODUCTION-CUTOVER
+        // V0191-006-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES",
+            "TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES",
+            "V0191-006-PATCH-AUDIT",
+            "V0191-006-RELEASE-NOTES",
+            "V0191-006-ISSUE-EVIDENCE",
+            "V0191-006-VALIDATION-MATRIX",
+            "V0191-006-RELEASE-PUBLICATION-GATE-HANDOFF",
+            "V0191-006-NO-PRODUCTION-CUTOVER",
+            "V0191-006-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        let audit = try read(
+            "docs/audit/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-stage-code-audit.md"
+        )
+        let notes = try read(
+            "docs/release/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-notes.md"
+        )
+        let verifier = try read("checks/verify-v0.19.1.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+
+        for anchor in anchors {
+            for source in [
+                audit,
+                notes,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix,
+                releasePolicy
+            ] {
+                XCTAssertTrue(source.contains(anchor), "\(anchor) must stay anchored in v0.19.1 patch closeout")
+            }
+        }
+
+        for issue in ["#1232", "#1233", "#1234", "#1235", "#1236", "#1237"] {
+            XCTAssertTrue(audit.contains(issue), "\(issue) must stay in v0.19.1 audit evidence")
+            XCTAssertTrue(notes.contains(issue), "\(issue) must stay in v0.19.1 release notes input")
+        }
+        for pullRequest in ["PR #1251", "PR #1252", "PR #1253", "PR #1254", "PR #1255"] {
+            XCTAssertTrue(audit.contains(pullRequest), "\(pullRequest) must stay in v0.19.1 audit evidence")
+            XCTAssertTrue(notes.contains(pullRequest), "\(pullRequest) must stay in v0.19.1 release notes input")
+        }
+
+        for source in [audit, notes] {
+            XCTAssertTrue(source.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0"))
+            XCTAssertTrue(source.contains("53e9b1e81db075ef464b74f8f35c66ebd61ea03c"))
+            XCTAssertTrue(source.contains("2026-06-29T13:42:34Z"))
+            XCTAssertTrue(source.contains("Release Publication Gate"))
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("productionSecretRead=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnected=true"))
+            XCTAssertFalse(source.contains("productionBrokerConnected=true"))
+            XCTAssertFalse(source.contains("productionOrderSubmitted=true"))
+        }
+
+        for subVerifier in [
+            "bash checks/verify-v0.19.1-v0190-release-fact-sync.sh",
+            "bash checks/verify-v0.19.1-v0190-historical-closeout-wording.sh",
+            "bash checks/verify-v0.19.1-v0190-stale-wording-guard.sh",
+            "testGH1236ReleaseV0191AggregateVerificationAnchor",
+            "testGH1237ReleaseV0191PatchAuditReleaseNotesCloseout"
+        ] {
+            XCTAssertTrue(verifier.contains(subVerifier), "\(subVerifier) must stay in v0.19.1 aggregate verifier")
+        }
+
+        XCTAssertTrue(runScript.contains("GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES"))
+        XCTAssertTrue(readinessScript.contains("GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.19.1 patch audit / release notes anchor"))
+        XCTAssertTrue(latest.contains("v0.19.1 patch audit / release notes closeout"))
+        XCTAssertTrue(validationPlan.contains("GH-1237 Release v0.19.1 Patch Audit / Release Notes Closeout"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES"))
+        XCTAssertTrue(releasePolicy.contains("GH-1237 closes v0.19.1 patch audit"))
+    }
+
     func testGH1215ReleaseV0190StageAuditReleaseDocsCloseout() throws {
         // 测试场景：GH-1215 将 v0.19.0 construction queue 收口为 Stage Code Audit、
         // release notes、validation matrix、root docs refresh 和 stale wording guard。

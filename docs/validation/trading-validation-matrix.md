@@ -4434,6 +4434,22 @@
 - publication fact surface: #1235 v0.19.0 release notes and stage audit markers remain covered by the aggregate verifier.
 - forbidden scope: no tag movement, no release overwrite, no v0.19.1 publication, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
 
+## TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES
+
+- GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES
+- V0191-006-PATCH-AUDIT
+- V0191-006-RELEASE-NOTES
+- V0191-006-ISSUE-EVIDENCE
+- V0191-006-VALIDATION-MATRIX
+- V0191-006-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0191-006-NO-PRODUCTION-CUTOVER
+- V0191-006-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.19.1.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1237ReleaseV0191PatchAuditReleaseNotesCloseout`
+- audit surface: `docs/audit/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-stage-code-audit.md` summarizes #1232..#1237 issue evidence and PR #1251..#1255 merge evidence.
+- release notes surface: `docs/release/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-notes.md` records the patch evidence and Release Publication Gate handoff.
+- forbidden scope: no tag movement, no release overwrite, no v0.19.1 publication inside #1237, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
+
 ## TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY
 
 - GH-1206-VERIFY-V0190-VENUE-PRODUCT-REGISTRY

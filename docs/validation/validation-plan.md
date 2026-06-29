@@ -97,6 +97,22 @@
 - Evidence files: `checks/verify-v0.19.1.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md`、`docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1236 只新增 v0.19.1 aggregate verification anchor，聚合 #1232 release fact sync、#1233 historical closeout wording、#1234 stale wording guard，并确认 #1235 publication fact markers 已落在 v0.19.0 release notes 和 stage audit。GH-1236 不移动 `v0.19.0` tag，不覆盖 GitHub Release，不创建 v0.19.1 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。
 
+## GH-1237 Release v0.19.1 Patch Audit / Release Notes Closeout
+
+- GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES
+- TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES
+- V0191-006-PATCH-AUDIT
+- V0191-006-RELEASE-NOTES
+- V0191-006-ISSUE-EVIDENCE
+- V0191-006-VALIDATION-MATRIX
+- V0191-006-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0191-006-NO-PRODUCTION-CUTOVER
+- V0191-006-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.19.1.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1237ReleaseV0191PatchAuditReleaseNotesCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-notes.md`、`checks/verify-v0.19.1.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/release/release-publication-policy.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1237 只收口 #1232..#1237 patch audit / release notes / publication handoff evidence。GH-1237 不移动 `v0.19.0` tag，不覆盖 GitHub Release，不创建 v0.19.1 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。Human 已要求 v0.19.1 publication，但 tag / GitHub Release 仍必须在 #1237 merge 后通过独立 Release Publication Gate 执行。
+
 ## GH-1148 Release v0.17.0 Stage Audit / Release Docs Closeout
 
 - GH-1148-VERIFY-V0170-STAGE-AUDIT-RELEASE-DOCS
