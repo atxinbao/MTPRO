@@ -30247,6 +30247,173 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY"))
     }
 
+    func testGH1209ReleaseV0190VenueCredentialProfileRegistryFailsClosed() throws {
+        // 测试场景：GH-1209 在 v0.19.0 endpoint family registry 之后，
+        // 定义 venue/product/environment scoped credential profile identity registry。
+        // 验证目的：registry 只保存 typed profile identity 和 redacted evidence reference，
+        // 不读取 secret value；productionLive 和跨 namespace credential reuse 均 fail closed。
+        // GH-1209-VERIFY-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY
+        // TVM-RELEASE-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY
+        // V0190-004-CREDENTIAL-PROFILE-REGISTRY
+        // V0190-004-TESTNET-PRODUCTION-SHADOW-PROFILES
+        // V0190-004-CREDENTIAL-IDENTITY-ONLY
+        // V0190-004-CROSS-NAMESPACE-REUSE-FAILS-CLOSED
+        // V0190-004-REDACTED-EVIDENCE-ONLY
+        // V0190-004-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+        // V0190-004-NO-SECRET-READ
+        // V0190-004-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1209-VERIFY-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY",
+            "TVM-RELEASE-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY",
+            "V0190-004-CREDENTIAL-PROFILE-REGISTRY",
+            "V0190-004-TESTNET-PRODUCTION-SHADOW-PROFILES",
+            "V0190-004-CREDENTIAL-IDENTITY-ONLY",
+            "V0190-004-CROSS-NAMESPACE-REUSE-FAILS-CLOSED",
+            "V0190-004-REDACTED-EVIDENCE-ONLY",
+            "V0190-004-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT",
+            "V0190-004-NO-SECRET-READ",
+            "V0190-004-NO-PRODUCTION-CUTOVER"
+        ]
+        let credentialSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0190VenueCredentialProfileRegistry.swift")
+        let verifier = try read("checks/verify-v0.19.0-venue-credential-profile-registry.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in anchors {
+            for source in [
+                credentialSource,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix
+            ] {
+                XCTAssertTrue(source.contains(anchor), "\(anchor) must stay anchored in v0.19.0 credential profile evidence")
+            }
+        }
+
+        XCTAssertEqual(ReleaseV0190VenueCredentialProfileRegistry.allEntries.count, 8)
+        XCTAssertTrue(ReleaseV0190VenueCredentialProfileRegistry.credentialIdentityOnly)
+        XCTAssertTrue(ReleaseV0190VenueCredentialProfileRegistry.redactedEvidenceOnly)
+        XCTAssertFalse(ReleaseV0190VenueCredentialProfileRegistry.productionSecretReadEnabled)
+        XCTAssertFalse(ReleaseV0190VenueCredentialProfileRegistry.productionEndpointConnectionEnabled)
+        XCTAssertFalse(ReleaseV0190VenueCredentialProfileRegistry.productionTradingEnabledByDefault)
+        XCTAssertFalse(ReleaseV0190VenueCredentialProfileRegistry.okxRuntimeImplemented)
+        XCTAssertEqual(Set(ReleaseV0190VenueCredentialProfileState.allCases.map(\.rawValue)), [
+            "testnetReference",
+            "productionShadow",
+            "placeholder",
+            "forbidden"
+        ])
+
+        let binanceSpotTestnet = try ReleaseV0190VenueCredentialProfileRegistry.entry(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .testnet
+        )
+        XCTAssertEqual(binanceSpotTestnet.profileID.rawValue, "binance-spot-testnet-credential-profile-ref")
+        XCTAssertEqual(binanceSpotTestnet.state, .testnetReference)
+        XCTAssertEqual(binanceSpotTestnet.redactedEvidenceReference, "redacted-credential-profile:binance:spot:testnet")
+        XCTAssertTrue(binanceSpotTestnet.credentialIdentityOnly)
+        XCTAssertTrue(binanceSpotTestnet.redactedEvidenceOnly)
+        XCTAssertFalse(binanceSpotTestnet.readsSecretValue)
+        XCTAssertFalse(binanceSpotTestnet.storesSecretValue)
+        XCTAssertFalse(binanceSpotTestnet.connectsEndpoint)
+
+        let binanceFuturesShadow = try ReleaseV0190VenueCredentialProfileRegistry.entry(
+            venueID: .binance,
+            productKind: .usdmFutures,
+            tradingEnvironment: .productionShadow
+        )
+        XCTAssertEqual(binanceFuturesShadow.profileID.rawValue, "binance-usdmFutures-productionShadow-credential-profile-ref")
+        XCTAssertEqual(binanceFuturesShadow.state, .productionShadow)
+        XCTAssertTrue(binanceFuturesShadow.reason.contains("production shadow credential profile identity only"))
+
+        let okxSpot = try ReleaseV0190VenueCredentialProfileRegistry.entry(
+            venueID: .okx,
+            productKind: .spot,
+            tradingEnvironment: .testnet
+        )
+        XCTAssertEqual(okxSpot.profileID.rawValue, "okx-spot-testnet-credential-profile-ref")
+        XCTAssertEqual(okxSpot.state, .placeholder)
+        XCTAssertTrue(okxSpot.reason.contains("placeholder evidence only"))
+
+        XCTAssertNoThrow(try ReleaseV0190VenueCredentialProfileRegistry.requireTestnetCredentialReference(
+            venueID: .binance,
+            productKind: .spot
+        ))
+        XCTAssertThrowsError(try ReleaseV0190VenueCredentialProfileRegistry.requireTestnetCredentialReference(
+            venueID: .okx,
+            productKind: .swap
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("placeholder"))
+            XCTAssertTrue(String(describing: error).contains("okx"))
+        }
+        XCTAssertThrowsError(try ReleaseV0190VenueCredentialProfileRegistry.entry(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .productionLive
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("productionLive"))
+            XCTAssertTrue(String(describing: error).contains("forbidden by default"))
+        }
+
+        let reusedSpotProfile = try ReleaseV0181AccountProfileID("binance-spot-testnet-credential-profile-ref")
+        XCTAssertThrowsError(try ReleaseV0190VenueCredentialProfileEntry.validate(
+            pair: ReleaseV0181VenueProductPair(venueID: .binance, productKind: .usdmFutures),
+            tradingEnvironment: .testnet,
+            profileID: reusedSpotProfile,
+            state: .testnetReference,
+            redactedEvidenceReference: "redacted-credential-profile:binance:usdmFutures:testnet"
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("namespaceReuse"))
+            XCTAssertTrue(String(describing: error).contains("binance-usdmFutures-testnet-credential-profile-ref"))
+        }
+        XCTAssertThrowsError(try ReleaseV0190VenueCredentialProfileEntry.validate(
+            pair: ReleaseV0181VenueProductPair(venueID: .binance, productKind: .spot),
+            tradingEnvironment: .testnet,
+            profileID: reusedSpotProfile,
+            state: .testnetReference,
+            redactedEvidenceReference: "redacted-credential-profile:binance:spot:testnet",
+            readsSecretValue: true
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("readsSecretValue"))
+        }
+        XCTAssertThrowsError(try ReleaseV0190VenueCredentialProfileEntry.validate(
+            pair: ReleaseV0181VenueProductPair(venueID: .binance, productKind: .spot),
+            tradingEnvironment: .testnet,
+            profileID: reusedSpotProfile,
+            state: .testnetReference,
+            redactedEvidenceReference: "raw-credential-profile:binance:spot:testnet"
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("redactedEvidenceReference"))
+        }
+
+        XCTAssertTrue(credentialSource.contains("public enum ReleaseV0190VenueCredentialProfileState"))
+        XCTAssertTrue(credentialSource.contains("public struct ReleaseV0190VenueCredentialProfileEntry"))
+        XCTAssertTrue(credentialSource.contains("public enum ReleaseV0190VenueCredentialProfileRegistry"))
+        XCTAssertTrue(credentialSource.contains("productionSecretReadEnabled = false"))
+        XCTAssertTrue(credentialSource.contains("productionEndpointConnectionEnabled = false"))
+        XCTAssertTrue(verifier.contains("testGH1209ReleaseV0190VenueCredentialProfileRegistryFailsClosed"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.0-venue-credential-profile-registry.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.19.0-venue-credential-profile-registry.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.19.0 venue credential profile registry anchor"))
+        XCTAssertTrue(latest.contains("v0.19.0 venue credential profile registry"))
+        XCTAssertTrue(validationPlan.contains("GH-1209 Release v0.19.0 Venue Credential Profile Registry"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY"))
+    }
+
     func testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout() throws {
         // 测试场景：GH-1205 只收口 v0.18.1 patch 的 aggregate audit、release notes、
         // publication guidance 和验证锚点，不在 construction closeout PR 内创建 tag / Release。
