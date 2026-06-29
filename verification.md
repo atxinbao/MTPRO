@@ -17383,3 +17383,25 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: pass.
   - `bash checks/automation-readiness.sh`: pass.
   - `bash checks/run.sh`: pass, 725 tests / 0 failures.
+
+## 2026-06-29 - GH-1215 v0.19.0 Stage Audit / Release Docs Closeout
+
+- Executor: Codex.
+- Scope:
+  - Added `docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md`.
+  - Added `docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md`.
+  - Added `GH-1215-VERIFY-V0190-STAGE-AUDIT-RELEASE-DOCS`, `TVM-RELEASE-V0190-STAGE-AUDIT-RELEASE-DOCS`, `V0190-010-STAGE-CODE-AUDIT`, `V0190-010-RELEASE-NOTES`, `V0190-010-VALIDATION-MATRIX`, `V0190-010-ROOT-DOCS-REFRESH`, `V0190-010-STALE-WORDING-GUARD`, `V0190-010-NO-PRODUCTION-CUTOVER` and `V0190-010-NO-TAG-OR-RELEASE-PUBLICATION` anchors to root docs, automation readiness, validation plan, trading validation matrix, latest summary, release publication policy, focused verifier and TargetGraph focused test.
+  - Recorded #1206..#1215 construction closeout, PR #1222..#1230 merge/check evidence and v0.19.0 release docs handoff.
+- Boundary:
+  - Did not create a `v0.19.0` tag or GitHub Release.
+  - Did not create a new Project or Issue.
+  - Did not promote a next Todo.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+  - Did not implement new runtime, production OMS, trading button, order form or live command path.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH1215ReleaseV0190StageAuditReleaseDocsCloseout`: required focused test.
+  - `bash checks/verify-v0.19.0-stage-audit-release-docs.sh`: required focused verifier.
+  - `git diff --check`: required.
+  - `bash checks/automation-readiness.sh`: required.
+  - `bash checks/run.sh`: required.

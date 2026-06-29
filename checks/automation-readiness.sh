@@ -164,8 +164,11 @@ require_file "checks/verify-v0.18.1.sh"
 require_file "checks/verify-v0.19.0-venue-product-registry.sh"
 require_file "checks/verify-v0.19.0-venue-product-capability-matrix.sh"
 require_file "checks/verify-v0.19.0-venue-endpoint-family-registry.sh"
+require_file "checks/verify-v0.19.0-stage-audit-release-docs.sh"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
+require_file "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md"
 require_file "architecture.md"
 require_file "environment.md"
 require_file "verification.md"
@@ -12724,5 +12727,52 @@ require_absent "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRe
 require_absent "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "productionEndpointConnected=true"
 require_absent "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "brokerEndpointConnected=true"
 require_absent "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "submitCancelReplaceEnabled=true"
+
+for file in \
+  "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "verification.md" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.0-stage-audit-release-docs.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh"; do
+  require_contains "$file" "GH-1215-VERIFY-V0190-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "TVM-RELEASE-V0190-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "V0190-010-STAGE-CODE-AUDIT"
+  require_contains "$file" "V0190-010-RELEASE-NOTES"
+  require_contains "$file" "V0190-010-VALIDATION-MATRIX"
+  require_contains "$file" "V0190-010-ROOT-DOCS-REFRESH"
+  require_contains "$file" "V0190-010-STALE-WORDING-GUARD"
+  require_contains "$file" "V0190-010-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0190-010-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" "Issue Completion Evidence"
+require_contains "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" "PR / Checks / Merge Evidence"
+require_contains "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" "#1206..#1215"
+require_contains "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" "PR #1222"
+require_contains "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" "PR #1230"
+require_contains "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" "#1215"
+require_contains "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" "bash checks/verify-v0.19.0-stage-audit-release-docs.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 stage audit / release docs closeout anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 stage audit / release docs closeout"
+require_contains "docs/validation/validation-plan.md" "GH-1215 Release v0.19.0 Stage Audit / Release Docs Closeout"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-STAGE-AUDIT-RELEASE-DOCS"
+require_contains "docs/release/release-publication-policy.md" "GH-1215 closes the v0.19.0 stage audit"
+require_contains "verification.md" "2026-06-29 - GH-1215 v0.19.0 Stage Audit / Release Docs Closeout"
+require_contains "checks/run.sh" "bash checks/verify-v0.19.0-stage-audit-release-docs.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-stage-audit-release-docs.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1215ReleaseV0190StageAuditReleaseDocsCloseout"
+require_absent "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" "productionCutoverAuthorized=true"
+require_absent "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" "productionCutoverAuthorized=true"
+require_absent "docs/release/release-publication-policy.md" "productionCutoverAuthorized=true"
 
 printf 'MTPRO automation readiness checks passed.\n'

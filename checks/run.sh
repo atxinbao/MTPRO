@@ -205,6 +205,16 @@ bash checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh
 # V0190-009-READ-ONLY-NO-COMMANDS
 # V0190-009-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh
+# GH-1215-VERIFY-V0190-STAGE-AUDIT-RELEASE-DOCS
+# TVM-RELEASE-V0190-STAGE-AUDIT-RELEASE-DOCS
+# V0190-010-STAGE-CODE-AUDIT
+# V0190-010-RELEASE-NOTES
+# V0190-010-VALIDATION-MATRIX
+# V0190-010-ROOT-DOCS-REFRESH
+# V0190-010-STALE-WORDING-GUARD
+# V0190-010-NO-PRODUCTION-CUTOVER
+# V0190-010-NO-TAG-OR-RELEASE-PUBLICATION
+bash checks/verify-v0.19.0-stage-audit-release-docs.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh
