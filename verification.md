@@ -17426,6 +17426,26 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `bash checks/automation-readiness.sh`: required.
   - `bash checks/run.sh`: required.
 
+## 2026-06-29 - GH-1234 v0.19.1 v0.19.0 Stale Wording Guard
+
+- Executor: Codex.
+- Scope:
+  - Added `GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD`, `V0191-003-V0190-STALE-WORDING-GUARD`, `V0191-003-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`, `TVM-RELEASE-V0191-V0190-STALE-WORDING-GUARD`, `V0191-003-CURRENT-FACING-STALE-WORDING-REJECTION` and `V0191-003-NO-PRODUCTION-CUTOVER`.
+  - Added `checks/verify-v0.19.1-v0190-stale-wording-guard.sh` to reject current-facing stale v0.19.0 publication wording while allowing historical construction closeout evidence only with current release facts.
+  - Preserved current v0.19.0 stable GitHub Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`, tag peeled commit `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`, publication timestamp `2026-06-29T13:42:34Z`.
+- Boundary:
+  - Did not move `v0.19.0` tag.
+  - Did not overwrite GitHub Release.
+  - Did not create v0.19.1 tag / GitHub Release.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH1234ReleaseV0191V0190StaleWordingGuardRejectsCurrentFacingDrift`: required focused test.
+  - `bash checks/verify-v0.19.1-v0190-stale-wording-guard.sh`: required focused verifier.
+  - `git diff --check`: required.
+  - `bash checks/automation-readiness.sh`: required.
+  - `bash checks/run.sh`: required.
+
 ## 2026-06-29 - Target Mainline v0.20-v0.25 Route Anchor
 
 - Executor: Codex.

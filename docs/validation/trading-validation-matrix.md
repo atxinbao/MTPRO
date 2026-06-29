@@ -4620,3 +4620,19 @@
 - historical closeout surface: #1215 no-tag / no-release wording is valid only as historical construction closeout evidence.
 - current publication surface: v0.19.0 remains published as stable GitHub Release and current-facing docs must keep that fact visible.
 - forbidden scope: no tag movement, no release overwrite, no v0.19.1 publication, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
+
+## TVM-RELEASE-V0191-V0190-STALE-WORDING-GUARD
+
+- GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD
+- V0191-003-V0190-STALE-WORDING-GUARD
+- V0191-003-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST
+- V0191-003-CURRENT-FACING-STALE-WORDING-REJECTION
+- V0191-003-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.1-v0190-stale-wording-guard.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1234ReleaseV0191V0190StaleWordingGuardRejectsCurrentFacingDrift`
+- release URL: `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`
+- tag peeled commit: `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`
+- publication timestamp: `2026-06-29T13:42:34Z`
+- current-facing stale wording surface: v0.19.0 publication drift wording must fail the guard.
+- historical allowlist surface: historical construction closeout evidence remains valid only with current v0.19.0 release facts.
+- forbidden scope: no tag movement, no release overwrite, no v0.19.1 publication, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.

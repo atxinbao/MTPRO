@@ -30,6 +30,7 @@
 - `GH-1148 V170-010 Close v0.17.0 stage audit and release docs`
 - `GH-1200 V181-001 Sync v0.18.0 publication facts`
 - `GH-1233 V191-002 Rewrite v0.19.0 construction closeout wording as historical context`
+- `GH-1234 V191-003 Harden v0.19.0 stale wording guard`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -1407,5 +1408,7 @@ GH-1205 does not create a tag, does not create a GitHub Release, does not author
 GH-1215 closes the v0.19.0 stage audit / release docs / validation matrix / root docs refresh / stale wording guard for #1206..#1215 and PR #1222..#1230. It records that the venue/product registry + runtime adapter foundation is complete as construction closeout.
 
 `GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`、`V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD`、`TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`、`V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL`、`V0191-002-CURRENT-RELEASE-PUBLISHED` 和 `V0191-002-NO-PRODUCTION-CUTOVER` 固定后续 wording rule：GH-1215 no-tag / no-release 只允许作为 historical construction closeout evidence；当前-facing docs 必须同时保留 v0.19.0 stable GitHub Release 已发布事实。
+
+`GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-V0190-STALE-WORDING-GUARD`、`V0191-003-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`、`TVM-RELEASE-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-CURRENT-FACING-STALE-WORDING-REJECTION` 和 `V0191-003-NO-PRODUCTION-CUTOVER` 固定后续 guard rule：GH-1234 rejects current-facing stale v0.19.0 publication wording；historical construction closeout evidence 只有在同一 artifact 保留 release URL、tag peeled commit 和 publication timestamp 时允许。
 
 v0.19.0 已在 GH-1215 之后通过独立 Release Publication Gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`，tag peeled commit `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`，publication timestamp `2026-06-29T13:42:34Z`。GH-1215 在 construction closeout 当时不创建 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不提交 / cancel / replace production order；该 historical boundary 不覆盖当前 publication fact。production cutover not authorized.
