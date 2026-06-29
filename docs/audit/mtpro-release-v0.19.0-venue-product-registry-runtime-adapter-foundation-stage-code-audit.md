@@ -14,6 +14,8 @@ GH-1233 使用 `GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`、`V0191
 
 GH-1234 使用 `GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-V0190-STALE-WORDING-GUARD`、`V0191-003-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`、`TVM-RELEASE-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-CURRENT-FACING-STALE-WORDING-REJECTION` 和 `V0191-003-NO-PRODUCTION-CUTOVER` 约束本 audit 的 current-facing wording：stale v0.19.0 publication wording 必须失败；historical construction closeout evidence 只有在保留 Release URL `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`、tag peeled commit `53e9b1e81db075ef464b74f8f35c66ebd61ea03c` 和 publication timestamp `2026-06-29T13:42:34Z` 时允许；production cutover not authorized。
 
+GH-1235 使用 `V0191-004-V0190-RELEASE-NOTES-PUBLICATION-FACTS`、`V0191-004-V0190-STAGE-AUDIT-PUBLICATION-FACTS`、`V0191-004-V0190-STABLE-RELEASE-FACT` 和 `V0191-004-NO-PRODUCTION-CUTOVER` 将本 audit 的 current release state 对齐到 GitHub live-read：`v0.19.0` GitHub Release URL 为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`，release title 为 `MTPRO v0.19.0 Venue/Product Registry + Runtime Adapter Foundation`，`isDraft=false`，`isPrerelease=false`，tag 是 annotated tag，peeled commit 为 `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`，publishedAt 为 `2026-06-29T13:42:34Z`。该 publication fact 不改变本 audit 的 boundary：production trading 默认关闭，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 real order，不授权 production cutover。
+
 ## Issue Completion Evidence
 
 - #1206：`GH-1206-VERIFY-V0190-VENUE-PRODUCT-REGISTRY`，定义 `ReleaseV0190VenueRegistry`、`ReleaseV0190ProductRegistry` 和 `ReleaseV0190VenueProductTarget`，允许 Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap target pairs，并保持 productionLive 默认拒绝。
@@ -56,6 +58,10 @@ GH-1234 使用 `GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-V01
 - `V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL`
 - `V0191-002-CURRENT-RELEASE-PUBLISHED`
 - `V0191-002-NO-PRODUCTION-CUTOVER`
+- `V0191-004-V0190-RELEASE-NOTES-PUBLICATION-FACTS`
+- `V0191-004-V0190-STAGE-AUDIT-PUBLICATION-FACTS`
+- `V0191-004-V0190-STABLE-RELEASE-FACT`
+- `V0191-004-NO-PRODUCTION-CUTOVER`
 
 ## Validation Summary
 
@@ -88,6 +94,7 @@ Latest pre-closeout evidence before #1215: #1214 finished with `bash checks/run.
 - 不发送 testnet 或 production submit / cancel / replace order。
 - 不新增 OKX runtime、Binance Futures runtime、real broker adapter、production OMS、trading button、order form、live command 或 production cutover control。
 - 本 Stage Code Audit 在 #1215 construction closeout 当时不创建 tag 或 GitHub Release；该 statement 是 historical closeout evidence，当前 v0.19.0 已由后续独立 Release Publication Gate 发布 stable GitHub Release。
+- 当前 v0.19.0 GitHub Release URL 是 `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`，`isDraft=false`，`isPrerelease=false`，annotated tag peels to `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`，publishedAt `2026-06-29T13:42:34Z`。
 - 不创建下一 Project / Issue，不推进下一 Todo。
 - 不使用 Linear、Symphony、Graphify、code-index 或 Figma。
 

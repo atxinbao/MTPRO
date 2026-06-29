@@ -14,6 +14,8 @@ GH-1233 使用 `GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`、`V0191
 
 GH-1234 使用 `GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-V0190-STALE-WORDING-GUARD`、`V0191-003-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`、`TVM-RELEASE-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-CURRENT-FACING-STALE-WORDING-REJECTION` 和 `V0191-003-NO-PRODUCTION-CUTOVER` 继续约束本 notes：current-facing stale v0.19.0 publication wording 必须失败；historical construction closeout evidence 只有在保留 `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`、`53e9b1e81db075ef464b74f8f35c66ebd61ea03c` 和 `2026-06-29T13:42:34Z` 时允许；production cutover not authorized。
 
+GH-1235 使用 `V0191-004-V0190-RELEASE-NOTES-PUBLICATION-FACTS`、`V0191-004-V0190-STAGE-AUDIT-PUBLICATION-FACTS`、`V0191-004-V0190-STABLE-RELEASE-FACT` 和 `V0191-004-NO-PRODUCTION-CUTOVER` 将本 notes 的当前 release state 对齐到 GitHub live-read：`v0.19.0` GitHub Release URL 为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`，release title 为 `MTPRO v0.19.0 Venue/Product Registry + Runtime Adapter Foundation`，`isDraft=false`，`isPrerelease=false`，tag 是 annotated tag，peeled commit 为 `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`，publishedAt 为 `2026-06-29T13:42:34Z`。该 publication fact 只确认 release artifact 存在，不授权 production cutover、production trading、production secret read、production endpoint / broker endpoint connection 或 real order。
+
 ## Issue Evidence
 
 - #1206：VenueRegistry / ProductRegistry。
@@ -67,6 +69,10 @@ All listed PRs are merged and their required GitHub check `checks` is SUCCESS. T
 - `V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL`
 - `V0191-002-CURRENT-RELEASE-PUBLISHED`
 - `V0191-002-NO-PRODUCTION-CUTOVER`
+- `V0191-004-V0190-RELEASE-NOTES-PUBLICATION-FACTS`
+- `V0191-004-V0190-STAGE-AUDIT-PUBLICATION-FACTS`
+- `V0191-004-V0190-STABLE-RELEASE-FACT`
+- `V0191-004-NO-PRODUCTION-CUTOVER`
 
 Focused verifier:
 
@@ -96,6 +102,9 @@ bash checks/run.sh
 - #1215 did not create GitHub Release at construction closeout time.
 - Those no-tag / no-release statements are historical closeout evidence, not current release state.
 - A later independent Release Publication Gate published v0.19.0 stable GitHub Release at `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`.
+- Published v0.19.0 GitHub Release is stable: `isDraft=false` and `isPrerelease=false`.
+- Published v0.19.0 annotated tag peels to commit `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`.
+- Published v0.19.0 publication timestamp is `2026-06-29T13:42:34Z`.
 - #1215 does not create the next Project / Issue.
 - #1215 does not promote the next Todo.
 - production trading remains disabled by default.
