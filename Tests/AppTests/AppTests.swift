@@ -4232,6 +4232,111 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH1213DashboardVenueProductRegistrySurfaceShowsReadOnlySupportStatus() throws {
+        // 测试场景：GH-1213 Dashboard 展示 v0.19.0 venue/product registry 支持状态。
+        // 验证目的：Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap
+        // 都必须可读，active / placeholder / future-gated / forbidden 状态和 unsupported reason
+        // 必须显式可见，同时 Dashboard 不能出现 command handler、交易按钮、order form 或 production cutover。
+        // GH-1213-VERIFY-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE
+        // TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE
+        // V0190-008-DASHBOARD-REGISTRY-READ-ONLY-SURFACE
+        // V0190-008-BINANCE-SPOT-FUTURES-OKX-SPOT-SWAP-STATES
+        // V0190-008-ACTIVE-PLACEHOLDER-FUTURE-GATED-FORBIDDEN
+        // V0190-008-CAPABILITY-UNSUPPORTED-REASONS
+        // V0190-008-DASHBOARD-READ-ONLY-NO-COMMANDS
+        // V0190-008-NO-PRODUCTION-CUTOVER
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV0190DashboardVenueProductRegistrySurface
+
+        XCTAssertEqual(surface.issueID, "GH-1213")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-1211", "GH-1212"])
+        XCTAssertEqual(surface.previousIssueID, "GH-1212")
+        XCTAssertEqual(surface.releaseVersion, "v0.19.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.visibleRowCount, 4)
+        XCTAssertEqual(surface.rows.map(\.namespaceKey), [
+            "binance/spot/testnet/binance-spot-testnet-credential-profile-ref",
+            "binance/usdmFutures/testnet/binance-usdmFutures-testnet-credential-profile-ref",
+            "okx/spot/testnet/okx-spot-testnet-credential-profile-ref",
+            "okx/swap/testnet/okx-swap-testnet-credential-profile-ref"
+        ])
+        XCTAssertEqual(surface.rows.map(\.supportState), [.active, .futureGated, .placeholder, .futureGated])
+        XCTAssertEqual(surface.stateLabels, ["active", "placeholder", "futureGated", "forbidden"])
+        XCTAssertTrue(surface.rows.allSatisfy(\.rowHeld))
+        XCTAssertTrue(surface.supportedVenueProductEnvironmentCombinationsVisible)
+        XCTAssertTrue(surface.activePlaceholderFutureGatedForbiddenStatesVisible)
+        XCTAssertTrue(surface.capabilitySummaryVisible)
+        XCTAssertTrue(surface.unsupportedOperationReasonsVisible)
+        XCTAssertTrue(surface.readOnly)
+        XCTAssertFalse(surface.dashboardCommandSurfaceEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        let binanceSpot = try XCTUnwrap(surface.rows.first { $0.namespaceKey.hasPrefix("binance/spot/testnet") })
+        XCTAssertEqual(binanceSpot.supportState, .active)
+        XCTAssertTrue(binanceSpot.runtimeRegistrationState.contains("registered:submit,cancel,queryStatus"))
+        XCTAssertTrue(binanceSpot.activeCapabilities.contains("submit"))
+        XCTAssertTrue(binanceSpot.activeCapabilities.contains("status"))
+        XCTAssertTrue(binanceSpot.unsupportedOperationReasons.contains {
+            $0.contains("unregistered operations fail closed")
+        })
+
+        let binanceFutures = try XCTUnwrap(surface.rows.first { $0.namespaceKey.hasPrefix("binance/usdmFutures") })
+        XCTAssertEqual(binanceFutures.supportState, .futureGated)
+        XCTAssertTrue(binanceFutures.runtimeRegistrationState.contains("future-gated"))
+        XCTAssertTrue(binanceFutures.capabilitySummary.contains("leverage=active"))
+
+        let okxSpot = try XCTUnwrap(surface.rows.first { $0.namespaceKey.hasPrefix("okx/spot") })
+        XCTAssertEqual(okxSpot.supportState, .placeholder)
+        XCTAssertTrue(okxSpot.placeholderCapabilities.contains("status"))
+        XCTAssertTrue(okxSpot.futureGatedCapabilities.contains("submit"))
+        XCTAssertTrue(okxSpot.unsupportedOperationReasons.contains { $0.contains("OKX runtime") })
+
+        let okxSwap = try XCTUnwrap(surface.rows.first { $0.namespaceKey.hasPrefix("okx/swap") })
+        XCTAssertEqual(okxSwap.supportState, .futureGated)
+        XCTAssertTrue(okxSwap.placeholderCapabilities.contains("position"))
+        XCTAssertTrue(okxSwap.futureGatedCapabilities.contains("marginType"))
+
+        XCTAssertEqual(metricValue("v0.19 registry rows", in: surface.metrics), "4")
+        XCTAssertEqual(metricValue("v0.19 registry states", in: surface.metrics), "active,placeholder,futureGated,forbidden")
+        XCTAssertEqual(metricValue("v0.19 active targets", in: surface.metrics), "1")
+        XCTAssertEqual(metricValue("v0.19 placeholder targets", in: surface.metrics), "1")
+        XCTAssertEqual(metricValue("v0.19 future-gated targets", in: surface.metrics), "2")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Dashboard command surface: none"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(surface.details.contains("Production cutover: none"))
+
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0190RegistryRows=4"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0190RegistryStates=active,placeholder,futureGated,forbidden"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0190RegistryBoundary=confirmed"))
+
+        let encodedSurface = try JSONEncoder().encode(surface)
+        let decodedSurface = try JSONDecoder().decode(
+            ReleaseV0190DashboardVenueProductRegistrySurfaceViewModel.self,
+            from: encodedSurface
+        )
+        XCTAssertEqual(decodedSurface, surface)
+
+        for anchor in ReleaseV0190DashboardVenueProductRegistrySurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-1213 surface")
+        }
+    }
+
     func testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands() throws {
         // 测试场景：GH-890 Dashboard 只能展示 v0.10.0 production readiness evidence center。
         // Readiness Overview / Environment / Secret / Endpoint / Risk / Kill Switch /

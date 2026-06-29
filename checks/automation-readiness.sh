@@ -12637,4 +12637,46 @@ require_contains "docs/validation/validation-plan.md" "GH-1212 Release v0.19.0 B
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1212ReleaseV0190BinanceSpotTestnetRuntimeRegistryRoutesExistingBehavior"
 
+require_file "checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh"
+require_file "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift"
+
+for file in \
+  "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" \
+  "Sources/Dashboard/DashboardShell.swift" \
+  "Tests/AppTests/AppTests.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md"; do
+  require_contains "$file" "GH-1213-VERIFY-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE"
+  require_contains "$file" "TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE"
+  require_contains "$file" "V0190-008-DASHBOARD-REGISTRY-READ-ONLY-SURFACE"
+  require_contains "$file" "V0190-008-BINANCE-SPOT-FUTURES-OKX-SPOT-SWAP-STATES"
+  require_contains "$file" "V0190-008-ACTIVE-PLACEHOLDER-FUTURE-GATED-FORBIDDEN"
+  require_contains "$file" "V0190-008-CAPABILITY-UNSUPPORTED-REASONS"
+  require_contains "$file" "V0190-008-DASHBOARD-READ-ONLY-NO-COMMANDS"
+  require_contains "$file" "V0190-008-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" "public struct ReleaseV0190DashboardVenueProductRegistrySurfaceViewModel"
+require_contains "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" "ReleaseV0190VenueProductCapabilityMatrix.profile"
+require_contains "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" "ReleaseV0190VenueProductRuntimeRegistry.registration"
+require_contains "Sources/Dashboard/DashboardShell.swift" "DashboardReleaseV0190VenueProductRegistryPanel"
+require_contains "Tests/AppTests/AppTests.swift" "testGH1213DashboardVenueProductRegistrySurfaceShowsReadOnlySupportStatus"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1213DashboardVenueProductRegistrySurfaceIsAnchoredInV0190Guards"
+require_contains "checks/run.sh" "bash checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 Dashboard venue/product registry surface anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 Dashboard venue/product registry surface"
+require_contains "docs/validation/validation-plan.md" "GH-1213 Release v0.19.0 Dashboard Venue/Product Registry Surface"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE"
+require_absent "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" "productionCutoverAuthorized=true"
+require_absent "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" "productionSecretRead=true"
+require_absent "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" "productionEndpointConnected=true"
+require_absent "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" "brokerEndpointConnected=true"
+require_absent "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" "submitCancelReplaceEnabled=true"
+
 printf 'MTPRO automation readiness checks passed.\n'

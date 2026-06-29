@@ -30972,6 +30972,103 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY"))
     }
 
+    func testGH1213DashboardVenueProductRegistrySurfaceIsAnchoredInV0190Guards() throws {
+        // 测试场景：GH-1213 为 v0.19.0 venue/product registry 增加 Dashboard 只读展示面。
+        // 验证目的：source / shell / AppTests / verifier / run / readiness / docs 都必须保留
+        // 同一组锚点，避免 registry 状态面被改成 command surface、endpoint connection 或 cutover。
+        // GH-1213-VERIFY-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE
+        // TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE
+        // V0190-008-DASHBOARD-REGISTRY-READ-ONLY-SURFACE
+        // V0190-008-BINANCE-SPOT-FUTURES-OKX-SPOT-SWAP-STATES
+        // V0190-008-ACTIVE-PLACEHOLDER-FUTURE-GATED-FORBIDDEN
+        // V0190-008-CAPABILITY-UNSUPPORTED-REASONS
+        // V0190-008-DASHBOARD-READ-ONLY-NO-COMMANDS
+        // V0190-008-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1213-VERIFY-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE",
+            "TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE",
+            "V0190-008-DASHBOARD-REGISTRY-READ-ONLY-SURFACE",
+            "V0190-008-BINANCE-SPOT-FUTURES-OKX-SPOT-SWAP-STATES",
+            "V0190-008-ACTIVE-PLACEHOLDER-FUTURE-GATED-FORBIDDEN",
+            "V0190-008-CAPABILITY-UNSUPPORTED-REASONS",
+            "V0190-008-DASHBOARD-READ-ONLY-NO-COMMANDS",
+            "V0190-008-NO-PRODUCTION-CUTOVER"
+        ]
+        let source = try read("Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift")
+        let shell = try read("Sources/Dashboard/DashboardShell.swift")
+        let appTests = try read("Tests/AppTests/AppTests.swift")
+        let verifier = try read("checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in anchors {
+            for evidenceSource in [
+                source,
+                shell,
+                appTests,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix
+            ] {
+                XCTAssertTrue(evidenceSource.contains(anchor), "\(anchor) must stay anchored in GH-1213 evidence")
+            }
+        }
+
+        let surface = ReleaseV0190DashboardVenueProductRegistrySurfaceViewModel.deterministicFixture
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.visibleRowCount, 4)
+        XCTAssertEqual(surface.stateLabels, ["active", "placeholder", "futureGated", "forbidden"])
+        XCTAssertEqual(surface.rows.map(\.supportState), [.active, .futureGated, .placeholder, .futureGated])
+        XCTAssertEqual(surface.rows.map(\.venueID), ["binance", "binance", "okx", "okx"])
+        XCTAssertEqual(surface.rows.map(\.productKind), ["spot", "usdmFutures", "spot", "swap"])
+        XCTAssertTrue(surface.rows[0].runtimeRegistrationState.contains("registered:submit,cancel,queryStatus"))
+        XCTAssertTrue(surface.rows[1].runtimeRegistrationState.contains("future-gated"))
+        XCTAssertTrue(surface.rows[2].runtimeRegistrationState.contains("OKX runtime"))
+        XCTAssertTrue(surface.rows[3].runtimeRegistrationState.contains("OKX runtime"))
+        XCTAssertFalse(surface.dashboardCommandSurfaceEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        XCTAssertTrue(source.contains("public enum ReleaseV0190DashboardVenueProductRegistrySupportState"))
+        XCTAssertTrue(source.contains("public struct ReleaseV0190DashboardVenueProductRegistryRow"))
+        XCTAssertTrue(source.contains("public struct ReleaseV0190DashboardVenueProductRegistrySurfaceViewModel"))
+        XCTAssertTrue(source.contains("ReleaseV0190VenueProductCapabilityMatrix.profile"))
+        XCTAssertTrue(source.contains("ReleaseV0190VenueProductRuntimeRegistry.registration"))
+        XCTAssertTrue(source.contains("Dashboard command surface: none"))
+        XCTAssertTrue(shell.contains("releaseV0190DashboardVenueProductRegistrySurface"))
+        XCTAssertTrue(shell.contains("DashboardReleaseV0190VenueProductRegistryPanel"))
+        XCTAssertTrue(shell.contains("releaseV0190RegistryRows"))
+        XCTAssertTrue(appTests.contains("testGH1213DashboardVenueProductRegistrySurfaceShowsReadOnlySupportStatus"))
+        XCTAssertTrue(verifier.contains("testGH1213DashboardVenueProductRegistrySurfaceShowsReadOnlySupportStatus"))
+        XCTAssertTrue(verifier.contains("testGH1213DashboardVenueProductRegistrySurfaceIsAnchoredInV0190Guards"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.19.0 Dashboard venue/product registry surface anchor"))
+        XCTAssertTrue(latest.contains("v0.19.0 Dashboard venue/product registry surface"))
+        XCTAssertTrue(validationPlan.contains("GH-1213 Release v0.19.0 Dashboard Venue/Product Registry Surface"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE"))
+    }
+
     func testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout() throws {
         // 测试场景：GH-1205 只收口 v0.18.1 patch 的 aggregate audit、release notes、
         // publication guidance 和验证锚点，不在 construction closeout PR 内创建 tag / Release。
