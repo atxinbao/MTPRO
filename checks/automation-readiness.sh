@@ -165,6 +165,7 @@ require_file "checks/verify-v0.19.0-venue-product-registry.sh"
 require_file "checks/verify-v0.19.0-venue-product-capability-matrix.sh"
 require_file "checks/verify-v0.19.0-venue-endpoint-family-registry.sh"
 require_file "checks/verify-v0.19.0-stage-audit-release-docs.sh"
+require_file "checks/verify-v0.19.1-v0190-release-fact-sync.sh"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
 require_file "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md"
@@ -12808,5 +12809,40 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1215Rele
 require_absent "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" "productionCutoverAuthorized=true"
 require_absent "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" "productionCutoverAuthorized=true"
 require_absent "docs/release/release-publication-policy.md" "productionCutoverAuthorized=true"
+
+for file in \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.1-v0190-release-fact-sync.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh"; do
+  require_contains "$file" "GH-1232-VERIFY-V0191-V0190-RELEASE-FACT-SYNC"
+  require_contains "$file" "V0191-001-V0190-RELEASE-FACT-SYNC-GUARD"
+  require_contains "$file" "TVM-RELEASE-V0191-V0190-RELEASE-FACT-SYNC"
+  require_contains "$file" "V0191-001-V0190-TAG-FIXED"
+  require_contains "$file" "V0191-001-PATCH-QUEUE-NOT-PUBLICATION"
+  require_contains "$file" "V0191-001-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0"
+  require_contains "$file" "53e9b1e81db075ef464b74f8f35c66ebd61ea03c"
+  require_contains "$file" "2026-06-29T13:42:34Z"
+done
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.1 v0.19.0 release fact sync anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1232 Release v0.19.1 v0.19.0 Release Fact Sync Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0191-V0190-RELEASE-FACT-SYNC"
+require_contains "checks/run.sh" "bash checks/verify-v0.19.1-v0190-release-fact-sync.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.1-v0190-release-fact-sync.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1232ReleaseV0191V0190ReleaseFactSyncGuard"
+require_absent "README.md" "v0.19.0 tag pending"
+require_absent "GOAL.md" "v0.19.0 release pending"
+require_absent "BLUEPRINT.md" "v0.19.0 GitHub Release not created"
+require_absent "docs/roadmap.md" "productionCutoverAuthorized=true"
+require_absent "docs/validation/latest-verification-summary.md" "productionCutoverAuthorized=true"
 
 printf 'MTPRO automation readiness checks passed.\n'
