@@ -8,6 +8,20 @@
 
 每轮执行前必须从 Linear / Parent Codex queue preview 读取唯一 active configured executable issue，并确认 WIP=1。
 
+## 当前固定目标主线
+
+MTPRO 当前路线固定为 v0.19.1 -> v0.20.0 -> v0.21.0 -> v0.22.0 -> v0.23.0 -> v0.24.0 -> v0.25.0：
+
+- v0.19.1：v0.19.0 release fact / stale wording patch。
+- v0.20.0：Binance Spot production-shadow / read-only live readiness，不提交订单。
+- v0.21.0：Binance Spot controlled production canary，只允许 Human-approved 小额度 Spot canary。
+- v0.22.0：Binance USDⓈ-M Futures read-only foundation，不执行 Futures order。
+- v0.23.0：Binance USDⓈ-M Futures testnet execution closed loop，不进入 production futures。
+- v0.24.0：Spot + Futures 统一 OMS / Portfolio / Risk / Reconciliation。
+- v0.25.0：Binance dual-product production readiness / canary hardening；production cutover 仍需单独 Human gate。
+
+OKX Spot / Swap 延后到 Binance Spot + USDⓈ-M Futures 双产品主线之后；任何 production secret read、production endpoint connection、broker endpoint connection 或真实订单能力仍必须通过独立 Human approval gate。
+
 ## 已验证能力
 
 | 能力 | 状态 | 证据入口 |

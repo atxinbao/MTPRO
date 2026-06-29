@@ -39,6 +39,22 @@ MTPRO 首先服务个人专业交易者 / 独立策略研究者：在本机 Mac 
 
 目标矩阵调整不等于当前仓库已经实现 OKX 或 production trading。它只把 MTPRO 的长期产品目标从“Binance-only 工作台”修正为“Binance + OKX 的实盘原生交易系统”；任何新增 venue / product 执行能力仍必须通过独立 issue、PR、验证和 Human approval。
 
+## 当前目标主线 / Current Target Mainline
+
+截至 2026-06-29，MTPRO 的当前开发主线固定为 Binance-first dual-product path。OKX Spot / Swap 是目标矩阵的一部分，但必须等 Binance Spot + Binance USDⓈ-M Futures 双产品主线收敛后再进入 active planning。
+
+| Version | 目标 | 验收边界 |
+| --- | --- | --- |
+| v0.19.1 | 修正 v0.19.0 release fact 和 stale wording | patch-only，不新增 trading capability |
+| v0.20.0 | Binance Spot production-shadow / read-only live readiness | 不提交订单；只读 production-shadow / readiness |
+| v0.21.0 | Binance Spot controlled production canary | 仅 Human-approved 小额度 Spot canary |
+| v0.22.0 | Binance USDⓈ-M Futures read-only foundation | account / position / margin / leverage / funding read-only foundation，不下合约订单 |
+| v0.23.0 | Binance USDⓈ-M Futures testnet execution closed loop | Futures testnet execution only，不进入 production futures |
+| v0.24.0 | Spot + Futures 统一 OMS / Portfolio / Risk / Reconciliation | 双产品统一底层，不保留两套割裂系统 |
+| v0.25.0 | Binance dual-product production readiness / canary hardening | 双产品 readiness / canary hardening；production cutover 仍需单独 Human gate |
+
+关键原则：v0.20.0 不能下单，v0.21.0 才允许 Spot 小额 canary；Futures 从 v0.22.0 read-only foundation 开始，v0.23.0 才进入 testnet execution；v0.24.0 统一 OMS / Portfolio / Risk / Reconciliation；v0.25.0 只做双产品 production readiness / canary hardening，不自动授权 production cutover。
+
 ## 当前成功标准
 
 - `BLUEPRINT.md` 保持最终产品 / 系统 / 设计蓝图清楚。
