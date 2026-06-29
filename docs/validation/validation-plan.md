@@ -6582,3 +6582,20 @@ swift test
 - current release surface: current-facing docs must preserve v0.19.0 stable GitHub Release URL, tag peeled commit and publication timestamp.
 - forbidden stale surface: unqualified v0.19.0 tag pending / release pending / GitHub Release not created wording must stay absent outside historical #1215 closeout context.
 - patch boundary evidence: GH-1233 does not move `v0.19.0` tag, does not overwrite GitHub Release, does not create v0.19.1 tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace and does not authorize production cutover.
+
+## GH-1234 Release v0.19.1 v0.19.0 Stale Wording Guard
+
+- GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD
+- V0191-003-V0190-STALE-WORDING-GUARD
+- V0191-003-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST
+- TVM-RELEASE-V0191-V0190-STALE-WORDING-GUARD
+- V0191-003-CURRENT-FACING-STALE-WORDING-REJECTION
+- V0191-003-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.1-v0190-stale-wording-guard.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1234ReleaseV0191V0190StaleWordingGuardRejectsCurrentFacingDrift`
+- release URL: `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`
+- tag peeled commit: `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`
+- publication timestamp: `2026-06-29T13:42:34Z`
+- stale wording surface: current-facing stale v0.19.0 publication wording must fail the focused guard.
+- historical allowlist surface: historical construction closeout evidence is allowed only when the same artifact also carries current v0.19.0 release URL, tag peeled commit and publication timestamp.
+- patch boundary evidence: GH-1234 does not move `v0.19.0` tag, does not overwrite GitHub Release, does not create v0.19.1 tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace and production cutover not authorized.

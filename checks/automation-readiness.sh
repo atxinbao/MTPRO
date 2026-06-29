@@ -12888,4 +12888,39 @@ require_absent "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-
 require_absent "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" "本 Stage Code Audit 不创建 tag 或 GitHub Release。"
 require_absent "docs/release/release-publication-policy.md" "If Human later requests \`v0.19.0\` publication"
 
+for file in \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" \
+  "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" \
+  "verification.md" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.1-v0190-stale-wording-guard.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh"; do
+  require_contains "$file" "GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD"
+  require_contains "$file" "V0191-003-V0190-STALE-WORDING-GUARD"
+  require_contains "$file" "V0191-003-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST"
+  require_contains "$file" "TVM-RELEASE-V0191-V0190-STALE-WORDING-GUARD"
+  require_contains "$file" "V0191-003-CURRENT-FACING-STALE-WORDING-REJECTION"
+  require_contains "$file" "V0191-003-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0"
+  require_contains "$file" "53e9b1e81db075ef464b74f8f35c66ebd61ea03c"
+  require_contains "$file" "2026-06-29T13:42:34Z"
+done
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.1 v0.19.0 stale wording guard anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1234 Release v0.19.1 v0.19.0 Stale Wording Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0191-V0190-STALE-WORDING-GUARD"
+require_contains "docs/release/release-publication-policy.md" "GH-1234 rejects current-facing stale v0.19.0 publication wording"
+require_contains "checks/run.sh" "bash checks/verify-v0.19.1-v0190-stale-wording-guard.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.1-v0190-stale-wording-guard.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1234ReleaseV0191V0190StaleWordingGuardRejectsCurrentFacingDrift"
+
 printf 'MTPRO automation readiness checks passed.\n'

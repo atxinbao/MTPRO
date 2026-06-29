@@ -12,6 +12,8 @@
 
 GH-1233 使用 `GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`、`V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD`、`TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`、`V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL`、`V0191-002-CURRENT-RELEASE-PUBLISHED` 和 `V0191-002-NO-PRODUCTION-CUTOVER` 约束本 audit 的 historical wording：#1215 no-tag / no-release 只描述 construction closeout time；当前 release fact 是 v0.19.0 stable GitHub Release 已发布，Release URL `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`，tag peeled commit `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`，publication timestamp `2026-06-29T13:42:34Z`。
 
+GH-1234 使用 `GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-V0190-STALE-WORDING-GUARD`、`V0191-003-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`、`TVM-RELEASE-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-CURRENT-FACING-STALE-WORDING-REJECTION` 和 `V0191-003-NO-PRODUCTION-CUTOVER` 约束本 audit 的 current-facing wording：stale v0.19.0 publication wording 必须失败；historical construction closeout evidence 只有在保留 Release URL `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`、tag peeled commit `53e9b1e81db075ef464b74f8f35c66ebd61ea03c` 和 publication timestamp `2026-06-29T13:42:34Z` 时允许；production cutover not authorized。
+
 ## Issue Completion Evidence
 
 - #1206：`GH-1206-VERIFY-V0190-VENUE-PRODUCT-REGISTRY`，定义 `ReleaseV0190VenueRegistry`、`ReleaseV0190ProductRegistry` 和 `ReleaseV0190VenueProductTarget`，允许 Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap target pairs，并保持 productionLive 默认拒绝。
