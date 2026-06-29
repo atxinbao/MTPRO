@@ -17405,3 +17405,20 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: required.
   - `bash checks/automation-readiness.sh`: required.
   - `bash checks/run.sh`: required.
+
+## 2026-06-29 - Target Mainline v0.20-v0.25 Route Anchor
+
+- Executor: Codex.
+- Scope:
+  - Fixed the current target mainline in `README.md`, `GOAL.md`, `BLUEPRINT.md`, `docs/roadmap.md`, `docs/validation/latest-verification-summary.md`, and `docs/automation/automation-readiness.md`.
+  - Recorded the approved route: v0.19.1 release fact / stale wording patch -> v0.20.0 Binance Spot production-shadow / read-only live readiness -> v0.21.0 Binance Spot controlled production canary -> v0.22.0 Binance USDⓈ-M Futures read-only foundation -> v0.23.0 Binance USDⓈ-M Futures testnet execution closed loop -> v0.24.0 Spot + Futures unified OMS / Portfolio / Risk / Reconciliation -> v0.25.0 Binance dual-product production readiness / canary hardening.
+  - Added `checks/automation-readiness.sh` guards so future root-doc edits must preserve the fixed v0.20-v0.25 route and Binance-first dual-product sequencing.
+- Boundary:
+  - Did not change business code, `Package.swift`, SwiftPM targets, or `Sources`.
+  - Did not create OKX active source, Binance futures runtime, production endpoint connection, broker endpoint connection, or real order path.
+  - Did not authorize production cutover.
+  - v0.20.0 remains no-order read-only / production-shadow; v0.21.0 is the first Spot controlled canary gate; Futures starts at v0.22.0 read-only foundation.
+- Validation:
+  - `git diff --check`: required.
+  - `bash checks/automation-readiness.sh`: required.
+  - `bash checks/run.sh`: required.

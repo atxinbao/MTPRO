@@ -22,12 +22,19 @@ Venue
 
 当前实现和当前 release queue 仍不得被误读为完整目标已实现。Binance Spot 是当前最成熟 testnet / operator beta path；Binance USDⓈ-M Futures、OKX Spot、OKX Swap 是后续目标能力，需要独立 venue / product-aware planning、GitHub issues、PR evidence、validation gates 和 Human approval。Bybit Spot / Linear Perpetual 只作为 future candidate，当前不进入 active roadmap commitment。
 
-路线优先级：
+路线优先级固定为 Binance-first dual-product path：
 
-1. v0.17.1 artifact validation fail-closed patch 已完成，operator evidence failure 进入 fail-closed 语义。
-2. v0.18.0 venue / product-aware lifecycle foundation 已完成 construction closeout，artifact、status query、resume、reconciliation、Dashboard / CLI 和 beta safety profile evidence 已携带 `{venue, product, environment, accountProfile, runID}`。
-3. 后续 planning 才能逐步补 Binance USDⓈ-M Futures 与 OKX Spot / Swap 的 read-only、testnet、execution、OMS、risk 和 reconciliation 能力。
-4. 最后才讨论 production shadow、controlled canary 和 Human-approved production cutover。
+| Version | 路线定位 | 不允许越界 |
+| --- | --- | --- |
+| v0.19.1 | v0.19.0 release fact / stale wording patch | patch-only，不新增交易能力 |
+| v0.20.0 | Binance Spot production-shadow / read-only live readiness | 不提交订单，不开启 Spot canary |
+| v0.21.0 | Binance Spot controlled production canary | 仅 Human-approved 小额度 Spot canary，不混入 Futures / OKX |
+| v0.22.0 | Binance USDⓈ-M Futures read-only foundation | 只读 account / position / margin / leverage / funding，不执行 Futures order |
+| v0.23.0 | Binance USDⓈ-M Futures testnet execution closed loop | Futures testnet only，不进入 production futures |
+| v0.24.0 | Spot + Futures 统一 OMS / Portfolio / Risk / Reconciliation | 统一双产品底层，不允许两套割裂 OMS / Portfolio / Risk / Reconciliation |
+| v0.25.0 | Binance dual-product production readiness / canary hardening | readiness / canary hardening only，production cutover 仍需单独 Human gate |
+
+执行顺序必须保持：先完成 v0.19.1；v0.20.0 只做 Binance Spot read-only / production-shadow；v0.21.0 才允许 Spot 小额 canary；Futures 从 v0.22.0 read-only foundation 开始，v0.23.0 才进入 testnet execution；v0.24.0 再统一 Spot + Futures 的 OMS / Portfolio / Risk / Reconciliation；v0.25.0 才做 Binance dual-product production readiness / canary hardening。OKX Spot / Swap 延后到 Binance dual-product path 收敛之后。
 
 该目标修正只更新路线方向，不授权 production trading、不读取 production secret、不连接 production endpoint / broker endpoint、不创建 OKX active source 或 order path。
 

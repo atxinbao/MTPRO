@@ -77,6 +77,22 @@ MTPRO 最终要成为一个 local-first 的 macOS 原生实盘交易系统，而
 
 Bybit Spot / Linear Perpetual 只作为 future candidate 参考，不是当前 Blueprint 承诺范围。新增 venue / product 不允许通过文档目标自动进入 active source、GitHub issue execution 或 production authorization。
 
+### Binance-first Release Mainline
+
+当前产品蓝图按 Binance-first dual-product path 推进，避免在 Spot canary 未收口前提前混入 Futures execution 或 OKX adapter：
+
+| Version | 蓝图定位 | 不允许越界 |
+| --- | --- | --- |
+| v0.19.1 | release fact / stale wording patch | 不新增交易能力 |
+| v0.20.0 | Binance Spot production-shadow / read-only live readiness | 不提交订单，不开启 Spot canary |
+| v0.21.0 | Binance Spot controlled production canary | 不混入 Futures / OKX，不放开默认 production trading |
+| v0.22.0 | Binance USDⓈ-M Futures read-only foundation | 不执行 Futures order |
+| v0.23.0 | Binance USDⓈ-M Futures testnet execution closed loop | 不进入 production futures |
+| v0.24.0 | Spot + Futures 统一 OMS / Portfolio / Risk / Reconciliation | 不让 Spot / Futures 变成两套系统 |
+| v0.25.0 | Binance dual-product production readiness / canary hardening | 不自动授权 production cutover |
+
+OKX Spot / Swap 的 active implementation 和 issue execution 必须排在 Binance dual-product foundation 之后。任何 production cutover、production secret read、production endpoint connection 或真实订单能力仍必须经过独立 Human approval gate。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |
