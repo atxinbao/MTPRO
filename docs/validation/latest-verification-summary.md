@@ -332,6 +332,26 @@ v0.19.0 v0.18 lifecycle typed namespace 以 #1206 / V190-001 和 #1207 / V190-00
 
 v0.19.0 venue/product runtime adapter protocol 以 #1206..#1210 registry、capability、endpoint family、credential profile 和 typed namespace closeout 为依赖。`ReleaseV0190VenueProductRuntimeAdapter` 定义 submit、cancel、queryStatus、queryPosition、reconcile 和 recover 协议面；`recover` 复用 reconcile capability，不扩大 #1207 capability matrix。`ReleaseV0190VenueProductRuntimeAdapterSelection` 必须绑定 typed VenueID / ProductKind / TradingEnvironment / AccountProfileID、capability profile、endpoint family 和 credential profile。当前只提供 local evidence adapter；成功 evidence 仅允许 testnet + active capability + active endpoint reference + testnet credential reference。OKX placeholder / futureGated、productionShadow、productionLive、跨 profile 复用、secret read、endpoint connection、broker touch 和 production cutover 均 fail closed；不读取 production secret，不连接 endpoint / broker，不发送 order，不授权 production cutover。
 
+## Release v0.19.0 Binance Spot Testnet Runtime Registry Snapshot
+
+`GH-1212-VERIFY-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY`
+
+`TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY`
+
+`V0190-007-BINANCE-SPOT-TESTNET-REGISTRATION`
+
+`V0190-007-EXISTING-RUNTIME-ANCHORS`
+
+`V0190-007-TYPED-REGISTRY-SELECTION`
+
+`V0190-007-PLACEHOLDER-PAIRS-FAIL-CLOSED`
+
+`V0190-007-NO-BEHAVIOR-CHANGE`
+
+`V0190-007-NO-PRODUCTION-CUTOVER`
+
+v0.19.0 Binance Spot Testnet runtime registry 以 #1211 adapter protocol 为依赖。`ReleaseV0190VenueProductRuntimeRegistry` 只注册 `binance/spot/testnet/binance-spot-testnet-credential-profile-ref`，并把 submit、cancel、queryStatus 路由到既有 `ReleaseV0150BinanceSpotTestnetSubmitRuntime`、`ReleaseV0150BinanceSpotTestnetCancelRuntime` 和 `ReleaseV0160CLIOrderStatusQueryFlow` 类型锚点。Registration 必须先通过 typed namespace、capability matrix、endpoint family 和 credential profile selection；registry 本身不读 secret、不连接 endpoint、不触碰 broker gateway、不改变既有 operator confirmation / redaction / no-production defaults。queryPosition、reconcile、recover、Binance USDⓈ-M Futures、OKX placeholder、productionShadow、productionLive 和跨 profile 复用均 fail closed；不授权 production cutover。
+
 ## Release v0.16.1 Central Artifact Redaction Policy Snapshot
 
 `GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY`

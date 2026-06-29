@@ -6468,3 +6468,22 @@ swift test
 - capability surface: every operation must require `ReleaseV0190VenueProductCapabilityMatrix.requireActive`; `recover` reuses reconcile capability rather than expanding the matrix.
 - fail-closed surface: OKX placeholder / futureGated capabilities, productionShadow local execution, productionLive targets, cross profile reuse and endpoint / secret / broker flags must fail closed.
 - forbidden scope: no endpoint / broker connection, no secret read, no production live implementation, no tag / GitHub Release creation and no production cutover.
+
+## GH-1212 Release v0.19.0 Binance Spot Testnet Runtime Registry
+
+- GH-1212-VERIFY-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY
+- TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY
+- V0190-007-BINANCE-SPOT-TESTNET-REGISTRATION
+- V0190-007-EXISTING-RUNTIME-ANCHORS
+- V0190-007-TYPED-REGISTRY-SELECTION
+- V0190-007-PLACEHOLDER-PAIRS-FAIL-CLOSED
+- V0190-007-NO-BEHAVIOR-CHANGE
+- V0190-007-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1212ReleaseV0190BinanceSpotTestnetRuntimeRegistryRoutesExistingBehavior`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift`
+- registration surface: `ReleaseV0190VenueProductRuntimeRegistry` must resolve only `binance/spot/testnet/binance-spot-testnet-credential-profile-ref`.
+- existing behavior surface: submit / cancel / queryStatus must point to existing `ReleaseV0150BinanceSpotTestnetSubmitRuntime`、`ReleaseV0150BinanceSpotTestnetCancelRuntime` and `ReleaseV0160CLIOrderStatusQueryFlow` anchors without changing those runtime implementations.
+- typed selection surface: registration must reuse `ReleaseV0190VenueProductRuntimeAdapterSelection`, capability matrix, endpoint family and credential profile evidence.
+- fail-closed surface: queryPosition / reconcile / recover remain unregistered; Binance USDⓈ-M Futures, OKX placeholder rows, productionShadow, productionLive and cross profile reuse must fail closed.
+- forbidden scope: no endpoint / broker connection from the registry, no secret read, no behavior change, no tag / GitHub Release creation and no production cutover.

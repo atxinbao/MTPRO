@@ -30771,6 +30771,207 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-RUNTIME-ADAPTER-PROTOCOL"))
     }
 
+    func testGH1212ReleaseV0190BinanceSpotTestnetRuntimeRegistryRoutesExistingBehavior() throws {
+        // 测试场景：GH-1212 把 Binance Spot Testnet 现有 runtime path 注册到 v0.19
+        // VenueProductRuntimeRegistry。
+        // 验证目的：registry 解析必须先经过 typed namespace、capability matrix、endpoint
+        // family 和 credential profile；只注册既有 submit / cancel / queryStatus 行为；
+        // OKX、Binance Futures、productionShadow、productionLive 和未注册 operation 都 fail closed。
+        // GH-1212-VERIFY-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY
+        // TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY
+        // V0190-007-BINANCE-SPOT-TESTNET-REGISTRATION
+        // V0190-007-EXISTING-RUNTIME-ANCHORS
+        // V0190-007-TYPED-REGISTRY-SELECTION
+        // V0190-007-PLACEHOLDER-PAIRS-FAIL-CLOSED
+        // V0190-007-NO-BEHAVIOR-CHANGE
+        // V0190-007-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1212-VERIFY-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY",
+            "TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY",
+            "V0190-007-BINANCE-SPOT-TESTNET-REGISTRATION",
+            "V0190-007-EXISTING-RUNTIME-ANCHORS",
+            "V0190-007-TYPED-REGISTRY-SELECTION",
+            "V0190-007-PLACEHOLDER-PAIRS-FAIL-CLOSED",
+            "V0190-007-NO-BEHAVIOR-CHANGE",
+            "V0190-007-NO-PRODUCTION-CUTOVER"
+        ]
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift")
+        let verifier = try read("checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh")
+        let runScript = try read("checks/run.sh")
+        let readinessScript = try read("checks/automation-readiness.sh")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+
+        for anchor in anchors {
+            for evidenceSource in [
+                source,
+                verifier,
+                runScript,
+                readinessScript,
+                readinessDoc,
+                latest,
+                validationPlan,
+                tradingMatrix
+            ] {
+                XCTAssertTrue(evidenceSource.contains(anchor), "\(anchor) must stay anchored in GH-1212 evidence")
+            }
+        }
+
+        let profileID = try ReleaseV0190VenueProductRuntimeRegistry.canonicalBinanceSpotTestnetProfileID()
+        XCTAssertEqual(profileID.rawValue, "binance-spot-testnet-credential-profile-ref")
+
+        let registration = try ReleaseV0190VenueProductRuntimeRegistry.registration(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .testnet,
+            accountProfileID: profileID
+        )
+        XCTAssertEqual(registration.namespaceKey, "binance/spot/testnet/binance-spot-testnet-credential-profile-ref")
+        XCTAssertTrue(registration.selection.selectionHeld)
+        XCTAssertTrue(registration.selection.localExecutableEvidenceBoundaryHeld)
+        XCTAssertTrue(registration.preservesExistingBehavior)
+        XCTAssertFalse(registration.productionTradingEnabledByDefault)
+        XCTAssertFalse(registration.productionCutoverAuthorized)
+        XCTAssertEqual(Set(registration.registeredOperations), [.submit, .cancel, .queryStatus])
+
+        let submitBinding = try registration.binding(for: .submit)
+        XCTAssertTrue(submitBinding.legacyRuntimeTypeName.contains("ReleaseV0150BinanceSpotTestnetSubmitRuntime"))
+        XCTAssertEqual(submitBinding.existingRuntimeAnchor, "GH-1068-VERIFY-V0150-REAL-SPOT-TESTNET-SUBMIT-RUNTIME")
+        XCTAssertTrue(submitBinding.preservesExistingSafetyGates)
+        XCTAssertFalse(submitBinding.registryReadsSecretValue)
+        XCTAssertFalse(submitBinding.registryConnectsEndpoint)
+        XCTAssertFalse(submitBinding.registryTouchesBrokerGateway)
+        XCTAssertFalse(submitBinding.registryAuthorizesProductionCutover)
+
+        let cancelBinding = try ReleaseV0190VenueProductRuntimeRegistry.resolve(
+            operation: .cancel,
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .testnet,
+            accountProfileID: profileID
+        )
+        XCTAssertTrue(cancelBinding.legacyRuntimeTypeName.contains("ReleaseV0150BinanceSpotTestnetCancelRuntime"))
+        XCTAssertEqual(cancelBinding.existingRuntimeAnchor, "GH-1069-VERIFY-V0150-REAL-SPOT-TESTNET-CANCEL-RUNTIME")
+
+        let statusBinding = try registration.binding(for: .queryStatus)
+        XCTAssertTrue(statusBinding.legacyRuntimeTypeName.contains("ReleaseV0160CLIOrderStatusQueryFlow"))
+        XCTAssertEqual(statusBinding.existingRuntimeAnchor, "GH-1105-VERIFY-V0160-SIGNED-ORDER-STATUS-QUERY")
+
+        let statusEvidence = try registration.localEvidence(
+            for: .queryStatus,
+            requestID: Identifier.constant("gh-1212-binance-spot-testnet-status-registry-route"),
+            reason: "registry-routed existing Binance Spot Testnet status behavior evidence"
+        )
+        XCTAssertTrue(statusEvidence.boundaryHeld)
+        XCTAssertEqual(statusEvidence.operation, .queryStatus)
+        XCTAssertEqual(statusEvidence.capabilityDecision.capability, .status)
+        XCTAssertEqual(statusEvidence.namespaceKey, registration.namespaceKey)
+
+        XCTAssertThrowsError(try registration.binding(for: .queryPosition)) { error in
+            XCTAssertTrue(String(describing: error).contains("registeredOperation"))
+            XCTAssertTrue(String(describing: error).contains("queryPosition"))
+        }
+        XCTAssertThrowsError(try registration.localEvidence(
+            for: .reconcile,
+            requestID: Identifier.constant("gh-1212-binance-spot-testnet-reconcile-not-registered"),
+            reason: "registry-routed reconcile should remain unregistered"
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("registeredOperation"))
+            XCTAssertTrue(String(describing: error).contains("reconcile"))
+        }
+
+        let futuresProfileID = try ReleaseV0181AccountProfileID(
+            ReleaseV0190VenueCredentialProfileEntry.expectedProfileID(
+                pair: ReleaseV0181VenueProductPair(venueID: .binance, productKind: .usdmFutures),
+                tradingEnvironment: .testnet
+            )
+        )
+        XCTAssertThrowsError(try ReleaseV0190VenueProductRuntimeRegistry.registration(
+            venueID: .binance,
+            productKind: .usdmFutures,
+            tradingEnvironment: .testnet,
+            accountProfileID: futuresProfileID
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("future-gated"))
+            XCTAssertTrue(String(describing: error).contains("usdmFutures"))
+        }
+
+        let okxProfileID = try ReleaseV0181AccountProfileID(
+            ReleaseV0190VenueCredentialProfileEntry.expectedProfileID(
+                pair: ReleaseV0181VenueProductPair(venueID: .okx, productKind: .spot),
+                tradingEnvironment: .testnet
+            )
+        )
+        XCTAssertThrowsError(try ReleaseV0190VenueProductRuntimeRegistry.registration(
+            venueID: .okx,
+            productKind: .spot,
+            tradingEnvironment: .testnet,
+            accountProfileID: okxProfileID
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("OKX runtime"))
+            XCTAssertTrue(String(describing: error).contains("placeholder"))
+        }
+
+        let shadowProfileID = try ReleaseV0181AccountProfileID(
+            ReleaseV0190VenueCredentialProfileEntry.expectedProfileID(
+                pair: ReleaseV0181VenueProductPair(venueID: .binance, productKind: .spot),
+                tradingEnvironment: .productionShadow
+            )
+        )
+        XCTAssertThrowsError(try ReleaseV0190VenueProductRuntimeRegistry.registration(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .productionShadow,
+            accountProfileID: shadowProfileID
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("productionShadow"))
+            XCTAssertTrue(String(describing: error).contains("reference evidence only"))
+        }
+        XCTAssertThrowsError(try ReleaseV0190VenueProductRuntimeRegistry.registration(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .productionLive,
+            accountProfileID: profileID
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("productionLive"))
+        }
+
+        XCTAssertThrowsError(try ReleaseV0190VenueProductRuntimeRegistry.registration(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .testnet,
+            accountProfileID: futuresProfileID
+        )) { error in
+            XCTAssertTrue(String(describing: error).contains("namespaceReuse"))
+        }
+
+        XCTAssertTrue(source.contains("public enum ReleaseV0190VenueProductRuntimeRegistry"))
+        XCTAssertTrue(source.contains("public struct ReleaseV0190VenueProductRuntimeRegistration"))
+        XCTAssertTrue(source.contains("ReleaseV0150BinanceSpotTestnetSubmitRuntime.self"))
+        XCTAssertTrue(source.contains("ReleaseV0150BinanceSpotTestnetCancelRuntime.self"))
+        XCTAssertTrue(source.contains("ReleaseV0160CLIOrderStatusQueryFlow.self"))
+        XCTAssertTrue(source.contains("ReleaseV0190VenueProductRuntimeAdapterSelection(target: target)"))
+        XCTAssertTrue(source.contains("ReleaseV0190LocalEvidenceVenueProductRuntimeAdapter"))
+        XCTAssertTrue(source.contains("productionEndpointConnectionEnabled = false"))
+        XCTAssertTrue(source.contains("productionOrderSubmitCancelReplaceEnabled = false"))
+        XCTAssertTrue(source.contains("okxRuntimeImplemented = false"))
+        XCTAssertTrue(source.contains("binanceFuturesRuntimeImplementedByThisIssue = false"))
+        XCTAssertTrue(verifier.contains("testGH1212ReleaseV0190BinanceSpotTestnetRuntimeRegistryRoutesExistingBehavior"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh"))
+        XCTAssertTrue(readinessScript.contains("checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.19.0 Binance Spot Testnet runtime registry anchor"))
+        XCTAssertTrue(latest.contains("v0.19.0 Binance Spot Testnet runtime registry"))
+        XCTAssertTrue(validationPlan.contains("GH-1212 Release v0.19.0 Binance Spot Testnet Runtime Registry"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY"))
+    }
+
     func testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout() throws {
         // 测试场景：GH-1205 只收口 v0.18.1 patch 的 aggregate audit、release notes、
         // publication guidance 和验证锚点，不在 construction closeout PR 内创建 tag / Release。

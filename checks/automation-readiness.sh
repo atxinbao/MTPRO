@@ -12599,4 +12599,42 @@ require_contains "docs/validation/validation-plan.md" "GH-1211 Release v0.19.0 V
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-RUNTIME-ADAPTER-PROTOCOL"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1211ReleaseV0190VenueProductRuntimeAdapterProtocolFailsClosed"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md"; do
+  require_contains "$file" "GH-1212-VERIFY-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY"
+  require_contains "$file" "TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY"
+  require_contains "$file" "V0190-007-BINANCE-SPOT-TESTNET-REGISTRATION"
+  require_contains "$file" "V0190-007-EXISTING-RUNTIME-ANCHORS"
+  require_contains "$file" "V0190-007-TYPED-REGISTRY-SELECTION"
+  require_contains "$file" "V0190-007-PLACEHOLDER-PAIRS-FAIL-CLOSED"
+  require_contains "$file" "V0190-007-NO-BEHAVIOR-CHANGE"
+  require_contains "$file" "V0190-007-NO-PRODUCTION-CUTOVER"
+done
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift" "public enum ReleaseV0190VenueProductRuntimeRegistry"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift" "public struct ReleaseV0190VenueProductRuntimeRegistration"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift" "ReleaseV0190VenueProductRuntimeAdapterSelection(target: target)"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift" "ReleaseV0190LocalEvidenceVenueProductRuntimeAdapter"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift" "ReleaseV0150BinanceSpotTestnetSubmitRuntime.self"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift" "ReleaseV0150BinanceSpotTestnetCancelRuntime.self"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift" "ReleaseV0160CLIOrderStatusQueryFlow.self"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift" "submit,cancel,queryStatus"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift" "productionEndpointConnectionEnabled = false"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0190VenueProductRuntimeRegistry.swift" "productionOrderSubmitCancelReplaceEnabled = false"
+require_contains "checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh" "testGH1212ReleaseV0190BinanceSpotTestnetRuntimeRegistryRoutesExistingBehavior"
+require_contains "checks/run.sh" "bash checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 Binance Spot Testnet runtime registry anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 Binance Spot Testnet runtime registry"
+require_contains "docs/validation/validation-plan.md" "GH-1212 Release v0.19.0 Binance Spot Testnet Runtime Registry"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1212ReleaseV0190BinanceSpotTestnetRuntimeRegistryRoutesExistingBehavior"
+
 printf 'MTPRO automation readiness checks passed.\n'
