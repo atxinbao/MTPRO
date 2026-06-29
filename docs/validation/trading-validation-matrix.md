@@ -4488,3 +4488,18 @@
 - profile identity surface: testnet and productionShadow rows store profile identity and redacted evidence reference only; no secret value is read or persisted.
 - fail-closed surface: productionLive, cross namespace profile reuse, raw evidence reference and secret-read attempts throw readable fail-closed errors.
 - forbidden scope: no secret manager, no environment secret probe, no endpoint / broker connection, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.
+
+## TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+
+- GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+- V0190-005-TYPED-LIFECYCLE-NAMESPACE
+- V0190-005-JSON-DECODE-MIGRATION
+- V0190-005-DASHBOARD-NAMESPACE-CONSISTENCY
+- V0190-005-NAMESPACE-MISMATCH-FAILS-CLOSED
+- V0190-005-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1210ReleaseV0190MigratesV018LifecycleNamespaceToTypedModel`
+- namespace surface: v0.18 lifecycle manifest namespace stores typed VenueID / ProductKind / TradingEnvironment / AccountProfileID and encodes legacy JSON keys for migration.
+- consistency surface: lifecycle manifest, status retry, resume, replay, Dashboard drilldown and failure classification share canonical namespaceKey; Dashboard fixture path uses canonical `usdmFutures`.
+- fail-closed surface: unsupported pair, productionLive, credential-like account profile and namespace mismatch fail closed.
+- forbidden scope: no secret manager, no endpoint / broker connection, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.

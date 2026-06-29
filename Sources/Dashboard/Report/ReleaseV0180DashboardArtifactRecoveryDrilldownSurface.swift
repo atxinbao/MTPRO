@@ -25,6 +25,13 @@ import Foundation
 // V0181-004-CROSS-VENUE-PRODUCT-REUSE-FAILS-CLOSED
 // V0181-004-OLD-VERSION-FIXTURES-PRESERVED
 // V0181-004-NO-PRODUCTION-CUTOVER
+// GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+// TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE
+// V0190-005-TYPED-LIFECYCLE-NAMESPACE
+// V0190-005-JSON-DECODE-MIGRATION
+// V0190-005-DASHBOARD-NAMESPACE-CONSISTENCY
+// V0190-005-NAMESPACE-MISMATCH-FAILS-CLOSED
+// V0190-005-NO-PRODUCTION-CUTOVER
 
 /// ReleaseV0180DashboardArtifactRecoveryDrilldownStage 固定 #1182 Dashboard drilldown 行。
 ///
@@ -136,7 +143,7 @@ public struct ReleaseV0180DashboardArtifactRecoveryDrilldownInput:
     public init(
         sourceEvidenceType: String = "ReleaseV0180DashboardArtifactRecoveryDrilldownReadModel",
         venue: String = "binance",
-        product: String = "usdm-perpetual",
+        product: String = "usdmFutures",
         environment: String = "testnet",
         accountProfile: String = "operator-beta-redacted",
         runID: String = "gh-1182-v0180-operator-run",
@@ -145,15 +152,15 @@ public struct ReleaseV0180DashboardArtifactRecoveryDrilldownInput:
         sourceBundleChecksum: String =
             "sha256:abababababababababababababababababababababababababababababababab",
         lifecycleManifestPath: String =
-            ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/lifecycle-manifest-v0.18.0.json",
+            ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/lifecycle-manifest-v0.18.0.json",
         statusQueryArtifactPath: String =
-            ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/status-query-retry-result.json",
+            ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/status-query-retry-result.json",
         resumeArtifactPath: String =
-            ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/resume-after-interruption-result.json",
+            ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/resume-after-interruption-result.json",
         reconciliationReplayArtifactPath: String =
-            ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/cancel-status-reconciliation-replay.json",
+            ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/cancel-status-reconciliation-replay.json",
         failureClassificationArtifactPath: String =
-            ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/failure-classification-next-action.json",
+            ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/failure-classification-next-action.json",
         lifecycleManifestState: String = "validated",
         statusQueryState: String = "retryLimitReached",
         resumeState: String = "blocked",
@@ -162,7 +169,7 @@ public struct ReleaseV0180DashboardArtifactRecoveryDrilldownInput:
             "gh-1181-v0180-failure-classification-result:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         topLevelNextAction: ReleaseV0180DashboardArtifactRecoveryDrilldownNextAction = .stop,
         operatorNextActionCLI: String =
-            "mtpro operator-run explain-failure --run-id gh-1182-v0180-operator-run --venue binance --product usdm-perpetual --environment testnet --account-profile operator-beta-redacted",
+            "mtpro operator-run explain-failure --run-id gh-1182-v0180-operator-run --venue binance --product usdmFutures --environment testnet --account-profile operator-beta-redacted",
         artifactBundleBackedRows: Bool = true,
         namespaceVisible: Bool = true,
         failureClassVisible: Bool = true,
@@ -325,7 +332,7 @@ public struct ReleaseV0180DashboardArtifactRecoveryDrilldownRow:
                 .isSafeLocalArtifactPath(sourceArtifactPath)
             && ReleaseV0180DashboardArtifactRecoveryDrilldownInput.isSafeDisplayText(failureClass)
             && ReleaseV0180DashboardArtifactRecoveryDrilldownInput.isSafeDisplayText(explanation)
-            && explanation.contains("binance/usdm-perpetual/testnet/operator-beta-redacted")
+            && explanation.contains("binance/usdmFutures/testnet/operator-beta-redacted")
             && visibleInDashboard
             && readOnly
             && commandHandlerBound == false
@@ -717,41 +724,41 @@ public struct ReleaseV0180DashboardArtifactRecoveryDrilldownSurfaceViewModel:
             stage: .lifecycleManifest,
             sequence: 1,
             sourceArtifactPath:
-                ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/lifecycle-manifest-v0.18.0.json",
+                ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/lifecycle-manifest-v0.18.0.json",
             failureClass: "artifactManifestValidated",
             nextAction: .manualReview,
             explanation:
-                "binance/usdm-perpetual/testnet/operator-beta-redacted namespace validated for local bundle review"
+                "binance/usdmFutures/testnet/operator-beta-redacted namespace validated for local bundle review"
         ),
         ReleaseV0180DashboardArtifactRecoveryDrilldownRow(
             stage: .statusQuery,
             sequence: 2,
             sourceArtifactPath:
-                ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/status-query-retry-result.json",
+                ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/status-query-retry-result.json",
             failureClass: "statusQueryRetryLimitReached",
             nextAction: .retry,
             explanation:
-                "binance/usdm-perpetual/testnet/operator-beta-redacted status query failed closed before any network retry"
+                "binance/usdmFutures/testnet/operator-beta-redacted status query failed closed before any network retry"
         ),
         ReleaseV0180DashboardArtifactRecoveryDrilldownRow(
             stage: .resume,
             sequence: 3,
             sourceArtifactPath:
-                ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/resume-after-interruption-result.json",
+                ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/resume-after-interruption-result.json",
             failureClass: "resumeEvidenceBlocked",
             nextAction: .manualReview,
             explanation:
-                "binance/usdm-perpetual/testnet/operator-beta-redacted resume evidence requires operator review"
+                "binance/usdmFutures/testnet/operator-beta-redacted resume evidence requires operator review"
         ),
         ReleaseV0180DashboardArtifactRecoveryDrilldownRow(
             stage: .reconciliationReplay,
             sequence: 4,
             sourceArtifactPath:
-                ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/cancel-status-reconciliation-replay.json",
+                ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/cancel-status-reconciliation-replay.json",
             failureClass: "reconciliationReplayMismatch",
             nextAction: .stop,
             explanation:
-                "binance/usdm-perpetual/testnet/operator-beta-redacted reconciliation mismatch keeps recovery stopped"
+                "binance/usdmFutures/testnet/operator-beta-redacted reconciliation mismatch keeps recovery stopped"
         )
     ]
 
@@ -830,7 +837,7 @@ public struct ReleaseV0180DashboardArtifactRecoveryDrilldownLocalArtifactInput:
     public init(
         artifactID: String = "gh-1182-dashboard-artifact-recovery-drilldown",
         relativePath: String =
-            ".local/mtpro/runs/binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/dashboard-recovery-drilldown.json",
+            ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/dashboard-recovery-drilldown.json",
         schema: String = Self.schemaID,
         releaseVersion: String = "v0.18.0",
         validationState: String = "valid",

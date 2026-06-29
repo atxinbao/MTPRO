@@ -4137,7 +4137,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(surface.input.inputHeld)
         XCTAssertEqual(
             surface.input.namespaceKey,
-            "binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run"
+            "binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run"
         )
         XCTAssertEqual(surface.input.topLevelNextAction, .stop)
         XCTAssertTrue(surface.input.operatorNextActionCLI.contains("mtpro operator-run explain-failure"))
@@ -4156,7 +4156,7 @@ final class AppTests: XCTestCase {
         XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0180DrilldownRows=4"))
         XCTAssertTrue(
             snapshot.smokeSummary.contains(
-                "releaseV0180DrilldownNamespace=binance/usdm-perpetual/testnet/operator-beta-redacted/gh-1182-v0180-operator-run"
+                "releaseV0180DrilldownNamespace=binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run"
             )
         )
         XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0180DrilldownFailureClasses="))

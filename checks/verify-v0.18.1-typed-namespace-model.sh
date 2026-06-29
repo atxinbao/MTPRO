@@ -32,7 +32,7 @@ reject_contains() {
 }
 
 for file in \
-  "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" \
+  "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" \
   "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" \
   "Tests/TargetGraphTests/TargetGraphTests.swift" \
   "checks/verify-v0.18.1-typed-namespace-model.sh" \
@@ -53,12 +53,12 @@ for file in \
   require_contains "$file" "V0181-005-NO-PRODUCTION-CUTOVER"
 done
 
-require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181VenueID"
-require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181ProductKind"
-require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181TradingEnvironment"
-require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" "public struct ReleaseV0181AccountProfileID"
-require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" "credentialLikeMarkers"
-require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181TypedNamespaceModel.swift" "productionLiveForbiddenByDefault=true"
+require_contains "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181VenueID"
+require_contains "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181ProductKind"
+require_contains "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" "public enum ReleaseV0181TradingEnvironment"
+require_contains "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" "public struct ReleaseV0181AccountProfileID"
+require_contains "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" "credentialLikeMarkers"
+require_contains "Sources/DomainModel/ReleaseV0181TypedNamespaceModel.swift" "productionLiveForbiddenByDefault=true"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" "ReleaseV0181VenueID"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetryArtifactPersistence.swift" "ReleaseV0181VenueProductNamespacePolicy.supportsCriticalNamespace"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift" "ReleaseV0181VenueProductNamespacePolicy.supportsRawPair"
