@@ -187,6 +187,15 @@ bash checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh
 # V0190-007-NO-BEHAVIOR-CHANGE
 # V0190-007-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh
+# GH-1213-VERIFY-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE
+# TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE
+# V0190-008-DASHBOARD-REGISTRY-READ-ONLY-SURFACE
+# V0190-008-BINANCE-SPOT-FUTURES-OKX-SPOT-SWAP-STATES
+# V0190-008-ACTIVE-PLACEHOLDER-FUTURE-GATED-FORBIDDEN
+# V0190-008-CAPABILITY-UNSUPPORTED-REASONS
+# V0190-008-DASHBOARD-READ-ONLY-NO-COMMANDS
+# V0190-008-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh

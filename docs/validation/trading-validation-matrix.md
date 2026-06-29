@@ -4535,3 +4535,19 @@
 - existing behavior surface: submit / cancel / queryStatus are routed to existing runtime anchors without changing operator confirmation, redaction or no-production defaults.
 - fail-closed surface: queryPosition / reconcile / recover, Binance USDⓈ-M Futures, OKX placeholder rows, productionShadow, productionLive and cross profile reuse fail closed.
 - forbidden scope: no secret manager, no endpoint / broker connection from registry selection, no behavior change, no tag or GitHub Release creation and no production cutover.
+
+## TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE
+
+- GH-1213-VERIFY-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE
+- V0190-008-DASHBOARD-REGISTRY-READ-ONLY-SURFACE
+- V0190-008-BINANCE-SPOT-FUTURES-OKX-SPOT-SWAP-STATES
+- V0190-008-ACTIVE-PLACEHOLDER-FUTURE-GATED-FORBIDDEN
+- V0190-008-CAPABILITY-UNSUPPORTED-REASONS
+- V0190-008-DASHBOARD-READ-ONLY-NO-COMMANDS
+- V0190-008-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh`
+- focused tests: `swift test --filter AppTests/testGH1213DashboardVenueProductRegistrySurfaceShowsReadOnlySupportStatus` and `swift test --filter TargetGraphTests/testGH1213DashboardVenueProductRegistrySurfaceIsAnchoredInV0190Guards`
+- Dashboard surface: Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap support rows are visible.
+- status surface: active、placeholder、futureGated and forbidden capability states are explicit, and unsupported operation reasons are visible.
+- read-only surface: Dashboard shell exposes metrics / details only; it does not bind command handlers or create order controls.
+- forbidden scope: no secret manager, no endpoint / broker connection, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.

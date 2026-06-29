@@ -6487,3 +6487,22 @@ swift test
 - typed selection surface: registration must reuse `ReleaseV0190VenueProductRuntimeAdapterSelection`, capability matrix, endpoint family and credential profile evidence.
 - fail-closed surface: queryPosition / reconcile / recover remain unregistered; Binance USDⓈ-M Futures, OKX placeholder rows, productionShadow, productionLive and cross profile reuse must fail closed.
 - forbidden scope: no endpoint / broker connection from the registry, no secret read, no behavior change, no tag / GitHub Release creation and no production cutover.
+
+## GH-1213 Release v0.19.0 Dashboard Venue/Product Registry Surface
+
+- GH-1213-VERIFY-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE
+- TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE
+- V0190-008-DASHBOARD-REGISTRY-READ-ONLY-SURFACE
+- V0190-008-BINANCE-SPOT-FUTURES-OKX-SPOT-SWAP-STATES
+- V0190-008-ACTIVE-PLACEHOLDER-FUTURE-GATED-FORBIDDEN
+- V0190-008-CAPABILITY-UNSUPPORTED-REASONS
+- V0190-008-DASHBOARD-READ-ONLY-NO-COMMANDS
+- V0190-008-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh`
+- focused tests: `swift test --filter AppTests/testGH1213DashboardVenueProductRegistrySurfaceShowsReadOnlySupportStatus` and `swift test --filter TargetGraphTests/testGH1213DashboardVenueProductRegistrySurfaceIsAnchoredInV0190Guards`
+- source: `Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift`
+- shell source: `Sources/Dashboard/DashboardShell.swift`
+- surface scope: Dashboard must show Binance Spot、Binance USDⓈ-M Futures、OKX Spot and OKX Swap registry support states.
+- state scope: active、placeholder、futureGated and forbidden capability states must be visible, including unsupported operation reasons.
+- fail-closed surface: runtime registration failures, placeholder rows and future-gated rows remain read-only status rows rather than command controls.
+- forbidden scope: no trading button, no order form, no live command, no endpoint / broker connection, no secret read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.

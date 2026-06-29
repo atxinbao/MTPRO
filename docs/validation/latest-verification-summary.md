@@ -352,6 +352,26 @@ v0.19.0 venue/product runtime adapter protocol 以 #1206..#1210 registry、capab
 
 v0.19.0 Binance Spot Testnet runtime registry 以 #1211 adapter protocol 为依赖。`ReleaseV0190VenueProductRuntimeRegistry` 只注册 `binance/spot/testnet/binance-spot-testnet-credential-profile-ref`，并把 submit、cancel、queryStatus 路由到既有 `ReleaseV0150BinanceSpotTestnetSubmitRuntime`、`ReleaseV0150BinanceSpotTestnetCancelRuntime` 和 `ReleaseV0160CLIOrderStatusQueryFlow` 类型锚点。Registration 必须先通过 typed namespace、capability matrix、endpoint family 和 credential profile selection；registry 本身不读 secret、不连接 endpoint、不触碰 broker gateway、不改变既有 operator confirmation / redaction / no-production defaults。queryPosition、reconcile、recover、Binance USDⓈ-M Futures、OKX placeholder、productionShadow、productionLive 和跨 profile 复用均 fail closed；不授权 production cutover。
 
+## Release v0.19.0 Dashboard Venue/Product Registry Surface Snapshot
+
+`GH-1213-VERIFY-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE`
+
+`TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE`
+
+`V0190-008-DASHBOARD-REGISTRY-READ-ONLY-SURFACE`
+
+`V0190-008-BINANCE-SPOT-FUTURES-OKX-SPOT-SWAP-STATES`
+
+`V0190-008-ACTIVE-PLACEHOLDER-FUTURE-GATED-FORBIDDEN`
+
+`V0190-008-CAPABILITY-UNSUPPORTED-REASONS`
+
+`V0190-008-DASHBOARD-READ-ONLY-NO-COMMANDS`
+
+`V0190-008-NO-PRODUCTION-CUTOVER`
+
+v0.19.0 Dashboard venue/product registry surface 以 #1211 runtime adapter protocol 和 #1212 Binance Spot Testnet runtime registry 为依赖。`ReleaseV0190DashboardVenueProductRegistrySurfaceViewModel` 将 Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap 的 registry / capability / runtime registration 状态投影成 read-only Dashboard rows；active、placeholder、futureGated 和 forbidden capability states 以及 unsupported operation reasons 均可见。该 surface 只供 operator inspect，不提供 command handler、trading button、order form、live command、endpoint connection、secret read、broker action、submit / cancel / replace 或 production cutover。
+
 ## Release v0.16.1 Central Artifact Redaction Policy Snapshot
 
 `GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY`
