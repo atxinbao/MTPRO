@@ -4470,3 +4470,21 @@
 - host family surface: Binance testnet / productionShadow host families are explicit; OKX Spot / Swap remain placeholder endpoint family evidence only.
 - fail-closed surface: productionLive, invalid scheme, production host misuse and state / hostFamily mismatch throw readable fail-closed errors.
 - forbidden scope: no endpoint connection, no URLSession / URLRequest transport, no credential read, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.
+
+## TVM-RELEASE-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY
+
+- GH-1209-VERIFY-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY
+- V0190-004-CREDENTIAL-PROFILE-REGISTRY
+- V0190-004-TESTNET-PRODUCTION-SHADOW-PROFILES
+- V0190-004-CREDENTIAL-IDENTITY-ONLY
+- V0190-004-CROSS-NAMESPACE-REUSE-FAILS-CLOSED
+- V0190-004-REDACTED-EVIDENCE-ONLY
+- V0190-004-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+- V0190-004-NO-SECRET-READ
+- V0190-004-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-venue-credential-profile-registry.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1209ReleaseV0190VenueCredentialProfileRegistryFailsClosed`
+- registry surface: typed credential profile rows cover Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap.
+- profile identity surface: testnet and productionShadow rows store profile identity and redacted evidence reference only; no secret value is read or persisted.
+- fail-closed surface: productionLive, cross namespace profile reuse, raw evidence reference and secret-read attempts throw readable fail-closed errors.
+- forbidden scope: no secret manager, no environment secret probe, no endpoint / broker connection, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.

@@ -6411,3 +6411,23 @@ swift test
 - host family surface: Binance Spot testnet / productionShadow must map to `testnet.binance.vision` / `api.binance.com`; Binance USDⓈ-M Futures testnet / productionShadow must map to `testnet.binancefuture.com` / `fapi.binance.com`; OKX Spot / Swap must remain placeholder family evidence.
 - fail-closed surface: productionLive, invalid scheme, production host misuse and state/hostFamily mismatch must fail closed with readable reason.
 - forbidden scope: no network connection, no URLSession / URLRequest transport, no credential read, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
+
+## GH-1209 Release v0.19.0 Venue Credential Profile Registry
+
+- GH-1209-VERIFY-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY
+- TVM-RELEASE-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY
+- V0190-004-CREDENTIAL-PROFILE-REGISTRY
+- V0190-004-TESTNET-PRODUCTION-SHADOW-PROFILES
+- V0190-004-CREDENTIAL-IDENTITY-ONLY
+- V0190-004-CROSS-NAMESPACE-REUSE-FAILS-CLOSED
+- V0190-004-REDACTED-EVIDENCE-ONLY
+- V0190-004-PRODUCTION-LIVE-FORBIDDEN-BY-DEFAULT
+- V0190-004-NO-SECRET-READ
+- V0190-004-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-venue-credential-profile-registry.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1209ReleaseV0190VenueCredentialProfileRegistryFailsClosed`
+- source: `Sources/ExecutionClient/FutureGate/ReleaseV0190VenueCredentialProfileRegistry.swift`
+- validation surface: `ReleaseV0190VenueCredentialProfileRegistry` must expose typed credential profile identity rows for Binance Spot、Binance USDⓈ-M Futures、OKX Spot and OKX Swap across testnet and productionShadow.
+- profile surface: registry rows store profile identity, namespace key and redacted evidence reference only; they must not read or persist secret values.
+- fail-closed surface: productionLive, cross venue/product/environment profile reuse, raw evidence reference and secret-read attempts must fail closed with readable reason.
+- forbidden scope: no secret manager integration, no environment secret probe, no endpoint / broker connection, no submit / cancel / replace, no tag / GitHub Release creation and no production cutover.
