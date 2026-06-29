@@ -178,6 +178,15 @@ bash checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh
 # V0190-006-UNSUPPORTED-FAILS-CLOSED
 # V0190-006-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh
+# GH-1212-VERIFY-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY
+# TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY
+# V0190-007-BINANCE-SPOT-TESTNET-REGISTRATION
+# V0190-007-EXISTING-RUNTIME-ANCHORS
+# V0190-007-TYPED-REGISTRY-SELECTION
+# V0190-007-PLACEHOLDER-PAIRS-FAIL-CLOSED
+# V0190-007-NO-BEHAVIOR-CHANGE
+# V0190-007-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh

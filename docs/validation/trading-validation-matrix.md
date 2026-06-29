@@ -4519,3 +4519,19 @@
 - capability surface: operations must pass active capability checks; recover maps to reconcile capability and does not expand the #1207 matrix.
 - fail-closed surface: OKX placeholder / futureGated capabilities, productionShadow local execution, productionLive targets, cross profile reuse and endpoint / secret / broker flags fail closed.
 - forbidden scope: no secret manager, no endpoint / broker connection, no production live implementation, no tag or GitHub Release creation and no production cutover.
+
+## TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY
+
+- GH-1212-VERIFY-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY
+- V0190-007-BINANCE-SPOT-TESTNET-REGISTRATION
+- V0190-007-EXISTING-RUNTIME-ANCHORS
+- V0190-007-TYPED-REGISTRY-SELECTION
+- V0190-007-PLACEHOLDER-PAIRS-FAIL-CLOSED
+- V0190-007-NO-BEHAVIOR-CHANGE
+- V0190-007-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1212ReleaseV0190BinanceSpotTestnetRuntimeRegistryRoutesExistingBehavior`
+- registry surface: only Binance Spot Testnet with `binance-spot-testnet-credential-profile-ref` is registered.
+- existing behavior surface: submit / cancel / queryStatus are routed to existing runtime anchors without changing operator confirmation, redaction or no-production defaults.
+- fail-closed surface: queryPosition / reconcile / recover, Binance USDⓈ-M Futures, OKX placeholder rows, productionShadow, productionLive and cross profile reuse fail closed.
+- forbidden scope: no secret manager, no endpoint / broker connection from registry selection, no behavior change, no tag or GitHub Release creation and no production cutover.
