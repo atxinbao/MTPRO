@@ -6547,3 +6547,20 @@ swift test
 - validation surface: Stage Code Audit must cover #1206..#1215 issue completion evidence, PR #1222..#1230 merge/check evidence, boundary audit, validation summary, residual risk, root docs delta and next handoff.
 - closeout surface: root docs, latest summary, automation readiness, validation plan, trading validation matrix, release publication policy and verification log must state v0.19.0 construction closeout facts.
 - forbidden scope: no tag creation in GH-1215, no GitHub Release publication in GH-1215, no next Project / Issue creation, no next Todo promotion, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
+
+## GH-1232 Release v0.19.1 v0.19.0 Release Fact Sync Guard
+
+- GH-1232-VERIFY-V0191-V0190-RELEASE-FACT-SYNC
+- V0191-001-V0190-RELEASE-FACT-SYNC-GUARD
+- TVM-RELEASE-V0191-V0190-RELEASE-FACT-SYNC
+- V0191-001-V0190-TAG-FIXED
+- V0191-001-PATCH-QUEUE-NOT-PUBLICATION
+- V0191-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.1-v0190-release-fact-sync.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1232ReleaseV0191V0190ReleaseFactSyncGuard`
+- release URL: `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`
+- tag peeled commit: `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`
+- publication timestamp: `2026-06-29T13:42:34Z`
+- validation surface: root docs, latest verification summary, validation plan, trading validation matrix, automation readiness and focused guard must sync the published v0.19.0 facts.
+- construction-history surface: #1215 remains historical construction closeout only; the later independent Release Publication Gate published the v0.19.0 stable release.
+- patch boundary evidence: GH-1232 does not move `v0.19.0` tag, does not overwrite GitHub Release, does not create v0.19.1 tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace and does not authorize production cutover.

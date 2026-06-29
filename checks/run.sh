@@ -215,6 +215,16 @@ bash checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh
 # V0190-010-NO-PRODUCTION-CUTOVER
 # V0190-010-NO-TAG-OR-RELEASE-PUBLICATION
 bash checks/verify-v0.19.0-stage-audit-release-docs.sh
+# GH-1232-VERIFY-V0191-V0190-RELEASE-FACT-SYNC
+# TVM-RELEASE-V0191-V0190-RELEASE-FACT-SYNC
+# V0191-001-V0190-RELEASE-FACT-SYNC-GUARD
+# V0191-001-V0190-TAG-FIXED
+# V0191-001-PATCH-QUEUE-NOT-PUBLICATION
+# V0191-001-NO-PRODUCTION-CUTOVER
+# https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0
+# 53e9b1e81db075ef464b74f8f35c66ebd61ea03c
+# 2026-06-29T13:42:34Z
+bash checks/verify-v0.19.1-v0190-release-fact-sync.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh

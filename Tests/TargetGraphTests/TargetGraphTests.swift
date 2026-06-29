@@ -31193,6 +31193,91 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT"))
     }
 
+    func testGH1232ReleaseV0191V0190ReleaseFactSyncGuard() throws {
+        // 测试场景：GH-1232 将 v0.19.0 stable GitHub Release 的已发布事实同步到
+        // v0.19.1 patch guard 和 root docs。
+        // 验证目的：#1215 必须继续作为 historical construction closeout 保留，
+        // 但 root-facing 文档必须同时记录后续独立 Release Publication Gate 已发布 v0.19.0。
+        // GH-1232-VERIFY-V0191-V0190-RELEASE-FACT-SYNC
+        // V0191-001-V0190-RELEASE-FACT-SYNC-GUARD
+        // TVM-RELEASE-V0191-V0190-RELEASE-FACT-SYNC
+        // V0191-001-V0190-TAG-FIXED
+        // V0191-001-PATCH-QUEUE-NOT-PUBLICATION
+        // V0191-001-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1232-VERIFY-V0191-V0190-RELEASE-FACT-SYNC",
+            "V0191-001-V0190-RELEASE-FACT-SYNC-GUARD",
+            "TVM-RELEASE-V0191-V0190-RELEASE-FACT-SYNC",
+            "V0191-001-V0190-TAG-FIXED",
+            "V0191-001-PATCH-QUEUE-NOT-PUBLICATION",
+            "V0191-001-NO-PRODUCTION-CUTOVER"
+        ]
+        let releaseURL = "https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0"
+        let tagCommit = "53e9b1e81db075ef464b74f8f35c66ebd61ea03c"
+        let publishedAt = "2026-06-29T13:42:34Z"
+        let requiredFiles = [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.19.1-v0190-release-fact-sync.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+            XCTAssertTrue(source.contains(releaseURL), "\(file) must keep v0.19.0 release URL synchronized")
+            XCTAssertTrue(source.contains(tagCommit), "\(file) must keep v0.19.0 tag commit synchronized")
+            XCTAssertTrue(source.contains(publishedAt), "\(file) must keep v0.19.0 publication timestamp synchronized")
+        }
+
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.19.1-v0190-release-fact-sync.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(readme.contains("Latest v0.19.0 release publication fact"))
+        XCTAssertTrue(goal.contains("v0.19.0 release publication fact"))
+        XCTAssertTrue(blueprint.contains("Release v0.19.0 publication anchor"))
+        XCTAssertTrue(roadmap.contains("v0.19.0 stable GitHub Release fact"))
+        XCTAssertTrue(latest.contains("v0.19.0 stable GitHub Release"))
+        XCTAssertTrue(readiness.contains("Release v0.19.1 v0.19.0 release fact sync anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1232 Release v0.19.1 v0.19.0 Release Fact Sync Guard"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0191-V0190-RELEASE-FACT-SYNC"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1232ReleaseV0191V0190ReleaseFactSyncGuard"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.1-v0190-release-fact-sync.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.19.1-v0190-release-fact-sync.sh"))
+
+        for source in [readme, goal, blueprint, roadmap, latest] {
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+            XCTAssertFalse(source.contains("v0.19.0 tag pending"))
+            XCTAssertFalse(source.contains("v0.19.0 release pending"))
+            XCTAssertFalse(source.contains("v0.19.0 GitHub Release not created"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+        }
+    }
+
     func testGH1215ReleaseV0190StageAuditReleaseDocsCloseout() throws {
         // 测试场景：GH-1215 将 v0.19.0 construction queue 收口为 Stage Code Audit、
         // release notes、validation matrix、root docs refresh 和 stale wording guard。

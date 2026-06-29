@@ -4588,3 +4588,19 @@
 - PR surface: PR #1222..#1230 are merged with required check `checks` SUCCESS before #1215 closeout PR.
 - evidence surface: Stage Code Audit, release notes, root docs, latest summary, validation plan, automation readiness and release publication policy must share the same #1215 anchor set.
 - forbidden scope: no tag / GitHub Release creation, no next Project / Issue creation, no next Todo promotion, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover.
+
+## TVM-RELEASE-V0191-V0190-RELEASE-FACT-SYNC
+
+- GH-1232-VERIFY-V0191-V0190-RELEASE-FACT-SYNC
+- V0191-001-V0190-RELEASE-FACT-SYNC-GUARD
+- V0191-001-V0190-TAG-FIXED
+- V0191-001-PATCH-QUEUE-NOT-PUBLICATION
+- V0191-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.1-v0190-release-fact-sync.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1232ReleaseV0191V0190ReleaseFactSyncGuard`
+- release URL: `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`
+- tag peeled commit: `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`
+- publication timestamp: `2026-06-29T13:42:34Z`
+- publication surface: v0.19.0 stable GitHub Release facts must be synchronized after the independent Release Publication Gate.
+- construction-history surface: #1215 remains historical construction closeout only; GH-1232 records the later release fact without rewriting or moving the tag.
+- forbidden scope: no tag movement, no release overwrite, no v0.19.1 publication, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
