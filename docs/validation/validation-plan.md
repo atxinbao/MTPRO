@@ -82,6 +82,21 @@
 - Evidence files: `docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md`、`checks/verify-v0.18.1.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1205 只收口 #1200..#1205 aggregate audit、release notes、validation matrix 和 publication guidance。Human 已明确要求 v0.18.1 publication，但 tag / GitHub Release 仍必须在 #1205 PR merged、clean main、open PR = 0、open active issue = 0、validation evidence 和 GH-1201 full matrix publication evidence 重新确认后，由独立 Release Publication Gate 执行。GH-1205 不推进 v0.19.0，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。
 
+## GH-1236 Release v0.19.1 Aggregate Verification Anchor
+
+- GH-1236-VERIFY-V0191-AGGREGATE-VERIFICATION-ANCHOR
+- TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR
+- V0191-005-AGGREGATE-GUARD
+- V0191-005-FOCUSED-GUARDS-COVERED
+- V0191-005-PUBLICATION-FACTS-COVERED
+- V0191-005-RUN-AUTOMATION-WIRING
+- V0191-005-NO-PRODUCTION-CUTOVER
+- V0191-005-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.19.1.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1236ReleaseV0191AggregateVerificationAnchor`
+- Evidence files: `checks/verify-v0.19.1.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md`、`docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1236 只新增 v0.19.1 aggregate verification anchor，聚合 #1232 release fact sync、#1233 historical closeout wording、#1234 stale wording guard，并确认 #1235 publication fact markers 已落在 v0.19.0 release notes 和 stage audit。GH-1236 不移动 `v0.19.0` tag，不覆盖 GitHub Release，不创建 v0.19.1 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。
+
 ## GH-1148 Release v0.17.0 Stage Audit / Release Docs Closeout
 
 - GH-1148-VERIFY-V0170-STAGE-AUDIT-RELEASE-DOCS

@@ -16,6 +16,8 @@ GH-1234 使用 `GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-V01
 
 GH-1235 使用 `V0191-004-V0190-RELEASE-NOTES-PUBLICATION-FACTS`、`V0191-004-V0190-STAGE-AUDIT-PUBLICATION-FACTS`、`V0191-004-V0190-STABLE-RELEASE-FACT` 和 `V0191-004-NO-PRODUCTION-CUTOVER` 将本 notes 的当前 release state 对齐到 GitHub live-read：`v0.19.0` GitHub Release URL 为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`，release title 为 `MTPRO v0.19.0 Venue/Product Registry + Runtime Adapter Foundation`，`isDraft=false`，`isPrerelease=false`，tag 是 annotated tag，peeled commit 为 `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`，publishedAt 为 `2026-06-29T13:42:34Z`。该 publication fact 只确认 release artifact 存在，不授权 production cutover、production trading、production secret read、production endpoint / broker endpoint connection 或 real order。
 
+GH-1236 使用 `GH-1236-VERIFY-V0191-AGGREGATE-VERIFICATION-ANCHOR`、`TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR`、`V0191-005-AGGREGATE-GUARD`、`V0191-005-FOCUSED-GUARDS-COVERED`、`V0191-005-PUBLICATION-FACTS-COVERED`、`V0191-005-RUN-AUTOMATION-WIRING`、`V0191-005-NO-PRODUCTION-CUTOVER` 和 `V0191-005-NO-TAG-OR-RELEASE-PUBLICATION` 将 v0.19.1 aggregate verifier 绑定到 #1232 release fact sync、#1233 historical closeout wording、#1234 stale wording guard 和 #1235 publication fact markers。该 aggregate anchor 不移动 `v0.19.0` tag，不覆盖 GitHub Release，不创建 v0.19.1 tag / GitHub Release；production cutover not authorized。
+
 ## Issue Evidence
 
 - #1206：VenueRegistry / ProductRegistry。
@@ -73,6 +75,14 @@ All listed PRs are merged and their required GitHub check `checks` is SUCCESS. T
 - `V0191-004-V0190-STAGE-AUDIT-PUBLICATION-FACTS`
 - `V0191-004-V0190-STABLE-RELEASE-FACT`
 - `V0191-004-NO-PRODUCTION-CUTOVER`
+- `GH-1236-VERIFY-V0191-AGGREGATE-VERIFICATION-ANCHOR`
+- `TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR`
+- `V0191-005-AGGREGATE-GUARD`
+- `V0191-005-FOCUSED-GUARDS-COVERED`
+- `V0191-005-PUBLICATION-FACTS-COVERED`
+- `V0191-005-RUN-AUTOMATION-WIRING`
+- `V0191-005-NO-PRODUCTION-CUTOVER`
+- `V0191-005-NO-TAG-OR-RELEASE-PUBLICATION`
 
 Focused verifier:
 

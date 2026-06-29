@@ -4419,6 +4419,21 @@
 - publication guidance: v0.18.1 tag / GitHub Release requires an independent Release Publication Gate after #1205 merge, clean main, open PR = 0, open active issue = 0, validation evidence and GH-1201 full matrix publication evidence are reconfirmed.
 - forbidden scope: no tag creation in GH-1205, no release publication in GH-1205, no v0.19.0 start, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
 
+## TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR
+
+- GH-1236-VERIFY-V0191-AGGREGATE-VERIFICATION-ANCHOR
+- V0191-005-AGGREGATE-GUARD
+- V0191-005-FOCUSED-GUARDS-COVERED
+- V0191-005-PUBLICATION-FACTS-COVERED
+- V0191-005-RUN-AUTOMATION-WIRING
+- V0191-005-NO-PRODUCTION-CUTOVER
+- V0191-005-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.19.1.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1236ReleaseV0191AggregateVerificationAnchor`
+- aggregate surface: `checks/verify-v0.19.1.sh` runs the #1232 release fact sync guard, #1233 historical closeout wording guard and #1234 stale wording guard.
+- publication fact surface: #1235 v0.19.0 release notes and stage audit markers remain covered by the aggregate verifier.
+- forbidden scope: no tag movement, no release overwrite, no v0.19.1 publication, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
+
 ## TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY
 
 - GH-1206-VERIFY-V0190-VENUE-PRODUCT-REGISTRY
