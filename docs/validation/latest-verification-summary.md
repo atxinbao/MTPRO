@@ -390,6 +390,28 @@ v0.19.0 Dashboard venue/product registry surface 以 #1211 runtime adapter proto
 
 v0.19.0 CLI venue/product registry inspect 以 #1211 runtime adapter protocol 和 #1212 Binance Spot Testnet runtime registry 为依赖。`ReleaseV0190CLIVenueProductRegistryInspect` 将 Binance Spot、Binance USDⓈ-M Futures、OKX Spot 和 OKX Swap 的 registry / capability / runtime registration 状态投影到 `mtpro venue-product list`、`mtpro venue-product capabilities --venue <venue> --product <product>` 和 `mtpro venue-product explain --venue <venue> --product <product>` 三个只读 CLI 命令；active、placeholder、forbidden 和 future-gated states 以及 unsupported operation reasons 均可见。unknown 或 unsupported venue/product 输入 fail closed；该 CLI 不提供 submit / cancel / replace command path，不连接 endpoint / broker，不读取 production secret，不发送 order，不授权 production cutover。
 
+## Release v0.19.0 Stage Audit / Release Docs Closeout Snapshot
+
+`GH-1215-VERIFY-V0190-STAGE-AUDIT-RELEASE-DOCS`
+
+`TVM-RELEASE-V0190-STAGE-AUDIT-RELEASE-DOCS`
+
+`V0190-010-STAGE-CODE-AUDIT`
+
+`V0190-010-RELEASE-NOTES`
+
+`V0190-010-VALIDATION-MATRIX`
+
+`V0190-010-ROOT-DOCS-REFRESH`
+
+`V0190-010-STALE-WORDING-GUARD`
+
+`V0190-010-NO-PRODUCTION-CUTOVER`
+
+`V0190-010-NO-TAG-OR-RELEASE-PUBLICATION`
+
+v0.19.0 stage audit / release docs closeout 以 #1213 Dashboard surface 和 #1214 CLI inspect closeout 为依赖。GH-1215 收口 `#1206..#1215` construction queue、Stage Code Audit、release notes、validation matrix、root docs refresh 和 stale wording guard；PR #1222..#1230 均已 merged 且 required check `checks` SUCCESS。#1215 不创建 `v0.19.0` tag，不创建 GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 order，不授权 production cutover；production cutover not authorized。
+
 ## Release v0.16.1 Central Artifact Redaction Policy Snapshot
 
 `GH-1135-VERIFY-V0161-CENTRAL-ARTIFACT-REDACTION-POLICY`

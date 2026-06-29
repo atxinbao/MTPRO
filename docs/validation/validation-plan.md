@@ -6528,3 +6528,22 @@ swift test
 - state scope: active、placeholder、forbidden and future-gated states must be visible, including unsupported operation reasons.
 - fail-closed surface: unknown or unsupported venue/product input must fail closed with readable output.
 - forbidden scope: no submit / cancel / replace command path, no endpoint / broker connection, no secret read, no tag / GitHub Release creation and no production cutover.
+
+## GH-1215 Release v0.19.0 Stage Audit / Release Docs Closeout
+
+- GH-1215-VERIFY-V0190-STAGE-AUDIT-RELEASE-DOCS
+- TVM-RELEASE-V0190-STAGE-AUDIT-RELEASE-DOCS
+- V0190-010-STAGE-CODE-AUDIT
+- V0190-010-RELEASE-NOTES
+- V0190-010-VALIDATION-MATRIX
+- V0190-010-ROOT-DOCS-REFRESH
+- V0190-010-STALE-WORDING-GUARD
+- V0190-010-NO-PRODUCTION-CUTOVER
+- V0190-010-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.19.0-stage-audit-release-docs.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1215ReleaseV0190StageAuditReleaseDocsCloseout`
+- audit: `docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md`
+- release notes: `docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md`
+- validation surface: Stage Code Audit must cover #1206..#1215 issue completion evidence, PR #1222..#1230 merge/check evidence, boundary audit, validation summary, residual risk, root docs delta and next handoff.
+- closeout surface: root docs, latest summary, automation readiness, validation plan, trading validation matrix, release publication policy and verification log must state v0.19.0 construction closeout facts.
+- forbidden scope: no tag creation in GH-1215, no GitHub Release publication in GH-1215, no next Project / Issue creation, no next Todo promotion, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.

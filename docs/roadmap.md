@@ -84,7 +84,7 @@ Machine guard anchors:
 - Project Closure Count: 45 / 45 (100%)
 - Latest Completed Project：`MTPRO Release v0.15.0 Real Binance Testnet Execution MVP`
 - Latest Completed Patch：`MTPRO Release v0.14.1 Local Execution Evidence Hardening Patch`
-- Current maturity statement：`MTPRO Release v0.18.0 Venue/Product-aware Operator Lifecycle Recovery Foundation complete as construction closeout with production trading disabled by default and production cutover not authorized`
+- Current maturity statement：`MTPRO Release v0.19.0 Venue/Product Registry + Runtime Adapter Foundation complete as construction closeout with production trading disabled by default and production cutover not authorized`
 - PR #473 至 #493 evidence
 - PR #511 至 #519 evidence
 - final residual hardening PR #448
@@ -94,27 +94,29 @@ Machine guard anchors:
 
 ## Current Release Construction Scope / 当前 release 建设口径
 
-`GH-1185-VERIFY-V0180-STAGE-AUDIT-RELEASE-DOCS`
+`GH-1215-VERIFY-V0190-STAGE-AUDIT-RELEASE-DOCS`
 
-`TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS`
+`TVM-RELEASE-V0190-STAGE-AUDIT-RELEASE-DOCS`
 
-`V0180-010-STAGE-CODE-AUDIT`
+`V0190-010-STAGE-CODE-AUDIT`
 
-`V0180-010-RELEASE-NOTES`
+`V0190-010-RELEASE-NOTES`
 
-`V0180-010-VALIDATION-MATRIX`
+`V0190-010-VALIDATION-MATRIX`
 
-`V0180-010-ROOT-DOCS-REFRESH`
+`V0190-010-ROOT-DOCS-REFRESH`
 
-`V0180-010-STALE-WORDING-GUARD`
+`V0190-010-STALE-WORDING-GUARD`
 
-`V0180-010-NO-PRODUCTION-CUTOVER`
+`V0190-010-NO-PRODUCTION-CUTOVER`
 
-`V0180-010-NO-TAG-OR-RELEASE-PUBLICATION`
+`V0190-010-NO-TAG-OR-RELEASE-PUBLICATION`
 
-Completed GitHub fallback queue is `MTPRO Release v0.18.0 Venue/Product-aware Operator Lifecycle Recovery Foundation`, issue range `GH-1176..GH-1185`. GH-1185 closes the v0.18.0 stage audit / release docs, validation matrix, root docs refresh and stale wording guard. The closeout records completed facts only: it does not create `v0.18.0` tag, does not create GitHub Release, does not create the next Project / Issue, does not promote a next Todo, and does not authorize production cutover. production cutover not authorized.
+Completed GitHub fallback queue is `MTPRO Release v0.19.0 Venue/Product Registry + Runtime Adapter Foundation`, issue range `GH-1206..GH-1215`. GH-1215 closes the v0.19.0 stage audit / release docs, validation matrix, root docs refresh and stale wording guard. The closeout records completed facts only: it does not create `v0.19.0` tag, does not create GitHub Release, does not create the next Project / Issue, does not promote a next Todo, and does not authorize production cutover. production cutover not authorized.
 
 GH-1200 uses `GH-1200-VERIFY-V0181-V0180-RELEASE-FACT-SYNC`, `V0181-001-V0180-RELEASE-FACT-SYNC-GUARD`, `TVM-RELEASE-V0181-V0180-RELEASE-FACT-SYNC`, `V0181-001-V0180-TAG-FIXED`, `V0181-001-PATCH-QUEUE-NOT-PUBLICATION`, `V0181-001-V0180-STALE-WORDING-GUARD` and `V0181-001-NO-PRODUCTION-CUTOVER` to sync the later v0.18.0 stable GitHub Release fact into the v0.18.1 patch guard and root docs. The v0.18.0 Release URL is `https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0`, the tag peeled commit is `cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9`, and the publication timestamp is `2026-06-28T04:55:36Z`. v0.18.1 是 v0.18.0 后的 Venue/Product Lifecycle Recovery CLI + Release Fact Patch queue；GH-1200 不移动 `v0.18.0` tag，不覆盖 GitHub Release，不创建 v0.18.1 tag / GitHub Release，不授权 production cutover；production cutover not authorized.
+
+Historical v0.18.0 closeout anchor retained：`GH-1185-VERIFY-V0180-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS`、`V0180-010-STAGE-CODE-AUDIT`、`V0180-010-RELEASE-NOTES`、`V0180-010-VALIDATION-MATRIX`、`V0180-010-ROOT-DOCS-REFRESH`、`V0180-010-STALE-WORDING-GUARD`、`V0180-010-NO-PRODUCTION-CUTOVER` 和 `V0180-010-NO-TAG-OR-RELEASE-PUBLICATION`。该 historical anchor 只保留 #1185 construction closeout evidence；当前 construction closeout 已推进到 v0.19.0 GH-1215，production cutover not authorized。
 
 `GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT`
 

@@ -4571,3 +4571,20 @@
 - read-only surface: CLI exposes inspection text only; it does not introduce submit / cancel / replace commands or order controls.
 - fail-closed surface: unknown or unsupported venue/product input exits non-zero with readable contract mismatch evidence.
 - forbidden scope: no secret manager, no endpoint / broker connection, no submit / cancel / replace, no tag or GitHub Release creation and no production cutover.
+
+## TVM-RELEASE-V0190-STAGE-AUDIT-RELEASE-DOCS
+
+- GH-1215-VERIFY-V0190-STAGE-AUDIT-RELEASE-DOCS
+- V0190-010-STAGE-CODE-AUDIT
+- V0190-010-RELEASE-NOTES
+- V0190-010-VALIDATION-MATRIX
+- V0190-010-ROOT-DOCS-REFRESH
+- V0190-010-STALE-WORDING-GUARD
+- V0190-010-NO-PRODUCTION-CUTOVER
+- V0190-010-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.19.0-stage-audit-release-docs.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1215ReleaseV0190StageAuditReleaseDocsCloseout`
+- issue surface: #1206..#1215 complete the venue/product registry + runtime adapter foundation construction queue.
+- PR surface: PR #1222..#1230 are merged with required check `checks` SUCCESS before #1215 closeout PR.
+- evidence surface: Stage Code Audit, release notes, root docs, latest summary, validation plan, automation readiness and release publication policy must share the same #1215 anchor set.
+- forbidden scope: no tag / GitHub Release creation, no next Project / Issue creation, no next Todo promotion, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover.
