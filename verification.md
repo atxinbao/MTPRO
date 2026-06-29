@@ -17406,6 +17406,26 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `bash checks/automation-readiness.sh`: required.
   - `bash checks/run.sh`: required.
 
+## 2026-06-29 - GH-1233 v0.19.1 v0.19.0 Historical Closeout Wording Guard
+
+- Executor: Codex.
+- Scope:
+  - Added `GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`, `V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD`, `TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`, `V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL`, `V0191-002-CURRENT-RELEASE-PUBLISHED` and `V0191-002-NO-PRODUCTION-CUTOVER`.
+  - Reframed #1215 no-tag / no-release wording as historical construction closeout evidence in root docs, release notes, Stage Code Audit and release publication policy.
+  - Preserved current v0.19.0 stable GitHub Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`, tag peeled commit `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`, publication timestamp `2026-06-29T13:42:34Z`.
+- Boundary:
+  - Did not move `v0.19.0` tag.
+  - Did not overwrite GitHub Release.
+  - Did not create v0.19.1 tag / GitHub Release.
+  - Did not authorize production cutover.
+  - Did not read production secrets, connect production endpoints or broker endpoints, or send orders.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH1233ReleaseV0191V0190HistoricalCloseoutWordingGuard`: required focused test.
+  - `bash checks/verify-v0.19.1-v0190-historical-closeout-wording.sh`: required focused verifier.
+  - `git diff --check`: required.
+  - `bash checks/automation-readiness.sh`: required.
+  - `bash checks/run.sh`: required.
+
 ## 2026-06-29 - Target Mainline v0.20-v0.25 Route Anchor
 
 - Executor: Codex.

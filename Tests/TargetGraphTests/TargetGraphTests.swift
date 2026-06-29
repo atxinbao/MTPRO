@@ -31278,6 +31278,113 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1233ReleaseV0191V0190HistoricalCloseoutWordingGuard() throws {
+        // 测试场景：GH-1233 在 GH-1232 已同步 v0.19.0 发布事实后，
+        // 把 #1215 no-tag / no-release 文案限定为 historical construction closeout evidence。
+        // 验证目的：当前-facing 文档必须同时保留 v0.19.0 stable GitHub Release 事实，
+        // 且不能把 #1215 construction closeout 的 no-tag/no-release 状态误写成当前事实。
+        // GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING
+        // V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD
+        // TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING
+        // V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL
+        // V0191-002-CURRENT-RELEASE-PUBLISHED
+        // V0191-002-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING",
+            "V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD",
+            "TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING",
+            "V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL",
+            "V0191-002-CURRENT-RELEASE-PUBLISHED",
+            "V0191-002-NO-PRODUCTION-CUTOVER"
+        ]
+        let releaseURL = "https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0"
+        let tagCommit = "53e9b1e81db075ef464b74f8f35c66ebd61ea03c"
+        let publishedAt = "2026-06-29T13:42:34Z"
+        let requiredFiles = [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md",
+            "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md",
+            "verification.md",
+            "checks/verify-v0.19.1-v0190-historical-closeout-wording.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+            XCTAssertTrue(source.contains(releaseURL), "\(file) must keep v0.19.0 release URL synchronized")
+            XCTAssertTrue(source.contains(tagCommit), "\(file) must keep v0.19.0 tag commit synchronized")
+            XCTAssertTrue(source.contains(publishedAt), "\(file) must keep v0.19.0 publication timestamp synchronized")
+        }
+
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let notes = try read("docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md")
+        let audit = try read("docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md")
+        let verifier = try read("checks/verify-v0.19.1-v0190-historical-closeout-wording.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(readme.contains("Latest v0.19.1 historical closeout wording guard"))
+        XCTAssertTrue(goal.contains("v0.19.1 historical closeout wording guard"))
+        XCTAssertTrue(blueprint.contains("Release v0.19.1 historical closeout wording anchor"))
+        XCTAssertTrue(roadmap.contains("GH-1233 uses"))
+        XCTAssertTrue(latest.contains("v0.19.1 historical closeout wording guard"))
+        XCTAssertTrue(readiness.contains("Release v0.19.1 v0.19.0 historical closeout wording guard anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1233 Release v0.19.1 v0.19.0 Historical Closeout Wording Guard"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING"))
+        XCTAssertTrue(policy.contains("GH-1215 no-tag / no-release"))
+        XCTAssertTrue(notes.contains("Those no-tag / no-release statements are historical closeout evidence"))
+        XCTAssertTrue(audit.contains("historical closeout evidence"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1233ReleaseV0191V0190HistoricalCloseoutWordingGuard"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.19.1-v0190-historical-closeout-wording.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.19.1-v0190-historical-closeout-wording.sh"))
+
+        for source in [readme, goal, blueprint, roadmap, latest, policy, notes, audit] {
+            XCTAssertTrue(source.contains("historical construction closeout"))
+            XCTAssertTrue(source.contains("stable GitHub Release"))
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+            XCTAssertFalse(source.contains("v0.19.0 tag pending"))
+            XCTAssertFalse(source.contains("v0.19.0 release pending"))
+            XCTAssertFalse(source.contains("v0.19.0 GitHub Release not created"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+        }
+
+        XCTAssertFalse(readme.contains("Latest completed v0.19.0 construction closeout"))
+        XCTAssertFalse(blueprint.contains("Release v0.19.0 closeout anchor："))
+        XCTAssertFalse(roadmap.contains("Completed GitHub fallback queue is `MTPRO Release v0.19.0"))
+        XCTAssertFalse(notes.contains("- #1215 is construction closeout only."))
+        XCTAssertFalse(notes.contains("- #1215 does not create `v0.19.0` tag."))
+        XCTAssertFalse(notes.contains("- #1215 does not create GitHub Release."))
+        XCTAssertFalse(audit.contains("后续若需要发布 `v0.19.0`"))
+        XCTAssertFalse(audit.contains("本 Stage Code Audit 不创建 tag 或 GitHub Release。"))
+        XCTAssertFalse(policy.contains("If Human later requests `v0.19.0` publication"))
+    }
+
     func testGH1215ReleaseV0190StageAuditReleaseDocsCloseout() throws {
         // 测试场景：GH-1215 将 v0.19.0 construction queue 收口为 Stage Code Audit、
         // release notes、validation matrix、root docs refresh 和 stale wording guard。

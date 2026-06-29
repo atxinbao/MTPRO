@@ -225,6 +225,16 @@ bash checks/verify-v0.19.0-stage-audit-release-docs.sh
 # 53e9b1e81db075ef464b74f8f35c66ebd61ea03c
 # 2026-06-29T13:42:34Z
 bash checks/verify-v0.19.1-v0190-release-fact-sync.sh
+# GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING
+# TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING
+# V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD
+# V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL
+# V0191-002-CURRENT-RELEASE-PUBLISHED
+# V0191-002-NO-PRODUCTION-CUTOVER
+# https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0
+# 53e9b1e81db075ef464b74f8f35c66ebd61ea03c
+# 2026-06-29T13:42:34Z
+bash checks/verify-v0.19.1-v0190-historical-closeout-wording.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh
