@@ -8,7 +8,9 @@
 
 `MTPRO Release v0.19.0 Venue/Product Registry + Runtime Adapter Foundation` 收口 GitHub fallback issues `#1206..#1215`。本 construction queue 基于 v0.18.1 Venue/Product Lifecycle Recovery CLI + Release Fact Patch closeout，把 venue / product / environment / accountProfile namespace 进一步提升为 registry foundation：VenueRegistry、ProductRegistry、VenueProductCapabilityMatrix、VenueEndpointFamily registry、VenueCredentialProfile registry、typed v0.18 lifecycle namespace、VenueProductRuntimeAdapter protocol、Binance Spot Testnet runtime registry、Dashboard read-only surface 和 CLI read-only inspect surface。
 
-本 Stage Code Audit 只记录 v0.19.0 construction closeout evidence。它不创建 `v0.19.0` tag，不创建 GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。后续若需要发布 `v0.19.0`，必须走独立 Release Publication Gate。
+本 Stage Code Audit 只记录 v0.19.0 construction closeout evidence。它在 #1215 construction closeout 当时不创建 `v0.19.0` tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。该 no-tag / no-release statement 是 historical closeout evidence，不是当前 v0.19.0 release 状态；后续独立 Release Publication Gate 已发布 v0.19.0 stable GitHub Release。
+
+GH-1233 使用 `GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`、`V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD`、`TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`、`V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL`、`V0191-002-CURRENT-RELEASE-PUBLISHED` 和 `V0191-002-NO-PRODUCTION-CUTOVER` 约束本 audit 的 historical wording：#1215 no-tag / no-release 只描述 construction closeout time；当前 release fact 是 v0.19.0 stable GitHub Release 已发布，Release URL `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`，tag peeled commit `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`，publication timestamp `2026-06-29T13:42:34Z`。
 
 ## Issue Completion Evidence
 
@@ -46,6 +48,12 @@
 - `V0190-010-STALE-WORDING-GUARD`
 - `V0190-010-NO-PRODUCTION-CUTOVER`
 - `V0190-010-NO-TAG-OR-RELEASE-PUBLICATION`
+- `GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`
+- `V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD`
+- `TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`
+- `V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL`
+- `V0191-002-CURRENT-RELEASE-PUBLISHED`
+- `V0191-002-NO-PRODUCTION-CUTOVER`
 
 ## Validation Summary
 
@@ -77,7 +85,7 @@ Latest pre-closeout evidence before #1215: #1214 finished with `bash checks/run.
 - 不连接 production endpoint / broker endpoint。
 - 不发送 testnet 或 production submit / cancel / replace order。
 - 不新增 OKX runtime、Binance Futures runtime、real broker adapter、production OMS、trading button、order form、live command 或 production cutover control。
-- 本 Stage Code Audit 不创建 tag 或 GitHub Release。
+- 本 Stage Code Audit 在 #1215 construction closeout 当时不创建 tag 或 GitHub Release；该 statement 是 historical closeout evidence，当前 v0.19.0 已由后续独立 Release Publication Gate 发布 stable GitHub Release。
 - 不创建下一 Project / Issue，不推进下一 Todo。
 - 不使用 Linear、Symphony、Graphify、code-index 或 Figma。
 
@@ -87,8 +95,8 @@ v0.19.0 关闭的是 registry foundation 和 local adapter boundary。它把 ven
 
 ## Root Docs Delta
 
-本 closeout 将 root docs、validation docs、automation readiness 和 release publication policy 同步到已发生事实：`release/v0.19.0` queue `#1206..#1215` construction closeout，#1215 收口 Stage Code Audit、release notes、validation matrix、root docs refresh 和 stale wording guard。#1215 本身不创建 public release publication，不授权 production cutover。production cutover not authorized。
+本 closeout 将 root docs、validation docs、automation readiness 和 release publication policy 同步到已发生事实：`release/v0.19.0` queue `#1206..#1215` construction closeout，#1215 收口 Stage Code Audit、release notes、validation matrix、root docs refresh 和 stale wording guard。#1215 本身不创建 public release publication 的语句只限定为 historical construction closeout evidence；后续独立 Release Publication Gate 已发布 v0.19.0 stable GitHub Release。production cutover not authorized。
 
 ## Next Handoff
 
-若 Human 要求发布 `v0.19.0`，必须走独立 Release Publication Gate：clean `main`、open PR = 0、open active issue = 0、worktree clean、local validation evidence、GitHub required `checks` evidence 和 release publication policy evidence 必须重新确认后，才能创建或报告任何 `v0.19.0` tag / GitHub Release。本 Stage Code Audit 不移动任何 tag、不覆盖 release、不推进下一阶段、不创建下一 GitHub issue queue。
+v0.19.0 已在本 historical construction closeout 之后通过独立 Release Publication Gate 发布 stable GitHub Release。后续 patch queue 只能同步已发生事实、修正 stale wording 或追加 patch evidence；不得移动 `v0.19.0` tag、不得覆盖 GitHub Release、不得推进下一阶段、不得授权 production cutover。

@@ -6564,3 +6564,21 @@ swift test
 - validation surface: root docs, latest verification summary, validation plan, trading validation matrix, automation readiness and focused guard must sync the published v0.19.0 facts.
 - construction-history surface: #1215 remains historical construction closeout only; the later independent Release Publication Gate published the v0.19.0 stable release.
 - patch boundary evidence: GH-1232 does not move `v0.19.0` tag, does not overwrite GitHub Release, does not create v0.19.1 tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace and does not authorize production cutover.
+
+## GH-1233 Release v0.19.1 v0.19.0 Historical Closeout Wording Guard
+
+- GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING
+- V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD
+- TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING
+- V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL
+- V0191-002-CURRENT-RELEASE-PUBLISHED
+- V0191-002-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.19.1-v0190-historical-closeout-wording.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1233ReleaseV0191V0190HistoricalCloseoutWordingGuard`
+- release URL: `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`
+- tag peeled commit: `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`
+- publication timestamp: `2026-06-29T13:42:34Z`
+- wording surface: root docs, release notes, stage audit, release publication policy, latest summary, validation plan, trading validation matrix, automation readiness and verification log must frame #1215 no-tag / no-release language as historical construction closeout evidence.
+- current release surface: current-facing docs must preserve v0.19.0 stable GitHub Release URL, tag peeled commit and publication timestamp.
+- forbidden stale surface: unqualified v0.19.0 tag pending / release pending / GitHub Release not created wording must stay absent outside historical #1215 closeout context.
+- patch boundary evidence: GH-1233 does not move `v0.19.0` tag, does not overwrite GitHub Release, does not create v0.19.1 tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace and does not authorize production cutover.

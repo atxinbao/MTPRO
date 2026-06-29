@@ -12845,4 +12845,47 @@ require_absent "BLUEPRINT.md" "v0.19.0 GitHub Release not created"
 require_absent "docs/roadmap.md" "productionCutoverAuthorized=true"
 require_absent "docs/validation/latest-verification-summary.md" "productionCutoverAuthorized=true"
 
+for file in \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" \
+  "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" \
+  "verification.md" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.19.1-v0190-historical-closeout-wording.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh"; do
+  require_contains "$file" "GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING"
+  require_contains "$file" "V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD"
+  require_contains "$file" "TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING"
+  require_contains "$file" "V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL"
+  require_contains "$file" "V0191-002-CURRENT-RELEASE-PUBLISHED"
+  require_contains "$file" "V0191-002-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0"
+  require_contains "$file" "53e9b1e81db075ef464b74f8f35c66ebd61ea03c"
+  require_contains "$file" "2026-06-29T13:42:34Z"
+done
+require_contains "docs/automation/automation-readiness.md" "Release v0.19.1 v0.19.0 historical closeout wording guard anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1233 Release v0.19.1 v0.19.0 Historical Closeout Wording Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING"
+require_contains "checks/run.sh" "bash checks/verify-v0.19.1-v0190-historical-closeout-wording.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.1-v0190-historical-closeout-wording.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1233ReleaseV0191V0190HistoricalCloseoutWordingGuard"
+require_absent "README.md" "Latest completed v0.19.0 construction closeout"
+require_absent "BLUEPRINT.md" "Release v0.19.0 closeout anchor："
+require_absent "docs/roadmap.md" "Completed GitHub fallback queue is \`MTPRO Release v0.19.0"
+require_absent "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" "- #1215 is construction closeout only."
+require_absent "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" "- #1215 does not create \`v0.19.0\` tag."
+require_absent "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" "- #1215 does not create GitHub Release."
+require_absent "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" "后续若需要发布 \`v0.19.0\`"
+require_absent "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" "本 Stage Code Audit 不创建 tag 或 GitHub Release。"
+require_absent "docs/release/release-publication-policy.md" "If Human later requests \`v0.19.0\` publication"
+
 printf 'MTPRO automation readiness checks passed.\n'
