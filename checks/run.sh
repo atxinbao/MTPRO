@@ -170,6 +170,14 @@ bash checks/verify-v0.19.0-venue-credential-profile-registry.sh
 # V0190-005-NAMESPACE-MISMATCH-FAILS-CLOSED
 # V0190-005-NO-PRODUCTION-CUTOVER
 bash checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh
+# GH-1211-VERIFY-V0190-RUNTIME-ADAPTER-PROTOCOL
+# TVM-RELEASE-V0190-RUNTIME-ADAPTER-PROTOCOL
+# V0190-006-RUNTIME-ADAPTER-PROTOCOL
+# V0190-006-CAPABILITY-GATED-OPERATIONS
+# V0190-006-TYPED-NAMESPACE-SELECTION
+# V0190-006-UNSUPPORTED-FAILS-CLOSED
+# V0190-006-NO-PRODUCTION-CUTOVER
+bash checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh
 bash checks/verify-v0.5.0-cli.sh
 bash checks/verify-v0.5.0-environment.sh
 bash checks/verify-v0.5.0-instrument-catalog.sh
