@@ -20,6 +20,22 @@
 - Evidence files: `.github/workflows/checks.yml`、`checks/verify-ci-pr-fast-lane-release-matrix.sh`、`checks/verify-v0.18.1-release-full-matrix-publication-gate.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/ci-reproducibility.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1201 keeps ordinary PR required `checks` fast-lane-only, but release publication evidence must include GitHub Actions workflow run id、workflow job ids: pr_fast_checks, linux_checks, dashboard_macos, release_publication_checks、GitHub Actions run log、job summary、Linux `checks/run.sh` output 和 Dashboard macOS build / smoke output。release publication cannot be represented as complete by pr-fast-checks or checks aggregate alone；linux-checks and dashboard-macos must both be SUCCESS for tag publication evidence。GH-1201 不创建 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。
 
+## GH-1239 Release v0.20.0 Production-shadow Read-only Live Readiness Contract
+
+- GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT
+- TVM-RELEASE-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT
+- V0200-001-V0191-PREFLIGHT-GATE
+- V0200-001-BINANCE-SPOT-PRODUCTION-SHADOW
+- V0200-001-READ-ONLY-LIVE-READINESS
+- V0200-001-NO-ORDER-SUBMIT-CANCEL-REPLACE
+- V0200-001-SPOT-CANARY-DEFERRED-TO-V0210
+- V0200-001-QUEUE-ORDER
+- V0200-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.20.0-production-shadow-readiness-contract.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1239ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md`、`checks/verify-v0.20.0-production-shadow-readiness-contract.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1239 只定义 v0.20.0 Binance Spot production-shadow / read-only live readiness contract、GH-1232..GH-1237 dependency、GH-1240..GH-1250 queue order 和 fail-closed forbidden capability set。GH-1239 不读取 secret value，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不实现 private stream runtime，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
+
 ## GH-1202 Release v0.18.1 Operator-run CLI Commands
 
 - GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS

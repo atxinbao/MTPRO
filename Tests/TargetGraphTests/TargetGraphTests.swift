@@ -59504,6 +59504,190 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    func testGH1239ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract() throws {
+        // 测试场景：GH-1239 只定义 v0.20.0 Binance Spot production-shadow / read-only
+        // live readiness contract。
+        // 验证目的：确认 contract、root docs、validation docs 和 automation guards 都固定
+        // #1239..#1250 的 WIP=1 顺序，并继续拒绝 secret value read、endpoint connection、
+        // signed account / private stream runtime、submit / cancel / replace、Spot canary、tag /
+        // release publication 和 production cutover。
+        // GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT
+        // TVM-RELEASE-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT
+        // V0200-001-V0191-PREFLIGHT-GATE
+        // V0200-001-BINANCE-SPOT-PRODUCTION-SHADOW
+        // V0200-001-READ-ONLY-LIVE-READINESS
+        // V0200-001-NO-ORDER-SUBMIT-CANCEL-REPLACE
+        // V0200-001-SPOT-CANARY-DEFERRED-TO-V0210
+        // V0200-001-QUEUE-ORDER
+        // V0200-001-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT",
+            "TVM-RELEASE-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT",
+            "V0200-001-V0191-PREFLIGHT-GATE",
+            "V0200-001-BINANCE-SPOT-PRODUCTION-SHADOW",
+            "V0200-001-READ-ONLY-LIVE-READINESS",
+            "V0200-001-NO-ORDER-SUBMIT-CANCEL-REPLACE",
+            "V0200-001-SPOT-CANARY-DEFERRED-TO-V0210",
+            "V0200-001-QUEUE-ORDER",
+            "V0200-001-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract.swift",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.20.0-production-shadow-readiness-contract.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let contract = try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract.deterministicFixture()
+
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.preflightBoundaryHeld)
+        XCTAssertTrue(contract.implementationDeferredByThisIssue)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-1239")
+        XCTAssertEqual(contract.blockedByIssueIDs.map(\.rawValue), (1232...1237).map { "GH-\($0)" })
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), (1240...1250).map { "GH-\($0)" })
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-1239..GH-1250")
+        XCTAssertEqual(
+            contract.projectName,
+            "MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness"
+        )
+        XCTAssertEqual(contract.releaseVersion, "v0.20.0")
+        XCTAssertEqual(contract.allowedVenue, "Binance")
+        XCTAssertEqual(contract.allowedProductTypes, ["spot"])
+        XCTAssertEqual(contract.allowedModes, ReleaseV0200ProductionShadowReadinessMode.allCases)
+        XCTAssertTrue(contract.allowedModes.contains(.productionShadowEnvironmentProfile))
+        XCTAssertTrue(contract.allowedModes.contains(.productionReadOnlyEndpointAllowlist))
+        XCTAssertTrue(contract.allowedModes.contains(.credentialReferenceReadiness))
+        XCTAssertTrue(contract.allowedModes.contains(.publicMarketReadOnlyProbe))
+        XCTAssertTrue(contract.allowedModes.contains(.signedAccountReadinessProbeContract))
+        XCTAssertTrue(contract.allowedModes.contains(.accountSnapshotRedactionArtifactPolicy))
+        XCTAssertTrue(contract.allowedModes.contains(.noOrderCapabilityGuard))
+        XCTAssertTrue(contract.preflightRequirements.contains(.previousV0191QueueClosed))
+        XCTAssertTrue(contract.preflightRequirements.contains(.blockingIssues1232Through1237Done))
+        XCTAssertTrue(contract.preflightRequirements.contains(.githubQueueWIPOne))
+        XCTAssertTrue(contract.preflightRequirements.contains(.productionShadowReadOnlyOnly))
+        XCTAssertTrue(contract.preflightRequirements.contains(.spotCanaryDeferredToV0210))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.productionCutoverAuthorization))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.productionSecretValueRead))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.productionEndpointAutoConnect))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.orderSubmitCancelReplace))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.spotCanaryByThisRelease))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.tagOrReleasePublication))
+        XCTAssertTrue(contract.v0191CloseoutRequired)
+        XCTAssertTrue(contract.productionShadowReadOnlyOnly)
+        XCTAssertTrue(contract.failClosedReadinessEvidenceRequired)
+        XCTAssertTrue(contract.spotCanaryDeferredToV0210)
+        XCTAssertFalse(contract.credentialSecretValueReadEnabledByThisIssue)
+        XCTAssertFalse(contract.productionEndpointConnectionEnabledByThisIssue)
+        XCTAssertFalse(contract.signedAccountEndpointRuntimeImplementedByThisIssue)
+        XCTAssertFalse(contract.privateStreamRuntimeImplementedByThisIssue)
+        XCTAssertFalse(contract.orderSubmitCancelReplaceImplementedByThisIssue)
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.productionSecretReadEnabled)
+        XCTAssertFalse(contract.productionEndpointConnectionEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabled)
+        XCTAssertFalse(contract.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+        XCTAssertFalse(contract.createsTagOrRelease)
+        XCTAssertFalse(contract.startsNextMilestone)
+        XCTAssertEqual(contract.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            contract.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1239ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract",
+                "bash checks/verify-v0.20.0-production-shadow-readiness-contract.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract(
+            blockedByIssueIDs: [Identifier.constant("GH-1237")]
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract(
+            allowedProductTypes: ["spot", "usdmFutures"]
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract(
+            productionShadowReadOnlyOnly: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract(
+            credentialSecretValueReadEnabledByThisIssue: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract(
+            productionEndpointConnectionEnabledByThisIssue: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract(
+            signedAccountEndpointRuntimeImplementedByThisIssue: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract(
+            privateStreamRuntimeImplementedByThisIssue: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract(
+            orderSubmitCancelReplaceImplementedByThisIssue: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract(
+            productionCutoverAuthorized: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract(createsTagOrRelease: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract(startsNextMilestone: true))
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.20.0-production-shadow-readiness-contract.sh")
+
+        XCTAssertTrue(contractDoc.contains("#1240 / GH-1240"))
+        XCTAssertTrue(contractDoc.contains("#1250 / GH-1250"))
+        XCTAssertTrue(readiness.contains("Release v0.20.0 production-shadow readiness contract anchor"))
+        XCTAssertTrue(latest.contains("v0.20.0 production-shadow / read-only live readiness contract"))
+        XCTAssertTrue(plan.contains("GH-1239 Release v0.20.0 Production-shadow Read-only Live Readiness Contract"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.0-production-shadow-readiness-contract.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.0-production-shadow-readiness-contract.sh"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1239ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract"
+        ))
+
+        for source in [contractDoc, latest, plan, matrix] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("credentialSecretValueReadEnabledByThisIssue=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnectionEnabledByThisIssue=true"))
+            XCTAssertFalse(source.contains("signedAccountEndpointRuntimeImplementedByThisIssue=true"))
+            XCTAssertFalse(source.contains("privateStreamRuntimeImplementedByThisIssue=true"))
+            XCTAssertFalse(source.contains("orderSubmitCancelReplaceImplementedByThisIssue=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

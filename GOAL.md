@@ -55,6 +55,8 @@ MTPRO 首先服务个人专业交易者 / 独立策略研究者：在本机 Mac 
 
 关键原则：v0.20.0 不能下单，v0.21.0 才允许 Spot 小额 canary；Futures 从 v0.22.0 read-only foundation 开始，v0.23.0 才进入 testnet execution；v0.24.0 统一 OMS / Portfolio / Risk / Reconciliation；v0.25.0 只做双产品 production readiness / canary hardening，不自动授权 production cutover。
 
+v0.20.0 首个合同 anchor：`GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT`、`TVM-RELEASE-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT`、`V0200-001-V0191-PREFLIGHT-GATE`、`V0200-001-BINANCE-SPOT-PRODUCTION-SHADOW`、`V0200-001-READ-ONLY-LIVE-READINESS`、`V0200-001-NO-ORDER-SUBMIT-CANCEL-REPLACE`、`V0200-001-SPOT-CANARY-DEFERRED-TO-V0210`、`V0200-001-QUEUE-ORDER`、`V0200-001-NO-PRODUCTION-CUTOVER`。
+
 ## 当前成功标准
 
 - `BLUEPRINT.md` 保持最终产品 / 系统 / 设计蓝图清楚。
