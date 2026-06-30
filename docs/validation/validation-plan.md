@@ -179,6 +179,21 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ReadOnlyLiveReadinessSurface.swift`、`Sources/Dashboard/Report/ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface.swift`、`Sources/Dashboard/DashboardShell.swift`、`Sources/MTPROCLI/main.swift`、`checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`Tests/AppTests/AppTests.swift` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1248 只把 #1240..#1247 的 Binance Spot production-shadow readiness evidence 投影到 Dashboard / CLI 只读 status surface。它展示 gate state、endpoint class、credential reference state、redaction state 和 no-order status；它不读取 secret value，不连接 production endpoint / broker endpoint，不生成 signed request / signed order material，不触达真实 account endpoint 或 `/api/v3/order`，不提交 / 取消 / 替换订单，不开启 Dashboard trading button / order form / live command，不运行 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
 
+## GH-1249 Release v0.20.0 Aggregate Validation Suite
+
+- GH-1249-VERIFY-V0200-RELEASE-VALIDATION-SUITE
+- TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE
+- V0200-011-AGGREGATE-VALIDATION-SUITE
+- V0200-011-FOCUSED-GUARDS-COVERED
+- V0200-011-READINESS-REDACTION-NO-ORDER-COVERED
+- V0200-011-RUN-AUTOMATION-WIRING
+- V0200-011-NO-PRODUCTION-CUTOVER
+- V0200-011-NO-TAG-OR-RELEASE-PUBLICATION
+- Focused verifier: `bash checks/verify-v0.20.0.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1249ReleaseV0200AggregateValidationSuite`
+- Evidence files: `checks/verify-v0.20.0.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1249 只聚合 #1239..#1248 focused verifier，覆盖 v0.20.0 readiness contract、endpoint allowlist、credential reference、public market read-only probe、signed account read-only intent、account snapshot redaction、no-order guard、risk / kill switch / no-trade readiness 与 Dashboard / CLI read-only surface。它不读取 secret value，不连接 production endpoint / broker endpoint，不触达 account / order endpoint，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
+
 ## GH-1202 Release v0.18.1 Operator-run CLI Commands
 
 - GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS

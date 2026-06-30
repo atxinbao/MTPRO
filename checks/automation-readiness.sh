@@ -172,6 +172,7 @@ require_file "checks/verify-v0.19.1.sh"
 require_file "checks/verify-v0.20.0-production-shadow-readiness-contract.sh"
 require_file "checks/verify-v0.20.0-production-shadow-environment-profile.sh"
 require_file "checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh"
+require_file "checks/verify-v0.20.0.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -13333,5 +13334,38 @@ require_contains "docs/validation/validation-plan.md" "GH-1248 Release v0.20.0 D
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE"
 require_contains "Tests/AppTests/AppTests.swift" "testGH1248DashboardReadOnlyLiveReadinessSurfaceShowsProductionShadowStateWithoutControls"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1248ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface"
+
+for file in \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.20.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1249-VERIFY-V0200-RELEASE-VALIDATION-SUITE"
+  require_contains "$file" "TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE"
+  require_contains "$file" "V0200-011-AGGREGATE-VALIDATION-SUITE"
+  require_contains "$file" "V0200-011-FOCUSED-GUARDS-COVERED"
+  require_contains "$file" "V0200-011-READINESS-REDACTION-NO-ORDER-COVERED"
+  require_contains "$file" "V0200-011-RUN-AUTOMATION-WIRING"
+  require_contains "$file" "V0200-011-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0200-011-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "checks/verify-v0.20.0.sh" "bash checks/verify-v0.20.0-production-shadow-readiness-contract.sh"
+require_contains "checks/verify-v0.20.0.sh" "bash checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh"
+require_contains "checks/verify-v0.20.0.sh" "swift test --filter TargetGraphTests/testGH1249ReleaseV0200AggregateValidationSuite"
+require_contains "checks/run.sh" "bash checks/verify-v0.20.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 aggregate validation suite anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 aggregate validation suite"
+require_contains "docs/validation/validation-plan.md" "GH-1249 Release v0.20.0 Aggregate Validation Suite"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1249ReleaseV0200AggregateValidationSuite"
 
 printf 'MTPRO automation readiness checks passed.\n'

@@ -61924,6 +61924,108 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1249ReleaseV0200AggregateValidationSuite() throws {
+        // GH-1249-VERIFY-V0200-RELEASE-VALIDATION-SUITE
+        // TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE
+        // V0200-011-AGGREGATE-VALIDATION-SUITE
+        // V0200-011-FOCUSED-GUARDS-COVERED
+        // V0200-011-READINESS-REDACTION-NO-ORDER-COVERED
+        // V0200-011-RUN-AUTOMATION-WIRING
+        // V0200-011-NO-PRODUCTION-CUTOVER
+        // V0200-011-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1249-VERIFY-V0200-RELEASE-VALIDATION-SUITE",
+            "TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE",
+            "V0200-011-AGGREGATE-VALIDATION-SUITE",
+            "V0200-011-FOCUSED-GUARDS-COVERED",
+            "V0200-011-READINESS-REDACTION-NO-ORDER-COVERED",
+            "V0200-011-RUN-AUTOMATION-WIRING",
+            "V0200-011-NO-PRODUCTION-CUTOVER",
+            "V0200-011-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        let requiredFiles = [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.20.0.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let verifier = try read("checks/verify-v0.20.0.sh")
+        for focusedVerifier in [
+            "bash checks/verify-v0.20.0-production-shadow-readiness-contract.sh",
+            "bash checks/verify-v0.20.0-production-shadow-environment-profile.sh",
+            "bash checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh",
+            "bash checks/verify-v0.20.0-credential-reference-readiness.sh",
+            "bash checks/verify-v0.20.0-public-market-readonly-probe.sh",
+            "bash checks/verify-v0.20.0-signed-account-readonly-readiness.sh",
+            "bash checks/verify-v0.20.0-account-snapshot-redaction-policy.sh",
+            "bash checks/verify-v0.20.0-no-order-capability-guard.sh",
+            "bash checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh",
+            "bash checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh"
+        ] {
+            XCTAssertTrue(verifier.contains(focusedVerifier), "aggregate verifier must call \(focusedVerifier)")
+        }
+
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1249ReleaseV0200AggregateValidationSuite"))
+        XCTAssertTrue(verifier.contains("V0200-011-READINESS-REDACTION-NO-ORDER-COVERED"))
+        XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.20.0.sh"))
+        XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.20.0.sh"))
+        XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.20.0 aggregate validation suite anchor"))
+        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.20.0 aggregate validation suite"))
+        XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1249 Release v0.20.0 Aggregate Validation Suite"))
+        XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE"))
+
+        for source in [
+            try read("README.md"),
+            try read("GOAL.md"),
+            try read("BLUEPRINT.md"),
+            try read("docs/roadmap.md"),
+            try read("docs/automation/automation-readiness.md"),
+            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/validation/validation-plan.md"),
+            try read("docs/validation/trading-validation-matrix.md")
+        ] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnected=true"))
+            XCTAssertFalse(source.contains("brokerEndpointConnected=true"))
+            XCTAssertFalse(source.contains("signedOrderMaterialGenerated=true"))
+            XCTAssertFalse(source.contains("accountEndpointConnected=true"))
+            XCTAssertFalse(source.contains("orderEndpointTouched=true"))
+            XCTAssertFalse(source.contains("submitCancelReplaceEnabled=true"))
+            XCTAssertFalse(source.contains("dashboardTradingButtonVisible=true"))
+            XCTAssertFalse(source.contains("orderFormVisible=true"))
+            XCTAssertFalse(source.contains("liveCommandVisible=true"))
+            XCTAssertFalse(source.contains("spotCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("futuresRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("okxActiveImplementationEnabled=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
