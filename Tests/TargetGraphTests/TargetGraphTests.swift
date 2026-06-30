@@ -60332,6 +60332,250 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1243ReleaseV0200PublicMarketReadOnlyProbe() throws {
+        // GH-1243-VERIFY-V0200-PUBLIC-MARKET-READ-ONLY-PROBE
+        // TVM-RELEASE-V0200-PUBLIC-MARKET-READ-ONLY-PROBE
+        // V0200-005-BINANCE-SPOT-PRODUCTION-SHADOW-PUBLIC-MARKET-PROBE
+        // V0200-005-PUBLIC-MARKET-READ-ONLY-REACHABILITY
+        // V0200-005-RESPONSE-CLASSIFICATION-EVIDENCE
+        // V0200-005-NO-CREDENTIAL-REQUIRED
+        // V0200-005-NO-SIGNED-ACCOUNT-ENDPOINT
+        // V0200-005-NO-ORDER-ENDPOINT
+        // V0200-005-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1243-VERIFY-V0200-PUBLIC-MARKET-READ-ONLY-PROBE",
+            "TVM-RELEASE-V0200-PUBLIC-MARKET-READ-ONLY-PROBE",
+            "V0200-005-BINANCE-SPOT-PRODUCTION-SHADOW-PUBLIC-MARKET-PROBE",
+            "V0200-005-PUBLIC-MARKET-READ-ONLY-REACHABILITY",
+            "V0200-005-RESPONSE-CLASSIFICATION-EVIDENCE",
+            "V0200-005-NO-CREDENTIAL-REQUIRED",
+            "V0200-005-NO-SIGNED-ACCOUNT-ENDPOINT",
+            "V0200-005-NO-ORDER-ENDPOINT",
+            "V0200-005-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe.swift",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.20.0-public-market-readonly-probe.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let probe = try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe.deterministicFixture()
+
+        XCTAssertTrue(probe.probeHeld)
+        XCTAssertTrue(probe.namespaceHeld)
+        XCTAssertTrue(probe.classificationEvidenceHeld)
+        XCTAssertTrue(probe.productionDefaultsClosed)
+        XCTAssertEqual(probe.issueID.rawValue, "GH-1243")
+        XCTAssertEqual(probe.upstreamIssueID.rawValue, "GH-1242")
+        XCTAssertEqual(probe.downstreamIssueID.rawValue, "GH-1244")
+        XCTAssertEqual(probe.canonicalQueueRange, "GH-1239..GH-1250")
+        XCTAssertEqual(
+            probe.projectName,
+            "MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness"
+        )
+        XCTAssertEqual(probe.releaseVersion, "v0.20.0")
+        XCTAssertTrue(probe.upstreamCredentialReferenceReadinessHeld)
+        XCTAssertEqual(probe.venueID, .binance)
+        XCTAssertEqual(probe.productKind, .spot)
+        XCTAssertEqual(probe.tradingEnvironment, .productionShadow)
+        XCTAssertEqual(probe.endpointFamilyReference, "https://api.binance.com")
+        XCTAssertEqual(probe.probeObservations.map(\.endpointEvidence.kind), ReleaseV0200ProductionShadowReadOnlyEndpointKind.allCases)
+        XCTAssertTrue(probe.probeObservations.allSatisfy(\.observationHeld))
+        XCTAssertTrue(probe.probeObservations.allSatisfy(\.forbiddenBoundaryHeld))
+        XCTAssertTrue(probe.probeObservations.contains { $0.classification == .reachable && $0.httpStatusCode == 200 })
+        XCTAssertTrue(probe.probeObservations.contains { $0.classification == .rateLimited && $0.httpStatusCode == 429 })
+        XCTAssertTrue(probe.probeObservations.contains { $0.classification == .networkUnavailable && $0.httpStatusCode == nil })
+        XCTAssertEqual(probe.requirements, ReleaseV0200ProductionShadowPublicMarketProbeRequirement.allCases)
+        XCTAssertEqual(probe.forbiddenCapabilities, ReleaseV0200ProductionShadowPublicMarketProbeForbiddenCapability.allCases)
+        XCTAssertEqual(probe.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            probe.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1243ReleaseV0200PublicMarketReadOnlyProbe",
+                "bash checks/verify-v0.20.0-public-market-readonly-probe.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+        XCTAssertFalse(probe.credentialRequired)
+        XCTAssertFalse(probe.accountPayloadRequired)
+        XCTAssertFalse(probe.productionTradingEnabledByDefault)
+        XCTAssertFalse(probe.productionSecretValueRead)
+        XCTAssertFalse(probe.signedAccountEndpointRuntimeEnabled)
+        XCTAssertFalse(probe.privateStreamRuntimeEnabled)
+        XCTAssertFalse(probe.listenKeyRuntimeEnabled)
+        XCTAssertFalse(probe.accountEndpointTouched)
+        XCTAssertFalse(probe.tradingEndpointTouched)
+        XCTAssertFalse(probe.productionBrokerConnectionEnabled)
+        XCTAssertFalse(probe.orderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(probe.spotCanaryEnabled)
+        XCTAssertFalse(probe.futuresRuntimeEnabled)
+        XCTAssertFalse(probe.okxActiveImplementationEnabled)
+        XCTAssertFalse(probe.dashboardTradingButtonEnabled)
+        XCTAssertFalse(probe.orderFormEnabled)
+        XCTAssertFalse(probe.liveCommandEnabled)
+        XCTAssertFalse(probe.productionCutoverAuthorized)
+        XCTAssertFalse(probe.createsTagOrRelease)
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(
+            upstreamCredentialReferenceReadinessHeld: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(productKind: .usdmFutures))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(tradingEnvironment: .productionLive))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(
+            endpointFamilyReference: "https://testnet.binance.vision"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(
+            probeObservations: [
+                try ReleaseV0200ProductionShadowPublicMarketProbeObservation(
+                    endpointEvidence: ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime),
+                    classification: .reachable,
+                    httpStatusCode: 200
+                )
+            ]
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(credentialRequired: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(accountPayloadRequired: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(signedAccountEndpointRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(privateStreamRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(listenKeyRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(accountEndpointTouched: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(tradingEndpointTouched: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(orderSubmitCancelReplaceEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(spotCanaryEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(futuresRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(okxActiveImplementationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe(createsTagOrRelease: true))
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketProbeObservation(
+            endpointEvidence: ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime),
+            classification: .reachable,
+            httpStatusCode: nil
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketProbeObservation(
+            endpointEvidence: ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime),
+            classification: .rateLimited,
+            httpStatusCode: 200
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketProbeObservation(
+            endpointEvidence: ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime),
+            classification: .networkUnavailable,
+            httpStatusCode: 200
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketProbeObservation(
+            endpointEvidence: ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime),
+            classification: .reachable,
+            httpStatusCode: 200,
+            classificationSummary: "raw payload"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketProbeObservation(
+            endpointEvidence: ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime),
+            classification: .reachable,
+            httpStatusCode: 200,
+            credentialRequired: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketProbeObservation(
+            endpointEvidence: ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime),
+            classification: .reachable,
+            httpStatusCode: 200,
+            accountPayloadRequired: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketProbeObservation(
+            endpointEvidence: ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime),
+            classification: .reachable,
+            httpStatusCode: 200,
+            signedEndpointTouched: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketProbeObservation(
+            endpointEvidence: ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime),
+            classification: .reachable,
+            httpStatusCode: 200,
+            accountEndpointTouched: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowPublicMarketProbeObservation(
+            endpointEvidence: ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime),
+            classification: .reachable,
+            httpStatusCode: 200,
+            tradingEndpointTouched: true
+        ))
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe.swift")
+        let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.20.0-public-market-readonly-probe.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0200ProductionShadowEndpointShapeEvidence.deterministicFixtures"))
+        XCTAssertTrue(source.contains("ReleaseV0200ProductionShadowCredentialReferenceReadiness.deterministicFixture"))
+        XCTAssertTrue(source.contains("public-market-probe="))
+        XCTAssertTrue(source.contains("classification=reachable"))
+        XCTAssertTrue(source.contains("payload=<not-persisted>"))
+        XCTAssertTrue(contractDoc.contains("#1242 / GH-1242"))
+        XCTAssertTrue(contractDoc.contains("#1243 / GH-1243"))
+        XCTAssertTrue(contractDoc.contains("#1244 / GH-1244"))
+        XCTAssertTrue(contractDoc.contains("不要求 credential 或 account payload"))
+        XCTAssertTrue(contractDoc.contains("不触达 signed account endpoint"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.20.0 public market read-only probe anchor"))
+        XCTAssertTrue(latest.contains("v0.20.0 public market read-only probe"))
+        XCTAssertTrue(plan.contains("GH-1243 Release v0.20.0 Public Market Read-only Probe"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0200-PUBLIC-MARKET-READ-ONLY-PROBE"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.0-public-market-readonly-probe.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.0-public-market-readonly-probe.sh"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1243ReleaseV0200PublicMarketReadOnlyProbe"
+        ))
+
+        for source in [contractDoc, latest, plan, matrix] {
+            XCTAssertFalse(source.contains("credentialRequired=true"))
+            XCTAssertFalse(source.contains("accountPayloadRequired=true"))
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("signedAccountEndpointRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("privateStreamRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("listenKeyRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("accountEndpointTouched=true"))
+            XCTAssertFalse(source.contains("tradingEndpointTouched=true"))
+            XCTAssertFalse(source.contains("orderSubmitCancelReplaceEnabled=true"))
+            XCTAssertFalse(source.contains("spotCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("futuresRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("okxActiveImplementationEnabled=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

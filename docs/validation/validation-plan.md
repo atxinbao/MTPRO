@@ -83,6 +83,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowCredentialReferenceReadiness.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-credential-reference-readiness.md`、`checks/verify-v0.20.0-credential-reference-readiness.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1242 只固定 Binance Spot production-shadow credential reference identity、missing / invalid reference fail-closed 和 redacted audit evidence。它不读取 secret value，不保存 raw credential，不自动读取 secret provider，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不实现 private stream runtime，不实现 listenKey runtime，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
 
+## GH-1243 Release v0.20.0 Public Market Read-only Probe
+
+- GH-1243-VERIFY-V0200-PUBLIC-MARKET-READ-ONLY-PROBE
+- TVM-RELEASE-V0200-PUBLIC-MARKET-READ-ONLY-PROBE
+- V0200-005-BINANCE-SPOT-PRODUCTION-SHADOW-PUBLIC-MARKET-PROBE
+- V0200-005-PUBLIC-MARKET-READ-ONLY-REACHABILITY
+- V0200-005-RESPONSE-CLASSIFICATION-EVIDENCE
+- V0200-005-NO-CREDENTIAL-REQUIRED
+- V0200-005-NO-SIGNED-ACCOUNT-ENDPOINT
+- V0200-005-NO-ORDER-ENDPOINT
+- V0200-005-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.20.0-public-market-readonly-probe.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1243ReleaseV0200PublicMarketReadOnlyProbe`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md`、`checks/verify-v0.20.0-public-market-readonly-probe.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1243 只固定 Binance Spot production-shadow public market read-only probe evidence、response classification 和 no-credential / no-account / no-order boundary。它不读取 secret value，不要求 credential，不触达 signed account endpoint，不创建 private stream / listenKey runtime，不触达 order / trading endpoint，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
+
 ## GH-1202 Release v0.18.1 Operator-run CLI Commands
 
 - GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS

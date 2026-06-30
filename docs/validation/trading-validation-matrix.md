@@ -4494,6 +4494,21 @@
 - contract surface: `ReleaseV0200ProductionShadowCredentialReferenceReadiness` defines Binance Spot `productionShadow` credential reference identity, redacted audit evidence and missing / invalid reference fail-closed evidence.
 - forbidden scope: no secret value read, no raw credential material storage, no secret provider auto-read, no production endpoint / broker endpoint connection, no signed account / private stream / listenKey runtime, no submit / cancel / replace order, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
 
+## TVM-RELEASE-V0200-PUBLIC-MARKET-READ-ONLY-PROBE
+
+- GH-1243-VERIFY-V0200-PUBLIC-MARKET-READ-ONLY-PROBE
+- V0200-005-BINANCE-SPOT-PRODUCTION-SHADOW-PUBLIC-MARKET-PROBE
+- V0200-005-PUBLIC-MARKET-READ-ONLY-REACHABILITY
+- V0200-005-RESPONSE-CLASSIFICATION-EVIDENCE
+- V0200-005-NO-CREDENTIAL-REQUIRED
+- V0200-005-NO-SIGNED-ACCOUNT-ENDPOINT
+- V0200-005-NO-ORDER-ENDPOINT
+- V0200-005-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.20.0-public-market-readonly-probe.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1243ReleaseV0200PublicMarketReadOnlyProbe`
+- contract surface: `ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe` defines Binance Spot `productionShadow` public market read-only probe evidence and response classification.
+- forbidden scope: no secret value read, no credential required, no account payload required, no signed account endpoint, no private stream / listenKey runtime, no order / trading endpoint, no submit / cancel / replace order, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
+
 ## TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES
 
 - GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES
