@@ -36,6 +36,8 @@ Venue
 
 执行顺序必须保持：先完成 v0.19.1；v0.20.0 只做 Binance Spot read-only / production-shadow；v0.21.0 才允许 Spot 小额 canary；Futures 从 v0.22.0 read-only foundation 开始，v0.23.0 才进入 testnet execution；v0.24.0 再统一 Spot + Futures 的 OMS / Portfolio / Risk / Reconciliation；v0.25.0 才做 Binance dual-product production readiness / canary hardening。OKX Spot / Swap 延后到 Binance dual-product path 收敛之后。
 
+v0.20.0 首个合同 anchor：`GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT`、`TVM-RELEASE-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT`、`V0200-001-V0191-PREFLIGHT-GATE`、`V0200-001-BINANCE-SPOT-PRODUCTION-SHADOW`、`V0200-001-READ-ONLY-LIVE-READINESS`、`V0200-001-NO-ORDER-SUBMIT-CANCEL-REPLACE`、`V0200-001-SPOT-CANARY-DEFERRED-TO-V0210`、`V0200-001-QUEUE-ORDER`、`V0200-001-NO-PRODUCTION-CUTOVER`。
+
 该目标修正只更新路线方向，不授权 production trading、不读取 production secret、不连接 production endpoint / broker endpoint、不创建 OKX active source 或 order path。
 
 ## Roadmap Responsibility / 路线职责

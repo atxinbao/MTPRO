@@ -4434,6 +4434,21 @@
 - publication fact surface: #1235 v0.19.0 release notes and stage audit markers remain covered by the aggregate verifier.
 - forbidden scope: no tag movement, no release overwrite, no v0.19.1 publication, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
 
+## TVM-RELEASE-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT
+
+- GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT
+- V0200-001-V0191-PREFLIGHT-GATE
+- V0200-001-BINANCE-SPOT-PRODUCTION-SHADOW
+- V0200-001-READ-ONLY-LIVE-READINESS
+- V0200-001-NO-ORDER-SUBMIT-CANCEL-REPLACE
+- V0200-001-SPOT-CANARY-DEFERRED-TO-V0210
+- V0200-001-QUEUE-ORDER
+- V0200-001-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.20.0-production-shadow-readiness-contract.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1239ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract`
+- contract surface: `ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract` defines the Binance Spot production-shadow / read-only live readiness release boundary and `GH-1239..GH-1250` queue order.
+- forbidden scope: no secret value read, no production endpoint connection, no signed account / private stream runtime in GH-1239, no submit / cancel / replace order, no Spot canary, no Futures execution, no OKX active implementation, no tag / release publication and no production cutover.
+
 ## TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES
 
 - GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES

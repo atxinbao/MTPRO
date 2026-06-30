@@ -201,6 +201,8 @@ Market Data -> Research -> Backtest -> Report -> Paper Session
 -> Stage Audit -> Controlled Live enablement decision
 ```
 
+v0.20.0 首个合同 anchor：`GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT`、`TVM-RELEASE-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT`、`V0200-001-V0191-PREFLIGHT-GATE`、`V0200-001-BINANCE-SPOT-PRODUCTION-SHADOW`、`V0200-001-READ-ONLY-LIVE-READINESS`、`V0200-001-NO-ORDER-SUBMIT-CANCEL-REPLACE`、`V0200-001-SPOT-CANARY-DEFERRED-TO-V0210`、`V0200-001-QUEUE-ORDER`、`V0200-001-NO-PRODUCTION-CUTOVER`。
+
 Workbench 的主导航以 evidence navigation 为中心，不以交易按钮为中心。用户看到的是工作区、状态、证据、回放和阻断原因；不能看到可执行的实盘下单入口。Figma / product / design 文档只作为产品、交互、布局、视觉和 dashboard 参考，不是 SwiftUI 实现稿、组件库、Live PRO Console、实盘操作台或 Linear execution 授权。
 
 Strategy / Trader layout machine anchors：`Sources/Trader/Strategies/<strategy>` 是 forward-looking canonical layout；旧 `Sources/Strategies/<strategy>` 只能作为 historical / compatibility / superseded path；当前 closure 口径为 `Trader = Accounts + Strategies + Coordination`，binding / adapter 语义归入 `Trader/Coordination`。
