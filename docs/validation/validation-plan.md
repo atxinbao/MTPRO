@@ -115,6 +115,24 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md`、`checks/verify-v0.20.0-signed-account-readonly-readiness.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1244 只固定 Binance Spot production-shadow signed account read-only readiness contract、`/api/v3/account` intent-only evidence、credential reference binding 和 redacted no-account-payload evidence。它不读取 secret value，不生成 signed request material，不触达真实 account endpoint，不保存 raw account payload，不创建 private stream / listenKey runtime，不触达 order / trading endpoint，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
 
+## GH-1245 Release v0.20.0 Account Snapshot Redaction Policy
+
+- GH-1245-VERIFY-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY
+- TVM-RELEASE-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY
+- V0200-007-BINANCE-SPOT-PRODUCTION-SHADOW-ACCOUNT-SNAPSHOT-REDACTION
+- V0200-007-ARTIFACT-LOCATION-POLICY
+- V0200-007-ALLOWED-FIELD-SCHEMA
+- V0200-007-FORBIDDEN-FIELD-SCHEMA
+- V0200-007-REDACTED-SNAPSHOT-JSON
+- V0200-007-NO-RAW-BALANCE-PERSISTENCE
+- V0200-007-NO-ACCOUNT-ID-PERSISTENCE
+- V0200-007-NO-SECRET-OR-RAW-PAYLOAD-PERSISTENCE
+- V0200-007-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.20.0-account-snapshot-redaction-policy.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1245ReleaseV0200AccountSnapshotRedactionPolicy`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-account-snapshot-redaction-policy.md`、`checks/verify-v0.20.0-account-snapshot-redaction-policy.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1245 只固定 Binance Spot production-shadow account snapshot artifact redaction policy、allowed field schema、forbidden field schema、repository-relative artifact path 和 safe redacted JSON example。它不读取 secret value，不生成 signed request material，不触达真实 account endpoint，不保存 raw balance、account id、raw broker payload、endpoint response body 或 order payload，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
+
 ## GH-1202 Release v0.18.1 Operator-run CLI Commands
 
 - GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS

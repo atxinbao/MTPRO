@@ -13198,4 +13198,39 @@ require_contains "docs/validation/validation-plan.md" "GH-1244 Release v0.20.0 S
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1244ReleaseV0200SignedAccountReadOnlyReadiness"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy.swift" \
+  "docs/contracts/release-v0.20.0-binance-spot-production-shadow-account-snapshot-redaction-policy.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.20.0-account-snapshot-redaction-policy.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1245-VERIFY-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY"
+  require_contains "$file" "TVM-RELEASE-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY"
+  require_contains "$file" "V0200-007-BINANCE-SPOT-PRODUCTION-SHADOW-ACCOUNT-SNAPSHOT-REDACTION"
+  require_contains "$file" "V0200-007-ARTIFACT-LOCATION-POLICY"
+  require_contains "$file" "V0200-007-ALLOWED-FIELD-SCHEMA"
+  require_contains "$file" "V0200-007-FORBIDDEN-FIELD-SCHEMA"
+  require_contains "$file" "V0200-007-REDACTED-SNAPSHOT-JSON"
+  require_contains "$file" "V0200-007-NO-RAW-BALANCE-PERSISTENCE"
+  require_contains "$file" "V0200-007-NO-ACCOUNT-ID-PERSISTENCE"
+  require_contains "$file" "V0200-007-NO-SECRET-OR-RAW-PAYLOAD-PERSISTENCE"
+  require_contains "$file" "V0200-007-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.20.0-account-snapshot-redaction-policy.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-account-snapshot-redaction-policy.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 account snapshot redaction policy anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 account snapshot redaction policy"
+require_contains "docs/validation/validation-plan.md" "GH-1245 Release v0.20.0 Account Snapshot Redaction Policy"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1245ReleaseV0200AccountSnapshotRedactionPolicy"
+
 printf 'MTPRO automation readiness checks passed.\n'

@@ -60841,6 +60841,277 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1245ReleaseV0200AccountSnapshotRedactionPolicy() throws {
+        // GH-1245-VERIFY-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY
+        // TVM-RELEASE-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY
+        // V0200-007-BINANCE-SPOT-PRODUCTION-SHADOW-ACCOUNT-SNAPSHOT-REDACTION
+        // V0200-007-ARTIFACT-LOCATION-POLICY
+        // V0200-007-ALLOWED-FIELD-SCHEMA
+        // V0200-007-FORBIDDEN-FIELD-SCHEMA
+        // V0200-007-REDACTED-SNAPSHOT-JSON
+        // V0200-007-NO-RAW-BALANCE-PERSISTENCE
+        // V0200-007-NO-ACCOUNT-ID-PERSISTENCE
+        // V0200-007-NO-SECRET-OR-RAW-PAYLOAD-PERSISTENCE
+        // V0200-007-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1245-VERIFY-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY",
+            "TVM-RELEASE-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY",
+            "V0200-007-BINANCE-SPOT-PRODUCTION-SHADOW-ACCOUNT-SNAPSHOT-REDACTION",
+            "V0200-007-ARTIFACT-LOCATION-POLICY",
+            "V0200-007-ALLOWED-FIELD-SCHEMA",
+            "V0200-007-FORBIDDEN-FIELD-SCHEMA",
+            "V0200-007-REDACTED-SNAPSHOT-JSON",
+            "V0200-007-NO-RAW-BALANCE-PERSISTENCE",
+            "V0200-007-NO-ACCOUNT-ID-PERSISTENCE",
+            "V0200-007-NO-SECRET-OR-RAW-PAYLOAD-PERSISTENCE",
+            "V0200-007-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy.swift",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-account-snapshot-redaction-policy.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.20.0-account-snapshot-redaction-policy.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let policy = try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy.deterministicFixture()
+
+        XCTAssertTrue(policy.policyHeld)
+        XCTAssertTrue(policy.failClosedEvidenceHeld)
+        XCTAssertTrue(policy.productionDefaultsClosed)
+        XCTAssertEqual(policy.issueID.rawValue, "GH-1245")
+        XCTAssertEqual(policy.upstreamIssueID.rawValue, "GH-1244")
+        XCTAssertEqual(policy.downstreamIssueID.rawValue, "GH-1246")
+        XCTAssertEqual(policy.canonicalQueueRange, "GH-1239..GH-1250")
+        XCTAssertEqual(
+            policy.projectName,
+            "MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness"
+        )
+        XCTAssertEqual(policy.releaseVersion, "v0.20.0")
+        XCTAssertTrue(policy.upstreamSignedAccountReadinessHeld)
+        XCTAssertTrue(policy.redactedArtifact.redactionPolicyHeld)
+        XCTAssertTrue(policy.redactedArtifact.forbiddenPersistenceHeld)
+        XCTAssertEqual(policy.redactedArtifact.state, .policyReady)
+        XCTAssertNil(policy.redactedArtifact.failureClass)
+        XCTAssertEqual(
+            policy.redactedArtifact.location.relativePath,
+            "artifacts/release-v0.20.0/account-snapshot/production-shadow/<redacted-snapshot-id>.json"
+        )
+        XCTAssertEqual(
+            policy.redactedArtifact.allowedFields,
+            ReleaseV0200ProductionShadowAccountSnapshotAllowedField.allCases
+        )
+        XCTAssertEqual(
+            policy.redactedArtifact.forbiddenFields,
+            ReleaseV0200ProductionShadowAccountSnapshotForbiddenField.allCases
+        )
+        XCTAssertTrue(policy.redactedArtifact.redactedSnapshotJSON.contains(#""account_id":"<redacted>""#))
+        XCTAssertTrue(policy.redactedArtifact.redactedSnapshotJSON.contains(#""balance_bucket":"<redacted-bucket>""#))
+        XCTAssertTrue(policy.redactedArtifact.redactedSnapshotJSON.contains(#""raw_broker_payload":"<not-persisted>""#))
+        XCTAssertEqual(policy.rawBalanceBlockedArtifact.failureClass, .rawBalancePersistenceAttempted)
+        XCTAssertEqual(policy.accountIdentifierBlockedArtifact.failureClass, .accountIdentifierPersistenceAttempted)
+        XCTAssertEqual(policy.secretBlockedArtifact.failureClass, .secretPersistenceAttempted)
+        XCTAssertEqual(policy.rawBrokerPayloadBlockedArtifact.failureClass, .rawBrokerPayloadPersistenceAttempted)
+        XCTAssertEqual(policy.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            policy.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1245ReleaseV0200AccountSnapshotRedactionPolicy",
+                "bash checks/verify-v0.20.0-account-snapshot-redaction-policy.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+        XCTAssertFalse(policy.productionTradingEnabledByDefault)
+        XCTAssertFalse(policy.productionSecretValueRead)
+        XCTAssertFalse(policy.signedRequestMaterialGenerated)
+        XCTAssertFalse(policy.accountEndpointTouched)
+        XCTAssertFalse(policy.endpointConnectionOpened)
+        XCTAssertFalse(policy.rawBalancesPersisted)
+        XCTAssertFalse(policy.accountIdentifiersPersisted)
+        XCTAssertFalse(policy.secretMaterialPersisted)
+        XCTAssertFalse(policy.rawBrokerPayloadPersisted)
+        XCTAssertFalse(policy.endpointResponseBodyPersisted)
+        XCTAssertFalse(policy.orderPayloadPersisted)
+        XCTAssertFalse(policy.orderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(policy.spotCanaryEnabled)
+        XCTAssertFalse(policy.futuresRuntimeEnabled)
+        XCTAssertFalse(policy.okxActiveImplementationEnabled)
+        XCTAssertFalse(policy.dashboardTradingButtonEnabled)
+        XCTAssertFalse(policy.orderFormEnabled)
+        XCTAssertFalse(policy.liveCommandEnabled)
+        XCTAssertFalse(policy.productionCutoverAuthorized)
+        XCTAssertFalse(policy.createsTagOrRelease)
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            upstreamSignedAccountReadinessHeld: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            productionSecretValueRead: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            signedRequestMaterialGenerated: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            accountEndpointTouched: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            endpointConnectionOpened: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            rawBalancesPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            accountIdentifiersPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            secretMaterialPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            rawBrokerPayloadPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            endpointResponseBodyPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            orderPayloadPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(
+            orderSubmitCancelReplaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(spotCanaryEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(futuresRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(okxActiveImplementationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy(createsTagOrRelease: true))
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotArtifactLocation(relativePath: "/tmp/account.json"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotArtifactLocation(relativePath: "../account.json"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotArtifactLocation(
+            relativePath: "artifacts/release-v0.20.0/account-snapshot/production-shadow/accountId-123.json"
+        ))
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactedArtifact(
+            state: .policyReady,
+            failureClass: .rawBalancePersistenceAttempted
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactedArtifact(
+            state: .rawBalancePersistenceBlocked
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactedArtifact(
+            state: .rawBalancePersistenceBlocked,
+            failureClass: .accountIdentifierPersistenceAttempted
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactedArtifact(
+            state: .policyReady,
+            redactedSnapshotJSON: #"{"account_id":"123","balance_bucket":"100.00","raw_broker_payload":"raw payload"}"#
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactedArtifact(
+            state: .policyReady,
+            redactedEvidenceSummary: "accountId=123; free=100.00"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactedArtifact(
+            state: .policyReady,
+            rawBalancesPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactedArtifact(
+            state: .policyReady,
+            accountIdentifiersPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactedArtifact(
+            state: .policyReady,
+            secretMaterialPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactedArtifact(
+            state: .policyReady,
+            rawBrokerPayloadPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactedArtifact(
+            state: .policyReady,
+            endpointResponseBodyPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowAccountSnapshotRedactedArtifact(
+            state: .policyReady,
+            orderPayloadPersisted: true
+        ))
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy.swift")
+        let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-account-snapshot-redaction-policy.md")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.20.0-account-snapshot-redaction-policy.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness.deterministicFixture"))
+        XCTAssertTrue(source.contains("account-snapshot-artifact=<redacted>"))
+        XCTAssertTrue(source.contains("balances=<redacted>"))
+        XCTAssertTrue(source.contains("account-id=<redacted>"))
+        XCTAssertTrue(source.contains("raw-broker-payload=<not-persisted>"))
+        XCTAssertTrue(contractDoc.contains("#1244 / GH-1244"))
+        XCTAssertTrue(contractDoc.contains("#1245 / GH-1245"))
+        XCTAssertTrue(contractDoc.contains("Allowed Artifact Fields"))
+        XCTAssertTrue(contractDoc.contains("Forbidden Artifact Fields"))
+        XCTAssertTrue(contractDoc.contains("Safe Redacted Artifact Example"))
+        XCTAssertTrue(contractDoc.contains("不读取 production secret"))
+        XCTAssertTrue(contractDoc.contains("不触达 `/api/v3/account`"))
+        XCTAssertTrue(contractDoc.contains("不保存真实 broker response"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.20.0 account snapshot redaction policy anchor"))
+        XCTAssertTrue(latest.contains("v0.20.0 account snapshot redaction policy"))
+        XCTAssertTrue(plan.contains("GH-1245 Release v0.20.0 Account Snapshot Redaction Policy"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.0-account-snapshot-redaction-policy.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.0-account-snapshot-redaction-policy.sh"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1245ReleaseV0200AccountSnapshotRedactionPolicy"
+        ))
+
+        for source in [contractDoc, latest, plan, matrix] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("signedRequestMaterialGenerated=true"))
+            XCTAssertFalse(source.contains("accountEndpointTouched=true"))
+            XCTAssertFalse(source.contains("endpointConnectionOpened=true"))
+            XCTAssertFalse(source.contains("rawBalancesPersisted=true"))
+            XCTAssertFalse(source.contains("accountIdentifiersPersisted=true"))
+            XCTAssertFalse(source.contains("secretMaterialPersisted=true"))
+            XCTAssertFalse(source.contains("rawBrokerPayloadPersisted=true"))
+            XCTAssertFalse(source.contains("endpointResponseBodyPersisted=true"))
+            XCTAssertFalse(source.contains("orderPayloadPersisted=true"))
+            XCTAssertFalse(source.contains("orderSubmitCancelReplaceEnabled=true"))
+            XCTAssertFalse(source.contains("spotCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("futuresRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("okxActiveImplementationEnabled=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
