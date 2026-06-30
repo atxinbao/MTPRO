@@ -205,6 +205,8 @@ v0.20.0 首个合同 anchor：`GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-
 
 v0.20.0 environment profile anchor：`GH-1240-VERIFY-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE`、`TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE`、`V0200-002-BINANCE-SPOT-PRODUCTION-SHADOW-PROFILE`、`V0200-002-CREDENTIAL-REFERENCE-NO-SECRET-VALUE`、`V0200-002-ENDPOINT-INTENT-NO-CONNECTION`、`V0200-002-OPERATOR-READINESS-STATE`、`V0200-002-READ-ONLY-FAIL-CLOSED`、`V0200-002-FUTURES-OKX-OUT-OF-SCOPE`、`V0200-002-NO-PRODUCTION-CUTOVER`。
 
+v0.20.0 endpoint allowlist anchor：`GH-1241-VERIFY-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST`、`TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST`、`V0200-003-BINANCE-SPOT-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST`、`V0200-003-HTTPS-API-BINANCE-COM-ONLY`、`V0200-003-READ-ONLY-PATH-ALLOWLIST`、`V0200-003-QUERY-SHAPE-ALLOWLIST`、`V0200-003-SIGNED-TRADING-ENDPOINTS-FORBIDDEN`、`V0200-003-NO-ENDPOINT-CONNECTION`、`V0200-003-NO-PRODUCTION-CUTOVER`。
+
 Workbench 的主导航以 evidence navigation 为中心，不以交易按钮为中心。用户看到的是工作区、状态、证据、回放和阻断原因；不能看到可执行的实盘下单入口。Figma / product / design 文档只作为产品、交互、布局、视觉和 dashboard 参考，不是 SwiftUI 实现稿、组件库、Live PRO Console、实盘操作台或 Linear execution 授权。
 
 Strategy / Trader layout machine anchors：`Sources/Trader/Strategies/<strategy>` 是 forward-looking canonical layout；旧 `Sources/Strategies/<strategy>` 只能作为 historical / compatibility / superseded path；当前 closure 口径为 `Trader = Accounts + Strategies + Coordination`，binding / adapter 语义归入 `Trader/Coordination`。

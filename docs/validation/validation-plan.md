@@ -51,6 +51,22 @@
 - Focused test: `swift test --filter TargetGraphTests/testGH1240ReleaseV0200ProductionShadowEnvironmentProfile`
 - Boundary: GH-1240 只固定 Binance Spot production-shadow environment profile、credential identity reference、endpoint intent 和 operator-visible readiness state。它不读取 secret value，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不实现 private stream runtime，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
 
+## GH-1241 Release v0.20.0 Production-shadow Endpoint Allowlist
+
+- GH-1241-VERIFY-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST
+- TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST
+- V0200-003-BINANCE-SPOT-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST
+- V0200-003-HTTPS-API-BINANCE-COM-ONLY
+- V0200-003-READ-ONLY-PATH-ALLOWLIST
+- V0200-003-QUERY-SHAPE-ALLOWLIST
+- V0200-003-SIGNED-TRADING-ENDPOINTS-FORBIDDEN
+- V0200-003-NO-ENDPOINT-CONNECTION
+- V0200-003-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1241ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md`、`checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1241 只固定 Binance Spot production-shadow endpoint allowlist、HTTPS `api.binance.com` host policy、read-only path / query shape 和 signed / trading endpoint rejection evidence。它不读取 secret value，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不实现 private stream runtime，不实现 listenKey runtime，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
+
 ## GH-1202 Release v0.18.1 Operator-run CLI Commands
 
 - GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS

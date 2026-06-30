@@ -59864,6 +59864,230 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1241ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist() throws {
+        // GH-1241-VERIFY-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST
+        // TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST
+        // V0200-003-BINANCE-SPOT-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST
+        // V0200-003-HTTPS-API-BINANCE-COM-ONLY
+        // V0200-003-READ-ONLY-PATH-ALLOWLIST
+        // V0200-003-QUERY-SHAPE-ALLOWLIST
+        // V0200-003-SIGNED-TRADING-ENDPOINTS-FORBIDDEN
+        // V0200-003-NO-ENDPOINT-CONNECTION
+        // V0200-003-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1241-VERIFY-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST",
+            "TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST",
+            "V0200-003-BINANCE-SPOT-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST",
+            "V0200-003-HTTPS-API-BINANCE-COM-ONLY",
+            "V0200-003-READ-ONLY-PATH-ALLOWLIST",
+            "V0200-003-QUERY-SHAPE-ALLOWLIST",
+            "V0200-003-SIGNED-TRADING-ENDPOINTS-FORBIDDEN",
+            "V0200-003-NO-ENDPOINT-CONNECTION",
+            "V0200-003-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist.swift",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let allowlist = try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist.deterministicFixture()
+        let endpointFamily = try ReleaseV0190VenueEndpointFamilyRegistry.entry(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .productionShadow
+        )
+
+        XCTAssertTrue(allowlist.allowlistHeld)
+        XCTAssertTrue(allowlist.namespaceHeld)
+        XCTAssertTrue(allowlist.endpointFamilyHeld)
+        XCTAssertTrue(allowlist.productionDefaultsClosed)
+        XCTAssertEqual(allowlist.issueID.rawValue, "GH-1241")
+        XCTAssertEqual(allowlist.upstreamIssueID.rawValue, "GH-1240")
+        XCTAssertEqual(allowlist.downstreamIssueID.rawValue, "GH-1242")
+        XCTAssertEqual(allowlist.canonicalQueueRange, "GH-1239..GH-1250")
+        XCTAssertEqual(
+            allowlist.projectName,
+            "MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness"
+        )
+        XCTAssertEqual(allowlist.releaseVersion, "v0.20.0")
+        XCTAssertTrue(allowlist.upstreamEnvironmentProfileHeld)
+        XCTAssertEqual(allowlist.venueID, .binance)
+        XCTAssertEqual(allowlist.productKind, .spot)
+        XCTAssertEqual(allowlist.tradingEnvironment, .productionShadow)
+        XCTAssertEqual(allowlist.endpointScheme, endpointFamily.scheme)
+        XCTAssertEqual(allowlist.endpointHost, endpointFamily.host)
+        XCTAssertEqual(allowlist.endpointFamilyReference, endpointFamily.reference)
+        XCTAssertEqual(allowlist.allowedEndpointEvidence.map(\.kind), ReleaseV0200ProductionShadowReadOnlyEndpointKind.allCases)
+        XCTAssertTrue(allowlist.allowedEndpointEvidence.allSatisfy(\.shapeHeld))
+        XCTAssertEqual(allowlist.requirements, ReleaseV0200ProductionShadowEndpointAllowlistRequirement.allCases)
+        XCTAssertEqual(allowlist.forbiddenCapabilities, ReleaseV0200ProductionShadowEndpointForbiddenCapability.allCases)
+        XCTAssertEqual(allowlist.forbiddenPaths, ReleaseV0200ProductionShadowEndpointForbiddenPath.allCases)
+        XCTAssertEqual(allowlist.forbiddenQueryItemNames, ReleaseV0200ProductionShadowEndpointForbiddenQueryItemName.allCases)
+        XCTAssertEqual(allowlist.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            allowlist.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1241ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist",
+                "bash checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+        XCTAssertEqual(
+            Set(allowlist.allowedEndpointEvidence.map(\.path)),
+            ["/api/v3/time", "/api/v3/exchangeInfo", "/api/v3/ticker/price", "/api/v3/depth"]
+        )
+        XCTAssertTrue(allowlist.forbiddenPaths.contains(.account))
+        XCTAssertTrue(allowlist.forbiddenPaths.contains(.order))
+        XCTAssertTrue(allowlist.forbiddenPaths.contains(.userDataStream))
+        XCTAssertTrue(allowlist.forbiddenQueryItemNames.contains(.signature))
+        XCTAssertTrue(allowlist.forbiddenQueryItemNames.contains(.listenKey))
+        XCTAssertTrue(allowlist.forbiddenQueryItemNames.contains(.orderId))
+        XCTAssertFalse(allowlist.productionEndpointConnectionEnabled)
+        XCTAssertFalse(allowlist.productionTradingEnabledByDefault)
+        XCTAssertFalse(allowlist.productionSecretValueRead)
+        XCTAssertFalse(allowlist.signedAccountEndpointRuntimeEnabled)
+        XCTAssertFalse(allowlist.privateStreamRuntimeEnabled)
+        XCTAssertFalse(allowlist.listenKeyRuntimeEnabled)
+        XCTAssertFalse(allowlist.productionBrokerConnectionEnabled)
+        XCTAssertFalse(allowlist.orderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(allowlist.spotCanaryEnabled)
+        XCTAssertFalse(allowlist.futuresRuntimeEnabled)
+        XCTAssertFalse(allowlist.okxActiveImplementationEnabled)
+        XCTAssertFalse(allowlist.productionCutoverAuthorized)
+        XCTAssertFalse(allowlist.createsTagOrRelease)
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(upstreamEnvironmentProfileHeld: false))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(productKind: .usdmFutures))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(tradingEnvironment: .productionLive))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(endpointScheme: "http"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(endpointHost: "testnet.binance.vision"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(endpointFamilyReference: "http://api.binance.com"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(
+            allowedEndpointEvidence: [try ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime)]
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(signedAccountEndpointRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(privateStreamRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(listenKeyRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(orderSubmitCancelReplaceEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(spotCanaryEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(futuresRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(okxActiveImplementationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist(createsTagOrRelease: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime, scheme: "http"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime, host: "testnet.binance.vision"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime, path: "/api/v3/account"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointShapeEvidence(kind: .serverTime, path: "/api/v3/order"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointShapeEvidence(
+            kind: .serverTime,
+            queryItems: [try ReleaseV0200ProductionShadowEndpointQueryItem(name: "symbol", value: "BTCUSDT")]
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointShapeEvidence(
+            kind: .tickerPrice,
+            queryItems: [
+                try ReleaseV0200ProductionShadowEndpointQueryItem(name: "symbol", value: "BTCUSDT"),
+                try ReleaseV0200ProductionShadowEndpointQueryItem(name: "symbol", value: "ETHUSDT")
+            ]
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointShapeEvidence(
+            kind: .serverTime,
+            productionEndpointConnectionOpened: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointShapeEvidence(
+            kind: .serverTime,
+            productionSecretValueRead: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointShapeEvidence(
+            kind: .serverTime,
+            signedEndpointRuntimeEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointShapeEvidence(
+            kind: .serverTime,
+            orderSubmitCancelReplaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointQueryItem(name: "signature", value: "redacted"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointQueryItem(name: "listenKey", value: "redacted"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEndpointQueryItem(name: "orderId", value: "1"))
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist.swift")
+        let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0190VenueEndpointFamilyRegistry.entry"))
+        XCTAssertTrue(source.contains("requiredHost = \"api.binance.com\""))
+        XCTAssertTrue(source.contains("\"/api/v3/time\""))
+        XCTAssertTrue(source.contains("\"/api/v3/exchangeInfo\""))
+        XCTAssertTrue(source.contains("\"/api/v3/ticker/price\""))
+        XCTAssertTrue(source.contains("\"/api/v3/depth\""))
+        XCTAssertTrue(source.contains("case account = \"/api/v3/account\""))
+        XCTAssertTrue(source.contains("case order = \"/api/v3/order\""))
+        XCTAssertTrue(source.contains("case userDataStream = \"/api/v3/userDataStream\""))
+        XCTAssertTrue(contractDoc.contains("#1240 / GH-1240"))
+        XCTAssertTrue(contractDoc.contains("#1241 / GH-1241"))
+        XCTAssertTrue(contractDoc.contains("#1242 / GH-1242"))
+        XCTAssertTrue(contractDoc.contains("https://api.binance.com"))
+        XCTAssertTrue(readiness.contains("Release v0.20.0 production-shadow endpoint allowlist anchor"))
+        XCTAssertTrue(latest.contains("v0.20.0 production-shadow endpoint allowlist"))
+        XCTAssertTrue(plan.contains("GH-1241 Release v0.20.0 Production-shadow Endpoint Allowlist"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1241ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist"
+        ))
+
+        for source in [contractDoc, latest, plan, matrix] {
+            XCTAssertFalse(source.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("signedAccountEndpointRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("privateStreamRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("listenKeyRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(source.contains("orderSubmitCancelReplaceEnabled=true"))
+            XCTAssertFalse(source.contains("spotCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("futuresRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("okxActiveImplementationEnabled=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
