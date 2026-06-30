@@ -209,6 +209,8 @@ v0.20.0 endpoint allowlist anchor：`GH-1241-VERIFY-V0200-PRODUCTION-SHADOW-ENDP
 
 v0.20.0 credential reference readiness anchor：`GH-1242-VERIFY-V0200-CREDENTIAL-REFERENCE-READINESS`、`TVM-RELEASE-V0200-CREDENTIAL-REFERENCE-READINESS`、`V0200-004-BINANCE-SPOT-PRODUCTION-SHADOW-CREDENTIAL-READINESS`、`V0200-004-CREDENTIAL-IDENTITY-ONLY`、`V0200-004-MISSING-REFERENCE-FAILS-CLOSED`、`V0200-004-REDACTED-AUDIT-EVIDENCE`、`V0200-004-NO-SECRET-VALUE-READ`、`V0200-004-NO-ENDPOINT-CONNECTION`、`V0200-004-NO-PRODUCTION-CUTOVER`。
 
+v0.20.0 public market read-only probe anchor：`GH-1243-VERIFY-V0200-PUBLIC-MARKET-READ-ONLY-PROBE`、`TVM-RELEASE-V0200-PUBLIC-MARKET-READ-ONLY-PROBE`、`V0200-005-BINANCE-SPOT-PRODUCTION-SHADOW-PUBLIC-MARKET-PROBE`、`V0200-005-PUBLIC-MARKET-READ-ONLY-REACHABILITY`、`V0200-005-RESPONSE-CLASSIFICATION-EVIDENCE`、`V0200-005-NO-CREDENTIAL-REQUIRED`、`V0200-005-NO-SIGNED-ACCOUNT-ENDPOINT`、`V0200-005-NO-ORDER-ENDPOINT`、`V0200-005-NO-PRODUCTION-CUTOVER`。
+
 Workbench 的主导航以 evidence navigation 为中心，不以交易按钮为中心。用户看到的是工作区、状态、证据、回放和阻断原因；不能看到可执行的实盘下单入口。Figma / product / design 文档只作为产品、交互、布局、视觉和 dashboard 参考，不是 SwiftUI 实现稿、组件库、Live PRO Console、实盘操作台或 Linear execution 授权。
 
 Strategy / Trader layout machine anchors：`Sources/Trader/Strategies/<strategy>` 是 forward-looking canonical layout；旧 `Sources/Strategies/<strategy>` 只能作为 historical / compatibility / superseded path；当前 closure 口径为 `Trader = Accounts + Strategies + Coordination`，binding / adapter 语义归入 `Trader/Coordination`。

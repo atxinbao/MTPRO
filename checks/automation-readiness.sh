@@ -13132,4 +13132,37 @@ require_contains "docs/validation/validation-plan.md" "GH-1242 Release v0.20.0 C
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-CREDENTIAL-REFERENCE-READINESS"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1242ReleaseV0200CredentialReferenceReadiness"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe.swift" \
+  "docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.20.0-public-market-readonly-probe.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1243-VERIFY-V0200-PUBLIC-MARKET-READ-ONLY-PROBE"
+  require_contains "$file" "TVM-RELEASE-V0200-PUBLIC-MARKET-READ-ONLY-PROBE"
+  require_contains "$file" "V0200-005-BINANCE-SPOT-PRODUCTION-SHADOW-PUBLIC-MARKET-PROBE"
+  require_contains "$file" "V0200-005-PUBLIC-MARKET-READ-ONLY-REACHABILITY"
+  require_contains "$file" "V0200-005-RESPONSE-CLASSIFICATION-EVIDENCE"
+  require_contains "$file" "V0200-005-NO-CREDENTIAL-REQUIRED"
+  require_contains "$file" "V0200-005-NO-SIGNED-ACCOUNT-ENDPOINT"
+  require_contains "$file" "V0200-005-NO-ORDER-ENDPOINT"
+  require_contains "$file" "V0200-005-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.20.0-public-market-readonly-probe.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-public-market-readonly-probe.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 public market read-only probe anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 public market read-only probe"
+require_contains "docs/validation/validation-plan.md" "GH-1243 Release v0.20.0 Public Market Read-only Probe"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-PUBLIC-MARKET-READ-ONLY-PROBE"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1243ReleaseV0200PublicMarketReadOnlyProbe"
+
 printf 'MTPRO automation readiness checks passed.\n'
