@@ -67,6 +67,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md`、`checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1241 只固定 Binance Spot production-shadow endpoint allowlist、HTTPS `api.binance.com` host policy、read-only path / query shape 和 signed / trading endpoint rejection evidence。它不读取 secret value，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不实现 private stream runtime，不实现 listenKey runtime，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
 
+## GH-1242 Release v0.20.0 Credential Reference Readiness
+
+- GH-1242-VERIFY-V0200-CREDENTIAL-REFERENCE-READINESS
+- TVM-RELEASE-V0200-CREDENTIAL-REFERENCE-READINESS
+- V0200-004-BINANCE-SPOT-PRODUCTION-SHADOW-CREDENTIAL-READINESS
+- V0200-004-CREDENTIAL-IDENTITY-ONLY
+- V0200-004-MISSING-REFERENCE-FAILS-CLOSED
+- V0200-004-REDACTED-AUDIT-EVIDENCE
+- V0200-004-NO-SECRET-VALUE-READ
+- V0200-004-NO-ENDPOINT-CONNECTION
+- V0200-004-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.20.0-credential-reference-readiness.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1242ReleaseV0200CredentialReferenceReadiness`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowCredentialReferenceReadiness.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-credential-reference-readiness.md`、`checks/verify-v0.20.0-credential-reference-readiness.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1242 只固定 Binance Spot production-shadow credential reference identity、missing / invalid reference fail-closed 和 redacted audit evidence。它不读取 secret value，不保存 raw credential，不自动读取 secret provider，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不实现 private stream runtime，不实现 listenKey runtime，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
+
 ## GH-1202 Release v0.18.1 Operator-run CLI Commands
 
 - GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS

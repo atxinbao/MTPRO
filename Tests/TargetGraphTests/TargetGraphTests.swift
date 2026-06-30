@@ -60088,6 +60088,250 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1242ReleaseV0200CredentialReferenceReadiness() throws {
+        // GH-1242-VERIFY-V0200-CREDENTIAL-REFERENCE-READINESS
+        // TVM-RELEASE-V0200-CREDENTIAL-REFERENCE-READINESS
+        // V0200-004-BINANCE-SPOT-PRODUCTION-SHADOW-CREDENTIAL-READINESS
+        // V0200-004-CREDENTIAL-IDENTITY-ONLY
+        // V0200-004-MISSING-REFERENCE-FAILS-CLOSED
+        // V0200-004-REDACTED-AUDIT-EVIDENCE
+        // V0200-004-NO-SECRET-VALUE-READ
+        // V0200-004-NO-ENDPOINT-CONNECTION
+        // V0200-004-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1242-VERIFY-V0200-CREDENTIAL-REFERENCE-READINESS",
+            "TVM-RELEASE-V0200-CREDENTIAL-REFERENCE-READINESS",
+            "V0200-004-BINANCE-SPOT-PRODUCTION-SHADOW-CREDENTIAL-READINESS",
+            "V0200-004-CREDENTIAL-IDENTITY-ONLY",
+            "V0200-004-MISSING-REFERENCE-FAILS-CLOSED",
+            "V0200-004-REDACTED-AUDIT-EVIDENCE",
+            "V0200-004-NO-SECRET-VALUE-READ",
+            "V0200-004-NO-ENDPOINT-CONNECTION",
+            "V0200-004-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowCredentialReferenceReadiness.swift",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-credential-reference-readiness.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.20.0-credential-reference-readiness.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let readiness = try ReleaseV0200ProductionShadowCredentialReferenceReadiness.deterministicFixture()
+        let credentialEntry = try ReleaseV0190VenueCredentialProfileRegistry.entry(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .productionShadow
+        )
+
+        XCTAssertTrue(readiness.readinessHeld)
+        XCTAssertTrue(readiness.namespaceHeld)
+        XCTAssertTrue(readiness.credentialReferenceHeld)
+        XCTAssertTrue(readiness.auditableFailureHeld)
+        XCTAssertTrue(readiness.productionDefaultsClosed)
+        XCTAssertEqual(readiness.issueID.rawValue, "GH-1242")
+        XCTAssertEqual(readiness.upstreamIssueID.rawValue, "GH-1241")
+        XCTAssertEqual(readiness.downstreamIssueID.rawValue, "GH-1243")
+        XCTAssertEqual(readiness.canonicalQueueRange, "GH-1239..GH-1250")
+        XCTAssertEqual(
+            readiness.projectName,
+            "MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness"
+        )
+        XCTAssertEqual(readiness.releaseVersion, "v0.20.0")
+        XCTAssertTrue(readiness.upstreamEndpointAllowlistHeld)
+        XCTAssertEqual(readiness.venueID, .binance)
+        XCTAssertEqual(readiness.productKind, .spot)
+        XCTAssertEqual(readiness.tradingEnvironment, .productionShadow)
+        XCTAssertEqual(readiness.credentialProfileID, credentialEntry.profileID.rawValue)
+        XCTAssertEqual(readiness.credentialProfileState, .productionShadow)
+        XCTAssertEqual(readiness.credentialNamespaceKey, credentialEntry.namespaceKey)
+        XCTAssertEqual(readiness.credentialRedactedEvidenceReference, credentialEntry.redactedEvidenceReference)
+        XCTAssertEqual(readiness.presentCredentialEvidence.state, .referencePresent)
+        XCTAssertNil(readiness.presentCredentialEvidence.failureClass)
+        XCTAssertTrue(readiness.presentCredentialEvidence.evidenceHeld)
+        XCTAssertEqual(readiness.missingCredentialEvidence.state, .missingReference)
+        XCTAssertEqual(readiness.missingCredentialEvidence.failureClass, .requiredReferenceMissing)
+        XCTAssertTrue(readiness.missingCredentialEvidence.failClosedEvidenceHeld)
+        XCTAssertEqual(readiness.invalidCredentialEvidence.state, .invalidReference)
+        XCTAssertEqual(readiness.invalidCredentialEvidence.failureClass, .namespaceMismatch)
+        XCTAssertTrue(readiness.invalidCredentialEvidence.failClosedEvidenceHeld)
+        XCTAssertEqual(readiness.requirements, ReleaseV0200ProductionShadowCredentialReadinessRequirement.allCases)
+        XCTAssertEqual(readiness.forbiddenCapabilities, ReleaseV0200ProductionShadowCredentialForbiddenCapability.allCases)
+        XCTAssertEqual(readiness.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            readiness.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1242ReleaseV0200CredentialReferenceReadiness",
+                "bash checks/verify-v0.20.0-credential-reference-readiness.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+        XCTAssertFalse(readiness.productionTradingEnabledByDefault)
+        XCTAssertFalse(readiness.productionSecretValueRead)
+        XCTAssertFalse(readiness.rawCredentialMaterialStored)
+        XCTAssertFalse(readiness.secretProviderAutoReadEnabled)
+        XCTAssertFalse(readiness.apiKeyLogged)
+        XCTAssertFalse(readiness.secretKeyLogged)
+        XCTAssertFalse(readiness.listenKeyLogged)
+        XCTAssertFalse(readiness.productionEndpointConnectionEnabled)
+        XCTAssertFalse(readiness.signedAccountEndpointRuntimeEnabled)
+        XCTAssertFalse(readiness.privateStreamRuntimeEnabled)
+        XCTAssertFalse(readiness.productionBrokerConnectionEnabled)
+        XCTAssertFalse(readiness.orderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(readiness.spotCanaryEnabled)
+        XCTAssertFalse(readiness.futuresRuntimeEnabled)
+        XCTAssertFalse(readiness.okxActiveImplementationEnabled)
+        XCTAssertFalse(readiness.dashboardTradingButtonEnabled)
+        XCTAssertFalse(readiness.orderFormEnabled)
+        XCTAssertFalse(readiness.liveCommandEnabled)
+        XCTAssertFalse(readiness.productionCutoverAuthorized)
+        XCTAssertFalse(readiness.createsTagOrRelease)
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(upstreamEndpointAllowlistHeld: false))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(productKind: .usdmFutures))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(tradingEnvironment: .productionLive))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(credentialProfileID: "wrong-profile"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(credentialProfileState: .testnetReference))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(credentialNamespaceKey: "binance/spot/testnet/wrong"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(
+            credentialRedactedEvidenceReference: "redacted-credential-profile:binance:spot:testnet"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(rawCredentialMaterialStored: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(secretProviderAutoReadEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(apiKeyLogged: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(secretKeyLogged: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(listenKeyLogged: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(signedAccountEndpointRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(privateStreamRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(orderSubmitCancelReplaceEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(spotCanaryEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(futuresRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(okxActiveImplementationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceReadiness(createsTagOrRelease: true))
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceAuditEvidence(
+            state: .referencePresent,
+            failureClass: .requiredReferenceMissing
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceAuditEvidence(state: .missingReference))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceAuditEvidence(
+            state: .invalidReference,
+            failureClass: .requiredReferenceMissing
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceAuditEvidence(
+            state: .referencePresent,
+            profileID: "wrong-profile"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceAuditEvidence(
+            state: .referencePresent,
+            namespaceKey: "binance/spot/testnet/wrong"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceAuditEvidence(
+            state: .referencePresent,
+            redactedEvidenceReference: "redacted-credential-profile:binance:spot:testnet"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceAuditEvidence(
+            state: .referencePresent,
+            redactedReferenceSummary: "credential-reference=raw-value"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceAuditEvidence(
+            state: .referencePresent,
+            secretValueRead: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceAuditEvidence(
+            state: .referencePresent,
+            rawCredentialMaterialPresent: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceAuditEvidence(
+            state: .referencePresent,
+            endpointConnectionOpened: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowCredentialReferenceAuditEvidence(
+            state: .referencePresent,
+            auditTrailAppendOnly: false
+        ))
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowCredentialReferenceReadiness.swift")
+        let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-credential-reference-readiness.md")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.20.0-credential-reference-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0190VenueCredentialProfileRegistry.entry"))
+        XCTAssertTrue(source.contains("binance-spot-productionShadow-credential-profile-ref"))
+        XCTAssertTrue(source.contains("redacted-credential-profile:binance:spot:productionShadow"))
+        XCTAssertTrue(source.contains("credential-reference=<redacted>; state=present; action=identity-only"))
+        XCTAssertTrue(source.contains("credential-reference=<redacted>; state=missing; action=fail-closed"))
+        XCTAssertTrue(source.contains("credential-reference=<redacted>; state=invalid; action=fail-closed"))
+        XCTAssertTrue(source.contains("case requiredReferenceMissing"))
+        XCTAssertTrue(source.contains("case namespaceMismatch"))
+        XCTAssertTrue(contractDoc.contains("#1241 / GH-1241"))
+        XCTAssertTrue(contractDoc.contains("#1242 / GH-1242"))
+        XCTAssertTrue(contractDoc.contains("#1243 / GH-1243"))
+        XCTAssertTrue(contractDoc.contains("不读取 production secret value"))
+        XCTAssertTrue(contractDoc.contains("不连接 production endpoint / broker endpoint"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.20.0 credential reference readiness anchor"))
+        XCTAssertTrue(latest.contains("v0.20.0 credential reference readiness"))
+        XCTAssertTrue(plan.contains("GH-1242 Release v0.20.0 Credential Reference Readiness"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0200-CREDENTIAL-REFERENCE-READINESS"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.0-credential-reference-readiness.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.0-credential-reference-readiness.sh"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1242ReleaseV0200CredentialReferenceReadiness"
+        ))
+
+        for source in [contractDoc, latest, plan, matrix] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("rawCredentialMaterialStored=true"))
+            XCTAssertFalse(source.contains("secretProviderAutoReadEnabled=true"))
+            XCTAssertFalse(source.contains("apiKeyLogged=true"))
+            XCTAssertFalse(source.contains("secretKeyLogged=true"))
+            XCTAssertFalse(source.contains("listenKeyLogged=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(source.contains("signedAccountEndpointRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("privateStreamRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(source.contains("orderSubmitCancelReplaceEnabled=true"))
+            XCTAssertFalse(source.contains("spotCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("futuresRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("okxActiveImplementationEnabled=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
