@@ -170,7 +170,9 @@ require_file "checks/verify-v0.19.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.19.1-v0190-release-fact-sync.sh"
 require_file "checks/verify-v0.19.1.sh"
 require_file "checks/verify-v0.20.0-production-shadow-readiness-contract.sh"
+require_file "checks/verify-v0.20.0-production-shadow-environment-profile.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
+require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
 require_file "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md"
@@ -13028,5 +13030,38 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 produ
 require_contains "docs/validation/validation-plan.md" "GH-1239 Release v0.20.0 Production-shadow Read-only Live Readiness Contract"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1239ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowEnvironmentProfile.swift" \
+  "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.20.0-production-shadow-environment-profile.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1240-VERIFY-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE"
+  require_contains "$file" "TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE"
+  require_contains "$file" "V0200-002-BINANCE-SPOT-PRODUCTION-SHADOW-PROFILE"
+  require_contains "$file" "V0200-002-CREDENTIAL-REFERENCE-NO-SECRET-VALUE"
+  require_contains "$file" "V0200-002-ENDPOINT-INTENT-NO-CONNECTION"
+  require_contains "$file" "V0200-002-OPERATOR-READINESS-STATE"
+  require_contains "$file" "V0200-002-READ-ONLY-FAIL-CLOSED"
+  require_contains "$file" "V0200-002-FUTURES-OKX-OUT-OF-SCOPE"
+  require_contains "$file" "V0200-002-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.20.0-production-shadow-environment-profile.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-production-shadow-environment-profile.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 production-shadow environment profile anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 production-shadow environment profile"
+require_contains "docs/validation/validation-plan.md" "GH-1240 Release v0.20.0 Production-shadow Environment Profile"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1240ReleaseV0200ProductionShadowEnvironmentProfile"
 
 printf 'MTPRO automation readiness checks passed.\n'

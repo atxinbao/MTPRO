@@ -36,6 +36,21 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md`、`checks/verify-v0.20.0-production-shadow-readiness-contract.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1239 只定义 v0.20.0 Binance Spot production-shadow / read-only live readiness contract、GH-1232..GH-1237 dependency、GH-1240..GH-1250 queue order 和 fail-closed forbidden capability set。GH-1239 不读取 secret value，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不实现 private stream runtime，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
 
+## GH-1240 Release v0.20.0 Production-shadow Environment Profile
+
+- GH-1240-VERIFY-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE
+- TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE
+- V0200-002-BINANCE-SPOT-PRODUCTION-SHADOW-PROFILE
+- V0200-002-CREDENTIAL-REFERENCE-NO-SECRET-VALUE
+- V0200-002-ENDPOINT-INTENT-NO-CONNECTION
+- V0200-002-OPERATOR-READINESS-STATE
+- V0200-002-READ-ONLY-FAIL-CLOSED
+- V0200-002-FUTURES-OKX-OUT-OF-SCOPE
+- V0200-002-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.20.0-production-shadow-environment-profile.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1240ReleaseV0200ProductionShadowEnvironmentProfile`
+- Boundary: GH-1240 只固定 Binance Spot production-shadow environment profile、credential identity reference、endpoint intent 和 operator-visible readiness state。它不读取 secret value，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不实现 private stream runtime，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
+
 ## GH-1202 Release v0.18.1 Operator-run CLI Commands
 
 - GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS

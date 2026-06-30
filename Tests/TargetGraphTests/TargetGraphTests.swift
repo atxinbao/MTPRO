@@ -59688,6 +59688,182 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1240ReleaseV0200ProductionShadowEnvironmentProfile() throws {
+        // 测试场景：GH-1240 固定 v0.20.0 Binance Spot production-shadow environment profile。
+        // 验证目的：确认 profile 只保存 typed environment identity、credential reference、endpoint
+        // intent 和 operator-visible readiness state；默认继续拒绝 secret value read、production
+        // endpoint / broker connection、signed account / private stream runtime、submit / cancel /
+        // replace、Spot canary、Futures、OKX、tag / release publication 和 production cutover。
+        // GH-1240-VERIFY-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE
+        // TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE
+        // V0200-002-BINANCE-SPOT-PRODUCTION-SHADOW-PROFILE
+        // V0200-002-CREDENTIAL-REFERENCE-NO-SECRET-VALUE
+        // V0200-002-ENDPOINT-INTENT-NO-CONNECTION
+        // V0200-002-OPERATOR-READINESS-STATE
+        // V0200-002-READ-ONLY-FAIL-CLOSED
+        // V0200-002-FUTURES-OKX-OUT-OF-SCOPE
+        // V0200-002-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1240-VERIFY-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE",
+            "TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE",
+            "V0200-002-BINANCE-SPOT-PRODUCTION-SHADOW-PROFILE",
+            "V0200-002-CREDENTIAL-REFERENCE-NO-SECRET-VALUE",
+            "V0200-002-ENDPOINT-INTENT-NO-CONNECTION",
+            "V0200-002-OPERATOR-READINESS-STATE",
+            "V0200-002-READ-ONLY-FAIL-CLOSED",
+            "V0200-002-FUTURES-OKX-OUT-OF-SCOPE",
+            "V0200-002-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowEnvironmentProfile.swift",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.20.0-production-shadow-environment-profile.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let profile = try ReleaseV0200ProductionShadowEnvironmentProfile.deterministicFixture()
+        let credentialEntry = try ReleaseV0190VenueCredentialProfileRegistry.entry(
+            venueID: .binance,
+            productKind: .spot,
+            tradingEnvironment: .productionShadow
+        )
+
+        XCTAssertTrue(profile.profileHeld)
+        XCTAssertTrue(profile.namespaceHeld)
+        XCTAssertTrue(profile.credentialReferenceHeld)
+        XCTAssertTrue(profile.endpointAndReadinessHeld)
+        XCTAssertTrue(profile.productionDefaultsClosed)
+        XCTAssertEqual(profile.issueID.rawValue, "GH-1240")
+        XCTAssertEqual(profile.upstreamIssueID.rawValue, "GH-1239")
+        XCTAssertEqual(profile.downstreamIssueID.rawValue, "GH-1241")
+        XCTAssertEqual(profile.canonicalQueueRange, "GH-1239..GH-1250")
+        XCTAssertEqual(
+            profile.projectName,
+            "MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness"
+        )
+        XCTAssertEqual(profile.releaseVersion, "v0.20.0")
+        XCTAssertTrue(profile.upstreamReadinessContractHeld)
+        XCTAssertEqual(profile.venueID, .binance)
+        XCTAssertEqual(profile.productKind, .spot)
+        XCTAssertEqual(profile.tradingEnvironment, .productionShadow)
+        XCTAssertEqual(profile.credentialProfileID, credentialEntry.profileID.rawValue)
+        XCTAssertEqual(profile.credentialProfileState, .productionShadow)
+        XCTAssertEqual(profile.credentialRedactedEvidenceReference, credentialEntry.redactedEvidenceReference)
+        XCTAssertTrue(profile.credentialIdentityOnly)
+        XCTAssertTrue(profile.redactedEvidenceOnly)
+        XCTAssertEqual(profile.profileModes, ReleaseV0200ProductionShadowEnvironmentProfileMode.allCases)
+        XCTAssertEqual(profile.endpointIntent, .readOnlyReferencePendingAllowlist)
+        XCTAssertEqual(profile.operatorReadinessState, .profileRegisteredAwaitingReadOnlyEvidence)
+        XCTAssertEqual(profile.requirements, ReleaseV0200ProductionShadowEnvironmentProfileRequirement.allCases)
+        XCTAssertEqual(profile.forbiddenCapabilities, ReleaseV0200ProductionShadowEnvironmentForbiddenCapability.allCases)
+        XCTAssertEqual(profile.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            profile.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1240ReleaseV0200ProductionShadowEnvironmentProfile",
+                "bash checks/verify-v0.20.0-production-shadow-environment-profile.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+        XCTAssertFalse(profile.productionTradingEnabledByDefault)
+        XCTAssertFalse(profile.productionSecretValueRead)
+        XCTAssertFalse(profile.productionSecretValueStored)
+        XCTAssertFalse(profile.productionEndpointConnectionEnabled)
+        XCTAssertFalse(profile.signedAccountEndpointRuntimeEnabled)
+        XCTAssertFalse(profile.privateStreamRuntimeEnabled)
+        XCTAssertFalse(profile.productionBrokerConnectionEnabled)
+        XCTAssertFalse(profile.orderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(profile.spotCanaryEnabled)
+        XCTAssertFalse(profile.futuresRuntimeEnabled)
+        XCTAssertFalse(profile.okxActiveImplementationEnabled)
+        XCTAssertFalse(profile.dashboardTradingButtonEnabled)
+        XCTAssertFalse(profile.orderFormEnabled)
+        XCTAssertFalse(profile.liveCommandEnabled)
+        XCTAssertFalse(profile.productionCutoverAuthorized)
+        XCTAssertFalse(profile.createsTagOrRelease)
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(upstreamReadinessContractHeld: false))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(productKind: .usdmFutures))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(tradingEnvironment: .productionLive))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(
+            credentialProfileID: "binance-spot-testnet-credential-profile-ref"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(credentialIdentityOnly: false))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(redactedEvidenceOnly: false))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(signedAccountEndpointRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(privateStreamRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(orderSubmitCancelReplaceEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(spotCanaryEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(futuresRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(okxActiveImplementationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowEnvironmentProfile(createsTagOrRelease: true))
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowEnvironmentProfile.swift")
+        let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.20.0-production-shadow-environment-profile.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0190VenueCredentialProfileRegistry.entry"))
+        XCTAssertTrue(contractDoc.contains("#1239 / GH-1239"))
+        XCTAssertTrue(contractDoc.contains("#1241 / GH-1241"))
+        XCTAssertTrue(readiness.contains("Release v0.20.0 production-shadow environment profile anchor"))
+        XCTAssertTrue(latest.contains("v0.20.0 production-shadow environment profile"))
+        XCTAssertTrue(plan.contains("GH-1240 Release v0.20.0 Production-shadow Environment Profile"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.0-production-shadow-environment-profile.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.0-production-shadow-environment-profile.sh"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1240ReleaseV0200ProductionShadowEnvironmentProfile"
+        ))
+
+        for source in [contractDoc, latest, plan, matrix] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(source.contains("signedAccountEndpointRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("privateStreamRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("orderSubmitCancelReplaceEnabled=true"))
+            XCTAssertFalse(source.contains("spotCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("futuresRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("okxActiveImplementationEnabled=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
