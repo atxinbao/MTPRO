@@ -223,6 +223,8 @@ v0.20.0 Dashboard / CLI read-only live readiness surface anchor：`GH-1248-VERIF
 
 v0.20.0 aggregate validation suite anchor：`GH-1249-VERIFY-V0200-RELEASE-VALIDATION-SUITE`、`TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE`、`V0200-011-AGGREGATE-VALIDATION-SUITE`、`V0200-011-FOCUSED-GUARDS-COVERED`、`V0200-011-READINESS-REDACTION-NO-ORDER-COVERED`、`V0200-011-RUN-AUTOMATION-WIRING`、`V0200-011-NO-PRODUCTION-CUTOVER`、`V0200-011-NO-TAG-OR-RELEASE-PUBLICATION`。
 
+v0.20.0 stage audit / release docs closeout anchor：`GH-1250-VERIFY-V0200-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS`、`V0200-012-STAGE-CODE-AUDIT`、`V0200-012-RELEASE-NOTES`、`V0200-012-VALIDATION-MATRIX`、`V0200-012-ROOT-DOCS-REFRESH`、`V0200-012-STALE-WORDING-GUARD`、`V0200-012-RELEASE-PUBLICATION-GATE-HANDOFF`、`V0200-012-NO-PRODUCTION-CUTOVER`、`V0200-012-NO-TAG-OR-RELEASE-PUBLICATION`。#1250 只收口 v0.20.0 construction docs / validation evidence；不创建 tag / GitHub Release，不运行 Spot canary，不授权 production cutover；production cutover not authorized。
+
 Workbench 的主导航以 evidence navigation 为中心，不以交易按钮为中心。用户看到的是工作区、状态、证据、回放和阻断原因；不能看到可执行的实盘下单入口。Figma / product / design 文档只作为产品、交互、布局、视觉和 dashboard 参考，不是 SwiftUI 实现稿、组件库、Live PRO Console、实盘操作台或 Linear execution 授权。
 
 Strategy / Trader layout machine anchors：`Sources/Trader/Strategies/<strategy>` 是 forward-looking canonical layout；旧 `Sources/Strategies/<strategy>` 只能作为 historical / compatibility / superseded path；当前 closure 口径为 `Trader = Accounts + Strategies + Coordination`，binding / adapter 语义归入 `Trader/Coordination`。

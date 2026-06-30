@@ -32,6 +32,7 @@
 - `GH-1233 V191-002 Rewrite v0.19.0 construction closeout wording as historical context`
 - `GH-1234 V191-003 Harden v0.19.0 stale wording guard`
 - `GH-1237 V191-006 Close v0.19.1 patch audit / release notes`
+- `GH-1250 V0200-012 Close v0.20.0 stage audit and release docs`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -69,6 +70,34 @@ GH-1237 closes v0.19.1 patch audit / release notes for #1232..#1237 and PR #1251
 #1237 construction closeout does not create the `v0.19.1` tag or GitHub Release. Human has explicitly requested v0.19.1 publication；publication remains an independent Release Publication Gate after #1237 PR merge, required `checks` SUCCESS, clean `main`, open PR = 0, open active issue = 0, worktree clean and validation evidence are reconfirmed.
 
 GH-1237 does not move `v0.19.0` tag, does not overwrite GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
+
+## GH-1250-V0200-STAGE-AUDIT-RELEASE-DOCS
+
+`GH-1250-VERIFY-V0200-STAGE-AUDIT-RELEASE-DOCS`
+
+`TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS`
+
+`V0200-012-STAGE-CODE-AUDIT`
+
+`V0200-012-RELEASE-NOTES`
+
+`V0200-012-VALIDATION-MATRIX`
+
+`V0200-012-ROOT-DOCS-REFRESH`
+
+`V0200-012-STALE-WORDING-GUARD`
+
+`V0200-012-RELEASE-PUBLICATION-GATE-HANDOFF`
+
+`V0200-012-NO-PRODUCTION-CUTOVER`
+
+`V0200-012-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1250 closes the v0.20.0 stage audit / release docs for #1239..#1250 and PR #1257..#1267. The closeout documents confirm Binance Spot production-shadow / read-only live readiness evidence, aggregate v0.20.0 verifier coverage and production cutover boundary.
+
+#1250 construction closeout does not create the `v0.20.0` tag or GitHub Release. Publication remains an independent Release Publication Gate after #1250 PR merge, required `checks` SUCCESS, clean `main`, open PR = 0, open active issue = 0, worktree clean and validation evidence are reconfirmed.
+
+GH-1250 does not run Spot canary, does not read production secret, does not connect production endpoint / broker endpoint, does not touch account/order endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
 
 ## V080-002-V070-ACTUAL-GITHUB-RELEASE
 

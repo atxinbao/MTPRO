@@ -6,6 +6,24 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS
+
+- TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS
+- GH-1250-VERIFY-V0200-STAGE-AUDIT-RELEASE-DOCS
+- V0200-012-STAGE-CODE-AUDIT
+- V0200-012-RELEASE-NOTES
+- V0200-012-VALIDATION-MATRIX
+- V0200-012-ROOT-DOCS-REFRESH
+- V0200-012-STALE-WORDING-GUARD
+- V0200-012-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0200-012-NO-PRODUCTION-CUTOVER
+- V0200-012-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1250 Release v0.20.0 Stage Audit / Release Docs Closeout
+- `bash checks/verify-v0.20.0-stage-audit-release-docs.sh`
+- `swift test --filter TargetGraphTests/testGH1250ReleaseV0200StageAuditReleaseDocsCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-stage-code-audit.md`、`docs/release/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-notes.md`、`checks/verify-v0.20.0-stage-audit-release-docs.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/release/release-publication-policy.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1250 closes v0.20.0 construction evidence and hands off to an independent Release Publication Gate. It does not run Spot canary, read secret values, connect production endpoints, touch account/order endpoints, submit / cancel / replace orders, publish a tag / GitHub Release, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE
 
 - TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE

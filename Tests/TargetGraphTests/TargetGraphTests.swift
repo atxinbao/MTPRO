@@ -62026,6 +62026,124 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1250ReleaseV0200StageAuditReleaseDocsCloseout() throws {
+        // GH-1250-VERIFY-V0200-STAGE-AUDIT-RELEASE-DOCS
+        // TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS
+        // V0200-012-STAGE-CODE-AUDIT
+        // V0200-012-RELEASE-NOTES
+        // V0200-012-VALIDATION-MATRIX
+        // V0200-012-ROOT-DOCS-REFRESH
+        // V0200-012-STALE-WORDING-GUARD
+        // V0200-012-RELEASE-PUBLICATION-GATE-HANDOFF
+        // V0200-012-NO-PRODUCTION-CUTOVER
+        // V0200-012-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1250-VERIFY-V0200-STAGE-AUDIT-RELEASE-DOCS",
+            "TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS",
+            "V0200-012-STAGE-CODE-AUDIT",
+            "V0200-012-RELEASE-NOTES",
+            "V0200-012-VALIDATION-MATRIX",
+            "V0200-012-ROOT-DOCS-REFRESH",
+            "V0200-012-STALE-WORDING-GUARD",
+            "V0200-012-RELEASE-PUBLICATION-GATE-HANDOFF",
+            "V0200-012-NO-PRODUCTION-CUTOVER",
+            "V0200-012-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        let requiredFiles = [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "docs/audit/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-notes.md",
+            "checks/verify-v0.20.0-stage-audit-release-docs.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let audit = try read("docs/audit/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-notes.md")
+        let verifier = try read("checks/verify-v0.20.0-stage-audit-release-docs.sh")
+
+        for expected in [
+            "Issue Completion Evidence",
+            "PR / Checks / Merge Evidence",
+            "Boundary Audit",
+            "Validation Summary",
+            "Residual Risk",
+            "Next Handoff",
+            "#1239..#1250",
+            "PR #1257",
+            "PR #1267",
+            "required check `checks` SUCCESS"
+        ] {
+            XCTAssertTrue(audit.contains(expected), "audit must contain \(expected)")
+        }
+
+        XCTAssertTrue(notes.contains("#1250 是 construction closeout"))
+        XCTAssertTrue(notes.contains("Publication remains an independent Release Publication Gate"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1250ReleaseV0200StageAuditReleaseDocsCloseout"))
+        XCTAssertTrue(verifier.contains("PR #1267"))
+        XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.20.0-stage-audit-release-docs.sh"))
+        XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.20.0-stage-audit-release-docs.sh"))
+        XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.20.0 stage audit / release docs closeout anchor"))
+        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.20.0 stage audit / release docs closeout"))
+        XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1250 Release v0.20.0 Stage Audit / Release Docs Closeout"))
+        XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS"))
+        XCTAssertTrue(try read("docs/release/release-publication-policy.md").contains("GH-1250 closes the v0.20.0 stage audit"))
+
+        for source in [
+            audit,
+            notes,
+            try read("README.md"),
+            try read("GOAL.md"),
+            try read("BLUEPRINT.md"),
+            try read("docs/roadmap.md"),
+            try read("docs/automation/automation-readiness.md"),
+            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/validation/validation-plan.md"),
+            try read("docs/validation/trading-validation-matrix.md"),
+            try read("docs/release/release-publication-policy.md")
+        ] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnected=true"))
+            XCTAssertFalse(source.contains("brokerEndpointConnected=true"))
+            XCTAssertFalse(source.contains("signedOrderMaterialGenerated=true"))
+            XCTAssertFalse(source.contains("accountEndpointConnected=true"))
+            XCTAssertFalse(source.contains("orderEndpointTouched=true"))
+            XCTAssertFalse(source.contains("submitCancelReplaceEnabled=true"))
+            XCTAssertFalse(source.contains("dashboardTradingButtonVisible=true"))
+            XCTAssertFalse(source.contains("orderFormVisible=true"))
+            XCTAssertFalse(source.contains("liveCommandVisible=true"))
+            XCTAssertFalse(source.contains("spotCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("futuresRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("okxActiveImplementationEnabled=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
