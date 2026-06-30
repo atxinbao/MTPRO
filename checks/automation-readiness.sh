@@ -13233,4 +13233,37 @@ require_contains "docs/validation/validation-plan.md" "GH-1245 Release v0.20.0 A
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1245ReleaseV0200AccountSnapshotRedactionPolicy"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowNoOrderCapabilityGuard.swift" \
+  "docs/contracts/release-v0.20.0-binance-spot-production-shadow-no-order-capability-guard.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.20.0-no-order-capability-guard.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1246-VERIFY-V0200-NO-ORDER-CAPABILITY-GUARD"
+  require_contains "$file" "TVM-RELEASE-V0200-NO-ORDER-CAPABILITY-GUARD"
+  require_contains "$file" "V0200-008-BINANCE-SPOT-PRODUCTION-SHADOW-NO-ORDER-CAPABILITY-GUARD"
+  require_contains "$file" "V0200-008-SUBMIT-BLOCKED"
+  require_contains "$file" "V0200-008-CANCEL-BLOCKED"
+  require_contains "$file" "V0200-008-REPLACE-BLOCKED"
+  require_contains "$file" "V0200-008-DASHBOARD-CLI-CANNOT-BYPASS"
+  require_contains "$file" "V0200-008-NO-REAL-ORDER-INTENT"
+  require_contains "$file" "V0200-008-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.20.0-no-order-capability-guard.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-no-order-capability-guard.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 no-order capability guard anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 no-order capability guard"
+require_contains "docs/validation/validation-plan.md" "GH-1246 Release v0.20.0 No-order Capability Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-NO-ORDER-CAPABILITY-GUARD"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1246ReleaseV0200NoOrderCapabilityGuard"
+
 printf 'MTPRO automation readiness checks passed.\n'

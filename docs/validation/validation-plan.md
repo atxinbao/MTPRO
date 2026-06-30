@@ -133,6 +133,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-account-snapshot-redaction-policy.md`、`checks/verify-v0.20.0-account-snapshot-redaction-policy.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1245 只固定 Binance Spot production-shadow account snapshot artifact redaction policy、allowed field schema、forbidden field schema、repository-relative artifact path 和 safe redacted JSON example。它不读取 secret value，不生成 signed request material，不触达真实 account endpoint，不保存 raw balance、account id、raw broker payload、endpoint response body 或 order payload，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
 
+## GH-1246 Release v0.20.0 No-order Capability Guard
+
+- GH-1246-VERIFY-V0200-NO-ORDER-CAPABILITY-GUARD
+- TVM-RELEASE-V0200-NO-ORDER-CAPABILITY-GUARD
+- V0200-008-BINANCE-SPOT-PRODUCTION-SHADOW-NO-ORDER-CAPABILITY-GUARD
+- V0200-008-SUBMIT-BLOCKED
+- V0200-008-CANCEL-BLOCKED
+- V0200-008-REPLACE-BLOCKED
+- V0200-008-DASHBOARD-CLI-CANNOT-BYPASS
+- V0200-008-NO-REAL-ORDER-INTENT
+- V0200-008-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.20.0-no-order-capability-guard.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1246ReleaseV0200NoOrderCapabilityGuard`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowNoOrderCapabilityGuard.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-no-order-capability-guard.md`、`checks/verify-v0.20.0-no-order-capability-guard.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1246 只固定 Binance Spot production-shadow no-order capability guard。submit / cancel / replace 以及 Dashboard / CLI bypass 都必须 fail closed。它不读取 secret value，不生成 signed order material，不触达 `/api/v3/order`，不创建真实 order intent，不保存 order payload，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
+
 ## GH-1202 Release v0.18.1 Operator-run CLI Commands
 
 - GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS

@@ -61112,6 +61112,286 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1246ReleaseV0200NoOrderCapabilityGuard() throws {
+        // GH-1246-VERIFY-V0200-NO-ORDER-CAPABILITY-GUARD
+        // TVM-RELEASE-V0200-NO-ORDER-CAPABILITY-GUARD
+        // V0200-008-BINANCE-SPOT-PRODUCTION-SHADOW-NO-ORDER-CAPABILITY-GUARD
+        // V0200-008-SUBMIT-BLOCKED
+        // V0200-008-CANCEL-BLOCKED
+        // V0200-008-REPLACE-BLOCKED
+        // V0200-008-DASHBOARD-CLI-CANNOT-BYPASS
+        // V0200-008-NO-REAL-ORDER-INTENT
+        // V0200-008-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1246-VERIFY-V0200-NO-ORDER-CAPABILITY-GUARD",
+            "TVM-RELEASE-V0200-NO-ORDER-CAPABILITY-GUARD",
+            "V0200-008-BINANCE-SPOT-PRODUCTION-SHADOW-NO-ORDER-CAPABILITY-GUARD",
+            "V0200-008-SUBMIT-BLOCKED",
+            "V0200-008-CANCEL-BLOCKED",
+            "V0200-008-REPLACE-BLOCKED",
+            "V0200-008-DASHBOARD-CLI-CANNOT-BYPASS",
+            "V0200-008-NO-REAL-ORDER-INTENT",
+            "V0200-008-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowNoOrderCapabilityGuard.swift",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-no-order-capability-guard.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.20.0-no-order-capability-guard.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let guardContract = try ReleaseV0200ProductionShadowNoOrderCapabilityGuard.deterministicFixture()
+
+        XCTAssertTrue(guardContract.guardHeld)
+        XCTAssertTrue(guardContract.blockedAttemptsHeld)
+        XCTAssertTrue(guardContract.productionDefaultsClosed)
+        XCTAssertEqual(guardContract.issueID.rawValue, "GH-1246")
+        XCTAssertEqual(guardContract.upstreamIssueIDs.map(\.rawValue), ["GH-1239", "GH-1241"])
+        XCTAssertEqual(guardContract.downstreamIssueID.rawValue, "GH-1247")
+        XCTAssertEqual(guardContract.canonicalQueueRange, "GH-1239..GH-1250")
+        XCTAssertEqual(
+            guardContract.projectName,
+            "MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness"
+        )
+        XCTAssertEqual(guardContract.releaseVersion, "v0.20.0")
+        XCTAssertTrue(guardContract.productionShadowReadinessContract.contractHeld)
+        XCTAssertTrue(guardContract.readOnlyEndpointAllowlist.allowlistHeld)
+        XCTAssertEqual(guardContract.blockedAttempts.count, 5)
+        XCTAssertEqual(
+            Set(guardContract.blockedAttempts.filter { $0.surface == .executionClient }.map(\.capability)),
+            Set(ReleaseV0200ProductionShadowOrderCapability.allCases)
+        )
+        XCTAssertTrue(guardContract.blockedAttempts.allSatisfy(\.attemptBlockedHeld))
+        XCTAssertTrue(guardContract.blockedAttempts.allSatisfy(\.forbiddenOrderSideEffectsHeld))
+        XCTAssertTrue(guardContract.blockedAttempts.contains { $0.state == .dashboardBypassBlocked })
+        XCTAssertTrue(guardContract.blockedAttempts.contains { $0.state == .cliBypassBlocked })
+        XCTAssertEqual(guardContract.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            guardContract.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1246ReleaseV0200NoOrderCapabilityGuard",
+                "bash checks/verify-v0.20.0-no-order-capability-guard.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+        XCTAssertFalse(guardContract.productionTradingEnabledByDefault)
+        XCTAssertFalse(guardContract.productionSecretValueRead)
+        XCTAssertFalse(guardContract.signedOrderMaterialGenerated)
+        XCTAssertFalse(guardContract.accountEndpointTouched)
+        XCTAssertFalse(guardContract.orderEndpointTouched)
+        XCTAssertFalse(guardContract.endpointConnectionOpened)
+        XCTAssertFalse(guardContract.realOrderIntentCreated)
+        XCTAssertFalse(guardContract.orderPayloadPersisted)
+        XCTAssertFalse(guardContract.submitCapabilityEnabled)
+        XCTAssertFalse(guardContract.cancelCapabilityEnabled)
+        XCTAssertFalse(guardContract.replaceCapabilityEnabled)
+        XCTAssertFalse(guardContract.dashboardBypassAllowed)
+        XCTAssertFalse(guardContract.cliBypassAllowed)
+        XCTAssertFalse(guardContract.dashboardTradingButtonEnabled)
+        XCTAssertFalse(guardContract.orderFormEnabled)
+        XCTAssertFalse(guardContract.liveCommandEnabled)
+        XCTAssertFalse(guardContract.spotCanaryEnabled)
+        XCTAssertFalse(guardContract.futuresRuntimeEnabled)
+        XCTAssertFalse(guardContract.okxActiveImplementationEnabled)
+        XCTAssertFalse(guardContract.productionCutoverAuthorized)
+        XCTAssertFalse(guardContract.createsTagOrRelease)
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            productionTradingEnabledByDefault: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            productionSecretValueRead: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            signedOrderMaterialGenerated: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            orderEndpointTouched: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            endpointConnectionOpened: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            realOrderIntentCreated: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            orderPayloadPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            submitCapabilityEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            cancelCapabilityEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            replaceCapabilityEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            dashboardBypassAllowed: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            cliBypassAllowed: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            dashboardTradingButtonEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            orderFormEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(
+            liveCommandEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(spotCanaryEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(futuresRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(okxActiveImplementationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderCapabilityGuard(createsTagOrRelease: true))
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .executionClient,
+            capability: .submit,
+            state: .cancelBlocked
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .executionClient,
+            capability: .submit,
+            failureClass: .cancelAttemptBlocked
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .executionClient,
+            capability: .submit,
+            redactedEvidenceSummary: "symbol=BTCUSDT; quantity=1; orderId=123"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .executionClient,
+            capability: .submit,
+            productionShadowReadinessContractHeld: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .executionClient,
+            capability: .submit,
+            readOnlyEndpointAllowlistHeld: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .executionClient,
+            capability: .submit,
+            realOrderIntentCreated: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .executionClient,
+            capability: .submit,
+            signedOrderMaterialGenerated: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .executionClient,
+            capability: .submit,
+            orderEndpointTouched: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .executionClient,
+            capability: .submit,
+            transportInvoked: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .executionClient,
+            capability: .submit,
+            orderPayloadPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .dashboard,
+            capability: .submit,
+            dashboardBypassAllowed: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowNoOrderAttemptEvidence(
+            surface: .cli,
+            capability: .cancel,
+            cliBypassAllowed: true
+        ))
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowNoOrderCapabilityGuard.swift")
+        let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-no-order-capability-guard.md")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.20.0-no-order-capability-guard.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract.deterministicFixture"))
+        XCTAssertTrue(source.contains("ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist.deterministicFixture"))
+        XCTAssertTrue(source.contains("order-capability=<blocked>"))
+        XCTAssertTrue(source.contains("real-order-intent=<not-created>"))
+        XCTAssertTrue(source.contains("transport=<not-invoked>"))
+        XCTAssertTrue(source.contains("order-payload=<not-persisted>"))
+        XCTAssertTrue(contractDoc.contains("#1239 / GH-1239"))
+        XCTAssertTrue(contractDoc.contains("#1241 / GH-1241"))
+        XCTAssertTrue(contractDoc.contains("#1246 / GH-1246"))
+        XCTAssertTrue(contractDoc.contains("Blocked Capability Matrix"))
+        XCTAssertTrue(contractDoc.contains("Dashboard / CLI Bypass Policy"))
+        XCTAssertTrue(contractDoc.contains("不创建真实 order intent"))
+        XCTAssertTrue(contractDoc.contains("不触达 `/api/v3/order`"))
+        XCTAssertTrue(contractDoc.contains("不提交 / 取消 / 替换订单"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.20.0 no-order capability guard anchor"))
+        XCTAssertTrue(latest.contains("v0.20.0 no-order capability guard"))
+        XCTAssertTrue(plan.contains("GH-1246 Release v0.20.0 No-order Capability Guard"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0200-NO-ORDER-CAPABILITY-GUARD"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.0-no-order-capability-guard.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.0-no-order-capability-guard.sh"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1246ReleaseV0200NoOrderCapabilityGuard"
+        ))
+
+        for source in [contractDoc, latest, plan, matrix] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("signedOrderMaterialGenerated=true"))
+            XCTAssertFalse(source.contains("accountEndpointTouched=true"))
+            XCTAssertFalse(source.contains("orderEndpointTouched=true"))
+            XCTAssertFalse(source.contains("endpointConnectionOpened=true"))
+            XCTAssertFalse(source.contains("realOrderIntentCreated=true"))
+            XCTAssertFalse(source.contains("orderPayloadPersisted=true"))
+            XCTAssertFalse(source.contains("submitCapabilityEnabled=true"))
+            XCTAssertFalse(source.contains("cancelCapabilityEnabled=true"))
+            XCTAssertFalse(source.contains("replaceCapabilityEnabled=true"))
+            XCTAssertFalse(source.contains("dashboardBypassAllowed=true"))
+            XCTAssertFalse(source.contains("cliBypassAllowed=true"))
+            XCTAssertFalse(source.contains("dashboardTradingButtonEnabled=true"))
+            XCTAssertFalse(source.contains("orderFormEnabled=true"))
+            XCTAssertFalse(source.contains("liveCommandEnabled=true"))
+            XCTAssertFalse(source.contains("spotCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("futuresRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("okxActiveImplementationEnabled=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
