@@ -4524,6 +4524,23 @@
 - contract surface: `ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness` defines Binance Spot `productionShadow` signed account read-only readiness contract, `/api/v3/account` intent-only evidence and redacted no-account-payload evidence.
 - forbidden scope: no secret value read, no signed request material generation, no raw account payload storage, no real account endpoint touch, no order / trading endpoint, no private stream / listenKey runtime, no submit / cancel / replace order, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
 
+## TVM-RELEASE-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY
+
+- GH-1245-VERIFY-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY
+- V0200-007-BINANCE-SPOT-PRODUCTION-SHADOW-ACCOUNT-SNAPSHOT-REDACTION
+- V0200-007-ARTIFACT-LOCATION-POLICY
+- V0200-007-ALLOWED-FIELD-SCHEMA
+- V0200-007-FORBIDDEN-FIELD-SCHEMA
+- V0200-007-REDACTED-SNAPSHOT-JSON
+- V0200-007-NO-RAW-BALANCE-PERSISTENCE
+- V0200-007-NO-ACCOUNT-ID-PERSISTENCE
+- V0200-007-NO-SECRET-OR-RAW-PAYLOAD-PERSISTENCE
+- V0200-007-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.20.0-account-snapshot-redaction-policy.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1245ReleaseV0200AccountSnapshotRedactionPolicy`
+- contract surface: `ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy` defines Binance Spot `productionShadow` account snapshot artifact redaction policy, safe artifact location, allowlist / denylist schema and redacted JSON example.
+- forbidden scope: no raw balance persistence, no account id persistence, no secret material persistence, no raw broker payload persistence, no endpoint response body persistence, no order payload persistence, no account endpoint touch, no submit / cancel / replace order, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
+
 ## TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES
 
 - GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES
