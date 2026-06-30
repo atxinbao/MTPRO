@@ -13299,4 +13299,39 @@ require_contains "docs/validation/validation-plan.md" "GH-1247 Release v0.20.0 R
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1247ReleaseV0200RiskKillSwitchNoTradeReadiness"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0200ReadOnlyLiveReadinessSurface.swift" \
+  "Sources/Dashboard/Report/ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface.swift" \
+  "Sources/Dashboard/DashboardShell.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/AppTests/AppTests.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1248-VERIFY-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE"
+  require_contains "$file" "TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE"
+  require_contains "$file" "V0200-010-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE"
+  require_contains "$file" "V0200-010-GATE-STATE-ENDPOINT-CREDENTIAL-REDACTION-NO-ORDER"
+  require_contains "$file" "V0200-010-BLOCKED-READY-FAIL-CLOSED-STATES"
+  require_contains "$file" "V0200-010-DASHBOARD-CLI-NO-CONTROLS"
+  require_contains "$file" "V0200-010-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 Dashboard / CLI read-only live readiness surface anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 Dashboard / CLI read-only live readiness surface"
+require_contains "docs/validation/validation-plan.md" "GH-1248 Release v0.20.0 Dashboard / CLI Read-only Live Readiness Surface"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE"
+require_contains "Tests/AppTests/AppTests.swift" "testGH1248DashboardReadOnlyLiveReadinessSurfaceShowsProductionShadowStateWithoutControls"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1248ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface"
+
 printf 'MTPRO automation readiness checks passed.\n'

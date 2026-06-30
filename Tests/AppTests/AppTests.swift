@@ -4337,6 +4337,142 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH1248DashboardReadOnlyLiveReadinessSurfaceShowsProductionShadowStateWithoutControls() throws {
+        // 测试场景：GH-1248 Dashboard / CLI 共用 v0.20.0 production-shadow readiness surface。
+        // 验证目的：Dashboard 只能展示 gate state、endpoint class、credential reference、
+        // redaction 和 no-order status；CLI 只能输出只读 status，不能出现交易按钮、订单表单、
+        // live command、submit / cancel / replace 或 production cutover。
+        // GH-1248-VERIFY-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+        // TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+        // V0200-010-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+        // V0200-010-GATE-STATE-ENDPOINT-CREDENTIAL-REDACTION-NO-ORDER
+        // V0200-010-BLOCKED-READY-FAIL-CLOSED-STATES
+        // V0200-010-DASHBOARD-CLI-NO-CONTROLS
+        // V0200-010-NO-PRODUCTION-CUTOVER
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV0200DashboardCLIReadOnlyLiveReadinessSurface
+
+        XCTAssertEqual(surface.issueID, "GH-1248")
+        XCTAssertEqual(surface.upstreamIssueIDs, ["GH-1243", "GH-1244", "GH-1245", "GH-1246", "GH-1247"])
+        XCTAssertEqual(surface.previousIssueID, "GH-1247")
+        XCTAssertEqual(surface.downstreamIssueID, "GH-1249")
+        XCTAssertEqual(surface.releaseVersion, "v0.20.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertTrue(surface.surfaceHeld)
+        XCTAssertTrue(surface.upstreamEvidenceHeld)
+        XCTAssertTrue(surface.productionDefaultsClosed)
+        XCTAssertEqual(surface.rowCount, 8)
+        XCTAssertEqual(surface.rows.map(\.area), ReleaseV0200ReadOnlyLiveReadinessSurfaceArea.allCases)
+        XCTAssertEqual(surface.rows.map(\.sourceIssueID), [
+            "GH-1240",
+            "GH-1241",
+            "GH-1242",
+            "GH-1243",
+            "GH-1244",
+            "GH-1245",
+            "GH-1246",
+            "GH-1247"
+        ])
+        XCTAssertEqual(surface.stateLabels, ["ready", "blocked", "fail-closed"])
+        XCTAssertEqual(
+            surface.endpointClassLabels,
+            ["no-endpoint-connection", "public-read-only", "signed-read-only-intent", "not-applicable"]
+        )
+        XCTAssertEqual(
+            surface.credentialStateLabels,
+            ["identity-reference-only", "not-applicable", "redacted-reference-only", "no-credential-required"]
+        )
+        XCTAssertEqual(surface.noOrderStatusLabels, ["not-applicable", "blocked"])
+        XCTAssertTrue(surface.rows.allSatisfy(\.rowHeld))
+        XCTAssertTrue(surface.rows.allSatisfy(\.visibleInDashboard))
+        XCTAssertTrue(surface.rows.allSatisfy(\.visibleInCLI))
+        XCTAssertTrue(surface.rows.allSatisfy(\.readOnly))
+        XCTAssertTrue(surface.rows.allSatisfy { $0.commandSurfaceEnabled == false })
+        XCTAssertTrue(surface.rows.allSatisfy { $0.tradingButtonVisible == false })
+        XCTAssertTrue(surface.rows.allSatisfy { $0.orderFormVisible == false })
+        XCTAssertTrue(surface.rows.allSatisfy { $0.liveCommandVisible == false })
+        XCTAssertTrue(surface.rows.allSatisfy { $0.submitCancelReplaceEnabled == false })
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretValueRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.signedOrderMaterialGenerated)
+        XCTAssertFalse(surface.accountEndpointConnected)
+        XCTAssertFalse(surface.orderEndpointTouched)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.dashboardTradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.spotCanaryEnabled)
+        XCTAssertFalse(surface.futuresRuntimeEnabled)
+        XCTAssertFalse(surface.okxActiveImplementationEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertFalse(surface.createsTagOrRelease)
+
+        XCTAssertEqual(metricValue("v0.20 readiness rows", in: surface.metrics), "8")
+        XCTAssertEqual(metricValue("v0.20 readiness states", in: surface.metrics), "ready,blocked,fail-closed")
+        XCTAssertEqual(
+            metricValue("Endpoint classes", in: surface.metrics),
+            "no-endpoint-connection,public-read-only,signed-read-only-intent,not-applicable"
+        )
+        XCTAssertEqual(
+            metricValue("Credential states", in: surface.metrics),
+            "identity-reference-only,not-applicable,redacted-reference-only,no-credential-required"
+        )
+        XCTAssertEqual(metricValue("No-order statuses", in: surface.metrics), "not-applicable,blocked")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Dashboard command surface: none"))
+        XCTAssertTrue(surface.details.contains("CLI command surface: read-only status only"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Live command: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(surface.details.contains("Production secret value: not read"))
+        XCTAssertTrue(surface.details.contains("Production endpoint: not connected"))
+        XCTAssertTrue(surface.details.contains("Production cutover: none"))
+
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0200ReadinessRows=8"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0200ReadinessStates=ready,blocked,fail-closed"))
+        XCTAssertTrue(snapshot.smokeSummary.contains(
+            "releaseV0200EndpointClasses=no-endpoint-connection,public-read-only,signed-read-only-intent,not-applicable"
+        ))
+        XCTAssertTrue(snapshot.smokeSummary.contains(
+            "releaseV0200CredentialStates=identity-reference-only,not-applicable,redacted-reference-only,no-credential-required"
+        ))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0200NoOrderStatuses=not-applicable,blocked"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0200ReadinessBoundary=confirmed"))
+
+        let cliOutput = try ReleaseV0200ReadOnlyLiveReadinessSurface.commandLineOutput(
+            arguments: ["production-shadow-readiness", "status"]
+        )
+        XCTAssertTrue(cliOutput.contains("mtpro production-shadow-readiness status"))
+        XCTAssertTrue(cliOutput.contains("issue=GH-1248"))
+        XCTAssertTrue(cliOutput.contains("surfaceRows=8"))
+        XCTAssertTrue(cliOutput.contains("states=ready,blocked,fail-closed"))
+        XCTAssertTrue(cliOutput.contains("row=risk-kill-switch-no-trade"))
+        XCTAssertTrue(cliOutput.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(cliOutput.contains("orderFormVisible=false"))
+        XCTAssertTrue(cliOutput.contains("liveCommandVisible=false"))
+        XCTAssertTrue(cliOutput.contains("submitCancelReplaceEnabled=false"))
+        XCTAssertTrue(cliOutput.contains("productionEndpointConnected=false"))
+        XCTAssertTrue(cliOutput.contains("realOrderSent=false"))
+        XCTAssertTrue(cliOutput.contains("boundaryHeld=true"))
+
+        let encodedSurface = try JSONEncoder().encode(surface)
+        let decodedSurface = try JSONDecoder().decode(
+            ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurfaceViewModel.self,
+            from: encodedSurface
+        )
+        XCTAssertEqual(decodedSurface, surface)
+
+        for anchor in ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-1248 surface")
+        }
+    }
+
     func testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands() throws {
         // 测试场景：GH-890 Dashboard 只能展示 v0.10.0 production readiness evidence center。
         // Readiness Overview / Environment / Secret / Endpoint / Risk / Kill Switch /

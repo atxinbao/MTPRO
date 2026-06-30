@@ -219,6 +219,8 @@ v0.20.0 no-order capability guard anchor：`GH-1246-VERIFY-V0200-NO-ORDER-CAPABI
 
 v0.20.0 risk / kill switch / no-trade readiness anchor：`GH-1247-VERIFY-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS`、`TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS`、`V0200-009-BINANCE-SPOT-PRODUCTION-SHADOW-RISK-READINESS`、`V0200-009-RISK-GATE-VISIBLE-FAIL-CLOSED`、`V0200-009-KILL-SWITCH-BLOCKED-VISIBLE`、`V0200-009-NO-TRADE-BLOCKED-VISIBLE`、`V0200-009-NO-TRADING-AUTHORIZATION`、`V0200-009-NO-ORDER-CAPABILITY-BYPASS`、`V0200-009-NO-PRODUCTION-CUTOVER`。
 
+v0.20.0 Dashboard / CLI read-only live readiness surface anchor：`GH-1248-VERIFY-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE`、`TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE`、`V0200-010-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE`、`V0200-010-GATE-STATE-ENDPOINT-CREDENTIAL-REDACTION-NO-ORDER`、`V0200-010-BLOCKED-READY-FAIL-CLOSED-STATES`、`V0200-010-DASHBOARD-CLI-NO-CONTROLS`、`V0200-010-NO-PRODUCTION-CUTOVER`。
+
 Workbench 的主导航以 evidence navigation 为中心，不以交易按钮为中心。用户看到的是工作区、状态、证据、回放和阻断原因；不能看到可执行的实盘下单入口。Figma / product / design 文档只作为产品、交互、布局、视觉和 dashboard 参考，不是 SwiftUI 实现稿、组件库、Live PRO Console、实盘操作台或 Linear execution 授权。
 
 Strategy / Trader layout machine anchors：`Sources/Trader/Strategies/<strategy>` 是 forward-looking canonical layout；旧 `Sources/Strategies/<strategy>` 只能作为 historical / compatibility / superseded path；当前 closure 口径为 `Trader = Accounts + Strategies + Coordination`，binding / adapter 语义归入 `Trader/Coordination`。
