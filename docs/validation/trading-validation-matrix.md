@@ -4541,6 +4541,21 @@
 - contract surface: `ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy` defines Binance Spot `productionShadow` account snapshot artifact redaction policy, safe artifact location, allowlist / denylist schema and redacted JSON example.
 - forbidden scope: no raw balance persistence, no account id persistence, no secret material persistence, no raw broker payload persistence, no endpoint response body persistence, no order payload persistence, no account endpoint touch, no submit / cancel / replace order, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
 
+## TVM-RELEASE-V0200-NO-ORDER-CAPABILITY-GUARD
+
+- GH-1246-VERIFY-V0200-NO-ORDER-CAPABILITY-GUARD
+- V0200-008-BINANCE-SPOT-PRODUCTION-SHADOW-NO-ORDER-CAPABILITY-GUARD
+- V0200-008-SUBMIT-BLOCKED
+- V0200-008-CANCEL-BLOCKED
+- V0200-008-REPLACE-BLOCKED
+- V0200-008-DASHBOARD-CLI-CANNOT-BYPASS
+- V0200-008-NO-REAL-ORDER-INTENT
+- V0200-008-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.20.0-no-order-capability-guard.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1246ReleaseV0200NoOrderCapabilityGuard`
+- contract surface: `ReleaseV0200ProductionShadowNoOrderCapabilityGuard` defines Binance Spot `productionShadow` no-order capability guard and fail-closed submit / cancel / replace evidence for ExecutionClient, Dashboard and CLI surfaces.
+- forbidden scope: no real order intent, no signed order material, no `/api/v3/order` touch, no endpoint connection, no order payload persistence, no submit / cancel / replace order, no Dashboard trading button, no order form, no live command, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
+
 ## TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES
 
 - GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES
