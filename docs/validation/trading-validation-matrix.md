@@ -4556,6 +4556,21 @@
 - contract surface: `ReleaseV0200ProductionShadowNoOrderCapabilityGuard` defines Binance Spot `productionShadow` no-order capability guard and fail-closed submit / cancel / replace evidence for ExecutionClient, Dashboard and CLI surfaces.
 - forbidden scope: no real order intent, no signed order material, no `/api/v3/order` touch, no endpoint connection, no order payload persistence, no submit / cancel / replace order, no Dashboard trading button, no order form, no live command, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
 
+## TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS
+
+- GH-1247-VERIFY-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS
+- V0200-009-BINANCE-SPOT-PRODUCTION-SHADOW-RISK-READINESS
+- V0200-009-RISK-GATE-VISIBLE-FAIL-CLOSED
+- V0200-009-KILL-SWITCH-BLOCKED-VISIBLE
+- V0200-009-NO-TRADE-BLOCKED-VISIBLE
+- V0200-009-NO-TRADING-AUTHORIZATION
+- V0200-009-NO-ORDER-CAPABILITY-BYPASS
+- V0200-009-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1247ReleaseV0200RiskKillSwitchNoTradeReadiness`
+- contract surface: `ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness` defines Binance Spot `productionShadow` RiskEngine / kill switch / no-trade operator-visible fail-closed evidence.
+- forbidden scope: no trading authorization, no risk bypass, no kill switch bypass, no no-trade bypass, no signed order material, no `/api/v3/order` touch, no endpoint connection, no submit / cancel / replace order, no Dashboard trading button, no order form, no live command, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
+
 ## TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES
 
 - GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES

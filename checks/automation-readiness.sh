@@ -13266,4 +13266,37 @@ require_contains "docs/validation/validation-plan.md" "GH-1246 Release v0.20.0 N
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-NO-ORDER-CAPABILITY-GUARD"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1246ReleaseV0200NoOrderCapabilityGuard"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness.swift" \
+  "docs/contracts/release-v0.20.0-binance-spot-production-shadow-risk-kill-switch-no-trade-readiness.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1247-VERIFY-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS"
+  require_contains "$file" "TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS"
+  require_contains "$file" "V0200-009-BINANCE-SPOT-PRODUCTION-SHADOW-RISK-READINESS"
+  require_contains "$file" "V0200-009-RISK-GATE-VISIBLE-FAIL-CLOSED"
+  require_contains "$file" "V0200-009-KILL-SWITCH-BLOCKED-VISIBLE"
+  require_contains "$file" "V0200-009-NO-TRADE-BLOCKED-VISIBLE"
+  require_contains "$file" "V0200-009-NO-TRADING-AUTHORIZATION"
+  require_contains "$file" "V0200-009-NO-ORDER-CAPABILITY-BYPASS"
+  require_contains "$file" "V0200-009-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 risk / kill switch / no-trade readiness anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 risk / kill switch / no-trade readiness"
+require_contains "docs/validation/validation-plan.md" "GH-1247 Release v0.20.0 Risk / Kill Switch / No-trade Readiness"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1247ReleaseV0200RiskKillSwitchNoTradeReadiness"
+
 printf 'MTPRO automation readiness checks passed.\n'

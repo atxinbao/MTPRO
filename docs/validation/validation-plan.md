@@ -149,6 +149,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowNoOrderCapabilityGuard.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-no-order-capability-guard.md`、`checks/verify-v0.20.0-no-order-capability-guard.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1246 只固定 Binance Spot production-shadow no-order capability guard。submit / cancel / replace 以及 Dashboard / CLI bypass 都必须 fail closed。它不读取 secret value，不生成 signed order material，不触达 `/api/v3/order`，不创建真实 order intent，不保存 order payload，不提交 / 取消 / 替换订单，不开启 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
 
+## GH-1247 Release v0.20.0 Risk / Kill Switch / No-trade Readiness
+
+- GH-1247-VERIFY-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS
+- TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS
+- V0200-009-BINANCE-SPOT-PRODUCTION-SHADOW-RISK-READINESS
+- V0200-009-RISK-GATE-VISIBLE-FAIL-CLOSED
+- V0200-009-KILL-SWITCH-BLOCKED-VISIBLE
+- V0200-009-NO-TRADE-BLOCKED-VISIBLE
+- V0200-009-NO-TRADING-AUTHORIZATION
+- V0200-009-NO-ORDER-CAPABILITY-BYPASS
+- V0200-009-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1247ReleaseV0200RiskKillSwitchNoTradeReadiness`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-risk-kill-switch-no-trade-readiness.md`、`checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1247 只固定 Binance Spot production-shadow RiskEngine / kill switch / no-trade readiness evidence。它继承 GH-1245 redacted account snapshot policy 和 GH-1246 no-order guard；risk / kill switch / no-trade 状态必须 operator-visible 且 fail closed。它不读取 secret value，不连接 production endpoint / broker endpoint，不生成 signed order material，不触达 `/api/v3/order`，不授权 trading，不绕过 risk / kill switch / no-trade，不开启 Dashboard trading button / order form / live command，不运行 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
+
 ## GH-1202 Release v0.18.1 Operator-run CLI Commands
 
 - GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS
