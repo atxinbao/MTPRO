@@ -61392,6 +61392,266 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1247ReleaseV0200RiskKillSwitchNoTradeReadiness() throws {
+        // GH-1247-VERIFY-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS
+        // TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS
+        // V0200-009-BINANCE-SPOT-PRODUCTION-SHADOW-RISK-READINESS
+        // V0200-009-RISK-GATE-VISIBLE-FAIL-CLOSED
+        // V0200-009-KILL-SWITCH-BLOCKED-VISIBLE
+        // V0200-009-NO-TRADE-BLOCKED-VISIBLE
+        // V0200-009-NO-TRADING-AUTHORIZATION
+        // V0200-009-NO-ORDER-CAPABILITY-BYPASS
+        // V0200-009-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1247-VERIFY-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS",
+            "TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS",
+            "V0200-009-BINANCE-SPOT-PRODUCTION-SHADOW-RISK-READINESS",
+            "V0200-009-RISK-GATE-VISIBLE-FAIL-CLOSED",
+            "V0200-009-KILL-SWITCH-BLOCKED-VISIBLE",
+            "V0200-009-NO-TRADE-BLOCKED-VISIBLE",
+            "V0200-009-NO-TRADING-AUTHORIZATION",
+            "V0200-009-NO-ORDER-CAPABILITY-BYPASS",
+            "V0200-009-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness.swift",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-risk-kill-switch-no-trade-readiness.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let readiness = try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness.deterministicFixture()
+
+        XCTAssertTrue(readiness.readinessHeld)
+        XCTAssertTrue(readiness.componentEvidenceHeld)
+        XCTAssertTrue(readiness.productionDefaultsClosed)
+        XCTAssertEqual(readiness.issueID.rawValue, "GH-1247")
+        XCTAssertEqual(readiness.upstreamIssueIDs.map(\.rawValue), ["GH-1245", "GH-1246"])
+        XCTAssertEqual(readiness.downstreamIssueID.rawValue, "GH-1248")
+        XCTAssertEqual(readiness.canonicalQueueRange, "GH-1239..GH-1250")
+        XCTAssertEqual(
+            readiness.projectName,
+            "MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness"
+        )
+        XCTAssertTrue(readiness.accountSnapshotRedactionPolicy.policyHeld)
+        XCTAssertTrue(readiness.noOrderCapabilityGuard.guardHeld)
+        XCTAssertEqual(Set(readiness.componentEvidence.map(\.component)), Set(ReleaseV0200ProductionShadowRiskReadinessComponent.allCases))
+        XCTAssertEqual(Set(readiness.componentEvidence.map(\.state)), Set(ReleaseV0200ProductionShadowRiskReadinessState.allCases))
+        XCTAssertTrue(readiness.componentEvidence.allSatisfy(\.readinessEvidenceHeld))
+        XCTAssertTrue(readiness.componentEvidence.allSatisfy(\.forbiddenTradingSideEffectsHeld))
+        XCTAssertEqual(readiness.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            readiness.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1247ReleaseV0200RiskKillSwitchNoTradeReadiness",
+                "bash checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+        XCTAssertFalse(readiness.productionTradingEnabledByDefault)
+        XCTAssertFalse(readiness.productionSecretValueRead)
+        XCTAssertFalse(readiness.productionEndpointConnected)
+        XCTAssertFalse(readiness.signedOrderMaterialGenerated)
+        XCTAssertFalse(readiness.orderEndpointTouched)
+        XCTAssertFalse(readiness.endpointConnectionOpened)
+        XCTAssertFalse(readiness.tradingAuthorizationGranted)
+        XCTAssertFalse(readiness.orderIntentCreated)
+        XCTAssertFalse(readiness.submitCancelReplaceEnabled)
+        XCTAssertFalse(readiness.riskBypassAllowed)
+        XCTAssertFalse(readiness.killSwitchBypassAllowed)
+        XCTAssertFalse(readiness.noTradeBypassAllowed)
+        XCTAssertFalse(readiness.dashboardTradingButtonEnabled)
+        XCTAssertFalse(readiness.orderFormEnabled)
+        XCTAssertFalse(readiness.liveCommandEnabled)
+        XCTAssertFalse(readiness.spotCanaryEnabled)
+        XCTAssertFalse(readiness.futuresRuntimeEnabled)
+        XCTAssertFalse(readiness.okxActiveImplementationEnabled)
+        XCTAssertFalse(readiness.productionCutoverAuthorized)
+        XCTAssertFalse(readiness.createsTagOrRelease)
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            productionTradingEnabledByDefault: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            productionSecretValueRead: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            productionEndpointConnected: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            signedOrderMaterialGenerated: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            orderEndpointTouched: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            endpointConnectionOpened: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            tradingAuthorizationGranted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            orderIntentCreated: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            submitCancelReplaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            riskBypassAllowed: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            killSwitchBypassAllowed: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            noTradeBypassAllowed: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            dashboardTradingButtonEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            orderFormEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(
+            liveCommandEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(spotCanaryEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(futuresRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(okxActiveImplementationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness(createsTagOrRelease: true))
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .riskEngine,
+            state: .killSwitchBlockedVisible
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .riskEngine,
+            failureClass: .killSwitchActiveBlocksOrders
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .riskEngine,
+            redactedEvidenceSummary: "symbol=BTCUSDT; quantity=1; orderId=123"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .riskEngine,
+            accountSnapshotRedactionPolicyHeld: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .riskEngine,
+            noOrderCapabilityGuardHeld: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .riskEngine,
+            operatorVisible: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .riskEngine,
+            failClosed: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .riskEngine,
+            tradingAuthorizationGranted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .riskEngine,
+            orderIntentCreated: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .riskEngine,
+            submitCancelReplaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .riskEngine,
+            riskBypassAllowed: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .killSwitch,
+            killSwitchBypassAllowed: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowRiskKillSwitchNoTradeEvidence(
+            component: .noTradeState,
+            noTradeBypassAllowed: true
+        ))
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness.swift")
+        let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-risk-kill-switch-no-trade-readiness.md")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy.deterministicFixture"))
+        XCTAssertTrue(source.contains("ReleaseV0200ProductionShadowNoOrderCapabilityGuard.deterministicFixture"))
+        XCTAssertTrue(source.contains("risk-readiness=<visible-fail-closed>"))
+        XCTAssertTrue(source.contains("trading-authorization=<withheld>"))
+        XCTAssertTrue(source.contains("orders=<blocked>"))
+        XCTAssertTrue(source.contains("bypass=<blocked>"))
+        XCTAssertTrue(contractDoc.contains("#1245 / GH-1245"))
+        XCTAssertTrue(contractDoc.contains("#1246 / GH-1246"))
+        XCTAssertTrue(contractDoc.contains("Readiness Evidence Matrix"))
+        XCTAssertTrue(contractDoc.contains("Production cutover not authorized"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.20.0 risk / kill switch / no-trade readiness anchor"))
+        XCTAssertTrue(latest.contains("v0.20.0 risk / kill switch / no-trade readiness"))
+        XCTAssertTrue(plan.contains("GH-1247 Release v0.20.0 Risk / Kill Switch / No-trade Readiness"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1247ReleaseV0200RiskKillSwitchNoTradeReadiness"
+        ))
+
+        for source in [contractDoc, latest, plan, matrix] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnected=true"))
+            XCTAssertFalse(source.contains("signedOrderMaterialGenerated=true"))
+            XCTAssertFalse(source.contains("orderEndpointTouched=true"))
+            XCTAssertFalse(source.contains("endpointConnectionOpened=true"))
+            XCTAssertFalse(source.contains("tradingAuthorizationGranted=true"))
+            XCTAssertFalse(source.contains("orderIntentCreated=true"))
+            XCTAssertFalse(source.contains("submitCancelReplaceEnabled=true"))
+            XCTAssertFalse(source.contains("riskBypassAllowed=true"))
+            XCTAssertFalse(source.contains("killSwitchBypassAllowed=true"))
+            XCTAssertFalse(source.contains("noTradeBypassAllowed=true"))
+            XCTAssertFalse(source.contains("dashboardTradingButtonEnabled=true"))
+            XCTAssertFalse(source.contains("orderFormEnabled=true"))
+            XCTAssertFalse(source.contains("liveCommandEnabled=true"))
+            XCTAssertFalse(source.contains("spotCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("futuresRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("okxActiveImplementationEnabled=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

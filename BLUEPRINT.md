@@ -217,6 +217,8 @@ v0.20.0 account snapshot redaction policy anchor：`GH-1245-VERIFY-V0200-ACCOUNT
 
 v0.20.0 no-order capability guard anchor：`GH-1246-VERIFY-V0200-NO-ORDER-CAPABILITY-GUARD`、`TVM-RELEASE-V0200-NO-ORDER-CAPABILITY-GUARD`、`V0200-008-BINANCE-SPOT-PRODUCTION-SHADOW-NO-ORDER-CAPABILITY-GUARD`、`V0200-008-SUBMIT-BLOCKED`、`V0200-008-CANCEL-BLOCKED`、`V0200-008-REPLACE-BLOCKED`、`V0200-008-DASHBOARD-CLI-CANNOT-BYPASS`、`V0200-008-NO-REAL-ORDER-INTENT`、`V0200-008-NO-PRODUCTION-CUTOVER`。
 
+v0.20.0 risk / kill switch / no-trade readiness anchor：`GH-1247-VERIFY-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS`、`TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS`、`V0200-009-BINANCE-SPOT-PRODUCTION-SHADOW-RISK-READINESS`、`V0200-009-RISK-GATE-VISIBLE-FAIL-CLOSED`、`V0200-009-KILL-SWITCH-BLOCKED-VISIBLE`、`V0200-009-NO-TRADE-BLOCKED-VISIBLE`、`V0200-009-NO-TRADING-AUTHORIZATION`、`V0200-009-NO-ORDER-CAPABILITY-BYPASS`、`V0200-009-NO-PRODUCTION-CUTOVER`。
+
 Workbench 的主导航以 evidence navigation 为中心，不以交易按钮为中心。用户看到的是工作区、状态、证据、回放和阻断原因；不能看到可执行的实盘下单入口。Figma / product / design 文档只作为产品、交互、布局、视觉和 dashboard 参考，不是 SwiftUI 实现稿、组件库、Live PRO Console、实盘操作台或 Linear execution 授权。
 
 Strategy / Trader layout machine anchors：`Sources/Trader/Strategies/<strategy>` 是 forward-looking canonical layout；旧 `Sources/Strategies/<strategy>` 只能作为 historical / compatibility / superseded path；当前 closure 口径为 `Trader = Accounts + Strategies + Coordination`，binding / adapter 语义归入 `Trader/Coordination`。
