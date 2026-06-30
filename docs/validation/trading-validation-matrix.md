@@ -6,6 +6,22 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE
+
+- TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE
+- GH-1249-VERIFY-V0200-RELEASE-VALIDATION-SUITE
+- V0200-011-AGGREGATE-VALIDATION-SUITE
+- V0200-011-FOCUSED-GUARDS-COVERED
+- V0200-011-READINESS-REDACTION-NO-ORDER-COVERED
+- V0200-011-RUN-AUTOMATION-WIRING
+- V0200-011-NO-PRODUCTION-CUTOVER
+- V0200-011-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1249 Release v0.20.0 Aggregate Validation Suite
+- `bash checks/verify-v0.20.0.sh`
+- `swift test --filter TargetGraphTests/testGH1249ReleaseV0200AggregateValidationSuite`
+- Evidence files: `checks/verify-v0.20.0.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1249 aggregates v0.20.0 #1239..#1248 focused guards for readiness contract、redaction、no-order and read-only surfaces. It does not read secret values, connect production endpoints, touch account/order endpoints, submit / cancel / replace orders, publish a tag / GitHub Release, or authorize production cutover. production cutover not authorized.
+
 ## TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES
 
 ## TVM-RELEASE-V0170-STAGE-AUDIT-RELEASE-DOCS
