@@ -4449,6 +4449,21 @@
 - contract surface: `ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract` defines the Binance Spot production-shadow / read-only live readiness release boundary and `GH-1239..GH-1250` queue order.
 - forbidden scope: no secret value read, no production endpoint connection, no signed account / private stream runtime in GH-1239, no submit / cancel / replace order, no Spot canary, no Futures execution, no OKX active implementation, no tag / release publication and no production cutover.
 
+## TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE
+
+- GH-1240-VERIFY-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE
+- V0200-002-BINANCE-SPOT-PRODUCTION-SHADOW-PROFILE
+- V0200-002-CREDENTIAL-REFERENCE-NO-SECRET-VALUE
+- V0200-002-ENDPOINT-INTENT-NO-CONNECTION
+- V0200-002-OPERATOR-READINESS-STATE
+- V0200-002-READ-ONLY-FAIL-CLOSED
+- V0200-002-FUTURES-OKX-OUT-OF-SCOPE
+- V0200-002-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.20.0-production-shadow-environment-profile.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1240ReleaseV0200ProductionShadowEnvironmentProfile`
+- contract surface: `ReleaseV0200ProductionShadowEnvironmentProfile` defines the Binance Spot `productionShadow` profile identity, credential reference, endpoint intent and operator-visible readiness state.
+- forbidden scope: no secret value read, no production endpoint / broker endpoint connection, no signed account / private stream runtime, no submit / cancel / replace order, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
+
 ## TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES
 
 - GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES
