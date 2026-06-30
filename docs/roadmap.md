@@ -58,6 +58,8 @@ v0.20.0 Dashboard / CLI read-only live readiness surface anchor：`GH-1248-VERIF
 
 v0.20.0 aggregate validation suite anchor：`GH-1249-VERIFY-V0200-RELEASE-VALIDATION-SUITE`、`TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE`、`V0200-011-AGGREGATE-VALIDATION-SUITE`、`V0200-011-FOCUSED-GUARDS-COVERED`、`V0200-011-READINESS-REDACTION-NO-ORDER-COVERED`、`V0200-011-RUN-AUTOMATION-WIRING`、`V0200-011-NO-PRODUCTION-CUTOVER`、`V0200-011-NO-TAG-OR-RELEASE-PUBLICATION`。
 
+v0.20.0 stage audit / release docs closeout anchor：`GH-1250-VERIFY-V0200-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS`、`V0200-012-STAGE-CODE-AUDIT`、`V0200-012-RELEASE-NOTES`、`V0200-012-VALIDATION-MATRIX`、`V0200-012-ROOT-DOCS-REFRESH`、`V0200-012-STALE-WORDING-GUARD`、`V0200-012-RELEASE-PUBLICATION-GATE-HANDOFF`、`V0200-012-NO-PRODUCTION-CUTOVER`、`V0200-012-NO-TAG-OR-RELEASE-PUBLICATION`。#1250 只收口 v0.20.0 construction docs / validation evidence；不创建 tag / GitHub Release，不运行 Spot canary，不授权 production cutover；production cutover not authorized。
+
 该目标修正只更新路线方向，不授权 production trading、不读取 production secret、不连接 production endpoint / broker endpoint、不创建 OKX active source 或 order path。
 
 ## Roadmap Responsibility / 路线职责
