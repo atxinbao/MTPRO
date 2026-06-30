@@ -61652,6 +61652,278 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1248ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface() throws {
+        // GH-1248-VERIFY-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+        // TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+        // V0200-010-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+        // V0200-010-GATE-STATE-ENDPOINT-CREDENTIAL-REDACTION-NO-ORDER
+        // V0200-010-BLOCKED-READY-FAIL-CLOSED-STATES
+        // V0200-010-DASHBOARD-CLI-NO-CONTROLS
+        // V0200-010-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1248-VERIFY-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE",
+            "TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE",
+            "V0200-010-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE",
+            "V0200-010-GATE-STATE-ENDPOINT-CREDENTIAL-REDACTION-NO-ORDER",
+            "V0200-010-BLOCKED-READY-FAIL-CLOSED-STATES",
+            "V0200-010-DASHBOARD-CLI-NO-CONTROLS",
+            "V0200-010-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0200ReadOnlyLiveReadinessSurface.swift",
+            "Sources/Dashboard/Report/ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface.swift",
+            "Sources/Dashboard/DashboardShell.swift",
+            "Sources/MTPROCLI/main.swift",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let surface = try ReleaseV0200ReadOnlyLiveReadinessSurface.deterministicFixture()
+
+        XCTAssertTrue(surface.surfaceHeld)
+        XCTAssertTrue(surface.upstreamEvidenceHeld)
+        XCTAssertTrue(surface.productionDefaultsClosed)
+        XCTAssertEqual(surface.issueID.rawValue, "GH-1248")
+        XCTAssertEqual(surface.upstreamIssueIDs.map(\.rawValue), ["GH-1243", "GH-1244", "GH-1245", "GH-1246", "GH-1247"])
+        XCTAssertEqual(surface.previousIssueID.rawValue, "GH-1247")
+        XCTAssertEqual(surface.downstreamIssueID.rawValue, "GH-1249")
+        XCTAssertEqual(surface.canonicalQueueRange, "GH-1239..GH-1250")
+        XCTAssertEqual(
+            surface.projectName,
+            "MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness"
+        )
+        XCTAssertTrue(surface.environmentProfile.profileHeld)
+        XCTAssertTrue(surface.endpointAllowlist.allowlistHeld)
+        XCTAssertTrue(surface.credentialReferenceReadiness.readinessHeld)
+        XCTAssertTrue(surface.publicMarketProbe.probeHeld)
+        XCTAssertTrue(surface.signedAccountReadiness.readinessHeld)
+        XCTAssertTrue(surface.accountSnapshotRedactionPolicy.policyHeld)
+        XCTAssertTrue(surface.noOrderCapabilityGuard.guardHeld)
+        XCTAssertTrue(surface.riskKillSwitchNoTradeReadiness.readinessHeld)
+        XCTAssertEqual(surface.rows.map(\.area), ReleaseV0200ReadOnlyLiveReadinessSurfaceArea.allCases)
+        XCTAssertEqual(surface.rows.map(\.sourceIssueID), [
+            "GH-1240",
+            "GH-1241",
+            "GH-1242",
+            "GH-1243",
+            "GH-1244",
+            "GH-1245",
+            "GH-1246",
+            "GH-1247"
+        ])
+        XCTAssertEqual(surface.stateLabels, ["ready", "blocked", "fail-closed"])
+        XCTAssertEqual(
+            surface.endpointClassLabels,
+            ["no-endpoint-connection", "public-read-only", "signed-read-only-intent", "not-applicable"]
+        )
+        XCTAssertEqual(
+            surface.credentialStateLabels,
+            ["identity-reference-only", "not-applicable", "redacted-reference-only", "no-credential-required"]
+        )
+        XCTAssertEqual(surface.noOrderStatusLabels, ["not-applicable", "blocked"])
+        XCTAssertTrue(surface.rows.allSatisfy(\.rowHeld))
+        XCTAssertTrue(surface.rows.allSatisfy(\.visibleInDashboard))
+        XCTAssertTrue(surface.rows.allSatisfy(\.visibleInCLI))
+        XCTAssertTrue(surface.rows.allSatisfy(\.readOnly))
+        XCTAssertTrue(surface.rows.allSatisfy { $0.commandSurfaceEnabled == false })
+        XCTAssertTrue(surface.rows.allSatisfy { $0.tradingButtonVisible == false })
+        XCTAssertTrue(surface.rows.allSatisfy { $0.orderFormVisible == false })
+        XCTAssertTrue(surface.rows.allSatisfy { $0.liveCommandVisible == false })
+        XCTAssertTrue(surface.rows.allSatisfy { $0.submitCancelReplaceEnabled == false })
+        XCTAssertEqual(surface.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            surface.requiredValidationCommands,
+            [
+                "swift test --filter AppTests/testGH1248DashboardReadOnlyLiveReadinessSurfaceShowsProductionShadowStateWithoutControls",
+                "swift test --filter TargetGraphTests/testGH1248ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface",
+                "bash checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretValueRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.signedOrderMaterialGenerated)
+        XCTAssertFalse(surface.accountEndpointConnected)
+        XCTAssertFalse(surface.orderEndpointTouched)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.dashboardTradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.spotCanaryEnabled)
+        XCTAssertFalse(surface.futuresRuntimeEnabled)
+        XCTAssertFalse(surface.okxActiveImplementationEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertFalse(surface.createsTagOrRelease)
+
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurfaceRow(
+            area: .environmentProfile,
+            sourceIssueID: "GH-1240",
+            state: .blocked,
+            endpointClass: .noEndpointConnection,
+            credentialState: .identityReferenceOnly,
+            redactionState: .redacted,
+            noOrderStatus: .notApplicable,
+            statusSummary: "wrong state"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurfaceRow(
+            area: .environmentProfile,
+            sourceIssueID: "GH-1240",
+            state: .ready,
+            endpointClass: .noEndpointConnection,
+            credentialState: .identityReferenceOnly,
+            redactionState: .redacted,
+            noOrderStatus: .notApplicable,
+            statusSummary: "command enabled",
+            commandSurfaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(
+            productionTradingEnabledByDefault: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(
+            productionSecretValueRead: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(
+            productionEndpointConnected: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(
+            brokerEndpointConnected: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(
+            submitCancelReplaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(
+            dashboardTradingButtonVisible: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(
+            orderFormVisible: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(
+            liveCommandVisible: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(spotCanaryEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(futuresRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(okxActiveImplementationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface(createsTagOrRelease: true))
+        XCTAssertThrowsError(try ReleaseV0200ReadOnlyLiveReadinessSurface.commandLineOutput(
+            arguments: ["production-shadow-readiness", "submit"]
+        ))
+
+        let cliOutput = try ReleaseV0200ReadOnlyLiveReadinessSurface.commandLineOutput(
+            arguments: ["production-shadow-readiness", "status"]
+        )
+        XCTAssertTrue(cliOutput.contains("mtpro production-shadow-readiness status"))
+        XCTAssertTrue(cliOutput.contains("issue=GH-1248"))
+        XCTAssertTrue(cliOutput.contains("validationAnchor=TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE"))
+        XCTAssertTrue(cliOutput.contains("verificationAnchor=GH-1248-VERIFY-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE"))
+        XCTAssertTrue(cliOutput.contains("surfaceRows=8"))
+        XCTAssertTrue(cliOutput.contains("states=ready,blocked,fail-closed"))
+        XCTAssertTrue(cliOutput.contains("endpointClasses=no-endpoint-connection,public-read-only,signed-read-only-intent,not-applicable"))
+        XCTAssertTrue(cliOutput.contains("credentialStates=identity-reference-only,not-applicable,redacted-reference-only,no-credential-required"))
+        XCTAssertTrue(cliOutput.contains("noOrderStatuses=not-applicable,blocked"))
+        XCTAssertTrue(cliOutput.contains("row=environment-profile"))
+        XCTAssertTrue(cliOutput.contains("row=risk-kill-switch-no-trade"))
+        XCTAssertTrue(cliOutput.contains("dashboardReadOnly=true"))
+        XCTAssertTrue(cliOutput.contains("cliReadOnly=true"))
+        XCTAssertTrue(cliOutput.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(cliOutput.contains("orderFormVisible=false"))
+        XCTAssertTrue(cliOutput.contains("liveCommandVisible=false"))
+        XCTAssertTrue(cliOutput.contains("submitCancelReplaceEnabled=false"))
+        XCTAssertTrue(cliOutput.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(cliOutput.contains("productionSecretValueRead=false"))
+        XCTAssertTrue(cliOutput.contains("productionEndpointConnected=false"))
+        XCTAssertTrue(cliOutput.contains("brokerEndpointConnected=false"))
+        XCTAssertTrue(cliOutput.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(cliOutput.contains("realOrderSent=false"))
+        XCTAssertTrue(cliOutput.contains("boundaryHeld=true"))
+
+        let dashboardSurface = try ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurfaceViewModel.deterministic()
+        XCTAssertTrue(dashboardSurface.boundaryHeld)
+        XCTAssertEqual(dashboardSurface.rowCount, 8)
+        XCTAssertEqual(dashboardSurface.stateLabels, ["ready", "blocked", "fail-closed"])
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let surfaceSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ReadOnlyLiveReadinessSurface.swift")
+        let dashboardSource = try read("Sources/Dashboard/Report/ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface.swift")
+        let dashboardShell = try read("Sources/Dashboard/DashboardShell.swift")
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh")
+
+        XCTAssertTrue(surfaceSource.contains("cliCommand = \"production-shadow-readiness\""))
+        XCTAssertTrue(surfaceSource.contains("ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe.deterministicFixture"))
+        XCTAssertTrue(surfaceSource.contains("ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness.deterministicFixture"))
+        XCTAssertTrue(surfaceSource.contains("ReleaseV0200ProductionShadowNoOrderCapabilityGuard.deterministicFixture"))
+        XCTAssertTrue(surfaceSource.contains("ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness.deterministicFixture"))
+        XCTAssertTrue(dashboardSource.contains("Dashboard command surface: none"))
+        XCTAssertTrue(dashboardSource.contains("CLI command surface: read-only status only"))
+        XCTAssertTrue(dashboardShell.contains("releaseV0200DashboardCLIReadOnlyLiveReadinessSurface"))
+        XCTAssertTrue(dashboardShell.contains("DashboardReleaseV0200ReadOnlyLiveReadinessPanel"))
+        XCTAssertTrue(dashboardShell.contains("releaseV0200ReadinessRows"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0200ReadOnlyLiveReadinessSurface.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0200ReadOnlyLiveReadinessSurface.commandLineOutput"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.20.0 Dashboard / CLI read-only live readiness surface anchor"))
+        XCTAssertTrue(latest.contains("v0.20.0 Dashboard / CLI read-only live readiness surface"))
+        XCTAssertTrue(plan.contains("GH-1248 Release v0.20.0 Dashboard / CLI Read-only Live Readiness Surface"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter AppTests/testGH1248DashboardReadOnlyLiveReadinessSurfaceShowsProductionShadowStateWithoutControls"
+        ))
+        XCTAssertTrue(verifier.contains("swift run mtpro production-shadow-readiness status"))
+
+        for source in [surfaceSource, dashboardSource, latest, plan, matrix] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnected=true"))
+            XCTAssertFalse(source.contains("brokerEndpointConnected=true"))
+            XCTAssertFalse(source.contains("signedOrderMaterialGenerated=true"))
+            XCTAssertFalse(source.contains("accountEndpointConnected=true"))
+            XCTAssertFalse(source.contains("orderEndpointTouched=true"))
+            XCTAssertFalse(source.contains("submitCancelReplaceEnabled=true"))
+            XCTAssertFalse(source.contains("dashboardTradingButtonVisible=true"))
+            XCTAssertFalse(source.contains("orderFormVisible=true"))
+            XCTAssertFalse(source.contains("liveCommandVisible=true"))
+            XCTAssertFalse(source.contains("spotCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("futuresRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("okxActiveImplementationEnabled=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

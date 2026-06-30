@@ -165,6 +165,20 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness.swift`、`docs/contracts/release-v0.20.0-binance-spot-production-shadow-risk-kill-switch-no-trade-readiness.md`、`checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1247 只固定 Binance Spot production-shadow RiskEngine / kill switch / no-trade readiness evidence。它继承 GH-1245 redacted account snapshot policy 和 GH-1246 no-order guard；risk / kill switch / no-trade 状态必须 operator-visible 且 fail closed。它不读取 secret value，不连接 production endpoint / broker endpoint，不生成 signed order material，不触达 `/api/v3/order`，不授权 trading，不绕过 risk / kill switch / no-trade，不开启 Dashboard trading button / order form / live command，不运行 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
 
+## GH-1248 Release v0.20.0 Dashboard / CLI Read-only Live Readiness Surface
+
+- GH-1248-VERIFY-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+- TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+- V0200-010-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+- V0200-010-GATE-STATE-ENDPOINT-CREDENTIAL-REDACTION-NO-ORDER
+- V0200-010-BLOCKED-READY-FAIL-CLOSED-STATES
+- V0200-010-DASHBOARD-CLI-NO-CONTROLS
+- V0200-010-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh`
+- Focused tests: `swift test --filter AppTests/testGH1248DashboardReadOnlyLiveReadinessSurfaceShowsProductionShadowStateWithoutControls` and `swift test --filter TargetGraphTests/testGH1248ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0200ReadOnlyLiveReadinessSurface.swift`、`Sources/Dashboard/Report/ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface.swift`、`Sources/Dashboard/DashboardShell.swift`、`Sources/MTPROCLI/main.swift`、`checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`Tests/AppTests/AppTests.swift` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1248 只把 #1240..#1247 的 Binance Spot production-shadow readiness evidence 投影到 Dashboard / CLI 只读 status surface。它展示 gate state、endpoint class、credential reference state、redaction state 和 no-order status；它不读取 secret value，不连接 production endpoint / broker endpoint，不生成 signed request / signed order material，不触达真实 account endpoint 或 `/api/v3/order`，不提交 / 取消 / 替换订单，不开启 Dashboard trading button / order form / live command，不运行 Spot canary，不创建 tag / GitHub Release，不授权 production cutover。production cutover not authorized。
+
 ## GH-1202 Release v0.18.1 Operator-run CLI Commands
 
 - GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS

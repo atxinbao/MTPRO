@@ -4571,6 +4571,19 @@
 - contract surface: `ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness` defines Binance Spot `productionShadow` RiskEngine / kill switch / no-trade operator-visible fail-closed evidence.
 - forbidden scope: no trading authorization, no risk bypass, no kill switch bypass, no no-trade bypass, no signed order material, no `/api/v3/order` touch, no endpoint connection, no submit / cancel / replace order, no Dashboard trading button, no order form, no live command, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
 
+## TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+
+- GH-1248-VERIFY-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+- V0200-010-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE
+- V0200-010-GATE-STATE-ENDPOINT-CREDENTIAL-REDACTION-NO-ORDER
+- V0200-010-BLOCKED-READY-FAIL-CLOSED-STATES
+- V0200-010-DASHBOARD-CLI-NO-CONTROLS
+- V0200-010-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh`
+- focused tests: `swift test --filter AppTests/testGH1248DashboardReadOnlyLiveReadinessSurfaceShowsProductionShadowStateWithoutControls` and `swift test --filter TargetGraphTests/testGH1248ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface`
+- surface: `ReleaseV0200ReadOnlyLiveReadinessSurface` and `ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurfaceViewModel` expose #1240..#1247 Binance Spot `productionShadow` readiness evidence as Dashboard / CLI read-only status.
+- forbidden scope: no secret value read, no production endpoint / broker endpoint connection, no signed order material, no account or order endpoint touch, no submit / cancel / replace order, no Dashboard trading button, no order form, no live command, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
+
 ## TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES
 
 - GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES
