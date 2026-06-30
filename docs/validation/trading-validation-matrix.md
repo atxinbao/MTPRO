@@ -4509,6 +4509,21 @@
 - contract surface: `ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe` defines Binance Spot `productionShadow` public market read-only probe evidence and response classification.
 - forbidden scope: no secret value read, no credential required, no account payload required, no signed account endpoint, no private stream / listenKey runtime, no order / trading endpoint, no submit / cancel / replace order, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
 
+## TVM-RELEASE-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS
+
+- GH-1244-VERIFY-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS
+- V0200-006-BINANCE-SPOT-PRODUCTION-SHADOW-SIGNED-ACCOUNT-READINESS
+- V0200-006-ACCOUNT-ENDPOINT-INTENT-ONLY
+- V0200-006-CREDENTIAL-REFERENCE-BOUND
+- V0200-006-REDACTED-ACCOUNT-PAYLOAD-EVIDENCE
+- V0200-006-NO-SECRET-VALUE-READ
+- V0200-006-NO-ORDER-ENDPOINT
+- V0200-006-NO-PRODUCTION-CUTOVER
+- focused verifier: `bash checks/verify-v0.20.0-signed-account-readonly-readiness.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1244ReleaseV0200SignedAccountReadOnlyReadiness`
+- contract surface: `ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness` defines Binance Spot `productionShadow` signed account read-only readiness contract, `/api/v3/account` intent-only evidence and redacted no-account-payload evidence.
+- forbidden scope: no secret value read, no signed request material generation, no raw account payload storage, no real account endpoint touch, no order / trading endpoint, no private stream / listenKey runtime, no submit / cancel / replace order, no Spot canary, no Futures runtime, no OKX active implementation, no tag / release publication and no production cutover.
+
 ## TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES
 
 - GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES

@@ -60576,6 +60576,271 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1244ReleaseV0200SignedAccountReadOnlyReadiness() throws {
+        // GH-1244-VERIFY-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS
+        // TVM-RELEASE-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS
+        // V0200-006-BINANCE-SPOT-PRODUCTION-SHADOW-SIGNED-ACCOUNT-READINESS
+        // V0200-006-ACCOUNT-ENDPOINT-INTENT-ONLY
+        // V0200-006-CREDENTIAL-REFERENCE-BOUND
+        // V0200-006-REDACTED-ACCOUNT-PAYLOAD-EVIDENCE
+        // V0200-006-NO-SECRET-VALUE-READ
+        // V0200-006-NO-ORDER-ENDPOINT
+        // V0200-006-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1244-VERIFY-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS",
+            "TVM-RELEASE-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS",
+            "V0200-006-BINANCE-SPOT-PRODUCTION-SHADOW-SIGNED-ACCOUNT-READINESS",
+            "V0200-006-ACCOUNT-ENDPOINT-INTENT-ONLY",
+            "V0200-006-CREDENTIAL-REFERENCE-BOUND",
+            "V0200-006-REDACTED-ACCOUNT-PAYLOAD-EVIDENCE",
+            "V0200-006-NO-SECRET-VALUE-READ",
+            "V0200-006-NO-ORDER-ENDPOINT",
+            "V0200-006-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness.swift",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "checks/verify-v0.20.0-signed-account-readonly-readiness.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh"
+        ]
+
+        let readiness = try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness.deterministicFixture()
+
+        XCTAssertTrue(readiness.readinessHeld)
+        XCTAssertTrue(readiness.namespaceHeld)
+        XCTAssertTrue(readiness.failClosedEvidenceHeld)
+        XCTAssertTrue(readiness.productionDefaultsClosed)
+        XCTAssertEqual(readiness.issueID.rawValue, "GH-1244")
+        XCTAssertEqual(readiness.upstreamIssueID.rawValue, "GH-1243")
+        XCTAssertEqual(readiness.downstreamIssueID.rawValue, "GH-1245")
+        XCTAssertEqual(readiness.canonicalQueueRange, "GH-1239..GH-1250")
+        XCTAssertEqual(
+            readiness.projectName,
+            "MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness"
+        )
+        XCTAssertEqual(readiness.releaseVersion, "v0.20.0")
+        XCTAssertTrue(readiness.upstreamCredentialReferenceReadinessHeld)
+        XCTAssertTrue(readiness.upstreamPublicMarketProbeHeld)
+        XCTAssertEqual(readiness.venueID, .binance)
+        XCTAssertEqual(readiness.productKind, .spot)
+        XCTAssertEqual(readiness.tradingEnvironment, .productionShadow)
+        XCTAssertEqual(readiness.endpointFamilyReference, "https://api.binance.com")
+        XCTAssertTrue(readiness.accountReadOnlyIntent.intentHeld)
+        XCTAssertEqual(readiness.accountReadOnlyIntent.path, "/api/v3/account")
+        XCTAssertEqual(readiness.accountReadOnlyIntent.method, "GET")
+        XCTAssertTrue(readiness.readyEvidence.readinessEvidenceHeld)
+        XCTAssertTrue(readiness.readyEvidence.forbiddenBoundaryHeld)
+        XCTAssertEqual(readiness.readyEvidence.state, .contractReady)
+        XCTAssertNil(readiness.readyEvidence.failureClass)
+        XCTAssertEqual(readiness.missingCredentialEvidence.state, .credentialReferenceMissing)
+        XCTAssertEqual(readiness.missingCredentialEvidence.failureClass, .requiredCredentialReferenceMissing)
+        XCTAssertTrue(readiness.missingCredentialEvidence.failClosedEvidenceHeld)
+        XCTAssertEqual(readiness.invalidCredentialEvidence.state, .credentialReferenceInvalid)
+        XCTAssertEqual(readiness.invalidCredentialEvidence.failureClass, .credentialNamespaceMismatch)
+        XCTAssertTrue(readiness.invalidCredentialEvidence.failClosedEvidenceHeld)
+        XCTAssertEqual(readiness.requirements, ReleaseV0200ProductionShadowSignedAccountReadinessRequirement.allCases)
+        XCTAssertEqual(readiness.forbiddenCapabilities, ReleaseV0200ProductionShadowSignedAccountForbiddenCapability.allCases)
+        XCTAssertEqual(readiness.validationAnchors, requiredAnchors)
+        XCTAssertEqual(
+            readiness.requiredValidationCommands,
+            [
+                "swift test --filter TargetGraphTests/testGH1244ReleaseV0200SignedAccountReadOnlyReadiness",
+                "bash checks/verify-v0.20.0-signed-account-readonly-readiness.sh",
+                "git diff --check",
+                "bash checks/automation-readiness.sh",
+                "bash checks/run.sh"
+            ]
+        )
+        XCTAssertFalse(readiness.productionTradingEnabledByDefault)
+        XCTAssertFalse(readiness.productionSecretValueRead)
+        XCTAssertFalse(readiness.rawCredentialMaterialStored)
+        XCTAssertFalse(readiness.signedRequestMaterialGenerated)
+        XCTAssertFalse(readiness.rawAccountPayloadStored)
+        XCTAssertFalse(readiness.accountEndpointTouched)
+        XCTAssertFalse(readiness.orderEndpointTouched)
+        XCTAssertFalse(readiness.listenKeyRuntimeEnabled)
+        XCTAssertFalse(readiness.privateStreamRuntimeEnabled)
+        XCTAssertFalse(readiness.productionEndpointConnectionEnabled)
+        XCTAssertFalse(readiness.productionBrokerConnectionEnabled)
+        XCTAssertFalse(readiness.orderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(readiness.spotCanaryEnabled)
+        XCTAssertFalse(readiness.futuresRuntimeEnabled)
+        XCTAssertFalse(readiness.okxActiveImplementationEnabled)
+        XCTAssertFalse(readiness.dashboardTradingButtonEnabled)
+        XCTAssertFalse(readiness.orderFormEnabled)
+        XCTAssertFalse(readiness.liveCommandEnabled)
+        XCTAssertFalse(readiness.productionCutoverAuthorized)
+        XCTAssertFalse(readiness.createsTagOrRelease)
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(
+            upstreamCredentialReferenceReadinessHeld: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(
+            upstreamPublicMarketProbeHeld: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(productKind: .usdmFutures))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(tradingEnvironment: .productionLive))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(
+            endpointFamilyReference: "https://testnet.binance.vision"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(
+            accountReadOnlyIntent: ReleaseV0200ProductionShadowSignedAccountReadOnlyIntent(path: "/api/v3/order")
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(productionSecretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(rawCredentialMaterialStored: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(signedRequestMaterialGenerated: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(rawAccountPayloadStored: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(accountEndpointTouched: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(orderEndpointTouched: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(listenKeyRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(privateStreamRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(orderSubmitCancelReplaceEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(spotCanaryEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(futuresRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(okxActiveImplementationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness(createsTagOrRelease: true))
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyIntent(
+            endpointFamilyReference: "https://testnet.binance.vision"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyIntent(path: "/api/v3/order"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyIntent(method: "POST"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyIntent(redactedIntentSummary: "raw-account-payload"))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyIntent(signingMaterialGenerated: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyIntent(secretValueRead: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyIntent(endpointConnectionOpened: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyIntent(accountPayloadAccessed: true))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadOnlyIntent(orderEndpointTouched: true))
+
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadinessEvidence(
+            state: .contractReady,
+            failureClass: .requiredCredentialReferenceMissing,
+            credentialEvidence: .presentFixture()
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadinessEvidence(
+            state: .credentialReferenceMissing,
+            credentialEvidence: .missingFixture()
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadinessEvidence(
+            state: .credentialReferenceInvalid,
+            failureClass: .requiredCredentialReferenceMissing,
+            credentialEvidence: .invalidFixture()
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadinessEvidence(
+            state: .contractReady,
+            credentialEvidence: .missingFixture()
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadinessEvidence(
+            state: .contractReady,
+            credentialEvidence: .presentFixture(),
+            redactedEvidenceSummary: "raw account payload"
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadinessEvidence(
+            state: .contractReady,
+            credentialEvidence: .presentFixture(),
+            secretValueRead: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadinessEvidence(
+            state: .contractReady,
+            credentialEvidence: .presentFixture(),
+            rawAccountPayloadStored: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadinessEvidence(
+            state: .contractReady,
+            credentialEvidence: .presentFixture(),
+            signedRequestMaterialGenerated: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadinessEvidence(
+            state: .contractReady,
+            credentialEvidence: .presentFixture(),
+            accountEndpointTouched: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0200ProductionShadowSignedAccountReadinessEvidence(
+            state: .contractReady,
+            credentialEvidence: .presentFixture(),
+            orderEndpointTouched: true
+        ))
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness.swift")
+        let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md")
+        let readinessDoc = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let verifier = try read("checks/verify-v0.20.0-signed-account-readonly-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0200ProductionShadowCredentialReferenceReadiness.deterministicFixture"))
+        XCTAssertTrue(source.contains("ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe.deterministicFixture"))
+        XCTAssertTrue(source.contains("signed-account-readiness=<redacted>"))
+        XCTAssertTrue(source.contains("endpoint=/api/v3/account"))
+        XCTAssertTrue(source.contains("account-payload=<not-accessed>"))
+        XCTAssertTrue(source.contains("signed-material=<not-generated>"))
+        XCTAssertTrue(contractDoc.contains("#1242 / GH-1242"))
+        XCTAssertTrue(contractDoc.contains("#1243 / GH-1243"))
+        XCTAssertTrue(contractDoc.contains("#1244 / GH-1244"))
+        XCTAssertTrue(contractDoc.contains("#1245 / GH-1245"))
+        XCTAssertTrue(contractDoc.contains("不生成 signature"))
+        XCTAssertTrue(contractDoc.contains("不触达 `/api/v3/account`"))
+        XCTAssertTrue(contractDoc.contains("不保存 raw account payload"))
+        XCTAssertTrue(readinessDoc.contains("Release v0.20.0 signed account read-only readiness anchor"))
+        XCTAssertTrue(latest.contains("v0.20.0 signed account read-only readiness"))
+        XCTAssertTrue(plan.contains("GH-1244 Release v0.20.0 Signed Account Read-only Readiness"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.0-signed-account-readonly-readiness.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.0-signed-account-readonly-readiness.sh"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1244ReleaseV0200SignedAccountReadOnlyReadiness"
+        ))
+
+        for source in [contractDoc, latest, plan, matrix] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("rawCredentialMaterialStored=true"))
+            XCTAssertFalse(source.contains("signedRequestMaterialGenerated=true"))
+            XCTAssertFalse(source.contains("rawAccountPayloadStored=true"))
+            XCTAssertFalse(source.contains("accountEndpointTouched=true"))
+            XCTAssertFalse(source.contains("orderEndpointTouched=true"))
+            XCTAssertFalse(source.contains("listenKeyRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("privateStreamRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(source.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(source.contains("orderSubmitCancelReplaceEnabled=true"))
+            XCTAssertFalse(source.contains("spotCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("futuresRuntimeEnabled=true"))
+            XCTAssertFalse(source.contains("okxActiveImplementationEnabled=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("createsTagOrRelease=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

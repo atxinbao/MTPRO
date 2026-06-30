@@ -13165,4 +13165,37 @@ require_contains "docs/validation/validation-plan.md" "GH-1243 Release v0.20.0 P
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-PUBLIC-MARKET-READ-ONLY-PROBE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1243ReleaseV0200PublicMarketReadOnlyProbe"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness.swift" \
+  "docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "checks/verify-v0.20.0-signed-account-readonly-readiness.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1244-VERIFY-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS"
+  require_contains "$file" "TVM-RELEASE-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS"
+  require_contains "$file" "V0200-006-BINANCE-SPOT-PRODUCTION-SHADOW-SIGNED-ACCOUNT-READINESS"
+  require_contains "$file" "V0200-006-ACCOUNT-ENDPOINT-INTENT-ONLY"
+  require_contains "$file" "V0200-006-CREDENTIAL-REFERENCE-BOUND"
+  require_contains "$file" "V0200-006-REDACTED-ACCOUNT-PAYLOAD-EVIDENCE"
+  require_contains "$file" "V0200-006-NO-SECRET-VALUE-READ"
+  require_contains "$file" "V0200-006-NO-ORDER-ENDPOINT"
+  require_contains "$file" "V0200-006-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.20.0-signed-account-readonly-readiness.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-signed-account-readonly-readiness.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 signed account read-only readiness anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 signed account read-only readiness"
+require_contains "docs/validation/validation-plan.md" "GH-1244 Release v0.20.0 Signed Account Read-only Readiness"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1244ReleaseV0200SignedAccountReadOnlyReadiness"
+
 printf 'MTPRO automation readiness checks passed.\n'
