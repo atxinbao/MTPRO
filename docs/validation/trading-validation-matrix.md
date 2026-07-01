@@ -23,6 +23,21 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotControlledProductionCanaryContract.swift`、`docs/contracts/release-v0.21.0-binance-spot-controlled-production-canary-contract.md`、`checks/verify-v0.21.0-controlled-canary-contract.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1273 fixes the first v0.21.0 Binance Spot controlled production canary contract. It is Human-approved Spot canary planning only, with symbol allowlist, notional / exposure size caps, RiskEngine / kill switch / no-trade gates, auditable evidence and GH-1273..GH-1286 queue order. It does not read production secret, connect production endpoint / broker endpoint, implement signed account endpoint runtime, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
 
+## TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE
+
+- TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE
+- GH-1274-VERIFY-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE
+- V0210-002-BINANCE-SPOT-CANARY-PROFILE
+- V0210-002-DEFAULT-OFF-FAIL-CLOSED
+- V0210-002-OPERATOR-OPT-IN-EVIDENCE
+- V0210-002-NO-SECRET-ENDPOINT-ORDER
+- V0210-002-NO-PRODUCTION-CUTOVER
+- GH-1274 Release v0.21.0 Spot Canary Environment Profile
+- `bash checks/verify-v0.21.0-spot-canary-environment-profile.sh`
+- `swift test --filter TargetGraphTests/testGH1274ReleaseV0210SpotCanaryEnvironmentProfile`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryEnvironmentProfile.swift`、`docs/contracts/release-v0.21.0-binance-spot-canary-environment-profile.md`、`checks/verify-v0.21.0-spot-canary-environment-profile.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1274 fixes the Binance Spot canary environment profile as productionLive identity only with default-off fail-closed policy and explicit Human operator opt-in evidence requirement. It does not read production secret, connect production endpoint / broker endpoint, implement signed account endpoint runtime, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
+
 ## TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
 
 - TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD

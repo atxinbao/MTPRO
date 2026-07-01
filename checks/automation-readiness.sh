@@ -175,10 +175,12 @@ require_file "checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh"
 require_file "checks/verify-v0.20.0.sh"
 require_file "checks/verify-v0.20.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.21.0-controlled-canary-contract.sh"
+require_file "checks/verify-v0.21.0-spot-canary-environment-profile.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
 require_file "docs/contracts/release-v0.21.0-binance-spot-controlled-production-canary-contract.md"
+require_file "docs/contracts/release-v0.21.0-binance-spot-canary-environment-profile.md"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
 require_file "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md"
@@ -13549,5 +13551,37 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 contr
 require_contains "docs/validation/validation-plan.md" "GH-1273 Release v0.21.0 Controlled Canary Contract"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1273ReleaseV0210SpotControlledProductionCanaryContract"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryEnvironmentProfile.swift" \
+  "docs/contracts/release-v0.21.0-binance-spot-canary-environment-profile.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.21.0-spot-canary-environment-profile.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1274-VERIFY-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE"
+  require_contains "$file" "TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE"
+  require_contains "$file" "V0210-002-BINANCE-SPOT-CANARY-PROFILE"
+  require_contains "$file" "V0210-002-DEFAULT-OFF-FAIL-CLOSED"
+  require_contains "$file" "V0210-002-OPERATOR-OPT-IN-EVIDENCE"
+  require_contains "$file" "V0210-002-NO-SECRET-ENDPOINT-ORDER"
+  require_contains "$file" "V0210-002-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.0-spot-canary-environment-profile.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-spot-canary-environment-profile.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 spot canary environment profile anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 spot canary environment profile"
+require_contains "docs/validation/validation-plan.md" "GH-1274 Release v0.21.0 Spot Canary Environment Profile"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1274ReleaseV0210SpotCanaryEnvironmentProfile"
 
 printf 'MTPRO automation readiness checks passed.\n'
