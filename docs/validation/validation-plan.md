@@ -6,6 +6,22 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1273 Release v0.21.0 Controlled Canary Contract
+
+- GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT
+- TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
+- V0210-001-V0201-PREFLIGHT-GATE
+- V0210-001-BINANCE-SPOT-CONTROLLED-CANARY
+- V0210-001-HUMAN-APPROVAL-REQUIRED
+- V0210-001-SYMBOL-ALLOWLIST-SIZE-CAPS
+- V0210-001-RISK-KILL-NO-TRADE-GATES
+- V0210-001-QUEUE-ORDER
+- V0210-001-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.21.0-controlled-canary-contract.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1273ReleaseV0210SpotControlledProductionCanaryContract`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotControlledProductionCanaryContract.swift`、`docs/contracts/release-v0.21.0-binance-spot-controlled-production-canary-contract.md`、`checks/verify-v0.21.0-controlled-canary-contract.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1273 only defines the v0.21.0 Binance Spot controlled production canary contract and queue order GH-1273..GH-1286. It requires Human operator approval、symbol allowlist、notional / exposure size caps、RiskEngine / kill switch / no-trade gates, and remains contract-only: no production secret read, no production endpoint / broker endpoint connection, no signed account endpoint runtime, no submit / cancel / replace, no tag / GitHub Release publication, no Futures / OKX scope and no production cutover authorization.
+
 ## GH-1201 Release v0.18.1 Full Matrix Publication Gate
 
 - GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
