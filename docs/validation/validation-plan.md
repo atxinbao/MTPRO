@@ -20,6 +20,19 @@
 - Evidence files: `.github/workflows/checks.yml`、`checks/verify-ci-pr-fast-lane-release-matrix.sh`、`checks/verify-v0.18.1-release-full-matrix-publication-gate.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`docs/automation/ci-reproducibility.md`、`docs/automation/automation-readiness.md`、`docs/release/release-publication-policy.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1201 keeps ordinary PR required `checks` fast-lane-only, but release publication evidence must include GitHub Actions workflow run id、workflow job ids: pr_fast_checks, linux_checks, dashboard_macos, release_publication_checks、GitHub Actions run log、job summary、Linux `checks/run.sh` output 和 Dashboard macOS build / smoke output。release publication cannot be represented as complete by pr-fast-checks or checks aggregate alone；linux-checks and dashboard-macos must both be SUCCESS for tag publication evidence。GH-1201 不创建 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 production order，不授权 production cutover。production cutover not authorized。
 
+## GH-1270 Release v0.20.1 v0.20.0 Stale Wording Guard
+
+- GH-1270-VERIFY-V0201-V0200-STALE-WORDING-GUARD
+- V0201-002-V0200-STALE-WORDING-GUARD
+- V0201-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST
+- TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
+- V0201-002-CURRENT-FACING-STALE-WORDING-REJECTION
+- V0201-002-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.20.1-v0200-stale-wording-guard.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1270ReleaseV0201V0200StaleWordingGuardRejectsCurrentFacingDrift`
+- Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0` / `7f84999e8e4071fb71fdc802f895de81303bbcfd` / `2026-06-30T16:55:24Z`。
+- Boundary: GH-1270 rejects current-facing stale v0.20.0 publication wording such as pending publication, missing tag or missing GitHub Release. #1250 historical construction closeout evidence remains allowed only when paired with the current v0.20.0 release facts. GH-1270 不移动 tag，不覆盖 GitHub Release，不创建 v0.20.1 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不授权 production cutover。production cutover not authorized。
+
 ## GH-1239 Release v0.20.0 Production-shadow Read-only Live Readiness Contract
 
 - GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT

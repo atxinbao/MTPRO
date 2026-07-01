@@ -13407,4 +13407,40 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "docs/release/release-publication-policy.md" "GH-1250 closes the v0.20.0 stage audit"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1250ReleaseV0200StageAuditReleaseDocsCloseout"
 
+for file in \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/audit/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-notes.md" \
+  "verification.md" \
+  "checks/verify-v0.20.1-v0200-stale-wording-guard.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1270-VERIFY-V0201-V0200-STALE-WORDING-GUARD"
+  require_contains "$file" "TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD"
+  require_contains "$file" "V0201-002-V0200-STALE-WORDING-GUARD"
+  require_contains "$file" "V0201-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST"
+  require_contains "$file" "V0201-002-CURRENT-FACING-STALE-WORDING-REJECTION"
+  require_contains "$file" "V0201-002-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0"
+  require_contains "$file" "7f84999e8e4071fb71fdc802f895de81303bbcfd"
+  require_contains "$file" "2026-06-30T16:55:24Z"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.20.1-v0200-stale-wording-guard.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.1-v0200-stale-wording-guard.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.20.1 v0.20.0 stale wording guard anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.20.1 v0.20.0 stale wording guard"
+require_contains "docs/validation/validation-plan.md" "GH-1270 Release v0.20.1 v0.20.0 Stale Wording Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD"
+require_contains "docs/release/release-publication-policy.md" "GH-1270 rejects current-facing stale v0.20.0 publication wording"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1270ReleaseV0201V0200StaleWordingGuardRejectsCurrentFacingDrift"
+
 printf 'MTPRO automation readiness checks passed.\n'
