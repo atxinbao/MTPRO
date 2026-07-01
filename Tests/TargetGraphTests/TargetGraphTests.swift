@@ -62483,6 +62483,224 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1273ReleaseV0210SpotControlledProductionCanaryContract() throws {
+        // 测试场景：GH-1273 定义 v0.21.0 Binance Spot controlled production
+        // canary 的首个合同和 GitHub fallback queue order。
+        // 验证目的：合同必须固定 Human approval、symbol allowlist、size caps、
+        // RiskEngine / kill switch / no-trade gates，并保持本 issue contract-only，
+        // 不读取 secret、不连接 endpoint、不发送 submit / cancel / replace。
+        // GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT
+        // TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
+        // V0210-001-V0201-PREFLIGHT-GATE
+        // V0210-001-BINANCE-SPOT-CONTROLLED-CANARY
+        // V0210-001-HUMAN-APPROVAL-REQUIRED
+        // V0210-001-SYMBOL-ALLOWLIST-SIZE-CAPS
+        // V0210-001-RISK-KILL-NO-TRADE-GATES
+        // V0210-001-QUEUE-ORDER
+        // V0210-001-NO-PRODUCTION-CUTOVER
+        let contract = try ReleaseV0210SpotControlledProductionCanaryContract.deterministicFixture()
+
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.controlledCanaryBoundaryHeld)
+        XCTAssertTrue(contract.implementationDeferredByThisIssue)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-1273")
+        XCTAssertEqual(contract.blockedByIssueIDs.map(\.rawValue), ["GH-1272"])
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), (1274...1286).map { "GH-\($0)" })
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-1273..GH-1286")
+        XCTAssertEqual(contract.projectName, "MTPRO Release v0.21.0 Binance Spot Controlled Production Canary")
+        XCTAssertEqual(contract.releaseVersion, "v0.21.0")
+        XCTAssertEqual(contract.allowedVenue, "Binance")
+        XCTAssertEqual(contract.allowedProductTypes, ["spot"])
+
+        for mode in [
+            ReleaseV0210SpotControlledCanaryMode.failClosedEnvironmentProfile,
+            .explicitCredentialSecretReadApproval,
+            .signedAccountReadOnlyPreflight,
+            .hardLimitPreTradeGate,
+            .riskKillNoTradeGate,
+            .guardedSpotCanarySubmit,
+            .guardedSpotCanaryCancel,
+            .stageAuditReleaseDocs
+        ] {
+            XCTAssertTrue(contract.allowedModes.contains(mode), "\(mode.rawValue) must stay represented")
+        }
+
+        for requirement in [
+            ReleaseV0210SpotControlledCanaryPreflightRequirement.previousV0201PatchClosed,
+            .blockingIssue1272Done,
+            .githubQueueWIPOne,
+            .noActiveIssueConflict,
+            .binanceSpotOnly,
+            .humanApprovalRequired,
+            .symbolAllowlistRequired,
+            .sizeCapsRequired,
+            .riskKillNoTradeGateRequired,
+            .noProductionCutover
+        ] {
+            XCTAssertTrue(contract.preflightRequirements.contains(requirement), "\(requirement.rawValue) must stay required")
+        }
+
+        for forbidden in [
+            ReleaseV0210SpotControlledCanaryForbiddenCapability.productionCutoverAuthorization,
+            .productionTradingEnabledByDefault,
+            .automaticSecretRead,
+            .productionEndpointAutoConnect,
+            .futuresExecution,
+            .okxActiveImplementation,
+            .riskEngineBypass,
+            .killSwitchBypass,
+            .noTradeBypass,
+            .orderCommandWithoutCanaryGate,
+            .tagOrReleasePublication
+        ] {
+            XCTAssertTrue(contract.forbiddenCapabilities.contains(forbidden), "\(forbidden.rawValue) must stay forbidden")
+        }
+
+        XCTAssertTrue(contract.v0201CloseoutRequired)
+        XCTAssertTrue(contract.controlledSpotCanaryScopeDefined)
+        XCTAssertTrue(contract.explicitHumanApprovalRequired)
+        XCTAssertTrue(contract.symbolAllowlistRequired)
+        XCTAssertTrue(contract.notionalSizeCapsRequired)
+        XCTAssertTrue(contract.riskKillSwitchNoTradeGateRequired)
+        XCTAssertTrue(contract.canaryEvidenceMustBeAuditable)
+        XCTAssertFalse(contract.credentialSecretReadImplementedByThisIssue)
+        XCTAssertFalse(contract.productionEndpointConnectionImplementedByThisIssue)
+        XCTAssertFalse(contract.signedAccountEndpointRuntimeImplementedByThisIssue)
+        XCTAssertFalse(contract.canarySubmitCancelImplementedByThisIssue)
+        XCTAssertFalse(contract.dashboardCommandSurfaceImplementedByThisIssue)
+        XCTAssertFalse(contract.productionTradingEnabledByDefault)
+        XCTAssertFalse(contract.automaticProductionSecretReadEnabled)
+        XCTAssertFalse(contract.productionEndpointAutoConnectEnabled)
+        XCTAssertFalse(contract.productionBrokerConnectionEnabledByDefault)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+        XCTAssertFalse(contract.futuresInScope)
+        XCTAssertFalse(contract.okxInScope)
+        XCTAssertFalse(contract.createsTagOrRelease)
+        XCTAssertFalse(contract.startsNextMilestone)
+
+        let anchors = [
+            "GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT",
+            "TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT",
+            "V0210-001-V0201-PREFLIGHT-GATE",
+            "V0210-001-BINANCE-SPOT-CONTROLLED-CANARY",
+            "V0210-001-HUMAN-APPROVAL-REQUIRED",
+            "V0210-001-SYMBOL-ALLOWLIST-SIZE-CAPS",
+            "V0210-001-RISK-KILL-NO-TRADE-GATES",
+            "V0210-001-QUEUE-ORDER",
+            "V0210-001-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(contract.validationAnchors, anchors)
+        XCTAssertTrue(contract.requiredValidationCommands.contains(
+            "swift test --filter TargetGraphTests/testGH1273ReleaseV0210SpotControlledProductionCanaryContract"
+        ))
+        XCTAssertTrue(contract.requiredValidationCommands.contains("bash checks/verify-v0.21.0-controlled-canary-contract.sh"))
+
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(
+            blockedByIssueIDs: [Identifier.constant("GH-1271")]
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(allowedProductTypes: ["spot", "usdsPerpetual"]))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(explicitHumanApprovalRequired: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(symbolAllowlistRequired: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(notionalSizeCapsRequired: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(riskKillSwitchNoTradeGateRequired: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(credentialSecretReadImplementedByThisIssue: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(productionEndpointConnectionImplementedByThisIssue: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(signedAccountEndpointRuntimeImplementedByThisIssue: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(canarySubmitCancelImplementedByThisIssue: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(futuresInScope: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(okxInScope: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotControlledProductionCanaryContract(createsTagOrRelease: true))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotControlledProductionCanaryContract.swift",
+            "docs/contracts/release-v0.21.0-binance-spot-controlled-production-canary-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.21.0-controlled-canary-contract.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0210SpotControlledProductionCanaryContract.swift")
+        let contractDocument = try read("docs/contracts/release-v0.21.0-binance-spot-controlled-production-canary-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.21.0-controlled-canary-contract.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0210SpotControlledProductionCanaryContract"))
+        XCTAssertTrue(source.contains("GH-1273..GH-1286"))
+        XCTAssertTrue(source.contains("controlledSpotCanaryScopeDefined"))
+        XCTAssertTrue(source.contains("explicitHumanApprovalRequired"))
+        XCTAssertTrue(source.contains("symbolAllowlistRequired"))
+        XCTAssertTrue(source.contains("notionalSizeCapsRequired"))
+        XCTAssertTrue(source.contains("riskKillSwitchNoTradeGateRequired"))
+        XCTAssertTrue(source.contains("canarySubmitCancelImplementedByThisIssue == false"))
+        XCTAssertTrue(source.contains("productionCutoverAuthorized == false"))
+
+        XCTAssertTrue(contractDocument.contains("GH-1274"))
+        XCTAssertTrue(contractDocument.contains("GH-1286"))
+        XCTAssertTrue(contractDocument.contains("Human operator approval"))
+        XCTAssertTrue(contractDocument.contains("symbol allowlist"))
+        XCTAssertTrue(contractDocument.contains("notional size cap"))
+        XCTAssertTrue(contractDocument.contains("RiskEngine pre-trade gate"))
+        XCTAssertTrue(contractDocument.contains("production cutover authorization"))
+        XCTAssertTrue(readiness.contains("Release v0.21.0 controlled canary contract anchor"))
+        XCTAssertTrue(latest.contains("v0.21.0 controlled canary contract"))
+        XCTAssertTrue(plan.contains("GH-1273 Release v0.21.0 Controlled Canary Contract"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1273ReleaseV0210SpotControlledProductionCanaryContract"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.0-controlled-canary-contract.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.0-controlled-canary-contract.sh"))
+
+        for source in [
+            source,
+            contractDocument,
+            readiness,
+            latest,
+            plan,
+            matrix,
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "productionCutoverAuthorized=true",
+                "productionTradingEnabledByDefault=true",
+                "automaticProductionSecretReadEnabled=true",
+                "productionEndpointAutoConnectEnabled=true",
+                "canarySubmitCancelImplementedByThisIssue=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1273 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

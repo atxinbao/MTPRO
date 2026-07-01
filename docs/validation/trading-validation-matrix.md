@@ -6,6 +6,23 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
+
+- TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
+- GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT
+- V0210-001-V0201-PREFLIGHT-GATE
+- V0210-001-BINANCE-SPOT-CONTROLLED-CANARY
+- V0210-001-HUMAN-APPROVAL-REQUIRED
+- V0210-001-SYMBOL-ALLOWLIST-SIZE-CAPS
+- V0210-001-RISK-KILL-NO-TRADE-GATES
+- V0210-001-QUEUE-ORDER
+- V0210-001-NO-PRODUCTION-CUTOVER
+- GH-1273 Release v0.21.0 Controlled Canary Contract
+- `bash checks/verify-v0.21.0-controlled-canary-contract.sh`
+- `swift test --filter TargetGraphTests/testGH1273ReleaseV0210SpotControlledProductionCanaryContract`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotControlledProductionCanaryContract.swift`、`docs/contracts/release-v0.21.0-binance-spot-controlled-production-canary-contract.md`、`checks/verify-v0.21.0-controlled-canary-contract.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1273 fixes the first v0.21.0 Binance Spot controlled production canary contract. It is Human-approved Spot canary planning only, with symbol allowlist, notional / exposure size caps, RiskEngine / kill switch / no-trade gates, auditable evidence and GH-1273..GH-1286 queue order. It does not read production secret, connect production endpoint / broker endpoint, implement signed account endpoint runtime, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
+
 ## TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
 
 - TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
