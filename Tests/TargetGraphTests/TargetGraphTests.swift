@@ -62098,8 +62098,13 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertTrue(audit.contains(expected), "audit must contain \(expected)")
         }
 
-        XCTAssertTrue(notes.contains("#1250 是 construction closeout"))
-        XCTAssertTrue(notes.contains("Publication remains an independent Release Publication Gate"))
+        XCTAssertTrue(notes.contains("#1250 是 historical construction closeout"))
+        XCTAssertTrue(notes.contains("The later independent Release Publication Gate has published `v0.20.0` as a stable GitHub Release"))
+        XCTAssertTrue(notes.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0"))
+        XCTAssertTrue(notes.contains("7f84999e8e4071fb71fdc802f895de81303bbcfd"))
+        XCTAssertTrue(notes.contains("2026-06-30T16:55:24Z"))
+        XCTAssertTrue(audit.contains("后续独立 Release Publication Gate 已发布 `v0.20.0` stable GitHub Release"))
+        XCTAssertTrue(audit.contains("PR #1268"))
         XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1250ReleaseV0200StageAuditReleaseDocsCloseout"))
         XCTAssertTrue(verifier.contains("PR #1267"))
         XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.20.0-stage-audit-release-docs.sh"))

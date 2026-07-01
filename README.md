@@ -42,7 +42,9 @@ v0.20.0 aggregate validation suite anchor：`GH-1249-VERIFY-V0200-RELEASE-VALIDA
 
 v0.20.0 stage audit / release docs closeout anchor：`GH-1250-VERIFY-V0200-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS`、`V0200-012-STAGE-CODE-AUDIT`、`V0200-012-RELEASE-NOTES`、`V0200-012-VALIDATION-MATRIX`、`V0200-012-ROOT-DOCS-REFRESH`、`V0200-012-STALE-WORDING-GUARD`、`V0200-012-RELEASE-PUBLICATION-GATE-HANDOFF`、`V0200-012-NO-PRODUCTION-CUTOVER`、`V0200-012-NO-TAG-OR-RELEASE-PUBLICATION`。#1250 只收口 v0.20.0 construction docs / validation evidence；不创建 tag / GitHub Release，不运行 Spot canary，不授权 production cutover；production cutover not authorized。
 
-Latest completed release construction scope: `MTPRO Release v0.19.0 Venue/Product Registry + Runtime Adapter Foundation`。
+Latest completed release construction scope: `MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness`。
+
+Latest v0.20.0 release publication fact: `v0.20.0` 已通过独立 Release Publication Gate 发布为 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`，tag peeled commit `7f84999e8e4071fb71fdc802f895de81303bbcfd`，publication timestamp `2026-06-30T16:55:24Z`。#1250 的 no-tag / no-release wording 只描述 historical construction closeout；当前 v0.20.0 已发布事实必须以该 Release URL / tag commit / timestamp 为准。该 publication 不授权 Spot canary、production cutover、production secret read、production endpoint / broker endpoint connection 或 submit / cancel / replace order。
 
 Historical v0.19.0 construction closeout: GH-1215 使用 `GH-1215-VERIFY-V0190-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0190-STAGE-AUDIT-RELEASE-DOCS`、`V0190-010-STAGE-CODE-AUDIT`、`V0190-010-RELEASE-NOTES`、`V0190-010-VALIDATION-MATRIX`、`V0190-010-ROOT-DOCS-REFRESH`、`V0190-010-STALE-WORDING-GUARD`、`V0190-010-NO-PRODUCTION-CUTOVER` 和 `V0190-010-NO-TAG-OR-RELEASE-PUBLICATION` 收口 `release/v0.19.0` GitHub fallback queue `#1206..#1215`。#1215 是 historical construction closeout only：它在 construction closeout 当时不创建 `v0.19.0` tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover；这不是当前 v0.19.0 release 状态。后续独立 Release Publication Gate 已发布 v0.19.0 stable release，production cutover not authorized。
 
@@ -123,7 +125,7 @@ MTPRO 借鉴 `nautilus_trader` 的 Kernel / MessageBus / Cache / Engine / Adapte
 
 | 项 | 当前事实 |
 | --- | --- |
-| Current maturity statement | `MTPRO Release v0.19.0 Venue/Product Registry + Runtime Adapter Foundation complete and published as stable GitHub Release with production trading disabled by default and production cutover not authorized` |
+| Current maturity statement | `MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness complete and published as stable GitHub Release with production trading disabled by default and production cutover not authorized` |
 | Latest patch statement | `MTPRO Release v0.15.1 Real Testnet Execution Hardening Patch complete as real testnet execution hardening patch without tag publication and without production cutover authorization` |
 | Latest v0.15.1 patch queue | `MTPRO Release v0.15.1 Real Testnet Execution Hardening Patch`；#1094..#1100 closed / done；`GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT`；release/v0.15.1 queue closed；patch closeout evidence only and publication requires a separate Release Publication Gate；production cutover not authorized |
 | Latest v0.16.0 operator beta queue | `MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta`；#1101..#1112 closed / done；`GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS`；Stage Code Audit / release notes / operator runbook closeout complete；construction closeout 本身不创建 tag / GitHub Release；独立 publication gate 已发布 stable GitHub Release `https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`，tag peeled commit `28779236262bd7ffaf71e286b27b95854c5cd3e1`，publication timestamp `2026-06-26T01:29:21Z`；Binance Spot Testnet only；production cutover not authorized |

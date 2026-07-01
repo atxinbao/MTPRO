@@ -8,7 +8,7 @@
 
 `MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness` 收口 GitHub fallback issues `#1239..#1250`。本 release construction queue 基于 v0.19.1 release fact / stale wording patch closeout，只把 Binance Spot 推进到 production-shadow / read-only live readiness：定义只读 readiness contract、production-shadow environment profile、read-only endpoint allowlist、credential reference readiness、public market read-only probe、signed account read-only readiness intent、account snapshot redaction policy、no-order capability guard、Risk / kill switch / no-trade readiness、Dashboard / CLI read-only readiness surface 和 aggregate validation suite。
 
-本 Stage Code Audit 只记录 v0.20.0 construction closeout evidence。#1250 construction closeout 不创建 `v0.20.0` tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。v0.20.0 public release publication 必须在 #1250 merged、required `checks` SUCCESS、main fast-forward、open PR = 0、open active issue = 0、worktree clean 和完整验证通过后，由独立 Release Publication Gate 执行。
+本 Stage Code Audit 记录 v0.20.0 construction closeout evidence。#1250 construction closeout 当时不创建 `v0.20.0` tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。后续独立 Release Publication Gate 已发布 `v0.20.0` stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`，tag peeled commit `7f84999e8e4071fb71fdc802f895de81303bbcfd`，publication timestamp `2026-06-30T16:55:24Z`。该 publication 不授权 Spot canary、production cutover、production secret read、production endpoint / broker endpoint connection 或 submit / cancel / replace order。
 
 ## Issue Completion Evidence
 
@@ -38,6 +38,7 @@
 - PR #1265：[Add v0.20.0 risk no-trade readiness guard](https://github.com/atxinbao/MTPRO/pull/1265)，mergedAt `2026-06-30T13:58:06Z`，merge commit `594527d830ca5edf3c1a3301052f7e60b6987648`，required check `checks` SUCCESS。
 - PR #1266：[Add v0.20.0 read-only live readiness surface](https://github.com/atxinbao/MTPRO/pull/1266)，mergedAt `2026-06-30T15:20:08Z`，merge commit `db361637706f30c5b1cd75d96ff0bfa09d74c7b7`，required check `checks` SUCCESS。
 - PR #1267：[Add v0.20.0 aggregate validation suite](https://github.com/atxinbao/MTPRO/pull/1267)，mergedAt `2026-06-30T16:06:43Z`，merge commit `c8b93f4e875ca99a49a14108f4e20d6ce31bd056`，required check `checks` SUCCESS。
+- PR #1268：[Close v0.20.0 stage audit and release docs](https://github.com/atxinbao/MTPRO/pull/1268)，mergedAt `2026-06-30T16:52:45Z`，merge commit `7f84999e8e4071fb71fdc802f895de81303bbcfd`，required check `checks` SUCCESS。
 
 The #1250 closeout PR validation is the final authority for this Stage Code Audit and release docs closeout.
 
@@ -87,7 +88,7 @@ Latest pre-closeout evidence before #1250: #1249 finished with `bash checks/run.
 - 不触达 live account endpoint 或 order endpoint。
 - 不提交 / 取消 / 替换 testnet 或 production order。
 - 不启用 Dashboard trading button、order form 或 live command。
-- 本 Stage Code Audit / release docs closeout 不创建 `v0.20.0` tag 或 GitHub Release；tag / GitHub Release publication 必须走后续独立 Release Publication Gate。
+- 本 Stage Code Audit / release docs closeout 不创建 `v0.20.0` tag 或 GitHub Release；该 no-tag / no-release statement 仅描述 #1250 historical construction closeout。后续独立 Release Publication Gate 已发布 `v0.20.0` stable GitHub Release，且仍不授权 production cutover。
 - 不创建下一 Project / Issue，不推进下一 Todo。
 - 不使用 Linear、Symphony、Graphify、code-index 或 Figma。
 
@@ -97,8 +98,8 @@ v0.20.0 关闭的是 production-shadow / read-only live readiness evidence，不
 
 ## Root Docs Delta
 
-本 closeout 将 root docs、validation docs、automation readiness、release notes 和 publication policy 同步到已发生事实：`release/v0.20.0` queue `#1239..#1250` construction closeout，#1250 收口 Stage Code Audit、release notes、validation matrix、root docs refresh、stale wording guard 和 release publication gate handoff。#1250 本身不创建 public release publication；production cutover not authorized。
+本 closeout 将 root docs、validation docs、automation readiness、release notes 和 publication policy 同步到已发生事实：`release/v0.20.0` queue `#1239..#1250` construction closeout，#1250 收口 Stage Code Audit、release notes、validation matrix、root docs refresh、stale wording guard 和 release publication gate handoff。#1250 本身不创建 public release publication；后续独立 Release Publication Gate 已发布 `v0.20.0` stable GitHub Release，tag peeled commit `7f84999e8e4071fb71fdc802f895de81303bbcfd`，publication timestamp `2026-06-30T16:55:24Z`；production cutover not authorized。
 
 ## Next Handoff
 
-下一步只允许是独立 `v0.20.0 Release Publication Gate`，前提是 #1250 merged、required `checks` SUCCESS、local `main == origin/main`、open PR = 0、open active issue = 0、worktree clean，并且完整 validation evidence 已重新确认。Release Publication Gate 不等于 production cutover，不得自动推进 v0.21.0，不得授权 Spot canary。
+`v0.20.0` stable GitHub Release 已发布：URL 为 `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`，tag peeled commit 为 `7f84999e8e4071fb71fdc802f895de81303bbcfd`，publication timestamp 为 `2026-06-30T16:55:24Z`。下一步仍不得自动推进 v0.21.0 或授权 Spot canary；v0.21.0 controlled production canary 必须继续通过单独 queue preflight、issue scope、validation、Human approval 和 PR evidence 执行。
