@@ -34,6 +34,7 @@
 - `GH-1237 V191-006 Close v0.19.1 patch audit / release notes`
 - `GH-1250 V0200-012 Close v0.20.0 stage audit and release docs`
 - `GH-1270 V0201-002 Add stale wording guard for published v0.20.0 docs`
+- `GH-1271 V0201-003 Clarify public-market probe classification evidence`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -117,6 +118,28 @@ GH-1250 does not run Spot canary, does not read production secret, does not conn
 GH-1270 rejects current-facing stale v0.20.0 publication wording such as publication pending, missing tag, missing GitHub Release, or current no-tag / no-release statements. #1250 historical construction closeout evidence remains allowed only when paired with the current v0.20.0 release facts: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`, `7f84999e8e4071fb71fdc802f895de81303bbcfd`, `2026-06-30T16:55:24Z`.
 
 GH-1270 does not move `v0.20.0` tag, does not overwrite GitHub Release, does not create `v0.20.1` tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
+
+## GH-1271-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
+
+`GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`
+
+`TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`
+
+`V0201-003-PUBLIC-MARKET-PROBE-CLASSIFICATION-EVIDENCE`
+
+`V0201-003-SIGNED-ACCOUNT-READINESS-INTENT-EVIDENCE`
+
+`V0201-003-NOT-LIVE-TRANSPORT-PROOF`
+
+`V0201-003-NO-ACCOUNT-PAYLOAD-RETRIEVAL`
+
+`V0201-003-NO-ENDPOINT-CONNECTION`
+
+`V0201-003-NO-PRODUCTION-CUTOVER`
+
+GH-1271 clarifies public-market probe as classification evidence and signed-account readiness as intent evidence. GH-1243 is not live transport proof；GH-1244 is not account access proof or account payload retrieval. This guard prevents release docs from representing v0.20.0 production-shadow readiness as live endpoint connection, secret read, signed account payload retrieval, canary readiness or production cutover.
+
+GH-1271 does not move `v0.20.0` tag, does not overwrite GitHub Release, does not create `v0.20.1` tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
 
 ## V080-002-V070-ACTUAL-GITHUB-RELEASE
 

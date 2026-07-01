@@ -64,6 +64,8 @@ v0.20.0 stage audit / release docs closeout anchor：`GH-1250-VERIFY-V0200-STAGE
 
 该目标修正只更新路线方向，不授权 production trading、不读取 production secret、不连接 production endpoint / broker endpoint、不创建 OKX active source 或 order path。
 
+GH-1271 uses `GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`、`TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`、`V0201-003-PUBLIC-MARKET-PROBE-CLASSIFICATION-EVIDENCE`、`V0201-003-SIGNED-ACCOUNT-READINESS-INTENT-EVIDENCE`、`V0201-003-NOT-LIVE-TRANSPORT-PROOF`、`V0201-003-NO-ACCOUNT-PAYLOAD-RETRIEVAL`、`V0201-003-NO-ENDPOINT-CONNECTION` 和 `V0201-003-NO-PRODUCTION-CUTOVER` to clarify v0.20.0 production-shadow semantics: public-market probe pass is classification evidence, not live transport proof；signed-account readiness pass is intent evidence, not account access proof or account payload retrieval；no endpoint connection and no production cutover authorization.
+
 ## Roadmap Responsibility / 路线职责
 
 `docs/roadmap.md` 只回答四个问题：

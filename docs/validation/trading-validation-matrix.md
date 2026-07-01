@@ -20,6 +20,21 @@
 - Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0` / `7f84999e8e4071fb71fdc802f895de81303bbcfd` / `2026-06-30T16:55:24Z`。
 - Boundary: current-facing stale v0.20.0 publication wording must fail；#1250 historical construction closeout evidence remains allowed only when paired with current release facts. No tag movement, no release overwrite, no v0.20.1 publication, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover authorization.
 
+## TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
+
+- TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
+- GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
+- V0201-003-PUBLIC-MARKET-PROBE-CLASSIFICATION-EVIDENCE
+- V0201-003-SIGNED-ACCOUNT-READINESS-INTENT-EVIDENCE
+- V0201-003-NOT-LIVE-TRANSPORT-PROOF
+- V0201-003-NO-ACCOUNT-PAYLOAD-RETRIEVAL
+- V0201-003-NO-ENDPOINT-CONNECTION
+- V0201-003-NO-PRODUCTION-CUTOVER
+- GH-1271 Release v0.20.1 Public Probe Classification Evidence
+- `bash checks/verify-v0.20.1-v0200-probe-classification-evidence.sh`
+- `swift test --filter TargetGraphTests/testGH1271ReleaseV0201PublicProbeClassificationEvidenceGuard`
+- Boundary: GH-1243 public-market probe is classification evidence, not live transport proof. GH-1244 signed-account readiness is intent evidence, not account access proof or account payload retrieval. No endpoint connection, no secret read, no submit / cancel / replace and no production cutover authorization.
+
 ## TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS
 
 - TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS

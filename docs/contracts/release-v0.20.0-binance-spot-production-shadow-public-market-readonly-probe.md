@@ -27,6 +27,10 @@ GH-1243 只固定 Binance Spot `productionShadow` public market read-only probe 
 - 对 `/api/v3/time`、`/api/v3/exchangeInfo`、`/api/v3/ticker/price`、`/api/v3/depth` 的 read-only probe 结果做 deterministic classification。
 - response evidence 只能保存 status code、classification 和 `<not-persisted>` 摘要，不能保存 raw response payload。
 
+## V0201-003 Classification Evidence Clarification
+
+GH-1271 使用 `GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`、`TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`、`V0201-003-PUBLIC-MARKET-PROBE-CLASSIFICATION-EVIDENCE`、`V0201-003-SIGNED-ACCOUNT-READINESS-INTENT-EVIDENCE`、`V0201-003-NOT-LIVE-TRANSPORT-PROOF`、`V0201-003-NO-ACCOUNT-PAYLOAD-RETRIEVAL`、`V0201-003-NO-ENDPOINT-CONNECTION` 和 `V0201-003-NO-PRODUCTION-CUTOVER` 明确：GH-1243 只记录 public-market response classification / readiness evidence。它不是 live transport proof，不是 account access proof，不读取 credential，不访问 signed account endpoint，不保存 raw response payload，不连接 production endpoint / broker endpoint，也不授权 production cutover。
+
 ## 非目标
 
 GH-1243 不实现以下能力：
@@ -56,4 +60,4 @@ Probe observation 的分类集合固定为：
 
 ## Boundary
 
-GH-1243 是 read-only public market readiness evidence。production trading 默认关闭；production cutover not authorized；不会读取 production secret；不会连接 broker endpoint；不会触达 signed/account/trading endpoint；不会发送真实订单或 testnet order。
+GH-1243 是 read-only public market readiness evidence 和 response classification evidence，不是 live transport proof 或 account access proof。production trading 默认关闭；production cutover not authorized；不会读取 production secret；不会连接 production endpoint / broker endpoint；不会触达 signed/account/trading endpoint；不会进行 account payload retrieval；不会发送真实订单或 testnet order。
