@@ -62368,6 +62368,121 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(automationScript.contains("checks/verify-v0.20.1-v0200-probe-classification-evidence.sh"))
     }
 
+    func testGH1272ReleaseV0201PatchAuditReleaseNotesCloseout() throws {
+        // 测试场景：GH-1272 收口 v0.20.1 patch audit、release notes、
+        // validation matrix 和 no-capability-change publication guidance。
+        // 验证目的：聚合 guard 必须覆盖 #1269..#1272、PR #1287..#1289、
+        // v0.20.0 已发布事实、probe classification evidence、signed-account intent
+        // evidence，以及不创建 tag / GitHub Release 的 closeout 边界。
+        // GH-1272-VERIFY-V0201-PATCH-AUDIT-RELEASE-NOTES
+        // TVM-RELEASE-V0201-PATCH-AUDIT-RELEASE-NOTES
+        // V0201-004-AGGREGATE-GUARD
+        // V0201-004-PATCH-AUDIT
+        // V0201-004-RELEASE-NOTES
+        // V0201-004-VALIDATION-MATRIX
+        // V0201-004-NO-CAPABILITY-CHANGE
+        // V0201-004-V0210-DOWNSTREAM-CANARY-HANDOFF
+        // V0201-004-NO-PRODUCTION-CUTOVER
+        // V0201-004-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1272-VERIFY-V0201-PATCH-AUDIT-RELEASE-NOTES",
+            "TVM-RELEASE-V0201-PATCH-AUDIT-RELEASE-NOTES",
+            "V0201-004-AGGREGATE-GUARD",
+            "V0201-004-PATCH-AUDIT",
+            "V0201-004-RELEASE-NOTES",
+            "V0201-004-VALIDATION-MATRIX",
+            "V0201-004-NO-CAPABILITY-CHANGE",
+            "V0201-004-V0210-DOWNSTREAM-CANARY-HANDOFF",
+            "V0201-004-NO-PRODUCTION-CUTOVER",
+            "V0201-004-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.20.1-publication-fact-sync-patch-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.20.1-publication-fact-sync-patch-notes.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "verification.md",
+            "checks/verify-v0.20.1.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let audit = try read("docs/audit/mtpro-release-v0.20.1-publication-fact-sync-patch-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.20.1-publication-fact-sync-patch-notes.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let verification = try read("verification.md")
+        let verifier = try read("checks/verify-v0.20.1.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        for source in [audit, notes, latest, policy] {
+            for issue in ["#1269", "#1270", "#1271", "#1272"] {
+                XCTAssertTrue(source.contains(issue), "\(issue) must be represented in v0.20.1 patch closeout evidence")
+            }
+            for pullRequest in ["#1287", "#1288", "#1289"] {
+                XCTAssertTrue(source.contains(pullRequest), "\(pullRequest) must be represented in v0.20.1 patch closeout evidence")
+            }
+            XCTAssertTrue(source.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0"))
+            XCTAssertTrue(source.contains("7f84999e8e4071fb71fdc802f895de81303bbcfd"))
+            XCTAssertTrue(source.contains("2026-06-30T16:55:24Z"))
+            XCTAssertTrue(source.contains("classification evidence"))
+            XCTAssertTrue(source.contains("live transport proof"))
+            XCTAssertTrue(source.contains("account access proof"))
+            XCTAssertTrue(source.contains("account payload retrieval"))
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+        }
+
+        XCTAssertTrue(audit.contains("Issue Completion Evidence"))
+        XCTAssertTrue(audit.contains("Boundary Audit"))
+        XCTAssertTrue(audit.contains("Validation Summary"))
+        XCTAssertTrue(audit.contains("Residual Risk"))
+        XCTAssertTrue(audit.contains("Next Handoff"))
+        XCTAssertTrue(notes.contains("v0.21.0 Spot canary is downstream only"))
+        XCTAssertTrue(readiness.contains("Release v0.20.1 patch audit / release notes anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1272 Release v0.20.1 Patch Audit / Release Notes Closeout"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0201-PATCH-AUDIT-RELEASE-NOTES"))
+        XCTAssertTrue(policy.contains("GH-1272 closes the v0.20.1 patch audit"))
+        XCTAssertTrue(verification.contains("bash checks/verify-v0.20.1.sh"))
+        XCTAssertTrue(verifier.contains("bash checks/verify-v0.20.1-v0200-stale-wording-guard.sh"))
+        XCTAssertTrue(verifier.contains("bash checks/verify-v0.20.1-v0200-probe-classification-evidence.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1272ReleaseV0201PatchAuditReleaseNotesCloseout"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.1.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.1.sh"))
+
+        for source in [audit, notes, policy] {
+            for forbidden in [
+                "productionCutoverAuthorized=true",
+                "productionSecretRead=true",
+                "productionEndpointConnected=true",
+                "productionBrokerConnected=true",
+                "productionOrderSubmitted=true",
+                "v0.21.0 canary started"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of v0.20.1 patch closeout")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
