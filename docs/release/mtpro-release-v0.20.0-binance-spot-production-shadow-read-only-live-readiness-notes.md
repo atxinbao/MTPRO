@@ -10,7 +10,7 @@
 
 GH-1250 使用 `GH-1250-VERIFY-V0200-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS`、`V0200-012-STAGE-CODE-AUDIT`、`V0200-012-RELEASE-NOTES`、`V0200-012-VALIDATION-MATRIX`、`V0200-012-ROOT-DOCS-REFRESH`、`V0200-012-STALE-WORDING-GUARD`、`V0200-012-RELEASE-PUBLICATION-GATE-HANDOFF`、`V0200-012-NO-PRODUCTION-CUTOVER` 和 `V0200-012-NO-TAG-OR-RELEASE-PUBLICATION` 收口 Stage Code Audit、release notes、validation matrix、root docs refresh、stale wording guard 和 release publication gate handoff。
 
-#1250 是 construction closeout：它不创建 `v0.20.0` tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。v0.20.0 public release publication 必须在 #1250 PR merge、required `checks` SUCCESS、clean main、open PR = 0、open active issue = 0、worktree clean 和完整 validation evidence 重新确认后，由独立 Release Publication Gate 执行。
+#1250 是 historical construction closeout：它在 construction closeout 当时不创建 `v0.20.0` tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。后续独立 Release Publication Gate 已发布 `v0.20.0` stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`，tag peeled commit `7f84999e8e4071fb71fdc802f895de81303bbcfd`，publication timestamp `2026-06-30T16:55:24Z`。该 publication 不授权 Spot canary、production cutover、production secret read、production endpoint / broker endpoint connection 或 submit / cancel / replace order。
 
 ## Issue Evidence
 
@@ -40,6 +40,7 @@ GH-1250 使用 `GH-1250-VERIFY-V0200-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0
 - PR #1265：Add v0.20.0 risk no-trade readiness guard。
 - PR #1266：Add v0.20.0 read-only live readiness surface。
 - PR #1267：Add v0.20.0 aggregate validation suite。
+- PR #1268：Close v0.20.0 stage audit and release docs，mergedAt `2026-06-30T16:52:45Z`，merge commit `7f84999e8e4071fb71fdc802f895de81303bbcfd`，required check `checks` SUCCESS。
 
 All listed PRs are merged and their required GitHub check `checks` is SUCCESS. The #1250 closeout PR validation is the final authority for this release docs closeout.
 
@@ -91,9 +92,11 @@ bash checks/run.sh
 
 - `release/v0.20.0` construction queue `#1239..#1250` is complete / closed / done after #1250 merge.
 - #1250 is construction closeout only.
-- #1250 does not create the `v0.20.0` tag.
-- #1250 does not create GitHub Release.
-- Publication remains an independent Release Publication Gate after #1250 merge and clean-state validation.
+- #1250 did not create the `v0.20.0` tag during historical construction closeout.
+- #1250 did not create GitHub Release during historical construction closeout.
+- The later independent Release Publication Gate has published `v0.20.0` as a stable GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`.
+- `v0.20.0` tag peeled commit is `7f84999e8e4071fb71fdc802f895de81303bbcfd`; publication timestamp is `2026-06-30T16:55:24Z`.
+- Release publication gate evidence at tag time: `main == origin/main == 7f84999e8e4071fb71fdc802f895de81303bbcfd`, open PR = 0, open issue = 0, open `todo / in-progress / in-review` issue = 0, worktree clean.
 - v0.20.0 is Binance Spot production-shadow / read-only live readiness only.
 - Spot controlled production canary remains future gated to v0.21.0 and requires explicit Human approval.
 - production trading remains disabled by default.
