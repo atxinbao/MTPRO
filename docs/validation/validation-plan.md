@@ -47,6 +47,23 @@
 - Focused test: `swift test --filter TargetGraphTests/testGH1271ReleaseV0201PublicProbeClassificationEvidenceGuard`
 - Boundary: GH-1271 clarifies public-market probe as classification evidence and signed-account readiness as intent evidence. These are not live transport proof, account access proof or account payload retrieval. GH-1271 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不移动 tag，不创建 GitHub Release，不授权 production cutover。production cutover not authorized。
 
+## GH-1272 Release v0.20.1 Patch Audit / Release Notes Closeout
+
+- GH-1272-VERIFY-V0201-PATCH-AUDIT-RELEASE-NOTES
+- TVM-RELEASE-V0201-PATCH-AUDIT-RELEASE-NOTES
+- V0201-004-AGGREGATE-GUARD
+- V0201-004-PATCH-AUDIT
+- V0201-004-RELEASE-NOTES
+- V0201-004-VALIDATION-MATRIX
+- V0201-004-NO-CAPABILITY-CHANGE
+- V0201-004-V0210-DOWNSTREAM-CANARY-HANDOFF
+- V0201-004-NO-PRODUCTION-CUTOVER
+- V0201-004-NO-TAG-OR-RELEASE-PUBLICATION
+- Focused verifier: `bash checks/verify-v0.20.1.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1272ReleaseV0201PatchAuditReleaseNotesCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.20.1-publication-fact-sync-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.20.1-publication-fact-sync-patch-notes.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/release/release-publication-policy.md`、`verification.md`、`checks/verify-v0.20.1.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1272 只收口 #1269..#1272 patch audit、release notes、validation matrix 和 no-capability-change publication guidance。v0.21.0 Spot canary is downstream only。GH-1272 不创建 / 移动 / 重写 tag 或 GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不进行 account payload retrieval，不发送 submit / cancel / replace，不授权 production cutover。production cutover not authorized。
+
 ## GH-1239 Release v0.20.0 Production-shadow Read-only Live Readiness Contract
 
 - GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT

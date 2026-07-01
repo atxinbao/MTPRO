@@ -35,6 +35,23 @@
 - `swift test --filter TargetGraphTests/testGH1271ReleaseV0201PublicProbeClassificationEvidenceGuard`
 - Boundary: GH-1243 public-market probe is classification evidence, not live transport proof. GH-1244 signed-account readiness is intent evidence, not account access proof or account payload retrieval. No endpoint connection, no secret read, no submit / cancel / replace and no production cutover authorization.
 
+## TVM-RELEASE-V0201-PATCH-AUDIT-RELEASE-NOTES
+
+- TVM-RELEASE-V0201-PATCH-AUDIT-RELEASE-NOTES
+- GH-1272-VERIFY-V0201-PATCH-AUDIT-RELEASE-NOTES
+- V0201-004-AGGREGATE-GUARD
+- V0201-004-PATCH-AUDIT
+- V0201-004-RELEASE-NOTES
+- V0201-004-VALIDATION-MATRIX
+- V0201-004-NO-CAPABILITY-CHANGE
+- V0201-004-V0210-DOWNSTREAM-CANARY-HANDOFF
+- V0201-004-NO-PRODUCTION-CUTOVER
+- V0201-004-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1272 Release v0.20.1 Patch Audit / Release Notes Closeout
+- `bash checks/verify-v0.20.1.sh`
+- `swift test --filter TargetGraphTests/testGH1272ReleaseV0201PatchAuditReleaseNotesCloseout`
+- Boundary: #1269..#1272 patch audit / release notes / validation matrix closeout only. v0.21.0 Spot canary is downstream only. No tag movement, no release overwrite, no v0.20.1 publication inside closeout, no production secret read, no production endpoint / broker endpoint connection, no account payload retrieval, no submit / cancel / replace and no production cutover authorization.
+
 ## TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS
 
 - TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS

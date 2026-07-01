@@ -35,6 +35,7 @@
 - `GH-1250 V0200-012 Close v0.20.0 stage audit and release docs`
 - `GH-1270 V0201-002 Add stale wording guard for published v0.20.0 docs`
 - `GH-1271 V0201-003 Clarify public-market probe classification evidence`
+- `GH-1272 V0201-004 Close v0.20.1 patch audit and release notes`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -140,6 +141,34 @@ GH-1270 does not move `v0.20.0` tag, does not overwrite GitHub Release, does not
 GH-1271 clarifies public-market probe as classification evidence and signed-account readiness as intent evidence. GH-1243 is not live transport proof；GH-1244 is not account access proof or account payload retrieval. This guard prevents release docs from representing v0.20.0 production-shadow readiness as live endpoint connection, secret read, signed account payload retrieval, canary readiness or production cutover.
 
 GH-1271 does not move `v0.20.0` tag, does not overwrite GitHub Release, does not create `v0.20.1` tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
+
+## GH-1272-V0201-PATCH-AUDIT-RELEASE-NOTES
+
+`GH-1272-VERIFY-V0201-PATCH-AUDIT-RELEASE-NOTES`
+
+`TVM-RELEASE-V0201-PATCH-AUDIT-RELEASE-NOTES`
+
+`V0201-004-AGGREGATE-GUARD`
+
+`V0201-004-PATCH-AUDIT`
+
+`V0201-004-RELEASE-NOTES`
+
+`V0201-004-VALIDATION-MATRIX`
+
+`V0201-004-NO-CAPABILITY-CHANGE`
+
+`V0201-004-V0210-DOWNSTREAM-CANARY-HANDOFF`
+
+`V0201-004-NO-PRODUCTION-CUTOVER`
+
+`V0201-004-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1272 closes the v0.20.1 patch audit, release notes, validation matrix and no-capability-change publication guidance for #1269, #1270, #1271 and #1272 and PR #1287, PR #1288 and PR #1289. It confirms v0.20.0 stable GitHub Release facts (`https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`, `7f84999e8e4071fb71fdc802f895de81303bbcfd`, `2026-06-30T16:55:24Z`), the v0.20.1 stale wording guard, public probe classification evidence, signed-account readiness intent evidence and production cutover boundary. GH-1243 remains classification evidence, not live transport proof；GH-1244 remains intent evidence, not account access proof or account payload retrieval.
+
+#1272 construction closeout does not create the `v0.20.1` tag or GitHub Release. Publication remains an independent Release Publication Gate after #1272 PR merge, required `checks` SUCCESS, clean `main`, open PR = 0, open active issue = 0, worktree clean and validation evidence are reconfirmed.
+
+GH-1272 does not move `v0.20.0` tag, does not overwrite GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not retrieve account payload, does not submit / cancel / replace production order and does not authorize production cutover. v0.21.0 Spot canary is downstream only. production cutover not authorized.
 
 ## V080-002-V070-ACTUAL-GITHUB-RELEASE
 
