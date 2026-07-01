@@ -70,6 +70,8 @@ GH-1272 uses `GH-1272-VERIFY-V0201-PATCH-AUDIT-RELEASE-NOTES`、`TVM-RELEASE-V02
 
 GH-1273 uses `GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT`、`TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT`、`V0210-001-V0201-PREFLIGHT-GATE`、`V0210-001-BINANCE-SPOT-CONTROLLED-CANARY`、`V0210-001-HUMAN-APPROVAL-REQUIRED`、`V0210-001-SYMBOL-ALLOWLIST-SIZE-CAPS`、`V0210-001-RISK-KILL-NO-TRADE-GATES`、`V0210-001-QUEUE-ORDER` 和 `V0210-001-NO-PRODUCTION-CUTOVER` to define the first v0.21.0 controlled canary contract. It keeps the queue ordered as GH-1273..GH-1286, gates execution to Human-approved Binance Spot only, requires symbol allowlist、notional / exposure size caps、RiskEngine / kill switch / no-trade gates, and does not read production secret, connect production endpoint / broker endpoint, submit / cancel / replace orders, create tag / GitHub Release, or authorize production cutover.
 
+GH-1274 uses `GH-1274-VERIFY-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE`、`TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE`、`V0210-002-BINANCE-SPOT-CANARY-PROFILE`、`V0210-002-DEFAULT-OFF-FAIL-CLOSED`、`V0210-002-OPERATOR-OPT-IN-EVIDENCE`、`V0210-002-NO-SECRET-ENDPOINT-ORDER` 和 `V0210-002-NO-PRODUCTION-CUTOVER` to define the Binance Spot canary environment profile. The profile represents productionLive identity only, stays default-off fail-closed, requires explicit Human operator opt-in evidence, and does not read production secret, connect production endpoint / broker endpoint, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
+
 ## Roadmap Responsibility / 路线职责
 
 `docs/roadmap.md` 只回答四个问题：

@@ -95,6 +95,8 @@ OKX Spot / Swap 的 active implementation 和 issue execution 必须排在 Binan
 
 v0.21.0 controlled canary contract anchor：GH-1273 使用 `GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT`、`TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT`、`V0210-001-V0201-PREFLIGHT-GATE`、`V0210-001-BINANCE-SPOT-CONTROLLED-CANARY`、`V0210-001-HUMAN-APPROVAL-REQUIRED`、`V0210-001-SYMBOL-ALLOWLIST-SIZE-CAPS`、`V0210-001-RISK-KILL-NO-TRADE-GATES`、`V0210-001-QUEUE-ORDER` 和 `V0210-001-NO-PRODUCTION-CUTOVER` 把 controlled production canary 固定为 Binance Spot only、Human approval required、symbol allowlist / size cap required、risk / kill switch / no-trade gate required 的合同面。GH-1273 仍是 contract-only：不读取 production secret，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不发送 submit / cancel / replace，不创建 tag / GitHub Release，不授权 production cutover。
 
+v0.21.0 spot canary environment profile anchor：GH-1274 使用 `GH-1274-VERIFY-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE`、`TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE`、`V0210-002-BINANCE-SPOT-CANARY-PROFILE`、`V0210-002-DEFAULT-OFF-FAIL-CLOSED`、`V0210-002-OPERATOR-OPT-IN-EVIDENCE`、`V0210-002-NO-SECRET-ENDPOINT-ORDER` 和 `V0210-002-NO-PRODUCTION-CUTOVER` 把 Binance Spot canary environment profile 固定为 productionLive identity only、default-off fail-closed 和 Human operator opt-in evidence required。GH-1274 不读取 production secret，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不发送 submit / cancel / replace，不创建 tag / GitHub Release，不授权 production cutover。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |

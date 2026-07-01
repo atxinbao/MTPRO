@@ -62701,6 +62701,199 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1274ReleaseV0210SpotCanaryEnvironmentProfile() throws {
+        // 测试场景：GH-1274 定义 v0.21.0 Binance Spot canary environment profile。
+        // 验证目的：profile 只能表达 productionLive identity、default-off fail-closed
+        // 和显式 Human operator opt-in evidence；不得读取 secret、连接 endpoint 或下单。
+        // GH-1274-VERIFY-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE
+        // TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE
+        // V0210-002-BINANCE-SPOT-CANARY-PROFILE
+        // V0210-002-DEFAULT-OFF-FAIL-CLOSED
+        // V0210-002-OPERATOR-OPT-IN-EVIDENCE
+        // V0210-002-NO-SECRET-ENDPOINT-ORDER
+        // V0210-002-NO-PRODUCTION-CUTOVER
+        let profile = try ReleaseV0210SpotCanaryEnvironmentProfile.deterministicFixture()
+
+        XCTAssertTrue(profile.profileHeld)
+        XCTAssertTrue(profile.namespaceHeld)
+        XCTAssertTrue(profile.environmentIntentHeld)
+        XCTAssertTrue(profile.operatorOptInGateHeld)
+        XCTAssertTrue(profile.activationDefaultsClosed)
+        XCTAssertTrue(profile.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(profile.issueID.rawValue, "GH-1274")
+        XCTAssertEqual(profile.upstreamIssueID.rawValue, "GH-1273")
+        XCTAssertEqual(profile.downstreamIssueID.rawValue, "GH-1275")
+        XCTAssertEqual(profile.canonicalQueueRange, "GH-1273..GH-1286")
+        XCTAssertEqual(profile.projectName, "MTPRO Release v0.21.0 Binance Spot Controlled Production Canary")
+        XCTAssertEqual(profile.releaseVersion, "v0.21.0")
+        XCTAssertEqual(profile.venueID, .binance)
+        XCTAssertEqual(profile.productKind, .spot)
+        XCTAssertEqual(profile.tradingEnvironment, .productionLive)
+        XCTAssertEqual(profile.profileModes, ReleaseV0210SpotCanaryEnvironmentProfileMode.allCases)
+        XCTAssertEqual(profile.activationState, .defaultOffAwaitingOperatorOptInEvidence)
+        XCTAssertEqual(profile.requirements, ReleaseV0210SpotCanaryEnvironmentRequirement.allCases)
+        XCTAssertEqual(profile.forbiddenCapabilities, ReleaseV0210SpotCanaryEnvironmentForbiddenCapability.allCases)
+        XCTAssertTrue(profile.upstreamCanaryContractHeld)
+        XCTAssertTrue(profile.operatorOptInEvidenceRequired)
+        XCTAssertFalse(profile.operatorOptInEvidencePresent)
+        XCTAssertTrue(profile.operatorOptInEvidenceRedacted)
+        XCTAssertFalse(profile.canaryActivationRequested)
+        XCTAssertFalse(profile.canaryActivationEnabled)
+        XCTAssertTrue(profile.defaultFailClosed)
+        XCTAssertFalse(profile.productionTradingEnabledByDefault)
+        XCTAssertFalse(profile.credentialSecretReadEnabled)
+        XCTAssertFalse(profile.productionSecretValueStored)
+        XCTAssertFalse(profile.productionEndpointConnectionEnabled)
+        XCTAssertFalse(profile.signedAccountEndpointRuntimeEnabled)
+        XCTAssertFalse(profile.privateStreamRuntimeEnabled)
+        XCTAssertFalse(profile.productionBrokerConnectionEnabled)
+        XCTAssertFalse(profile.orderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(profile.dashboardTradingButtonEnabled)
+        XCTAssertFalse(profile.orderFormEnabled)
+        XCTAssertFalse(profile.liveCommandEnabled)
+        XCTAssertFalse(profile.futuresRuntimeEnabled)
+        XCTAssertFalse(profile.okxActiveImplementationEnabled)
+        XCTAssertFalse(profile.productionCutoverAuthorized)
+        XCTAssertFalse(profile.createsTagOrRelease)
+
+        let anchors = [
+            "GH-1274-VERIFY-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE",
+            "TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE",
+            "V0210-002-BINANCE-SPOT-CANARY-PROFILE",
+            "V0210-002-DEFAULT-OFF-FAIL-CLOSED",
+            "V0210-002-OPERATOR-OPT-IN-EVIDENCE",
+            "V0210-002-NO-SECRET-ENDPOINT-ORDER",
+            "V0210-002-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(profile.validationAnchors, anchors)
+        XCTAssertTrue(profile.requiredValidationCommands.contains(
+            "swift test --filter TargetGraphTests/testGH1274ReleaseV0210SpotCanaryEnvironmentProfile"
+        ))
+        XCTAssertTrue(profile.requiredValidationCommands.contains(
+            "bash checks/verify-v0.21.0-spot-canary-environment-profile.sh"
+        ))
+
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(
+            upstreamIssueID: Identifier.constant("GH-1272")
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(productKind: .usdmFutures))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(tradingEnvironment: .productionShadow))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(upstreamCanaryContractHeld: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(operatorOptInEvidenceRequired: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(operatorOptInEvidenceRedacted: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(defaultFailClosed: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(
+            operatorOptInEvidencePresent: false,
+            canaryActivationRequested: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(canaryActivationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(productionTradingEnabledByDefault: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(credentialSecretReadEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(productionEndpointConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(signedAccountEndpointRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(privateStreamRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(productionBrokerConnectionEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(orderSubmitCancelReplaceEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(futuresRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(okxActiveImplementationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryEnvironmentProfile(createsTagOrRelease: true))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryEnvironmentProfile.swift",
+            "docs/contracts/release-v0.21.0-binance-spot-canary-environment-profile.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.21.0-spot-canary-environment-profile.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let fileSource = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(fileSource.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let profileSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryEnvironmentProfile.swift")
+        let profileDocument = try read("docs/contracts/release-v0.21.0-binance-spot-canary-environment-profile.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.21.0-spot-canary-environment-profile.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(profileSource.contains("ReleaseV0210SpotCanaryEnvironmentProfile"))
+        XCTAssertTrue(profileSource.contains("GH-1273..GH-1286"))
+        XCTAssertTrue(profileSource.contains("ReleaseV0181TradingEnvironment.productionLive"))
+        XCTAssertTrue(profileSource.contains("operatorOptInEvidenceRequired"))
+        XCTAssertTrue(profileSource.contains("defaultFailClosed"))
+        XCTAssertTrue(profileSource.contains("canaryActivationEnabled == false"))
+        XCTAssertTrue(profileSource.contains("credentialSecretReadEnabled == false"))
+        XCTAssertTrue(profileSource.contains("productionEndpointConnectionEnabled == false"))
+        XCTAssertTrue(profileSource.contains("orderSubmitCancelReplaceEnabled == false"))
+        XCTAssertTrue(profileSource.contains("productionCutoverAuthorized == false"))
+
+        XCTAssertTrue(profileDocument.contains("GH-1274"))
+        XCTAssertTrue(profileDocument.contains("GH-1275"))
+        XCTAssertTrue(profileDocument.contains("Human operator opt-in evidence"))
+        XCTAssertTrue(profileDocument.contains("default-off fail-closed"))
+        XCTAssertTrue(profileDocument.contains("does not read production secret"))
+        XCTAssertTrue(profileDocument.contains("does not connect"))
+        XCTAssertTrue(profileDocument.contains("does not submit / cancel / replace"))
+        XCTAssertTrue(readiness.contains("Release v0.21.0 spot canary environment profile anchor"))
+        XCTAssertTrue(latest.contains("v0.21.0 spot canary environment profile"))
+        XCTAssertTrue(plan.contains("GH-1274 Release v0.21.0 Spot Canary Environment Profile"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1274ReleaseV0210SpotCanaryEnvironmentProfile"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.0-spot-canary-environment-profile.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.0-spot-canary-environment-profile.sh"))
+
+        for checkedSource in [
+            profileSource,
+            profileDocument,
+            readiness,
+            latest,
+            plan,
+            matrix,
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "credentialSecretReadEnabled=true",
+                "productionSecretReadEnabled=true",
+                "productionEndpointConnectionEnabled=true",
+                "signedAccountEndpointRuntimeEnabled=true",
+                "privateStreamRuntimeEnabled=true",
+                "productionBrokerConnectionEnabled=true",
+                "orderSubmitCancelReplaceEnabled=true",
+                "canaryActivationEnabled=true",
+                "productionCutoverAuthorized=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(checkedSource.contains(forbidden), "\(forbidden) must stay out of GH-1274 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
