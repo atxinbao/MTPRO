@@ -33,6 +33,20 @@
 - Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0` / `7f84999e8e4071fb71fdc802f895de81303bbcfd` / `2026-06-30T16:55:24Z`。
 - Boundary: GH-1270 rejects current-facing stale v0.20.0 publication wording such as pending publication, missing tag or missing GitHub Release. #1250 historical construction closeout evidence remains allowed only when paired with the current v0.20.0 release facts. GH-1270 不移动 tag，不覆盖 GitHub Release，不创建 v0.20.1 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不授权 production cutover。production cutover not authorized。
 
+## GH-1271 Release v0.20.1 Public Probe Classification Evidence
+
+- GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
+- TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
+- V0201-003-PUBLIC-MARKET-PROBE-CLASSIFICATION-EVIDENCE
+- V0201-003-SIGNED-ACCOUNT-READINESS-INTENT-EVIDENCE
+- V0201-003-NOT-LIVE-TRANSPORT-PROOF
+- V0201-003-NO-ACCOUNT-PAYLOAD-RETRIEVAL
+- V0201-003-NO-ENDPOINT-CONNECTION
+- V0201-003-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.20.1-v0200-probe-classification-evidence.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1271ReleaseV0201PublicProbeClassificationEvidenceGuard`
+- Boundary: GH-1271 clarifies public-market probe as classification evidence and signed-account readiness as intent evidence. These are not live transport proof, account access proof or account payload retrieval. GH-1271 不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不移动 tag，不创建 GitHub Release，不授权 production cutover。production cutover not authorized。
+
 ## GH-1239 Release v0.20.0 Production-shadow Read-only Live Readiness Contract
 
 - GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT

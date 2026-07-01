@@ -71,6 +71,8 @@ Dashboard / CLI 只能展示 read-only readiness evidence，不得提供 trading
 
 Spot controlled canary 最早属于 v0.21.0，不属于 v0.20.0。v0.20.0 的任何 readiness pass、public market probe pass、credential reference pass、signed account readiness pass、Risk / Kill Switch / No-trade pass 或 Dashboard / CLI read-only evidence，都不得被解释为 Spot canary、production order authorization 或 production cutover。
 
+GH-1271 使用 `GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`、`TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`、`V0201-003-PUBLIC-MARKET-PROBE-CLASSIFICATION-EVIDENCE`、`V0201-003-SIGNED-ACCOUNT-READINESS-INTENT-EVIDENCE`、`V0201-003-NOT-LIVE-TRANSPORT-PROOF`、`V0201-003-NO-ACCOUNT-PAYLOAD-RETRIEVAL`、`V0201-003-NO-ENDPOINT-CONNECTION` 和 `V0201-003-NO-PRODUCTION-CUTOVER` 固定该解释边界：public market probe pass 只是 response classification evidence，不是 live transport proof；signed account readiness pass 只是 intent evidence，不是 account access proof 或 account payload retrieval；production cutover not authorized。
+
 ## V0200-001-QUEUE-ORDER
 
 `V0200-001-QUEUE-ORDER`

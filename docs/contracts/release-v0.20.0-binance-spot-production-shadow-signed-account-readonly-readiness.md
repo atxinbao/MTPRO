@@ -28,6 +28,10 @@ GH-1244 只固定 Binance Spot `productionShadow` signed account read-only readi
 - 对 missing / invalid credential reference 保留 fail-closed evidence。
 - account payload evidence 必须保持 `account-payload=<not-accessed>`，不能保存 raw account payload。
 
+## V0201-003 Intent Evidence Clarification
+
+GH-1271 使用 `GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`、`TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`、`V0201-003-PUBLIC-MARKET-PROBE-CLASSIFICATION-EVIDENCE`、`V0201-003-SIGNED-ACCOUNT-READINESS-INTENT-EVIDENCE`、`V0201-003-NOT-LIVE-TRANSPORT-PROOF`、`V0201-003-NO-ACCOUNT-PAYLOAD-RETRIEVAL`、`V0201-003-NO-ENDPOINT-CONNECTION` 和 `V0201-003-NO-PRODUCTION-CUTOVER` 明确：GH-1244 只记录 signed account read-only intent evidence，并依赖 GH-1243 的 public-market classification evidence 已闭合。它不是 signed endpoint runtime，不是 live transport proof，不是 account access proof，不生成 signature，不读取 secret，不触达 `/api/v3/account`，也不进行 account payload retrieval。
+
 ## 非目标
 
 GH-1244 不实现以下能力：
@@ -58,4 +62,4 @@ GH-1244 不实现以下能力：
 
 ## Boundary
 
-GH-1244 是 signed account read-only readiness contract，不是 signed endpoint runtime。production trading 默认关闭；production cutover not authorized；不会读取 production secret；不会连接 production endpoint / broker endpoint；不会触达真实 account endpoint 或 order endpoint；不会发送真实订单或 testnet order。
+GH-1244 是 signed account read-only readiness contract 和 intent evidence，不是 signed endpoint runtime、live transport proof 或 account access proof。production trading 默认关闭；production cutover not authorized；不会读取 production secret；不会连接 production endpoint / broker endpoint；不会触达真实 account endpoint 或 order endpoint；不会进行 account payload retrieval；不会发送真实订单或 testnet order。

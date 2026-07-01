@@ -62250,6 +62250,124 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1271ReleaseV0201PublicProbeClassificationEvidenceGuard() throws {
+        // 测试场景：GH-1271 明确 v0.20.0 public-market probe 和
+        // signed-account readiness 只是 evidence / intent 层，不是 live connectivity proof。
+        // 验证目的：root docs、contract docs、release docs 和 automation guard 必须共同
+        // 保留 classification evidence、intent evidence、not live transport proof 和
+        // no account payload retrieval 的边界锚点。
+        // GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
+        // TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
+        // V0201-003-PUBLIC-MARKET-PROBE-CLASSIFICATION-EVIDENCE
+        // V0201-003-SIGNED-ACCOUNT-READINESS-INTENT-EVIDENCE
+        // V0201-003-NOT-LIVE-TRANSPORT-PROOF
+        // V0201-003-NO-ACCOUNT-PAYLOAD-RETRIEVAL
+        // V0201-003-NO-ENDPOINT-CONNECTION
+        // V0201-003-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE",
+            "TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE",
+            "V0201-003-PUBLIC-MARKET-PROBE-CLASSIFICATION-EVIDENCE",
+            "V0201-003-SIGNED-ACCOUNT-READINESS-INTENT-EVIDENCE",
+            "V0201-003-NOT-LIVE-TRANSPORT-PROOF",
+            "V0201-003-NO-ACCOUNT-PAYLOAD-RETRIEVAL",
+            "V0201-003-NO-ENDPOINT-CONNECTION",
+            "V0201-003-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "docs/release/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-notes.md",
+            "docs/audit/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-stage-code-audit.md",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md",
+            "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md",
+            "verification.md",
+            "checks/verify-v0.20.1-v0200-probe-classification-evidence.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let notes = try read("docs/release/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-notes.md")
+        let audit = try read("docs/audit/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-stage-code-audit.md")
+        let probeContract = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md")
+        let signedContract = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md")
+        let readinessContract = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md")
+        let verification = try read("verification.md")
+        let verifier = try read("checks/verify-v0.20.1-v0200-probe-classification-evidence.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        for source in [
+            readme,
+            goal,
+            blueprint,
+            roadmap,
+            latest,
+            readiness,
+            validationPlan,
+            tradingMatrix,
+            policy,
+            notes,
+            audit,
+            probeContract,
+            signedContract,
+            readinessContract,
+            verification
+        ] {
+            XCTAssertTrue(source.contains("classification evidence"))
+            XCTAssertTrue(source.contains("live transport proof"))
+            XCTAssertTrue(source.contains("account access proof"))
+            XCTAssertTrue(source.contains("account payload retrieval"))
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+            XCTAssertFalse(source.contains("GH-1243 is live transport proof"))
+            XCTAssertFalse(source.contains("public-market probe is live transport proof"))
+            XCTAssertFalse(source.contains("GH-1244 is account access proof"))
+            XCTAssertFalse(source.contains("signed-account readiness is account access proof"))
+            XCTAssertFalse(source.contains("proves live transport"))
+            XCTAssertFalse(source.contains("proves account access"))
+            XCTAssertFalse(source.contains("account payload retrieved"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+        }
+
+        XCTAssertTrue(probeContract.contains("public-market response classification / readiness evidence"))
+        XCTAssertTrue(signedContract.contains("signed account read-only intent evidence"))
+        XCTAssertTrue(readinessContract.contains("public market probe pass 只是 response classification evidence"))
+        XCTAssertTrue(verifier.contains("reject_file_contains"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1271ReleaseV0201PublicProbeClassificationEvidenceGuard"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.20.1-v0200-probe-classification-evidence.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.20.1-v0200-probe-classification-evidence.sh"))
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

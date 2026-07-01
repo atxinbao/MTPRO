@@ -13443,4 +13443,42 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "docs/release/release-publication-policy.md" "GH-1270 rejects current-facing stale v0.20.0 publication wording"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1270ReleaseV0201V0200StaleWordingGuardRejectsCurrentFacingDrift"
 
+for file in \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/audit/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-notes.md" \
+  "docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md" \
+  "docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md" \
+  "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md" \
+  "verification.md" \
+  "checks/verify-v0.20.1-v0200-probe-classification-evidence.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE"
+  require_contains "$file" "TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE"
+  require_contains "$file" "V0201-003-PUBLIC-MARKET-PROBE-CLASSIFICATION-EVIDENCE"
+  require_contains "$file" "V0201-003-SIGNED-ACCOUNT-READINESS-INTENT-EVIDENCE"
+  require_contains "$file" "V0201-003-NOT-LIVE-TRANSPORT-PROOF"
+  require_contains "$file" "V0201-003-NO-ACCOUNT-PAYLOAD-RETRIEVAL"
+  require_contains "$file" "V0201-003-NO-ENDPOINT-CONNECTION"
+  require_contains "$file" "V0201-003-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.20.1-v0200-probe-classification-evidence.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.1-v0200-probe-classification-evidence.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.20.1 probe classification evidence guard anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.20.1 public probe classification evidence"
+require_contains "docs/validation/validation-plan.md" "GH-1271 Release v0.20.1 Public Probe Classification Evidence"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE"
+require_contains "docs/release/release-publication-policy.md" "GH-1271 clarifies public-market probe as classification evidence"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1271ReleaseV0201PublicProbeClassificationEvidenceGuard"
+
 printf 'MTPRO automation readiness checks passed.\n'
