@@ -10,6 +10,8 @@
 
 本 Stage Code Audit 记录 v0.20.0 construction closeout evidence。#1250 construction closeout 当时不创建 `v0.20.0` tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。后续独立 Release Publication Gate 已发布 `v0.20.0` stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`，tag peeled commit `7f84999e8e4071fb71fdc802f895de81303bbcfd`，publication timestamp `2026-06-30T16:55:24Z`。该 publication 不授权 Spot canary、production cutover、production secret read、production endpoint / broker endpoint connection 或 submit / cancel / replace order。
 
+GH-1270 使用 `GH-1270-VERIFY-V0201-V0200-STALE-WORDING-GUARD`、`V0201-002-V0200-STALE-WORDING-GUARD`、`V0201-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`、`TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD`、`V0201-002-CURRENT-FACING-STALE-WORDING-REJECTION` 和 `V0201-002-NO-PRODUCTION-CUTOVER` 固定 v0.20.0 当前发布事实；current-facing stale v0.20.0 publication wording 必须失败，带 release facts 的 #1250 historical construction closeout evidence 允许保留。release fact remains `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0` / `7f84999e8e4071fb71fdc802f895de81303bbcfd` / `2026-06-30T16:55:24Z`；production cutover not authorized。
+
 ## Issue Completion Evidence
 
 - #1239：`GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT`，定义 `release/v0.20.0` queue order、v0.19.1 dependency、Binance Spot production-shadow / read-only live readiness boundary 和 no-order / no-Spot-canary / no-production-cutover baseline。
@@ -54,6 +56,12 @@ The #1250 closeout PR validation is the final authority for this Stage Code Audi
 - `V0200-012-RELEASE-PUBLICATION-GATE-HANDOFF`
 - `V0200-012-NO-PRODUCTION-CUTOVER`
 - `V0200-012-NO-TAG-OR-RELEASE-PUBLICATION`
+- `GH-1270-VERIFY-V0201-V0200-STALE-WORDING-GUARD`
+- `V0201-002-V0200-STALE-WORDING-GUARD`
+- `V0201-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`
+- `TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD`
+- `V0201-002-CURRENT-FACING-STALE-WORDING-REJECTION`
+- `V0201-002-NO-PRODUCTION-CUTOVER`
 
 ## Validation Summary
 

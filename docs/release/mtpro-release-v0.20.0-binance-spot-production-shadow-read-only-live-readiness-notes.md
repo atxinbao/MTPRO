@@ -12,6 +12,8 @@ GH-1250 使用 `GH-1250-VERIFY-V0200-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0
 
 #1250 是 historical construction closeout：它在 construction closeout 当时不创建 `v0.20.0` tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。后续独立 Release Publication Gate 已发布 `v0.20.0` stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`，tag peeled commit `7f84999e8e4071fb71fdc802f895de81303bbcfd`，publication timestamp `2026-06-30T16:55:24Z`。该 publication 不授权 Spot canary、production cutover、production secret read、production endpoint / broker endpoint connection 或 submit / cancel / replace order。
 
+GH-1270 使用 `GH-1270-VERIFY-V0201-V0200-STALE-WORDING-GUARD`、`V0201-002-V0200-STALE-WORDING-GUARD`、`V0201-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`、`TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD`、`V0201-002-CURRENT-FACING-STALE-WORDING-REJECTION` 和 `V0201-002-NO-PRODUCTION-CUTOVER` 拒绝 current-facing stale v0.20.0 publication wording，同时允许带 release facts 的 #1250 historical construction closeout evidence；release fact remains `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0` / `7f84999e8e4071fb71fdc802f895de81303bbcfd` / `2026-06-30T16:55:24Z`；production cutover not authorized。
+
 ## Issue Evidence
 
 - #1239：v0.20.0 production-shadow / read-only live readiness contract。
@@ -67,6 +69,12 @@ All listed PRs are merged and their required GitHub check `checks` is SUCCESS. T
 - `V0200-012-RELEASE-PUBLICATION-GATE-HANDOFF`
 - `V0200-012-NO-PRODUCTION-CUTOVER`
 - `V0200-012-NO-TAG-OR-RELEASE-PUBLICATION`
+- `GH-1270-VERIFY-V0201-V0200-STALE-WORDING-GUARD`
+- `V0201-002-V0200-STALE-WORDING-GUARD`
+- `V0201-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`
+- `TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD`
+- `V0201-002-CURRENT-FACING-STALE-WORDING-REJECTION`
+- `V0201-002-NO-PRODUCTION-CUTOVER`
 
 Focused verifier:
 

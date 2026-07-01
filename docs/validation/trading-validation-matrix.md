@@ -6,6 +6,20 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
+
+- TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
+- GH-1270-VERIFY-V0201-V0200-STALE-WORDING-GUARD
+- V0201-002-V0200-STALE-WORDING-GUARD
+- V0201-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST
+- V0201-002-CURRENT-FACING-STALE-WORDING-REJECTION
+- V0201-002-NO-PRODUCTION-CUTOVER
+- GH-1270 Release v0.20.1 v0.20.0 Stale Wording Guard
+- `bash checks/verify-v0.20.1-v0200-stale-wording-guard.sh`
+- `swift test --filter TargetGraphTests/testGH1270ReleaseV0201V0200StaleWordingGuardRejectsCurrentFacingDrift`
+- Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0` / `7f84999e8e4071fb71fdc802f895de81303bbcfd` / `2026-06-30T16:55:24Z`。
+- Boundary: current-facing stale v0.20.0 publication wording must fail；#1250 historical construction closeout evidence remains allowed only when paired with current release facts. No tag movement, no release overwrite, no v0.20.1 publication, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover authorization.
+
 ## TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS
 
 - TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS

@@ -33,6 +33,7 @@
 - `GH-1234 V191-003 Harden v0.19.0 stale wording guard`
 - `GH-1237 V191-006 Close v0.19.1 patch audit / release notes`
 - `GH-1250 V0200-012 Close v0.20.0 stage audit and release docs`
+- `GH-1270 V0201-002 Add stale wording guard for published v0.20.0 docs`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -95,9 +96,27 @@ GH-1237 does not move `v0.19.0` tag, does not overwrite GitHub Release, does not
 
 GH-1250 closes the v0.20.0 stage audit / release docs for #1239..#1250 and PR #1257..#1267. The closeout documents confirm Binance Spot production-shadow / read-only live readiness evidence, aggregate v0.20.0 verifier coverage and production cutover boundary.
 
-#1250 construction closeout does not create the `v0.20.0` tag or GitHub Release. Publication remains an independent Release Publication Gate after #1250 PR merge, required `checks` SUCCESS, clean `main`, open PR = 0, open active issue = 0, worktree clean and validation evidence are reconfirmed.
+#1250 historical construction closeout did not create the `v0.20.0` tag or GitHub Release at construction closeout time. The later independent Release Publication Gate has published `v0.20.0` as a stable GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`; tag peeled commit `7f84999e8e4071fb71fdc802f895de81303bbcfd`; publication timestamp `2026-06-30T16:55:24Z`. The historical no-tag / no-release wording is not the current v0.20.0 release state.
 
 GH-1250 does not run Spot canary, does not read production secret, does not connect production endpoint / broker endpoint, does not touch account/order endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
+
+## GH-1270-V0201-V0200-STALE-WORDING-GUARD
+
+`GH-1270-VERIFY-V0201-V0200-STALE-WORDING-GUARD`
+
+`V0201-002-V0200-STALE-WORDING-GUARD`
+
+`V0201-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`
+
+`TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD`
+
+`V0201-002-CURRENT-FACING-STALE-WORDING-REJECTION`
+
+`V0201-002-NO-PRODUCTION-CUTOVER`
+
+GH-1270 rejects current-facing stale v0.20.0 publication wording such as publication pending, missing tag, missing GitHub Release, or current no-tag / no-release statements. #1250 historical construction closeout evidence remains allowed only when paired with the current v0.20.0 release facts: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`, `7f84999e8e4071fb71fdc802f895de81303bbcfd`, `2026-06-30T16:55:24Z`.
+
+GH-1270 does not move `v0.20.0` tag, does not overwrite GitHub Release, does not create `v0.20.1` tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
 
 ## V080-002-V070-ACTUAL-GITHUB-RELEASE
 
