@@ -119,6 +119,24 @@
 - Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGate.swift`、`docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md`、`checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1279 wires Binance Spot canary submit-intent evidence through RiskEngine, global kill switch, no-trade, operator approval and GH-1278 hard-limit gates. Any failed condition blocks submit intent and emits audit evidence. It records no bypass path, Dashboard command shortcut, adapter submit attempt, tag / GitHub Release publication, or production cutover authorization.
 
+## TVM-RELEASE-V0210-CONTROLLED-SPOT-CANARY-SUBMIT
+
+- TVM-RELEASE-V0210-CONTROLLED-SPOT-CANARY-SUBMIT
+- GH-1280-VERIFY-V0210-CONTROLLED-SPOT-CANARY-SUBMIT
+- V0210-008-CONTROLLED-SPOT-CANARY-SUBMIT
+- V0210-008-IDEMPOTENCY-KEY
+- V0210-008-AUDIT-EVENT
+- V0210-008-REDACTED-REQUEST-EVIDENCE
+- V0210-008-STRICT-SYMBOL-SIZE-SCOPE
+- V0210-008-SINGLE-APPROVED-ORDER
+- V0210-008-NO-REPEATED-AUTOMATION-LOOP
+- V0210-008-NO-PRODUCTION-CUTOVER
+- GH-1280 Release v0.21.0 Controlled Spot Canary Submit Path
+- `bash checks/verify-v0.21.0-controlled-spot-canary-submit.sh`
+- `swift test --filter TargetGraphTests/testGH1280ReleaseV0210ControlledSpotCanarySubmitPath`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledSpotCanarySubmitPath.swift`、`docs/contracts/release-v0.21.0-controlled-spot-canary-submit-path.md`、`checks/verify-v0.21.0-controlled-spot-canary-submit.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1280 fixes Binance Spot controlled canary submit request evidence after GH-1279 pre-trade acceptance. It requires explicit submit approval, idempotency key, audit event, redacted request evidence, strict symbol / size scope and one approved order only. It records no network submit, repeated automation loop, Dashboard default trading button, Futures / OKX scope, tag / GitHub Release publication, or production cutover authorization.
+
 ## TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
 
 - TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD

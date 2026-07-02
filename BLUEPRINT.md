@@ -107,6 +107,8 @@ v0.21.0 canary hard limits anchor：GH-1278 使用 `GH-1278-VERIFY-V0210-CANARY-
 
 v0.21.0 pre-trade risk / kill switch / no-trade gate anchor：GH-1279 使用 `GH-1279-VERIFY-V0210-PRETRADE-RISK-KILL-NOTRADE`、`TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE`、`V0210-007-RISKENGINE-PRETRADE-GATE`、`V0210-007-GLOBAL-KILL-SWITCH-GATE`、`V0210-007-NO-TRADE-GATE`、`V0210-007-APPROVAL-GATE`、`V0210-007-HARD-LIMIT-GATE`、`V0210-007-AUDIT-EVIDENCE-NO-BYPASS` 和 `V0210-007-NO-PRODUCTION-CUTOVER` 把 Binance Spot canary submit-intent 前置组合 gate 固定为 GH-1278 后的 ExecutionEngine evidence。GH-1279 要求 RiskEngine、global kill switch、no-trade、operator approval 和 GH-1278 hard-limit 全部通过才输出 GH-1280 eligibility；任一失败都输出 rejected audit evidence 且 `adapterSubmitAttempted=false`、`bypassPathAvailable=false`、`dashboardCommandShortcutEnabled=false`、`productionCutoverAuthorized=false`。
 
+v0.21.0 controlled Spot canary submit path anchor：GH-1280 使用 `GH-1280-VERIFY-V0210-CONTROLLED-SPOT-CANARY-SUBMIT`、`TVM-RELEASE-V0210-CONTROLLED-SPOT-CANARY-SUBMIT`、`V0210-008-CONTROLLED-SPOT-CANARY-SUBMIT`、`V0210-008-IDEMPOTENCY-KEY`、`V0210-008-AUDIT-EVENT`、`V0210-008-REDACTED-REQUEST-EVIDENCE`、`V0210-008-STRICT-SYMBOL-SIZE-SCOPE`、`V0210-008-SINGLE-APPROVED-ORDER`、`V0210-008-NO-REPEATED-AUTOMATION-LOOP` 和 `V0210-008-NO-PRODUCTION-CUTOVER` 把 Binance Spot canary controlled submit path 固定为 GH-1279 后的单笔 request evidence。GH-1280 必须同时持有 explicit submit approval、idempotency key、audit event、redacted request evidence 和 strict `BTCUSDT` / `LIMIT` / size scope；缺失任一条件即 fail closed；该 path 不执行 network submit，不启用 repeated automation loop、Dashboard default trading button、Futures / OKX 或 production cutover。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |
