@@ -96,6 +96,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryHardLimitPreTradeGate.swift`、`docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md`、`checks/verify-v0.21.0-canary-hard-limits.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1278 defines only the v0.21.0 Binance Spot canary hard-limit pre-trade gate. It consumes GH-1277 redacted snapshot evidence, enforces symbol allowlist, notional cap, quantity cap, order type allowlist, order count cap and time-window limit before canary order creation, and does not touch order endpoint, submit / cancel / replace, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
 
+## GH-1279 Release v0.21.0 Pre-Trade Risk Kill No-Trade Gate
+
+- GH-1279-VERIFY-V0210-PRETRADE-RISK-KILL-NOTRADE
+- TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE
+- V0210-007-RISKENGINE-PRETRADE-GATE
+- V0210-007-GLOBAL-KILL-SWITCH-GATE
+- V0210-007-NO-TRADE-GATE
+- V0210-007-APPROVAL-GATE
+- V0210-007-HARD-LIMIT-GATE
+- V0210-007-AUDIT-EVIDENCE-NO-BYPASS
+- V0210-007-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1279ReleaseV0210PreTradeRiskKillNoTradeGate`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGate.swift`、`docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md`、`checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1279 defines only the v0.21.0 Binance Spot canary submit-intent pre-trade gate. It consumes GH-1278 hard-limit evidence, requires RiskEngine, global kill switch, no-trade, operator approval and hard-limit gates to pass, and blocks submit intent with audit evidence for any failed condition. It does not provide a bypass path, Dashboard command shortcut, adapter submit attempt, tag / GitHub Release publication, or production cutover authorization.
+
 ## GH-1201 Release v0.18.1 Full Matrix Publication Gate
 
 - GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE

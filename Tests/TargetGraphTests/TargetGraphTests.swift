@@ -64007,6 +64007,237 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1279ReleaseV0210PreTradeRiskKillNoTradeGate() throws {
+        let evidence = try ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence.deterministicFixture()
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1279")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-1278"])
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-1280")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1273..GH-1286")
+        XCTAssertEqual(evidence.releaseVersion, "v0.21.0")
+        XCTAssertEqual(evidence.venueID, .binance)
+        XCTAssertEqual(evidence.productKind, .spot)
+        XCTAssertEqual(evidence.tradingEnvironment, .productionLive)
+        XCTAssertTrue(evidence.upstreamHardLimitEvidence.evidenceHeld)
+        XCTAssertTrue(evidence.requiredGatesHeld)
+        XCTAssertTrue(evidence.decisionEvidenceHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+
+        let accepted = evidence.acceptedDecision
+        XCTAssertEqual(accepted.outcome, .accepted)
+        XCTAssertEqual(accepted.rejectReasons, [])
+        XCTAssertTrue(accepted.canarySubmitIntentEligible)
+        XCTAssertTrue(accepted.forwardsToControlledSubmitPath)
+        XCTAssertFalse(accepted.networkSubmitAttempted)
+        XCTAssertFalse(accepted.bypassPathAvailable)
+        XCTAssertFalse(accepted.dashboardCommandShortcutEnabled)
+        XCTAssertFalse(accepted.productionCutoverAuthorized)
+        XCTAssertTrue(accepted.auditEvidenceEmitted)
+        XCTAssertTrue(accepted.gateOrderingHeld)
+
+        let rejectionCases: [(ReleaseV0210SpotCanaryPreTradePathDecision, [ReleaseV0210SpotCanaryPreTradePathRejectReason])] = [
+            (evidence.riskRejectedDecision, [.riskRejected]),
+            (evidence.killSwitchRejectedDecision, [.killSwitchActive]),
+            (evidence.noTradeRejectedDecision, [.noTradeStateActive]),
+            (evidence.approvalRejectedDecision, [.operatorApprovalMissing]),
+            (evidence.hardLimitRejectedDecision, [.hardLimitRejected])
+        ]
+        for (decision, reasons) in rejectionCases {
+            XCTAssertEqual(decision.outcome, .rejected)
+            XCTAssertEqual(decision.rejectReasons, reasons)
+            XCTAssertFalse(decision.canarySubmitIntentEligible)
+            XCTAssertFalse(decision.forwardsToControlledSubmitPath)
+            XCTAssertFalse(decision.networkSubmitAttempted)
+            XCTAssertFalse(decision.bypassPathAvailable)
+            XCTAssertFalse(decision.dashboardCommandShortcutEnabled)
+            XCTAssertFalse(decision.productionCutoverAuthorized)
+            XCTAssertTrue(decision.auditEvidenceEmitted)
+            XCTAssertTrue(decision.gateOrderingHeld)
+        }
+
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryPreTradePathPolicy(
+            riskEvidenceReference: "missing risk evidence"
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryPreTradePathDecision(
+            policy: .deterministicFixture(),
+            hardLimitDecision: evidence.upstreamHardLimitEvidence.acceptedDecision,
+            auditEvidenceEmitted: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryPreTradePathDecision(
+            policy: .deterministicFixture(),
+            hardLimitDecision: evidence.upstreamHardLimitEvidence.acceptedDecision,
+            riskGateEvaluatedBeforeSubmit: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryPreTradePathDecision(
+            policy: .deterministicFixture(),
+            hardLimitDecision: evidence.upstreamHardLimitEvidence.acceptedDecision,
+            networkSubmitAttempted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryPreTradePathDecision(
+            policy: .deterministicFixture(),
+            hardLimitDecision: evidence.upstreamHardLimitEvidence.acceptedDecision,
+            bypassPathAvailable: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryPreTradePathDecision(
+            policy: .deterministicFixture(),
+            hardLimitDecision: evidence.upstreamHardLimitEvidence.acceptedDecision,
+            dashboardCommandShortcutEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryPreTradePathDecision(
+            policy: .deterministicFixture(),
+            hardLimitDecision: evidence.upstreamHardLimitEvidence.acceptedDecision,
+            productionCutoverAuthorized: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence(
+            riskEngineGateRequired: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence(
+            globalKillSwitchGateRequired: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence(
+            noTradeGateRequired: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence(
+            approvalGateRequired: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence(
+            canaryHardLimitGateRequired: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence(
+            bypassPathAvailable: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence(
+            dashboardCommandShortcutEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence(
+            networkSubmitAttempted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence(
+            productionCutoverAuthorized: true
+        ))
+
+        let anchors = ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence.requiredValidationAnchors
+        XCTAssertEqual(anchors, [
+            "GH-1279-VERIFY-V0210-PRETRADE-RISK-KILL-NOTRADE",
+            "TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE",
+            "V0210-007-RISKENGINE-PRETRADE-GATE",
+            "V0210-007-GLOBAL-KILL-SWITCH-GATE",
+            "V0210-007-NO-TRADE-GATE",
+            "V0210-007-APPROVAL-GATE",
+            "V0210-007-HARD-LIMIT-GATE",
+            "V0210-007-AUDIT-EVIDENCE-NO-BYPASS",
+            "V0210-007-NO-PRODUCTION-CUTOVER"
+        ])
+        XCTAssertEqual(evidence.requiredValidationCommands, [
+            "swift test --filter TargetGraphTests/testGH1279ReleaseV0210PreTradeRiskKillNoTradeGate",
+            "bash checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh",
+            "git diff --check",
+            "bash checks/automation-readiness.sh",
+            "bash checks/run.sh"
+        ])
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredFiles = [
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGate.swift",
+            "docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let fileSource = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(fileSource.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGate.swift")
+        let contract = try read("docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGateEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0210SpotCanaryPreTradePathDecision"))
+        XCTAssertTrue(source.contains("ReleaseV0210SpotCanaryPreTradePathPolicy"))
+        XCTAssertTrue(source.contains("GH-1279"))
+        XCTAssertTrue(source.contains("GH-1278"))
+        XCTAssertTrue(source.contains("GH-1280"))
+        XCTAssertTrue(source.contains("riskEngineGateRequired"))
+        XCTAssertTrue(source.contains("globalKillSwitchGateRequired"))
+        XCTAssertTrue(source.contains("noTradeGateRequired"))
+        XCTAssertTrue(source.contains("approvalGateRequired"))
+        XCTAssertTrue(source.contains("canaryHardLimitGateRequired"))
+        XCTAssertTrue(source.contains("auditEvidenceRequiredForEveryRejection"))
+        XCTAssertTrue(source.contains("networkSubmitAttempted == false"))
+        XCTAssertTrue(source.contains("bypassPathAvailable == false"))
+        XCTAssertTrue(source.contains("dashboardCommandShortcutEnabled == false"))
+        XCTAssertTrue(source.contains("productionCutoverAuthorized == false"))
+        XCTAssertTrue(contract.contains("GH-1279"))
+        XCTAssertTrue(contract.contains("GH-1278"))
+        XCTAssertTrue(contract.contains("GH-1280"))
+        XCTAssertTrue(contract.contains("RiskEngine"))
+        XCTAssertTrue(contract.contains("global kill switch"))
+        XCTAssertTrue(contract.contains("no-trade"))
+        XCTAssertTrue(contract.contains("approval"))
+        XCTAssertTrue(contract.contains("hard-limit"))
+        XCTAssertTrue(contract.contains("no bypass path"))
+        XCTAssertTrue(contract.contains("does not submit / cancel / replace"))
+        XCTAssertTrue(readiness.contains("Release v0.21.0 pre-trade risk / kill switch / no-trade gate anchor"))
+        XCTAssertTrue(latest.contains("v0.21.0 pre-trade risk / kill switch / no-trade gate"))
+        XCTAssertTrue(plan.contains("GH-1279 Release v0.21.0 Pre-Trade Risk Kill No-Trade Gate"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1279ReleaseV0210PreTradeRiskKillNoTradeGate"
+        ))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh"))
+
+        for checkedSource in [
+            source,
+            contract,
+            readiness,
+            latest,
+            plan,
+            matrix,
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "productionSecretValueRead=true",
+                "productionEndpointConnected=true",
+                "productionBrokerConnectionEnabled=true",
+                "networkSubmitAttempted=true",
+                "bypassPathAvailable=true",
+                "dashboardCommandShortcutEnabled=true",
+                "productionCutoverAuthorized=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(checkedSource.contains(forbidden), "\(forbidden) must stay out of GH-1279 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

@@ -102,6 +102,23 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryHardLimitPreTradeGate.swift`、`docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md`、`checks/verify-v0.21.0-canary-hard-limits.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1278 fixes the Binance Spot canary symbol, notional, quantity, order type, order count and time-window hard limits before canary order creation. It records deterministic eligibility / rejection evidence only and does not touch order endpoint, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
 
+## TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE
+
+- TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE
+- GH-1279-VERIFY-V0210-PRETRADE-RISK-KILL-NOTRADE
+- V0210-007-RISKENGINE-PRETRADE-GATE
+- V0210-007-GLOBAL-KILL-SWITCH-GATE
+- V0210-007-NO-TRADE-GATE
+- V0210-007-APPROVAL-GATE
+- V0210-007-HARD-LIMIT-GATE
+- V0210-007-AUDIT-EVIDENCE-NO-BYPASS
+- V0210-007-NO-PRODUCTION-CUTOVER
+- GH-1279 Release v0.21.0 Pre-Trade Risk Kill No-Trade Gate
+- `bash checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh`
+- `swift test --filter TargetGraphTests/testGH1279ReleaseV0210PreTradeRiskKillNoTradeGate`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGate.swift`、`docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md`、`checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1279 wires Binance Spot canary submit-intent evidence through RiskEngine, global kill switch, no-trade, operator approval and GH-1278 hard-limit gates. Any failed condition blocks submit intent and emits audit evidence. It records no bypass path, Dashboard command shortcut, adapter submit attempt, tag / GitHub Release publication, or production cutover authorization.
+
 ## TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
 
 - TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD

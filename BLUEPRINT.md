@@ -105,6 +105,8 @@ v0.21.0 live account snapshot redaction anchor：GH-1277 使用 `GH-1277-VERIFY-
 
 v0.21.0 canary hard limits anchor：GH-1278 使用 `GH-1278-VERIFY-V0210-CANARY-HARD-LIMITS`、`TVM-RELEASE-V0210-CANARY-HARD-LIMITS`、`V0210-006-CANARY-SYMBOL-ALLOWLIST`、`V0210-006-NOTIONAL-QUANTITY-CAPS`、`V0210-006-ORDER-TYPE-COUNT-WINDOW-LIMITS`、`V0210-006-PRE-TRADE-FAIL-CLOSED`、`V0210-006-NO-SUBMIT-CANCEL-REPLACE` 和 `V0210-006-NO-PRODUCTION-CUTOVER` 把 Binance Spot canary hard limits 固定为 GH-1277 redacted snapshot evidence 后的 pre-trade gate。GH-1278 强制 `BTCUSDT` symbol allowlist、`LIMIT` order type、`10.00 USDT` notional cap、`0.00100000 BTC` quantity cap、单窗口 1 单和 300 秒窗口；只输出 eligibility / rejection evidence，不触达 order endpoint，不启用 submit / cancel / replace，不创建 tag / GitHub Release，不授权 production cutover。
 
+v0.21.0 pre-trade risk / kill switch / no-trade gate anchor：GH-1279 使用 `GH-1279-VERIFY-V0210-PRETRADE-RISK-KILL-NOTRADE`、`TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE`、`V0210-007-RISKENGINE-PRETRADE-GATE`、`V0210-007-GLOBAL-KILL-SWITCH-GATE`、`V0210-007-NO-TRADE-GATE`、`V0210-007-APPROVAL-GATE`、`V0210-007-HARD-LIMIT-GATE`、`V0210-007-AUDIT-EVIDENCE-NO-BYPASS` 和 `V0210-007-NO-PRODUCTION-CUTOVER` 把 Binance Spot canary submit-intent 前置组合 gate 固定为 GH-1278 后的 ExecutionEngine evidence。GH-1279 要求 RiskEngine、global kill switch、no-trade、operator approval 和 GH-1278 hard-limit 全部通过才输出 GH-1280 eligibility；任一失败都输出 rejected audit evidence 且 `adapterSubmitAttempted=false`、`bypassPathAvailable=false`、`dashboardCommandShortcutEnabled=false`、`productionCutoverAuthorized=false`。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |
