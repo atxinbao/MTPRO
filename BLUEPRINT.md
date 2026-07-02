@@ -113,6 +113,8 @@ v0.21.0 controlled canary cancel rollback guard anchor：GH-1281 使用 `GH-1281
 
 v0.21.0 canary OMS event log reconciliation anchor：GH-1282 使用 `GH-1282-VERIFY-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION`、`TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION`、`V0210-010-OMS-EVENT-LOG`、`V0210-010-CANARY-LIFECYCLE-EVENTS`、`V0210-010-STATUS-RESPONSES`、`V0210-010-CANCEL-OUTCOMES`、`V0210-010-RECONCILIATION-EVIDENCE`、`V0210-010-REDACTED-EVIDENCE`、`V0210-010-NO-BROAD-OMS-ROLLOUT` 和 `V0210-010-NO-PRODUCTION-CUTOVER` 把 GH-1280 / GH-1281 后的 Binance Spot canary 生命周期固定为本地 redacted OMS event log 与 reconciliation evidence。GH-1282 必须能用 submit、status、cancel、rollback 和 reconciliation events 重构同一笔 canary lifecycle，并输出给 GH-1283 read-only surface；该 evidence 不启用 broad production OMS rollout、Futures / OKX reconciliation、raw broker payload persistence 或 production cutover。
 
+v0.21.0 Dashboard / CLI canary status surface anchor：GH-1283 使用 `GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE`、`TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE`、`V0210-011-DASHBOARD-CLI-CANARY-STATUS`、`V0210-011-CANARY-STATE-GATES`、`V0210-011-RISK-ORDER-CANCEL-RECONCILIATION`、`V0210-011-READ-ONLY-NO-COMMANDS` 和 `V0210-011-NO-PRODUCTION-CUTOVER` 把 GH-1282 redacted OMS event log / reconciliation evidence 固定为 Dashboard / CLI 只读 canary status surface。GH-1283 只能展示 canary state、gate stack、risk decision、order lifecycle、cancel / rollback、reconciliation 和 redaction boundary；不能提供 trading button、order form、live command、raw order id、raw broker payload、submit / cancel / replace 或 production cutover。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |

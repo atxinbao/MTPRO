@@ -4777,6 +4777,10 @@ final class TargetGraphTests: XCTestCase {
         let coreTarget = try packageTargetBlock(named: "Core", packageSource: packageSource)
         let dashboardTarget = try packageTargetBlock(named: "Dashboard", packageSource: packageSource)
         let cliTarget = try packageTargetBlock(named: "MTPROCLI", packageSource: packageSource)
+        let cliMainSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent("Sources/MTPROCLI/main.swift"),
+            encoding: .utf8
+        )
         let messageBusSources = try packageTargetSourcesBlock(targetBlock: messageBusTarget)
         let coreSources = try packageTargetSourcesBlock(targetBlock: coreTarget)
         let coreExcludes = try packageTargetExcludesBlock(targetBlock: coreTarget)
@@ -4832,7 +4836,11 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliTarget.contains("\"Portfolio\""))
         XCTAssertFalse(cliTarget.contains("\"Core\""))
         XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
-        XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
+        // GH-1283 adds a read-only canary status CLI route into ExecutionEngine evidence types.
+        // GH-632 still requires MessageBus to stay independent and compatibility-only.
+        XCTAssertTrue(cliTarget.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(cliMainSource.contains("ReleaseV0210CanaryStatusReadOnlySurface.cliCommand"))
+        XCTAssertTrue(cliMainSource.contains("releaseV0210CanaryStatusSurfaceCommand"))
         XCTAssertTrue(cliTarget.contains("\"ExecutionClient\""))
 
         for forbiddenDefault in [
@@ -22329,9 +22337,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(cliTarget.contains("\"Core\""))
         XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
         XCTAssertFalse(cliTarget.contains("\"RiskEngine\""))
-        XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(cliTarget.contains("\"ExecutionEngine\""))
         XCTAssertTrue(cliTarget.contains("\"ExecutionClient\""))
         XCTAssertTrue(cliSource.contains("ReleaseV030CLIRehearsalSurface.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0210CanaryStatusReadOnlySurface.cliCommand"))
         XCTAssertTrue(
             PortfolioParityOwnershipContract.gh634.activeSourcePaths.contains(
                 "Sources/Portfolio/ReleaseV030RehearsalSurface.swift"
@@ -22361,7 +22370,7 @@ final class TargetGraphTests: XCTestCase {
                 dashboardSurfaceSource.contains(forbidden),
                 "Dashboard rehearsal surface source must not contain \(forbidden)"
             )
-            if forbidden != "import ExecutionClient" {
+            if forbidden != "import ExecutionClient" && forbidden != "import ExecutionEngine" {
                 XCTAssertFalse(
                     cliSource.contains(forbidden),
                     "CLI rehearsal surface route must not contain \(forbidden)"
@@ -28280,7 +28289,11 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(cliTarget.contains("\"Core\""))
         XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
         XCTAssertTrue(cliTarget.contains("\"ExecutionClient\""))
-        XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
+        // GH-1283 routes the top-level CLI into ExecutionEngine only for the read-only
+        // canary status surface; GH-593 still forbids Core / MessageBus / RiskEngine drift.
+        XCTAssertTrue(cliTarget.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(cliMainSource.contains("ReleaseV0210CanaryStatusReadOnlySurface.cliCommand"))
+        XCTAssertTrue(cliMainSource.contains("releaseV0210CanaryStatusSurfaceCommand"))
         XCTAssertFalse(cliTarget.contains("\"RiskEngine\""))
         XCTAssertTrue(databaseSources.contains("\"ReleaseV020CLIProductSurface.swift\""))
         XCTAssertTrue(persistenceExcludes.contains("\"ReleaseV020CLIProductSurface.swift\""))
@@ -52771,7 +52784,11 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(cliTarget.contains("\"Core\""))
         XCTAssertFalse(cliTarget.contains("\"MessageBus\""))
         XCTAssertFalse(cliTarget.contains("\"RiskEngine\""))
-        XCTAssertFalse(cliTarget.contains("\"ExecutionEngine\""))
+        // GH-1283 adds a read-only canary status route from the CLI into ExecutionEngine evidence types.
+        // GH-920 still only authorizes local readiness artifact commands and keeps endpoint / secret / order paths forbidden below.
+        XCTAssertTrue(cliTarget.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(cliSource.contains("ReleaseV0210CanaryStatusReadOnlySurface.cliCommand"))
+        XCTAssertTrue(cliSource.contains("releaseV0210CanaryStatusSurfaceCommand"))
 
         for required in [
             "ReleaseV0110ReadinessCLI",
@@ -64957,6 +64974,320 @@ final class TargetGraphTests: XCTestCase {
                 "Secret Key:"
             ] {
                 XCTAssertFalse(checkedSource.contains(forbidden), "\(forbidden) must stay out of GH-1282 evidence")
+            }
+        }
+    }
+
+    func testGH1283ReleaseV0210DashboardCLIReadOnlyCanaryStatusSurface() throws {
+        // 测试场景：GH-1283 在 GH-1282 redacted OMS event log / reconciliation evidence 后，
+        // 输出 Dashboard / CLI 共用的只读 canary status surface。
+        // 验证目的：surface 必须展示 canary state、gates、risk decision、order lifecycle、
+        // cancel / rollback 与 reconciliation，且禁止交易按钮、订单表单、live command、
+        // submit / cancel / replace、raw order id、raw broker payload 和 production cutover。
+        // GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE
+        // TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE
+        // V0210-011-DASHBOARD-CLI-CANARY-STATUS
+        // V0210-011-CANARY-STATE-GATES
+        // V0210-011-RISK-ORDER-CANCEL-RECONCILIATION
+        // V0210-011-READ-ONLY-NO-COMMANDS
+        // V0210-011-NO-PRODUCTION-CUTOVER
+        let surface = try ReleaseV0210CanaryStatusReadOnlySurface.deterministicFixture()
+
+        XCTAssertTrue(surface.surfaceHeld)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertTrue(surface.upstreamEvidenceHeld)
+        XCTAssertTrue(surface.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(surface.issueID.rawValue, "GH-1283")
+        XCTAssertEqual(surface.upstreamIssueIDs.map(\.rawValue), ["GH-1280", "GH-1281", "GH-1282"])
+        XCTAssertEqual(surface.previousIssueID.rawValue, "GH-1282")
+        XCTAssertEqual(surface.downstreamIssueID.rawValue, "GH-1284")
+        XCTAssertEqual(surface.canonicalQueueRange, "GH-1273..GH-1286")
+        XCTAssertEqual(surface.projectName, "MTPRO Release v0.21.0 Binance Spot Controlled Production Canary")
+        XCTAssertEqual(surface.releaseVersion, "v0.21.0")
+        XCTAssertEqual(surface.venueID, .binance)
+        XCTAssertEqual(surface.productKind, .spot)
+        XCTAssertEqual(surface.tradingEnvironment, .productionLive)
+        XCTAssertEqual(
+            surface.upstreamReconciliationEvidenceID.rawValue,
+            "gh-1282-release-v0.21.0-canary-oms-event-log-reconciliation-evidence"
+        )
+        XCTAssertEqual(surface.eventRows.count, 7)
+        XCTAssertTrue(surface.eventRows.allSatisfy(\.rowHeld))
+        XCTAssertTrue(surface.reconciliationSnapshot.snapshotHeld)
+        XCTAssertEqual(surface.rows.map(\.area), ReleaseV0210CanaryStatusArea.allCases)
+        XCTAssertEqual(surface.stateLabels, ["ready", "accepted", "cancelled", "reconciled", "fail-closed"])
+        XCTAssertEqual(
+            surface.gateLabels,
+            [
+                "environment",
+                "hard-limit",
+                "risk-kill-notrade",
+                "single-submit-evidence",
+                "cancel-rollback",
+                "oms-reconciliation",
+                "no-command-redaction"
+            ]
+        )
+        XCTAssertEqual(surface.lifecycleEventLabels, [
+            "submit request",
+            "submit accepted",
+            "status response",
+            "cancel request",
+            "cancel outcome",
+            "rollback guard",
+            "reconciliation"
+        ])
+        XCTAssertEqual(surface.reconciliationLabels, ["matched", "rejected"])
+        XCTAssertTrue(surface.rows.allSatisfy(\.rowHeld))
+        XCTAssertTrue(surface.rows.allSatisfy(\.visibleInDashboard))
+        XCTAssertTrue(surface.rows.allSatisfy(\.visibleInCLI))
+        XCTAssertTrue(surface.rows.allSatisfy(\.readOnly))
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.productionSecretValueRead)
+        XCTAssertFalse(surface.productionEndpointConnected)
+        XCTAssertFalse(surface.brokerEndpointConnected)
+        XCTAssertFalse(surface.signedOrderMaterialGenerated)
+        XCTAssertFalse(surface.accountEndpointConnected)
+        XCTAssertFalse(surface.orderEndpointTouched)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.dashboardTradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.rawOrderIDVisible)
+        XCTAssertFalse(surface.rawBrokerPayloadVisible)
+        XCTAssertFalse(surface.realOrderSent)
+        XCTAssertFalse(surface.createsTagOrRelease)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusRow(
+            area: .canaryState,
+            sourceIssueID: "GH-1274",
+            state: .accepted,
+            gateLabel: "environment",
+            statusSummary: "wrong state"
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusRow(
+            area: .canaryState,
+            sourceIssueID: "GH-1274",
+            state: .ready,
+            gateLabel: "environment",
+            statusSummary: "command visible",
+            commandSurfaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            productionTradingEnabledByDefault: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            productionSecretValueRead: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            productionEndpointConnected: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            brokerEndpointConnected: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            submitCancelReplaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            dashboardTradingButtonVisible: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            orderFormVisible: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            liveCommandVisible: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            rawOrderIDVisible: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            rawBrokerPayloadVisible: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            realOrderSent: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface(
+            productionCutoverAuthorized: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface.commandLineOutput(
+            arguments: ["canary-status", "submit"]
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryStatusReadOnlySurface.commandLineOutput(
+            arguments: ["canary-status", "status", "extra"]
+        ))
+
+        let anchors = ReleaseV0210CanaryStatusReadOnlySurface.requiredValidationAnchors
+        XCTAssertEqual(anchors, [
+            "GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE",
+            "TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE",
+            "V0210-011-DASHBOARD-CLI-CANARY-STATUS",
+            "V0210-011-CANARY-STATE-GATES",
+            "V0210-011-RISK-ORDER-CANCEL-RECONCILIATION",
+            "V0210-011-READ-ONLY-NO-COMMANDS",
+            "V0210-011-NO-PRODUCTION-CUTOVER"
+        ])
+        XCTAssertEqual(surface.requiredValidationCommands, [
+            "swift test --filter AppTests/testGH1283DashboardCLIReadOnlyCanaryStatusSurfaceShowsCanaryEvidenceWithoutCommands",
+            "swift test --filter TargetGraphTests/testGH1283ReleaseV0210DashboardCLIReadOnlyCanaryStatusSurface",
+            "bash checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh",
+            "git diff --check",
+            "bash checks/automation-readiness.sh",
+            "bash checks/run.sh"
+        ])
+
+        let statusOutput = try ReleaseV0210CanaryStatusReadOnlySurface.commandLineOutput(
+            arguments: ["canary-status", "status"]
+        )
+        XCTAssertTrue(statusOutput.contains("mtpro canary-status status"))
+        XCTAssertTrue(statusOutput.contains("issue=GH-1283"))
+        XCTAssertTrue(statusOutput.contains("validationAnchor=TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE"))
+        XCTAssertTrue(statusOutput.contains("verificationAnchor=GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE"))
+        XCTAssertTrue(statusOutput.contains("surfaceRows=7"))
+        XCTAssertTrue(statusOutput.contains("states=ready,accepted,cancelled,reconciled,fail-closed"))
+        XCTAssertTrue(statusOutput.contains("row=canary-state"))
+        XCTAssertTrue(statusOutput.contains("row=reconciliation"))
+        XCTAssertTrue(statusOutput.contains("dashboardReadOnly=true"))
+        XCTAssertTrue(statusOutput.contains("cliReadOnly=true"))
+        XCTAssertTrue(statusOutput.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(statusOutput.contains("orderFormVisible=false"))
+        XCTAssertTrue(statusOutput.contains("liveCommandVisible=false"))
+        XCTAssertTrue(statusOutput.contains("submitCancelReplaceEnabled=false"))
+        XCTAssertTrue(statusOutput.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(statusOutput.contains("productionSecretValueRead=false"))
+        XCTAssertTrue(statusOutput.contains("productionEndpointConnected=false"))
+        XCTAssertTrue(statusOutput.contains("brokerEndpointConnected=false"))
+        XCTAssertTrue(statusOutput.contains("rawOrderIDVisible=false"))
+        XCTAssertTrue(statusOutput.contains("rawBrokerPayloadVisible=false"))
+        XCTAssertTrue(statusOutput.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(statusOutput.contains("realOrderSent=false"))
+        XCTAssertTrue(statusOutput.contains("boundaryHeld=true"))
+
+        let eventsOutput = try ReleaseV0210CanaryStatusReadOnlySurface.commandLineOutput(
+            arguments: ["canary-status", "events"]
+        )
+        XCTAssertTrue(eventsOutput.contains("eventRows=7"))
+        XCTAssertTrue(eventsOutput.contains("kind=submit request"))
+        XCTAssertTrue(eventsOutput.contains("kind=reconciliation"))
+        XCTAssertTrue(eventsOutput.contains("redactedEvidenceOnly=true"))
+
+        let reconciliationOutput = try ReleaseV0210CanaryStatusReadOnlySurface.commandLineOutput(
+            arguments: ["canary-status", "reconciliation"]
+        )
+        XCTAssertTrue(reconciliationOutput.contains("matchedOutcome=matched"))
+        XCTAssertTrue(reconciliationOutput.contains("canaryLifecycleReconstructable=true"))
+        XCTAssertTrue(reconciliationOutput.contains("reconciliationEvidenceRecorded=true"))
+
+        let dashboardSurface = try ReleaseV0210DashboardCLICanaryStatusSurfaceViewModel.deterministic()
+        XCTAssertTrue(dashboardSurface.boundaryHeld)
+        XCTAssertEqual(dashboardSurface.rowCount, 7)
+        XCTAssertEqual(dashboardSurface.stateLabels, ["ready", "accepted", "cancelled", "reconciled", "fail-closed"])
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredFiles = [
+            "Package.swift",
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryStatusReadOnlySurface.swift",
+            "Sources/Dashboard/Report/ReleaseV0210DashboardCLICanaryStatusSurface.swift",
+            "Sources/Dashboard/DashboardShell.swift",
+            "Sources/MTPROCLI/main.swift",
+            "docs/contracts/release-v0.21.0-dashboard-cli-canary-status-surface.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/AppTests/AppTests.swift",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let surfaceSource = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryStatusReadOnlySurface.swift")
+        let dashboardSource = try read("Sources/Dashboard/Report/ReleaseV0210DashboardCLICanaryStatusSurface.swift")
+        let dashboardShell = try read("Sources/Dashboard/DashboardShell.swift")
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let package = try read("Package.swift")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(surfaceSource.contains("cliCommand = \"canary-status\""))
+        XCTAssertTrue(surfaceSource.contains("requiredUpstreamReconciliationEvidenceID"))
+        XCTAssertTrue(surfaceSource.contains("defaultEventRows"))
+        XCTAssertTrue(surfaceSource.contains("defaultReconciliationSnapshot"))
+        XCTAssertTrue(surfaceSource.contains("rawOrderIDVisible == false"))
+        XCTAssertTrue(surfaceSource.contains("rawBrokerPayloadVisible == false"))
+        XCTAssertTrue(surfaceSource.contains("productionCutoverAuthorized == false"))
+        XCTAssertTrue(dashboardSource.contains("Dashboard command surface: none"))
+        XCTAssertTrue(dashboardSource.contains("CLI command surface: read-only status / events / reconciliation only"))
+        XCTAssertTrue(dashboardShell.contains("releaseV0210DashboardCLICanaryStatusSurface"))
+        XCTAssertTrue(dashboardShell.contains("DashboardReleaseV0210CanaryStatusPanel"))
+        XCTAssertTrue(dashboardShell.contains("releaseV0210CanaryRows"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0210CanaryStatusReadOnlySurface.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0210CanaryStatusReadOnlySurface.commandLineOutput"))
+        XCTAssertTrue(package.contains("\"MTPROCLI\""))
+        XCTAssertTrue(package.contains("\"ExecutionEngine\""))
+        XCTAssertTrue(readiness.contains("Release v0.21.0 Dashboard / CLI canary status surface anchor"))
+        XCTAssertTrue(latest.contains("v0.21.0 Dashboard / CLI canary status surface"))
+        XCTAssertTrue(plan.contains("GH-1283 Release v0.21.0 Dashboard / CLI Canary Status Surface"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter AppTests/testGH1283DashboardCLIReadOnlyCanaryStatusSurfaceShowsCanaryEvidenceWithoutCommands"
+        ))
+        XCTAssertTrue(verifier.contains("swift run mtpro canary-status status"))
+        XCTAssertTrue(verifier.contains("swift run mtpro canary-status events"))
+        XCTAssertTrue(verifier.contains("swift run mtpro canary-status reconciliation"))
+
+        for source in [
+            surfaceSource,
+            dashboardSource,
+            latest,
+            plan,
+            matrix,
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "productionSecretValueRead=true",
+                "productionEndpointConnected=true",
+                "brokerEndpointConnected=true",
+                "signedOrderMaterialGenerated=true",
+                "accountEndpointConnected=true",
+                "orderEndpointTouched=true",
+                "submitCancelReplaceEnabled=true",
+                "dashboardTradingButtonVisible=true",
+                "orderFormVisible=true",
+                "liveCommandVisible=true",
+                "rawOrderIDVisible=true",
+                "rawBrokerPayloadVisible=true",
+                "realOrderSent=true",
+                "productionCutoverAuthorized=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1283 evidence")
             }
         }
     }

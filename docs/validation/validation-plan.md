@@ -163,6 +163,20 @@
 - Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryOMSEventLogReconciliationEvidence.swift`、`docs/contracts/release-v0.21.0-canary-oms-event-log-reconciliation-evidence.md`、`checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1282 defines only the v0.21.0 Binance Spot canary OMS event log and reconciliation evidence after GH-1280 submit evidence and GH-1281 cancel / rollback evidence. It reconstructs the redacted lifecycle from event log entries, status responses, cancel outcomes and reconciliation evidence, and fails closed for every missing condition. It does not enable broad production OMS rollout, Futures / OKX reconciliation, raw broker payload persistence, tag / GitHub Release publication, or production cutover authorization.
 
+## GH-1283 Release v0.21.0 Dashboard / CLI Canary Status Surface
+
+- GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE
+- TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE
+- V0210-011-DASHBOARD-CLI-CANARY-STATUS
+- V0210-011-CANARY-STATE-GATES
+- V0210-011-RISK-ORDER-CANCEL-RECONCILIATION
+- V0210-011-READ-ONLY-NO-COMMANDS
+- V0210-011-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh`
+- Focused tests: `swift test --filter AppTests/testGH1283DashboardCLIReadOnlyCanaryStatusSurfaceShowsCanaryEvidenceWithoutCommands` and `swift test --filter TargetGraphTests/testGH1283ReleaseV0210DashboardCLIReadOnlyCanaryStatusSurface`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryStatusReadOnlySurface.swift`、`Sources/Dashboard/Report/ReleaseV0210DashboardCLICanaryStatusSurface.swift`、`Sources/Dashboard/DashboardShell.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.21.0-dashboard-cli-canary-status-surface.md`、`checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`verification.md`、`Tests/AppTests/AppTests.swift` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1283 defines only the v0.21.0 Dashboard / CLI read-only canary status surface after GH-1282. It exposes canary state, gate stack, risk decision, order lifecycle, cancel / rollback, reconciliation and redaction boundary as status / events / reconciliation inspect output. It does not show trading button, order form, live command, raw order id, raw broker payload, submit / cancel / replace, tag / GitHub Release publication, or production cutover authorization.
+
 ## GH-1201 Release v0.18.1 Full Matrix Publication Gate
 
 - GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE

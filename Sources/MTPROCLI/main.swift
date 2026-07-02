@@ -2,6 +2,7 @@ import Database
 import DataClient
 import DomainModel
 import ExecutionClient
+import ExecutionEngine
 import Foundation
 import Portfolio
 
@@ -126,6 +127,17 @@ private enum MTPROStrictCLI {
         "GH-1248-VERIFY-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE"
     static let releaseV0200ReadOnlyLiveReadinessSurfaceValidationAnchor =
         "TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE"
+    // GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE
+    // TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE
+    // V0210-011-DASHBOARD-CLI-CANARY-STATUS
+    // V0210-011-CANARY-STATE-GATES
+    // V0210-011-RISK-ORDER-CANCEL-RECONCILIATION
+    // V0210-011-READ-ONLY-NO-COMMANDS
+    // V0210-011-NO-PRODUCTION-CUTOVER
+    static let releaseV0210CanaryStatusSurfaceVerificationAnchor =
+        "GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE"
+    static let releaseV0210CanaryStatusSurfaceValidationAnchor =
+        "TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE"
     static let releaseV0100VerificationAnchor = "GH-891-VERIFY-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
     static let releaseV0100ValidationAnchor = "TVM-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK"
     static let cliVerifyV0100WordingAnchor = "GH-909-VERIFY-V0101-CLI-V0100-WORDING"
@@ -246,6 +258,7 @@ private enum MTPROStrictCLI {
         ReleaseV0181OperatorRunCLICommand.cliCommand,
         ReleaseV0190CLIVenueProductRegistryInspect.cliCommand,
         ReleaseV0200ReadOnlyLiveReadinessSurface.cliCommand,
+        ReleaseV0210CanaryStatusReadOnlySurface.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -271,6 +284,7 @@ private enum MTPROStrictCLI {
         ReleaseV0181OperatorRunCLICommand.cliCommand,
         ReleaseV0190CLIVenueProductRegistryInspect.cliCommand,
         ReleaseV0200ReadOnlyLiveReadinessSurface.cliCommand,
+        ReleaseV0210CanaryStatusReadOnlySurface.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -328,6 +342,8 @@ private enum MTPROStrictCLI {
             return try ReleaseV0190CLIVenueProductRegistryInspect.commandLineOutput(arguments: arguments)
         case ReleaseV0200ReadOnlyLiveReadinessSurface.cliCommand:
             return try ReleaseV0200ReadOnlyLiveReadinessSurface.commandLineOutput(arguments: arguments)
+        case ReleaseV0210CanaryStatusReadOnlySurface.cliCommand:
+            return try ReleaseV0210CanaryStatusReadOnlySurface.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -420,6 +436,10 @@ private enum MTPROStrictCLI {
             "releaseV0200ReadOnlyLiveReadinessSurfaceValidationAnchor=\(releaseV0200ReadOnlyLiveReadinessSurfaceValidationAnchor)",
             "releaseV0200ReadOnlyLiveReadinessSurfaceVerificationAnchor=\(releaseV0200ReadOnlyLiveReadinessSurfaceVerificationAnchor)",
             "releaseV0200ReadOnlyLiveReadinessSurfaceActions=status",
+            "releaseV0210CanaryStatusSurfaceCommand=\(ReleaseV0210CanaryStatusReadOnlySurface.cliCommand)",
+            "releaseV0210CanaryStatusSurfaceValidationAnchor=\(releaseV0210CanaryStatusSurfaceValidationAnchor)",
+            "releaseV0210CanaryStatusSurfaceVerificationAnchor=\(releaseV0210CanaryStatusSurfaceVerificationAnchor)",
+            "releaseV0210CanaryStatusSurfaceActions=status,events,reconciliation",
             "operatorRunFailedEvidenceNonzeroOrReadOnlyReportPath=true",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
