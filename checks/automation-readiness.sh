@@ -183,6 +183,7 @@ require_file "checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh"
 require_file "checks/verify-v0.21.0-controlled-spot-canary-submit.sh"
 require_file "checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh"
 require_file "checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh"
+require_file "checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -193,6 +194,7 @@ require_file "docs/contracts/release-v0.21.0-binance-spot-live-account-snapshot-
 require_file "docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md"
 require_file "docs/contracts/release-v0.21.0-controlled-spot-canary-submit-path.md"
 require_file "docs/contracts/release-v0.21.0-controlled-canary-cancel-rollback-guard.md"
+require_file "docs/contracts/release-v0.21.0-dashboard-cli-canary-status-surface.md"
 require_file "docs/contracts/release-v0.21.0-canary-oms-event-log-reconciliation-evidence.md"
 require_file "docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
@@ -3184,7 +3186,7 @@ require_file "Sources/DataClient/Binance/TestnetReadOnlyProbe/ReleaseV060Testnet
 require_file "docs/contracts/release-v0.6.0-testnet-read-only-probe-contract.md"
 require_file "checks/verify-v0.6.0-testnet-readonly-probe.sh"
 require_contains "Package.swift" "\"Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift\""
-require_contains "Package.swift" "dependencies: [\"DomainModel\", \"Database\", \"DataClient\", \"Portfolio\", \"ExecutionClient\"]"
+require_contains "Package.swift" "dependencies: [\"DomainModel\", \"Database\", \"DataClient\", \"Portfolio\", \"ExecutionClient\", \"ExecutionEngine\"]"
 require_contains "Sources/DataClient/Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift" "ReleaseV060TestnetReadOnlyProbe"
 require_contains "Sources/DataClient/Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift" "ReleaseV060TestnetReadOnlyProbeArtifact"
 require_contains "Sources/DataClient/Binance/TestnetReadOnlyProbe/ReleaseV060TestnetReadOnlyProbe.swift" "operatorConfirmedReadOnlyProbe"
@@ -3666,7 +3668,7 @@ require_file "Sources/Dashboard/Report/ReleaseV040DashboardUnifiedRunSurface.swi
 require_file "docs/contracts/release-v0.4.0-dashboard-cli-unified-run-surface-contract.md"
 require_contains "Package.swift" "ReleaseV040UnifiedRunSurface.swift"
 require_contains "Package.swift" "Portfolio/ReleaseV040UnifiedRunSurface.swift"
-require_contains "Package.swift" "dependencies: [\"DomainModel\", \"Database\", \"DataClient\", \"Portfolio\", \"ExecutionClient\"]"
+require_contains "Package.swift" "dependencies: [\"DomainModel\", \"Database\", \"DataClient\", \"Portfolio\", \"ExecutionClient\", \"ExecutionEngine\"]"
 require_contains "Package.swift" "dependencies: [\"Core\", \"Persistence\", \"Portfolio\"]"
 require_contains "Sources/MTPROCLI/main.swift" "ReleaseV040UnifiedRunSurface.cliCommand"
 require_contains "Sources/MTPROCLI/main.swift" "ReleaseV040UnifiedRunSurface.commandLineOutput"
@@ -13868,5 +13870,43 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 canar
 require_contains "docs/validation/validation-plan.md" "GH-1282 Release v0.21.0 Canary OMS Event Log Reconciliation Evidence"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1282ReleaseV0210CanaryOMSEventLogReconciliationEvidence"
+
+for file in \
+  "Package.swift" \
+  "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryStatusReadOnlySurface.swift" \
+  "Sources/Dashboard/Report/ReleaseV0210DashboardCLICanaryStatusSurface.swift" \
+  "Sources/Dashboard/DashboardShell.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "docs/contracts/release-v0.21.0-dashboard-cli-canary-status-surface.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/AppTests/AppTests.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE"
+  require_contains "$file" "TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE"
+  require_contains "$file" "V0210-011-DASHBOARD-CLI-CANARY-STATUS"
+  require_contains "$file" "V0210-011-CANARY-STATE-GATES"
+  require_contains "$file" "V0210-011-RISK-ORDER-CANCEL-RECONCILIATION"
+  require_contains "$file" "V0210-011-READ-ONLY-NO-COMMANDS"
+  require_contains "$file" "V0210-011-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 Dashboard / CLI canary status surface anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 Dashboard / CLI canary status surface"
+require_contains "docs/validation/validation-plan.md" "GH-1283 Release v0.21.0 Dashboard / CLI Canary Status Surface"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE"
+require_contains "Tests/AppTests/AppTests.swift" "testGH1283DashboardCLIReadOnlyCanaryStatusSurfaceShowsCanaryEvidenceWithoutCommands"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1283ReleaseV0210DashboardCLIReadOnlyCanaryStatusSurface"
 
 printf 'MTPRO automation readiness checks passed.\n'

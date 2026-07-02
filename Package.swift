@@ -516,7 +516,14 @@ let package = Package(
         ),
         .executableTarget(
             name: "MTPROCLI",
-            dependencies: ["DomainModel", "Database", "DataClient", "Portfolio", "ExecutionClient"],
+            // GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE
+            // TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE
+            // V0210-011-DASHBOARD-CLI-CANARY-STATUS
+            // V0210-011-CANARY-STATE-GATES
+            // V0210-011-RISK-ORDER-CANCEL-RECONCILIATION
+            // V0210-011-READ-ONLY-NO-COMMANDS
+            // V0210-011-NO-PRODUCTION-CUTOVER
+            dependencies: ["DomainModel", "Database", "DataClient", "Portfolio", "ExecutionClient", "ExecutionEngine"],
             path: "Sources/MTPROCLI",
             sources: [
                 "main.swift"
