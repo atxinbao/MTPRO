@@ -129,6 +129,23 @@
 - Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledSpotCanarySubmitPath.swift`、`docs/contracts/release-v0.21.0-controlled-spot-canary-submit-path.md`、`checks/verify-v0.21.0-controlled-spot-canary-submit.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1280 defines only the v0.21.0 Binance Spot controlled canary submit request evidence. It consumes GH-1279 accepted pre-trade evidence, requires explicit submit approval, idempotency key, audit event, redacted request evidence and strict symbol / size scope, and fails closed for every missing condition. It does not perform network submit, enable repeated automated trading loop, Dashboard default trading button, Futures / OKX scope, cancel / replace path, tag / GitHub Release publication, or production cutover authorization.
 
+## GH-1281 Release v0.21.0 Controlled Canary Cancel Rollback Guard
+
+- GH-1281-VERIFY-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK
+- TVM-RELEASE-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK
+- V0210-009-CONTROLLED-CANARY-CANCEL
+- V0210-009-STATUS-ROLLBACK-GUARD
+- V0210-009-AUDIT-EVIDENCE
+- V0210-009-REDACTED-CANCEL-EVIDENCE
+- V0210-009-SINGLE-CANARY-ORDER
+- V0210-009-NO-BULK-CANCEL
+- V0210-009-NO-FUTURES-CANCEL
+- V0210-009-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1281ReleaseV0210ControlledCanaryCancelRollbackGuard`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledCanaryCancelRollbackGuard.swift`、`docs/contracts/release-v0.21.0-controlled-canary-cancel-rollback-guard.md`、`checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1281 defines only the v0.21.0 Binance Spot controlled canary cancel request evidence and status rollback guard. It consumes GH-1280 authorized submit evidence, requires explicit cancel approval, redacted canary order reference, audit event, redacted cancel request evidence, status rollback guard and strict single canary order scope, and fails closed for every missing condition. It does not perform network cancel, enable bulk cancel, Futures cancel, Dashboard default trading button, tag / GitHub Release publication, or production cutover authorization.
+
 ## GH-1201 Release v0.18.1 Full Matrix Publication Gate
 
 - GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE

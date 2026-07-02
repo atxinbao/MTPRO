@@ -181,6 +181,7 @@ require_file "checks/verify-v0.21.0-live-account-snapshot-redaction.sh"
 require_file "checks/verify-v0.21.0-canary-hard-limits.sh"
 require_file "checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh"
 require_file "checks/verify-v0.21.0-controlled-spot-canary-submit.sh"
+require_file "checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -190,6 +191,7 @@ require_file "docs/contracts/release-v0.21.0-binance-spot-signed-account-readonl
 require_file "docs/contracts/release-v0.21.0-binance-spot-live-account-snapshot-redaction.md"
 require_file "docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md"
 require_file "docs/contracts/release-v0.21.0-controlled-spot-canary-submit-path.md"
+require_file "docs/contracts/release-v0.21.0-controlled-canary-cancel-rollback-guard.md"
 require_file "docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
@@ -13794,5 +13796,40 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 contr
 require_contains "docs/validation/validation-plan.md" "GH-1280 Release v0.21.0 Controlled Spot Canary Submit Path"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CONTROLLED-SPOT-CANARY-SUBMIT"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1280ReleaseV0210ControlledSpotCanarySubmitPath"
+
+for file in \
+  "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledCanaryCancelRollbackGuard.swift" \
+  "docs/contracts/release-v0.21.0-controlled-canary-cancel-rollback-guard.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1281-VERIFY-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK"
+  require_contains "$file" "TVM-RELEASE-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK"
+  require_contains "$file" "V0210-009-CONTROLLED-CANARY-CANCEL"
+  require_contains "$file" "V0210-009-STATUS-ROLLBACK-GUARD"
+  require_contains "$file" "V0210-009-AUDIT-EVIDENCE"
+  require_contains "$file" "V0210-009-REDACTED-CANCEL-EVIDENCE"
+  require_contains "$file" "V0210-009-SINGLE-CANARY-ORDER"
+  require_contains "$file" "V0210-009-NO-BULK-CANCEL"
+  require_contains "$file" "V0210-009-NO-FUTURES-CANCEL"
+  require_contains "$file" "V0210-009-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 controlled canary cancel rollback guard anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 controlled canary cancel rollback guard"
+require_contains "docs/validation/validation-plan.md" "GH-1281 Release v0.21.0 Controlled Canary Cancel Rollback Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1281ReleaseV0210ControlledCanaryCancelRollbackGuard"
 
 printf 'MTPRO automation readiness checks passed.\n'
