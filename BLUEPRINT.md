@@ -97,6 +97,8 @@ v0.21.0 controlled canary contract anchor：GH-1273 使用 `GH-1273-VERIFY-V0210
 
 v0.21.0 spot canary environment profile anchor：GH-1274 使用 `GH-1274-VERIFY-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE`、`TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE`、`V0210-002-BINANCE-SPOT-CANARY-PROFILE`、`V0210-002-DEFAULT-OFF-FAIL-CLOSED`、`V0210-002-OPERATOR-OPT-IN-EVIDENCE`、`V0210-002-NO-SECRET-ENDPOINT-ORDER` 和 `V0210-002-NO-PRODUCTION-CUTOVER` 把 Binance Spot canary environment profile 固定为 productionLive identity only、default-off fail-closed 和 Human operator opt-in evidence required。GH-1274 不读取 production secret，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不发送 submit / cancel / replace，不创建 tag / GitHub Release，不授权 production cutover。
 
+v0.21.0 credential secret-read approval anchor：GH-1275 使用 `GH-1275-VERIFY-V0210-CREDENTIAL-SECRET-READ-APPROVAL`、`TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL`、`V0210-003-CREDENTIAL-SECRET-READ-APPROVAL`、`V0210-003-EXPLICIT-OPERATOR-APPROVAL`、`V0210-003-REDACTED-AUDIT-EVIDENCE`、`V0210-003-NO-AUTOMATIC-SECRET-DISCOVERY`、`V0210-003-NO-SECRET-LOGGING` 和 `V0210-003-NO-ENDPOINT-ORDER-CUTOVER` 把 Binance Spot canary credential secret-read approval path 固定为 explicit Human operator approval、redacted credential reference 和 append-only audit evidence。GH-1275 只授权后续 gate 消费审批事实；它本身不读取 secret value，不自动发现 secret，不记录 credential value，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不发送 submit / cancel / replace，不创建 tag / GitHub Release，不授权 production cutover。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |

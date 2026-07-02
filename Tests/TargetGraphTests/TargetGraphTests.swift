@@ -62894,6 +62894,268 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1275ReleaseV0210CredentialSecretReadApprovalPath() throws {
+        // 测试场景：GH-1275 定义 v0.21.0 Binance Spot canary credential
+        // secret-read approval path。
+        // 验证目的：path 只能表达显式 Human operator approval、脱敏 credential
+        // reference 和 append-only audit evidence；本 issue 不读取 secret value、不连接
+        // endpoint、不发送 submit / cancel / replace、不授权 production cutover。
+        // GH-1275-VERIFY-V0210-CREDENTIAL-SECRET-READ-APPROVAL
+        // TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL
+        // V0210-003-CREDENTIAL-SECRET-READ-APPROVAL
+        // V0210-003-EXPLICIT-OPERATOR-APPROVAL
+        // V0210-003-REDACTED-AUDIT-EVIDENCE
+        // V0210-003-NO-AUTOMATIC-SECRET-DISCOVERY
+        // V0210-003-NO-SECRET-LOGGING
+        // V0210-003-NO-ENDPOINT-ORDER-CUTOVER
+        let approvalPath = try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath.deterministicFixture()
+        let missingApprovalPath = try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath.failClosedMissingApprovalFixture()
+
+        XCTAssertTrue(approvalPath.approvalPathHeld)
+        XCTAssertTrue(approvalPath.namespaceHeld)
+        XCTAssertTrue(approvalPath.approvalEvidenceHeld)
+        XCTAssertTrue(approvalPath.forbiddenCapabilitiesClosed)
+        XCTAssertTrue(missingApprovalPath.failClosedPathHeld)
+        XCTAssertEqual(approvalPath.issueID.rawValue, "GH-1275")
+        XCTAssertEqual(approvalPath.upstreamIssueID.rawValue, "GH-1274")
+        XCTAssertEqual(approvalPath.downstreamIssueID.rawValue, "GH-1276")
+        XCTAssertEqual(approvalPath.canonicalQueueRange, "GH-1273..GH-1286")
+        XCTAssertEqual(approvalPath.projectName, "MTPRO Release v0.21.0 Binance Spot Controlled Production Canary")
+        XCTAssertEqual(approvalPath.releaseVersion, "v0.21.0")
+        XCTAssertEqual(approvalPath.venueID, .binance)
+        XCTAssertEqual(approvalPath.productKind, .spot)
+        XCTAssertEqual(approvalPath.tradingEnvironment, .productionLive)
+        XCTAssertEqual(approvalPath.approvalState, .approvedForScopedSecretRead)
+        XCTAssertEqual(approvalPath.requirements, ReleaseV0210SpotCanaryCredentialApprovalRequirement.allCases)
+        XCTAssertEqual(
+            approvalPath.forbiddenCapabilities,
+            ReleaseV0210SpotCanaryCredentialApprovalForbiddenCapability.allCases
+        )
+        XCTAssertTrue(approvalPath.upstreamEnvironmentProfileHeld)
+        XCTAssertTrue(approvalPath.operatorApprovalRequired)
+        XCTAssertTrue(approvalPath.operatorApprovalEvidencePresent)
+        XCTAssertTrue(approvalPath.operatorApprovalEvidenceRedacted)
+        XCTAssertTrue(approvalPath.credentialSecretReadApproved)
+        XCTAssertFalse(approvalPath.credentialSecretReadExecutedByThisIssue)
+        XCTAssertFalse(approvalPath.secretValueLogged)
+        XCTAssertFalse(approvalPath.rawCredentialMaterialStored)
+        XCTAssertFalse(approvalPath.automaticSecretDiscoveryEnabled)
+        XCTAssertFalse(approvalPath.fallbackSecretProviderEnabled)
+        XCTAssertFalse(approvalPath.productionEndpointConnectionEnabled)
+        XCTAssertFalse(approvalPath.signedAccountEndpointRuntimeEnabled)
+        XCTAssertFalse(approvalPath.privateStreamRuntimeEnabled)
+        XCTAssertFalse(approvalPath.productionBrokerConnectionEnabled)
+        XCTAssertFalse(approvalPath.orderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(approvalPath.dashboardTradingButtonEnabled)
+        XCTAssertFalse(approvalPath.orderFormEnabled)
+        XCTAssertFalse(approvalPath.liveCommandEnabled)
+        XCTAssertFalse(approvalPath.futuresRuntimeEnabled)
+        XCTAssertFalse(approvalPath.okxActiveImplementationEnabled)
+        XCTAssertFalse(approvalPath.productionCutoverAuthorized)
+        XCTAssertFalse(approvalPath.createsTagOrRelease)
+
+        XCTAssertTrue(approvalPath.auditEvidence.evidenceHeld)
+        XCTAssertTrue(approvalPath.auditEvidence.forbiddenEvidenceClosed)
+        XCTAssertEqual(approvalPath.auditEvidence.state, .approvedForScopedSecretRead)
+        XCTAssertNil(approvalPath.auditEvidence.failureClass)
+        XCTAssertEqual(
+            approvalPath.auditEvidence.approvalEvidenceID,
+            ReleaseV0210SpotCanaryCredentialApprovalAuditEvidence.requiredApprovalEvidenceID
+        )
+        XCTAssertEqual(
+            approvalPath.auditEvidence.redactedCredentialReference,
+            ReleaseV0210SpotCanaryCredentialApprovalAuditEvidence.requiredRedactedCredentialReference
+        )
+        XCTAssertFalse(approvalPath.auditEvidence.secretValueReadByThisIssue)
+        XCTAssertFalse(approvalPath.auditEvidence.rawCredentialMaterialPresent)
+        XCTAssertFalse(approvalPath.auditEvidence.secretValueLogged)
+        XCTAssertFalse(approvalPath.auditEvidence.automaticSecretDiscoveryAttempted)
+        XCTAssertFalse(approvalPath.auditEvidence.fallbackSecretProviderUsed)
+        XCTAssertFalse(approvalPath.auditEvidence.endpointConnectionOpened)
+        XCTAssertTrue(approvalPath.auditEvidence.auditTrailAppendOnly)
+
+        XCTAssertEqual(missingApprovalPath.approvalState, .failClosedMissingOperatorApproval)
+        XCTAssertFalse(missingApprovalPath.operatorApprovalEvidencePresent)
+        XCTAssertFalse(missingApprovalPath.credentialSecretReadApproved)
+        XCTAssertTrue(missingApprovalPath.auditEvidence.failClosedEvidenceHeld)
+
+        let anchors = [
+            "GH-1275-VERIFY-V0210-CREDENTIAL-SECRET-READ-APPROVAL",
+            "TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL",
+            "V0210-003-CREDENTIAL-SECRET-READ-APPROVAL",
+            "V0210-003-EXPLICIT-OPERATOR-APPROVAL",
+            "V0210-003-REDACTED-AUDIT-EVIDENCE",
+            "V0210-003-NO-AUTOMATIC-SECRET-DISCOVERY",
+            "V0210-003-NO-SECRET-LOGGING",
+            "V0210-003-NO-ENDPOINT-ORDER-CUTOVER"
+        ]
+        XCTAssertEqual(approvalPath.validationAnchors, anchors)
+        XCTAssertTrue(approvalPath.requiredValidationCommands.contains(
+            "swift test --filter TargetGraphTests/testGH1275ReleaseV0210CredentialSecretReadApprovalPath"
+        ))
+        XCTAssertTrue(approvalPath.requiredValidationCommands.contains(
+            "bash checks/verify-v0.21.0-credential-secret-read-approval.sh"
+        ))
+
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            upstreamIssueID: Identifier.constant("GH-1273")
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            downstreamIssueID: Identifier.constant("GH-1275")
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(productKind: .usdmFutures))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            tradingEnvironment: .productionShadow
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            upstreamEnvironmentProfileHeld: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(operatorApprovalRequired: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            operatorApprovalEvidenceRedacted: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            operatorApprovalEvidencePresent: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            auditEvidence: try ReleaseV0210SpotCanaryCredentialApprovalAuditEvidence.missingApprovalFixture()
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            credentialSecretReadExecutedByThisIssue: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(secretValueLogged: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(rawCredentialMaterialStored: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            automaticSecretDiscoveryEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            fallbackSecretProviderEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            productionEndpointConnectionEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            signedAccountEndpointRuntimeEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            privateStreamRuntimeEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            productionBrokerConnectionEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(
+            orderSubmitCancelReplaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(productionCutoverAuthorized: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(futuresRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(okxActiveImplementationEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath(createsTagOrRelease: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialApprovalAuditEvidence(
+            redactedAuditSummary: "credential-approval=not-redacted"
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialApprovalAuditEvidence(secretValueReadByThisIssue: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialApprovalAuditEvidence(secretValueLogged: true))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryCredentialApprovalAuditEvidence(endpointConnectionOpened: true))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath.swift",
+            "docs/contracts/release-v0.21.0-binance-spot-canary-credential-secret-read-approval.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.21.0-credential-secret-read-approval.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let fileSource = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(fileSource.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let approvalSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath.swift")
+        let approvalDocument = try read("docs/contracts/release-v0.21.0-binance-spot-canary-credential-secret-read-approval.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.21.0-credential-secret-read-approval.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(approvalSource.contains("ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath"))
+        XCTAssertTrue(approvalSource.contains("ReleaseV0210SpotCanaryCredentialApprovalAuditEvidence"))
+        XCTAssertTrue(approvalSource.contains("GH-1273..GH-1286"))
+        XCTAssertTrue(approvalSource.contains("ReleaseV0181TradingEnvironment.productionLive"))
+        XCTAssertTrue(approvalSource.contains("approvedForScopedSecretRead"))
+        XCTAssertTrue(approvalSource.contains("operatorApprovalEvidencePresent"))
+        XCTAssertTrue(approvalSource.contains("operatorApprovalEvidenceRedacted"))
+        XCTAssertTrue(approvalSource.contains("credentialSecretReadApproved"))
+        XCTAssertTrue(approvalSource.contains("credentialSecretReadExecutedByThisIssue == false"))
+        XCTAssertTrue(approvalSource.contains("automaticSecretDiscoveryEnabled == false"))
+        XCTAssertTrue(approvalSource.contains("fallbackSecretProviderEnabled == false"))
+        XCTAssertTrue(approvalSource.contains("productionEndpointConnectionEnabled == false"))
+        XCTAssertTrue(approvalSource.contains("orderSubmitCancelReplaceEnabled == false"))
+        XCTAssertTrue(approvalSource.contains("productionCutoverAuthorized == false"))
+
+        XCTAssertTrue(approvalDocument.contains("GH-1275"))
+        XCTAssertTrue(approvalDocument.contains("GH-1276"))
+        XCTAssertTrue(approvalDocument.contains("explicit Human operator approval"))
+        XCTAssertTrue(approvalDocument.contains("redacted credential reference"))
+        XCTAssertTrue(approvalDocument.contains("does not read secret value"))
+        XCTAssertTrue(approvalDocument.contains("does not discover fallback secrets"))
+        XCTAssertTrue(approvalDocument.contains("does not connect"))
+        XCTAssertTrue(approvalDocument.contains("does not submit / cancel / replace"))
+        XCTAssertTrue(readiness.contains("Release v0.21.0 credential secret-read approval anchor"))
+        XCTAssertTrue(latest.contains("v0.21.0 credential secret-read approval"))
+        XCTAssertTrue(plan.contains("GH-1275 Release v0.21.0 Credential Secret-read Approval"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1275ReleaseV0210CredentialSecretReadApprovalPath"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.0-credential-secret-read-approval.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.0-credential-secret-read-approval.sh"))
+
+        for checkedSource in [
+            approvalSource,
+            approvalDocument,
+            readiness,
+            latest,
+            plan,
+            matrix,
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "credentialSecretReadExecutedByThisIssue=true",
+                "automaticSecretDiscoveryEnabled=true",
+                "fallbackSecretProviderEnabled=true",
+                "secretValueLogged=true",
+                "rawCredentialMaterialStored=true",
+                "productionEndpointConnectionEnabled=true",
+                "signedAccountEndpointRuntimeEnabled=true",
+                "privateStreamRuntimeEnabled=true",
+                "productionBrokerConnectionEnabled=true",
+                "orderSubmitCancelReplaceEnabled=true",
+                "productionCutoverAuthorized=true"
+            ] {
+                XCTAssertFalse(checkedSource.contains(forbidden), "\(forbidden) must stay out of GH-1275 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
