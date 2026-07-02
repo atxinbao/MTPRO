@@ -64238,6 +64238,244 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1280ReleaseV0210ControlledSpotCanarySubmitPath() throws {
+        // 测试场景：GH-1280 在 GH-1279 pre-trade path 之后生成单笔受控
+        // Binance Spot canary submit request evidence。
+        // 验证目的：submit path 必须同时具备 explicit approval、idempotency key、
+        // audit event、redacted request evidence 和 strict symbol / size scope；任一缺失
+        // 都 fail closed，且不得进入 repeated automation loop、Dashboard default trading
+        // button、Futures / OKX scope 或 production cutover。
+        // GH-1280-VERIFY-V0210-CONTROLLED-SPOT-CANARY-SUBMIT
+        // TVM-RELEASE-V0210-CONTROLLED-SPOT-CANARY-SUBMIT
+        // V0210-008-CONTROLLED-SPOT-CANARY-SUBMIT
+        // V0210-008-IDEMPOTENCY-KEY
+        // V0210-008-AUDIT-EVENT
+        // V0210-008-REDACTED-REQUEST-EVIDENCE
+        // V0210-008-STRICT-SYMBOL-SIZE-SCOPE
+        // V0210-008-SINGLE-APPROVED-ORDER
+        // V0210-008-NO-REPEATED-AUTOMATION-LOOP
+        // V0210-008-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0210ControlledSpotCanarySubmitPathEvidence.deterministicFixture()
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.namespaceHeld)
+        XCTAssertTrue(evidence.requiredControlsHeld)
+        XCTAssertTrue(evidence.decisionEvidenceHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1280")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-1279"])
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-1281")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1273..GH-1286")
+        XCTAssertEqual(evidence.releaseVersion, "v0.21.0")
+        XCTAssertEqual(evidence.venueID, .binance)
+        XCTAssertEqual(evidence.productKind, .spot)
+        XCTAssertEqual(evidence.tradingEnvironment, .productionLive)
+        XCTAssertTrue(evidence.upstreamPreTradeEvidence.evidenceHeld)
+
+        let accepted = evidence.acceptedDecision
+        XCTAssertTrue(accepted.decisionHeld)
+        XCTAssertEqual(accepted.outcome, .authorized)
+        XCTAssertEqual(accepted.rejectReasons, [])
+        XCTAssertTrue(accepted.canarySubmitAuthorized)
+        XCTAssertTrue(accepted.controlledSubmitRequestCreated)
+        XCTAssertEqual(
+            accepted.idempotencyKey,
+            ReleaseV0210ControlledSpotCanarySubmitPolicy.requiredIdempotencyKey
+        )
+        XCTAssertNotNil(accepted.auditEventID)
+        XCTAssertTrue(accepted.redactedRequestDigest.hasPrefix("sha256:gh-1280-redacted-submit-request"))
+        XCTAssertTrue(accepted.strictSymbolScopeHeld)
+        XCTAssertTrue(accepted.strictSizeScopeHeld)
+        XCTAssertTrue(accepted.singleApprovedOrderOnly)
+        XCTAssertTrue(accepted.forwardsToCancelRollbackGuard)
+        XCTAssertFalse(accepted.networkSubmitAttempted)
+        XCTAssertFalse(accepted.repeatedAutomatedTradingLoopEnabled)
+        XCTAssertFalse(accepted.futuresRuntimeEnabled)
+        XCTAssertFalse(accepted.okxActiveImplementationEnabled)
+        XCTAssertFalse(accepted.dashboardDefaultTradingButtonEnabled)
+        XCTAssertFalse(accepted.cancelReplaceEnabled)
+        XCTAssertFalse(accepted.productionCutoverAuthorized)
+
+        let rejectionCases: [(ReleaseV0210ControlledSpotCanarySubmitDecision, [ReleaseV0210ControlledSpotCanarySubmitRejectReason])] = [
+            (evidence.upstreamRejectedDecision, [.upstreamPreTradeRejected]),
+            (evidence.approvalRejectedDecision, [.explicitSubmitApprovalMissing]),
+            (evidence.idempotencyRejectedDecision, [.idempotencyKeyMissing]),
+            (evidence.redactionRejectedDecision, [.redactedRequestEvidenceMissing]),
+            (evidence.symbolRejectedDecision, [.strictSymbolScopeViolated]),
+            (evidence.sizeRejectedDecision, [.strictSizeScopeViolated])
+        ]
+        for (decision, reasons) in rejectionCases {
+            XCTAssertTrue(decision.decisionHeld)
+            XCTAssertEqual(decision.outcome, .rejected)
+            XCTAssertEqual(decision.rejectReasons, reasons)
+            XCTAssertFalse(decision.canarySubmitAuthorized)
+            XCTAssertFalse(decision.controlledSubmitRequestCreated)
+            XCTAssertFalse(decision.forwardsToCancelRollbackGuard)
+            XCTAssertFalse(decision.networkSubmitAttempted)
+            XCTAssertFalse(decision.productionCutoverAuthorized)
+        }
+
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPolicy(
+            repeatedAutomatedTradingLoopEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPolicy(rawRequestPayloadPersisted: true))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitDecision(
+            policy: .deterministicFixture(),
+            upstreamPreTradeEvidence: evidence.upstreamPreTradeEvidence,
+            networkSubmitAttempted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitDecision(
+            policy: .deterministicFixture(),
+            upstreamPreTradeEvidence: evidence.upstreamPreTradeEvidence,
+            dashboardDefaultTradingButtonEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPathEvidence(
+            upstreamIssueIDs: [Identifier.constant("GH-1278")]
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPathEvidence(
+            downstreamIssueID: Identifier.constant("GH-1280")
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPathEvidence(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPathEvidence(productKind: .usdmFutures))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPathEvidence(
+            tradingEnvironment: .productionShadow
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPathEvidence(
+            explicitSubmitApprovalRequired: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPathEvidence(
+            idempotencyKeyRequired: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPathEvidence(
+            redactedRequestEvidenceRequired: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPathEvidence(
+            networkSubmitAttempted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledSpotCanarySubmitPathEvidence(
+            productionCutoverAuthorized: true
+        ))
+
+        let anchors = ReleaseV0210ControlledSpotCanarySubmitPathEvidence.requiredValidationAnchors
+        XCTAssertEqual(anchors, [
+            "GH-1280-VERIFY-V0210-CONTROLLED-SPOT-CANARY-SUBMIT",
+            "TVM-RELEASE-V0210-CONTROLLED-SPOT-CANARY-SUBMIT",
+            "V0210-008-CONTROLLED-SPOT-CANARY-SUBMIT",
+            "V0210-008-IDEMPOTENCY-KEY",
+            "V0210-008-AUDIT-EVENT",
+            "V0210-008-REDACTED-REQUEST-EVIDENCE",
+            "V0210-008-STRICT-SYMBOL-SIZE-SCOPE",
+            "V0210-008-SINGLE-APPROVED-ORDER",
+            "V0210-008-NO-REPEATED-AUTOMATION-LOOP",
+            "V0210-008-NO-PRODUCTION-CUTOVER"
+        ])
+        XCTAssertEqual(evidence.requiredValidationCommands, [
+            "swift test --filter TargetGraphTests/testGH1280ReleaseV0210ControlledSpotCanarySubmitPath",
+            "bash checks/verify-v0.21.0-controlled-spot-canary-submit.sh",
+            "git diff --check",
+            "bash checks/automation-readiness.sh",
+            "bash checks/run.sh"
+        ])
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredFiles = [
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledSpotCanarySubmitPath.swift",
+            "docs/contracts/release-v0.21.0-controlled-spot-canary-submit-path.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.21.0-controlled-spot-canary-submit.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let fileSource = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(fileSource.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledSpotCanarySubmitPath.swift")
+        let contract = try read("docs/contracts/release-v0.21.0-controlled-spot-canary-submit-path.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.21.0-controlled-spot-canary-submit.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0210ControlledSpotCanarySubmitPathEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0210ControlledSpotCanarySubmitDecision"))
+        XCTAssertTrue(source.contains("ReleaseV0210ControlledSpotCanarySubmitPolicy"))
+        XCTAssertTrue(source.contains("GH-1280"))
+        XCTAssertTrue(source.contains("GH-1279"))
+        XCTAssertTrue(source.contains("GH-1281"))
+        XCTAssertTrue(source.contains("requiredIdempotencyKey"))
+        XCTAssertTrue(source.contains("redactedRequestDigest"))
+        XCTAssertTrue(source.contains("strictSymbolScopeHeld"))
+        XCTAssertTrue(source.contains("strictSizeScopeHeld"))
+        XCTAssertTrue(source.contains("singleApprovedOrderOnly"))
+        XCTAssertTrue(source.contains("networkSubmitAttempted == false"))
+        XCTAssertTrue(source.contains("repeatedAutomatedTradingLoopEnabled == false"))
+        XCTAssertTrue(source.contains("dashboardDefaultTradingButtonEnabled == false"))
+        XCTAssertTrue(source.contains("productionCutoverAuthorized == false"))
+        XCTAssertTrue(contract.contains("GH-1280"))
+        XCTAssertTrue(contract.contains("GH-1279"))
+        XCTAssertTrue(contract.contains("GH-1281"))
+        XCTAssertTrue(contract.contains("idempotency key"))
+        XCTAssertTrue(contract.contains("redacted request evidence"))
+        XCTAssertTrue(contract.contains("single approved order"))
+        XCTAssertTrue(contract.contains("does not perform network submit"))
+        XCTAssertTrue(readiness.contains("Release v0.21.0 controlled Spot canary submit path anchor"))
+        XCTAssertTrue(latest.contains("v0.21.0 controlled Spot canary submit path"))
+        XCTAssertTrue(plan.contains("GH-1280 Release v0.21.0 Controlled Spot Canary Submit Path"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0210-CONTROLLED-SPOT-CANARY-SUBMIT"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1280ReleaseV0210ControlledSpotCanarySubmitPath"
+        ))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.0-controlled-spot-canary-submit.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.0-controlled-spot-canary-submit.sh"))
+
+        for checkedSource in [
+            source,
+            contract,
+            readiness,
+            latest,
+            plan,
+            matrix,
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "productionSecretValueRead=true",
+                "productionEndpointConnected=true",
+                "productionBrokerConnectionEnabled=true",
+                "networkSubmitAttempted=true",
+                "repeatedAutomatedTradingLoopEnabled=true",
+                "dashboardDefaultTradingButtonEnabled=true",
+                "futuresRuntimeEnabled=true",
+                "okxActiveImplementationEnabled=true",
+                "productionCutoverAuthorized=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(checkedSource.contains(forbidden), "\(forbidden) must stay out of GH-1280 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
