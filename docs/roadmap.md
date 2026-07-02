@@ -80,6 +80,8 @@ GH-1277 uses `GH-1277-VERIFY-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`TVM-RELEA
 
 GH-1278 uses `GH-1278-VERIFY-V0210-CANARY-HARD-LIMITS`、`TVM-RELEASE-V0210-CANARY-HARD-LIMITS`、`V0210-006-CANARY-SYMBOL-ALLOWLIST`、`V0210-006-NOTIONAL-QUANTITY-CAPS`、`V0210-006-ORDER-TYPE-COUNT-WINDOW-LIMITS`、`V0210-006-PRE-TRADE-FAIL-CLOSED`、`V0210-006-NO-SUBMIT-CANCEL-REPLACE` and `V0210-006-NO-PRODUCTION-CUTOVER` to define the Binance Spot canary hard-limit pre-trade gate. The gate consumes GH-1277 redacted snapshot evidence, enforces `BTCUSDT` symbol allowlist, `LIMIT` order type, `10.00 USDT` notional cap, `0.00100000 BTC` quantity cap, one order per 300-second window, and fails closed before order creation without submit / cancel / replace, tag / GitHub Release publication, or production cutover authorization.
 
+GH-1279 uses `GH-1279-VERIFY-V0210-PRETRADE-RISK-KILL-NOTRADE`、`TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE`、`V0210-007-RISKENGINE-PRETRADE-GATE`、`V0210-007-GLOBAL-KILL-SWITCH-GATE`、`V0210-007-NO-TRADE-GATE`、`V0210-007-APPROVAL-GATE`、`V0210-007-HARD-LIMIT-GATE`、`V0210-007-AUDIT-EVIDENCE-NO-BYPASS` and `V0210-007-NO-PRODUCTION-CUTOVER` to define the Binance Spot canary submit-intent pre-trade path. The gate consumes GH-1278 hard-limit evidence, requires RiskEngine, global kill switch, no-trade, operator approval and hard-limit checks to pass, and fails closed with audit evidence for any rejection without bypass path, Dashboard command shortcut, adapter submit attempt, tag / GitHub Release publication, or production cutover authorization.
+
 ## Roadmap Responsibility / 路线职责
 
 `docs/roadmap.md` 只回答四个问题：

@@ -179,6 +179,7 @@ require_file "checks/verify-v0.21.0-spot-canary-environment-profile.sh"
 require_file "checks/verify-v0.21.0-signed-account-readonly-preflight.sh"
 require_file "checks/verify-v0.21.0-live-account-snapshot-redaction.sh"
 require_file "checks/verify-v0.21.0-canary-hard-limits.sh"
+require_file "checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -187,6 +188,7 @@ require_file "docs/contracts/release-v0.21.0-binance-spot-canary-environment-pro
 require_file "docs/contracts/release-v0.21.0-binance-spot-signed-account-readonly-preflight.md"
 require_file "docs/contracts/release-v0.21.0-binance-spot-live-account-snapshot-redaction.md"
 require_file "docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md"
+require_file "docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
 require_file "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md"
@@ -13721,5 +13723,39 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 canar
 require_contains "docs/validation/validation-plan.md" "GH-1278 Release v0.21.0 Canary Hard Limits"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CANARY-HARD-LIMITS"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1278ReleaseV0210CanaryHardLimitPreTradeGate"
+
+for file in \
+  "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGate.swift" \
+  "docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1279-VERIFY-V0210-PRETRADE-RISK-KILL-NOTRADE"
+  require_contains "$file" "TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE"
+  require_contains "$file" "V0210-007-RISKENGINE-PRETRADE-GATE"
+  require_contains "$file" "V0210-007-GLOBAL-KILL-SWITCH-GATE"
+  require_contains "$file" "V0210-007-NO-TRADE-GATE"
+  require_contains "$file" "V0210-007-APPROVAL-GATE"
+  require_contains "$file" "V0210-007-HARD-LIMIT-GATE"
+  require_contains "$file" "V0210-007-AUDIT-EVIDENCE-NO-BYPASS"
+  require_contains "$file" "V0210-007-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 pre-trade risk / kill switch / no-trade gate anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 pre-trade risk / kill switch / no-trade gate"
+require_contains "docs/validation/validation-plan.md" "GH-1279 Release v0.21.0 Pre-Trade Risk Kill No-Trade Gate"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1279ReleaseV0210PreTradeRiskKillNoTradeGate"
 
 printf 'MTPRO automation readiness checks passed.\n'
