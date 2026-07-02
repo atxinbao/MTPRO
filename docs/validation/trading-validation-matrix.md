@@ -70,6 +70,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanarySignedAccountReadOnlyRuntimePreflight.swift`、`docs/contracts/release-v0.21.0-binance-spot-signed-account-readonly-preflight.md`、`checks/verify-v0.21.0-signed-account-readonly-preflight.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1276 fixes the Binance Spot signed account read-only runtime preflight after GH-1275 approval evidence. It records redacted account status evidence only. It does not store raw account payload, touch order endpoint, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
 
+## TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION
+
+- TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION
+- GH-1277-VERIFY-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION
+- V0210-005-LIVE-ACCOUNT-SNAPSHOT-REDACTION
+- V0210-005-CONSUMES-SIGNED-ACCOUNT-PREFLIGHT
+- V0210-005-ALLOWED-READINESS-FIELDS
+- V0210-005-FRESHNESS-STALE-FAIL-CLOSED
+- V0210-005-NO-RAW-BALANCE-ACCOUNT-ID
+- V0210-005-NO-PRODUCTION-CUTOVER
+- GH-1277 Release v0.21.0 Live Account Snapshot Redaction
+- `bash checks/verify-v0.21.0-live-account-snapshot-redaction.sh`
+- `swift test --filter TargetGraphTests/testGH1277ReleaseV0210LiveAccountSnapshotRedactionArtifact`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionArtifact.swift`、`docs/contracts/release-v0.21.0-binance-spot-live-account-snapshot-redaction.md`、`checks/verify-v0.21.0-live-account-snapshot-redaction.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1277 fixes the Binance Spot redacted live account snapshot artifact after GH-1276 preflight evidence. It records readiness-only fields, freshness / staleness evidence and stale / malformed fail-closed states. It does not persist raw balances, account id, raw account payload, touch order endpoint, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
+
 ## TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
 
 - TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
