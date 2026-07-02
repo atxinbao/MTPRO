@@ -92,6 +92,8 @@ GH-1283 uses `GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE`、`TVM-R
 
 GH-1284 uses `GH-1284-VERIFY-V0210-CANARY-OPERATOR-RUNBOOK`、`TVM-RELEASE-V0210-CANARY-OPERATOR-RUNBOOK`、`V0210-012-CANARY-OPERATOR-RUNBOOK`、`V0210-012-START-OBSERVE-CANCEL-ROLLBACK`、`V0210-012-INCIDENT-STOP-CONDITIONS`、`V0210-012-EVIDENCE-COLLECTION`、`V0210-012-NO-PRODUCTION-CUTOVER` and `V0210-012-NO-TAG-OR-RELEASE-PUBLICATION` to add the Binance Spot controlled canary operator runbook. The runbook documents start, observe, cancel, rollback, incident stop and redacted evidence collection only; it adds no runtime capability, does not read production secret, does not connect production endpoint / broker endpoint, does not create tag / GitHub Release and does not authorize production cutover.
 
+GH-1285 uses `GH-1285-VERIFY-V0210-AGGREGATE-VALIDATION`、`TVM-RELEASE-V0210-AGGREGATE-VALIDATION`、`V0210-013-AGGREGATE-VALIDATION-SUITE`、`V0210-013-CANARY-READINESS-CHAIN`、`V0210-013-FOCUSED-GUARDS-COVERED`、`V0210-013-RUN-AUTOMATION-WIRING`、`V0210-013-NO-PRODUCTION-CUTOVER` and `V0210-013-NO-TAG-OR-RELEASE-PUBLICATION` to add `bash checks/verify-v0.21.0.sh` as the single v0.21.0 aggregate validation entrypoint. The entrypoint runs GH-1273..GH-1284 focused verifiers in order and proves approval, credential redaction, read-only preflight, hard limits, risk / kill / no-trade, submit / cancel evidence, OMS / reconciliation, Dashboard / CLI read-only status and operator runbook wiring without adding runtime capability, reading production secret, connecting production endpoint / broker endpoint, publishing tag / GitHub Release, or authorizing production cutover.
+
 ## Roadmap Responsibility / 路线职责
 
 `docs/roadmap.md` 只回答四个问题：
