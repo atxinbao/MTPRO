@@ -191,6 +191,21 @@
 - Evidence files: `docs/operators/release-v0.21.0-binance-spot-controlled-canary-runbook.md`、`checks/verify-v0.21.0-canary-operator-runbook.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `verification.md`。
 - Boundary: GH-1284 defines only the v0.21.0 Binance Spot controlled canary operator runbook. It documents start, observe, cancel, rollback, incident stop conditions and redacted evidence collection. It adds no runtime capability, does not read production secret value, does not connect production endpoint / broker endpoint, does not submit / cancel / replace outside already completed controlled evidence gates, does not publish tag / GitHub Release and does not authorize production cutover.
 
+## GH-1285 Release v0.21.0 Aggregate Validation Suite
+
+- GH-1285-VERIFY-V0210-AGGREGATE-VALIDATION
+- TVM-RELEASE-V0210-AGGREGATE-VALIDATION
+- V0210-013-AGGREGATE-VALIDATION-SUITE
+- V0210-013-CANARY-READINESS-CHAIN
+- V0210-013-FOCUSED-GUARDS-COVERED
+- V0210-013-RUN-AUTOMATION-WIRING
+- V0210-013-NO-PRODUCTION-CUTOVER
+- V0210-013-NO-TAG-OR-RELEASE-PUBLICATION
+- Focused verifier: `bash checks/verify-v0.21.0.sh`
+- Covered focused verifiers: `bash checks/verify-v0.21.0-controlled-canary-contract.sh`、`bash checks/verify-v0.21.0-spot-canary-environment-profile.sh`、`bash checks/verify-v0.21.0-credential-secret-read-approval.sh`、`bash checks/verify-v0.21.0-signed-account-readonly-preflight.sh`、`bash checks/verify-v0.21.0-live-account-snapshot-redaction.sh`、`bash checks/verify-v0.21.0-canary-hard-limits.sh`、`bash checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh`、`bash checks/verify-v0.21.0-controlled-spot-canary-submit.sh`、`bash checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh`、`bash checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh`、`bash checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh` 和 `bash checks/verify-v0.21.0-canary-operator-runbook.sh`。
+- Evidence files: `checks/verify-v0.21.0.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `verification.md`。
+- Boundary: GH-1285 defines only the aggregate validation suite for v0.21.0. It runs GH-1273..GH-1284 focused verifiers in canonical order, proves canary readiness wiring and keeps `checks/run.sh` routed through a single aggregate entrypoint. It adds no runtime capability, does not read production secret value, does not connect production endpoint / broker endpoint, does not submit / cancel / replace outside completed evidence gates, does not publish tag / GitHub Release and does not authorize production cutover.
+
 ## GH-1201 Release v0.18.1 Full Matrix Publication Gate
 
 - GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE

@@ -384,7 +384,7 @@ bash checks/verify-v0.20.1.sh
 # V0210-001-RISK-KILL-NO-TRADE-GATES
 # V0210-001-QUEUE-ORDER
 # V0210-001-NO-PRODUCTION-CUTOVER
-bash checks/verify-v0.21.0-controlled-canary-contract.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-controlled-canary-contract.sh
 # GH-1274-VERIFY-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE
 # TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE
 # V0210-002-BINANCE-SPOT-CANARY-PROFILE
@@ -392,7 +392,7 @@ bash checks/verify-v0.21.0-controlled-canary-contract.sh
 # V0210-002-OPERATOR-OPT-IN-EVIDENCE
 # V0210-002-NO-SECRET-ENDPOINT-ORDER
 # V0210-002-NO-PRODUCTION-CUTOVER
-bash checks/verify-v0.21.0-spot-canary-environment-profile.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-spot-canary-environment-profile.sh
 # GH-1275-VERIFY-V0210-CREDENTIAL-SECRET-READ-APPROVAL
 # TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL
 # V0210-003-CREDENTIAL-SECRET-READ-APPROVAL
@@ -401,7 +401,7 @@ bash checks/verify-v0.21.0-spot-canary-environment-profile.sh
 # V0210-003-NO-AUTOMATIC-SECRET-DISCOVERY
 # V0210-003-NO-SECRET-LOGGING
 # V0210-003-NO-ENDPOINT-ORDER-CUTOVER
-bash checks/verify-v0.21.0-credential-secret-read-approval.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-credential-secret-read-approval.sh
 # GH-1276-VERIFY-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT
 # TVM-RELEASE-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT
 # V0210-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT
@@ -410,7 +410,7 @@ bash checks/verify-v0.21.0-credential-secret-read-approval.sh
 # V0210-004-NO-RAW-ACCOUNT-PAYLOAD
 # V0210-004-NO-ORDER-ENDPOINT
 # V0210-004-NO-PRODUCTION-CUTOVER
-bash checks/verify-v0.21.0-signed-account-readonly-preflight.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-signed-account-readonly-preflight.sh
 # GH-1277-VERIFY-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION
 # TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION
 # V0210-005-LIVE-ACCOUNT-SNAPSHOT-REDACTION
@@ -419,7 +419,7 @@ bash checks/verify-v0.21.0-signed-account-readonly-preflight.sh
 # V0210-005-FRESHNESS-STALE-FAIL-CLOSED
 # V0210-005-NO-RAW-BALANCE-ACCOUNT-ID
 # V0210-005-NO-PRODUCTION-CUTOVER
-bash checks/verify-v0.21.0-live-account-snapshot-redaction.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-live-account-snapshot-redaction.sh
 # GH-1278-VERIFY-V0210-CANARY-HARD-LIMITS
 # TVM-RELEASE-V0210-CANARY-HARD-LIMITS
 # V0210-006-CANARY-SYMBOL-ALLOWLIST
@@ -428,7 +428,7 @@ bash checks/verify-v0.21.0-live-account-snapshot-redaction.sh
 # V0210-006-PRE-TRADE-FAIL-CLOSED
 # V0210-006-NO-SUBMIT-CANCEL-REPLACE
 # V0210-006-NO-PRODUCTION-CUTOVER
-bash checks/verify-v0.21.0-canary-hard-limits.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-canary-hard-limits.sh
 # GH-1279-VERIFY-V0210-PRETRADE-RISK-KILL-NOTRADE
 # TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE
 # V0210-007-RISKENGINE-PRETRADE-GATE
@@ -438,7 +438,7 @@ bash checks/verify-v0.21.0-canary-hard-limits.sh
 # V0210-007-HARD-LIMIT-GATE
 # V0210-007-AUDIT-EVIDENCE-NO-BYPASS
 # V0210-007-NO-PRODUCTION-CUTOVER
-bash checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh
 # GH-1280-VERIFY-V0210-CONTROLLED-SPOT-CANARY-SUBMIT
 # TVM-RELEASE-V0210-CONTROLLED-SPOT-CANARY-SUBMIT
 # V0210-008-CONTROLLED-SPOT-CANARY-SUBMIT
@@ -449,7 +449,7 @@ bash checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh
 # V0210-008-SINGLE-APPROVED-ORDER
 # V0210-008-NO-REPEATED-AUTOMATION-LOOP
 # V0210-008-NO-PRODUCTION-CUTOVER
-bash checks/verify-v0.21.0-controlled-spot-canary-submit.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-controlled-spot-canary-submit.sh
 # GH-1281-VERIFY-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK
 # TVM-RELEASE-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK
 # V0210-009-CONTROLLED-CANARY-CANCEL
@@ -460,7 +460,7 @@ bash checks/verify-v0.21.0-controlled-spot-canary-submit.sh
 # V0210-009-NO-BULK-CANCEL
 # V0210-009-NO-FUTURES-CANCEL
 # V0210-009-NO-PRODUCTION-CUTOVER
-bash checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh
 # GH-1282-VERIFY-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION
 # TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION
 # V0210-010-OMS-EVENT-LOG
@@ -471,7 +471,7 @@ bash checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh
 # V0210-010-REDACTED-EVIDENCE
 # V0210-010-NO-BROAD-OMS-ROLLOUT
 # V0210-010-NO-PRODUCTION-CUTOVER
-bash checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh
 # GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE
 # TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE
 # V0210-011-DASHBOARD-CLI-CANARY-STATUS
@@ -479,7 +479,7 @@ bash checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh
 # V0210-011-RISK-ORDER-CANCEL-RECONCILIATION
 # V0210-011-READ-ONLY-NO-COMMANDS
 # V0210-011-NO-PRODUCTION-CUTOVER
-bash checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh
 # GH-1284-VERIFY-V0210-CANARY-OPERATOR-RUNBOOK
 # TVM-RELEASE-V0210-CANARY-OPERATOR-RUNBOOK
 # V0210-012-CANARY-OPERATOR-RUNBOOK
@@ -488,7 +488,28 @@ bash checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh
 # V0210-012-EVIDENCE-COLLECTION
 # V0210-012-NO-PRODUCTION-CUTOVER
 # V0210-012-NO-TAG-OR-RELEASE-PUBLICATION
-bash checks/verify-v0.21.0-canary-operator-runbook.sh
+# aggregate coverage command: bash checks/verify-v0.21.0-canary-operator-runbook.sh
+# GH-1285-VERIFY-V0210-AGGREGATE-VALIDATION
+# TVM-RELEASE-V0210-AGGREGATE-VALIDATION
+# V0210-013-AGGREGATE-VALIDATION-SUITE
+# V0210-013-CANARY-READINESS-CHAIN
+# V0210-013-FOCUSED-GUARDS-COVERED
+# V0210-013-RUN-AUTOMATION-WIRING
+# V0210-013-NO-PRODUCTION-CUTOVER
+# V0210-013-NO-TAG-OR-RELEASE-PUBLICATION
+# aggregate coverage: bash checks/verify-v0.21.0-controlled-canary-contract.sh
+# aggregate coverage: bash checks/verify-v0.21.0-spot-canary-environment-profile.sh
+# aggregate coverage: bash checks/verify-v0.21.0-credential-secret-read-approval.sh
+# aggregate coverage: bash checks/verify-v0.21.0-signed-account-readonly-preflight.sh
+# aggregate coverage: bash checks/verify-v0.21.0-live-account-snapshot-redaction.sh
+# aggregate coverage: bash checks/verify-v0.21.0-canary-hard-limits.sh
+# aggregate coverage: bash checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh
+# aggregate coverage: bash checks/verify-v0.21.0-controlled-spot-canary-submit.sh
+# aggregate coverage: bash checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh
+# aggregate coverage: bash checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh
+# aggregate coverage: bash checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh
+# aggregate coverage: bash checks/verify-v0.21.0-canary-operator-runbook.sh
+bash checks/verify-v0.21.0.sh
 # GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING
 # TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING
 # V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD

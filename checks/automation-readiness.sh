@@ -176,6 +176,7 @@ require_file "checks/verify-v0.20.0.sh"
 require_file "checks/verify-v0.20.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.21.0-controlled-canary-contract.sh"
 require_file "checks/verify-v0.21.0-spot-canary-environment-profile.sh"
+require_file "checks/verify-v0.21.0-credential-secret-read-approval.sh"
 require_file "checks/verify-v0.21.0-signed-account-readonly-preflight.sh"
 require_file "checks/verify-v0.21.0-live-account-snapshot-redaction.sh"
 require_file "checks/verify-v0.21.0-canary-hard-limits.sh"
@@ -184,6 +185,8 @@ require_file "checks/verify-v0.21.0-controlled-spot-canary-submit.sh"
 require_file "checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh"
 require_file "checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh"
 require_file "checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh"
+require_file "checks/verify-v0.21.0-canary-operator-runbook.sh"
+require_file "checks/verify-v0.21.0.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -13941,5 +13944,50 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "docs/operators/release-v0.21.0-binance-spot-controlled-canary-runbook.md" "Operator Start Procedure"
 require_contains "docs/operators/release-v0.21.0-binance-spot-controlled-canary-runbook.md" "Rollback Procedure"
 require_contains "docs/operators/release-v0.21.0-binance-spot-controlled-canary-runbook.md" "productionCutoverAuthorized=false"
+
+for file in \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.21.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh"; do
+  require_contains "$file" "GH-1285-VERIFY-V0210-AGGREGATE-VALIDATION"
+  require_contains "$file" "TVM-RELEASE-V0210-AGGREGATE-VALIDATION"
+  require_contains "$file" "V0210-013-AGGREGATE-VALIDATION-SUITE"
+  require_contains "$file" "V0210-013-CANARY-READINESS-CHAIN"
+  require_contains "$file" "V0210-013-FOCUSED-GUARDS-COVERED"
+  require_contains "$file" "V0210-013-RUN-AUTOMATION-WIRING"
+  require_contains "$file" "V0210-013-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0210-013-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+for verifier in \
+  "checks/verify-v0.21.0-controlled-canary-contract.sh" \
+  "checks/verify-v0.21.0-spot-canary-environment-profile.sh" \
+  "checks/verify-v0.21.0-credential-secret-read-approval.sh" \
+  "checks/verify-v0.21.0-signed-account-readonly-preflight.sh" \
+  "checks/verify-v0.21.0-live-account-snapshot-redaction.sh" \
+  "checks/verify-v0.21.0-canary-hard-limits.sh" \
+  "checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh" \
+  "checks/verify-v0.21.0-controlled-spot-canary-submit.sh" \
+  "checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh" \
+  "checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh" \
+  "checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh" \
+  "checks/verify-v0.21.0-canary-operator-runbook.sh"; do
+  require_contains "checks/verify-v0.21.0.sh" "$verifier"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 aggregate validation suite anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 aggregate validation suite"
+require_contains "docs/validation/validation-plan.md" "GH-1285 Release v0.21.0 Aggregate Validation Suite"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-AGGREGATE-VALIDATION"
+require_contains "verification.md" "MTPRO Release v0.21.0 Aggregate Validation Suite"
 
 printf 'MTPRO automation readiness checks passed.\n'

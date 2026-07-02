@@ -117,6 +117,8 @@ v0.21.0 Dashboard / CLI canary status surface anchor：GH-1283 使用 `GH-1283-V
 
 v0.21.0 canary operator runbook anchor：GH-1284 使用 `GH-1284-VERIFY-V0210-CANARY-OPERATOR-RUNBOOK`、`TVM-RELEASE-V0210-CANARY-OPERATOR-RUNBOOK`、`V0210-012-CANARY-OPERATOR-RUNBOOK`、`V0210-012-START-OBSERVE-CANCEL-ROLLBACK`、`V0210-012-INCIDENT-STOP-CONDITIONS`、`V0210-012-EVIDENCE-COLLECTION`、`V0210-012-NO-PRODUCTION-CUTOVER` 和 `V0210-012-NO-TAG-OR-RELEASE-PUBLICATION` 固定 Binance Spot controlled canary operator runbook。GH-1284 只能描述 start、observe、cancel、rollback、incident stop 和 redacted evidence collection；不能新增 runtime capability、读取 production secret、连接 production endpoint / broker endpoint、创建 tag / GitHub Release 或授权 production cutover。
 
+v0.21.0 aggregate validation suite anchor：GH-1285 使用 `GH-1285-VERIFY-V0210-AGGREGATE-VALIDATION`、`TVM-RELEASE-V0210-AGGREGATE-VALIDATION`、`V0210-013-AGGREGATE-VALIDATION-SUITE`、`V0210-013-CANARY-READINESS-CHAIN`、`V0210-013-FOCUSED-GUARDS-COVERED`、`V0210-013-RUN-AUTOMATION-WIRING`、`V0210-013-NO-PRODUCTION-CUTOVER` 和 `V0210-013-NO-TAG-OR-RELEASE-PUBLICATION` 固定 v0.21.0 aggregate verifier。GH-1285 只能把 GH-1273..GH-1284 的 focused verifier 串成单一 readiness entrypoint；不能新增 runtime capability、读取 production secret、连接 production endpoint / broker endpoint、创建 tag / GitHub Release 或授权 production cutover。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |
