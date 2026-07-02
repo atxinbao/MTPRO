@@ -76,6 +76,8 @@ GH-1275 uses `GH-1275-VERIFY-V0210-CREDENTIAL-SECRET-READ-APPROVAL`、`TVM-RELEA
 
 GH-1276 uses `GH-1276-VERIFY-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`TVM-RELEASE-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0210-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0210-004-CONSUMES-CREDENTIAL-APPROVAL`、`V0210-004-REDACTED-ACCOUNT-STATUS-EVIDENCE`、`V0210-004-NO-RAW-ACCOUNT-PAYLOAD`、`V0210-004-NO-ORDER-ENDPOINT` and `V0210-004-NO-PRODUCTION-CUTOVER` to define the Binance Spot signed account read-only runtime preflight. The preflight consumes GH-1275 approval evidence and captures redacted account status evidence only; it does not store raw account payload, touch order endpoint, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
 
+GH-1277 uses `GH-1277-VERIFY-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`V0210-005-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`V0210-005-CONSUMES-SIGNED-ACCOUNT-PREFLIGHT`、`V0210-005-ALLOWED-READINESS-FIELDS`、`V0210-005-FRESHNESS-STALE-FAIL-CLOSED`、`V0210-005-NO-RAW-BALANCE-ACCOUNT-ID` and `V0210-005-NO-PRODUCTION-CUTOVER` to define the Binance Spot redacted live account snapshot artifact and freshness evidence. The gate consumes GH-1276 preflight evidence, keeps only readiness / freshness redacted fields, rejects stale or malformed snapshots, and does not persist raw balances, account id, raw account payload, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
+
 ## Roadmap Responsibility / 路线职责
 
 `docs/roadmap.md` 只回答四个问题：

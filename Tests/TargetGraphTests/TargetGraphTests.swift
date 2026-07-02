@@ -63426,6 +63426,313 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1277ReleaseV0210LiveAccountSnapshotRedactionArtifact() throws {
+        // 测试场景：GH-1277 在 GH-1276 signed account read-only preflight 后固定
+        // Binance Spot canary live account snapshot 的脱敏 artifact 和 freshness evidence。
+        // 验证目的：artifact 只允许 readiness / freshness 字段，必须拒绝 stale、malformed、
+        // raw balance、account id 和 raw account payload，并保持 production cutover 关闭。
+        // GH-1277-VERIFY-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION
+        // TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION
+        // V0210-005-LIVE-ACCOUNT-SNAPSHOT-REDACTION
+        // V0210-005-CONSUMES-SIGNED-ACCOUNT-PREFLIGHT
+        // V0210-005-ALLOWED-READINESS-FIELDS
+        // V0210-005-FRESHNESS-STALE-FAIL-CLOSED
+        // V0210-005-NO-RAW-BALANCE-ACCOUNT-ID
+        // V0210-005-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence
+            .deterministicFixture()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.namespaceHeld)
+        XCTAssertTrue(evidence.enabledSnapshotEvidenceHeld)
+        XCTAssertTrue(evidence.failClosedEvidenceHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1277")
+        XCTAssertEqual(evidence.upstreamIssueID.rawValue, "GH-1276")
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-1278")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1273..GH-1286")
+        XCTAssertEqual(evidence.projectName, "MTPRO Release v0.21.0 Binance Spot Controlled Production Canary")
+        XCTAssertEqual(evidence.releaseVersion, "v0.21.0")
+        XCTAssertEqual(evidence.venueID, .binance)
+        XCTAssertEqual(evidence.productKind, .spot)
+        XCTAssertEqual(evidence.tradingEnvironment, .productionLive)
+        XCTAssertTrue(evidence.upstreamPreflight.preflightHeld)
+        XCTAssertTrue(evidence.signedAccountReadOnlyPreflightConsumed)
+        XCTAssertTrue(evidence.redactedSnapshotArtifactCaptured)
+        XCTAssertTrue(evidence.freshnessEvidenceCaptured)
+        XCTAssertTrue(evidence.staleSnapshotRejected)
+        XCTAssertTrue(evidence.malformedSnapshotRejected)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretValueRead)
+        XCTAssertFalse(evidence.credentialSecretValuePersisted)
+        XCTAssertFalse(evidence.rawBalancesPersisted)
+        XCTAssertFalse(evidence.accountIdentifiersPersisted)
+        XCTAssertFalse(evidence.rawAccountPayloadPersisted)
+        XCTAssertFalse(evidence.endpointResponseBodyPersisted)
+        XCTAssertFalse(evidence.orderEndpointTouched)
+        XCTAssertFalse(evidence.submitCancelReplaceEnabled)
+        XCTAssertFalse(evidence.privateStreamRuntimeEnabled)
+        XCTAssertFalse(evidence.listenKeyRuntimeEnabled)
+        XCTAssertFalse(evidence.productionBrokerConnectionEnabled)
+        XCTAssertFalse(evidence.dashboardTradingButtonEnabled)
+        XCTAssertFalse(evidence.orderFormEnabled)
+        XCTAssertFalse(evidence.liveCommandEnabled)
+        XCTAssertFalse(evidence.futuresRuntimeEnabled)
+        XCTAssertFalse(evidence.okxActiveImplementationEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.createsTagOrRelease)
+
+        XCTAssertTrue(evidence.freshArtifact.redactionArtifactHeld)
+        XCTAssertTrue(evidence.freshArtifact.freshnessHeld)
+        XCTAssertTrue(evidence.freshArtifact.forbiddenPersistenceHeld)
+        XCTAssertEqual(evidence.freshArtifact.state, .freshRedactedArtifactReady)
+        XCTAssertNil(evidence.freshArtifact.failureClass)
+        XCTAssertEqual(
+            evidence.freshArtifact.location.relativePath,
+            "artifacts/release-v0.21.0/account-snapshot/binance-spot-canary/<redacted-snapshot-id>.json"
+        )
+        XCTAssertEqual(
+            evidence.freshArtifact.allowedFields,
+            ReleaseV0210SpotCanaryLiveAccountSnapshotAllowedField.allCases
+        )
+        XCTAssertEqual(
+            evidence.freshArtifact.forbiddenFields,
+            ReleaseV0210SpotCanaryLiveAccountSnapshotForbiddenField.allCases
+        )
+        XCTAssertEqual(evidence.freshArtifact.freshnessAgeSeconds, 12)
+        XCTAssertEqual(evidence.freshArtifact.staleAfterSeconds, 30)
+        XCTAssertTrue(evidence.freshArtifact.upstreamPreflightEvidenceHeld)
+        XCTAssertFalse(evidence.freshArtifact.rawBalancesPersisted)
+        XCTAssertFalse(evidence.freshArtifact.accountIdentifiersPersisted)
+        XCTAssertFalse(evidence.freshArtifact.secretMaterialPersisted)
+        XCTAssertFalse(evidence.freshArtifact.rawAccountPayloadPersisted)
+        XCTAssertFalse(evidence.freshArtifact.endpointResponseBodyPersisted)
+        XCTAssertFalse(evidence.freshArtifact.orderPayloadPersisted)
+        XCTAssertFalse(evidence.freshArtifact.malformedSnapshotAccepted)
+
+        XCTAssertEqual(evidence.staleRejectedArtifact.state, .staleSnapshotRejected)
+        XCTAssertEqual(evidence.staleRejectedArtifact.failureClass, .staleSnapshot)
+        XCTAssertTrue(evidence.staleRejectedArtifact.failClosedArtifactHeld)
+        XCTAssertGreaterThan(
+            evidence.staleRejectedArtifact.freshnessAgeSeconds,
+            evidence.staleRejectedArtifact.staleAfterSeconds
+        )
+        XCTAssertEqual(evidence.malformedRejectedArtifact.state, .malformedSnapshotRejected)
+        XCTAssertEqual(evidence.malformedRejectedArtifact.failureClass, .malformedSnapshot)
+        XCTAssertTrue(evidence.malformedRejectedArtifact.failClosedArtifactHeld)
+        XCTAssertEqual(evidence.rawBalanceBlockedArtifact.state, .rawBalancePersistenceBlocked)
+        XCTAssertEqual(evidence.rawBalanceBlockedArtifact.failureClass, .rawBalancePersistenceAttempted)
+        XCTAssertTrue(evidence.rawBalanceBlockedArtifact.failClosedArtifactHeld)
+        XCTAssertEqual(evidence.accountIdentifierBlockedArtifact.state, .accountIdentifierPersistenceBlocked)
+        XCTAssertEqual(
+            evidence.accountIdentifierBlockedArtifact.failureClass,
+            .accountIdentifierPersistenceAttempted
+        )
+        XCTAssertTrue(evidence.accountIdentifierBlockedArtifact.failClosedArtifactHeld)
+        XCTAssertEqual(evidence.rawPayloadBlockedArtifact.state, .rawPayloadPersistenceBlocked)
+        XCTAssertEqual(
+            evidence.rawPayloadBlockedArtifact.failureClass,
+            .rawAccountPayloadPersistenceAttempted
+        )
+        XCTAssertTrue(evidence.rawPayloadBlockedArtifact.failClosedArtifactHeld)
+
+        let anchors = [
+            "GH-1277-VERIFY-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION",
+            "TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION",
+            "V0210-005-LIVE-ACCOUNT-SNAPSHOT-REDACTION",
+            "V0210-005-CONSUMES-SIGNED-ACCOUNT-PREFLIGHT",
+            "V0210-005-ALLOWED-READINESS-FIELDS",
+            "V0210-005-FRESHNESS-STALE-FAIL-CLOSED",
+            "V0210-005-NO-RAW-BALANCE-ACCOUNT-ID",
+            "V0210-005-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(evidence.validationAnchors, anchors)
+        XCTAssertTrue(evidence.requiredValidationCommands.contains(
+            "swift test --filter TargetGraphTests/testGH1277ReleaseV0210LiveAccountSnapshotRedactionArtifact"
+        ))
+        XCTAssertTrue(evidence.requiredValidationCommands.contains(
+            "bash checks/verify-v0.21.0-live-account-snapshot-redaction.sh"
+        ))
+
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            upstreamIssueID: Identifier.constant("GH-1275")
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            downstreamIssueID: Identifier.constant("GH-1277")
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            productKind: .usdmFutures
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            tradingEnvironment: .productionShadow
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            signedAccountReadOnlyPreflightConsumed: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            redactedSnapshotArtifactCaptured: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            freshnessEvidenceCaptured: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            productionTradingEnabledByDefault: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            rawBalancesPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            accountIdentifiersPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            rawAccountPayloadPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            orderEndpointTouched: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            submitCancelReplaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            privateStreamRuntimeEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence(
+            productionCutoverAuthorized: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactedArtifact(
+            state: .freshRedactedArtifactReady,
+            sourceWatermarkUnixSeconds: 1_772_582_300
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactedArtifact(
+            state: .staleSnapshotRejected,
+            failureClass: .staleSnapshot
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactedArtifact(
+            state: .malformedSnapshotRejected,
+            failureClass: .malformedSnapshot,
+            malformedSnapshotAccepted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactedArtifact(
+            state: .freshRedactedArtifactReady,
+            redactedSnapshotJSON: #"{"free":"123.45","account_id":"abc"}"#
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactedArtifact(
+            state: .freshRedactedArtifactReady,
+            rawBalancesPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactedArtifact(
+            state: .freshRedactedArtifactReady,
+            accountIdentifiersPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryLiveAccountSnapshotRedactedArtifact(
+            state: .freshRedactedArtifactReady,
+            rawAccountPayloadPersisted: true
+        ))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionArtifact.swift",
+            "docs/contracts/release-v0.21.0-binance-spot-live-account-snapshot-redaction.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.21.0-live-account-snapshot-redaction.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let fileSource = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(fileSource.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionArtifact.swift")
+        let contract = try read("docs/contracts/release-v0.21.0-binance-spot-live-account-snapshot-redaction.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.21.0-live-account-snapshot-redaction.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0210SpotCanaryLiveAccountSnapshotRedactedArtifact"))
+        XCTAssertTrue(source.contains("GH-1277"))
+        XCTAssertTrue(source.contains("GH-1276"))
+        XCTAssertTrue(source.contains("GH-1278"))
+        XCTAssertTrue(source.contains("ReleaseV0181TradingEnvironment.productionLive"))
+        XCTAssertTrue(source.contains("redactedSnapshotArtifactCaptured"))
+        XCTAssertTrue(source.contains("freshnessEvidenceCaptured"))
+        XCTAssertTrue(source.contains("staleSnapshotRejected"))
+        XCTAssertTrue(source.contains("malformedSnapshotRejected"))
+        XCTAssertTrue(source.contains("rawBalancesPersisted == false"))
+        XCTAssertTrue(source.contains("accountIdentifiersPersisted == false"))
+        XCTAssertTrue(source.contains("rawAccountPayloadPersisted == false"))
+        XCTAssertTrue(source.contains("orderEndpointTouched == false"))
+        XCTAssertTrue(source.contains("submitCancelReplaceEnabled == false"))
+        XCTAssertTrue(source.contains("productionCutoverAuthorized == false"))
+        XCTAssertTrue(contract.contains("GH-1277"))
+        XCTAssertTrue(contract.contains("GH-1276"))
+        XCTAssertTrue(contract.contains("GH-1278"))
+        XCTAssertTrue(contract.contains("redacted live account snapshot artifact"))
+        XCTAssertTrue(contract.contains("freshness / staleness evidence"))
+        XCTAssertTrue(contract.contains("rejects stale or malformed snapshots"))
+        XCTAssertTrue(contract.contains("does not persist raw balances"))
+        XCTAssertTrue(readiness.contains("Release v0.21.0 live account snapshot redaction anchor"))
+        XCTAssertTrue(latest.contains("v0.21.0 live account snapshot redaction"))
+        XCTAssertTrue(plan.contains("GH-1277 Release v0.21.0 Live Account Snapshot Redaction"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1277ReleaseV0210LiveAccountSnapshotRedactionArtifact"
+        ))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.0-live-account-snapshot-redaction.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.0-live-account-snapshot-redaction.sh"))
+
+        for checkedSource in [
+            source,
+            contract,
+            readiness,
+            latest,
+            plan,
+            matrix,
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "productionSecretValueRead=true",
+                "credentialSecretValuePersisted=true",
+                "rawBalancesPersisted=true",
+                "accountIdentifiersPersisted=true",
+                "rawAccountPayloadPersisted=true",
+                "endpointResponseBodyPersisted=true",
+                "orderEndpointTouched=true",
+                "submitCancelReplaceEnabled=true",
+                "privateStreamRuntimeEnabled=true",
+                "productionBrokerConnectionEnabled=true",
+                "productionCutoverAuthorized=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(checkedSource.contains(forbidden), "\(forbidden) must stay out of GH-1277 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

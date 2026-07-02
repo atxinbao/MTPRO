@@ -101,6 +101,8 @@ v0.21.0 credential secret-read approval anchor：GH-1275 使用 `GH-1275-VERIFY-
 
 v0.21.0 signed account read-only preflight anchor：GH-1276 使用 `GH-1276-VERIFY-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`TVM-RELEASE-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0210-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0210-004-CONSUMES-CREDENTIAL-APPROVAL`、`V0210-004-REDACTED-ACCOUNT-STATUS-EVIDENCE`、`V0210-004-NO-RAW-ACCOUNT-PAYLOAD`、`V0210-004-NO-ORDER-ENDPOINT` 和 `V0210-004-NO-PRODUCTION-CUTOVER` 把 Binance Spot signed account read-only runtime preflight 固定为 GH-1275 approval evidence 后的 redacted account status evidence。GH-1276 不保存 raw account payload，不触达 order endpoint，不启用 submit / cancel / replace，不创建 tag / GitHub Release，不授权 production cutover。
 
+v0.21.0 live account snapshot redaction anchor：GH-1277 使用 `GH-1277-VERIFY-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`V0210-005-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`V0210-005-CONSUMES-SIGNED-ACCOUNT-PREFLIGHT`、`V0210-005-ALLOWED-READINESS-FIELDS`、`V0210-005-FRESHNESS-STALE-FAIL-CLOSED`、`V0210-005-NO-RAW-BALANCE-ACCOUNT-ID` 和 `V0210-005-NO-PRODUCTION-CUTOVER` 把 live account snapshot redaction 固定为 GH-1276 preflight 后的 redacted artifact / freshness evidence。GH-1277 只允许 readiness / freshness 脱敏字段，stale 或 malformed snapshot fail closed；不保存 raw balance、account id、raw account payload，不触达 order endpoint，不启用 submit / cancel / replace，不创建 tag / GitHub Release，不授权 production cutover。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |
