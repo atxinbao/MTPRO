@@ -38,6 +38,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryEnvironmentProfile.swift`、`docs/contracts/release-v0.21.0-binance-spot-canary-environment-profile.md`、`checks/verify-v0.21.0-spot-canary-environment-profile.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1274 fixes the Binance Spot canary environment profile as productionLive identity only with default-off fail-closed policy and explicit Human operator opt-in evidence requirement. It does not read production secret, connect production endpoint / broker endpoint, implement signed account endpoint runtime, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
 
+## TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL
+
+- TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL
+- GH-1275-VERIFY-V0210-CREDENTIAL-SECRET-READ-APPROVAL
+- V0210-003-CREDENTIAL-SECRET-READ-APPROVAL
+- V0210-003-EXPLICIT-OPERATOR-APPROVAL
+- V0210-003-REDACTED-AUDIT-EVIDENCE
+- V0210-003-NO-AUTOMATIC-SECRET-DISCOVERY
+- V0210-003-NO-SECRET-LOGGING
+- V0210-003-NO-ENDPOINT-ORDER-CUTOVER
+- GH-1275 Release v0.21.0 Credential Secret-read Approval
+- `bash checks/verify-v0.21.0-credential-secret-read-approval.sh`
+- `swift test --filter TargetGraphTests/testGH1275ReleaseV0210CredentialSecretReadApprovalPath`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath.swift`、`docs/contracts/release-v0.21.0-binance-spot-canary-credential-secret-read-approval.md`、`checks/verify-v0.21.0-credential-secret-read-approval.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1275 fixes the Binance Spot canary credential secret-read approval path as explicit Human operator approval plus redacted append-only audit evidence. It does not read secret value, discover fallback secrets, log credential value, connect production endpoint / broker endpoint, implement signed account endpoint runtime, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
+
 ## TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
 
 - TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD

@@ -72,6 +72,8 @@ GH-1273 uses `GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT`、`TVM-RELEASE-V0
 
 GH-1274 uses `GH-1274-VERIFY-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE`、`TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE`、`V0210-002-BINANCE-SPOT-CANARY-PROFILE`、`V0210-002-DEFAULT-OFF-FAIL-CLOSED`、`V0210-002-OPERATOR-OPT-IN-EVIDENCE`、`V0210-002-NO-SECRET-ENDPOINT-ORDER` 和 `V0210-002-NO-PRODUCTION-CUTOVER` to define the Binance Spot canary environment profile. The profile represents productionLive identity only, stays default-off fail-closed, requires explicit Human operator opt-in evidence, and does not read production secret, connect production endpoint / broker endpoint, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
 
+GH-1275 uses `GH-1275-VERIFY-V0210-CREDENTIAL-SECRET-READ-APPROVAL`、`TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL`、`V0210-003-CREDENTIAL-SECRET-READ-APPROVAL`、`V0210-003-EXPLICIT-OPERATOR-APPROVAL`、`V0210-003-REDACTED-AUDIT-EVIDENCE`、`V0210-003-NO-AUTOMATIC-SECRET-DISCOVERY`、`V0210-003-NO-SECRET-LOGGING` and `V0210-003-NO-ENDPOINT-ORDER-CUTOVER` to define the Binance Spot canary credential secret-read approval path. The path records explicit Human operator approval, redacted credential reference and append-only audit evidence for downstream gates only; GH-1275 does not read secret value, discover fallback secrets, log credential value, connect production endpoint / broker endpoint, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
+
 ## Roadmap Responsibility / 路线职责
 
 `docs/roadmap.md` 只回答四个问题：

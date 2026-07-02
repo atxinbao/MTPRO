@@ -13584,4 +13584,37 @@ require_contains "docs/validation/validation-plan.md" "GH-1274 Release v0.21.0 S
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1274ReleaseV0210SpotCanaryEnvironmentProfile"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath.swift" \
+  "docs/contracts/release-v0.21.0-binance-spot-canary-credential-secret-read-approval.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.21.0-credential-secret-read-approval.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1275-VERIFY-V0210-CREDENTIAL-SECRET-READ-APPROVAL"
+  require_contains "$file" "TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL"
+  require_contains "$file" "V0210-003-CREDENTIAL-SECRET-READ-APPROVAL"
+  require_contains "$file" "V0210-003-EXPLICIT-OPERATOR-APPROVAL"
+  require_contains "$file" "V0210-003-REDACTED-AUDIT-EVIDENCE"
+  require_contains "$file" "V0210-003-NO-AUTOMATIC-SECRET-DISCOVERY"
+  require_contains "$file" "V0210-003-NO-SECRET-LOGGING"
+  require_contains "$file" "V0210-003-NO-ENDPOINT-ORDER-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.0-credential-secret-read-approval.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-credential-secret-read-approval.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 credential secret-read approval anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 credential secret-read approval"
+require_contains "docs/validation/validation-plan.md" "GH-1275 Release v0.21.0 Credential Secret-read Approval"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1275ReleaseV0210CredentialSecretReadApprovalPath"
+
 printf 'MTPRO automation readiness checks passed.\n'
