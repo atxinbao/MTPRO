@@ -103,6 +103,8 @@ v0.21.0 signed account read-only preflight anchor：GH-1276 使用 `GH-1276-VERI
 
 v0.21.0 live account snapshot redaction anchor：GH-1277 使用 `GH-1277-VERIFY-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`V0210-005-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`V0210-005-CONSUMES-SIGNED-ACCOUNT-PREFLIGHT`、`V0210-005-ALLOWED-READINESS-FIELDS`、`V0210-005-FRESHNESS-STALE-FAIL-CLOSED`、`V0210-005-NO-RAW-BALANCE-ACCOUNT-ID` 和 `V0210-005-NO-PRODUCTION-CUTOVER` 把 live account snapshot redaction 固定为 GH-1276 preflight 后的 redacted artifact / freshness evidence。GH-1277 只允许 readiness / freshness 脱敏字段，stale 或 malformed snapshot fail closed；不保存 raw balance、account id、raw account payload，不触达 order endpoint，不启用 submit / cancel / replace，不创建 tag / GitHub Release，不授权 production cutover。
 
+v0.21.0 canary hard limits anchor：GH-1278 使用 `GH-1278-VERIFY-V0210-CANARY-HARD-LIMITS`、`TVM-RELEASE-V0210-CANARY-HARD-LIMITS`、`V0210-006-CANARY-SYMBOL-ALLOWLIST`、`V0210-006-NOTIONAL-QUANTITY-CAPS`、`V0210-006-ORDER-TYPE-COUNT-WINDOW-LIMITS`、`V0210-006-PRE-TRADE-FAIL-CLOSED`、`V0210-006-NO-SUBMIT-CANCEL-REPLACE` 和 `V0210-006-NO-PRODUCTION-CUTOVER` 把 Binance Spot canary hard limits 固定为 GH-1277 redacted snapshot evidence 后的 pre-trade gate。GH-1278 强制 `BTCUSDT` symbol allowlist、`LIMIT` order type、`10.00 USDT` notional cap、`0.00100000 BTC` quantity cap、单窗口 1 单和 300 秒窗口；只输出 eligibility / rejection evidence，不触达 order endpoint，不启用 submit / cancel / replace，不创建 tag / GitHub Release，不授权 production cutover。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |

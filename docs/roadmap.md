@@ -78,6 +78,8 @@ GH-1276 uses `GH-1276-VERIFY-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`TVM-RE
 
 GH-1277 uses `GH-1277-VERIFY-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`V0210-005-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`V0210-005-CONSUMES-SIGNED-ACCOUNT-PREFLIGHT`、`V0210-005-ALLOWED-READINESS-FIELDS`、`V0210-005-FRESHNESS-STALE-FAIL-CLOSED`、`V0210-005-NO-RAW-BALANCE-ACCOUNT-ID` and `V0210-005-NO-PRODUCTION-CUTOVER` to define the Binance Spot redacted live account snapshot artifact and freshness evidence. The gate consumes GH-1276 preflight evidence, keeps only readiness / freshness redacted fields, rejects stale or malformed snapshots, and does not persist raw balances, account id, raw account payload, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
 
+GH-1278 uses `GH-1278-VERIFY-V0210-CANARY-HARD-LIMITS`、`TVM-RELEASE-V0210-CANARY-HARD-LIMITS`、`V0210-006-CANARY-SYMBOL-ALLOWLIST`、`V0210-006-NOTIONAL-QUANTITY-CAPS`、`V0210-006-ORDER-TYPE-COUNT-WINDOW-LIMITS`、`V0210-006-PRE-TRADE-FAIL-CLOSED`、`V0210-006-NO-SUBMIT-CANCEL-REPLACE` and `V0210-006-NO-PRODUCTION-CUTOVER` to define the Binance Spot canary hard-limit pre-trade gate. The gate consumes GH-1277 redacted snapshot evidence, enforces `BTCUSDT` symbol allowlist, `LIMIT` order type, `10.00 USDT` notional cap, `0.00100000 BTC` quantity cap, one order per 300-second window, and fails closed before order creation without submit / cancel / replace, tag / GitHub Release publication, or production cutover authorization.
+
 ## Roadmap Responsibility / 路线职责
 
 `docs/roadmap.md` 只回答四个问题：

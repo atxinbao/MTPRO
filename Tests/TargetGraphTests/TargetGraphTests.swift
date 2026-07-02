@@ -63733,6 +63733,280 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1278ReleaseV0210CanaryHardLimitPreTradeGate() throws {
+        // 测试场景：GH-1278 在 GH-1277 redacted live account snapshot 后固定
+        // Binance Spot canary 的 symbol、notional、quantity、order type、order count
+        // 和 time-window hard limits。
+        // 验证目的：hard-limit gate 只输出本地 pre-trade eligibility 和 fail-closed
+        // rejection evidence；不得触达 order endpoint、不得 submit / cancel / replace、
+        // 不得授权 production cutover。
+        // GH-1278-VERIFY-V0210-CANARY-HARD-LIMITS
+        // TVM-RELEASE-V0210-CANARY-HARD-LIMITS
+        // V0210-006-CANARY-SYMBOL-ALLOWLIST
+        // V0210-006-NOTIONAL-QUANTITY-CAPS
+        // V0210-006-ORDER-TYPE-COUNT-WINDOW-LIMITS
+        // V0210-006-PRE-TRADE-FAIL-CLOSED
+        // V0210-006-NO-SUBMIT-CANCEL-REPLACE
+        // V0210-006-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence
+            .deterministicFixture()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.namespaceHeld)
+        XCTAssertTrue(evidence.hardLimitControlsHeld)
+        XCTAssertTrue(evidence.rejectionEvidenceHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1278")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-1276", "GH-1277"])
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-1279")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1273..GH-1286")
+        XCTAssertEqual(evidence.projectName, "MTPRO Release v0.21.0 Binance Spot Controlled Production Canary")
+        XCTAssertEqual(evidence.releaseVersion, "v0.21.0")
+        XCTAssertEqual(evidence.venueID, .binance)
+        XCTAssertEqual(evidence.productKind, .spot)
+        XCTAssertEqual(evidence.tradingEnvironment, .productionLive)
+        XCTAssertTrue(evidence.upstreamSnapshotEvidence.evidenceHeld)
+        XCTAssertTrue(evidence.redactedLiveAccountSnapshotConsumed)
+        XCTAssertTrue(evidence.symbolAllowlistEnforced)
+        XCTAssertTrue(evidence.notionalCapEnforced)
+        XCTAssertTrue(evidence.quantityCapEnforced)
+        XCTAssertTrue(evidence.orderTypeAllowlistEnforced)
+        XCTAssertTrue(evidence.orderCountCapEnforced)
+        XCTAssertTrue(evidence.timeWindowLimitEnforced)
+        XCTAssertTrue(evidence.preTradeFailClosedBeforeOrderCreation)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionSecretValueRead)
+        XCTAssertFalse(evidence.productionEndpointConnected)
+        XCTAssertFalse(evidence.productionBrokerConnectionEnabled)
+        XCTAssertFalse(evidence.rawOrderPayloadPersisted)
+        XCTAssertFalse(evidence.orderEndpointTouched)
+        XCTAssertFalse(evidence.submitCancelReplaceEnabled)
+        XCTAssertFalse(evidence.dashboardTradingButtonEnabled)
+        XCTAssertFalse(evidence.orderFormEnabled)
+        XCTAssertFalse(evidence.liveCommandEnabled)
+        XCTAssertFalse(evidence.futuresRuntimeEnabled)
+        XCTAssertFalse(evidence.okxActiveImplementationEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.createsTagOrRelease)
+
+        XCTAssertTrue(evidence.policy.policyHeld)
+        XCTAssertEqual(evidence.policy.allowedSymbols, ["BTCUSDT"])
+        XCTAssertEqual(evidence.policy.allowedOrderTypes, [.limit])
+        XCTAssertEqual(evidence.policy.maxNotionalMinorUnits, 1_000)
+        XCTAssertEqual(evidence.policy.maxQuantityBaseMinorUnits, 100_000)
+        XCTAssertEqual(evidence.policy.maxOrderCountInWindow, 1)
+        XCTAssertEqual(evidence.policy.windowSeconds, 300)
+        XCTAssertEqual(evidence.policy.notionalMinorUnitScale, 2)
+        XCTAssertEqual(evidence.policy.quantityBaseMinorUnitScale, 8)
+
+        XCTAssertTrue(evidence.acceptedDecision.decisionHeld)
+        XCTAssertEqual(evidence.acceptedDecision.outcome, .accepted)
+        XCTAssertEqual(evidence.acceptedDecision.rejectReasons, [])
+        XCTAssertTrue(evidence.acceptedDecision.canaryOrderCreationEligible)
+        XCTAssertFalse(evidence.acceptedDecision.forwardsToExecutionEngine)
+        XCTAssertFalse(evidence.acceptedDecision.adapterSubmitEligible)
+        XCTAssertFalse(evidence.acceptedDecision.submitCancelReplaceEnabled)
+        XCTAssertEqual(evidence.acceptedDecision.candidate.symbol, "BTCUSDT")
+        XCTAssertEqual(evidence.acceptedDecision.candidate.orderType, .limit)
+        XCTAssertEqual(evidence.acceptedDecision.candidate.notionalMinorUnits, 500)
+        XCTAssertEqual(evidence.acceptedDecision.candidate.quantityBaseMinorUnits, 50_000)
+
+        XCTAssertEqual(evidence.symbolRejectedDecision.rejectReasons, [.symbolNotAllowed])
+        XCTAssertEqual(evidence.notionalRejectedDecision.rejectReasons, [.notionalLimitExceeded])
+        XCTAssertEqual(evidence.quantityRejectedDecision.rejectReasons, [.quantityLimitExceeded])
+        XCTAssertEqual(evidence.orderTypeRejectedDecision.rejectReasons, [.orderTypeNotAllowed])
+        XCTAssertEqual(evidence.orderCountRejectedDecision.rejectReasons, [.orderCountLimitExceeded])
+        XCTAssertEqual(evidence.timeWindowRejectedDecision.rejectReasons, [.timeWindowClosed])
+        for rejected in [
+            evidence.symbolRejectedDecision,
+            evidence.notionalRejectedDecision,
+            evidence.quantityRejectedDecision,
+            evidence.orderTypeRejectedDecision,
+            evidence.orderCountRejectedDecision,
+            evidence.timeWindowRejectedDecision
+        ] {
+            XCTAssertTrue(rejected.decisionHeld)
+            XCTAssertEqual(rejected.outcome, .rejected)
+            XCTAssertFalse(rejected.canaryOrderCreationEligible)
+            XCTAssertFalse(rejected.forwardsToExecutionEngine)
+            XCTAssertFalse(rejected.adapterSubmitEligible)
+            XCTAssertFalse(rejected.submitCancelReplaceEnabled)
+        }
+
+        let anchors = [
+            "GH-1278-VERIFY-V0210-CANARY-HARD-LIMITS",
+            "TVM-RELEASE-V0210-CANARY-HARD-LIMITS",
+            "V0210-006-CANARY-SYMBOL-ALLOWLIST",
+            "V0210-006-NOTIONAL-QUANTITY-CAPS",
+            "V0210-006-ORDER-TYPE-COUNT-WINDOW-LIMITS",
+            "V0210-006-PRE-TRADE-FAIL-CLOSED",
+            "V0210-006-NO-SUBMIT-CANCEL-REPLACE",
+            "V0210-006-NO-PRODUCTION-CUTOVER"
+        ]
+        XCTAssertEqual(evidence.validationAnchors, anchors)
+        XCTAssertTrue(evidence.requiredValidationCommands.contains(
+            "swift test --filter TargetGraphTests/testGH1278ReleaseV0210CanaryHardLimitPreTradeGate"
+        ))
+        XCTAssertTrue(evidence.requiredValidationCommands.contains(
+            "bash checks/verify-v0.21.0-canary-hard-limits.sh"
+        ))
+
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPolicy(allowedSymbols: ["BTCUSDT", "ETHUSDT"]))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPolicy(allowedOrderTypes: [.limit, .market]))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPolicy(maxNotionalMinorUnits: 10_000))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPolicy(maxQuantityBaseMinorUnits: 200_000))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPolicy(maxOrderCountInWindow: 2))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPolicy(windowSeconds: 600))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitDecision(
+            policy: evidence.policy,
+            candidate: .acceptedFixture(),
+            upstreamSnapshotEvidence: evidence.upstreamSnapshotEvidence,
+            submitCancelReplaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(
+            upstreamIssueIDs: [Identifier.constant("GH-1277")]
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(
+            downstreamIssueID: Identifier.constant("GH-1278")
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(productKind: .usdmFutures))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(
+            tradingEnvironment: .productionShadow
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(
+            redactedLiveAccountSnapshotConsumed: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(symbolAllowlistEnforced: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(notionalCapEnforced: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(quantityCapEnforced: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(orderTypeAllowlistEnforced: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(orderCountCapEnforced: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(timeWindowLimitEnforced: false))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(
+            preTradeFailClosedBeforeOrderCreation: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(
+            productionTradingEnabledByDefault: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(
+            productionSecretValueRead: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(
+            productionEndpointConnected: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(
+            orderEndpointTouched: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(
+            submitCancelReplaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence(
+            productionCutoverAuthorized: true
+        ))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryHardLimitPreTradeGate.swift",
+            "docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.21.0-canary-hard-limits.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let fileSource = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(fileSource.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryHardLimitPreTradeGate.swift")
+        let contract = try read("docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.21.0-canary-hard-limits.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0210SpotCanaryHardLimitPreTradeGateEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0210SpotCanaryHardLimitPolicy"))
+        XCTAssertTrue(source.contains("ReleaseV0210SpotCanaryHardLimitDecision"))
+        XCTAssertTrue(source.contains("GH-1278"))
+        XCTAssertTrue(source.contains("GH-1277"))
+        XCTAssertTrue(source.contains("GH-1279"))
+        XCTAssertTrue(source.contains("requiredAllowedSymbols = [\"BTCUSDT\"]"))
+        XCTAssertTrue(source.contains("requiredAllowedOrderTypes = [ReleaseV0210SpotCanaryHardLimitOrderType.limit]"))
+        XCTAssertTrue(source.contains("requiredMaxNotionalMinorUnits = 1_000"))
+        XCTAssertTrue(source.contains("requiredMaxQuantityBaseMinorUnits = 100_000"))
+        XCTAssertTrue(source.contains("requiredMaxOrderCountInWindow = 1"))
+        XCTAssertTrue(source.contains("requiredWindowSeconds = 300"))
+        XCTAssertTrue(source.contains("preTradeFailClosedBeforeOrderCreation"))
+        XCTAssertTrue(source.contains("submitCancelReplaceEnabled == false"))
+        XCTAssertTrue(source.contains("productionCutoverAuthorized == false"))
+        XCTAssertTrue(contract.contains("GH-1278"))
+        XCTAssertTrue(contract.contains("GH-1277"))
+        XCTAssertTrue(contract.contains("GH-1279"))
+        XCTAssertTrue(contract.contains("canary symbol / notional / order type hard limits"))
+        XCTAssertTrue(contract.contains("symbol allowlist"))
+        XCTAssertTrue(contract.contains("order count"))
+        XCTAssertTrue(contract.contains("time window"))
+        XCTAssertTrue(contract.contains("does not submit / cancel / replace"))
+        XCTAssertTrue(readiness.contains("Release v0.21.0 canary hard limits anchor"))
+        XCTAssertTrue(latest.contains("v0.21.0 canary hard limits"))
+        XCTAssertTrue(plan.contains("GH-1278 Release v0.21.0 Canary Hard Limits"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0210-CANARY-HARD-LIMITS"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1278ReleaseV0210CanaryHardLimitPreTradeGate"
+        ))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.0-canary-hard-limits.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.0-canary-hard-limits.sh"))
+
+        for checkedSource in [
+            source,
+            contract,
+            readiness,
+            latest,
+            plan,
+            matrix,
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "productionSecretValueRead=true",
+                "productionEndpointConnected=true",
+                "productionBrokerConnectionEnabled=true",
+                "rawOrderPayloadPersisted=true",
+                "orderEndpointTouched=true",
+                "submitCancelReplaceEnabled=true",
+                "dashboardTradingButtonEnabled=true",
+                "orderFormEnabled=true",
+                "liveCommandEnabled=true",
+                "productionCutoverAuthorized=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(checkedSource.contains(forbidden), "\(forbidden) must stay out of GH-1278 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
