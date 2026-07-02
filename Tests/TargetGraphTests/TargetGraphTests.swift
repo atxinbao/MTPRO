@@ -64476,6 +64476,245 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1281ReleaseV0210ControlledCanaryCancelRollbackGuard() throws {
+        // 测试场景：GH-1281 在 GH-1280 controlled submit evidence 后，生成单笔
+        // Binance Spot canary cancel request evidence 与 status rollback guard。
+        // 验证目的：cancel path 必须消费 GH-1280、要求 explicit cancel approval、
+        // redacted order reference、audit event、redacted cancel request、rollback evidence
+        // 和 single canary order scope；任何缺失都 fail closed，且不得进入 bulk cancel、
+        // Futures cancel、Dashboard default trading button、network cancel 或 production cutover。
+        // GH-1281-VERIFY-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK
+        // TVM-RELEASE-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK
+        // V0210-009-CONTROLLED-CANARY-CANCEL
+        // V0210-009-STATUS-ROLLBACK-GUARD
+        // V0210-009-AUDIT-EVIDENCE
+        // V0210-009-REDACTED-CANCEL-EVIDENCE
+        // V0210-009-SINGLE-CANARY-ORDER
+        // V0210-009-NO-BULK-CANCEL
+        // V0210-009-NO-FUTURES-CANCEL
+        // V0210-009-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence.deterministicFixture()
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.namespaceHeld)
+        XCTAssertTrue(evidence.requiredControlsHeld)
+        XCTAssertTrue(evidence.decisionEvidenceHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1281")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-1280"])
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-1282")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1273..GH-1286")
+        XCTAssertEqual(evidence.releaseVersion, "v0.21.0")
+        XCTAssertEqual(evidence.venueID, .binance)
+        XCTAssertEqual(evidence.productKind, .spot)
+        XCTAssertEqual(evidence.tradingEnvironment, .productionLive)
+        XCTAssertTrue(evidence.upstreamSubmitEvidence.evidenceHeld)
+
+        let accepted = evidence.acceptedDecision
+        XCTAssertTrue(accepted.decisionHeld)
+        XCTAssertEqual(accepted.outcome, .authorized)
+        XCTAssertEqual(accepted.rejectReasons, [])
+        XCTAssertTrue(accepted.canaryCancelAuthorized)
+        XCTAssertTrue(accepted.controlledCancelRequestCreated)
+        XCTAssertTrue(accepted.statusRollbackGuardCreated)
+        XCTAssertEqual(
+            accepted.cancelIdempotencyKey,
+            ReleaseV0210ControlledCanaryCancelRollbackPolicy.requiredCancelIdempotencyKey
+        )
+        XCTAssertTrue(accepted.canaryOrderReferenceDigest.hasPrefix("sha256:gh-1281-redacted-canary-order-reference"))
+        XCTAssertNotNil(accepted.auditEventID)
+        XCTAssertTrue(accepted.redactedCancelRequestDigest.hasPrefix("sha256:gh-1281-redacted-cancel-request"))
+        XCTAssertTrue(accepted.statusRollbackEvidenceDigest.hasPrefix("sha256:gh-1281-status-rollback-evidence"))
+        XCTAssertTrue(accepted.strictSymbolScopeHeld)
+        XCTAssertTrue(accepted.singleOrderScopeHeld)
+        XCTAssertTrue(accepted.cancelWindowHeld)
+        XCTAssertTrue(accepted.forwardsToStatusConfirmation)
+        XCTAssertFalse(accepted.networkCancelAttempted)
+        XCTAssertFalse(accepted.bulkCancelEnabled)
+        XCTAssertFalse(accepted.futuresCancelEnabled)
+        XCTAssertFalse(accepted.okxActiveImplementationEnabled)
+        XCTAssertFalse(accepted.dashboardDefaultTradingButtonEnabled)
+        XCTAssertFalse(accepted.productionCutoverAuthorized)
+
+        let rejectionCases: [(ReleaseV0210ControlledCanaryCancelRollbackDecision, [ReleaseV0210ControlledCanaryCancelRollbackRejectReason])] = [
+            (evidence.upstreamRejectedDecision, [.upstreamSubmitRejected]),
+            (evidence.approvalRejectedDecision, [.explicitCancelApprovalMissing]),
+            (evidence.orderReferenceRejectedDecision, [.canaryOrderReferenceMissing]),
+            (evidence.cancelRequestRejectedDecision, [.redactedCancelRequestEvidenceMissing]),
+            (evidence.rollbackRejectedDecision, [.statusRollbackEvidenceMissing]),
+            (evidence.bulkCancelRejectedDecision, [.bulkCancelRequested]),
+            (evidence.symbolRejectedDecision, [.strictSymbolScopeViolated]),
+            (evidence.cancelWindowRejectedDecision, [.cancelWindowExpired])
+        ]
+        for (decision, reasons) in rejectionCases {
+            XCTAssertTrue(decision.decisionHeld)
+            XCTAssertEqual(decision.outcome, .rejected)
+            XCTAssertEqual(decision.rejectReasons, reasons)
+            XCTAssertFalse(decision.canaryCancelAuthorized)
+            XCTAssertFalse(decision.controlledCancelRequestCreated)
+            XCTAssertFalse(decision.statusRollbackGuardCreated)
+            XCTAssertFalse(decision.forwardsToStatusConfirmation)
+            XCTAssertFalse(decision.networkCancelAttempted)
+            XCTAssertFalse(decision.productionCutoverAuthorized)
+        }
+
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackPolicy(rawOrderIDPersisted: true))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackPolicy(rawCancelPayloadPersisted: true))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackDecision(
+            policy: .deterministicFixture(),
+            upstreamSubmitEvidence: evidence.upstreamSubmitEvidence,
+            networkCancelAttempted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackDecision(
+            policy: .deterministicFixture(),
+            upstreamSubmitEvidence: evidence.upstreamSubmitEvidence,
+            bulkCancelEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence(
+            upstreamIssueIDs: [Identifier.constant("GH-1279")]
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence(
+            downstreamIssueID: Identifier.constant("GH-1281")
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence(productKind: .usdmFutures))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence(
+            tradingEnvironment: .productionShadow
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence(
+            explicitCancelApprovalRequired: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence(
+            canaryOrderReferenceRequired: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence(
+            statusRollbackEvidenceRequired: false
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence(
+            networkCancelAttempted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence(
+            productionCutoverAuthorized: true
+        ))
+
+        let anchors = ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence.requiredValidationAnchors
+        XCTAssertEqual(anchors, [
+            "GH-1281-VERIFY-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK",
+            "TVM-RELEASE-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK",
+            "V0210-009-CONTROLLED-CANARY-CANCEL",
+            "V0210-009-STATUS-ROLLBACK-GUARD",
+            "V0210-009-AUDIT-EVIDENCE",
+            "V0210-009-REDACTED-CANCEL-EVIDENCE",
+            "V0210-009-SINGLE-CANARY-ORDER",
+            "V0210-009-NO-BULK-CANCEL",
+            "V0210-009-NO-FUTURES-CANCEL",
+            "V0210-009-NO-PRODUCTION-CUTOVER"
+        ])
+        XCTAssertEqual(evidence.requiredValidationCommands, [
+            "swift test --filter TargetGraphTests/testGH1281ReleaseV0210ControlledCanaryCancelRollbackGuard",
+            "bash checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh",
+            "git diff --check",
+            "bash checks/automation-readiness.sh",
+            "bash checks/run.sh"
+        ])
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredFiles = [
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledCanaryCancelRollbackGuard.swift",
+            "docs/contracts/release-v0.21.0-controlled-canary-cancel-rollback-guard.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let fileSource = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(fileSource.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledCanaryCancelRollbackGuard.swift")
+        let contract = try read("docs/contracts/release-v0.21.0-controlled-canary-cancel-rollback-guard.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0210ControlledCanaryCancelRollbackGuardEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0210ControlledCanaryCancelRollbackDecision"))
+        XCTAssertTrue(source.contains("ReleaseV0210ControlledCanaryCancelRollbackPolicy"))
+        XCTAssertTrue(source.contains("GH-1281"))
+        XCTAssertTrue(source.contains("GH-1280"))
+        XCTAssertTrue(source.contains("GH-1282"))
+        XCTAssertTrue(source.contains("requiredCancelIdempotencyKey"))
+        XCTAssertTrue(source.contains("canaryOrderReferenceDigest"))
+        XCTAssertTrue(source.contains("statusRollbackEvidenceDigest"))
+        XCTAssertTrue(source.contains("singleOrderScopeHeld"))
+        XCTAssertTrue(source.contains("networkCancelAttempted == false"))
+        XCTAssertTrue(source.contains("bulkCancelEnabled == false"))
+        XCTAssertTrue(source.contains("futuresCancelEnabled == false"))
+        XCTAssertTrue(source.contains("productionCutoverAuthorized == false"))
+        XCTAssertTrue(contract.contains("GH-1281"))
+        XCTAssertTrue(contract.contains("GH-1280"))
+        XCTAssertTrue(contract.contains("GH-1282"))
+        XCTAssertTrue(contract.contains("redacted canary order reference"))
+        XCTAssertTrue(contract.contains("status rollback guard"))
+        XCTAssertTrue(contract.contains("single canary order"))
+        XCTAssertTrue(contract.contains("does not perform network cancel"))
+        XCTAssertTrue(readiness.contains("Release v0.21.0 controlled canary cancel rollback guard anchor"))
+        XCTAssertTrue(latest.contains("v0.21.0 controlled canary cancel rollback guard"))
+        XCTAssertTrue(plan.contains("GH-1281 Release v0.21.0 Controlled Canary Cancel Rollback Guard"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1281ReleaseV0210ControlledCanaryCancelRollbackGuard"
+        ))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh"))
+
+        for checkedSource in [
+            source,
+            contract,
+            readiness,
+            latest,
+            plan,
+            matrix,
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "productionSecretValueRead=true",
+                "productionEndpointConnected=true",
+                "productionBrokerConnectionEnabled=true",
+                "networkCancelAttempted=true",
+                "bulkCancelEnabled=true",
+                "futuresCancelEnabled=true",
+                "dashboardDefaultTradingButtonEnabled=true",
+                "productionCutoverAuthorized=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(checkedSource.contains(forbidden), "\(forbidden) must stay out of GH-1281 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
