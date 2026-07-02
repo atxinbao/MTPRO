@@ -74,6 +74,8 @@ GH-1274 uses `GH-1274-VERIFY-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE`、`TVM-RELEA
 
 GH-1275 uses `GH-1275-VERIFY-V0210-CREDENTIAL-SECRET-READ-APPROVAL`、`TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL`、`V0210-003-CREDENTIAL-SECRET-READ-APPROVAL`、`V0210-003-EXPLICIT-OPERATOR-APPROVAL`、`V0210-003-REDACTED-AUDIT-EVIDENCE`、`V0210-003-NO-AUTOMATIC-SECRET-DISCOVERY`、`V0210-003-NO-SECRET-LOGGING` and `V0210-003-NO-ENDPOINT-ORDER-CUTOVER` to define the Binance Spot canary credential secret-read approval path. The path records explicit Human operator approval, redacted credential reference and append-only audit evidence for downstream gates only; GH-1275 does not read secret value, discover fallback secrets, log credential value, connect production endpoint / broker endpoint, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
 
+GH-1276 uses `GH-1276-VERIFY-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`TVM-RELEASE-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0210-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0210-004-CONSUMES-CREDENTIAL-APPROVAL`、`V0210-004-REDACTED-ACCOUNT-STATUS-EVIDENCE`、`V0210-004-NO-RAW-ACCOUNT-PAYLOAD`、`V0210-004-NO-ORDER-ENDPOINT` and `V0210-004-NO-PRODUCTION-CUTOVER` to define the Binance Spot signed account read-only runtime preflight. The preflight consumes GH-1275 approval evidence and captures redacted account status evidence only; it does not store raw account payload, touch order endpoint, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
+
 ## Roadmap Responsibility / 路线职责
 
 `docs/roadmap.md` 只回答四个问题：
