@@ -176,11 +176,13 @@ require_file "checks/verify-v0.20.0.sh"
 require_file "checks/verify-v0.20.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.21.0-controlled-canary-contract.sh"
 require_file "checks/verify-v0.21.0-spot-canary-environment-profile.sh"
+require_file "checks/verify-v0.21.0-signed-account-readonly-preflight.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
 require_file "docs/contracts/release-v0.21.0-binance-spot-controlled-production-canary-contract.md"
 require_file "docs/contracts/release-v0.21.0-binance-spot-canary-environment-profile.md"
+require_file "docs/contracts/release-v0.21.0-binance-spot-signed-account-readonly-preflight.md"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
 require_file "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md"
@@ -13616,5 +13618,38 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 crede
 require_contains "docs/validation/validation-plan.md" "GH-1275 Release v0.21.0 Credential Secret-read Approval"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1275ReleaseV0210CredentialSecretReadApprovalPath"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanarySignedAccountReadOnlyRuntimePreflight.swift" \
+  "docs/contracts/release-v0.21.0-binance-spot-signed-account-readonly-preflight.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.21.0-signed-account-readonly-preflight.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1276-VERIFY-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT"
+  require_contains "$file" "TVM-RELEASE-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT"
+  require_contains "$file" "V0210-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT"
+  require_contains "$file" "V0210-004-CONSUMES-CREDENTIAL-APPROVAL"
+  require_contains "$file" "V0210-004-REDACTED-ACCOUNT-STATUS-EVIDENCE"
+  require_contains "$file" "V0210-004-NO-RAW-ACCOUNT-PAYLOAD"
+  require_contains "$file" "V0210-004-NO-ORDER-ENDPOINT"
+  require_contains "$file" "V0210-004-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.0-signed-account-readonly-preflight.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-signed-account-readonly-preflight.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 signed account read-only preflight anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 signed account read-only preflight"
+require_contains "docs/validation/validation-plan.md" "GH-1276 Release v0.21.0 Signed Account Read-only Preflight"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1276ReleaseV0210SignedAccountReadOnlyRuntimePreflight"
 
 printf 'MTPRO automation readiness checks passed.\n'

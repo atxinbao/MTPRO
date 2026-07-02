@@ -99,6 +99,8 @@ v0.21.0 spot canary environment profile anchor：GH-1274 使用 `GH-1274-VERIFY-
 
 v0.21.0 credential secret-read approval anchor：GH-1275 使用 `GH-1275-VERIFY-V0210-CREDENTIAL-SECRET-READ-APPROVAL`、`TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL`、`V0210-003-CREDENTIAL-SECRET-READ-APPROVAL`、`V0210-003-EXPLICIT-OPERATOR-APPROVAL`、`V0210-003-REDACTED-AUDIT-EVIDENCE`、`V0210-003-NO-AUTOMATIC-SECRET-DISCOVERY`、`V0210-003-NO-SECRET-LOGGING` 和 `V0210-003-NO-ENDPOINT-ORDER-CUTOVER` 把 Binance Spot canary credential secret-read approval path 固定为 explicit Human operator approval、redacted credential reference 和 append-only audit evidence。GH-1275 只授权后续 gate 消费审批事实；它本身不读取 secret value，不自动发现 secret，不记录 credential value，不连接 production endpoint / broker endpoint，不实现 signed account endpoint runtime，不发送 submit / cancel / replace，不创建 tag / GitHub Release，不授权 production cutover。
 
+v0.21.0 signed account read-only preflight anchor：GH-1276 使用 `GH-1276-VERIFY-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`TVM-RELEASE-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0210-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0210-004-CONSUMES-CREDENTIAL-APPROVAL`、`V0210-004-REDACTED-ACCOUNT-STATUS-EVIDENCE`、`V0210-004-NO-RAW-ACCOUNT-PAYLOAD`、`V0210-004-NO-ORDER-ENDPOINT` 和 `V0210-004-NO-PRODUCTION-CUTOVER` 把 Binance Spot signed account read-only runtime preflight 固定为 GH-1275 approval evidence 后的 redacted account status evidence。GH-1276 不保存 raw account payload，不触达 order endpoint，不启用 submit / cancel / replace，不创建 tag / GitHub Release，不授权 production cutover。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |

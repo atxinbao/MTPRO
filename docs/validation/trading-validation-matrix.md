@@ -54,6 +54,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath.swift`、`docs/contracts/release-v0.21.0-binance-spot-canary-credential-secret-read-approval.md`、`checks/verify-v0.21.0-credential-secret-read-approval.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1275 fixes the Binance Spot canary credential secret-read approval path as explicit Human operator approval plus redacted append-only audit evidence. It does not read secret value, discover fallback secrets, log credential value, connect production endpoint / broker endpoint, implement signed account endpoint runtime, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
 
+## TVM-RELEASE-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT
+
+- TVM-RELEASE-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT
+- GH-1276-VERIFY-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT
+- V0210-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT
+- V0210-004-CONSUMES-CREDENTIAL-APPROVAL
+- V0210-004-REDACTED-ACCOUNT-STATUS-EVIDENCE
+- V0210-004-NO-RAW-ACCOUNT-PAYLOAD
+- V0210-004-NO-ORDER-ENDPOINT
+- V0210-004-NO-PRODUCTION-CUTOVER
+- GH-1276 Release v0.21.0 Signed Account Read-only Preflight
+- `bash checks/verify-v0.21.0-signed-account-readonly-preflight.sh`
+- `swift test --filter TargetGraphTests/testGH1276ReleaseV0210SignedAccountReadOnlyRuntimePreflight`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanarySignedAccountReadOnlyRuntimePreflight.swift`、`docs/contracts/release-v0.21.0-binance-spot-signed-account-readonly-preflight.md`、`checks/verify-v0.21.0-signed-account-readonly-preflight.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1276 fixes the Binance Spot signed account read-only runtime preflight after GH-1275 approval evidence. It records redacted account status evidence only. It does not store raw account payload, touch order endpoint, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
+
 ## TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
 
 - TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
