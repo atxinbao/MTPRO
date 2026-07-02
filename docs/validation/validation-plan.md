@@ -146,6 +146,23 @@
 - Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledCanaryCancelRollbackGuard.swift`、`docs/contracts/release-v0.21.0-controlled-canary-cancel-rollback-guard.md`、`checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1281 defines only the v0.21.0 Binance Spot controlled canary cancel request evidence and status rollback guard. It consumes GH-1280 authorized submit evidence, requires explicit cancel approval, redacted canary order reference, audit event, redacted cancel request evidence, status rollback guard and strict single canary order scope, and fails closed for every missing condition. It does not perform network cancel, enable bulk cancel, Futures cancel, Dashboard default trading button, tag / GitHub Release publication, or production cutover authorization.
 
+## GH-1282 Release v0.21.0 Canary OMS Event Log Reconciliation Evidence
+
+- GH-1282-VERIFY-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION
+- TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION
+- V0210-010-OMS-EVENT-LOG
+- V0210-010-CANARY-LIFECYCLE-EVENTS
+- V0210-010-STATUS-RESPONSES
+- V0210-010-CANCEL-OUTCOMES
+- V0210-010-RECONCILIATION-EVIDENCE
+- V0210-010-REDACTED-EVIDENCE
+- V0210-010-NO-BROAD-OMS-ROLLOUT
+- V0210-010-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1282ReleaseV0210CanaryOMSEventLogReconciliationEvidence`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryOMSEventLogReconciliationEvidence.swift`、`docs/contracts/release-v0.21.0-canary-oms-event-log-reconciliation-evidence.md`、`checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1282 defines only the v0.21.0 Binance Spot canary OMS event log and reconciliation evidence after GH-1280 submit evidence and GH-1281 cancel / rollback evidence. It reconstructs the redacted lifecycle from event log entries, status responses, cancel outcomes and reconciliation evidence, and fails closed for every missing condition. It does not enable broad production OMS rollout, Futures / OKX reconciliation, raw broker payload persistence, tag / GitHub Release publication, or production cutover authorization.
+
 ## GH-1201 Release v0.18.1 Full Matrix Publication Gate
 
 - GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
