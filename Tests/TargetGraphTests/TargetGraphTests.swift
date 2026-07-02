@@ -64715,6 +64715,252 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1282ReleaseV0210CanaryOMSEventLogReconciliationEvidence() throws {
+        // 测试场景：GH-1282 在 GH-1280 submit evidence 与 GH-1281 cancel / rollback
+        // evidence 后，生成本地 OMS event log 与 reconciliation evidence。
+        // 验证目的：canary lifecycle 必须可由 redacted event log、status response、
+        // cancel outcome 和 reconciliation evidence 重构；任一证据缺失都 fail closed，
+        // 且不得引入 broad OMS rollout、Futures / OKX reconciliation、raw broker payload、
+        // production endpoint 或 production cutover。
+        // GH-1282-VERIFY-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION
+        // TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION
+        // V0210-010-OMS-EVENT-LOG
+        // V0210-010-CANARY-LIFECYCLE-EVENTS
+        // V0210-010-STATUS-RESPONSES
+        // V0210-010-CANCEL-OUTCOMES
+        // V0210-010-RECONCILIATION-EVIDENCE
+        // V0210-010-REDACTED-EVIDENCE
+        // V0210-010-NO-BROAD-OMS-ROLLOUT
+        // V0210-010-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0210CanaryOMSEventLogReconciliationEvidence.deterministicFixture()
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.namespaceHeld)
+        XCTAssertTrue(evidence.requiredControlsHeld)
+        XCTAssertTrue(evidence.decisionEvidenceHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1282")
+        XCTAssertEqual(evidence.upstreamIssueIDs.map(\.rawValue), ["GH-1280", "GH-1281"])
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-1283")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1273..GH-1286")
+        XCTAssertEqual(evidence.releaseVersion, "v0.21.0")
+        XCTAssertEqual(evidence.venueID, .binance)
+        XCTAssertEqual(evidence.productKind, .spot)
+        XCTAssertEqual(evidence.tradingEnvironment, .productionLive)
+        XCTAssertTrue(evidence.upstreamCancelEvidence.evidenceHeld)
+
+        let matched = evidence.matchedDecision
+        XCTAssertTrue(matched.decisionHeld)
+        XCTAssertEqual(matched.outcome, .matched)
+        XCTAssertEqual(matched.rejectReasons, [])
+        XCTAssertTrue(matched.eventLogPersisted)
+        XCTAssertTrue(matched.eventSequenceStrict)
+        XCTAssertTrue(matched.canaryLifecycleReconstructable)
+        XCTAssertTrue(matched.statusResponseRecorded)
+        XCTAssertTrue(matched.cancelOutcomeRecorded)
+        XCTAssertTrue(matched.reconciliationEvidenceRecorded)
+        XCTAssertTrue(matched.reconciliationDigest.hasPrefix("sha256:gh-1282-redacted-canary-reconciliation"))
+        XCTAssertTrue(matched.forwardsToReadOnlyStatusSurface)
+        XCTAssertEqual(matched.eventLogEntries.count, 7)
+        XCTAssertEqual(matched.eventLogEntries.map(\.sequence), Array(1...7))
+        XCTAssertEqual(matched.eventKinds, [
+            .submitRequest,
+            .submitAccepted,
+            .statusResponse,
+            .cancelRequest,
+            .cancelOutcome,
+            .rollbackGuard,
+            .reconciliation
+        ])
+        XCTAssertTrue(matched.eventLogEntries.allSatisfy(\.entryHeld))
+        XCTAssertTrue(matched.eventLogEntries.allSatisfy(\.redactedEvidenceOnly))
+        XCTAssertFalse(matched.broadProductionOMSRuntimeEnabled)
+        XCTAssertFalse(matched.futuresReconciliationEnabled)
+        XCTAssertFalse(matched.okxReconciliationEnabled)
+        XCTAssertFalse(matched.rawBrokerPayloadPersisted)
+        XCTAssertFalse(matched.productionCutoverAuthorized)
+
+        let rejectionCases: [(ReleaseV0210CanaryOMSReconciliationDecision, [ReleaseV0210CanaryOMSReconciliationRejectReason])] = [
+            (evidence.upstreamRejectedDecision, [.upstreamCancelRejected]),
+            (evidence.statusRejectedDecision, [.statusResponseMissing]),
+            (evidence.cancelOutcomeRejectedDecision, [.cancelOutcomeMissing]),
+            (evidence.reconciliationRejectedDecision, [.reconciliationEvidenceMissing]),
+            (evidence.redactionRejectedDecision, [.redactedEvidenceMissing])
+        ]
+        for (decision, reasons) in rejectionCases {
+            XCTAssertTrue(decision.decisionHeld)
+            XCTAssertEqual(decision.outcome, .rejected)
+            XCTAssertEqual(decision.rejectReasons, reasons)
+            XCTAssertFalse(decision.canaryLifecycleReconstructable)
+            XCTAssertFalse(decision.forwardsToReadOnlyStatusSurface)
+            XCTAssertFalse(decision.productionCutoverAuthorized)
+        }
+        XCTAssertTrue(evidence.eventLogRejectedDecision.decisionHeld)
+        XCTAssertEqual(evidence.eventLogRejectedDecision.outcome, .rejected)
+        XCTAssertTrue(evidence.eventLogRejectedDecision.rejectReasons.contains(.eventLogMissing))
+        XCTAssertTrue(evidence.eventLogRejectedDecision.rejectReasons.contains(.lifecycleEventsIncomplete))
+        XCTAssertTrue(evidence.eventLogRejectedDecision.rejectReasons.contains(.statusResponseMissing))
+        XCTAssertTrue(evidence.eventLogRejectedDecision.rejectReasons.contains(.cancelOutcomeMissing))
+        XCTAssertTrue(evidence.eventLogRejectedDecision.rejectReasons.contains(.reconciliationEvidenceMissing))
+
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogEntry(
+            sourceIssueID: Identifier.constant("GH-1280"),
+            sourceEvidenceID: Identifier.constant("gh-1282-source"),
+            sequence: 1,
+            kind: .submitRequest,
+            localOMSState: "pendingSubmit",
+            brokerStatus: "requestEvidenceCreated",
+            rawBrokerPayloadPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSReconciliationPolicy(rawOrderIDPersisted: true))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSReconciliationPolicy(broadProductionOMSRuntimeEnabled: true))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSReconciliationDecision(
+            policy: .deterministicFixture(),
+            upstreamCancelEvidence: evidence.upstreamCancelEvidence,
+            futuresReconciliationEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogReconciliationEvidence(
+            upstreamIssueIDs: [Identifier.constant("GH-1281")]
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogReconciliationEvidence(
+            downstreamIssueID: Identifier.constant("GH-1282")
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogReconciliationEvidence(venueID: .okx))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogReconciliationEvidence(productKind: .usdmFutures))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogReconciliationEvidence(
+            tradingEnvironment: .productionShadow
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogReconciliationEvidence(omsEventLogRequired: false))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogReconciliationEvidence(statusResponseRequired: false))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogReconciliationEvidence(reconciliationEvidenceRequired: false))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogReconciliationEvidence(
+            broadProductionOMSRuntimeEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogReconciliationEvidence(
+            rawBrokerPayloadPersisted: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0210CanaryOMSEventLogReconciliationEvidence(
+            productionCutoverAuthorized: true
+        ))
+
+        let anchors = ReleaseV0210CanaryOMSEventLogReconciliationEvidence.requiredValidationAnchors
+        XCTAssertEqual(anchors, [
+            "GH-1282-VERIFY-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION",
+            "TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION",
+            "V0210-010-OMS-EVENT-LOG",
+            "V0210-010-CANARY-LIFECYCLE-EVENTS",
+            "V0210-010-STATUS-RESPONSES",
+            "V0210-010-CANCEL-OUTCOMES",
+            "V0210-010-RECONCILIATION-EVIDENCE",
+            "V0210-010-REDACTED-EVIDENCE",
+            "V0210-010-NO-BROAD-OMS-ROLLOUT",
+            "V0210-010-NO-PRODUCTION-CUTOVER"
+        ])
+        XCTAssertEqual(evidence.requiredValidationCommands, [
+            "swift test --filter TargetGraphTests/testGH1282ReleaseV0210CanaryOMSEventLogReconciliationEvidence",
+            "bash checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh",
+            "git diff --check",
+            "bash checks/automation-readiness.sh",
+            "bash checks/run.sh"
+        ])
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredFiles = [
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryOMSEventLogReconciliationEvidence.swift",
+            "docs/contracts/release-v0.21.0-canary-oms-event-log-reconciliation-evidence.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let fileSource = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(fileSource.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryOMSEventLogReconciliationEvidence.swift")
+        let contract = try read("docs/contracts/release-v0.21.0-canary-oms-event-log-reconciliation-evidence.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let plan = try read("docs/validation/validation-plan.md")
+        let matrix = try read("docs/validation/trading-validation-matrix.md")
+        let verifier = try read("checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0210CanaryOMSEventLogReconciliationEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0210CanaryOMSReconciliationDecision"))
+        XCTAssertTrue(source.contains("ReleaseV0210CanaryOMSEventLogEntry"))
+        XCTAssertTrue(source.contains("GH-1282"))
+        XCTAssertTrue(source.contains("GH-1280"))
+        XCTAssertTrue(source.contains("GH-1281"))
+        XCTAssertTrue(source.contains("GH-1283"))
+        XCTAssertTrue(source.contains("requiredLifecycleKinds"))
+        XCTAssertTrue(source.contains("canaryLifecycleReconstructable"))
+        XCTAssertTrue(source.contains("reconciliationEvidenceRecorded"))
+        XCTAssertTrue(source.contains("broadProductionOMSRuntimeEnabled == false"))
+        XCTAssertTrue(source.contains("rawBrokerPayloadPersisted == false"))
+        XCTAssertTrue(source.contains("productionCutoverAuthorized == false"))
+        XCTAssertTrue(contract.contains("GH-1282"))
+        XCTAssertTrue(contract.contains("GH-1280"))
+        XCTAssertTrue(contract.contains("GH-1281"))
+        XCTAssertTrue(contract.contains("GH-1283"))
+        XCTAssertTrue(contract.contains("OMS event log"))
+        XCTAssertTrue(contract.contains("reconciliation evidence"))
+        XCTAssertTrue(contract.contains("redacted lifecycle"))
+        XCTAssertTrue(contract.contains("does not enable broad production OMS rollout"))
+        XCTAssertTrue(readiness.contains("Release v0.21.0 canary OMS event log reconciliation anchor"))
+        XCTAssertTrue(latest.contains("v0.21.0 canary OMS event log reconciliation"))
+        XCTAssertTrue(plan.contains("GH-1282 Release v0.21.0 Canary OMS Event Log Reconciliation Evidence"))
+        XCTAssertTrue(matrix.contains("TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION"))
+        XCTAssertTrue(verifier.contains(
+            "swift test --filter TargetGraphTests/testGH1282ReleaseV0210CanaryOMSEventLogReconciliationEvidence"
+        ))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh"))
+
+        for checkedSource in [
+            source,
+            contract,
+            readiness,
+            latest,
+            plan,
+            matrix,
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "productionSecretValueRead=true",
+                "productionEndpointConnected=true",
+                "productionBrokerConnectionEnabled=true",
+                "broadProductionOMSRuntimeEnabled=true",
+                "futuresReconciliationEnabled=true",
+                "okxReconciliationEnabled=true",
+                "rawBrokerPayloadPersisted=true",
+                "productionCutoverAuthorized=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(checkedSource.contains(forbidden), "\(forbidden) must stay out of GH-1282 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

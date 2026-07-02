@@ -182,6 +182,7 @@ require_file "checks/verify-v0.21.0-canary-hard-limits.sh"
 require_file "checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh"
 require_file "checks/verify-v0.21.0-controlled-spot-canary-submit.sh"
 require_file "checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh"
+require_file "checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -192,6 +193,7 @@ require_file "docs/contracts/release-v0.21.0-binance-spot-live-account-snapshot-
 require_file "docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md"
 require_file "docs/contracts/release-v0.21.0-controlled-spot-canary-submit-path.md"
 require_file "docs/contracts/release-v0.21.0-controlled-canary-cancel-rollback-guard.md"
+require_file "docs/contracts/release-v0.21.0-canary-oms-event-log-reconciliation-evidence.md"
 require_file "docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
@@ -13831,5 +13833,40 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 contr
 require_contains "docs/validation/validation-plan.md" "GH-1281 Release v0.21.0 Controlled Canary Cancel Rollback Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1281ReleaseV0210ControlledCanaryCancelRollbackGuard"
+
+for file in \
+  "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryOMSEventLogReconciliationEvidence.swift" \
+  "docs/contracts/release-v0.21.0-canary-oms-event-log-reconciliation-evidence.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1282-VERIFY-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION"
+  require_contains "$file" "TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION"
+  require_contains "$file" "V0210-010-OMS-EVENT-LOG"
+  require_contains "$file" "V0210-010-CANARY-LIFECYCLE-EVENTS"
+  require_contains "$file" "V0210-010-STATUS-RESPONSES"
+  require_contains "$file" "V0210-010-CANCEL-OUTCOMES"
+  require_contains "$file" "V0210-010-RECONCILIATION-EVIDENCE"
+  require_contains "$file" "V0210-010-REDACTED-EVIDENCE"
+  require_contains "$file" "V0210-010-NO-BROAD-OMS-ROLLOUT"
+  require_contains "$file" "V0210-010-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 canary OMS event log reconciliation anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 canary OMS event log reconciliation"
+require_contains "docs/validation/validation-plan.md" "GH-1282 Release v0.21.0 Canary OMS Event Log Reconciliation Evidence"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1282ReleaseV0210CanaryOMSEventLogReconciliationEvidence"
 
 printf 'MTPRO automation readiness checks passed.\n'

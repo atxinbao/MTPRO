@@ -111,6 +111,8 @@ v0.21.0 controlled Spot canary submit path anchor：GH-1280 使用 `GH-1280-VERI
 
 v0.21.0 controlled canary cancel rollback guard anchor：GH-1281 使用 `GH-1281-VERIFY-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK`、`TVM-RELEASE-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK`、`V0210-009-CONTROLLED-CANARY-CANCEL`、`V0210-009-STATUS-ROLLBACK-GUARD`、`V0210-009-AUDIT-EVIDENCE`、`V0210-009-REDACTED-CANCEL-EVIDENCE`、`V0210-009-SINGLE-CANARY-ORDER`、`V0210-009-NO-BULK-CANCEL`、`V0210-009-NO-FUTURES-CANCEL` 和 `V0210-009-NO-PRODUCTION-CUTOVER` 把 Binance Spot canary controlled cancel / rollback guard 固定为 GH-1280 后的单笔 cancel request evidence 与 status rollback evidence。GH-1281 必须同时持有 explicit cancel approval、redacted canary order reference、audit event、redacted cancel request evidence、status rollback guard 和 single canary order scope；缺失任一条件即 fail closed；该 guard 不执行 network cancel，不启用 bulk cancel、Futures cancel、Dashboard default trading button 或 production cutover。
 
+v0.21.0 canary OMS event log reconciliation anchor：GH-1282 使用 `GH-1282-VERIFY-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION`、`TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION`、`V0210-010-OMS-EVENT-LOG`、`V0210-010-CANARY-LIFECYCLE-EVENTS`、`V0210-010-STATUS-RESPONSES`、`V0210-010-CANCEL-OUTCOMES`、`V0210-010-RECONCILIATION-EVIDENCE`、`V0210-010-REDACTED-EVIDENCE`、`V0210-010-NO-BROAD-OMS-ROLLOUT` 和 `V0210-010-NO-PRODUCTION-CUTOVER` 把 GH-1280 / GH-1281 后的 Binance Spot canary 生命周期固定为本地 redacted OMS event log 与 reconciliation evidence。GH-1282 必须能用 submit、status、cancel、rollback 和 reconciliation events 重构同一笔 canary lifecycle，并输出给 GH-1283 read-only surface；该 evidence 不启用 broad production OMS rollout、Futures / OKX reconciliation、raw broker payload persistence 或 production cutover。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |
