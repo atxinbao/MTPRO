@@ -189,6 +189,21 @@
 - Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryStatusReadOnlySurface.swift`、`Sources/Dashboard/Report/ReleaseV0210DashboardCLICanaryStatusSurface.swift`、`Sources/Dashboard/DashboardShell.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.21.0-dashboard-cli-canary-status-surface.md`、`checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md`、`Tests/AppTests/AppTests.swift` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1283 fixes the Dashboard / CLI read-only canary status surface after GH-1282. It displays canary state, gate stack, risk decision, order lifecycle, cancel / rollback, reconciliation and redaction boundary as inspect-only evidence. It records no trading button, order form, live command, raw order id, raw broker payload, submit / cancel / replace, tag / GitHub Release publication, or production cutover authorization.
 
+## TVM-RELEASE-V0210-CANARY-OPERATOR-RUNBOOK
+
+- TVM-RELEASE-V0210-CANARY-OPERATOR-RUNBOOK
+- GH-1284-VERIFY-V0210-CANARY-OPERATOR-RUNBOOK
+- V0210-012-CANARY-OPERATOR-RUNBOOK
+- V0210-012-START-OBSERVE-CANCEL-ROLLBACK
+- V0210-012-INCIDENT-STOP-CONDITIONS
+- V0210-012-EVIDENCE-COLLECTION
+- V0210-012-NO-PRODUCTION-CUTOVER
+- V0210-012-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1284 Release v0.21.0 Canary Operator Runbook
+- `bash checks/verify-v0.21.0-canary-operator-runbook.sh`
+- Evidence files: `docs/operators/release-v0.21.0-binance-spot-controlled-canary-runbook.md`、`checks/verify-v0.21.0-canary-operator-runbook.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md` 和 `verification.md`。
+- Boundary: GH-1284 fixes the Binance Spot controlled canary operator runbook. It covers start, observe, cancel, rollback, incident stop conditions and redacted evidence collection only. It adds no runtime capability, reads no production secret value, connects no production endpoint / broker endpoint, creates no tag / GitHub Release and authorizes no production cutover.
+
 ## TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
 
 - TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD

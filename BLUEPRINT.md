@@ -115,6 +115,8 @@ v0.21.0 canary OMS event log reconciliation anchor：GH-1282 使用 `GH-1282-VER
 
 v0.21.0 Dashboard / CLI canary status surface anchor：GH-1283 使用 `GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE`、`TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE`、`V0210-011-DASHBOARD-CLI-CANARY-STATUS`、`V0210-011-CANARY-STATE-GATES`、`V0210-011-RISK-ORDER-CANCEL-RECONCILIATION`、`V0210-011-READ-ONLY-NO-COMMANDS` 和 `V0210-011-NO-PRODUCTION-CUTOVER` 把 GH-1282 redacted OMS event log / reconciliation evidence 固定为 Dashboard / CLI 只读 canary status surface。GH-1283 只能展示 canary state、gate stack、risk decision、order lifecycle、cancel / rollback、reconciliation 和 redaction boundary；不能提供 trading button、order form、live command、raw order id、raw broker payload、submit / cancel / replace 或 production cutover。
 
+v0.21.0 canary operator runbook anchor：GH-1284 使用 `GH-1284-VERIFY-V0210-CANARY-OPERATOR-RUNBOOK`、`TVM-RELEASE-V0210-CANARY-OPERATOR-RUNBOOK`、`V0210-012-CANARY-OPERATOR-RUNBOOK`、`V0210-012-START-OBSERVE-CANCEL-ROLLBACK`、`V0210-012-INCIDENT-STOP-CONDITIONS`、`V0210-012-EVIDENCE-COLLECTION`、`V0210-012-NO-PRODUCTION-CUTOVER` 和 `V0210-012-NO-TAG-OR-RELEASE-PUBLICATION` 固定 Binance Spot controlled canary operator runbook。GH-1284 只能描述 start、observe、cancel、rollback、incident stop 和 redacted evidence collection；不能新增 runtime capability、读取 production secret、连接 production endpoint / broker endpoint、创建 tag / GitHub Release 或授权 production cutover。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |
