@@ -90,6 +90,8 @@ GH-1282 uses `GH-1282-VERIFY-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION`、`TVM-R
 
 GH-1283 uses `GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE`、`TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE`、`V0210-011-DASHBOARD-CLI-CANARY-STATUS`、`V0210-011-CANARY-STATE-GATES`、`V0210-011-RISK-ORDER-CANCEL-RECONCILIATION`、`V0210-011-READ-ONLY-NO-COMMANDS` and `V0210-011-NO-PRODUCTION-CUTOVER` to project GH-1282 redacted OMS event log / reconciliation evidence into the Dashboard and `mtpro canary-status` CLI read-only surface. The surface shows canary state, gate stack, risk decision, order lifecycle, cancel / rollback, reconciliation and redaction boundary without trading button, order form, live command, raw order id, raw broker payload, submit / cancel / replace, tag / GitHub Release publication, or production cutover authorization.
 
+GH-1284 uses `GH-1284-VERIFY-V0210-CANARY-OPERATOR-RUNBOOK`、`TVM-RELEASE-V0210-CANARY-OPERATOR-RUNBOOK`、`V0210-012-CANARY-OPERATOR-RUNBOOK`、`V0210-012-START-OBSERVE-CANCEL-ROLLBACK`、`V0210-012-INCIDENT-STOP-CONDITIONS`、`V0210-012-EVIDENCE-COLLECTION`、`V0210-012-NO-PRODUCTION-CUTOVER` and `V0210-012-NO-TAG-OR-RELEASE-PUBLICATION` to add the Binance Spot controlled canary operator runbook. The runbook documents start, observe, cancel, rollback, incident stop and redacted evidence collection only; it adds no runtime capability, does not read production secret, does not connect production endpoint / broker endpoint, does not create tag / GitHub Release and does not authorize production cutover.
+
 ## Roadmap Responsibility / 路线职责
 
 `docs/roadmap.md` 只回答四个问题：

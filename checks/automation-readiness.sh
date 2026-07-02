@@ -13909,4 +13909,37 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "Tests/AppTests/AppTests.swift" "testGH1283DashboardCLIReadOnlyCanaryStatusSurfaceShowsCanaryEvidenceWithoutCommands"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1283ReleaseV0210DashboardCLIReadOnlyCanaryStatusSurface"
 
+for file in \
+  "docs/operators/release-v0.21.0-binance-spot-controlled-canary-runbook.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.21.0-canary-operator-runbook.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh"; do
+  require_contains "$file" "GH-1284-VERIFY-V0210-CANARY-OPERATOR-RUNBOOK"
+  require_contains "$file" "TVM-RELEASE-V0210-CANARY-OPERATOR-RUNBOOK"
+  require_contains "$file" "V0210-012-CANARY-OPERATOR-RUNBOOK"
+  require_contains "$file" "V0210-012-START-OBSERVE-CANCEL-ROLLBACK"
+  require_contains "$file" "V0210-012-INCIDENT-STOP-CONDITIONS"
+  require_contains "$file" "V0210-012-EVIDENCE-COLLECTION"
+  require_contains "$file" "V0210-012-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0210-012-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.0-canary-operator-runbook.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-canary-operator-runbook.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 canary operator runbook anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 canary operator runbook"
+require_contains "docs/validation/validation-plan.md" "GH-1284 Release v0.21.0 Canary Operator Runbook"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CANARY-OPERATOR-RUNBOOK"
+require_contains "docs/operators/release-v0.21.0-binance-spot-controlled-canary-runbook.md" "Operator Start Procedure"
+require_contains "docs/operators/release-v0.21.0-binance-spot-controlled-canary-runbook.md" "Rollback Procedure"
+require_contains "docs/operators/release-v0.21.0-binance-spot-controlled-canary-runbook.md" "productionCutoverAuthorized=false"
+
 printf 'MTPRO automation readiness checks passed.\n'
