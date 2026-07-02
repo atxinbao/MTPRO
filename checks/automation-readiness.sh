@@ -178,6 +178,7 @@ require_file "checks/verify-v0.21.0-controlled-canary-contract.sh"
 require_file "checks/verify-v0.21.0-spot-canary-environment-profile.sh"
 require_file "checks/verify-v0.21.0-signed-account-readonly-preflight.sh"
 require_file "checks/verify-v0.21.0-live-account-snapshot-redaction.sh"
+require_file "checks/verify-v0.21.0-canary-hard-limits.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -185,6 +186,7 @@ require_file "docs/contracts/release-v0.21.0-binance-spot-controlled-production-
 require_file "docs/contracts/release-v0.21.0-binance-spot-canary-environment-profile.md"
 require_file "docs/contracts/release-v0.21.0-binance-spot-signed-account-readonly-preflight.md"
 require_file "docs/contracts/release-v0.21.0-binance-spot-live-account-snapshot-redaction.md"
+require_file "docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md"
 require_file "docs/audit/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.18.1-venue-product-lifecycle-recovery-cli-release-fact-patch-notes.md"
 require_file "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md"
@@ -13686,5 +13688,38 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 live 
 require_contains "docs/validation/validation-plan.md" "GH-1277 Release v0.21.0 Live Account Snapshot Redaction"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1277ReleaseV0210LiveAccountSnapshotRedactionArtifact"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryHardLimitPreTradeGate.swift" \
+  "docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.21.0-canary-hard-limits.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1278-VERIFY-V0210-CANARY-HARD-LIMITS"
+  require_contains "$file" "TVM-RELEASE-V0210-CANARY-HARD-LIMITS"
+  require_contains "$file" "V0210-006-CANARY-SYMBOL-ALLOWLIST"
+  require_contains "$file" "V0210-006-NOTIONAL-QUANTITY-CAPS"
+  require_contains "$file" "V0210-006-ORDER-TYPE-COUNT-WINDOW-LIMITS"
+  require_contains "$file" "V0210-006-PRE-TRADE-FAIL-CLOSED"
+  require_contains "$file" "V0210-006-NO-SUBMIT-CANCEL-REPLACE"
+  require_contains "$file" "V0210-006-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.0-canary-hard-limits.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-canary-hard-limits.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 canary hard limits anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 canary hard limits"
+require_contains "docs/validation/validation-plan.md" "GH-1278 Release v0.21.0 Canary Hard Limits"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CANARY-HARD-LIMITS"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1278ReleaseV0210CanaryHardLimitPreTradeGate"
 
 printf 'MTPRO automation readiness checks passed.\n'

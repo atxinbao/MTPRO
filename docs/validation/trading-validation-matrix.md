@@ -86,6 +86,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionArtifact.swift`、`docs/contracts/release-v0.21.0-binance-spot-live-account-snapshot-redaction.md`、`checks/verify-v0.21.0-live-account-snapshot-redaction.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: GH-1277 fixes the Binance Spot redacted live account snapshot artifact after GH-1276 preflight evidence. It records readiness-only fields, freshness / staleness evidence and stale / malformed fail-closed states. It does not persist raw balances, account id, raw account payload, touch order endpoint, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
 
+## TVM-RELEASE-V0210-CANARY-HARD-LIMITS
+
+- TVM-RELEASE-V0210-CANARY-HARD-LIMITS
+- GH-1278-VERIFY-V0210-CANARY-HARD-LIMITS
+- V0210-006-CANARY-SYMBOL-ALLOWLIST
+- V0210-006-NOTIONAL-QUANTITY-CAPS
+- V0210-006-ORDER-TYPE-COUNT-WINDOW-LIMITS
+- V0210-006-PRE-TRADE-FAIL-CLOSED
+- V0210-006-NO-SUBMIT-CANCEL-REPLACE
+- V0210-006-NO-PRODUCTION-CUTOVER
+- GH-1278 Release v0.21.0 Canary Hard Limits
+- `bash checks/verify-v0.21.0-canary-hard-limits.sh`
+- `swift test --filter TargetGraphTests/testGH1278ReleaseV0210CanaryHardLimitPreTradeGate`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryHardLimitPreTradeGate.swift`、`docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md`、`checks/verify-v0.21.0-canary-hard-limits.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1278 fixes the Binance Spot canary symbol, notional, quantity, order type, order count and time-window hard limits before canary order creation. It records deterministic eligibility / rejection evidence only and does not touch order endpoint, submit / cancel / replace order, publish tag / GitHub Release, include Futures / OKX, or authorize production cutover.
+
 ## TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
 
 - TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
