@@ -6,6 +6,21 @@
 
 本文档是交易验证矩阵的压缩索引，只保留 Matrix ID、issue backfill、release guard、required exact strings 和少量边界词。它不授权 Linear issue，不修改状态，不启动 Symphony，不创建 Project / Issue，不替代 PR evidence 或 Stage Code Audit。
 
+## TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT
+
+- TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT
+- GH-1309-VERIFY-V0220-LIVE-CANARY-TRANSPORT-CONTRACT
+- V0220-001-V0211-PREFLIGHT-GATE
+- V0220-001-BINANCE-SPOT-LIVE-CANARY-TRANSPORT
+- V0220-001-OPERATOR-APPROVAL-REQUIRED
+- V0220-001-ONE-SHOT-RUN-LOCK
+- V0220-001-RISK-KILL-NO-TRADE-OMS-RECONCILIATION
+- V0220-001-QUEUE-ORDER
+- V0220-001-NO-PRODUCTION-CUTOVER
+- Command: `bash checks/verify-v0.22.0-live-canary-transport-contract.sh`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryTransportCompletionContract.swift`、`docs/contracts/release-v0.22.0-binance-spot-live-canary-transport-completion-contract.md`、`checks/verify-v0.22.0-live-canary-transport-contract.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: no production cutover, no secret read, no endpoint connection and no order submission in GH-1309.
+
 ## TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
 
 - TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT

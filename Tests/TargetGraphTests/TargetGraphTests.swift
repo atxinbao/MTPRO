@@ -62410,6 +62410,148 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract() throws {
+        // 测试场景：GH-1309 定义 v0.22.0 Binance Spot live canary
+        // transport completion 顶层合同。
+        // 验证目的：v0.22.0 只能在 #1308 完成后，按 WIP=1 从合同进入
+        // operator approval -> credential -> signed preflight -> submit ->
+        // status / cancel -> OMS -> reconciliation -> read-only surface 的后续链路。
+        // GH-1309-VERIFY-V0220-LIVE-CANARY-TRANSPORT-CONTRACT
+        // TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT
+        // V0220-001-V0211-PREFLIGHT-GATE
+        // V0220-001-BINANCE-SPOT-LIVE-CANARY-TRANSPORT
+        // V0220-001-OPERATOR-APPROVAL-REQUIRED
+        // V0220-001-ONE-SHOT-RUN-LOCK
+        // V0220-001-RISK-KILL-NO-TRADE-OMS-RECONCILIATION
+        // V0220-001-QUEUE-ORDER
+        // V0220-001-NO-PRODUCTION-CUTOVER
+        let contract = try ReleaseV0220SpotLiveCanaryTransportCompletionContract.deterministicFixture()
+
+        XCTAssertTrue(contract.contractHeld)
+        XCTAssertTrue(contract.liveCanaryTransportBoundaryHeld)
+        XCTAssertTrue(contract.implementationDeferredByThisIssue)
+        XCTAssertTrue(contract.productionDefaultsClosed)
+        XCTAssertEqual(contract.issueID.rawValue, "GH-1309")
+        XCTAssertEqual(contract.blockedByIssueIDs.map(\.rawValue), ["GH-1308"])
+        XCTAssertEqual(contract.downstreamIssueIDs.map(\.rawValue), (1310...1320).map { "GH-\($0)" })
+        XCTAssertEqual(contract.canonicalQueueRange, "GH-1309..GH-1320")
+        XCTAssertEqual(contract.releaseVersion, "v0.22.0")
+        XCTAssertEqual(contract.allowedVenue, "Binance")
+        XCTAssertEqual(contract.allowedProductTypes, ["spot"])
+        XCTAssertTrue(contract.allowedModes.contains(.operatorApprovalSession))
+        XCTAssertTrue(contract.allowedModes.contains(.credentialSecretMaterialRead))
+        XCTAssertTrue(contract.allowedModes.contains(.liveSpotOrderSubmitTransport))
+        XCTAssertTrue(contract.allowedModes.contains(.liveSpotOrderStatusQuery))
+        XCTAssertTrue(contract.allowedModes.contains(.liveSpotOrderCancelTransport))
+        XCTAssertTrue(contract.allowedModes.contains(.omsAckStatusCancelEvidence))
+        XCTAssertTrue(contract.allowedModes.contains(.reconciliationEvidence))
+        XCTAssertTrue(contract.preflightRequirements.contains(.previousV0211PatchClosed))
+        XCTAssertTrue(contract.preflightRequirements.contains(.operatorApprovalRequired))
+        XCTAssertTrue(contract.preflightRequirements.contains(.oneShotRunLockRequired))
+        XCTAssertTrue(contract.preflightRequirements.contains(.signedPreflightRequiredBeforeOrder))
+        XCTAssertTrue(contract.preflightRequirements.contains(.riskKillNoTradeRequired))
+        XCTAssertTrue(contract.preflightRequirements.contains(.omsReconciliationRequired))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.productionCutoverAuthorization))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.secretReadWithoutApproval))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.riskEngineBypass))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.omsBypass))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.reconciliationBypass))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.futuresExecution))
+        XCTAssertTrue(contract.forbiddenCapabilities.contains(.okxActiveImplementation))
+        XCTAssertTrue(contract.validationAnchors.contains("GH-1309-VERIFY-V0220-LIVE-CANARY-TRANSPORT-CONTRACT"))
+        XCTAssertTrue(contract.requiredValidationCommands.contains("bash checks/verify-v0.22.0-live-canary-transport-contract.sh"))
+        XCTAssertFalse(contract.credentialSecretReadImplementedByThisIssue)
+        XCTAssertFalse(contract.signedAccountEndpointRuntimeImplementedByThisIssue)
+        XCTAssertFalse(contract.liveOrderSubmitImplementedByThisIssue)
+        XCTAssertFalse(contract.liveOrderStatusCancelImplementedByThisIssue)
+        XCTAssertFalse(contract.dashboardCommandSurfaceImplementedByThisIssue)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+        XCTAssertFalse(contract.futuresInScope)
+        XCTAssertFalse(contract.okxInScope)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1309-VERIFY-V0220-LIVE-CANARY-TRANSPORT-CONTRACT",
+            "TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT",
+            "V0220-001-V0211-PREFLIGHT-GATE",
+            "V0220-001-BINANCE-SPOT-LIVE-CANARY-TRANSPORT",
+            "V0220-001-OPERATOR-APPROVAL-REQUIRED",
+            "V0220-001-ONE-SHOT-RUN-LOCK",
+            "V0220-001-RISK-KILL-NO-TRADE-OMS-RECONCILIATION",
+            "V0220-001-QUEUE-ORDER",
+            "V0220-001-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryTransportCompletionContract.swift",
+            "docs/contracts/release-v0.22.0-binance-spot-live-canary-transport-completion-contract.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.22.0-live-canary-transport-contract.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let contractSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryTransportCompletionContract.swift")
+        let contractDoc = try read("docs/contracts/release-v0.22.0-binance-spot-live-canary-transport-completion-contract.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let verification = try read("verification.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(contractSource.contains("ReleaseV0220SpotLiveCanaryTransportCompletionContract"))
+        XCTAssertTrue(contractSource.contains("GH-1309..GH-1320"))
+        XCTAssertTrue(contractSource.contains("credentialSecretReadImplementedByThisIssue: Bool = false"))
+        XCTAssertTrue(contractSource.contains("liveOrderSubmitImplementedByThisIssue: Bool = false"))
+        XCTAssertTrue(contractSource.contains("productionCutoverAuthorized: Bool = false"))
+        XCTAssertTrue(contractDoc.contains("operator approval"))
+        XCTAssertTrue(contractDoc.contains("credential secret material read"))
+        XCTAssertTrue(contractDoc.contains("signed account preflight"))
+        XCTAssertTrue(contractDoc.contains("one-shot submit transport"))
+        XCTAssertTrue(contractDoc.contains("status / cancel transport"))
+        XCTAssertTrue(contractDoc.contains("OMS event log"))
+        XCTAssertTrue(contractDoc.contains("reconciliation evidence"))
+        XCTAssertTrue(readiness.contains("Release v0.22.0 live canary transport contract anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1309 Release v0.22.0 Live Canary Transport Contract"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT"))
+        XCTAssertTrue(verification.contains("GH-1309 v0.22.0 Live Canary Transport Contract"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-live-canary-transport-contract.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-live-canary-transport-contract.sh"))
+
+        for source in [contractDoc, verification] {
+            for forbidden in [
+                "productionCutoverAuthorized=true",
+                "productionTradingEnabledByDefault=true",
+                "productionSecretRead=true",
+                "productionEndpointConnected=true",
+                "productionBrokerConnected=true",
+                "productionOrderSubmitted=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of v0.22.0 contract evidence")
+            }
+        }
+    }
+
     func testGH1308ReleaseV0211PatchAuditReleaseNotesCloseout() throws {
         // 测试场景：GH-1308 收口 v0.21.1 patch audit、release notes、
         // validation matrix 和 no-capability-change publication guidance。

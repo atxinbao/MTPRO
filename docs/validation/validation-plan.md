@@ -6,6 +6,21 @@
 
 本文档是 MTPRO 验证计划的压缩索引，只保留统一验证入口、交易验证原则、required command / file anchors、issue / release validation headings 和 forbidden capability guard。它不替代 PR evidence、Stage Code Audit、Linear / GitHub live queue evidence 或完整 `verification.md`。
 
+## GH-1309 Release v0.22.0 Live Canary Transport Contract
+
+- GH-1309-VERIFY-V0220-LIVE-CANARY-TRANSPORT-CONTRACT
+- TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT
+- V0220-001-V0211-PREFLIGHT-GATE
+- V0220-001-BINANCE-SPOT-LIVE-CANARY-TRANSPORT
+- V0220-001-OPERATOR-APPROVAL-REQUIRED
+- V0220-001-ONE-SHOT-RUN-LOCK
+- V0220-001-RISK-KILL-NO-TRADE-OMS-RECONCILIATION
+- V0220-001-QUEUE-ORDER
+- V0220-001-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.22.0-live-canary-transport-contract.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract`
+- Boundary: Binance Spot one-shot live canary transport completion contract only; no secret read, endpoint connection, order submission, release publication, or production cutover.
+
 ## GH-1273 Release v0.21.0 Controlled Canary Contract
 
 - GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT
