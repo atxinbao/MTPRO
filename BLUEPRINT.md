@@ -119,6 +119,8 @@ v0.21.0 canary operator runbook anchor：GH-1284 使用 `GH-1284-VERIFY-V0210-CA
 
 v0.21.0 aggregate validation suite anchor：GH-1285 使用 `GH-1285-VERIFY-V0210-AGGREGATE-VALIDATION`、`TVM-RELEASE-V0210-AGGREGATE-VALIDATION`、`V0210-013-AGGREGATE-VALIDATION-SUITE`、`V0210-013-CANARY-READINESS-CHAIN`、`V0210-013-FOCUSED-GUARDS-COVERED`、`V0210-013-RUN-AUTOMATION-WIRING`、`V0210-013-NO-PRODUCTION-CUTOVER` 和 `V0210-013-NO-TAG-OR-RELEASE-PUBLICATION` 固定 v0.21.0 aggregate verifier。GH-1285 只能把 GH-1273..GH-1284 的 focused verifier 串成单一 readiness entrypoint；不能新增 runtime capability、读取 production secret、连接 production endpoint / broker endpoint、创建 tag / GitHub Release 或授权 production cutover。
 
+v0.21.0 stage audit / release docs closeout anchor：GH-1286 使用 `GH-1286-VERIFY-V0210-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS`、`V0210-014-STAGE-CODE-AUDIT`、`V0210-014-RELEASE-NOTES`、`V0210-014-VALIDATION-MATRIX`、`V0210-014-ROOT-DOCS-REFRESH`、`V0210-014-STALE-WORDING-GUARD`、`V0210-014-RELEASE-PUBLICATION-GATE-HANDOFF`、`V0210-014-NO-PRODUCTION-CUTOVER` 和 `V0210-014-NO-TAG-OR-RELEASE-PUBLICATION` 固定 v0.21.0 construction closeout。GH-1286 只收口 Stage Code Audit、release notes、validation matrix、root docs refresh 和 release publication gate handoff；不能创建 tag / GitHub Release、创建下一 Project / Issue、读取 production secret、连接 production endpoint / broker endpoint 或授权 production cutover；production cutover not authorized。
+
 ## Final Product Goal Slices
 
 | # | 目标切片 | 当前状态 |

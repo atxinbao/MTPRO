@@ -62166,6 +62166,134 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1286ReleaseV0210StageAuditReleaseDocsCloseout() throws {
+        // 测试场景：GH-1286 收口 v0.21.0 Binance Spot controlled production canary
+        // construction closeout。验证目的：Stage Code Audit、release notes、root docs、
+        // validation matrix、release publication handoff 和 no-cutover boundary 必须同步。
+        // GH-1286-VERIFY-V0210-STAGE-AUDIT-RELEASE-DOCS
+        // TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS
+        // V0210-014-STAGE-CODE-AUDIT
+        // V0210-014-RELEASE-NOTES
+        // V0210-014-VALIDATION-MATRIX
+        // V0210-014-ROOT-DOCS-REFRESH
+        // V0210-014-STALE-WORDING-GUARD
+        // V0210-014-RELEASE-PUBLICATION-GATE-HANDOFF
+        // V0210-014-NO-PRODUCTION-CUTOVER
+        // V0210-014-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1286-VERIFY-V0210-STAGE-AUDIT-RELEASE-DOCS",
+            "TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS",
+            "V0210-014-STAGE-CODE-AUDIT",
+            "V0210-014-RELEASE-NOTES",
+            "V0210-014-VALIDATION-MATRIX",
+            "V0210-014-ROOT-DOCS-REFRESH",
+            "V0210-014-STALE-WORDING-GUARD",
+            "V0210-014-RELEASE-PUBLICATION-GATE-HANDOFF",
+            "V0210-014-NO-PRODUCTION-CUTOVER",
+            "V0210-014-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        let requiredFiles = [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md",
+            "verification.md",
+            "checks/verify-v0.21.0-stage-audit-release-docs.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let audit = try read("docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let verifier = try read("checks/verify-v0.21.0-stage-audit-release-docs.sh")
+
+        for expected in [
+            "Issue Completion Evidence",
+            "PR / Checks / Merge Evidence",
+            "Boundary Audit",
+            "Validation Summary",
+            "Residual Risk",
+            "Next Handoff",
+            "#1273..#1286",
+            "PR #1291",
+            "PR #1303",
+            "required check `checks` SUCCESS"
+        ] {
+            XCTAssertTrue(audit.contains(expected), "audit must contain \(expected)")
+        }
+
+        XCTAssertTrue(notes.contains("#1286 是 construction closeout"))
+        XCTAssertTrue(notes.contains("bash checks/verify-v0.21.0-stage-audit-release-docs.sh"))
+        XCTAssertTrue(policy.contains("GH-1286 closes the v0.21.0 stage audit"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1286ReleaseV0210StageAuditReleaseDocsCloseout"))
+        XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.21.0-stage-audit-release-docs.sh"))
+        XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.21.0-stage-audit-release-docs.sh"))
+        XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.21.0 stage audit / release docs closeout anchor"))
+        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.21.0 stage audit / release docs closeout"))
+        XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1286 Release v0.21.0 Stage Audit / Release Docs Closeout"))
+        XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS"))
+        XCTAssertTrue(try read("verification.md").contains("MTPRO Release v0.21.0 Stage Audit / Release Docs Closeout"))
+
+        for source in [
+            audit,
+            notes,
+            policy,
+            try read("README.md"),
+            try read("GOAL.md"),
+            try read("BLUEPRINT.md"),
+            try read("docs/roadmap.md"),
+            try read("docs/validation/latest-verification-summary.md")
+        ] {
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+        }
+
+        for source in [
+            audit,
+            notes,
+            policy,
+            try read("README.md"),
+            try read("GOAL.md"),
+            try read("BLUEPRINT.md"),
+            try read("docs/roadmap.md"),
+            try read("docs/automation/automation-readiness.md"),
+            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/validation/validation-plan.md"),
+            try read("docs/validation/trading-validation-matrix.md")
+        ] {
+            XCTAssertFalse(source.contains("productionTradingEnabledByDefault=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+            XCTAssertFalse(source.contains("productionSecretValueRead=true"))
+            XCTAssertFalse(source.contains("productionEndpointConnectionEnabled=true"))
+            XCTAssertFalse(source.contains("productionBrokerConnectionEnabled=true"))
+            XCTAssertFalse(source.contains("defaultSubmitCancelReplaceEnabled=true"))
+            XCTAssertFalse(source.contains("futuresCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("okxCanaryEnabled=true"))
+            XCTAssertFalse(source.contains("API Key:"))
+            XCTAssertFalse(source.contains("Secret Key:"))
+        }
+    }
+
     func testGH1270ReleaseV0201V0200StaleWordingGuardRejectsCurrentFacingDrift() throws {
         // 测试场景：GH-1270 在 GH-1269 已同步 v0.20.0 publication facts 后，
         // 增加 focused stale wording guard，防止 root/release docs 回退成当前待发布状态。

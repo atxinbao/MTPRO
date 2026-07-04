@@ -94,6 +94,8 @@ GH-1284 uses `GH-1284-VERIFY-V0210-CANARY-OPERATOR-RUNBOOK`、`TVM-RELEASE-V0210
 
 GH-1285 uses `GH-1285-VERIFY-V0210-AGGREGATE-VALIDATION`、`TVM-RELEASE-V0210-AGGREGATE-VALIDATION`、`V0210-013-AGGREGATE-VALIDATION-SUITE`、`V0210-013-CANARY-READINESS-CHAIN`、`V0210-013-FOCUSED-GUARDS-COVERED`、`V0210-013-RUN-AUTOMATION-WIRING`、`V0210-013-NO-PRODUCTION-CUTOVER` and `V0210-013-NO-TAG-OR-RELEASE-PUBLICATION` to add `bash checks/verify-v0.21.0.sh` as the single v0.21.0 aggregate validation entrypoint. The entrypoint runs GH-1273..GH-1284 focused verifiers in order and proves approval, credential redaction, read-only preflight, hard limits, risk / kill / no-trade, submit / cancel evidence, OMS / reconciliation, Dashboard / CLI read-only status and operator runbook wiring without adding runtime capability, reading production secret, connecting production endpoint / broker endpoint, publishing tag / GitHub Release, or authorizing production cutover.
 
+GH-1286 uses `GH-1286-VERIFY-V0210-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS`、`V0210-014-STAGE-CODE-AUDIT`、`V0210-014-RELEASE-NOTES`、`V0210-014-VALIDATION-MATRIX`、`V0210-014-ROOT-DOCS-REFRESH`、`V0210-014-STALE-WORDING-GUARD`、`V0210-014-RELEASE-PUBLICATION-GATE-HANDOFF`、`V0210-014-NO-PRODUCTION-CUTOVER` and `V0210-014-NO-TAG-OR-RELEASE-PUBLICATION` to close v0.21.0 stage audit / release docs. It records #1273..#1286 construction evidence and hands off to a separate Release Publication Gate without creating tag / GitHub Release, starting v0.22.0, reading production secret, connecting production endpoint / broker endpoint, or authorizing production cutover. production cutover not authorized.
+
 ## Roadmap Responsibility / 路线职责
 
 `docs/roadmap.md` 只回答四个问题：

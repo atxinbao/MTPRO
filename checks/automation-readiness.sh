@@ -187,6 +187,7 @@ require_file "checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh"
 require_file "checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh"
 require_file "checks/verify-v0.21.0-canary-operator-runbook.sh"
 require_file "checks/verify-v0.21.0.sh"
+require_file "checks/verify-v0.21.0-stage-audit-release-docs.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -13989,5 +13990,43 @@ require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 aggre
 require_contains "docs/validation/validation-plan.md" "GH-1285 Release v0.21.0 Aggregate Validation Suite"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-AGGREGATE-VALIDATION"
 require_contains "verification.md" "MTPRO Release v0.21.0 Aggregate Validation Suite"
+
+for file in \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md" \
+  "verification.md" \
+  "checks/verify-v0.21.0-stage-audit-release-docs.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1286-VERIFY-V0210-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "V0210-014-STAGE-CODE-AUDIT"
+  require_contains "$file" "V0210-014-RELEASE-NOTES"
+  require_contains "$file" "V0210-014-VALIDATION-MATRIX"
+  require_contains "$file" "V0210-014-ROOT-DOCS-REFRESH"
+  require_contains "$file" "V0210-014-STALE-WORDING-GUARD"
+  require_contains "$file" "V0210-014-RELEASE-PUBLICATION-GATE-HANDOFF"
+  require_contains "$file" "V0210-014-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0210-014-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.0-stage-audit-release-docs.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-stage-audit-release-docs.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 stage audit / release docs closeout anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 stage audit / release docs closeout"
+require_contains "docs/validation/validation-plan.md" "GH-1286 Release v0.21.0 Stage Audit / Release Docs Closeout"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS"
+require_contains "docs/release/release-publication-policy.md" "GH-1286 closes the v0.21.0 stage audit"
+require_contains "verification.md" "MTPRO Release v0.21.0 Stage Audit / Release Docs Closeout"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1286ReleaseV0210StageAuditReleaseDocsCloseout"
 
 printf 'MTPRO automation readiness checks passed.\n'
