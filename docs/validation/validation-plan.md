@@ -206,6 +206,22 @@
 - Evidence files: `checks/verify-v0.21.0.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md` 和 `verification.md`。
 - Boundary: GH-1285 defines only the aggregate validation suite for v0.21.0. It runs GH-1273..GH-1284 focused verifiers in canonical order, proves canary readiness wiring and keeps `checks/run.sh` routed through a single aggregate entrypoint. It adds no runtime capability, does not read production secret value, does not connect production endpoint / broker endpoint, does not submit / cancel / replace outside completed evidence gates, does not publish tag / GitHub Release and does not authorize production cutover.
 
+## GH-1286 Release v0.21.0 Stage Audit / Release Docs Closeout
+
+- GH-1286-VERIFY-V0210-STAGE-AUDIT-RELEASE-DOCS
+- TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS
+- V0210-014-STAGE-CODE-AUDIT
+- V0210-014-RELEASE-NOTES
+- V0210-014-VALIDATION-MATRIX
+- V0210-014-ROOT-DOCS-REFRESH
+- V0210-014-STALE-WORDING-GUARD
+- V0210-014-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0210-014-NO-PRODUCTION-CUTOVER
+- V0210-014-NO-TAG-OR-RELEASE-PUBLICATION
+- Focused verifier: `bash checks/verify-v0.21.0-stage-audit-release-docs.sh`
+- Evidence files: `docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md`、`docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md`、`checks/verify-v0.21.0-stage-audit-release-docs.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/release/release-publication-policy.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1286 closes only the v0.21.0 Stage Code Audit, release notes, validation matrix, root docs refresh, stale wording guard and release publication gate handoff for #1273..#1286. It creates no tag / GitHub Release, starts no next Project / Issue, reads no production secret value, connects no production endpoint / broker endpoint and authorizes no production cutover. production cutover not authorized.
+
 ## GH-1201 Release v0.18.1 Full Matrix Publication Gate
 
 - GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE

@@ -36,6 +36,7 @@
 - `GH-1270 V0201-002 Add stale wording guard for published v0.20.0 docs`
 - `GH-1271 V0201-003 Clarify public-market probe classification evidence`
 - `GH-1272 V0201-004 Close v0.20.1 patch audit and release notes`
+- `GH-1286 V0210-014 Close v0.21.0 stage audit and release docs`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -169,6 +170,34 @@ GH-1272 closes the v0.20.1 patch audit, release notes, validation matrix and no-
 #1272 construction closeout does not create the `v0.20.1` tag or GitHub Release. Publication remains an independent Release Publication Gate after #1272 PR merge, required `checks` SUCCESS, clean `main`, open PR = 0, open active issue = 0, worktree clean and validation evidence are reconfirmed.
 
 GH-1272 does not move `v0.20.0` tag, does not overwrite GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not retrieve account payload, does not submit / cancel / replace production order and does not authorize production cutover. v0.21.0 Spot canary is downstream only. production cutover not authorized.
+
+## GH-1286-V0210-STAGE-AUDIT-RELEASE-DOCS
+
+`GH-1286-VERIFY-V0210-STAGE-AUDIT-RELEASE-DOCS`
+
+`TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS`
+
+`V0210-014-STAGE-CODE-AUDIT`
+
+`V0210-014-RELEASE-NOTES`
+
+`V0210-014-VALIDATION-MATRIX`
+
+`V0210-014-ROOT-DOCS-REFRESH`
+
+`V0210-014-STALE-WORDING-GUARD`
+
+`V0210-014-RELEASE-PUBLICATION-GATE-HANDOFF`
+
+`V0210-014-NO-PRODUCTION-CUTOVER`
+
+`V0210-014-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1286 closes the v0.21.0 stage audit / release docs for #1273..#1286 and PR #1291..#1303. The closeout documents confirm Binance Spot controlled production canary evidence, aggregate v0.21.0 verifier coverage and production cutover boundary.
+
+#1286 construction closeout does not create the `v0.21.0` tag or GitHub Release. Publication remains an independent Release Publication Gate after #1286 PR merge, required `checks` SUCCESS, clean `main`, open PR = 0, open active issue = 0, worktree clean and validation evidence are reconfirmed.
+
+GH-1286 does not move existing tags, does not overwrite GitHub Release, does not create the next Project / Issue, does not read production secret, does not auto-connect production endpoint / broker endpoint, does not authorize unrestricted submit / cancel / replace and does not authorize production cutover. production cutover not authorized.
 
 ## V080-002-V070-ACTUAL-GITHUB-RELEASE
 

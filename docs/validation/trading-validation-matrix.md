@@ -220,6 +220,23 @@
 - Evidence files: `checks/verify-v0.21.0.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md` 和 `verification.md`。
 - Boundary: GH-1285 fixes the v0.21.0 aggregate validation suite. It runs GH-1273..GH-1284 focused verifier chain as one entrypoint, proves `checks/run.sh` and automation readiness wiring, and adds no runtime capability, reads no production secret value, connects no production endpoint / broker endpoint, creates no tag / GitHub Release and authorizes no production cutover.
 
+## TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS
+
+- TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS
+- GH-1286-VERIFY-V0210-STAGE-AUDIT-RELEASE-DOCS
+- V0210-014-STAGE-CODE-AUDIT
+- V0210-014-RELEASE-NOTES
+- V0210-014-VALIDATION-MATRIX
+- V0210-014-ROOT-DOCS-REFRESH
+- V0210-014-STALE-WORDING-GUARD
+- V0210-014-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0210-014-NO-PRODUCTION-CUTOVER
+- V0210-014-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1286 Release v0.21.0 Stage Audit / Release Docs Closeout
+- `bash checks/verify-v0.21.0-stage-audit-release-docs.sh`
+- Evidence files: `docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md`、`docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md`、`checks/verify-v0.21.0-stage-audit-release-docs.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、`README.md`、`GOAL.md`、`BLUEPRINT.md`、`docs/roadmap.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/validation-plan.md`、`docs/release/release-publication-policy.md`、`verification.md` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1286 closes #1273..#1286 construction evidence and hands off to a separate Release Publication Gate. It creates no tag / GitHub Release, starts no v0.22.0 work, reads no production secret value, connects no production endpoint / broker endpoint and authorizes no production cutover.
+
 ## TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
 
 - TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD
