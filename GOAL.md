@@ -223,3 +223,9 @@ Anchor facts retained for readiness guards:
 ## 非授权边界
 
 `GOAL.md` 不创建 Linear Project / Issue，不修改 Linear status，不推进 `Todo`，不启动额外调度服务，不授权 future capability 进入当前执行 scope。
+
+## v0.21.1 Patch Closeout Anchor
+
+| Item | Evidence |
+| --- | --- |
+| v0.21.1 patch audit / release notes closeout | GH-1308 / `GH-1308-VERIFY-V0211-PATCH-AUDIT-RELEASE-NOTES` / `TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES` / `V0211-004-AGGREGATE-GUARD` / `V0211-004-PATCH-AUDIT` / `V0211-004-RELEASE-NOTES` / `V0211-004-VALIDATION-MATRIX` / `V0211-004-NO-CAPABILITY-CHANGE` / `V0211-004-V0220-DOWNSTREAM-LIVE-TRANSPORT-HANDOFF` / `V0211-004-NO-PRODUCTION-CUTOVER` / `V0211-004-NO-TAG-OR-RELEASE-PUBLICATION` 收口 #1305..#1308 patch audit、release notes、validation matrix 和 no-capability-change publication guidance；v0.22.0 Spot live canary transport is downstream only；v0.21.1 publication gate 保持独立执行；existing v0.21.0 publication remains fixed；production cutover not authorized |

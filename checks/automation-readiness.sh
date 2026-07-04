@@ -189,6 +189,8 @@ require_file "checks/verify-v0.21.0-canary-operator-runbook.sh"
 require_file "checks/verify-v0.21.0.sh"
 require_file "checks/verify-v0.21.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.21.1-v0210-stale-wording-guard.sh"
+require_file "checks/verify-v0.21.1-v0210-canary-evidence-wording.sh"
+require_file "checks/verify-v0.21.1.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -14098,5 +14100,42 @@ require_contains "docs/validation/validation-plan.md" "GH-1307 Release v0.21.1 C
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING"
 require_contains "docs/release/release-publication-policy.md" "GH-1307 requires v0.21.0 canary wording"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1307ReleaseV0211CanaryEvidenceWordingGuard"
+
+for file in \
+  "docs/audit/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-notes.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "verification.md" \
+  "checks/verify-v0.21.1.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1308-VERIFY-V0211-PATCH-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "V0211-004-AGGREGATE-GUARD"
+  require_contains "$file" "V0211-004-PATCH-AUDIT"
+  require_contains "$file" "V0211-004-RELEASE-NOTES"
+  require_contains "$file" "V0211-004-VALIDATION-MATRIX"
+  require_contains "$file" "V0211-004-NO-CAPABILITY-CHANGE"
+  require_contains "$file" "V0211-004-V0220-DOWNSTREAM-LIVE-TRANSPORT-HANDOFF"
+  require_contains "$file" "V0211-004-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0211-004-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.1.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.1.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.1 patch audit / release notes anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.1 patch audit / release notes closeout"
+require_contains "docs/validation/validation-plan.md" "GH-1308 Release v0.21.1 Patch Audit / Release Notes Closeout"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "docs/release/release-publication-policy.md" "GH-1308 closes the v0.21.1 patch audit"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1308ReleaseV0211PatchAuditReleaseNotesCloseout"
 
 printf 'MTPRO automation readiness checks passed.\n'

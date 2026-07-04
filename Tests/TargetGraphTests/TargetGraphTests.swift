@@ -62410,6 +62410,123 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1308ReleaseV0211PatchAuditReleaseNotesCloseout() throws {
+        // 测试场景：GH-1308 收口 v0.21.1 patch audit、release notes、
+        // validation matrix 和 no-capability-change publication guidance。
+        // 验证目的：#1305..#1308 的 publication fact / stale wording /
+        // canary semantics evidence 被聚合；v0.22.0 只作为 downstream handoff。
+        // GH-1308-VERIFY-V0211-PATCH-AUDIT-RELEASE-NOTES
+        // TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES
+        // V0211-004-AGGREGATE-GUARD
+        // V0211-004-PATCH-AUDIT
+        // V0211-004-RELEASE-NOTES
+        // V0211-004-VALIDATION-MATRIX
+        // V0211-004-NO-CAPABILITY-CHANGE
+        // V0211-004-V0220-DOWNSTREAM-LIVE-TRANSPORT-HANDOFF
+        // V0211-004-NO-PRODUCTION-CUTOVER
+        // V0211-004-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1308-VERIFY-V0211-PATCH-AUDIT-RELEASE-NOTES",
+            "TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES",
+            "V0211-004-AGGREGATE-GUARD",
+            "V0211-004-PATCH-AUDIT",
+            "V0211-004-RELEASE-NOTES",
+            "V0211-004-VALIDATION-MATRIX",
+            "V0211-004-NO-CAPABILITY-CHANGE",
+            "V0211-004-V0220-DOWNSTREAM-LIVE-TRANSPORT-HANDOFF",
+            "V0211-004-NO-PRODUCTION-CUTOVER",
+            "V0211-004-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-notes.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "verification.md",
+            "checks/verify-v0.21.1.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let audit = try read("docs/audit/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-notes.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let verification = try read("verification.md")
+        let verifier = try read("checks/verify-v0.21.1.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        for source in [audit, notes, latest, policy, verification] {
+            for issue in ["#1305", "#1306", "#1307", "#1308"] {
+                XCTAssertTrue(source.contains(issue), "\(issue) must be represented in v0.21.1 patch closeout evidence")
+            }
+            for pullRequest in ["#1321", "#1322", "#1323"] {
+                XCTAssertTrue(source.contains(pullRequest), "\(pullRequest) must be represented in v0.21.1 patch closeout evidence")
+            }
+            XCTAssertTrue(source.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0"))
+            XCTAssertTrue(source.contains("bca492ed48324a8057c5dc7223d740426a54c3b1"))
+            XCTAssertTrue(source.contains("2026-07-04T10:08:42Z"))
+            XCTAssertTrue(source.contains("controlled canary evidence"))
+            XCTAssertTrue(source.contains("not live network execution"))
+            XCTAssertTrue(source.contains("live Spot canary transport is future work"))
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+        }
+
+        XCTAssertTrue(audit.contains("Issue Completion Evidence"))
+        XCTAssertTrue(audit.contains("Boundary Audit"))
+        XCTAssertTrue(audit.contains("Validation Summary"))
+        XCTAssertTrue(audit.contains("Residual Risk"))
+        XCTAssertTrue(audit.contains("Next Handoff"))
+        XCTAssertTrue(notes.contains("v0.22.0 Spot live canary transport is downstream only"))
+        XCTAssertTrue(readiness.contains("Release v0.21.1 patch audit / release notes anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1308 Release v0.21.1 Patch Audit / Release Notes Closeout"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES"))
+        XCTAssertTrue(policy.contains("GH-1308 closes the v0.21.1 patch audit"))
+        XCTAssertTrue(verification.contains("GH-1308 v0.21.1 Patch Audit / Release Notes Closeout"))
+        XCTAssertTrue(verifier.contains("bash checks/verify-v0.21.1-v0210-stale-wording-guard.sh"))
+        XCTAssertTrue(verifier.contains("bash checks/verify-v0.21.1-v0210-canary-evidence-wording.sh"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1308ReleaseV0211PatchAuditReleaseNotesCloseout"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.1.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.1.sh"))
+
+        for source in [audit, notes, policy, latest, verification] {
+            for forbidden in [
+                "productionCutoverAuthorized=true",
+                "productionSecretRead=true",
+                "productionEndpointConnected=true",
+                "productionBrokerConnected=true",
+                "productionOrderSubmitted=true",
+                "v0.22.0 live transport started"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of v0.21.1 patch closeout")
+            }
+        }
+    }
+
     func testGH1306ReleaseV0211V0210StaleWordingGuardRejectsCurrentFacingDrift() throws {
         // 测试场景：GH-1306 在 GH-1305 已同步 v0.21.0 publication facts 后，
         // 增加 focused stale wording guard，防止 root/release docs 回退成当前待发布状态。

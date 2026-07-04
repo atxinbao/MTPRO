@@ -297,3 +297,5 @@ bash checks/verify-v0.7.0.sh
 ## AEP 方法论
 
 执行链路固定为 Human planning -> live queue source -> Parent Codex queue preflight -> unique Todo -> Codex Execution Agent -> GitHub PR Automation -> Stage Code Audit -> Root Docs / release docs refresh -> next Human planning。规则落点见 `AGENTS.md`、`docs/domain/context.md` 和 `docs/automation/agent-engineering-practices.md`。
+
+Latest v0.21.1 patch audit / release notes closeout: GH-1308 使用 `GH-1308-VERIFY-V0211-PATCH-AUDIT-RELEASE-NOTES`、`TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES`、`V0211-004-AGGREGATE-GUARD`、`V0211-004-PATCH-AUDIT`、`V0211-004-RELEASE-NOTES`、`V0211-004-VALIDATION-MATRIX`、`V0211-004-NO-CAPABILITY-CHANGE`、`V0211-004-V0220-DOWNSTREAM-LIVE-TRANSPORT-HANDOFF`、`V0211-004-NO-PRODUCTION-CUTOVER` 和 `V0211-004-NO-TAG-OR-RELEASE-PUBLICATION` 收口 #1305..#1308 patch audit、release notes、validation matrix 和 no-capability-change publication guidance；v0.22.0 Spot live canary transport is downstream only；v0.21.1 publication gate 保持独立执行；existing v0.21.0 publication remains fixed；production cutover not authorized。

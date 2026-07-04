@@ -274,6 +274,23 @@
 - Focused test: `swift test --filter TargetGraphTests/testGH1307ReleaseV0211CanaryEvidenceWordingGuard`
 - Boundary: GH-1307 keeps v0.21.0 as controlled canary evidence, not live network execution. `networkSubmitAttempted=false` and `networkCancelAttempted=false` remain current facts. live Spot canary transport is future work. GH-1307 不创建 v0.21.1 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不授权 production cutover。production cutover not authorized。
 
+## GH-1308 Release v0.21.1 Patch Audit / Release Notes Closeout
+
+- GH-1308-VERIFY-V0211-PATCH-AUDIT-RELEASE-NOTES
+- TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES
+- V0211-004-AGGREGATE-GUARD
+- V0211-004-PATCH-AUDIT
+- V0211-004-RELEASE-NOTES
+- V0211-004-VALIDATION-MATRIX
+- V0211-004-NO-CAPABILITY-CHANGE
+- V0211-004-V0220-DOWNSTREAM-LIVE-TRANSPORT-HANDOFF
+- V0211-004-NO-PRODUCTION-CUTOVER
+- V0211-004-NO-TAG-OR-RELEASE-PUBLICATION
+- Focused verifier: `bash checks/verify-v0.21.1.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1308ReleaseV0211PatchAuditReleaseNotesCloseout`
+- Evidence files: `docs/audit/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-stage-code-audit.md`、`docs/release/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-notes.md`、`docs/automation/automation-readiness.md`、`docs/validation/latest-verification-summary.md`、`docs/validation/trading-validation-matrix.md`、`docs/release/release-publication-policy.md`、`verification.md`、`checks/verify-v0.21.1.sh`、`checks/run.sh`、`checks/automation-readiness.sh` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: GH-1308 只收口 #1305..#1308 patch audit、release notes、validation matrix 和 no-capability-change publication guidance。v0.22.0 Spot live canary transport is downstream only。GH-1308 不创建 / 移动 / 重写 tag 或 GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不授权 production cutover。production cutover not authorized。
+
 ## GH-1271 Release v0.20.1 Public Probe Classification Evidence
 
 - GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE

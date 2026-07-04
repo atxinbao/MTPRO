@@ -631,3 +631,5 @@ Project closure 后，`docs/roadmap.md` 只更新这些事实：
 - `docs/roadmap.md` 不运行图谱更新服务。
 - `docs/roadmap.md` 不解锁下一个 issue。
 - `docs/roadmap.md` 不授权任何 Agent 直接把 issue 改为 `Todo`。
+
+GH-1308 uses `GH-1308-VERIFY-V0211-PATCH-AUDIT-RELEASE-NOTES`、`TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES`、`V0211-004-AGGREGATE-GUARD`、`V0211-004-PATCH-AUDIT`、`V0211-004-RELEASE-NOTES`、`V0211-004-VALIDATION-MATRIX`、`V0211-004-NO-CAPABILITY-CHANGE`、`V0211-004-V0220-DOWNSTREAM-LIVE-TRANSPORT-HANDOFF`、`V0211-004-NO-PRODUCTION-CUTOVER` 和 `V0211-004-NO-TAG-OR-RELEASE-PUBLICATION` to close #1305..#1308 patch audit, release notes, validation matrix and no-capability-change publication guidance. v0.22.0 Spot live canary transport is downstream only；v0.21.1 publication gate remains independent, existing v0.21.0 publication remains fixed, and this closeout does not authorize production cutover.
