@@ -236,6 +236,34 @@ GH-1307 requires v0.21.0 canary wording to remain controlled canary evidence, no
 
 GH-1307 does not move `v0.21.0` tag, does not overwrite GitHub Release, does not create `v0.21.1` tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
 
+## GH-1308-V0211-PATCH-AUDIT-RELEASE-NOTES
+
+`GH-1308-VERIFY-V0211-PATCH-AUDIT-RELEASE-NOTES`
+
+`TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES`
+
+`V0211-004-AGGREGATE-GUARD`
+
+`V0211-004-PATCH-AUDIT`
+
+`V0211-004-RELEASE-NOTES`
+
+`V0211-004-VALIDATION-MATRIX`
+
+`V0211-004-NO-CAPABILITY-CHANGE`
+
+`V0211-004-V0220-DOWNSTREAM-LIVE-TRANSPORT-HANDOFF`
+
+`V0211-004-NO-PRODUCTION-CUTOVER`
+
+`V0211-004-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1308 closes the v0.21.1 patch audit, release notes, validation matrix and no-capability-change publication guidance for #1305, #1306, #1307 and #1308 and PR #1321, PR #1322 and PR #1323. It confirms v0.21.0 stable GitHub Release facts (`https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0`, `bca492ed48324a8057c5dc7223d740426a54c3b1`, `2026-07-04T10:08:42Z`), the v0.21.1 stale wording guard, and the controlled canary evidence semantics guard. v0.21.0 remains controlled canary evidence, not live network execution. `networkSubmitAttempted=false` and `networkCancelAttempted=false` remain current facts. live Spot canary transport is future work for the v0.22.0 queue.
+
+#1308 construction closeout does not create the `v0.21.1` tag or GitHub Release. Publication remains an independent Release Publication Gate after #1308 PR merge, required `checks` SUCCESS, clean `main`, open PR = 0, open active issue = 0, worktree clean and validation evidence are reconfirmed.
+
+GH-1308 does not move `v0.21.0` tag, does not overwrite GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace production order and does not authorize production cutover. v0.22.0 Spot live canary transport is downstream only. production cutover not authorized.
+
 ## V080-002-V070-ACTUAL-GITHUB-RELEASE
 
 `V080-002-V070-ACTUAL-GITHUB-RELEASE`

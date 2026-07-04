@@ -392,3 +392,5 @@ Additional retained closure anchors：`docs/audit/mtpro-production-cutover-readi
 ## 执行边界
 
 `BLUEPRINT.md`、`docs/roadmap.md`、Project Planning Record、Backlog issue、label、priority 和 assignee 都不授权执行。只有 Linear live-read 中唯一 configured executable issue 可以进入正式开发。
+
+Release v0.21.1 patch audit / release notes closeout anchor：`GH-1308-VERIFY-V0211-PATCH-AUDIT-RELEASE-NOTES`、`TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES`、`V0211-004-AGGREGATE-GUARD`、`V0211-004-PATCH-AUDIT`、`V0211-004-RELEASE-NOTES`、`V0211-004-VALIDATION-MATRIX`、`V0211-004-NO-CAPABILITY-CHANGE`、`V0211-004-V0220-DOWNSTREAM-LIVE-TRANSPORT-HANDOFF`、`V0211-004-NO-PRODUCTION-CUTOVER`、`V0211-004-NO-TAG-OR-RELEASE-PUBLICATION`。GH-1308 只收口 #1305..#1308 patch audit、release notes、validation matrix 和 no-capability-change publication guidance；v0.22.0 Spot live canary transport is downstream only；v0.21.1 publication gate 保持独立执行；existing v0.21.0 publication remains fixed；production cutover not authorized。

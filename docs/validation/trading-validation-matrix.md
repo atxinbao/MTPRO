@@ -278,6 +278,23 @@
 - `swift test --filter TargetGraphTests/testGH1307ReleaseV0211CanaryEvidenceWordingGuard`
 - Boundary: v0.21.0 remains controlled canary evidence, not live network execution. `networkSubmitAttempted=false` and `networkCancelAttempted=false` remain current facts. live Spot canary transport is future work. No tag movement, no release overwrite, no v0.21.1 publication, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover authorization. production cutover not authorized.
 
+## TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES
+
+- TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES
+- GH-1308-VERIFY-V0211-PATCH-AUDIT-RELEASE-NOTES
+- V0211-004-AGGREGATE-GUARD
+- V0211-004-PATCH-AUDIT
+- V0211-004-RELEASE-NOTES
+- V0211-004-VALIDATION-MATRIX
+- V0211-004-NO-CAPABILITY-CHANGE
+- V0211-004-V0220-DOWNSTREAM-LIVE-TRANSPORT-HANDOFF
+- V0211-004-NO-PRODUCTION-CUTOVER
+- V0211-004-NO-TAG-OR-RELEASE-PUBLICATION
+- GH-1308 Release v0.21.1 Patch Audit / Release Notes Closeout
+- `bash checks/verify-v0.21.1.sh`
+- `swift test --filter TargetGraphTests/testGH1308ReleaseV0211PatchAuditReleaseNotesCloseout`
+- Boundary: #1305..#1308 patch audit / release notes / validation matrix closeout only. v0.22.0 Spot live canary transport is downstream only. No tag movement, no release overwrite, no v0.21.1 publication inside closeout, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover authorization. production cutover not authorized.
+
 ## TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
 
 - TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
