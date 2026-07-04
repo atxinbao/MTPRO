@@ -10,6 +10,8 @@
 
 本 Stage Code Audit 原始记录的是 v0.21.0 construction closeout evidence。#1286 merge 时没有创建 `v0.21.0` tag / GitHub Release、下一 Project / Issue 或下一 Todo，也没有授权 production cutover。后续独立 Release Publication Gate 已发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0`，tag / target commit `bca492ed48324a8057c5dc7223d740426a54c3b1`，publication timestamp `2026-07-04T10:08:42Z`，`isDraft=false`，`isPrerelease=false`。该发布事实不移动 tag、不重写 GitHub Release、不授权 production cutover、default production trading、automatic production secret read、automatic production endpoint / broker endpoint connection 或 unrestricted submit / cancel / replace。
 
+GH-1306 使用 `GH-1306-VERIFY-V0211-V0210-STALE-WORDING-GUARD`、`V0211-002-V0210-STALE-WORDING-GUARD`、`V0211-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`、`TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD`、`V0211-002-CURRENT-FACING-STALE-WORDING-REJECTION` 和 `V0211-002-NO-PRODUCTION-CUTOVER` 增加 v0.21.1 guard：current-facing stale v0.21.0 publication wording 必须失败；#1286 historical construction closeout evidence 只有在同一 artifact 保留 `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0` / `bca492ed48324a8057c5dc7223d740426a54c3b1` / `2026-07-04T10:08:42Z` 时允许。production cutover not authorized。
+
 ## Issue Completion Evidence
 
 - #1273：`GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT`，定义 Binance Spot controlled production canary contract、Human approval、symbol allowlist、size caps、RiskEngine / kill switch / no-trade gates 和 queue order。

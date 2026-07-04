@@ -37,6 +37,7 @@
 - `GH-1271 V0201-003 Clarify public-market probe classification evidence`
 - `GH-1272 V0201-004 Close v0.20.1 patch audit and release notes`
 - `GH-1286 V0210-014 Close v0.21.0 stage audit and release docs`
+- `GH-1306 V0211-002 Add stale wording guard for published v0.21.0 docs`
 
 ## GH-808-RELEASE-PUBLICATION-POLICY
 
@@ -198,6 +199,24 @@ GH-1286 closes the v0.21.0 stage audit / release docs for #1273..#1286 and PR #1
 #1286 historical construction closeout did not create the `v0.21.0` tag or GitHub Release at construction closeout time. The later independent Release Publication Gate has published `v0.21.0` as a stable GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0`; tag peeled commit `bca492ed48324a8057c5dc7223d740426a54c3b1`; publication timestamp `2026-07-04T10:08:42Z`. The historical no-tag / no-release wording is not the current v0.21.0 release state.
 
 GH-1286 does not move existing tags, does not overwrite GitHub Release, does not create the next Project / Issue, does not read production secret, does not auto-connect production endpoint / broker endpoint, does not authorize unrestricted submit / cancel / replace and does not authorize production cutover. production cutover not authorized.
+
+## GH-1306-V0211-V0210-STALE-WORDING-GUARD
+
+`GH-1306-VERIFY-V0211-V0210-STALE-WORDING-GUARD`
+
+`V0211-002-V0210-STALE-WORDING-GUARD`
+
+`V0211-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`
+
+`TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD`
+
+`V0211-002-CURRENT-FACING-STALE-WORDING-REJECTION`
+
+`V0211-002-NO-PRODUCTION-CUTOVER`
+
+GH-1306 rejects current-facing stale v0.21.0 publication wording such as publication pending, missing tag, missing GitHub Release, or current no-tag / no-release statements. #1286 historical construction closeout evidence remains allowed only when paired with the current v0.21.0 release facts: `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0`, `bca492ed48324a8057c5dc7223d740426a54c3b1`, `2026-07-04T10:08:42Z`.
+
+GH-1306 does not move `v0.21.0` tag, does not overwrite GitHub Release, does not create `v0.21.1` tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
 
 ## V080-002-V070-ACTUAL-GITHUB-RELEASE
 

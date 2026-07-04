@@ -249,6 +249,19 @@
 - Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0` / `7f84999e8e4071fb71fdc802f895de81303bbcfd` / `2026-06-30T16:55:24Z`。
 - Boundary: GH-1270 rejects current-facing stale v0.20.0 publication wording such as pending publication, missing tag or missing GitHub Release. #1250 historical construction closeout evidence remains allowed only when paired with the current v0.20.0 release facts. GH-1270 不移动 tag，不覆盖 GitHub Release，不创建 v0.20.1 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不授权 production cutover。production cutover not authorized。
 
+## GH-1306 Release v0.21.1 v0.21.0 Stale Wording Guard
+
+- GH-1306-VERIFY-V0211-V0210-STALE-WORDING-GUARD
+- V0211-002-V0210-STALE-WORDING-GUARD
+- V0211-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST
+- TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD
+- V0211-002-CURRENT-FACING-STALE-WORDING-REJECTION
+- V0211-002-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.21.1-v0210-stale-wording-guard.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1306ReleaseV0211V0210StaleWordingGuardRejectsCurrentFacingDrift`
+- Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0` / `bca492ed48324a8057c5dc7223d740426a54c3b1` / `2026-07-04T10:08:42Z`。
+- Boundary: GH-1306 rejects current-facing stale v0.21.0 publication wording such as pending publication, missing tag or missing GitHub Release. #1286 historical construction closeout evidence remains allowed only when paired with the current v0.21.0 release facts. GH-1306 不移动 tag，不覆盖 GitHub Release，不创建 v0.21.1 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不授权 production cutover。production cutover not authorized。
+
 ## GH-1271 Release v0.20.1 Public Probe Classification Evidence
 
 - GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE

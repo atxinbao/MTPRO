@@ -251,6 +251,20 @@
 - Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0` / `7f84999e8e4071fb71fdc802f895de81303bbcfd` / `2026-06-30T16:55:24Z`。
 - Boundary: current-facing stale v0.20.0 publication wording must fail；#1250 historical construction closeout evidence remains allowed only when paired with current release facts. No tag movement, no release overwrite, no v0.20.1 publication, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover authorization.
 
+## TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD
+
+- TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD
+- GH-1306-VERIFY-V0211-V0210-STALE-WORDING-GUARD
+- V0211-002-V0210-STALE-WORDING-GUARD
+- V0211-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST
+- V0211-002-CURRENT-FACING-STALE-WORDING-REJECTION
+- V0211-002-NO-PRODUCTION-CUTOVER
+- GH-1306 Release v0.21.1 v0.21.0 Stale Wording Guard
+- `bash checks/verify-v0.21.1-v0210-stale-wording-guard.sh`
+- `swift test --filter TargetGraphTests/testGH1306ReleaseV0211V0210StaleWordingGuardRejectsCurrentFacingDrift`
+- Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0` / `bca492ed48324a8057c5dc7223d740426a54c3b1` / `2026-07-04T10:08:42Z`。
+- Boundary: current-facing stale v0.21.0 publication wording 必须失败；#1286 historical construction closeout evidence remains allowed only when paired with current release facts. No tag movement, no release overwrite, no v0.21.1 publication, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover authorization.
+
 ## TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
 
 - TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
