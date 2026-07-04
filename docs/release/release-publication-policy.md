@@ -218,6 +218,24 @@ GH-1306 rejects current-facing stale v0.21.0 publication wording such as publica
 
 GH-1306 does not move `v0.21.0` tag, does not overwrite GitHub Release, does not create `v0.21.1` tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
 
+## GH-1307-V0211-CANARY-EVIDENCE-WORDING
+
+`GH-1307-VERIFY-V0211-CANARY-EVIDENCE-WORDING`
+
+`TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING`
+
+`V0211-003-CONTROLLED-CANARY-EVIDENCE-WORDING`
+
+`V0211-003-NOT-LIVE-NETWORK-EXECUTION`
+
+`V0211-003-LIVE-SPOT-CANARY-TRANSPORT-FUTURE`
+
+`V0211-003-NO-PRODUCTION-CUTOVER`
+
+GH-1307 requires v0.21.0 canary wording to remain controlled canary evidence, not live network execution. The current code evidence still requires `networkSubmitAttempted=false` and `networkCancelAttempted=false`; live Spot canary transport is future work for the v0.22.0 queue.
+
+GH-1307 does not move `v0.21.0` tag, does not overwrite GitHub Release, does not create `v0.21.1` tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace production order and does not authorize production cutover. production cutover not authorized.
+
 ## V080-002-V070-ACTUAL-GITHUB-RELEASE
 
 `V080-002-V070-ACTUAL-GITHUB-RELEASE`

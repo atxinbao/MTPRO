@@ -14066,4 +14066,37 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "docs/release/release-publication-policy.md" "GH-1306 rejects current-facing stale v0.21.0 publication wording"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1306ReleaseV0211V0210StaleWordingGuardRejectsCurrentFacingDrift"
 
+for file in \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md" \
+  "verification.md" \
+  "checks/verify-v0.21.1-v0210-canary-evidence-wording.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1307-VERIFY-V0211-CANARY-EVIDENCE-WORDING"
+  require_contains "$file" "TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING"
+  require_contains "$file" "V0211-003-CONTROLLED-CANARY-EVIDENCE-WORDING"
+  require_contains "$file" "V0211-003-NOT-LIVE-NETWORK-EXECUTION"
+  require_contains "$file" "V0211-003-LIVE-SPOT-CANARY-TRANSPORT-FUTURE"
+  require_contains "$file" "V0211-003-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.1-v0210-canary-evidence-wording.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.1-v0210-canary-evidence-wording.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.1 controlled canary evidence wording anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.1 canary evidence wording guard"
+require_contains "docs/validation/validation-plan.md" "GH-1307 Release v0.21.1 Controlled Canary Evidence Wording Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING"
+require_contains "docs/release/release-publication-policy.md" "GH-1307 requires v0.21.0 canary wording"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1307ReleaseV0211CanaryEvidenceWordingGuard"
+
 printf 'MTPRO automation readiness checks passed.\n'

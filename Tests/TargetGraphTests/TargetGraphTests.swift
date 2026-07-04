@@ -62312,6 +62312,104 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1307ReleaseV0211CanaryEvidenceWordingGuard() throws {
+        // 测试场景：GH-1307 在 v0.21.0 发布后，固定 controlled canary evidence
+        // 与 live network execution 的语义边界，避免把 evidence closeout 误写成真实网络执行。
+        // GH-1307-VERIFY-V0211-CANARY-EVIDENCE-WORDING
+        // TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING
+        // V0211-003-CONTROLLED-CANARY-EVIDENCE-WORDING
+        // V0211-003-NOT-LIVE-NETWORK-EXECUTION
+        // V0211-003-LIVE-SPOT-CANARY-TRANSPORT-FUTURE
+        // V0211-003-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1307-VERIFY-V0211-CANARY-EVIDENCE-WORDING",
+            "TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING",
+            "V0211-003-CONTROLLED-CANARY-EVIDENCE-WORDING",
+            "V0211-003-NOT-LIVE-NETWORK-EXECUTION",
+            "V0211-003-LIVE-SPOT-CANARY-TRANSPORT-FUTURE",
+            "V0211-003-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md",
+            "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md",
+            "verification.md",
+            "checks/verify-v0.21.1-v0210-canary-evidence-wording.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let submitPath = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledSpotCanarySubmitPath.swift")
+        let cancelPath = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledCanaryCancelRollbackGuard.swift")
+        XCTAssertTrue(submitPath.contains("networkSubmitAttempted == false"))
+        XCTAssertTrue(cancelPath.contains("networkCancelAttempted == false"))
+
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let notes = try read("docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md")
+        let audit = try read("docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md")
+        let verification = try read("verification.md")
+        let verifier = try read("checks/verify-v0.21.1-v0210-canary-evidence-wording.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(readme.contains("Latest v0.21.1 canary evidence wording guard"))
+        XCTAssertTrue(goal.contains("v0.21.1 canary evidence wording guard"))
+        XCTAssertTrue(blueprint.contains("Release v0.21.1 canary evidence wording anchor"))
+        XCTAssertTrue(roadmap.contains("GH-1307 uses"))
+        XCTAssertTrue(latest.contains("v0.21.1 canary evidence wording guard"))
+        XCTAssertTrue(readiness.contains("Release v0.21.1 controlled canary evidence wording anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1307 Release v0.21.1 Controlled Canary Evidence Wording Guard"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING"))
+        XCTAssertTrue(policy.contains("GH-1307 requires v0.21.0 canary wording"))
+        XCTAssertTrue(notes.contains("v0.21.1 Canary Evidence Wording Guard Handoff"))
+        XCTAssertTrue(audit.contains("v0.21.0 必须表述为 controlled canary evidence, not live network execution"))
+        XCTAssertTrue(verification.contains("GH-1307 v0.21.1 Canary Evidence Wording Guard"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1307ReleaseV0211CanaryEvidenceWordingGuard"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.1-v0210-canary-evidence-wording.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.1-v0210-canary-evidence-wording.sh"))
+
+        for source in [readme, goal, blueprint, roadmap, latest, readiness, validationPlan, tradingMatrix, policy, notes, audit, verification] {
+            XCTAssertTrue(source.contains("controlled canary evidence"))
+            XCTAssertTrue(source.contains("not live network execution"))
+            XCTAssertTrue(source.contains("live Spot canary transport is future work"))
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+            XCTAssertFalse(source.contains("v0.21.0 performs live network execution"))
+            XCTAssertFalse(source.contains("v0.21.0 live network canary execution"))
+            XCTAssertFalse(source.contains("networkSubmitAttempted=true"))
+            XCTAssertFalse(source.contains("networkCancelAttempted=true"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+        }
+    }
+
     func testGH1306ReleaseV0211V0210StaleWordingGuardRejectsCurrentFacingDrift() throws {
         // 测试场景：GH-1306 在 GH-1305 已同步 v0.21.0 publication facts 后，
         // 增加 focused stale wording guard，防止 root/release docs 回退成当前待发布状态。

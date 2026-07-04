@@ -12,6 +12,8 @@
 
 GH-1306 使用 `GH-1306-VERIFY-V0211-V0210-STALE-WORDING-GUARD`、`V0211-002-V0210-STALE-WORDING-GUARD`、`V0211-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`、`TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD`、`V0211-002-CURRENT-FACING-STALE-WORDING-REJECTION` 和 `V0211-002-NO-PRODUCTION-CUTOVER` 增加 v0.21.1 guard：current-facing stale v0.21.0 publication wording 必须失败；#1286 historical construction closeout evidence 只有在同一 artifact 保留 `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0` / `bca492ed48324a8057c5dc7223d740426a54c3b1` / `2026-07-04T10:08:42Z` 时允许。production cutover not authorized。
 
+GH-1307 使用 `GH-1307-VERIFY-V0211-CANARY-EVIDENCE-WORDING`、`TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING`、`V0211-003-CONTROLLED-CANARY-EVIDENCE-WORDING`、`V0211-003-NOT-LIVE-NETWORK-EXECUTION`、`V0211-003-LIVE-SPOT-CANARY-TRANSPORT-FUTURE` 和 `V0211-003-NO-PRODUCTION-CUTOVER` 增加 v0.21.1 guard：v0.21.0 必须表述为 controlled canary evidence, not live network execution；`networkSubmitAttempted=false` / `networkCancelAttempted=false` 仍是当前事实；live Spot canary transport is future work；production cutover not authorized。
+
 ## Issue Completion Evidence
 
 - #1273：`GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT`，定义 Binance Spot controlled production canary contract、Human approval、symbol allowlist、size caps、RiskEngine / kill switch / no-trade gates 和 queue order。
