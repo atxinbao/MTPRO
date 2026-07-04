@@ -21,6 +21,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryTransportCompletionContract.swift`、`docs/contracts/release-v0.22.0-binance-spot-live-canary-transport-completion-contract.md`、`checks/verify-v0.22.0-live-canary-transport-contract.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: no production cutover, no secret read, no endpoint connection and no order submission in GH-1309.
 
+## TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK
+
+- TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK
+- GH-1310-VERIFY-V0220-OPERATOR-APPROVAL-RUN-LOCK
+- V0220-002-BLOCKED-BY-GH1309
+- V0220-002-OPERATOR-APPROVAL-SESSION
+- V0220-002-SCOPE-BOUND-APPROVAL
+- V0220-002-APPROVAL-REUSE-FAILS-CLOSED
+- V0220-002-MISSING-STALE-MISMATCHED-FAILS-CLOSED
+- V0220-002-ONE-SHOT-RUN-LOCK
+- V0220-002-NO-SECRET-ENDPOINT-ORDER
+- V0220-002-NO-PRODUCTION-CUTOVER
+- Command: `bash checks/verify-v0.22.0-operator-approval-run-lock.sh`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.swift`、`docs/contracts/release-v0.22.0-operator-approval-run-lock.md`、`checks/verify-v0.22.0-operator-approval-run-lock.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: no production cutover, no secret read, no endpoint connection and no order submission in GH-1310. Approval cannot be reused and one-shot run lock blocks concurrent live canary submit attempts.
+
 ## TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
 
 - TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
