@@ -62243,7 +62243,21 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertTrue(audit.contains(expected), "audit must contain \(expected)")
         }
 
-        XCTAssertTrue(notes.contains("#1286 是 construction closeout"))
+        XCTAssertTrue(notes.contains("#1286 是 historical construction closeout"))
+        for source in [
+            try read("README.md"),
+            try read("GOAL.md"),
+            try read("BLUEPRINT.md"),
+            try read("docs/roadmap.md"),
+            try read("docs/validation/latest-verification-summary.md"),
+            audit,
+            notes,
+            policy
+        ] {
+            XCTAssertTrue(source.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0"))
+            XCTAssertTrue(source.contains("bca492ed48324a8057c5dc7223d740426a54c3b1"))
+            XCTAssertTrue(source.contains("2026-07-04T10:08:42Z"))
+        }
         XCTAssertTrue(notes.contains("bash checks/verify-v0.21.0-stage-audit-release-docs.sh"))
         XCTAssertTrue(policy.contains("GH-1286 closes the v0.21.0 stage audit"))
         XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1286ReleaseV0210StageAuditReleaseDocsCloseout"))
@@ -62254,6 +62268,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1286 Release v0.21.0 Stage Audit / Release Docs Closeout"))
         XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS"))
         XCTAssertTrue(try read("verification.md").contains("MTPRO Release v0.21.0 Stage Audit / Release Docs Closeout"))
+        XCTAssertTrue(try read("verification.md").contains("GH-1305 v0.21.0 Release Publication Fact Sync"))
+        XCTAssertTrue(try read("verification.md").contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0"))
+        XCTAssertTrue(try read("verification.md").contains("bca492ed48324a8057c5dc7223d740426a54c3b1"))
+        XCTAssertTrue(try read("verification.md").contains("2026-07-04T10:08:42Z"))
 
         for source in [
             audit,

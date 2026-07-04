@@ -10,7 +10,18 @@
 
 GH-1286 使用 `GH-1286-VERIFY-V0210-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS`、`V0210-014-STAGE-CODE-AUDIT`、`V0210-014-RELEASE-NOTES`、`V0210-014-VALIDATION-MATRIX`、`V0210-014-ROOT-DOCS-REFRESH`、`V0210-014-STALE-WORDING-GUARD`、`V0210-014-RELEASE-PUBLICATION-GATE-HANDOFF`、`V0210-014-NO-PRODUCTION-CUTOVER` 和 `V0210-014-NO-TAG-OR-RELEASE-PUBLICATION` 收口 Stage Code Audit、release notes、validation matrix、root docs refresh、stale wording guard 和 release publication gate handoff。
 
-#1286 是 construction closeout：它不创建 `v0.21.0` tag / GitHub Release，不创建下一 Project / Issue，不推进下一 Todo，不授权 production cutover。
+#1286 是 historical construction closeout：在 #1286 merge 时，它只收口 construction evidence，没有创建 `v0.21.0` tag / GitHub Release、下一 Project / Issue 或下一 Todo，也没有授权 production cutover。
+
+## Publication Fact
+
+`v0.21.0` 已在独立 Release Publication Gate 中发布为 stable GitHub Release：
+
+- Release URL: https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0
+- Tag / target commit: `bca492ed48324a8057c5dc7223d740426a54c3b1`
+- Published at: `2026-07-04T10:08:42Z`
+- Release type: stable, `isDraft=false`, `isPrerelease=false`
+
+该发布事实不移动 tag、不重写 GitHub Release、不授权 production cutover、不自动读取 production secret、不自动连接 production endpoint / broker endpoint，也不放开 unrestricted submit / cancel / replace。
 
 ## Issue Evidence
 
@@ -91,9 +102,10 @@ bash checks/run.sh
 ## Release Boundary
 
 - `release/v0.21.0` construction queue `#1273..#1286` is complete / closed / done after #1286 merge.
-- #1286 is construction closeout only.
-- #1286 does not create the `v0.21.0` tag.
-- #1286 does not create GitHub Release.
+- #1286 is historical construction closeout only.
+- `v0.21.0` stable GitHub Release is now published at https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0.
+- `v0.21.0` tag / target commit is `bca492ed48324a8057c5dc7223d740426a54c3b1`.
+- `v0.21.0` publication timestamp is `2026-07-04T10:08:42Z`.
 - v0.21.0 is Binance Spot controlled production canary only.
 - Binance USDⓈ-M Futures and OKX are out of scope for v0.21.0.
 - production trading remains disabled by default.

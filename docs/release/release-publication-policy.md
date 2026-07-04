@@ -195,7 +195,7 @@ GH-1272 does not move `v0.20.0` tag, does not overwrite GitHub Release, does not
 
 GH-1286 closes the v0.21.0 stage audit / release docs for #1273..#1286 and PR #1291..#1303. The closeout documents confirm Binance Spot controlled production canary evidence, aggregate v0.21.0 verifier coverage and production cutover boundary.
 
-#1286 construction closeout does not create the `v0.21.0` tag or GitHub Release. Publication remains an independent Release Publication Gate after #1286 PR merge, required `checks` SUCCESS, clean `main`, open PR = 0, open active issue = 0, worktree clean and validation evidence are reconfirmed.
+#1286 historical construction closeout did not create the `v0.21.0` tag or GitHub Release at construction closeout time. The later independent Release Publication Gate has published `v0.21.0` as a stable GitHub Release: `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0`; tag peeled commit `bca492ed48324a8057c5dc7223d740426a54c3b1`; publication timestamp `2026-07-04T10:08:42Z`. The historical no-tag / no-release wording is not the current v0.21.0 release state.
 
 GH-1286 does not move existing tags, does not overwrite GitHub Release, does not create the next Project / Issue, does not read production secret, does not auto-connect production endpoint / broker endpoint, does not authorize unrestricted submit / cancel / replace and does not authorize production cutover. production cutover not authorized.
 
