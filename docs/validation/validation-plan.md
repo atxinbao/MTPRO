@@ -262,6 +262,18 @@
 - Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0` / `bca492ed48324a8057c5dc7223d740426a54c3b1` / `2026-07-04T10:08:42Z`。
 - Boundary: GH-1306 rejects current-facing stale v0.21.0 publication wording such as pending publication, missing tag or missing GitHub Release. #1286 historical construction closeout evidence remains allowed only when paired with the current v0.21.0 release facts. GH-1306 不移动 tag，不覆盖 GitHub Release，不创建 v0.21.1 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不授权 production cutover。production cutover not authorized。
 
+## GH-1307 Release v0.21.1 Controlled Canary Evidence Wording Guard
+
+- GH-1307-VERIFY-V0211-CANARY-EVIDENCE-WORDING
+- TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING
+- V0211-003-CONTROLLED-CANARY-EVIDENCE-WORDING
+- V0211-003-NOT-LIVE-NETWORK-EXECUTION
+- V0211-003-LIVE-SPOT-CANARY-TRANSPORT-FUTURE
+- V0211-003-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.21.1-v0210-canary-evidence-wording.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1307ReleaseV0211CanaryEvidenceWordingGuard`
+- Boundary: GH-1307 keeps v0.21.0 as controlled canary evidence, not live network execution. `networkSubmitAttempted=false` and `networkCancelAttempted=false` remain current facts. live Spot canary transport is future work. GH-1307 不创建 v0.21.1 tag / GitHub Release，不读取 production secret，不连接 production endpoint / broker endpoint，不发送 submit / cancel / replace，不授权 production cutover。production cutover not authorized。
+
 ## GH-1271 Release v0.20.1 Public Probe Classification Evidence
 
 - GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE

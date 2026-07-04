@@ -27,6 +27,10 @@ GH-1286 使用 `GH-1286-VERIFY-V0210-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0
 
 GH-1306 使用 `GH-1306-VERIFY-V0211-V0210-STALE-WORDING-GUARD`、`V0211-002-V0210-STALE-WORDING-GUARD`、`V0211-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`、`TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD`、`V0211-002-CURRENT-FACING-STALE-WORDING-REJECTION` 和 `V0211-002-NO-PRODUCTION-CUTOVER` 固定 v0.21.0 当前发布事实，拒绝 current-facing stale v0.21.0 publication wording，并允许带 release facts 的 #1286 historical construction closeout evidence。Release fact remains `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0` / `bca492ed48324a8057c5dc7223d740426a54c3b1` / `2026-07-04T10:08:42Z`；production cutover not authorized。
 
+## v0.21.1 Canary Evidence Wording Guard Handoff
+
+GH-1307 使用 `GH-1307-VERIFY-V0211-CANARY-EVIDENCE-WORDING`、`TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING`、`V0211-003-CONTROLLED-CANARY-EVIDENCE-WORDING`、`V0211-003-NOT-LIVE-NETWORK-EXECUTION`、`V0211-003-LIVE-SPOT-CANARY-TRANSPORT-FUTURE` 和 `V0211-003-NO-PRODUCTION-CUTOVER` 固定 v0.21.0 为 controlled canary evidence, not live network execution。当前代码证据仍要求 `networkSubmitAttempted=false` / `networkCancelAttempted=false`；live Spot canary transport is future work for the v0.22.0 queue；production cutover not authorized。
+
 ## Issue Evidence
 
 - #1273：v0.21.0 controlled canary contract。

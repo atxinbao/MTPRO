@@ -265,6 +265,19 @@
 - Release fact: `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0` / `bca492ed48324a8057c5dc7223d740426a54c3b1` / `2026-07-04T10:08:42Z`。
 - Boundary: current-facing stale v0.21.0 publication wording 必须失败；#1286 historical construction closeout evidence remains allowed only when paired with current release facts. No tag movement, no release overwrite, no v0.21.1 publication, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover authorization.
 
+## TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING
+
+- TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING
+- GH-1307-VERIFY-V0211-CANARY-EVIDENCE-WORDING
+- V0211-003-CONTROLLED-CANARY-EVIDENCE-WORDING
+- V0211-003-NOT-LIVE-NETWORK-EXECUTION
+- V0211-003-LIVE-SPOT-CANARY-TRANSPORT-FUTURE
+- V0211-003-NO-PRODUCTION-CUTOVER
+- GH-1307 Release v0.21.1 Controlled Canary Evidence Wording Guard
+- `bash checks/verify-v0.21.1-v0210-canary-evidence-wording.sh`
+- `swift test --filter TargetGraphTests/testGH1307ReleaseV0211CanaryEvidenceWordingGuard`
+- Boundary: v0.21.0 remains controlled canary evidence, not live network execution. `networkSubmitAttempted=false` and `networkCancelAttempted=false` remain current facts. live Spot canary transport is future work. No tag movement, no release overwrite, no v0.21.1 publication, no production secret read, no production endpoint / broker endpoint connection, no submit / cancel / replace and no production cutover authorization. production cutover not authorized.
+
 ## TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE
 
 - TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE

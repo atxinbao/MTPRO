@@ -38,6 +38,8 @@
 
 `architecture.md`、`environment.md` 是根目录高权重承接文档，`docs/roadmap.md` 是施工路线文档。目标冲突先看 `GOAL.md`；终局设计和 Future Construction Zones / 未来建设区先看 `BLUEPRINT.md`；施工进度先看 `docs/roadmap.md`。
 
+Release v0.21.1 canary evidence wording anchor：GH-1307 使用 `GH-1307-VERIFY-V0211-CANARY-EVIDENCE-WORDING`、`TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING`、`V0211-003-CONTROLLED-CANARY-EVIDENCE-WORDING`、`V0211-003-NOT-LIVE-NETWORK-EXECUTION`、`V0211-003-LIVE-SPOT-CANARY-TRANSPORT-FUTURE` 和 `V0211-003-NO-PRODUCTION-CUTOVER` 固定 v0.21.0 为 controlled canary evidence, not live network execution；`networkSubmitAttempted=false` / `networkCancelAttempted=false` 仍是当前事实；live Spot canary transport is future work；production cutover not authorized。
+
 ## 来源
 
 | 来源层 | 代表文件 / 目录 | 用途 |
