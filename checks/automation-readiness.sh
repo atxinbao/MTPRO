@@ -188,6 +188,7 @@ require_file "checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh"
 require_file "checks/verify-v0.21.0-canary-operator-runbook.sh"
 require_file "checks/verify-v0.21.0.sh"
 require_file "checks/verify-v0.21.0-stage-audit-release-docs.sh"
+require_file "checks/verify-v0.21.1-v0210-stale-wording-guard.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -14028,5 +14029,41 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "docs/release/release-publication-policy.md" "GH-1286 closes the v0.21.0 stage audit"
 require_contains "verification.md" "MTPRO Release v0.21.0 Stage Audit / Release Docs Closeout"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1286ReleaseV0210StageAuditReleaseDocsCloseout"
+
+for file in \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md" \
+  "verification.md" \
+  "checks/verify-v0.21.1-v0210-stale-wording-guard.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1306-VERIFY-V0211-V0210-STALE-WORDING-GUARD"
+  require_contains "$file" "TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD"
+  require_contains "$file" "V0211-002-V0210-STALE-WORDING-GUARD"
+  require_contains "$file" "V0211-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST"
+  require_contains "$file" "V0211-002-CURRENT-FACING-STALE-WORDING-REJECTION"
+  require_contains "$file" "V0211-002-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0"
+  require_contains "$file" "bca492ed48324a8057c5dc7223d740426a54c3b1"
+  require_contains "$file" "2026-07-04T10:08:42Z"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.21.1-v0210-stale-wording-guard.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.1-v0210-stale-wording-guard.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.21.1 v0.21.0 stale wording guard anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.21.1 v0.21.0 stale wording guard"
+require_contains "docs/validation/validation-plan.md" "GH-1306 Release v0.21.1 v0.21.0 Stale Wording Guard"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD"
+require_contains "docs/release/release-publication-policy.md" "GH-1306 rejects current-facing stale v0.21.0 publication wording"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1306ReleaseV0211V0210StaleWordingGuardRejectsCurrentFacingDrift"
 
 printf 'MTPRO automation readiness checks passed.\n'

@@ -8,6 +8,8 @@ ROADMAP 只定义阶段地图，不授权执行。正式执行必须来自 Human
 
 GH-1270 uses `GH-1270-VERIFY-V0201-V0200-STALE-WORDING-GUARD`, `V0201-002-V0200-STALE-WORDING-GUARD`, `V0201-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`, `TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD`, `V0201-002-CURRENT-FACING-STALE-WORDING-REJECTION` and `V0201-002-NO-PRODUCTION-CUTOVER` to reject current-facing stale v0.20.0 publication wording while allowing #1250 historical construction closeout evidence only when the same artifact preserves release facts: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`, `7f84999e8e4071fb71fdc802f895de81303bbcfd`, `2026-06-30T16:55:24Z`. production cutover not authorized.
 
+GH-1306 uses `GH-1306-VERIFY-V0211-V0210-STALE-WORDING-GUARD`, `V0211-002-V0210-STALE-WORDING-GUARD`, `V0211-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`, `TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD`, `V0211-002-CURRENT-FACING-STALE-WORDING-REJECTION` and `V0211-002-NO-PRODUCTION-CUTOVER` to reject current-facing stale v0.21.0 publication wording while allowing #1286 historical construction closeout evidence only when the same artifact preserves release facts: `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0`, `bca492ed48324a8057c5dc7223d740426a54c3b1`, `2026-07-04T10:08:42Z`. production cutover not authorized.
+
 ## Target Goal Revision / 目标口径修正
 
 截至 2026-06-27，MTPRO 长期目标从“Binance-first 专业交易工作台”修正为“Binance + OKX 的实盘原生交易系统”：

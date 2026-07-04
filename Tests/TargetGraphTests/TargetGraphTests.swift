@@ -62312,6 +62312,109 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1306ReleaseV0211V0210StaleWordingGuardRejectsCurrentFacingDrift() throws {
+        // 测试场景：GH-1306 在 GH-1305 已同步 v0.21.0 publication facts 后，
+        // 增加 focused stale wording guard，防止 root/release docs 回退成当前待发布状态。
+        // 验证目的：current-facing stale wording 必须失败；#1286 historical construction closeout
+        // evidence 只有在保留当前 v0.21.0 release facts 时允许。
+        // GH-1306-VERIFY-V0211-V0210-STALE-WORDING-GUARD
+        // V0211-002-V0210-STALE-WORDING-GUARD
+        // V0211-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST
+        // TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD
+        // V0211-002-CURRENT-FACING-STALE-WORDING-REJECTION
+        // V0211-002-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1306-VERIFY-V0211-V0210-STALE-WORDING-GUARD",
+            "V0211-002-V0210-STALE-WORDING-GUARD",
+            "V0211-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST",
+            "TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD",
+            "V0211-002-CURRENT-FACING-STALE-WORDING-REJECTION",
+            "V0211-002-NO-PRODUCTION-CUTOVER"
+        ]
+        let releaseURL = "https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0"
+        let tagCommit = "bca492ed48324a8057c5dc7223d740426a54c3b1"
+        let publishedAt = "2026-07-04T10:08:42Z"
+        let requiredFiles = [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md",
+            "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md",
+            "verification.md",
+            "checks/verify-v0.21.1-v0210-stale-wording-guard.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+            XCTAssertTrue(source.contains(releaseURL), "\(file) must contain v0.21.0 release URL")
+            XCTAssertTrue(source.contains(tagCommit), "\(file) must contain v0.21.0 tag commit")
+            XCTAssertTrue(source.contains(publishedAt), "\(file) must contain v0.21.0 publication timestamp")
+        }
+
+        let readme = try read("README.md")
+        let goal = try read("GOAL.md")
+        let blueprint = try read("BLUEPRINT.md")
+        let roadmap = try read("docs/roadmap.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let notes = try read("docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md")
+        let audit = try read("docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md")
+        let verification = try read("verification.md")
+        let verifier = try read("checks/verify-v0.21.1-v0210-stale-wording-guard.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(readme.contains("Latest v0.21.1 stale wording guard"))
+        XCTAssertTrue(goal.contains("v0.21.1 stale wording guard"))
+        XCTAssertTrue(blueprint.contains("Release v0.21.1 stale wording guard anchor"))
+        XCTAssertTrue(roadmap.contains("GH-1306 uses"))
+        XCTAssertTrue(latest.contains("v0.21.1 v0.21.0 stale wording guard"))
+        XCTAssertTrue(readiness.contains("Release v0.21.1 v0.21.0 stale wording guard anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1306 Release v0.21.1 v0.21.0 Stale Wording Guard"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD"))
+        XCTAssertTrue(policy.contains("GH-1306 rejects current-facing stale v0.21.0 publication wording"))
+        XCTAssertTrue(notes.contains("current-facing stale v0.21.0 publication wording"))
+        XCTAssertTrue(audit.contains("stale v0.21.0 publication wording 必须失败"))
+        XCTAssertTrue(verification.contains("GH-1306 v0.21.1 v0.21.0 Stale Wording Guard"))
+        XCTAssertTrue(verifier.contains("reject_unqualified_stale_v0210_wording"))
+        XCTAssertTrue(verifier.contains("STALE_V0210_WORDING"))
+        XCTAssertTrue(verifier.contains("assert_regex_matches \"v0.21.0 release pending\""))
+        XCTAssertTrue(verifier.contains("assert_regex_matches \"v0.21.0 GitHub Release not created\""))
+        XCTAssertTrue(verifier.contains("assert_regex_matches \"v0.21.0 no-tag / no-release current fact\""))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1306ReleaseV0211V0210StaleWordingGuardRejectsCurrentFacingDrift"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.21.1-v0210-stale-wording-guard.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.21.1-v0210-stale-wording-guard.sh"))
+
+        for source in [readme, goal, blueprint, roadmap, latest, policy, notes, audit, verification] {
+            XCTAssertTrue(source.contains("historical construction closeout"))
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+            XCTAssertFalse(source.contains("v0.21.0 tag pending"))
+            XCTAssertFalse(source.contains("v0.21.0 release pending"))
+            XCTAssertFalse(source.contains("v0.21.0 GitHub Release not created"))
+            XCTAssertFalse(source.contains("productionCutoverAuthorized=true"))
+        }
+    }
+
     func testGH1270ReleaseV0201V0200StaleWordingGuardRejectsCurrentFacingDrift() throws {
         // 测试场景：GH-1270 在 GH-1269 已同步 v0.20.0 publication facts 后，
         // 增加 focused stale wording guard，防止 root/release docs 回退成当前待发布状态。
