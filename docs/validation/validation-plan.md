@@ -21,6 +21,22 @@
 - Focused test: `swift test --filter TargetGraphTests/testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract`
 - Boundary: Binance Spot one-shot live canary transport completion contract only; no secret read, endpoint connection, order submission, release publication, or production cutover.
 
+## GH-1310 Release v0.22.0 Operator Approval Run Lock
+
+- GH-1310-VERIFY-V0220-OPERATOR-APPROVAL-RUN-LOCK
+- TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK
+- V0220-002-BLOCKED-BY-GH1309
+- V0220-002-OPERATOR-APPROVAL-SESSION
+- V0220-002-SCOPE-BOUND-APPROVAL
+- V0220-002-APPROVAL-REUSE-FAILS-CLOSED
+- V0220-002-MISSING-STALE-MISMATCHED-FAILS-CLOSED
+- V0220-002-ONE-SHOT-RUN-LOCK
+- V0220-002-NO-SECRET-ENDPOINT-ORDER
+- V0220-002-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.22.0-operator-approval-run-lock.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1310ReleaseV0220OperatorApprovalSessionAndRunLock`
+- Boundary: operator approval session and one-shot run lock evidence only; approval cannot be reused, missing / stale / mismatched approval fails closed, concurrent live canary submit attempts are blocked, and there is no secret read, endpoint connection, order submission, release publication, or production cutover.
+
 ## GH-1273 Release v0.21.0 Controlled Canary Contract
 
 - GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT

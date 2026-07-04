@@ -11,6 +11,11 @@
 - GH-1309 uses `GH-1309-VERIFY-V0220-LIVE-CANARY-TRANSPORT-CONTRACT`、`TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT`、`V0220-001-V0211-PREFLIGHT-GATE`、`V0220-001-BINANCE-SPOT-LIVE-CANARY-TRANSPORT`、`V0220-001-OPERATOR-APPROVAL-REQUIRED`、`V0220-001-ONE-SHOT-RUN-LOCK`、`V0220-001-RISK-KILL-NO-TRADE-OMS-RECONCILIATION`、`V0220-001-QUEUE-ORDER` 和 `V0220-001-NO-PRODUCTION-CUTOVER` to define the Binance Spot live canary transport completion contract.
 - This is contract evidence only: no secret read, no endpoint connection, no submit / status / cancel implementation, no tag / GitHub Release publication and no production cutover authorization.
 
+## v0.22.0 operator approval run lock
+
+- GH-1310 uses `GH-1310-VERIFY-V0220-OPERATOR-APPROVAL-RUN-LOCK`、`TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK`、`V0220-002-BLOCKED-BY-GH1309`、`V0220-002-OPERATOR-APPROVAL-SESSION`、`V0220-002-SCOPE-BOUND-APPROVAL`、`V0220-002-APPROVAL-REUSE-FAILS-CLOSED`、`V0220-002-MISSING-STALE-MISMATCHED-FAILS-CLOSED`、`V0220-002-ONE-SHOT-RUN-LOCK`、`V0220-002-NO-SECRET-ENDPOINT-ORDER` 和 `V0220-002-NO-PRODUCTION-CUTOVER` to define the operator approval session and one-shot run lock.
+- Approval cannot be reused; missing, stale, or mismatched approval fails closed; concurrent live canary submit attempts are blocked. This issue does not read secrets, connect endpoints, submit orders, publish a release, or authorize production cutover.
+
 ## 当前读序
 
 ```text

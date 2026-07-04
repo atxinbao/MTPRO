@@ -14173,4 +14173,40 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "verification.md" "GH-1309 v0.22.0 Live Canary Transport Contract"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.swift" \
+  "docs/contracts/release-v0.22.0-operator-approval-run-lock.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0-operator-approval-run-lock.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1310-VERIFY-V0220-OPERATOR-APPROVAL-RUN-LOCK"
+  require_contains "$file" "TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK"
+  require_contains "$file" "V0220-002-BLOCKED-BY-GH1309"
+  require_contains "$file" "V0220-002-OPERATOR-APPROVAL-SESSION"
+  require_contains "$file" "V0220-002-SCOPE-BOUND-APPROVAL"
+  require_contains "$file" "V0220-002-APPROVAL-REUSE-FAILS-CLOSED"
+  require_contains "$file" "V0220-002-MISSING-STALE-MISMATCHED-FAILS-CLOSED"
+  require_contains "$file" "V0220-002-ONE-SHOT-RUN-LOCK"
+  require_contains "$file" "V0220-002-NO-SECRET-ENDPOINT-ORDER"
+  require_contains "$file" "V0220-002-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0-operator-approval-run-lock.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-operator-approval-run-lock.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 operator approval run lock anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 operator approval run lock"
+require_contains "docs/validation/validation-plan.md" "GH-1310 Release v0.22.0 Operator Approval Run Lock"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK"
+require_contains "verification.md" "GH-1310 v0.22.0 Operator Approval Run Lock"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1310ReleaseV0220OperatorApprovalSessionAndRunLock"
+
 printf 'MTPRO automation readiness checks passed.\n'

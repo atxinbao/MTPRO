@@ -62410,6 +62410,178 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1310ReleaseV0220OperatorApprovalSessionAndRunLock() throws {
+        // 测试场景：GH-1310 固定 v0.22.0 operator approval session
+        // 与 one-shot run lock。
+        // 验证目的：approval 不能复用；missing / stale / mismatched approval
+        // 必须 fail closed；one-shot lock 必须阻断 concurrent live canary submit attempts。
+        // GH-1310-VERIFY-V0220-OPERATOR-APPROVAL-RUN-LOCK
+        // TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK
+        // V0220-002-BLOCKED-BY-GH1309
+        // V0220-002-OPERATOR-APPROVAL-SESSION
+        // V0220-002-SCOPE-BOUND-APPROVAL
+        // V0220-002-APPROVAL-REUSE-FAILS-CLOSED
+        // V0220-002-MISSING-STALE-MISMATCHED-FAILS-CLOSED
+        // V0220-002-ONE-SHOT-RUN-LOCK
+        // V0220-002-NO-SECRET-ENDPOINT-ORDER
+        // V0220-002-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.deterministicFixture()
+
+        XCTAssertTrue(evidence.approvalSessionHeld)
+        XCTAssertTrue(evidence.approvalFlagsHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1310")
+        XCTAssertEqual(evidence.blockedByIssueIDs.map(\.rawValue), ["GH-1309"])
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-1311")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1309..GH-1320")
+        XCTAssertEqual(evidence.releaseVersion, "v0.22.0")
+        XCTAssertEqual(evidence.approvalState, .approvedUnused)
+        XCTAssertEqual(evidence.runLockState, .available)
+        XCTAssertNil(evidence.failureClass)
+        XCTAssertEqual(evidence.approvalScope.venue, "Binance")
+        XCTAssertEqual(evidence.approvalScope.productType, "spot")
+        XCTAssertEqual(evidence.approvalScope.environment, "productionLive")
+        XCTAssertEqual(evidence.approvalScope.symbol, "BTCUSDT")
+        XCTAssertEqual(evidence.approvalScope.notionalMinorUnits, 500)
+        XCTAssertEqual(evidence.approvalScope.orderType, "LIMIT")
+        XCTAssertEqual(evidence.approvalScope, evidence.requestedScope)
+        XCTAssertTrue(evidence.operatorApprovalRequired)
+        XCTAssertTrue(evidence.approvalEvidencePresent)
+        XCTAssertTrue(evidence.approvalScopeMatched)
+        XCTAssertTrue(evidence.approvalUnused)
+        XCTAssertTrue(evidence.approvalFresh)
+        XCTAssertTrue(evidence.oneShotRunLockRequired)
+        XCTAssertTrue(evidence.concurrentRunBlocked)
+        XCTAssertFalse(evidence.credentialSecretReadEnabledByThisIssue)
+        XCTAssertFalse(evidence.signedEndpointRuntimeEnabledByThisIssue)
+        XCTAssertFalse(evidence.liveOrderSubmitEnabledByThisIssue)
+        XCTAssertFalse(evidence.liveOrderStatusCancelEnabledByThisIssue)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.createsTagOrRelease)
+
+        XCTAssertEqual(
+            evidence.requiredValidationCommands,
+            ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.requiredValidationCommands
+        )
+        XCTAssertTrue(
+            evidence.requiredValidationCommands.contains(
+                "bash checks/verify-v0.22.0-operator-approval-run-lock.sh"
+            )
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("GH-1310-VERIFY-V0220-OPERATOR-APPROVAL-RUN-LOCK"))
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-002-NO-PRODUCTION-CUTOVER"))
+
+        let missing = try ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.missingApprovalFixture()
+        XCTAssertTrue(missing.failClosedEvidenceHeld)
+        XCTAssertEqual(missing.failureClass, .missingApproval)
+        XCTAssertFalse(missing.approvalEvidencePresent)
+
+        let stale = try ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.staleApprovalFixture()
+        XCTAssertTrue(stale.failClosedEvidenceHeld)
+        XCTAssertEqual(stale.failureClass, .expiredApproval)
+        XCTAssertFalse(stale.approvalFresh)
+
+        let mismatched = try ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.mismatchedScopeFixture()
+        XCTAssertTrue(mismatched.failClosedEvidenceHeld)
+        XCTAssertEqual(mismatched.failureClass, .approvalScopeMismatch)
+        XCTAssertFalse(mismatched.approvalScopeMatched)
+
+        let reused = try ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.reusedApprovalFixture()
+        XCTAssertTrue(reused.failClosedEvidenceHeld)
+        XCTAssertEqual(reused.failureClass, .approvalAlreadyUsed)
+        XCTAssertEqual(reused.runLockState, .blockedApprovalReuse)
+        XCTAssertFalse(reused.approvalUnused)
+        XCTAssertNotNil(reused.usedAtUnixSeconds)
+
+        let concurrent = try ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.concurrentRunFixture()
+        XCTAssertTrue(concurrent.failClosedEvidenceHeld)
+        XCTAssertEqual(concurrent.failureClass, .concurrentRunLockHeld)
+        XCTAssertEqual(concurrent.runLockState, .blockedConcurrentRun)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1310-VERIFY-V0220-OPERATOR-APPROVAL-RUN-LOCK",
+            "TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK",
+            "V0220-002-BLOCKED-BY-GH1309",
+            "V0220-002-OPERATOR-APPROVAL-SESSION",
+            "V0220-002-SCOPE-BOUND-APPROVAL",
+            "V0220-002-APPROVAL-REUSE-FAILS-CLOSED",
+            "V0220-002-MISSING-STALE-MISMATCHED-FAILS-CLOSED",
+            "V0220-002-ONE-SHOT-RUN-LOCK",
+            "V0220-002-NO-SECRET-ENDPOINT-ORDER",
+            "V0220-002-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.swift",
+            "docs/contracts/release-v0.22.0-operator-approval-run-lock.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.22.0-operator-approval-run-lock.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let contractSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.swift")
+        let contractDoc = try read("docs/contracts/release-v0.22.0-operator-approval-run-lock.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let verification = try read("verification.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(contractSource.contains("ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock"))
+        XCTAssertTrue(contractSource.contains("GH-1309..GH-1320"))
+        XCTAssertTrue(contractSource.contains("approval cannot be reused"))
+        XCTAssertTrue(contractSource.contains("credentialSecretReadEnabledByThisIssue: Bool = false"))
+        XCTAssertTrue(contractSource.contains("liveOrderSubmitEnabledByThisIssue: Bool = false"))
+        XCTAssertTrue(contractSource.contains("productionCutoverAuthorized: Bool = false"))
+        XCTAssertTrue(contractDoc.contains("approval cannot be reused"))
+        XCTAssertTrue(contractDoc.contains("Missing, stale, or mismatched approval fails closed"))
+        XCTAssertTrue(contractDoc.contains("one-shot run lock"))
+        XCTAssertTrue(contractDoc.contains("concurrent live canary submit attempts"))
+        XCTAssertTrue(readiness.contains("Release v0.22.0 operator approval run lock anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1310 Release v0.22.0 Operator Approval Run Lock"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK"))
+        XCTAssertTrue(verification.contains("GH-1310 v0.22.0 Operator Approval Run Lock"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-operator-approval-run-lock.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-operator-approval-run-lock.sh"))
+
+        for source in [contractDoc, verification] {
+            for forbidden in [
+                "productionCutoverAuthorized=true",
+                "productionTradingEnabledByDefault=true",
+                "productionSecretRead=true",
+                "productionEndpointConnected=true",
+                "productionBrokerConnected=true",
+                "productionOrderSubmitted=true",
+                "approvalReuseAllowed=true",
+                "concurrentCanaryRunAllowed=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of v0.22.0 approval run lock evidence")
+            }
+        }
+    }
+
     func testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract() throws {
         // 测试场景：GH-1309 定义 v0.22.0 Binance Spot live canary
         // transport completion 顶层合同。

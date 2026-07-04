@@ -23,6 +23,17 @@ Agent / Graphify 默认读取 `docs/validation/latest-verification-summary.md`�
 - Scope: GH-1309 defines the Binance Spot one-shot live canary transport completion contract only.
 - Boundary: no secret read, no endpoint connection, no submit / status / cancel implementation, no tag / GitHub Release publication and no production cutover authorization.
 
+## GH-1310 v0.22.0 Operator Approval Run Lock
+
+日期：2026-07-05
+
+执行者：Codex
+
+- Anchors: `GH-1310-VERIFY-V0220-OPERATOR-APPROVAL-RUN-LOCK` / `TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK` / `V0220-002-BLOCKED-BY-GH1309` / `V0220-002-OPERATOR-APPROVAL-SESSION` / `V0220-002-SCOPE-BOUND-APPROVAL` / `V0220-002-APPROVAL-REUSE-FAILS-CLOSED` / `V0220-002-MISSING-STALE-MISMATCHED-FAILS-CLOSED` / `V0220-002-ONE-SHOT-RUN-LOCK` / `V0220-002-NO-SECRET-ENDPOINT-ORDER` / `V0220-002-NO-PRODUCTION-CUTOVER`.
+- Command: `bash checks/verify-v0.22.0-operator-approval-run-lock.sh`.
+- Scope: GH-1310 defines the operator approval session and one-shot run lock required after GH-1309.
+- Boundary: approval cannot be reused, missing / stale / mismatched approval fails closed, concurrent live canary submit attempts are blocked, and GH-1310 does not read secrets, connect endpoints, submit orders, publish a release, or authorize production cutover.
+
 ## GH-1307 v0.21.1 Canary Evidence Wording Guard
 
 日期：2026-07-04
