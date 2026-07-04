@@ -6,6 +6,11 @@
 
 本文档是 MTPRO 最近验证和当前边界的压缩入口。Agent / Parent Codex 默认读取本文档；完整 `verification.md` 只用于审计、追溯和 debug。本文档不替代 PR evidence、Linear evidence、Stage Code Audit Report 或完整验证历史。
 
+## v0.22.0 live canary transport completion contract
+
+- GH-1309 uses `GH-1309-VERIFY-V0220-LIVE-CANARY-TRANSPORT-CONTRACT`、`TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT`、`V0220-001-V0211-PREFLIGHT-GATE`、`V0220-001-BINANCE-SPOT-LIVE-CANARY-TRANSPORT`、`V0220-001-OPERATOR-APPROVAL-REQUIRED`、`V0220-001-ONE-SHOT-RUN-LOCK`、`V0220-001-RISK-KILL-NO-TRADE-OMS-RECONCILIATION`、`V0220-001-QUEUE-ORDER` 和 `V0220-001-NO-PRODUCTION-CUTOVER` to define the Binance Spot live canary transport completion contract.
+- This is contract evidence only: no secret read, no endpoint connection, no submit / status / cancel implementation, no tag / GitHub Release publication and no production cutover authorization.
+
 ## 当前读序
 
 ```text

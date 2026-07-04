@@ -14138,4 +14138,39 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "docs/release/release-publication-policy.md" "GH-1308 closes the v0.21.1 patch audit"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1308ReleaseV0211PatchAuditReleaseNotesCloseout"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryTransportCompletionContract.swift" \
+  "docs/contracts/release-v0.22.0-binance-spot-live-canary-transport-completion-contract.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0-live-canary-transport-contract.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1309-VERIFY-V0220-LIVE-CANARY-TRANSPORT-CONTRACT"
+  require_contains "$file" "TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT"
+  require_contains "$file" "V0220-001-V0211-PREFLIGHT-GATE"
+  require_contains "$file" "V0220-001-BINANCE-SPOT-LIVE-CANARY-TRANSPORT"
+  require_contains "$file" "V0220-001-OPERATOR-APPROVAL-REQUIRED"
+  require_contains "$file" "V0220-001-ONE-SHOT-RUN-LOCK"
+  require_contains "$file" "V0220-001-RISK-KILL-NO-TRADE-OMS-RECONCILIATION"
+  require_contains "$file" "V0220-001-QUEUE-ORDER"
+  require_contains "$file" "V0220-001-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0-live-canary-transport-contract.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-live-canary-transport-contract.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 live canary transport contract anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 live canary transport completion contract"
+require_contains "docs/validation/validation-plan.md" "GH-1309 Release v0.22.0 Live Canary Transport Contract"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT"
+require_contains "verification.md" "GH-1309 v0.22.0 Live Canary Transport Contract"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract"
+
 printf 'MTPRO automation readiness checks passed.\n'
