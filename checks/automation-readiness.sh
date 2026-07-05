@@ -14358,4 +14358,41 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "verification.md" "GH-1314 v0.22.0 Live Order Status / Cancel Transport"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1314ReleaseV0220LiveOrderStatusCancelTransport"
 
+for file in \
+  "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOMSEventLog.swift" \
+  "docs/contracts/release-v0.22.0-oms-evidence-log.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0-oms-evidence-log.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1315-VERIFY-V0220-OMS-EVIDENCE-LOG"
+  require_contains "$file" "TVM-RELEASE-V0220-OMS-EVIDENCE-LOG"
+  require_contains "$file" "V0220-007-BLOCKED-BY-GH1313-GH1314"
+  require_contains "$file" "V0220-007-APPEND-ONLY-OMS-EVENT-LOG"
+  require_contains "$file" "V0220-007-SUBMIT-ACK-STATUS-CANCEL-TERMINAL-EVENTS"
+  require_contains "$file" "V0220-007-CORRELATION-CAUSATION-IDS"
+  require_contains "$file" "V0220-007-REDACTED-REPLAYABLE-EVIDENCE"
+  require_contains "$file" "V0220-007-REJECTS-MISSING-OUT-OF-ORDER-LIFECYCLE"
+  require_contains "$file" "V0220-007-NO-FUTURES-OKX"
+  require_contains "$file" "V0220-007-NO-DASHBOARD-TRADING-CONTROLS"
+  require_contains "$file" "V0220-007-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0-oms-evidence-log.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-oms-evidence-log.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 OMS event log anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 OMS event log"
+require_contains "docs/validation/validation-plan.md" "GH-1315 Release v0.22.0 OMS Event Log"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-OMS-EVIDENCE-LOG"
+require_contains "verification.md" "GH-1315 v0.22.0 OMS Event Log"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1315ReleaseV0220OMSEventLogPersistsExchangeAckStatusCancelEvidence"
+
 printf 'MTPRO automation readiness checks passed.\n'

@@ -106,6 +106,23 @@
 - Focused test: `swift test --filter TargetGraphTests/testGH1314ReleaseV0220LiveOrderStatusCancelTransport`
 - Boundary: approved Binance Spot canary status / cancel transport evidence only; status query is scoped to approved exchange/client order identifiers; cancel can target only the approved run/order; duplicate retry must be idempotent; ambiguous / unknown exchange state fails closed and requires reconciliation; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 
+## GH-1315 Release v0.22.0 OMS Event Log
+
+- GH-1315-VERIFY-V0220-OMS-EVIDENCE-LOG
+- TVM-RELEASE-V0220-OMS-EVIDENCE-LOG
+- V0220-007-BLOCKED-BY-GH1313-GH1314
+- V0220-007-APPEND-ONLY-OMS-EVENT-LOG
+- V0220-007-SUBMIT-ACK-STATUS-CANCEL-TERMINAL-EVENTS
+- V0220-007-CORRELATION-CAUSATION-IDS
+- V0220-007-REDACTED-REPLAYABLE-EVIDENCE
+- V0220-007-REJECTS-MISSING-OUT-OF-ORDER-LIFECYCLE
+- V0220-007-NO-FUTURES-OKX
+- V0220-007-NO-DASHBOARD-TRADING-CONTROLS
+- V0220-007-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.22.0-oms-evidence-log.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1315ReleaseV0220OMSEventLogPersistsExchangeAckStatusCancelEvidence`
+- Boundary: append-only OMS event log evidence only; submit ack, status observation, cancel request, cancel ack, terminal state, and ambiguous-state evidence must share one run/order correlation chain; missing status, missing cancel outcome, out-of-order lifecycle, correlation mismatch, or raw payload evidence fails closed; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+
 ## GH-1273 Release v0.21.0 Controlled Canary Contract
 
 - GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT

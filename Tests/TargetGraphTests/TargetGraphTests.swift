@@ -63400,6 +63400,209 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1315ReleaseV0220OMSEventLogPersistsExchangeAckStatusCancelEvidence() throws {
+        // 测试场景：GH-1315 固定 v0.22.0 Binance Spot canary submit ack、
+        // status、cancel、terminal 和 ambiguous evidence 的 OMS event log。
+        // 验证目的：OMS event log 必须 append-only、redacted、replayable，并用
+        // correlation / causation identifiers 重建 lifecycle；缺失或乱序证据必须 fail closed。
+        // GH-1315-VERIFY-V0220-OMS-EVIDENCE-LOG
+        // TVM-RELEASE-V0220-OMS-EVIDENCE-LOG
+        // V0220-007-BLOCKED-BY-GH1313-GH1314
+        // V0220-007-APPEND-ONLY-OMS-EVENT-LOG
+        // V0220-007-SUBMIT-ACK-STATUS-CANCEL-TERMINAL-EVENTS
+        // V0220-007-CORRELATION-CAUSATION-IDS
+        // V0220-007-REDACTED-REPLAYABLE-EVIDENCE
+        // V0220-007-REJECTS-MISSING-OUT-OF-ORDER-LIFECYCLE
+        // V0220-007-NO-FUTURES-OKX
+        // V0220-007-NO-DASHBOARD-TRADING-CONTROLS
+        // V0220-007-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0220SpotLiveCanaryOMSEventLogEvidence
+            .deterministicFixture()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.namespaceHeld)
+        XCTAssertTrue(evidence.eventLogsHeld)
+        XCTAssertTrue(evidence.requiredControlsHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1315")
+        XCTAssertEqual(evidence.blockedByIssueIDs.map(\.rawValue), ["GH-1313", "GH-1314"])
+        XCTAssertEqual(evidence.downstreamIssueIDs.map(\.rawValue), ["GH-1316"])
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1309..GH-1320")
+        XCTAssertEqual(evidence.releaseVersion, "v0.22.0")
+        XCTAssertEqual(evidence.venueID, .binance)
+        XCTAssertEqual(evidence.productKind, .spot)
+        XCTAssertEqual(evidence.tradingEnvironment, .productionLive)
+        XCTAssertTrue(evidence.upstreamSubmitTransport.evidenceHeld)
+        XCTAssertTrue(evidence.upstreamStatusCancelTransport.evidenceHeld)
+
+        XCTAssertTrue(evidence.acceptedEventLog.acceptedLogHeld)
+        XCTAssertEqual(
+            evidence.acceptedEventLog.replayEventKinds,
+            [
+                .submitAck,
+                .statusObservation,
+                .cancelRequest,
+                .cancelAck,
+                .terminalState,
+                .ambiguousState
+            ]
+        )
+        XCTAssertEqual(evidence.acceptedEventLog.entries.map(\.sequence), [1, 2, 3, 4, 5, 6])
+        XCTAssertTrue(evidence.acceptedEventLog.entries.allSatisfy(\.redactedReferenceHeld))
+        XCTAssertTrue(evidence.acceptedEventLog.entries.allSatisfy(\.replayable))
+        XCTAssertEqual(Set(evidence.acceptedEventLog.entries.map(\.correlationID)).count, 1)
+        XCTAssertTrue(
+            ReleaseV0220SpotLiveCanaryOMSEventLog.causationChainHeld(
+                entries: evidence.acceptedEventLog.entries
+            )
+        )
+        XCTAssertTrue(evidence.acceptedEventLog.entries.last?.requiresReconciliation == true)
+
+        XCTAssertTrue(
+            evidence.missingStatusObservationLog.rejectReasons.contains(.missingStatusObservation)
+        )
+        XCTAssertTrue(evidence.missingCancelOutcomeLog.rejectReasons.contains(.missingCancelOutcome))
+        XCTAssertTrue(evidence.outOfOrderLifecycleLog.rejectReasons.contains(.outOfOrderLifecycle))
+        XCTAssertTrue(evidence.correlationMismatchLog.rejectReasons.contains(.correlationMismatch))
+        XCTAssertTrue(evidence.rawPayloadRejectedLog.rejectReasons.contains(.rawPayloadPersisted))
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.futuresExecutionEnabled)
+        XCTAssertFalse(evidence.okxActiveImplementationEnabled)
+        XCTAssertFalse(evidence.dashboardTradingCommandEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryOMSEventLogEntry(
+                sequence: 1,
+                eventKind: .submitAck,
+                rawPayloadPersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryOMSEventLogEntry(
+                sequence: 1,
+                eventKind: .submitAck,
+                signaturePersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryOMSEventLogEntry(
+                sequence: 1,
+                eventKind: .submitAck,
+                futuresExecutionEnabled: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryOMSEventLogEntry(
+                sequence: 1,
+                eventKind: .submitAck,
+                productionCutoverAuthorized: true
+            )
+        )
+
+        XCTAssertTrue(
+            evidence.requiredValidationCommands.contains(
+                "bash checks/verify-v0.22.0-oms-evidence-log.sh"
+            )
+        )
+        XCTAssertTrue(
+            evidence.validationAnchors.contains(
+                "GH-1315-VERIFY-V0220-OMS-EVIDENCE-LOG"
+            )
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-007-BLOCKED-BY-GH1313-GH1314"))
+        XCTAssertTrue(
+            evidence.validationAnchors.contains(
+                "V0220-007-REJECTS-MISSING-OUT-OF-ORDER-LIFECYCLE"
+            )
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-007-NO-PRODUCTION-CUTOVER"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1315-VERIFY-V0220-OMS-EVIDENCE-LOG",
+            "TVM-RELEASE-V0220-OMS-EVIDENCE-LOG",
+            "V0220-007-BLOCKED-BY-GH1313-GH1314",
+            "V0220-007-APPEND-ONLY-OMS-EVENT-LOG",
+            "V0220-007-SUBMIT-ACK-STATUS-CANCEL-TERMINAL-EVENTS",
+            "V0220-007-CORRELATION-CAUSATION-IDS",
+            "V0220-007-REDACTED-REPLAYABLE-EVIDENCE",
+            "V0220-007-REJECTS-MISSING-OUT-OF-ORDER-LIFECYCLE",
+            "V0220-007-NO-FUTURES-OKX",
+            "V0220-007-NO-DASHBOARD-TRADING-CONTROLS",
+            "V0220-007-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOMSEventLog.swift",
+            "docs/contracts/release-v0.22.0-oms-evidence-log.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.22.0-oms-evidence-log.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read(
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOMSEventLog.swift"
+        )
+        let contractDoc = try read("docs/contracts/release-v0.22.0-oms-evidence-log.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let verification = try read("verification.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryOMSEventLogEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryOneShotSubmitTransportEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryStatusCancelTransportEvidence"))
+        XCTAssertTrue(source.contains("appendOnlyOrderingRequired"))
+        XCTAssertTrue(source.contains("correlationCausationIDsRequired"))
+        XCTAssertTrue(source.contains("redactedReplayableEvidenceRequired"))
+        XCTAssertTrue(source.contains("missingOrOutOfOrderLifecycleFailsClosed"))
+        XCTAssertTrue(contractDoc.contains("append-only OMS event log evidence"))
+        XCTAssertTrue(readiness.contains("Release v0.22.0 OMS event log anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1315 Release v0.22.0 OMS Event Log"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0220-OMS-EVIDENCE-LOG"))
+        XCTAssertTrue(verification.contains("GH-1315 v0.22.0 OMS Event Log"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-oms-evidence-log.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-oms-evidence-log.sh"))
+
+        for document in [contractDoc, verification] {
+            for forbidden in [
+                "rawPayloadPersisted=true",
+                "rawCredentialValuePersisted=true",
+                "signaturePersisted=true",
+                "productionCutoverAuthorized=true",
+                "Futures live execution started",
+                "OKX active implementation started",
+                "Dashboard trading button enabled"
+            ] {
+                XCTAssertFalse(document.contains(forbidden), "\(forbidden) must stay out of GH-1315 docs")
+            }
+        }
+    }
+
     func testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract() throws {
         // 测试场景：GH-1309 定义 v0.22.0 Binance Spot live canary
         // transport completion 顶层合同。

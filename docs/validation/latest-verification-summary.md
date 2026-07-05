@@ -36,6 +36,11 @@
 - GH-1314 uses `GH-1314-VERIFY-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT`、`TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT`、`V0220-006-BLOCKED-BY-GH1313`、`V0220-006-STATUS-QUERY-BY-EXCHANGE-AND-CLIENT-ID`、`V0220-006-CANCEL-APPROVED-CANARY-ORDER-ONLY`、`V0220-006-IDEMPOTENCY-KEY-RETRY-CLASSIFICATION`、`V0220-006-REDACTED-STATUS-CANCEL-EVIDENCE`、`V0220-006-AMBIGUOUS-STATE-REQUIRES-RECONCILIATION`、`V0220-006-UNKNOWN-STATE-FAILS-CLOSED`、`V0220-006-NO-FUTURES-OKX`、`V0220-006-NO-DASHBOARD-TRADING-CONTROLS` 和 `V0220-006-NO-PRODUCTION-CUTOVER` to define approved Binance Spot canary order status / cancel transport evidence.
 - Status query is scoped to approved exchange/client order identifiers. Cancel can target only the approved canary run/order. Duplicate retry must be idempotent. Ambiguous or unknown exchange state fails closed and requires reconciliation. Only redacted status / cancel evidence persists; Futures / OKX, Dashboard trading controls, release publication, and production cutover stay closed.
 
+## v0.22.0 OMS event log
+
+- GH-1315 uses `GH-1315-VERIFY-V0220-OMS-EVIDENCE-LOG`、`TVM-RELEASE-V0220-OMS-EVIDENCE-LOG`、`V0220-007-BLOCKED-BY-GH1313-GH1314`、`V0220-007-APPEND-ONLY-OMS-EVENT-LOG`、`V0220-007-SUBMIT-ACK-STATUS-CANCEL-TERMINAL-EVENTS`、`V0220-007-CORRELATION-CAUSATION-IDS`、`V0220-007-REDACTED-REPLAYABLE-EVIDENCE`、`V0220-007-REJECTS-MISSING-OUT-OF-ORDER-LIFECYCLE`、`V0220-007-NO-FUTURES-OKX`、`V0220-007-NO-DASHBOARD-TRADING-CONTROLS` 和 `V0220-007-NO-PRODUCTION-CUTOVER` to define append-only OMS event log evidence.
+- Submit ack, status observation, cancel request, cancel ack, terminal state, and ambiguous state must persist in one run/order correlation chain with causation IDs. Missing status, missing cancel outcome, out-of-order lifecycle, correlation mismatch, or raw payload evidence fails closed. Only redacted replayable evidence persists; Futures / OKX, Dashboard trading controls, release publication, and production cutover stay closed.
+
 ## 当前读序
 
 ```text
