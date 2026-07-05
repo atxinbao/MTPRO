@@ -160,6 +160,23 @@
 - Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryFailureRollbackDrill.swift`、`docs/contracts/release-v0.22.0-failure-rollback-drill.md`、`checks/verify-v0.22.0-failure-rollback-drill.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: no production cutover, no Futures / OKX, and no Dashboard trading controls in GH-1317. Failure classification covers auth, endpoint, risk, kill switch, no-trade, submit, cancel, status, reconciliation and artifact failures with deterministic operator next action; kill switch and no-trade block submit / cancel; rollback drill sends no unintended orders.
 
+## TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+
+- TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+- GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+- V0220-010-BLOCKED-BY-GH1317
+- V0220-010-LIVE-CANARY-EVIDENCE-CHAIN
+- V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION
+- V0220-010-FAILURE-CLASS-NEXT-ACTION
+- V0220-010-READ-ONLY-DASHBOARD-CLI
+- V0220-010-REDACTION-FAILURE-STATES-VISIBLE
+- V0220-010-NO-TRADING-COMMANDS
+- V0220-010-NO-FUTURES-OKX
+- V0220-010-NO-PRODUCTION-CUTOVER
+- Command: `bash checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.swift`、`Sources/Dashboard/Report/ReleaseV0220DashboardCLILiveCanaryEvidenceSurface.swift`、`Sources/Dashboard/DashboardShell.swift`、`Sources/MTPROCLI/main.swift`、`docs/contracts/release-v0.22.0-dashboard-cli-live-canary-evidence-surface.md`、`checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs、`verification.md`、`Tests/AppTests/AppTests.swift` 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: no production cutover, no Futures / OKX, no Dashboard trading controls, no trading button, no order form, no live command, no raw order id, no raw broker payload and no submit / cancel / replace commands in GH-1318. Dashboard / CLI surface only displays redacted live canary evidence chain state and deterministic operator next action.
+
 ## TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
 
 - TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT

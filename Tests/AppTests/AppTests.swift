@@ -4636,6 +4636,139 @@ final class AppTests: XCTestCase {
         }
     }
 
+    func testGH1318DashboardCLILiveCanaryEvidenceSurfaceShowsCanaryEvidenceWithoutCommands() throws {
+        // 测试场景：GH-1318 在 GH-1317 failure taxonomy / rollback drill 后，
+        // 将 live canary approval、preflight、submit、status/cancel、OMS、
+        // reconciliation、failure class、next action 和 redaction 状态投影到
+        // Dashboard / CLI 只读 surface。
+        // GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+        // TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+        // V0220-010-BLOCKED-BY-GH1317
+        // V0220-010-LIVE-CANARY-EVIDENCE-CHAIN
+        // V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION
+        // V0220-010-FAILURE-CLASS-NEXT-ACTION
+        // V0220-010-READ-ONLY-DASHBOARD-CLI
+        // V0220-010-REDACTION-FAILURE-STATES-VISIBLE
+        // V0220-010-NO-TRADING-COMMANDS
+        // V0220-010-NO-FUTURES-OKX
+        // V0220-010-NO-PRODUCTION-CUTOVER
+        let snapshot = DashboardShellSnapshot(viewModel: try makeDashboardViewModel())
+        let surface = snapshot.releaseV0220DashboardCLILiveCanaryEvidenceSurface
+
+        XCTAssertEqual(surface.issueID, "GH-1318")
+        XCTAssertEqual(surface.blockedByIssueIDs, ["GH-1317"])
+        XCTAssertEqual(surface.downstreamIssueIDs, ["GH-1319"])
+        XCTAssertEqual(surface.releaseVersion, "v0.22.0")
+        XCTAssertTrue(surface.source.isReadModelOnly)
+        XCTAssertTrue(surface.surfaceHeld)
+        XCTAssertTrue(surface.boundaryHeld)
+        XCTAssertEqual(surface.rowCount, 9)
+        XCTAssertEqual(surface.stateLabels, ["approved", "ready", "submitted-live-canary", "cancelled", "reconciled", "fail-closed", "redacted"])
+        XCTAssertEqual(surface.rollbackCommandLabels, ["submit", "cancel"])
+        XCTAssertTrue(surface.failureClassLabels.contains("auth"))
+        XCTAssertTrue(surface.failureClassLabels.contains("reconciliation"))
+        XCTAssertTrue(surface.nextActionLabels.contains("refresh credential reference"))
+        XCTAssertTrue(surface.nextActionLabels.contains("query status then reconcile"))
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.futuresEnabled)
+        XCTAssertFalse(surface.okxEnabled)
+        XCTAssertFalse(surface.dashboardTradingCommandEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.rawOrderIDVisible)
+        XCTAssertFalse(surface.rawBrokerPayloadVisible)
+        XCTAssertFalse(surface.rawBrokerPayloadPersisted)
+        XCTAssertFalse(surface.createsTagOrRelease)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+
+        XCTAssertEqual(metricValue("v0.22 canary evidence rows", in: surface.metrics), "9")
+        XCTAssertEqual(metricValue("Boundary", in: surface.metrics), "confirmed")
+        XCTAssertTrue(surface.details.contains("Dashboard command surface: none"))
+        XCTAssertTrue(surface.details.contains("CLI command surface: read-only status / failures / rollback / reconciliation only"))
+        XCTAssertTrue(surface.details.contains("Trading button: none"))
+        XCTAssertTrue(surface.details.contains("Order form: none"))
+        XCTAssertTrue(surface.details.contains("Submit / cancel / replace: none"))
+        XCTAssertTrue(surface.details.contains("Futures: disabled"))
+        XCTAssertTrue(surface.details.contains("OKX: disabled"))
+        XCTAssertTrue(surface.details.contains("Raw order id: hidden"))
+        XCTAssertTrue(surface.details.contains("Raw broker payload: hidden"))
+        XCTAssertTrue(surface.details.contains("Production cutover: none"))
+
+        XCTAssertTrue(snapshot.isReadModelOnly)
+        XCTAssertTrue(snapshot.viewModelSources.allSatisfy(\.isReadModelOnly))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0220CanaryEvidenceRows=9"))
+        XCTAssertTrue(snapshot.smokeSummary.contains("releaseV0220CanaryEvidenceBoundary=confirmed"))
+
+        let statusOutput = try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput(
+            arguments: ["canary-live-evidence", "status"]
+        )
+        XCTAssertTrue(statusOutput.contains("mtpro canary-live-evidence status"))
+        XCTAssertTrue(statusOutput.contains("issue=GH-1318"))
+        XCTAssertTrue(statusOutput.contains("surfaceRows=9"))
+        XCTAssertTrue(statusOutput.contains("approvalVisible=true"))
+        XCTAssertTrue(statusOutput.contains("preflightVisible=true"))
+        XCTAssertTrue(statusOutput.contains("submitVisible=true"))
+        XCTAssertTrue(statusOutput.contains("statusCancelVisible=true"))
+        XCTAssertTrue(statusOutput.contains("omsVisible=true"))
+        XCTAssertTrue(statusOutput.contains("reconciliationVisible=true"))
+        XCTAssertTrue(statusOutput.contains("failureStatesVisible=true"))
+        XCTAssertTrue(statusOutput.contains("nextActionsVisible=true"))
+        XCTAssertTrue(statusOutput.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(statusOutput.contains("orderFormVisible=false"))
+        XCTAssertTrue(statusOutput.contains("liveCommandVisible=false"))
+        XCTAssertTrue(statusOutput.contains("submitCancelReplaceEnabled=false"))
+        XCTAssertTrue(statusOutput.contains("futuresEnabled=false"))
+        XCTAssertTrue(statusOutput.contains("okxEnabled=false"))
+        XCTAssertTrue(statusOutput.contains("rawOrderIDVisible=false"))
+        XCTAssertTrue(statusOutput.contains("rawBrokerPayloadVisible=false"))
+        XCTAssertTrue(statusOutput.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(statusOutput.contains("boundaryHeld=true"))
+
+        let failuresOutput = try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput(
+            arguments: ["canary-live-evidence", "failures"]
+        )
+        XCTAssertTrue(failuresOutput.contains("mtpro canary-live-evidence failures"))
+        XCTAssertTrue(failuresOutput.contains("failureClass=auth"))
+        XCTAssertTrue(failuresOutput.contains("failureClass=artifact"))
+        XCTAssertTrue(failuresOutput.contains("failClosed=true"))
+        XCTAssertTrue(failuresOutput.contains("blocksSubmit=true"))
+        XCTAssertTrue(failuresOutput.contains("blocksCancel=true"))
+
+        let rollbackOutput = try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput(
+            arguments: ["canary-live-evidence", "rollback"]
+        )
+        XCTAssertTrue(rollbackOutput.contains("mtpro canary-live-evidence rollback"))
+        XCTAssertTrue(rollbackOutput.contains("rollbackCommands=submit,cancel"))
+        XCTAssertTrue(rollbackOutput.contains("killSwitchActive=true"))
+        XCTAssertTrue(rollbackOutput.contains("noTradeActive=true"))
+        XCTAssertTrue(rollbackOutput.contains("blockedBeforeTransport=true"))
+        XCTAssertTrue(rollbackOutput.contains("blockedBeforeBrokerGateway=true"))
+        XCTAssertTrue(rollbackOutput.contains("unintendedSubmitSent=false"))
+        XCTAssertTrue(rollbackOutput.contains("unintendedCancelSent=false"))
+
+        let reconciliationOutput = try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput(
+            arguments: ["canary-live-evidence", "reconciliation"]
+        )
+        XCTAssertTrue(reconciliationOutput.contains("mtpro canary-live-evidence reconciliation"))
+        XCTAssertTrue(reconciliationOutput.contains("reconciliationEvidenceVisible=true"))
+        XCTAssertTrue(reconciliationOutput.contains("upstreamEvidenceHeld=true"))
+        XCTAssertTrue(reconciliationOutput.contains("matchedExchangeOrderID="))
+        XCTAssertTrue(reconciliationOutput.contains("reconciliationArtifactReference="))
+
+        let encodedSurface = try JSONEncoder().encode(surface)
+        let decodedSurface = try JSONDecoder().decode(
+            ReleaseV0220DashboardCLILiveCanaryEvidenceSurfaceViewModel.self,
+            from: encodedSurface
+        )
+        XCTAssertEqual(decodedSurface, surface)
+
+        for anchor in ReleaseV0220DashboardCLILiveCanaryEvidenceSurfaceViewModel.requiredValidationAnchors {
+            XCTAssertTrue(surface.validationAnchors.contains(anchor), "\(anchor) must be part of GH-1318 surface")
+        }
+    }
+
     func testGH890DashboardProductionReadinessCenterShowsReadinessWithoutCommands() throws {
         // 测试场景：GH-890 Dashboard 只能展示 v0.10.0 production readiness evidence center。
         // Readiness Overview / Environment / Secret / Endpoint / Risk / Kill Switch /

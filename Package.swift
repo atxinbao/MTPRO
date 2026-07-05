@@ -237,6 +237,17 @@ let package = Package(
             name: "ExecutionEngine",
             dependencies: ["DomainModel", "MessageBus", "Cache", "Portfolio", "RiskEngine", "ExecutionClient"],
             path: "Sources/ExecutionEngine",
+            // GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+            // TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+            // V0220-010-BLOCKED-BY-GH1317
+            // V0220-010-LIVE-CANARY-EVIDENCE-CHAIN
+            // V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION
+            // V0220-010-FAILURE-CLASS-NEXT-ACTION
+            // V0220-010-READ-ONLY-DASHBOARD-CLI
+            // V0220-010-REDACTION-FAILURE-STATES-VISIBLE
+            // V0220-010-NO-TRADING-COMMANDS
+            // V0220-010-NO-FUTURES-OKX
+            // V0220-010-NO-PRODUCTION-CUTOVER
             exclude: [
                 "PaperLifecycle/PaperExecutionDecision.swift",
                 "PaperLifecycle/PaperExecutionEventLog.swift",

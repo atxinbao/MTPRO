@@ -67561,6 +67561,217 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1318ReleaseV0220DashboardCLILiveCanaryEvidenceSurface() throws {
+        // GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+        // TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+        // V0220-010-BLOCKED-BY-GH1317
+        // V0220-010-LIVE-CANARY-EVIDENCE-CHAIN
+        // V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION
+        // V0220-010-FAILURE-CLASS-NEXT-ACTION
+        // V0220-010-READ-ONLY-DASHBOARD-CLI
+        // V0220-010-REDACTION-FAILURE-STATES-VISIBLE
+        // V0220-010-NO-TRADING-COMMANDS
+        // V0220-010-NO-FUTURES-OKX
+        // V0220-010-NO-PRODUCTION-CUTOVER
+        let rows = try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.deterministicRows()
+
+        XCTAssertEqual(rows.map(\.area), ReleaseV0220SpotLiveCanaryEvidenceSurfaceArea.allCases)
+        XCTAssertEqual(rows.count, 9)
+        XCTAssertTrue(rows.allSatisfy(\.rowHeld))
+        XCTAssertEqual(ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.requiredRollbackCommandLabels, ["submit", "cancel"])
+        XCTAssertEqual(
+            Set(ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.requiredFailureClassLabels),
+            Set(ReleaseV0220SpotLiveCanaryFailureClass.allCases.map(\.rawValue))
+        )
+        XCTAssertEqual(
+            ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.requiredNextActionLabels,
+            [
+                "refresh credential reference",
+                "correct endpoint policy",
+                "stop and escalate",
+                "keep kill switch active",
+                "keep no-trade active",
+                "do not retry submit",
+                "query status then reconcile",
+                "operator review",
+                "rebuild artifact bundle"
+            ]
+        )
+
+        XCTAssertThrowsError(try ReleaseV0220SpotLiveCanaryEvidenceSurfaceRow(
+            area: .approval,
+            sourceIssueID: "GH-1309",
+            state: .ready,
+            gateLabel: "operator-approval-run-lock",
+            statusSummary: "wrong state"
+        ))
+        XCTAssertThrowsError(try ReleaseV0220SpotLiveCanaryEvidenceSurfaceRow(
+            area: .approval,
+            sourceIssueID: "GH-1309",
+            state: .approved,
+            gateLabel: "operator-approval-run-lock",
+            statusSummary: "command visible",
+            commandSurfaceEnabled: true
+        ))
+        XCTAssertThrowsError(try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput(
+            arguments: ["canary-live-evidence", "submit"]
+        ))
+
+        let anchors = ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.requiredValidationAnchors
+        XCTAssertEqual(anchors, [
+            "GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE",
+            "TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE",
+            "V0220-010-BLOCKED-BY-GH1317",
+            "V0220-010-LIVE-CANARY-EVIDENCE-CHAIN",
+            "V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION",
+            "V0220-010-FAILURE-CLASS-NEXT-ACTION",
+            "V0220-010-READ-ONLY-DASHBOARD-CLI",
+            "V0220-010-REDACTION-FAILURE-STATES-VISIBLE",
+            "V0220-010-NO-TRADING-COMMANDS",
+            "V0220-010-NO-FUTURES-OKX",
+            "V0220-010-NO-PRODUCTION-CUTOVER"
+        ])
+        XCTAssertEqual(ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.requiredValidationCommands, [
+            "swift test --filter AppTests/testGH1318DashboardCLILiveCanaryEvidenceSurfaceShowsCanaryEvidenceWithoutCommands",
+            "swift test --filter TargetGraphTests/testGH1318ReleaseV0220DashboardCLILiveCanaryEvidenceSurface",
+            "bash checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh",
+            "git diff --check",
+            "bash checks/automation-readiness.sh",
+            "bash checks/verify-v0.21.0.sh",
+            "bash checks/run.sh"
+        ])
+
+        let statusOutput = try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput(
+            arguments: ["canary-live-evidence", "status"]
+        )
+        XCTAssertTrue(statusOutput.contains("mtpro canary-live-evidence status"))
+        XCTAssertTrue(statusOutput.contains("issue=GH-1318"))
+        XCTAssertTrue(statusOutput.contains("surfaceRows=9"))
+        XCTAssertTrue(statusOutput.contains("approvalVisible=true"))
+        XCTAssertTrue(statusOutput.contains("failureStatesVisible=true"))
+        XCTAssertTrue(statusOutput.contains("nextActionsVisible=true"))
+        XCTAssertTrue(statusOutput.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(statusOutput.contains("orderFormVisible=false"))
+        XCTAssertTrue(statusOutput.contains("liveCommandVisible=false"))
+        XCTAssertTrue(statusOutput.contains("submitCancelReplaceEnabled=false"))
+        XCTAssertTrue(statusOutput.contains("futuresEnabled=false"))
+        XCTAssertTrue(statusOutput.contains("okxEnabled=false"))
+        XCTAssertTrue(statusOutput.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(statusOutput.contains("boundaryHeld=true"))
+
+        let failuresOutput = try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput(
+            arguments: ["canary-live-evidence", "failures"]
+        )
+        XCTAssertTrue(failuresOutput.contains("failureClass=auth"))
+        XCTAssertTrue(failuresOutput.contains("failureClass=artifact"))
+        XCTAssertTrue(failuresOutput.contains("failClosed=true"))
+
+        let rollbackOutput = try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput(
+            arguments: ["canary-live-evidence", "rollback"]
+        )
+        XCTAssertTrue(rollbackOutput.contains("rollbackCommands=submit,cancel"))
+        XCTAssertTrue(rollbackOutput.contains("killSwitchActive=true"))
+        XCTAssertTrue(rollbackOutput.contains("noTradeActive=true"))
+        XCTAssertTrue(rollbackOutput.contains("unintendedSubmitSent=false"))
+        XCTAssertTrue(rollbackOutput.contains("unintendedCancelSent=false"))
+
+        let reconciliationOutput = try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput(
+            arguments: ["canary-live-evidence", "reconciliation"]
+        )
+        XCTAssertTrue(reconciliationOutput.contains("reconciliationEvidenceVisible=true"))
+        XCTAssertTrue(reconciliationOutput.contains("upstreamEvidenceHeld=true"))
+        XCTAssertTrue(reconciliationOutput.contains("matchedExchangeOrderID="))
+
+        let dashboardSurface = try ReleaseV0220DashboardCLILiveCanaryEvidenceSurfaceViewModel.deterministic()
+        XCTAssertTrue(dashboardSurface.boundaryHeld)
+        XCTAssertEqual(dashboardSurface.rowCount, 9)
+        XCTAssertEqual(dashboardSurface.rollbackCommandLabels, ["submit", "cancel"])
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredFiles = [
+            "Package.swift",
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.swift",
+            "Sources/Dashboard/Report/ReleaseV0220DashboardCLILiveCanaryEvidenceSurface.swift",
+            "Sources/Dashboard/DashboardShell.swift",
+            "Sources/MTPROCLI/main.swift",
+            "docs/contracts/release-v0.22.0-dashboard-cli-live-canary-evidence-surface.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/AppTests/AppTests.swift",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let surfaceSource = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.swift")
+        let dashboardSource = try read("Sources/Dashboard/Report/ReleaseV0220DashboardCLILiveCanaryEvidenceSurface.swift")
+        let dashboardShell = try read("Sources/Dashboard/DashboardShell.swift")
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        let verifier = try read("checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(surfaceSource.contains("cliCommand = \"canary-live-evidence\""))
+        XCTAssertTrue(dashboardSource.contains("CLI command surface: read-only status / failures / rollback / reconciliation only"))
+        XCTAssertTrue(dashboardShell.contains("releaseV0220DashboardCLILiveCanaryEvidenceSurface"))
+        XCTAssertTrue(dashboardShell.contains("DashboardReleaseV0220LiveCanaryEvidencePanel"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput"))
+        XCTAssertTrue(verifier.contains("swift run mtpro canary-live-evidence status"))
+        XCTAssertTrue(verifier.contains("swift run mtpro canary-live-evidence failures"))
+        XCTAssertTrue(verifier.contains("swift run mtpro canary-live-evidence rollback"))
+        XCTAssertTrue(verifier.contains("swift run mtpro canary-live-evidence reconciliation"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh"))
+
+        for source in [
+            surfaceSource,
+            dashboardSource,
+            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/validation/validation-plan.md"),
+            try read("docs/validation/trading-validation-matrix.md"),
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "futuresEnabled=true",
+                "okxEnabled=true",
+                "dashboardTradingCommandEnabled=true",
+                "tradingButtonVisible=true",
+                "orderFormVisible=true",
+                "liveCommandVisible=true",
+                "submitCancelReplaceEnabled=true",
+                "rawOrderIDVisible=true",
+                "rawBrokerPayloadVisible=true",
+                "rawBrokerPayloadPersisted=true",
+                "productionCutoverAuthorized=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1318 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

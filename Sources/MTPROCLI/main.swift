@@ -240,6 +240,17 @@ private enum MTPROStrictCLI {
         "monitor export"
     ]
     static let supportedCommands = [
+        // GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+        // TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+        // V0220-010-BLOCKED-BY-GH1317
+        // V0220-010-LIVE-CANARY-EVIDENCE-CHAIN
+        // V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION
+        // V0220-010-FAILURE-CLASS-NEXT-ACTION
+        // V0220-010-READ-ONLY-DASHBOARD-CLI
+        // V0220-010-REDACTION-FAILURE-STATES-VISIBLE
+        // V0220-010-NO-TRADING-COMMANDS
+        // V0220-010-NO-FUTURES-OKX
+        // V0220-010-NO-PRODUCTION-CUTOVER
         "help",
         "run",
         "status",
@@ -259,6 +270,7 @@ private enum MTPROStrictCLI {
         ReleaseV0190CLIVenueProductRegistryInspect.cliCommand,
         ReleaseV0200ReadOnlyLiveReadinessSurface.cliCommand,
         ReleaseV0210CanaryStatusReadOnlySurface.cliCommand,
+        ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -285,6 +297,7 @@ private enum MTPROStrictCLI {
         ReleaseV0190CLIVenueProductRegistryInspect.cliCommand,
         ReleaseV0200ReadOnlyLiveReadinessSurface.cliCommand,
         ReleaseV0210CanaryStatusReadOnlySurface.cliCommand,
+        ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -344,6 +357,8 @@ private enum MTPROStrictCLI {
             return try ReleaseV0200ReadOnlyLiveReadinessSurface.commandLineOutput(arguments: arguments)
         case ReleaseV0210CanaryStatusReadOnlySurface.cliCommand:
             return try ReleaseV0210CanaryStatusReadOnlySurface.commandLineOutput(arguments: arguments)
+        case ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.cliCommand:
+            return try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -440,6 +455,10 @@ private enum MTPROStrictCLI {
             "releaseV0210CanaryStatusSurfaceValidationAnchor=\(releaseV0210CanaryStatusSurfaceValidationAnchor)",
             "releaseV0210CanaryStatusSurfaceVerificationAnchor=\(releaseV0210CanaryStatusSurfaceVerificationAnchor)",
             "releaseV0210CanaryStatusSurfaceActions=status,events,reconciliation",
+            "releaseV0220LiveCanaryEvidenceSurfaceCommand=\(ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.cliCommand)",
+            "releaseV0220LiveCanaryEvidenceSurfaceValidationAnchor=TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE",
+            "releaseV0220LiveCanaryEvidenceSurfaceVerificationAnchor=GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE",
+            "releaseV0220LiveCanaryEvidenceSurfaceActions=status,failures,rollback,reconciliation",
             "operatorRunFailedEvidenceNonzeroOrReadOnlyReportPath=true",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
