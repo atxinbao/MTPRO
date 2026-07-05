@@ -5343,3 +5343,19 @@
 - current-facing stale wording surface: v0.19.0 publication drift wording must fail the guard.
 - historical allowlist surface: historical construction closeout evidence remains valid only with current v0.19.0 release facts.
 - forbidden scope: no tag movement, no release overwrite, no v0.19.1 publication, no production secret read, no production endpoint / broker endpoint connection, no production order and no production cutover.
+
+## TVM-RELEASE-V0220-AGGREGATE-VALIDATION
+
+- GH-1319-VERIFY-V0220-AGGREGATE-VALIDATION
+- V0220-011-AGGREGATE-VALIDATION-SUITE
+- V0220-011-LIVE-CANARY-TRANSPORT-CHAIN
+- V0220-011-FOCUSED-GUARDS-COVERED
+- V0220-011-RUN-AUTOMATION-WIRING
+- V0220-011-FAIL-CLOSED-NEGATIVE-CASES
+- V0220-011-NO-FUTURES-OKX
+- V0220-011-NO-PRODUCTION-CUTOVER
+- V0220-011-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.22.0.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1319ReleaseV0220AggregateValidationSuite`
+- matrix surface: approval, credential redaction, signed preflight, submit, status/cancel, OMS, reconciliation, failure rollback and read-only Dashboard / CLI evidence must all pass through their focused guards and the aggregate suite.
+- forbidden scope: no Futures / OKX, no production cutover, no tag creation and no GitHub Release publication.

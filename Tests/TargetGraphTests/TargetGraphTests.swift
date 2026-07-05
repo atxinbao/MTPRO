@@ -67772,6 +67772,115 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1319ReleaseV0220AggregateValidationSuite() throws {
+        // GH-1319-VERIFY-V0220-AGGREGATE-VALIDATION
+        // TVM-RELEASE-V0220-AGGREGATE-VALIDATION
+        // V0220-011-AGGREGATE-VALIDATION-SUITE
+        // V0220-011-LIVE-CANARY-TRANSPORT-CHAIN
+        // V0220-011-FOCUSED-GUARDS-COVERED
+        // V0220-011-RUN-AUTOMATION-WIRING
+        // V0220-011-FAIL-CLOSED-NEGATIVE-CASES
+        // V0220-011-NO-FUTURES-OKX
+        // V0220-011-NO-PRODUCTION-CUTOVER
+        // V0220-011-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1319-VERIFY-V0220-AGGREGATE-VALIDATION",
+            "TVM-RELEASE-V0220-AGGREGATE-VALIDATION",
+            "V0220-011-AGGREGATE-VALIDATION-SUITE",
+            "V0220-011-LIVE-CANARY-TRANSPORT-CHAIN",
+            "V0220-011-FOCUSED-GUARDS-COVERED",
+            "V0220-011-RUN-AUTOMATION-WIRING",
+            "V0220-011-FAIL-CLOSED-NEGATIVE-CASES",
+            "V0220-011-NO-FUTURES-OKX",
+            "V0220-011-NO-PRODUCTION-CUTOVER",
+            "V0220-011-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+
+        let requiredFiles = [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.22.0.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let aggregateVerifier = try read("checks/verify-v0.22.0.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+        let focusedVerifiers = [
+            "checks/verify-v0.22.0-live-canary-transport-contract.sh",
+            "checks/verify-v0.22.0-operator-approval-run-lock.sh",
+            "checks/verify-v0.22.0-credential-secret-material-read-redaction.sh",
+            "checks/verify-v0.22.0-signed-account-runtime-preflight.sh",
+            "checks/verify-v0.22.0-live-order-submit-transport.sh",
+            "checks/verify-v0.22.0-status-cancel-transport.sh",
+            "checks/verify-v0.22.0-oms-evidence-log.sh",
+            "checks/verify-v0.22.0-reconciliation-evidence.sh",
+            "checks/verify-v0.22.0-failure-rollback-drill.sh",
+            "checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh"
+        ]
+
+        for verifier in focusedVerifiers {
+            XCTAssertTrue(aggregateVerifier.contains(verifier), "aggregate verifier must run \(verifier)")
+            XCTAssertTrue(automationScript.contains(verifier), "automation readiness must protect \(verifier)")
+        }
+
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0.sh"))
+        XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.22.0 aggregate validation suite anchor"))
+        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.22.0 aggregate validation suite"))
+        XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1319 Release v0.22.0 Aggregate Validation Suite"))
+        XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0220-AGGREGATE-VALIDATION"))
+        XCTAssertTrue(try read("verification.md").contains("MTPRO Release v0.22.0 Aggregate Validation Suite"))
+
+        for source in [
+            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/validation/validation-plan.md"),
+            try read("docs/validation/trading-validation-matrix.md"),
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "productionCutoverAuthorized=true",
+                "productionSecretValueRead=true",
+                "productionEndpointConnected=true",
+                "brokerEndpointConnected=true",
+                "futuresEnabled=true",
+                "okxEnabled=true",
+                "dashboardTradingButtonVisible=true",
+                "tradingButtonVisible=true",
+                "orderFormVisible=true",
+                "liveCommandVisible=true",
+                "rawOrderIDVisible=true",
+                "rawBrokerPayloadVisible=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1319 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

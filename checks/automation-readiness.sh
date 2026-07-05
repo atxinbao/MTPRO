@@ -14515,4 +14515,52 @@ require_contains "verification.md" "GH-1318 v0.22.0 Dashboard / CLI Live Canary 
 require_contains "Tests/AppTests/AppTests.swift" "testGH1318DashboardCLILiveCanaryEvidenceSurfaceShowsCanaryEvidenceWithoutCommands"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1318ReleaseV0220DashboardCLILiveCanaryEvidenceSurface"
 
+for file in \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1319-VERIFY-V0220-AGGREGATE-VALIDATION"
+  require_contains "$file" "TVM-RELEASE-V0220-AGGREGATE-VALIDATION"
+  require_contains "$file" "V0220-011-AGGREGATE-VALIDATION-SUITE"
+  require_contains "$file" "V0220-011-LIVE-CANARY-TRANSPORT-CHAIN"
+  require_contains "$file" "V0220-011-FOCUSED-GUARDS-COVERED"
+  require_contains "$file" "V0220-011-RUN-AUTOMATION-WIRING"
+  require_contains "$file" "V0220-011-FAIL-CLOSED-NEGATIVE-CASES"
+  require_contains "$file" "V0220-011-NO-FUTURES-OKX"
+  require_contains "$file" "V0220-011-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0220-011-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+for verifier in \
+  "checks/verify-v0.22.0-live-canary-transport-contract.sh" \
+  "checks/verify-v0.22.0-operator-approval-run-lock.sh" \
+  "checks/verify-v0.22.0-credential-secret-material-read-redaction.sh" \
+  "checks/verify-v0.22.0-signed-account-runtime-preflight.sh" \
+  "checks/verify-v0.22.0-live-order-submit-transport.sh" \
+  "checks/verify-v0.22.0-status-cancel-transport.sh" \
+  "checks/verify-v0.22.0-oms-evidence-log.sh" \
+  "checks/verify-v0.22.0-reconciliation-evidence.sh" \
+  "checks/verify-v0.22.0-failure-rollback-drill.sh" \
+  "checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh"; do
+  require_contains "checks/verify-v0.22.0.sh" "$verifier"
+  require_contains "checks/automation-readiness.sh" "$verifier"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 aggregate validation suite anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 aggregate validation suite"
+require_contains "docs/validation/validation-plan.md" "GH-1319 Release v0.22.0 Aggregate Validation Suite"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-AGGREGATE-VALIDATION"
+require_contains "verification.md" "MTPRO Release v0.22.0 Aggregate Validation Suite"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1319ReleaseV0220AggregateValidationSuite"
+
 printf 'MTPRO automation readiness checks passed.\n'

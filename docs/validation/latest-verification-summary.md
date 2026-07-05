@@ -2736,3 +2736,20 @@ bash checks/run.sh
 - #1111 adds manual workflow_dispatch validation for a redacted evidence bundle after operator manually completes submit -> status -> cancel -> status -> reconciliation passed.
 - #1111 requires sha256 checksum references for every evidence entry and rejects missing sequence, non-redacted path, production-like credential / endpoint markers and unredacted payload markers.
 - #1111 does not read production secret, does not connect production endpoint / broker endpoint, does not submit production order, and does not authorize production cutover.
+
+## GH-1319 v0.22.0 aggregate validation suite
+
+- GH-1319-VERIFY-V0220-AGGREGATE-VALIDATION
+- TVM-RELEASE-V0220-AGGREGATE-VALIDATION
+- V0220-011-AGGREGATE-VALIDATION-SUITE
+- V0220-011-LIVE-CANARY-TRANSPORT-CHAIN
+- V0220-011-FOCUSED-GUARDS-COVERED
+- V0220-011-RUN-AUTOMATION-WIRING
+- V0220-011-FAIL-CLOSED-NEGATIVE-CASES
+- V0220-011-NO-FUTURES-OKX
+- V0220-011-NO-PRODUCTION-CUTOVER
+- V0220-011-NO-TAG-OR-RELEASE-PUBLICATION
+- v0.22.0 aggregate validation suite source: `checks/verify-v0.22.0.sh`
+- Run wiring: `checks/run.sh` executes `bash checks/verify-v0.22.0.sh`.
+- Focused guard coverage: GH-1309 through GH-1318 verifiers must pass before the aggregate suite passes.
+- Boundary: Binance Spot live canary transport chain only; Futures / OKX, production cutover, tag creation and GitHub Release publication remain out of scope.
