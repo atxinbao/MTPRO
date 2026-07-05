@@ -78,6 +78,17 @@ Agent / Graphify 默认读取 `docs/validation/latest-verification-summary.md`�
 - Scope: GH-1314 defines approved Binance Spot canary order status / cancel transport evidence after GH-1313 one-shot submit transport is ready.
 - Boundary: status query is scoped to approved exchange/client order identifiers; cancel can target only the approved canary run/order; duplicate retry must be idempotent; ambiguous / unknown exchange state fails closed and requires reconciliation; GH-1314 persists only redacted status / cancel evidence and does not enable Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 
+## GH-1315 v0.22.0 OMS Event Log
+
+日期：2026-07-05
+
+执行者：Codex
+
+- Anchors: `GH-1315-VERIFY-V0220-OMS-EVIDENCE-LOG` / `TVM-RELEASE-V0220-OMS-EVIDENCE-LOG` / `V0220-007-BLOCKED-BY-GH1313-GH1314` / `V0220-007-APPEND-ONLY-OMS-EVENT-LOG` / `V0220-007-SUBMIT-ACK-STATUS-CANCEL-TERMINAL-EVENTS` / `V0220-007-CORRELATION-CAUSATION-IDS` / `V0220-007-REDACTED-REPLAYABLE-EVIDENCE` / `V0220-007-REJECTS-MISSING-OUT-OF-ORDER-LIFECYCLE` / `V0220-007-NO-FUTURES-OKX` / `V0220-007-NO-DASHBOARD-TRADING-CONTROLS` / `V0220-007-NO-PRODUCTION-CUTOVER`.
+- Command: `bash checks/verify-v0.22.0-oms-evidence-log.sh`.
+- Scope: GH-1315 defines append-only OMS event log evidence after GH-1313 submit transport and GH-1314 status / cancel transport are ready.
+- Boundary: submit ack, status observation, cancel request, cancel ack, terminal state, and ambiguous state share one run/order correlation and causation chain; missing status, missing cancel outcome, out-of-order lifecycle, correlation mismatch, or raw payload evidence fails closed; GH-1315 persists only redacted replayable OMS evidence and does not enable Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+
 ## GH-1307 v0.21.1 Canary Evidence Wording Guard
 
 日期：2026-07-04

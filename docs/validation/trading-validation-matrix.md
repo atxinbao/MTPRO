@@ -106,6 +106,23 @@
 - Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryStatusCancelTransport.swift`、`docs/contracts/release-v0.22.0-status-cancel-transport.md`、`checks/verify-v0.22.0-status-cancel-transport.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: no production cutover, no Futures / OKX, and no Dashboard trading controls in GH-1314. Status query is scoped to approved exchange/client order identifiers; cancel can target only the approved canary run/order; duplicate retry must be idempotent; ambiguous / unknown exchange state fails closed and requires reconciliation.
 
+## TVM-RELEASE-V0220-OMS-EVIDENCE-LOG
+
+- TVM-RELEASE-V0220-OMS-EVIDENCE-LOG
+- GH-1315-VERIFY-V0220-OMS-EVIDENCE-LOG
+- V0220-007-BLOCKED-BY-GH1313-GH1314
+- V0220-007-APPEND-ONLY-OMS-EVENT-LOG
+- V0220-007-SUBMIT-ACK-STATUS-CANCEL-TERMINAL-EVENTS
+- V0220-007-CORRELATION-CAUSATION-IDS
+- V0220-007-REDACTED-REPLAYABLE-EVIDENCE
+- V0220-007-REJECTS-MISSING-OUT-OF-ORDER-LIFECYCLE
+- V0220-007-NO-FUTURES-OKX
+- V0220-007-NO-DASHBOARD-TRADING-CONTROLS
+- V0220-007-NO-PRODUCTION-CUTOVER
+- Command: `bash checks/verify-v0.22.0-oms-evidence-log.sh`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOMSEventLog.swift`、`docs/contracts/release-v0.22.0-oms-evidence-log.md`、`checks/verify-v0.22.0-oms-evidence-log.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: no production cutover, no Futures / OKX, and no Dashboard trading controls in GH-1315. OMS event log is append-only, redacted, replayable, and correlated across submit ack, status observation, cancel request, cancel outcome, terminal state, and ambiguous-state evidence; missing or out-of-order lifecycle evidence fails closed.
+
 ## TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
 
 - TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
