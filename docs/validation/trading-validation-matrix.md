@@ -123,6 +123,24 @@
 - Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOMSEventLog.swift`、`docs/contracts/release-v0.22.0-oms-evidence-log.md`、`checks/verify-v0.22.0-oms-evidence-log.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: no production cutover, no Futures / OKX, and no Dashboard trading controls in GH-1315. OMS event log is append-only, redacted, replayable, and correlated across submit ack, status observation, cancel request, cancel outcome, terminal state, and ambiguous-state evidence; missing or out-of-order lifecycle evidence fails closed.
 
+## TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE
+
+- TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE
+- GH-1316-VERIFY-V0220-RECONCILIATION-EVIDENCE
+- V0220-008-BLOCKED-BY-GH1312-GH1315
+- V0220-008-OMS-EXCHANGE-STATUS-ACCOUNT-RECONCILIATION
+- V0220-008-MATCHED-PENDING-AMBIGUOUS-REJECTED-CANCELLED-FILL-LIKE
+- V0220-008-REDACTED-RECONCILIATION-ARTIFACT
+- V0220-008-MISSING-EXCHANGE-EVIDENCE-FAILS-CLOSED
+- V0220-008-AMBIGUOUS-STATE-FAILS-CLOSED
+- V0220-008-NEXT-OPERATOR-ACTION
+- V0220-008-NO-FUTURES-OKX
+- V0220-008-NO-DASHBOARD-TRADING-CONTROLS
+- V0220-008-NO-PRODUCTION-CUTOVER
+- Command: `bash checks/verify-v0.22.0-reconciliation-evidence.sh`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryReconciliationEvidence.swift`、`docs/contracts/release-v0.22.0-reconciliation-evidence.md`、`checks/verify-v0.22.0-reconciliation-evidence.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: no production cutover, no Futures / OKX, and no Dashboard trading controls in GH-1316. Reconciliation consumes OMS event log, signed account preflight, and exchange order status evidence; missing exchange evidence, ambiguous state, or local-only assumptions fail closed with next operator action.
+
 ## TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
 
 - TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT

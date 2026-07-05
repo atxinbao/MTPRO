@@ -89,6 +89,17 @@ Agent / Graphify 默认读取 `docs/validation/latest-verification-summary.md`�
 - Scope: GH-1315 defines append-only OMS event log evidence after GH-1313 submit transport and GH-1314 status / cancel transport are ready.
 - Boundary: submit ack, status observation, cancel request, cancel ack, terminal state, and ambiguous state share one run/order correlation and causation chain; missing status, missing cancel outcome, out-of-order lifecycle, correlation mismatch, or raw payload evidence fails closed; GH-1315 persists only redacted replayable OMS evidence and does not enable Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 
+## GH-1316 v0.22.0 Reconciliation Evidence
+
+日期：2026-07-05
+
+执行者：Codex
+
+- Anchors: `GH-1316-VERIFY-V0220-RECONCILIATION-EVIDENCE` / `TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE` / `V0220-008-BLOCKED-BY-GH1312-GH1315` / `V0220-008-OMS-EXCHANGE-STATUS-ACCOUNT-RECONCILIATION` / `V0220-008-MATCHED-PENDING-AMBIGUOUS-REJECTED-CANCELLED-FILL-LIKE` / `V0220-008-REDACTED-RECONCILIATION-ARTIFACT` / `V0220-008-MISSING-EXCHANGE-EVIDENCE-FAILS-CLOSED` / `V0220-008-AMBIGUOUS-STATE-FAILS-CLOSED` / `V0220-008-NEXT-OPERATOR-ACTION` / `V0220-008-NO-FUTURES-OKX` / `V0220-008-NO-DASHBOARD-TRADING-CONTROLS` / `V0220-008-NO-PRODUCTION-CUTOVER`.
+- Command: `bash checks/verify-v0.22.0-reconciliation-evidence.sh`.
+- Scope: GH-1316 defines redacted reconciliation artifact evidence after GH-1312 signed account preflight and GH-1315 OMS event log are ready.
+- Boundary: matched / pending / ambiguous / rejected / cancelled / fill-like observations must be classified with next operator action; missing exchange evidence, ambiguous exchange state, missing OMS log evidence, or local-only assumptions fail closed; GH-1316 persists only redacted reconciliation evidence and does not enable Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+
 ## GH-1307 v0.21.1 Canary Evidence Wording Guard
 
 日期：2026-07-04

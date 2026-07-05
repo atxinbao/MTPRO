@@ -63603,6 +63603,245 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1316ReleaseV0220ReconcilesOMSWithSignedAccountAndOrderStatusEvidence() throws {
+        // 测试场景：GH-1316 固定 v0.22.0 Binance Spot canary OMS event log 与
+        // signed account / order status evidence 的 reconciliation artifact。
+        // 验证目的：matched / pending / ambiguous / rejected / cancelled / fill-like
+        // 必须可分类；缺失 exchange evidence、ambiguous state 或 local-only assumption
+        // 必须 fail closed，并给出 operator next action。
+        // GH-1316-VERIFY-V0220-RECONCILIATION-EVIDENCE
+        // TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE
+        // V0220-008-BLOCKED-BY-GH1312-GH1315
+        // V0220-008-OMS-EXCHANGE-STATUS-ACCOUNT-RECONCILIATION
+        // V0220-008-MATCHED-PENDING-AMBIGUOUS-REJECTED-CANCELLED-FILL-LIKE
+        // V0220-008-REDACTED-RECONCILIATION-ARTIFACT
+        // V0220-008-MISSING-EXCHANGE-EVIDENCE-FAILS-CLOSED
+        // V0220-008-AMBIGUOUS-STATE-FAILS-CLOSED
+        // V0220-008-NEXT-OPERATOR-ACTION
+        // V0220-008-NO-FUTURES-OKX
+        // V0220-008-NO-DASHBOARD-TRADING-CONTROLS
+        // V0220-008-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0220SpotLiveCanaryReconciliationEvidence
+            .deterministicFixture()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.namespaceHeld)
+        XCTAssertTrue(evidence.reconciliationArtifactsHeld)
+        XCTAssertTrue(evidence.requiredControlsHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1316")
+        XCTAssertEqual(evidence.blockedByIssueIDs.map(\.rawValue), ["GH-1312", "GH-1315"])
+        XCTAssertEqual(evidence.downstreamIssueIDs.map(\.rawValue), ["GH-1317"])
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1309..GH-1320")
+        XCTAssertEqual(evidence.releaseVersion, "v0.22.0")
+        XCTAssertEqual(evidence.venueID, .binance)
+        XCTAssertEqual(evidence.productKind, .spot)
+        XCTAssertEqual(evidence.tradingEnvironment, .productionLive)
+        XCTAssertTrue(evidence.upstreamSignedAccountPreflight.preflightHeld)
+        XCTAssertTrue(evidence.upstreamOMSEventLog.evidenceHeld)
+
+        XCTAssertEqual(evidence.matchedArtifact.state, .matched)
+        XCTAssertEqual(evidence.matchedArtifact.nextAction, .noActionTerminal)
+        XCTAssertTrue(evidence.matchedArtifact.exchangeEvidenceHeld)
+        XCTAssertFalse(evidence.matchedArtifact.failClosed)
+
+        XCTAssertEqual(evidence.pendingArtifact.state, .pending)
+        XCTAssertEqual(evidence.pendingArtifact.nextAction, .continueMonitoring)
+        XCTAssertTrue(evidence.pendingArtifact.exchangeEvidenceHeld)
+
+        XCTAssertEqual(evidence.ambiguousArtifact.state, .ambiguous)
+        XCTAssertEqual(evidence.ambiguousArtifact.nextAction, .operatorReview)
+        XCTAssertTrue(evidence.ambiguousArtifact.failClosedArtifactHeld)
+        XCTAssertTrue(evidence.ambiguousArtifact.rejectReasons.contains(.ambiguousExchangeState))
+
+        XCTAssertEqual(evidence.rejectedArtifact.state, .rejected)
+        XCTAssertEqual(evidence.rejectedArtifact.nextAction, .doNotRetrySubmit)
+        XCTAssertTrue(evidence.rejectedArtifact.failClosed)
+
+        XCTAssertEqual(evidence.cancelledArtifact.state, .cancelled)
+        XCTAssertEqual(evidence.cancelledArtifact.nextAction, .noActionTerminal)
+        XCTAssertFalse(evidence.cancelledArtifact.failClosed)
+
+        XCTAssertEqual(evidence.fillLikeArtifact.state, .fillLike)
+        XCTAssertEqual(evidence.fillLikeArtifact.nextAction, .operatorReview)
+        XCTAssertTrue(evidence.fillLikeArtifact.exchangeEvidenceHeld)
+
+        XCTAssertTrue(evidence.missingExchangeEvidenceArtifact.failClosed)
+        XCTAssertEqual(evidence.missingExchangeEvidenceArtifact.nextAction, .stopAndEscalate)
+        XCTAssertTrue(
+            evidence.missingExchangeEvidenceArtifact.rejectReasons.contains(.missingExchangeEvidence)
+        )
+        XCTAssertFalse(evidence.missingExchangeEvidenceArtifact.exchangeOrderStatusEvidencePresent)
+        XCTAssertFalse(evidence.missingExchangeEvidenceArtifact.signedAccountEvidencePresent)
+
+        XCTAssertTrue(evidence.localOnlyRejectedArtifact.failClosed)
+        XCTAssertTrue(
+            evidence.localOnlyRejectedArtifact.rejectReasons.contains(.localOnlyAssumptionRejected)
+        )
+        XCTAssertFalse(evidence.localOnlyRejectedArtifact.exchangeEvidenceHeld)
+
+        XCTAssertTrue(evidence.missingOMSEventLogArtifact.failClosed)
+        XCTAssertTrue(evidence.missingOMSEventLogArtifact.rejectReasons.contains(.missingOMSLogEvidence))
+
+        for artifact in [
+            evidence.matchedArtifact,
+            evidence.pendingArtifact,
+            evidence.ambiguousArtifact,
+            evidence.rejectedArtifact,
+            evidence.cancelledArtifact,
+            evidence.fillLikeArtifact,
+            evidence.missingExchangeEvidenceArtifact,
+            evidence.localOnlyRejectedArtifact,
+            evidence.missingOMSEventLogArtifact
+        ] {
+            XCTAssertTrue(artifact.namespaceHeld)
+            XCTAssertTrue(artifact.evidenceReferencesRedacted)
+            XCTAssertTrue(artifact.forbiddenCapabilitiesClosed)
+            XCTAssertTrue(artifact.localOnlyAssumptionRejected)
+        }
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.futuresReconciliationEnabled)
+        XCTAssertFalse(evidence.okxReconciliationEnabled)
+        XCTAssertFalse(evidence.dashboardTradingCommandEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryReconciliationArtifact(
+                state: .matched,
+                nextAction: .noActionTerminal,
+                rawPayloadPersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryReconciliationArtifact(
+                state: .matched,
+                nextAction: .noActionTerminal,
+                signaturePersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryReconciliationArtifact(
+                state: .matched,
+                nextAction: .noActionTerminal,
+                futuresReconciliationEnabled: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryReconciliationArtifact(
+                state: .matched,
+                nextAction: .noActionTerminal,
+                productionCutoverAuthorized: true
+            )
+        )
+
+        XCTAssertTrue(
+            evidence.requiredValidationCommands.contains(
+                "bash checks/verify-v0.22.0-reconciliation-evidence.sh"
+            )
+        )
+        XCTAssertTrue(
+            evidence.validationAnchors.contains(
+                "GH-1316-VERIFY-V0220-RECONCILIATION-EVIDENCE"
+            )
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-008-BLOCKED-BY-GH1312-GH1315"))
+        XCTAssertTrue(
+            evidence.validationAnchors.contains(
+                "V0220-008-MISSING-EXCHANGE-EVIDENCE-FAILS-CLOSED"
+            )
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-008-NO-PRODUCTION-CUTOVER"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1316-VERIFY-V0220-RECONCILIATION-EVIDENCE",
+            "TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE",
+            "V0220-008-BLOCKED-BY-GH1312-GH1315",
+            "V0220-008-OMS-EXCHANGE-STATUS-ACCOUNT-RECONCILIATION",
+            "V0220-008-MATCHED-PENDING-AMBIGUOUS-REJECTED-CANCELLED-FILL-LIKE",
+            "V0220-008-REDACTED-RECONCILIATION-ARTIFACT",
+            "V0220-008-MISSING-EXCHANGE-EVIDENCE-FAILS-CLOSED",
+            "V0220-008-AMBIGUOUS-STATE-FAILS-CLOSED",
+            "V0220-008-NEXT-OPERATOR-ACTION",
+            "V0220-008-NO-FUTURES-OKX",
+            "V0220-008-NO-DASHBOARD-TRADING-CONTROLS",
+            "V0220-008-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryReconciliationEvidence.swift",
+            "docs/contracts/release-v0.22.0-reconciliation-evidence.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.22.0-reconciliation-evidence.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read(
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryReconciliationEvidence.swift"
+        )
+        let contractDoc = try read("docs/contracts/release-v0.22.0-reconciliation-evidence.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let verification = try read("verification.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryReconciliationEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryOMSEventLogEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanarySignedAccountReadOnlyRuntimePreflight"))
+        XCTAssertTrue(source.contains("matchedArtifact"))
+        XCTAssertTrue(source.contains("pendingArtifact"))
+        XCTAssertTrue(source.contains("ambiguousArtifact"))
+        XCTAssertTrue(source.contains("fillLikeArtifact"))
+        XCTAssertTrue(source.contains("missingExchangeEvidenceArtifact"))
+        XCTAssertTrue(source.contains("localOnlyRejectedArtifact"))
+        XCTAssertTrue(source.contains("nextOperatorActionRequired"))
+        XCTAssertTrue(contractDoc.contains("redacted reconciliation artifact"))
+        XCTAssertTrue(readiness.contains("Release v0.22.0 reconciliation evidence anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1316 Release v0.22.0 Reconciliation Evidence"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE"))
+        XCTAssertTrue(verification.contains("GH-1316 v0.22.0 Reconciliation Evidence"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-reconciliation-evidence.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-reconciliation-evidence.sh"))
+
+        for document in [contractDoc, verification] {
+            for forbidden in [
+                "rawPayloadPersisted=true",
+                "rawCredentialValuePersisted=true",
+                "signaturePersisted=true",
+                "productionCutoverAuthorized=true",
+                "localOnlyReconciliation=true",
+                "Futures reconciliation enabled",
+                "OKX reconciliation enabled",
+                "Dashboard trading button enabled"
+            ] {
+                XCTAssertFalse(document.contains(forbidden), "\(forbidden) must stay out of GH-1316 docs")
+            }
+        }
+    }
+
     func testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract() throws {
         // 测试场景：GH-1309 定义 v0.22.0 Binance Spot live canary
         // transport completion 顶层合同。
