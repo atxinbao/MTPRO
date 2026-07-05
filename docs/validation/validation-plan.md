@@ -121,6 +121,26 @@
 - V0220-007-NO-PRODUCTION-CUTOVER
 - Focused verifier: `bash checks/verify-v0.22.0-oms-evidence-log.sh`
 - Focused test: `swift test --filter TargetGraphTests/testGH1315ReleaseV0220OMSEventLogPersistsExchangeAckStatusCancelEvidence`
+- Boundary: append-only redacted OMS event log evidence only; missing or out-of-order lifecycle evidence fails closed; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+
+## GH-1316 Release v0.22.0 Reconciliation Evidence
+
+- GH-1316-VERIFY-V0220-RECONCILIATION-EVIDENCE
+- TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE
+- V0220-008-BLOCKED-BY-GH1312-GH1315
+- V0220-008-OMS-EXCHANGE-STATUS-ACCOUNT-RECONCILIATION
+- V0220-008-MATCHED-PENDING-AMBIGUOUS-REJECTED-CANCELLED-FILL-LIKE
+- V0220-008-REDACTED-RECONCILIATION-ARTIFACT
+- V0220-008-MISSING-EXCHANGE-EVIDENCE-FAILS-CLOSED
+- V0220-008-AMBIGUOUS-STATE-FAILS-CLOSED
+- V0220-008-NEXT-OPERATOR-ACTION
+- V0220-008-NO-FUTURES-OKX
+- V0220-008-NO-DASHBOARD-TRADING-CONTROLS
+- V0220-008-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.22.0-reconciliation-evidence.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1316ReleaseV0220ReconcilesOMSWithSignedAccountAndOrderStatusEvidence`
+- Boundary: OMS event log, signed account preflight, and exchange order status evidence reconcile into a redacted artifact; missing exchange evidence, ambiguous state, or local-only assumptions fail closed with next operator action; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+- Focused test: `swift test --filter TargetGraphTests/testGH1315ReleaseV0220OMSEventLogPersistsExchangeAckStatusCancelEvidence`
 - Boundary: append-only OMS event log evidence only; submit ack, status observation, cancel request, cancel ack, terminal state, and ambiguous-state evidence must share one run/order correlation chain; missing status, missing cancel outcome, out-of-order lifecycle, correlation mismatch, or raw payload evidence fails closed; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 
 ## GH-1273 Release v0.21.0 Controlled Canary Contract

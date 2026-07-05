@@ -41,6 +41,11 @@
 - GH-1315 uses `GH-1315-VERIFY-V0220-OMS-EVIDENCE-LOG`、`TVM-RELEASE-V0220-OMS-EVIDENCE-LOG`、`V0220-007-BLOCKED-BY-GH1313-GH1314`、`V0220-007-APPEND-ONLY-OMS-EVENT-LOG`、`V0220-007-SUBMIT-ACK-STATUS-CANCEL-TERMINAL-EVENTS`、`V0220-007-CORRELATION-CAUSATION-IDS`、`V0220-007-REDACTED-REPLAYABLE-EVIDENCE`、`V0220-007-REJECTS-MISSING-OUT-OF-ORDER-LIFECYCLE`、`V0220-007-NO-FUTURES-OKX`、`V0220-007-NO-DASHBOARD-TRADING-CONTROLS` 和 `V0220-007-NO-PRODUCTION-CUTOVER` to define append-only OMS event log evidence.
 - Submit ack, status observation, cancel request, cancel ack, terminal state, and ambiguous state must persist in one run/order correlation chain with causation IDs. Missing status, missing cancel outcome, out-of-order lifecycle, correlation mismatch, or raw payload evidence fails closed. Only redacted replayable evidence persists; Futures / OKX, Dashboard trading controls, release publication, and production cutover stay closed.
 
+## v0.22.0 reconciliation evidence
+
+- GH-1316 uses `GH-1316-VERIFY-V0220-RECONCILIATION-EVIDENCE`、`TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE`、`V0220-008-BLOCKED-BY-GH1312-GH1315`、`V0220-008-OMS-EXCHANGE-STATUS-ACCOUNT-RECONCILIATION`、`V0220-008-MATCHED-PENDING-AMBIGUOUS-REJECTED-CANCELLED-FILL-LIKE`、`V0220-008-REDACTED-RECONCILIATION-ARTIFACT`、`V0220-008-MISSING-EXCHANGE-EVIDENCE-FAILS-CLOSED`、`V0220-008-AMBIGUOUS-STATE-FAILS-CLOSED`、`V0220-008-NEXT-OPERATOR-ACTION`、`V0220-008-NO-FUTURES-OKX`、`V0220-008-NO-DASHBOARD-TRADING-CONTROLS` 和 `V0220-008-NO-PRODUCTION-CUTOVER` to define OMS / exchange status / signed account reconciliation evidence.
+- Matched / pending / ambiguous / rejected / cancelled / fill-like observations must produce a redacted reconciliation artifact with next operator action. Missing exchange evidence, ambiguous state, or local-only assumptions fail closed; Futures / OKX, Dashboard trading controls, release publication, and production cutover stay closed.
+
 ## 当前读序
 
 ```text

@@ -14395,4 +14395,42 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "verification.md" "GH-1315 v0.22.0 OMS Event Log"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1315ReleaseV0220OMSEventLogPersistsExchangeAckStatusCancelEvidence"
 
+for file in \
+  "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryReconciliationEvidence.swift" \
+  "docs/contracts/release-v0.22.0-reconciliation-evidence.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0-reconciliation-evidence.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1316-VERIFY-V0220-RECONCILIATION-EVIDENCE"
+  require_contains "$file" "TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE"
+  require_contains "$file" "V0220-008-BLOCKED-BY-GH1312-GH1315"
+  require_contains "$file" "V0220-008-OMS-EXCHANGE-STATUS-ACCOUNT-RECONCILIATION"
+  require_contains "$file" "V0220-008-MATCHED-PENDING-AMBIGUOUS-REJECTED-CANCELLED-FILL-LIKE"
+  require_contains "$file" "V0220-008-REDACTED-RECONCILIATION-ARTIFACT"
+  require_contains "$file" "V0220-008-MISSING-EXCHANGE-EVIDENCE-FAILS-CLOSED"
+  require_contains "$file" "V0220-008-AMBIGUOUS-STATE-FAILS-CLOSED"
+  require_contains "$file" "V0220-008-NEXT-OPERATOR-ACTION"
+  require_contains "$file" "V0220-008-NO-FUTURES-OKX"
+  require_contains "$file" "V0220-008-NO-DASHBOARD-TRADING-CONTROLS"
+  require_contains "$file" "V0220-008-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0-reconciliation-evidence.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-reconciliation-evidence.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 reconciliation evidence anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 reconciliation evidence"
+require_contains "docs/validation/validation-plan.md" "GH-1316 Release v0.22.0 Reconciliation Evidence"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE"
+require_contains "verification.md" "GH-1316 v0.22.0 Reconciliation Evidence"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1316ReleaseV0220ReconcilesOMSWithSignedAccountAndOrderStatusEvidence"
+
 printf 'MTPRO automation readiness checks passed.\n'
