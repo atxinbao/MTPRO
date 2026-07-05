@@ -62992,6 +62992,199 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1313ReleaseV0220LiveOrderSubmitTransport() throws {
+        // 测试场景：GH-1313 固定 v0.22.0 Binance Spot one-shot live
+        // canary submit transport。
+        // 验证目的：submit transport 只能在 GH-1312 signed account preflight、
+        // v0.21 submit evidence、CommandGateway、RiskEngine、kill switch、no-trade、
+        // ExecutionEngine 和 OMS gate 全部成立后生成脱敏 request / exchange ack evidence。
+        // GH-1313-VERIFY-V0220-LIVE-ORDER-SUBMIT-TRANSPORT
+        // TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT
+        // V0220-005-BLOCKED-BY-GH1312
+        // V0220-005-BINANCE-SPOT-ONE-SHOT-SUBMIT
+        // V0220-005-ALLOWLISTED-SYMBOL-NOTIONAL-SIDE-TIF
+        // V0220-005-COMMAND-RISK-KILL-NOTRADE-EXECUTION-OMS-GATES
+        // V0220-005-REDACTED-EXCHANGE-ACK-EVIDENCE
+        // V0220-005-SINGLE-APPROVED-ORDER-PER-RUN
+        // V0220-005-FAIL-CLOSED-LIMIT-RISK-KILL-NOTRADE-TRANSPORT
+        // V0220-005-NO-FUTURES-OKX
+        // V0220-005-NO-DASHBOARD-TRADING-CONTROLS
+        // V0220-005-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0220SpotLiveCanaryOneShotSubmitTransportEvidence
+            .deterministicFixture()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.namespaceHeld)
+        XCTAssertTrue(evidence.observationsHeld)
+        XCTAssertTrue(evidence.requiredControlsHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1313")
+        XCTAssertEqual(evidence.blockedByIssueIDs.map(\.rawValue), ["GH-1312"])
+        XCTAssertEqual(evidence.downstreamIssueIDs.map(\.rawValue), ["GH-1314", "GH-1315"])
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1309..GH-1320")
+        XCTAssertEqual(evidence.releaseVersion, "v0.22.0")
+        XCTAssertEqual(evidence.venueID, .binance)
+        XCTAssertEqual(evidence.productKind, .spot)
+        XCTAssertEqual(evidence.tradingEnvironment, .productionLive)
+        XCTAssertTrue(evidence.upstreamControlledSubmitPath.evidenceHeld)
+        XCTAssertTrue(evidence.signedAccountRuntimePreflight.preflightHeld)
+
+        XCTAssertTrue(evidence.acceptedObservation.acceptedObservationHeld)
+        XCTAssertEqual(evidence.acceptedObservation.outcome, .submitted)
+        XCTAssertTrue(evidence.acceptedObservation.signedOrderSubmitTransportCreated)
+        XCTAssertTrue(evidence.acceptedObservation.exchangeAckEvidenceStored)
+        XCTAssertEqual(evidence.acceptedObservation.endpointFamilyReference, "https://api.binance.com")
+        XCTAssertEqual(evidence.acceptedObservation.orderPath, "/api/v3/order")
+        XCTAssertEqual(evidence.acceptedObservation.method, "POST")
+        XCTAssertTrue(evidence.acceptedObservation.redactedRequestEnvelope.contains("<redacted>"))
+        XCTAssertTrue(evidence.acceptedObservation.redactedExchangeAckEnvelope.contains("<redacted>"))
+        XCTAssertFalse(evidence.acceptedObservation.redactedRequestEnvelope.lowercased().contains("signature="))
+        XCTAssertFalse(evidence.acceptedObservation.redactedExchangeAckEnvelope.lowercased().contains("secret"))
+
+        XCTAssertEqual(
+            evidence.missingPreflightObservation.rejectReasons,
+            [.signedAccountPreflightMissing]
+        )
+        XCTAssertEqual(evidence.riskRejectedObservation.rejectReasons, [.riskRejected])
+        XCTAssertEqual(evidence.killSwitchRejectedObservation.rejectReasons, [.killSwitchActive])
+        XCTAssertEqual(evidence.noTradeRejectedObservation.rejectReasons, [.noTradeActive])
+        XCTAssertEqual(evidence.limitRejectedObservation.rejectReasons, [.allowlistScopeViolated])
+        XCTAssertEqual(evidence.duplicateRejectedObservation.rejectReasons, [.duplicateOrderAttempt])
+        XCTAssertEqual(
+            evidence.transportFailureObservation.rejectReasons,
+            [.exchangeAckEvidenceMissing, .transportFailure]
+        )
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.futuresExecutionEnabled)
+        XCTAssertFalse(evidence.okxActiveImplementationEnabled)
+        XCTAssertFalse(evidence.dashboardTradingCommandEnabled)
+        XCTAssertFalse(evidence.repeatedAutomatedTradingLoopEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryOneShotSubmitTransportPolicy(
+                rawRequestPayloadPersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryOneShotSubmitTransportPolicy(
+                rawExchangeAckPersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryOneShotSubmitTransportPolicy(
+                signaturePersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryOneShotSubmitTransportPolicy(
+                futuresExecutionEnabled: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryOneShotSubmitTransportPolicy(
+                okxActiveImplementationEnabled: true
+            )
+        )
+
+        XCTAssertTrue(
+            evidence.requiredValidationCommands.contains(
+                "bash checks/verify-v0.22.0-live-order-submit-transport.sh"
+            )
+        )
+        XCTAssertTrue(
+            evidence.validationAnchors.contains(
+                "GH-1313-VERIFY-V0220-LIVE-ORDER-SUBMIT-TRANSPORT"
+            )
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-005-BLOCKED-BY-GH1312"))
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-005-REDACTED-EXCHANGE-ACK-EVIDENCE"))
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-005-NO-PRODUCTION-CUTOVER"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1313-VERIFY-V0220-LIVE-ORDER-SUBMIT-TRANSPORT",
+            "TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT",
+            "V0220-005-BLOCKED-BY-GH1312",
+            "V0220-005-BINANCE-SPOT-ONE-SHOT-SUBMIT",
+            "V0220-005-ALLOWLISTED-SYMBOL-NOTIONAL-SIDE-TIF",
+            "V0220-005-COMMAND-RISK-KILL-NOTRADE-EXECUTION-OMS-GATES",
+            "V0220-005-REDACTED-EXCHANGE-ACK-EVIDENCE",
+            "V0220-005-SINGLE-APPROVED-ORDER-PER-RUN",
+            "V0220-005-FAIL-CLOSED-LIMIT-RISK-KILL-NOTRADE-TRANSPORT",
+            "V0220-005-NO-FUTURES-OKX",
+            "V0220-005-NO-DASHBOARD-TRADING-CONTROLS",
+            "V0220-005-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOneShotSubmitTransport.swift",
+            "docs/contracts/release-v0.22.0-live-order-submit-transport.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.22.0-live-order-submit-transport.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read(
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOneShotSubmitTransport.swift"
+        )
+        let contractDoc = try read("docs/contracts/release-v0.22.0-live-order-submit-transport.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let verification = try read("verification.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryOneShotSubmitTransportEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanarySignedAccountReadOnlyRuntimePreflight"))
+        XCTAssertTrue(source.contains("ReleaseV0210ControlledSpotCanarySubmitPathEvidence"))
+        XCTAssertTrue(source.contains("requiredSymbol = \"BTCUSDT\""))
+        XCTAssertTrue(source.contains("requiredOrderType = \"LIMIT\""))
+        XCTAssertTrue(source.contains("requiredTimeInForce = \"GTC\""))
+        XCTAssertTrue(source.contains("redactedExchangeAckEnvelope"))
+        XCTAssertTrue(contractDoc.contains("one allowlisted Binance Spot live canary submit transport"))
+        XCTAssertTrue(readiness.contains("Release v0.22.0 live order submit transport anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1313 Release v0.22.0 Live Order Submit Transport"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT"))
+        XCTAssertTrue(verification.contains("GH-1313 v0.22.0 Live Order Submit Transport"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-live-order-submit-transport.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-live-order-submit-transport.sh"))
+
+        for document in [contractDoc, verification] {
+            for forbidden in [
+                "rawRequestPayloadPersisted=true",
+                "rawExchangeAckPersisted=true",
+                "signaturePersisted=true",
+                "productionCutoverAuthorized=true",
+                "Dashboard trading button enabled"
+            ] {
+                XCTAssertFalse(document.contains(forbidden), "\(forbidden) must stay out of GH-1313 docs")
+            }
+        }
+    }
+
     func testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract() throws {
         // 测试场景：GH-1309 定义 v0.22.0 Binance Spot live canary
         // transport completion 顶层合同。

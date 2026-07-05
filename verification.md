@@ -56,6 +56,17 @@ Agent / Graphify 默认读取 `docs/validation/latest-verification-summary.md`�
 - Scope: GH-1312 defines approved-session Binance Spot signed account read-only preflight evidence after GH-1311 credential secret material read evidence is held.
 - Boundary: only redacted freshness/status evidence persists; endpoint / auth / timestamp / permission / stale response failures fail closed and block submit path; GH-1312 does not persist raw account payload or signature, enable Futures / OKX, submit orders, publish a release, or authorize production cutover.
 
+## GH-1313 v0.22.0 Live Order Submit Transport
+
+日期：2026-07-05
+
+执行者：Codex
+
+- Anchors: `GH-1313-VERIFY-V0220-LIVE-ORDER-SUBMIT-TRANSPORT` / `TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT` / `V0220-005-BLOCKED-BY-GH1312` / `V0220-005-BINANCE-SPOT-ONE-SHOT-SUBMIT` / `V0220-005-ALLOWLISTED-SYMBOL-NOTIONAL-SIDE-TIF` / `V0220-005-COMMAND-RISK-KILL-NOTRADE-EXECUTION-OMS-GATES` / `V0220-005-REDACTED-EXCHANGE-ACK-EVIDENCE` / `V0220-005-SINGLE-APPROVED-ORDER-PER-RUN` / `V0220-005-FAIL-CLOSED-LIMIT-RISK-KILL-NOTRADE-TRANSPORT` / `V0220-005-NO-FUTURES-OKX` / `V0220-005-NO-DASHBOARD-TRADING-CONTROLS` / `V0220-005-NO-PRODUCTION-CUTOVER`.
+- Command: `bash checks/verify-v0.22.0-live-order-submit-transport.sh`.
+- Scope: GH-1313 defines one allowlisted Binance Spot canary submit transport evidence path after GH-1312 signed account preflight is ready.
+- Boundary: CommandGateway, RiskEngine, kill switch, no-trade, ExecutionEngine and OMS gates are required; only redacted request / exchange ack evidence persists; limit / risk / kill switch / no-trade / duplicate / transport failure cases fail closed; GH-1313 does not enable Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+
 ## GH-1307 v0.21.1 Canary Evidence Wording Guard
 
 日期：2026-07-04

@@ -26,6 +26,11 @@
 - GH-1312 uses `GH-1312-VERIFY-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT`、`TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT`、`V0220-004-BLOCKED-BY-GH1311`、`V0220-004-APPROVED-CANARY-SESSION-ONLY`、`V0220-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0220-004-REDACTED-FRESHNESS-STATUS-EVIDENCE`、`V0220-004-RAW-ACCOUNT-PAYLOAD-NEVER-PERSISTED`、`V0220-004-ENDPOINT-AUTH-TIMESTAMP-PERMISSION-STALE-FAIL-CLOSED`、`V0220-004-FAILED-PREFLIGHT-BLOCKS-SUBMIT`、`V0220-004-NO-FUTURES-OKX` 和 `V0220-004-NO-ORDER-CUTOVER` to define approved-session signed account read-only preflight evidence.
 - The preflight persists only redacted freshness/status evidence. Endpoint, auth, timestamp, permission, or stale response failures fail closed and block submit path. This issue does not persist raw account payload or signature, enable Futures / OKX, submit orders, publish a release, or authorize production cutover.
 
+## v0.22.0 live order submit transport
+
+- GH-1313 uses `GH-1313-VERIFY-V0220-LIVE-ORDER-SUBMIT-TRANSPORT`、`TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT`、`V0220-005-BLOCKED-BY-GH1312`、`V0220-005-BINANCE-SPOT-ONE-SHOT-SUBMIT`、`V0220-005-ALLOWLISTED-SYMBOL-NOTIONAL-SIDE-TIF`、`V0220-005-COMMAND-RISK-KILL-NOTRADE-EXECUTION-OMS-GATES`、`V0220-005-REDACTED-EXCHANGE-ACK-EVIDENCE`、`V0220-005-SINGLE-APPROVED-ORDER-PER-RUN`、`V0220-005-FAIL-CLOSED-LIMIT-RISK-KILL-NOTRADE-TRANSPORT`、`V0220-005-NO-FUTURES-OKX`、`V0220-005-NO-DASHBOARD-TRADING-CONTROLS` 和 `V0220-005-NO-PRODUCTION-CUTOVER` to define one allowlisted Binance Spot canary submit transport evidence path.
+- The transport requires GH-1312 signed preflight plus CommandGateway, RiskEngine, kill switch, no-trade, ExecutionEngine and OMS gates. It stores only redacted request / exchange ack evidence and fails closed for limit, risk, kill switch, no-trade, duplicate, or transport failures. It does not open Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+
 ## 当前读序
 
 ```text

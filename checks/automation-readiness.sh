@@ -14282,4 +14282,42 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "verification.md" "GH-1312 v0.22.0 Signed Account Runtime Preflight"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1312ReleaseV0220SignedAccountRuntimePreflight"
 
+for file in \
+  "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOneShotSubmitTransport.swift" \
+  "docs/contracts/release-v0.22.0-live-order-submit-transport.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0-live-order-submit-transport.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1313-VERIFY-V0220-LIVE-ORDER-SUBMIT-TRANSPORT"
+  require_contains "$file" "TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT"
+  require_contains "$file" "V0220-005-BLOCKED-BY-GH1312"
+  require_contains "$file" "V0220-005-BINANCE-SPOT-ONE-SHOT-SUBMIT"
+  require_contains "$file" "V0220-005-ALLOWLISTED-SYMBOL-NOTIONAL-SIDE-TIF"
+  require_contains "$file" "V0220-005-COMMAND-RISK-KILL-NOTRADE-EXECUTION-OMS-GATES"
+  require_contains "$file" "V0220-005-REDACTED-EXCHANGE-ACK-EVIDENCE"
+  require_contains "$file" "V0220-005-SINGLE-APPROVED-ORDER-PER-RUN"
+  require_contains "$file" "V0220-005-FAIL-CLOSED-LIMIT-RISK-KILL-NOTRADE-TRANSPORT"
+  require_contains "$file" "V0220-005-NO-FUTURES-OKX"
+  require_contains "$file" "V0220-005-NO-DASHBOARD-TRADING-CONTROLS"
+  require_contains "$file" "V0220-005-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0-live-order-submit-transport.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-live-order-submit-transport.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 live order submit transport anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 live order submit transport"
+require_contains "docs/validation/validation-plan.md" "GH-1313 Release v0.22.0 Live Order Submit Transport"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT"
+require_contains "verification.md" "GH-1313 v0.22.0 Live Order Submit Transport"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1313ReleaseV0220LiveOrderSubmitTransport"
+
 printf 'MTPRO automation readiness checks passed.\n'

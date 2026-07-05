@@ -70,6 +70,24 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanarySignedAccountReadOnlyRuntimePreflight.swift`、`docs/contracts/release-v0.22.0-signed-account-runtime-preflight.md`、`checks/verify-v0.22.0-signed-account-runtime-preflight.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: no production cutover, no Futures / OKX, and no order submission in GH-1312. Signed account preflight is limited to approved canary session, persists only redacted freshness/status evidence, and failed preflight blocks submit path.
 
+## TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT
+
+- TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT
+- GH-1313-VERIFY-V0220-LIVE-ORDER-SUBMIT-TRANSPORT
+- V0220-005-BLOCKED-BY-GH1312
+- V0220-005-BINANCE-SPOT-ONE-SHOT-SUBMIT
+- V0220-005-ALLOWLISTED-SYMBOL-NOTIONAL-SIDE-TIF
+- V0220-005-COMMAND-RISK-KILL-NOTRADE-EXECUTION-OMS-GATES
+- V0220-005-REDACTED-EXCHANGE-ACK-EVIDENCE
+- V0220-005-SINGLE-APPROVED-ORDER-PER-RUN
+- V0220-005-FAIL-CLOSED-LIMIT-RISK-KILL-NOTRADE-TRANSPORT
+- V0220-005-NO-FUTURES-OKX
+- V0220-005-NO-DASHBOARD-TRADING-CONTROLS
+- V0220-005-NO-PRODUCTION-CUTOVER
+- Command: `bash checks/verify-v0.22.0-live-order-submit-transport.sh`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOneShotSubmitTransport.swift`、`docs/contracts/release-v0.22.0-live-order-submit-transport.md`、`checks/verify-v0.22.0-live-order-submit-transport.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: no production cutover, no Futures / OKX, and no Dashboard trading controls in GH-1313. The submit transport is limited to one allowlisted Binance Spot canary order after signed preflight, CommandGateway, RiskEngine, kill switch, no-trade, ExecutionEngine and OMS gates pass, and failed limit / risk / kill switch / no-trade / duplicate / transport cases fail closed.
+
 ## TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
 
 - TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
