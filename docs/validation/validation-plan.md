@@ -7297,3 +7297,20 @@ swift test
 - stale wording surface: current-facing stale v0.19.0 publication wording must fail the focused guard.
 - historical allowlist surface: historical construction closeout evidence is allowed only when the same artifact also carries current v0.19.0 release URL, tag peeled commit and publication timestamp.
 - patch boundary evidence: GH-1234 does not move `v0.19.0` tag, does not overwrite GitHub Release, does not create v0.19.1 tag / GitHub Release, does not read production secret, does not connect production endpoint / broker endpoint, does not submit / cancel / replace and production cutover not authorized.
+
+## GH-1319 Release v0.22.0 Aggregate Validation Suite
+
+- GH-1319-VERIFY-V0220-AGGREGATE-VALIDATION
+- TVM-RELEASE-V0220-AGGREGATE-VALIDATION
+- V0220-011-AGGREGATE-VALIDATION-SUITE
+- V0220-011-LIVE-CANARY-TRANSPORT-CHAIN
+- V0220-011-FOCUSED-GUARDS-COVERED
+- V0220-011-RUN-AUTOMATION-WIRING
+- V0220-011-FAIL-CLOSED-NEGATIVE-CASES
+- V0220-011-NO-FUTURES-OKX
+- V0220-011-NO-PRODUCTION-CUTOVER
+- V0220-011-NO-TAG-OR-RELEASE-PUBLICATION
+- focused verifier: `bash checks/verify-v0.22.0.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1319ReleaseV0220AggregateValidationSuite`
+- validation surface: aggregate suite must run GH-1309..GH-1318 focused verifiers, verify run / automation wiring, and preserve fail-closed negative case evidence.
+- forbidden scope: no Futures / OKX, no Dashboard trading controls, no production cutover, no tag creation and no GitHub Release publication.

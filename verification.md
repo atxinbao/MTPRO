@@ -18344,3 +18344,24 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `git diff --check`: required.
   - `bash checks/automation-readiness.sh`: required.
   - `bash checks/run.sh`: required.
+
+## 2026-07-05 - MTPRO Release v0.22.0 Aggregate Validation Suite
+
+- Executor: Codex.
+- Scope:
+  - Added `checks/verify-v0.22.0.sh`.
+  - Added `GH-1319-VERIFY-V0220-AGGREGATE-VALIDATION`, `TVM-RELEASE-V0220-AGGREGATE-VALIDATION`, `V0220-011-AGGREGATE-VALIDATION-SUITE`, `V0220-011-LIVE-CANARY-TRANSPORT-CHAIN`, `V0220-011-FOCUSED-GUARDS-COVERED`, `V0220-011-RUN-AUTOMATION-WIRING`, `V0220-011-FAIL-CLOSED-NEGATIVE-CASES`, `V0220-011-NO-FUTURES-OKX`, `V0220-011-NO-PRODUCTION-CUTOVER` and `V0220-011-NO-TAG-OR-RELEASE-PUBLICATION`.
+  - Wired `bash checks/verify-v0.22.0.sh` into `checks/run.sh`.
+  - Required the aggregate suite from `checks/automation-readiness.sh`.
+- Boundary:
+  - Did not add Futures or OKX active runtime.
+  - Did not add Dashboard trading controls.
+  - Did not authorize production cutover.
+  - Did not create a tag or GitHub Release.
+- Validation:
+  - `bash checks/verify-v0.22.0.sh`: required.
+  - `swift test --filter TargetGraphTests/testGH1319ReleaseV0220AggregateValidationSuite`: required.
+  - `git diff --check`: required.
+  - `bash checks/automation-readiness.sh`: required.
+  - `bash checks/verify-v0.21.0.sh`: required.
+  - `bash checks/run.sh`: required.
