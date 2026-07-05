@@ -53,6 +53,23 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.swift`、`docs/contracts/release-v0.22.0-credential-secret-material-read-redaction.md`、`checks/verify-v0.22.0-credential-secret-material-read-redaction.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: no production cutover, no endpoint connection, no signed request and no order submission in GH-1311. Secret material read is bound to GH-1310 approval, ephemeral only, and persists only redacted credential reference metadata and redacted audit evidence.
 
+## TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT
+
+- TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT
+- GH-1312-VERIFY-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT
+- V0220-004-BLOCKED-BY-GH1311
+- V0220-004-APPROVED-CANARY-SESSION-ONLY
+- V0220-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT
+- V0220-004-REDACTED-FRESHNESS-STATUS-EVIDENCE
+- V0220-004-RAW-ACCOUNT-PAYLOAD-NEVER-PERSISTED
+- V0220-004-ENDPOINT-AUTH-TIMESTAMP-PERMISSION-STALE-FAIL-CLOSED
+- V0220-004-FAILED-PREFLIGHT-BLOCKS-SUBMIT
+- V0220-004-NO-FUTURES-OKX
+- V0220-004-NO-ORDER-CUTOVER
+- Command: `bash checks/verify-v0.22.0-signed-account-runtime-preflight.sh`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanarySignedAccountReadOnlyRuntimePreflight.swift`、`docs/contracts/release-v0.22.0-signed-account-runtime-preflight.md`、`checks/verify-v0.22.0-signed-account-runtime-preflight.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: no production cutover, no Futures / OKX, and no order submission in GH-1312. Signed account preflight is limited to approved canary session, persists only redacted freshness/status evidence, and failed preflight blocks submit path.
+
 ## TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
 
 - TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT

@@ -45,6 +45,17 @@ Agent / Graphify 默认读取 `docs/validation/latest-verification-summary.md`�
 - Scope: GH-1311 defines the approval-bound ephemeral credential secret material read path required after GH-1310.
 - Boundary: raw secret / signature / listenKey never persist or log, missing / consumed / mismatched approval or missing secret material fails closed, and GH-1311 does not connect endpoints, sign requests, submit orders, publish a release, or authorize production cutover.
 
+## GH-1312 v0.22.0 Signed Account Runtime Preflight
+
+日期：2026-07-05
+
+执行者：Codex
+
+- Anchors: `GH-1312-VERIFY-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT` / `TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT` / `V0220-004-BLOCKED-BY-GH1311` / `V0220-004-APPROVED-CANARY-SESSION-ONLY` / `V0220-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT` / `V0220-004-REDACTED-FRESHNESS-STATUS-EVIDENCE` / `V0220-004-RAW-ACCOUNT-PAYLOAD-NEVER-PERSISTED` / `V0220-004-ENDPOINT-AUTH-TIMESTAMP-PERMISSION-STALE-FAIL-CLOSED` / `V0220-004-FAILED-PREFLIGHT-BLOCKS-SUBMIT` / `V0220-004-NO-FUTURES-OKX` / `V0220-004-NO-ORDER-CUTOVER`.
+- Command: `bash checks/verify-v0.22.0-signed-account-runtime-preflight.sh`.
+- Scope: GH-1312 defines approved-session Binance Spot signed account read-only preflight evidence after GH-1311 credential secret material read evidence is held.
+- Boundary: only redacted freshness/status evidence persists; endpoint / auth / timestamp / permission / stale response failures fail closed and block submit path; GH-1312 does not persist raw account payload or signature, enable Futures / OKX, submit orders, publish a release, or authorize production cutover.
+
 ## GH-1307 v0.21.1 Canary Evidence Wording Guard
 
 日期：2026-07-04
