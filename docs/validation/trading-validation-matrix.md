@@ -141,6 +141,25 @@
 - Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryReconciliationEvidence.swift`、`docs/contracts/release-v0.22.0-reconciliation-evidence.md`、`checks/verify-v0.22.0-reconciliation-evidence.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: no production cutover, no Futures / OKX, and no Dashboard trading controls in GH-1316. Reconciliation consumes OMS event log, signed account preflight, and exchange order status evidence; missing exchange evidence, ambiguous state, or local-only assumptions fail closed with next operator action.
 
+## TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL
+
+- TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL
+- GH-1317-VERIFY-V0220-FAILURE-ROLLBACK-DRILL
+- V0220-009-BLOCKED-BY-GH1315-GH1316
+- V0220-009-FAILURE-CLASSIFICATION
+- V0220-009-AUTH-ENDPOINT-RISK-KILL-NOTRADE-SUBMIT-CANCEL-STATUS-RECONCILIATION-ARTIFACT
+- V0220-009-DETERMINISTIC-NEXT-ACTION
+- V0220-009-KILL-SWITCH-BLOCKS-SUBMIT-CANCEL
+- V0220-009-NO-TRADE-BLOCKS-SUBMIT-CANCEL
+- V0220-009-ROLLBACK-DRILL-EVIDENCE
+- V0220-009-NO-UNINTENDED-ORDERS
+- V0220-009-NO-FUTURES-OKX
+- V0220-009-NO-DASHBOARD-TRADING-CONTROLS
+- V0220-009-NO-PRODUCTION-CUTOVER
+- Command: `bash checks/verify-v0.22.0-failure-rollback-drill.sh`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryFailureRollbackDrill.swift`、`docs/contracts/release-v0.22.0-failure-rollback-drill.md`、`checks/verify-v0.22.0-failure-rollback-drill.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: no production cutover, no Futures / OKX, and no Dashboard trading controls in GH-1317. Failure classification covers auth, endpoint, risk, kill switch, no-trade, submit, cancel, status, reconciliation and artifact failures with deterministic operator next action; kill switch and no-trade block submit / cancel; rollback drill sends no unintended orders.
+
 ## TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
 
 - TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT

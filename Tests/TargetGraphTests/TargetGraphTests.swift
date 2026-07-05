@@ -63842,6 +63842,237 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1317ReleaseV0220FailureClassificationRollbackKillSwitchNoTradeDrill() throws {
+        // 测试场景：GH-1317 固定 v0.22.0 Binance Spot canary failure taxonomy、
+        // operator next action、kill switch / no-trade 阻断和 rollback drill 证据。
+        // 验证目的：auth / endpoint / risk / kill switch / no-trade / submit /
+        // cancel / status / reconciliation / artifact failure 必须都有 deterministic
+        // next action；submit / cancel 必须在 transport 前被 kill switch / no-trade
+        // 阻断，rollback drill 不能产生 unintended order。
+        // GH-1317-VERIFY-V0220-FAILURE-ROLLBACK-DRILL
+        // TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL
+        // V0220-009-BLOCKED-BY-GH1315-GH1316
+        // V0220-009-FAILURE-CLASSIFICATION
+        // V0220-009-AUTH-ENDPOINT-RISK-KILL-NOTRADE-SUBMIT-CANCEL-STATUS-RECONCILIATION-ARTIFACT
+        // V0220-009-DETERMINISTIC-NEXT-ACTION
+        // V0220-009-KILL-SWITCH-BLOCKS-SUBMIT-CANCEL
+        // V0220-009-NO-TRADE-BLOCKS-SUBMIT-CANCEL
+        // V0220-009-ROLLBACK-DRILL-EVIDENCE
+        // V0220-009-NO-UNINTENDED-ORDERS
+        // V0220-009-NO-FUTURES-OKX
+        // V0220-009-NO-DASHBOARD-TRADING-CONTROLS
+        // V0220-009-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0220SpotLiveCanaryFailureRollbackDrillEvidence
+            .deterministicFixture()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.upstreamReconciliationEvidence.evidenceHeld)
+        XCTAssertTrue(evidence.allFailureClassesCovered)
+        XCTAssertTrue(evidence.deterministicNextActionsHeld)
+        XCTAssertTrue(evidence.killSwitchNoTradeEvidencePresent)
+        XCTAssertTrue(evidence.rollbackDrillHeld)
+        XCTAssertTrue(evidence.noUnintendedOrders)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1317")
+        XCTAssertEqual(evidence.blockedByIssueIDs.map(\.rawValue), ["GH-1315", "GH-1316"])
+        XCTAssertEqual(evidence.downstreamIssueIDs.map(\.rawValue), ["GH-1318"])
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1309..GH-1320")
+        XCTAssertEqual(evidence.releaseVersion, "v0.22.0")
+
+        XCTAssertEqual(
+            Set(evidence.failureClassifications.map(\.failureClass)),
+            Set(ReleaseV0220SpotLiveCanaryFailureClass.allCases)
+        )
+        for classification in evidence.failureClassifications {
+            XCTAssertTrue(classification.classificationHeld)
+            XCTAssertTrue(classification.deterministicNextActionHeld)
+            XCTAssertTrue(classification.failClosed)
+            XCTAssertTrue(classification.blocksSubmit)
+            XCTAssertTrue(classification.blocksCancel)
+            XCTAssertTrue(classification.requiresOperatorAction)
+            XCTAssertTrue(classification.redactedEvidenceRequired)
+            XCTAssertTrue(classification.forbiddenCapabilitiesClosed)
+        }
+
+        let nextActionsByClass = Dictionary(
+            uniqueKeysWithValues: evidence.failureClassifications.map {
+                ($0.failureClass, $0.nextAction)
+            }
+        )
+        XCTAssertEqual(nextActionsByClass[.auth], .refreshCredentialReference)
+        XCTAssertEqual(nextActionsByClass[.endpoint], .correctEndpointPolicy)
+        XCTAssertEqual(nextActionsByClass[.risk], .stopAndEscalate)
+        XCTAssertEqual(nextActionsByClass[.killSwitch], .keepKillSwitchActive)
+        XCTAssertEqual(nextActionsByClass[.noTrade], .keepNoTradeActive)
+        XCTAssertEqual(nextActionsByClass[.submit], .doNotRetrySubmit)
+        XCTAssertEqual(nextActionsByClass[.cancel], .statusThenReconcile)
+        XCTAssertEqual(nextActionsByClass[.status], .statusThenReconcile)
+        XCTAssertEqual(nextActionsByClass[.reconciliation], .operatorReview)
+        XCTAssertEqual(nextActionsByClass[.artifact], .rebuildArtifactBundle)
+
+        for drill in [evidence.submitRollbackDrill, evidence.cancelRollbackDrill] {
+            XCTAssertTrue(drill.drillHeld)
+            XCTAssertTrue(drill.killSwitchActive)
+            XCTAssertTrue(drill.noTradeActive)
+            XCTAssertTrue(drill.blockedBeforeTransport)
+            XCTAssertTrue(drill.blockedBeforeBrokerGateway)
+            XCTAssertTrue(drill.rollbackEvidenceRecorded)
+            XCTAssertTrue(drill.noUnintendedOrders)
+            XCTAssertFalse(drill.unintendedSubmitSent)
+            XCTAssertFalse(drill.unintendedCancelSent)
+            XCTAssertFalse(drill.rawBrokerPayloadPersisted)
+            XCTAssertFalse(drill.productionCutoverAuthorized)
+        }
+        XCTAssertEqual(evidence.submitRollbackDrill.command, .submit)
+        XCTAssertEqual(evidence.cancelRollbackDrill.command, .cancel)
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.futuresEnabled)
+        XCTAssertFalse(evidence.okxEnabled)
+        XCTAssertFalse(evidence.dashboardTradingCommandEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        var missingClassifications = try ReleaseV0220SpotLiveCanaryFailureClassification
+            .deterministicFixtures()
+        missingClassifications.removeAll { $0.failureClass == .artifact }
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryFailureRollbackDrillEvidence(
+                failureClassifications: missingClassifications
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryFailureClassification(
+                failureClass: .submit,
+                nextAction: .doNotRetrySubmit,
+                blocksSubmit: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryRollbackDrillRecord(
+                command: .submit,
+                noTradeActive: false
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryRollbackDrillRecord(
+                command: .cancel,
+                unintendedCancelSent: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryFailureRollbackDrillEvidence(
+                futuresEnabled: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryFailureRollbackDrillEvidence(
+                productionCutoverAuthorized: true
+            )
+        )
+
+        XCTAssertTrue(
+            evidence.requiredValidationCommands.contains(
+                "bash checks/verify-v0.22.0-failure-rollback-drill.sh"
+            )
+        )
+        XCTAssertTrue(
+            evidence.validationAnchors.contains(
+                "GH-1317-VERIFY-V0220-FAILURE-ROLLBACK-DRILL"
+            )
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-009-BLOCKED-BY-GH1315-GH1316"))
+        XCTAssertTrue(
+            evidence.validationAnchors.contains(
+                "V0220-009-AUTH-ENDPOINT-RISK-KILL-NOTRADE-SUBMIT-CANCEL-STATUS-RECONCILIATION-ARTIFACT"
+            )
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-009-NO-PRODUCTION-CUTOVER"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1317-VERIFY-V0220-FAILURE-ROLLBACK-DRILL",
+            "TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL",
+            "V0220-009-BLOCKED-BY-GH1315-GH1316",
+            "V0220-009-FAILURE-CLASSIFICATION",
+            "V0220-009-AUTH-ENDPOINT-RISK-KILL-NOTRADE-SUBMIT-CANCEL-STATUS-RECONCILIATION-ARTIFACT",
+            "V0220-009-DETERMINISTIC-NEXT-ACTION",
+            "V0220-009-KILL-SWITCH-BLOCKS-SUBMIT-CANCEL",
+            "V0220-009-NO-TRADE-BLOCKS-SUBMIT-CANCEL",
+            "V0220-009-ROLLBACK-DRILL-EVIDENCE",
+            "V0220-009-NO-UNINTENDED-ORDERS",
+            "V0220-009-NO-FUTURES-OKX",
+            "V0220-009-NO-DASHBOARD-TRADING-CONTROLS",
+            "V0220-009-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryFailureRollbackDrill.swift",
+            "docs/contracts/release-v0.22.0-failure-rollback-drill.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.22.0-failure-rollback-drill.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read(
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryFailureRollbackDrill.swift"
+        )
+        let contractDoc = try read("docs/contracts/release-v0.22.0-failure-rollback-drill.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let verification = try read("verification.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryFailureRollbackDrillEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryReconciliationEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryFailureClass"))
+        XCTAssertTrue(source.contains("killSwitchNoTradeEvidencePresent"))
+        XCTAssertTrue(source.contains("noUnintendedOrders"))
+        XCTAssertTrue(contractDoc.contains("failure classification"))
+        XCTAssertTrue(contractDoc.contains("rollback drill"))
+        XCTAssertTrue(readiness.contains("Release v0.22.0 failure rollback drill anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1317 Release v0.22.0 Failure Rollback Drill"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL"))
+        XCTAssertTrue(verification.contains("GH-1317 v0.22.0 Failure Rollback Drill"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-failure-rollback-drill.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-failure-rollback-drill.sh"))
+
+        for document in [contractDoc, verification] {
+            for forbidden in [
+                "unintendedSubmitSent=true",
+                "unintendedCancelSent=true",
+                "productionCutoverAuthorized=true",
+                "futuresEnabled=true",
+                "okxEnabled=true",
+                "dashboardTradingCommandEnabled=true",
+                "rawBrokerPayloadPersisted=true"
+            ] {
+                XCTAssertFalse(document.contains(forbidden), "\(forbidden) must stay out of GH-1317 docs")
+            }
+        }
+    }
+
     func testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract() throws {
         // 测试场景：GH-1309 定义 v0.22.0 Binance Spot live canary
         // transport completion 顶层合同。

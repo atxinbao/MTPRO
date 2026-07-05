@@ -14433,4 +14433,43 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "verification.md" "GH-1316 v0.22.0 Reconciliation Evidence"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1316ReleaseV0220ReconcilesOMSWithSignedAccountAndOrderStatusEvidence"
 
+for file in \
+  "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryFailureRollbackDrill.swift" \
+  "docs/contracts/release-v0.22.0-failure-rollback-drill.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0-failure-rollback-drill.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1317-VERIFY-V0220-FAILURE-ROLLBACK-DRILL"
+  require_contains "$file" "TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL"
+  require_contains "$file" "V0220-009-BLOCKED-BY-GH1315-GH1316"
+  require_contains "$file" "V0220-009-FAILURE-CLASSIFICATION"
+  require_contains "$file" "V0220-009-AUTH-ENDPOINT-RISK-KILL-NOTRADE-SUBMIT-CANCEL-STATUS-RECONCILIATION-ARTIFACT"
+  require_contains "$file" "V0220-009-DETERMINISTIC-NEXT-ACTION"
+  require_contains "$file" "V0220-009-KILL-SWITCH-BLOCKS-SUBMIT-CANCEL"
+  require_contains "$file" "V0220-009-NO-TRADE-BLOCKS-SUBMIT-CANCEL"
+  require_contains "$file" "V0220-009-ROLLBACK-DRILL-EVIDENCE"
+  require_contains "$file" "V0220-009-NO-UNINTENDED-ORDERS"
+  require_contains "$file" "V0220-009-NO-FUTURES-OKX"
+  require_contains "$file" "V0220-009-NO-DASHBOARD-TRADING-CONTROLS"
+  require_contains "$file" "V0220-009-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0-failure-rollback-drill.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-failure-rollback-drill.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 failure rollback drill anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 failure classification"
+require_contains "docs/validation/validation-plan.md" "GH-1317 Release v0.22.0 Failure Rollback Drill"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL"
+require_contains "verification.md" "GH-1317 v0.22.0 Failure Rollback Drill"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1317ReleaseV0220FailureClassificationRollbackKillSwitchNoTradeDrill"
+
 printf 'MTPRO automation readiness checks passed.\n'
