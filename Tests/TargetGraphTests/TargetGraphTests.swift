@@ -62582,6 +62582,227 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1311ReleaseV0220CredentialSecretMaterialReadRedaction() throws {
+        // 测试场景：GH-1311 固定 v0.22.0 approved credential secret
+        // material read path 和 redacted audit evidence。
+        // 验证目的：secret material 只能在 GH-1310 approval + one-shot lock
+        // 后临时读取；raw secret / signature / listenKey 不能持久化或进入日志。
+        // GH-1311-VERIFY-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION
+        // TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION
+        // V0220-003-BLOCKED-BY-GH1310
+        // V0220-003-APPROVAL-BOUND-SECRET-READ
+        // V0220-003-EPHEMERAL-SECRET-MATERIAL-ONLY
+        // V0220-003-REDACTED-AUDIT-EVIDENCE
+        // V0220-003-RAW-SECRET-NEVER-PERSISTED
+        // V0220-003-MISSING-APPROVAL-FAILS-CLOSED
+        // V0220-003-NO-ENDPOINT-ORDER
+        // V0220-003-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.redactedReadFixture()
+
+        XCTAssertTrue(evidence.readPathHeld)
+        XCTAssertTrue(evidence.readFlagsHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1311")
+        XCTAssertEqual(evidence.blockedByIssueIDs.map(\.rawValue), ["GH-1310"])
+        XCTAssertEqual(evidence.downstreamIssueID.rawValue, "GH-1312")
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1309..GH-1320")
+        XCTAssertEqual(evidence.releaseVersion, "v0.22.0")
+        XCTAssertEqual(evidence.readState, .redactedAuditPersisted)
+        XCTAssertNil(evidence.failureClass)
+        XCTAssertTrue(evidence.upstreamApprovalRunLock.approvalSessionHeld)
+        XCTAssertTrue(evidence.operatorApprovalRequired)
+        XCTAssertTrue(evidence.approvalRunLockHeld)
+        XCTAssertTrue(evidence.scopeMatched)
+        XCTAssertTrue(evidence.secretMaterialProvided)
+        XCTAssertTrue(evidence.secretMaterialReadByThisIssue)
+        XCTAssertFalse(evidence.rawSecretMaterialPersisted)
+        XCTAssertFalse(evidence.rawSecretMaterialLogged)
+        XCTAssertTrue(evidence.credentialReferenceMetadataPersisted)
+        XCTAssertTrue(evidence.redactedAuditEvidencePersisted)
+        XCTAssertFalse(evidence.automaticSecretDiscoveryEnabled)
+        XCTAssertFalse(evidence.fallbackSecretProviderEnabled)
+        XCTAssertFalse(evidence.signedEndpointRuntimeEnabledByThisIssue)
+        XCTAssertFalse(evidence.accountEndpointRuntimeEnabledByThisIssue)
+        XCTAssertFalse(evidence.liveOrderSubmitEnabledByThisIssue)
+        XCTAssertFalse(evidence.liveOrderStatusCancelEnabledByThisIssue)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointConnectionEnabledByThisIssue)
+        XCTAssertFalse(evidence.productionBrokerConnectionEnabledByThisIssue)
+        XCTAssertFalse(evidence.futuresExecutionEnabled)
+        XCTAssertFalse(evidence.okxActiveImplementationEnabled)
+        XCTAssertFalse(evidence.dashboardTradingButtonEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.createsTagOrRelease)
+
+        let audit = try XCTUnwrap(evidence.auditEvidence)
+        XCTAssertTrue(audit.evidenceHeld)
+        XCTAssertTrue(audit.secretMaterialRead)
+        XCTAssertFalse(audit.rawSecretMaterialPersisted)
+        XCTAssertFalse(audit.rawSecretMaterialLogged)
+        XCTAssertFalse(audit.automaticSecretDiscoveryAttempted)
+        XCTAssertFalse(audit.fallbackSecretProviderUsed)
+        XCTAssertFalse(audit.endpointConnectionOpened)
+        XCTAssertFalse(audit.orderCapabilityAttempted)
+        XCTAssertTrue(audit.redactedCredentialReference.contains("<redacted>"))
+        XCTAssertTrue(audit.redactedMaterialFingerprint.contains("<redacted>"))
+        XCTAssertTrue(audit.redactedAuditSummary.contains("<redacted>"))
+        XCTAssertTrue(audit.redactedAuditSummary.contains("rawMaterialPersisted=false"))
+        XCTAssertFalse(
+            ReleaseV0220SpotLiveCanaryCredentialSecretReadAuditEvidence
+                .containsForbiddenSecretMaterial(audit.redactedMaterialFingerprint)
+        )
+        XCTAssertFalse(
+            ReleaseV0220SpotLiveCanaryCredentialSecretReadAuditEvidence
+                .containsForbiddenSecretMaterial(audit.redactedAuditSummary)
+        )
+
+        XCTAssertEqual(
+            evidence.requiredValidationCommands,
+            ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.requiredValidationCommands
+        )
+        XCTAssertTrue(
+            evidence.requiredValidationCommands.contains(
+                "bash checks/verify-v0.22.0-credential-secret-material-read-redaction.sh"
+            )
+        )
+        XCTAssertTrue(
+            evidence.validationAnchors.contains(
+                "GH-1311-VERIFY-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION"
+            )
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-003-RAW-SECRET-NEVER-PERSISTED"))
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-003-NO-PRODUCTION-CUTOVER"))
+
+        let missingApproval = try ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.missingApprovalFixture()
+        XCTAssertTrue(missingApproval.failClosedEvidenceHeld)
+        XCTAssertEqual(missingApproval.failureClass, .missingApproval)
+        XCTAssertFalse(missingApproval.approvalRunLockHeld)
+        XCTAssertFalse(missingApproval.secretMaterialReadByThisIssue)
+
+        let consumedApproval = try ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.consumedApprovalFixture()
+        XCTAssertTrue(consumedApproval.failClosedEvidenceHeld)
+        XCTAssertEqual(consumedApproval.failureClass, .consumedApproval)
+        XCTAssertFalse(consumedApproval.approvalRunLockHeld)
+
+        let mismatchedScope = try ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.mismatchedScopeFixture()
+        XCTAssertTrue(mismatchedScope.failClosedEvidenceHeld)
+        XCTAssertEqual(mismatchedScope.failureClass, .mismatchedScope)
+        XCTAssertFalse(mismatchedScope.scopeMatched)
+
+        let missingSecret = try ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.missingSecretMaterialFixture()
+        XCTAssertTrue(missingSecret.failClosedEvidenceHeld)
+        XCTAssertEqual(missingSecret.failureClass, .missingSecretMaterial)
+        XCTAssertFalse(missingSecret.secretMaterialProvided)
+
+        let emptySecret = try ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.redactedReadFixture(
+            apiKeyMaterial: "",
+            apiSecretMaterial: ""
+        )
+        XCTAssertTrue(emptySecret.failClosedEvidenceHeld)
+        XCTAssertEqual(emptySecret.failureClass, .missingSecretMaterial)
+
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryCredentialSecretReadAuditEvidence(
+                rawSecretMaterialPersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryCredentialSecretReadAuditEvidence(
+                redactedAuditSummary: "secret=raw-secret"
+            )
+        )
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1311-VERIFY-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION",
+            "TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION",
+            "V0220-003-BLOCKED-BY-GH1310",
+            "V0220-003-APPROVAL-BOUND-SECRET-READ",
+            "V0220-003-EPHEMERAL-SECRET-MATERIAL-ONLY",
+            "V0220-003-REDACTED-AUDIT-EVIDENCE",
+            "V0220-003-RAW-SECRET-NEVER-PERSISTED",
+            "V0220-003-MISSING-APPROVAL-FAILS-CLOSED",
+            "V0220-003-NO-ENDPOINT-ORDER",
+            "V0220-003-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.swift",
+            "docs/contracts/release-v0.22.0-credential-secret-material-read-redaction.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.22.0-credential-secret-material-read-redaction.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let contractSource = try read(
+            "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.swift"
+        )
+        let contractDoc = try read("docs/contracts/release-v0.22.0-credential-secret-material-read-redaction.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let verification = try read("verification.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(contractSource.contains("ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath"))
+        XCTAssertTrue(contractSource.contains("GH-1309..GH-1320"))
+        XCTAssertTrue(contractSource.contains("secretMaterialReadByThisIssue: Bool = true"))
+        XCTAssertTrue(contractSource.contains("rawSecretMaterialPersisted: Bool = false"))
+        XCTAssertTrue(contractSource.contains("rawSecretMaterialLogged: Bool = false"))
+        XCTAssertTrue(contractSource.contains("signedEndpointRuntimeEnabledByThisIssue: Bool = false"))
+        XCTAssertTrue(contractSource.contains("liveOrderSubmitEnabledByThisIssue: Bool = false"))
+        XCTAssertTrue(contractSource.contains("productionCutoverAuthorized: Bool = false"))
+        XCTAssertTrue(contractDoc.contains("ephemeral credential secret material read path"))
+        XCTAssertTrue(contractDoc.contains("Persist only redacted credential reference metadata"))
+        XCTAssertTrue(contractDoc.contains("No raw API key persistence"))
+        XCTAssertTrue(readiness.contains("Release v0.22.0 credential secret material read redaction anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1311 Release v0.22.0 Credential Secret Material Read Redaction"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION"))
+        XCTAssertTrue(verification.contains("GH-1311 v0.22.0 Credential Secret Material Read Redaction"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-credential-secret-material-read-redaction.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-credential-secret-material-read-redaction.sh"))
+
+        for source in [contractDoc, verification] {
+            for forbidden in [
+                "rawSecretMaterialPersisted=true",
+                "rawSecretMaterialLogged=true",
+                "secretReadWithoutApproval=true",
+                "automaticSecretDiscoveryEnabled=true",
+                "fallbackSecretProviderEnabled=true",
+                "productionEndpointConnected=true",
+                "productionBrokerConnected=true",
+                "productionOrderSubmitted=true",
+                "productionCutoverAuthorized=true"
+            ] {
+                XCTAssertFalse(
+                    source.contains(forbidden),
+                    "\(forbidden) must stay out of v0.22.0 credential secret read evidence"
+                )
+            }
+        }
+    }
+
     func testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract() throws {
         // 测试场景：GH-1309 定义 v0.22.0 Binance Spot live canary
         // transport completion 顶层合同。

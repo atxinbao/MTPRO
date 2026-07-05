@@ -37,6 +37,22 @@
 - Focused test: `swift test --filter TargetGraphTests/testGH1310ReleaseV0220OperatorApprovalSessionAndRunLock`
 - Boundary: operator approval session and one-shot run lock evidence only; approval cannot be reused, missing / stale / mismatched approval fails closed, concurrent live canary submit attempts are blocked, and there is no secret read, endpoint connection, order submission, release publication, or production cutover.
 
+## GH-1311 Release v0.22.0 Credential Secret Material Read Redaction
+
+- GH-1311-VERIFY-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION
+- TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION
+- V0220-003-BLOCKED-BY-GH1310
+- V0220-003-APPROVAL-BOUND-SECRET-READ
+- V0220-003-EPHEMERAL-SECRET-MATERIAL-ONLY
+- V0220-003-REDACTED-AUDIT-EVIDENCE
+- V0220-003-RAW-SECRET-NEVER-PERSISTED
+- V0220-003-MISSING-APPROVAL-FAILS-CLOSED
+- V0220-003-NO-ENDPOINT-ORDER
+- V0220-003-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.22.0-credential-secret-material-read-redaction.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1311ReleaseV0220CredentialSecretMaterialReadRedaction`
+- Boundary: approval-bound ephemeral credential secret material read evidence only; raw secret / signature / listenKey never persist or log, missing / consumed / mismatched approval or missing secret material fails closed, and there is no endpoint connection, signed request, order submission, release publication, or production cutover.
+
 ## GH-1273 Release v0.21.0 Controlled Canary Contract
 
 - GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT

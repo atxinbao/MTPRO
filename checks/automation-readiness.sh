@@ -14209,4 +14209,40 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "verification.md" "GH-1310 v0.22.0 Operator Approval Run Lock"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1310ReleaseV0220OperatorApprovalSessionAndRunLock"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.swift" \
+  "docs/contracts/release-v0.22.0-credential-secret-material-read-redaction.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0-credential-secret-material-read-redaction.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1311-VERIFY-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION"
+  require_contains "$file" "TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION"
+  require_contains "$file" "V0220-003-BLOCKED-BY-GH1310"
+  require_contains "$file" "V0220-003-APPROVAL-BOUND-SECRET-READ"
+  require_contains "$file" "V0220-003-EPHEMERAL-SECRET-MATERIAL-ONLY"
+  require_contains "$file" "V0220-003-REDACTED-AUDIT-EVIDENCE"
+  require_contains "$file" "V0220-003-RAW-SECRET-NEVER-PERSISTED"
+  require_contains "$file" "V0220-003-MISSING-APPROVAL-FAILS-CLOSED"
+  require_contains "$file" "V0220-003-NO-ENDPOINT-ORDER"
+  require_contains "$file" "V0220-003-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0-credential-secret-material-read-redaction.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-credential-secret-material-read-redaction.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 credential secret material read redaction anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 credential secret material read redaction"
+require_contains "docs/validation/validation-plan.md" "GH-1311 Release v0.22.0 Credential Secret Material Read Redaction"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION"
+require_contains "verification.md" "GH-1311 v0.22.0 Credential Secret Material Read Redaction"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1311ReleaseV0220CredentialSecretMaterialReadRedaction"
+
 printf 'MTPRO automation readiness checks passed.\n'
