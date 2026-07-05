@@ -70,6 +70,24 @@
 - Focused test: `swift test --filter TargetGraphTests/testGH1312ReleaseV0220SignedAccountRuntimePreflight`
 - Boundary: approved canary session signed account read-only preflight evidence only; redacted freshness/status evidence is persisted, endpoint / auth / timestamp / permission / stale response failures block submit path, and there is no Futures / OKX, order submission, release publication, or production cutover.
 
+## GH-1313 Release v0.22.0 Live Order Submit Transport
+
+- GH-1313-VERIFY-V0220-LIVE-ORDER-SUBMIT-TRANSPORT
+- TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT
+- V0220-005-BLOCKED-BY-GH1312
+- V0220-005-BINANCE-SPOT-ONE-SHOT-SUBMIT
+- V0220-005-ALLOWLISTED-SYMBOL-NOTIONAL-SIDE-TIF
+- V0220-005-COMMAND-RISK-KILL-NOTRADE-EXECUTION-OMS-GATES
+- V0220-005-REDACTED-EXCHANGE-ACK-EVIDENCE
+- V0220-005-SINGLE-APPROVED-ORDER-PER-RUN
+- V0220-005-FAIL-CLOSED-LIMIT-RISK-KILL-NOTRADE-TRANSPORT
+- V0220-005-NO-FUTURES-OKX
+- V0220-005-NO-DASHBOARD-TRADING-CONTROLS
+- V0220-005-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.22.0-live-order-submit-transport.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1313ReleaseV0220LiveOrderSubmitTransport`
+- Boundary: one allowlisted Binance Spot canary submit transport evidence only; GH-1312 signed preflight, CommandGateway, RiskEngine, kill switch, no-trade, ExecutionEngine and OMS gates are required; limit / risk / kill switch / no-trade / duplicate / transport failures fail closed; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+
 ## GH-1273 Release v0.21.0 Controlled Canary Contract
 
 - GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT
