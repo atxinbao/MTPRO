@@ -14472,4 +14472,47 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "verification.md" "GH-1317 v0.22.0 Failure Rollback Drill"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1317ReleaseV0220FailureClassificationRollbackKillSwitchNoTradeDrill"
 
+for file in \
+  "Package.swift" \
+  "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.swift" \
+  "Sources/Dashboard/Report/ReleaseV0220DashboardCLILiveCanaryEvidenceSurface.swift" \
+  "Sources/Dashboard/DashboardShell.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "docs/contracts/release-v0.22.0-dashboard-cli-live-canary-evidence-surface.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/AppTests/AppTests.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE"
+  require_contains "$file" "TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE"
+  require_contains "$file" "V0220-010-BLOCKED-BY-GH1317"
+  require_contains "$file" "V0220-010-LIVE-CANARY-EVIDENCE-CHAIN"
+  require_contains "$file" "V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION"
+  require_contains "$file" "V0220-010-FAILURE-CLASS-NEXT-ACTION"
+  require_contains "$file" "V0220-010-READ-ONLY-DASHBOARD-CLI"
+  require_contains "$file" "V0220-010-REDACTION-FAILURE-STATES-VISIBLE"
+  require_contains "$file" "V0220-010-NO-TRADING-COMMANDS"
+  require_contains "$file" "V0220-010-NO-FUTURES-OKX"
+  require_contains "$file" "V0220-010-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 Dashboard / CLI live canary evidence surface anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 Dashboard / CLI live canary evidence surface"
+require_contains "docs/validation/validation-plan.md" "GH-1318 Release v0.22.0 Dashboard / CLI Live Canary Evidence Surface"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE"
+require_contains "verification.md" "GH-1318 v0.22.0 Dashboard / CLI Live Canary Evidence Surface"
+require_contains "Tests/AppTests/AppTests.swift" "testGH1318DashboardCLILiveCanaryEvidenceSurfaceShowsCanaryEvidenceWithoutCommands"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1318ReleaseV0220DashboardCLILiveCanaryEvidenceSurface"
+
 printf 'MTPRO automation readiness checks passed.\n'

@@ -47,6 +47,11 @@
 - GH-1317 uses `GH-1317-VERIFY-V0220-FAILURE-ROLLBACK-DRILL`、`TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL`、`V0220-009-BLOCKED-BY-GH1315-GH1316`、`V0220-009-FAILURE-CLASSIFICATION`、`V0220-009-AUTH-ENDPOINT-RISK-KILL-NOTRADE-SUBMIT-CANCEL-STATUS-RECONCILIATION-ARTIFACT`、`V0220-009-DETERMINISTIC-NEXT-ACTION`、`V0220-009-KILL-SWITCH-BLOCKS-SUBMIT-CANCEL`、`V0220-009-NO-TRADE-BLOCKS-SUBMIT-CANCEL`、`V0220-009-ROLLBACK-DRILL-EVIDENCE`、`V0220-009-NO-UNINTENDED-ORDERS`、`V0220-009-NO-FUTURES-OKX`、`V0220-009-NO-DASHBOARD-TRADING-CONTROLS` 和 `V0220-009-NO-PRODUCTION-CUTOVER` to define v0.22.0 failure classification, deterministic next action, kill switch / no-trade block and rollback drill evidence.
 - Matched / pending / ambiguous / rejected / cancelled / fill-like observations must produce a redacted reconciliation artifact with next operator action. Missing exchange evidence, ambiguous state, or local-only assumptions fail closed; Futures / OKX, Dashboard trading controls, release publication, and production cutover stay closed.
 
+## v0.22.0 Dashboard / CLI live canary evidence surface
+
+- GH-1318 uses `GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE`、`TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE`、`V0220-010-BLOCKED-BY-GH1317`、`V0220-010-LIVE-CANARY-EVIDENCE-CHAIN`、`V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION`、`V0220-010-FAILURE-CLASS-NEXT-ACTION`、`V0220-010-READ-ONLY-DASHBOARD-CLI`、`V0220-010-REDACTION-FAILURE-STATES-VISIBLE`、`V0220-010-NO-TRADING-COMMANDS`、`V0220-010-NO-FUTURES-OKX` 和 `V0220-010-NO-PRODUCTION-CUTOVER` to project approval, preflight, submit, status/cancel, OMS, reconciliation, failure class, next action, rollback and redaction evidence into Dashboard / CLI read-only status surfaces.
+- Dashboard / CLI show evidence chain state only: no trading button, no order form, no live command, no raw order id, no raw broker payload, no submit / cancel / replace command path, no Futures / OKX and no production cutover.
+
 ## 当前读序
 
 ```text

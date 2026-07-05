@@ -162,6 +162,24 @@
 - Focused test: `swift test --filter TargetGraphTests/testGH1315ReleaseV0220OMSEventLogPersistsExchangeAckStatusCancelEvidence`
 - Boundary: append-only OMS event log evidence only; submit ack, status observation, cancel request, cancel ack, terminal state, and ambiguous-state evidence must share one run/order correlation chain; missing status, missing cancel outcome, out-of-order lifecycle, correlation mismatch, or raw payload evidence fails closed; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 
+## GH-1318 Release v0.22.0 Dashboard / CLI Live Canary Evidence Surface
+
+- GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+- TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE
+- V0220-010-BLOCKED-BY-GH1317
+- V0220-010-LIVE-CANARY-EVIDENCE-CHAIN
+- V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION
+- V0220-010-FAILURE-CLASS-NEXT-ACTION
+- V0220-010-READ-ONLY-DASHBOARD-CLI
+- V0220-010-REDACTION-FAILURE-STATES-VISIBLE
+- V0220-010-NO-TRADING-COMMANDS
+- V0220-010-NO-FUTURES-OKX
+- V0220-010-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh`
+- Focused tests: `swift test --filter AppTests/testGH1318DashboardCLILiveCanaryEvidenceSurfaceShowsCanaryEvidenceWithoutCommands` and `swift test --filter TargetGraphTests/testGH1318ReleaseV0220DashboardCLILiveCanaryEvidenceSurface`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.swift`, `Sources/Dashboard/Report/ReleaseV0220DashboardCLILiveCanaryEvidenceSurface.swift`, `Sources/Dashboard/DashboardShell.swift`, `Sources/MTPROCLI/main.swift`, `docs/contracts/release-v0.22.0-dashboard-cli-live-canary-evidence-surface.md`, `checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh`, `checks/run.sh`, `checks/automation-readiness.sh`, root docs, validation docs, `verification.md`, `Tests/AppTests/AppTests.swift` and `Tests/TargetGraphTests/TargetGraphTests.swift`.
+- Boundary: approval, signed preflight, submit, status/cancel, OMS, reconciliation, failure class, next action, rollback and redaction evidence surface through read-only Dashboard / CLI output only; no trading button, order form, live command, raw order id, raw broker payload, submit / cancel / replace command, Futures / OKX, release publication or production cutover.
+
 ## GH-1273 Release v0.21.0 Controlled Canary Contract
 
 - GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT

@@ -111,6 +111,17 @@ Agent / Graphify 默认读取 `docs/validation/latest-verification-summary.md`�
 - Scope: GH-1317 defines failure classification and rollback drill evidence after GH-1315 OMS event log and GH-1316 reconciliation evidence are ready.
 - Boundary: auth / endpoint / risk / kill switch / no-trade / submit / cancel / status / reconciliation / artifact failures must fail closed with deterministic next action; kill switch and no-trade block submit / cancel; rollback drill records no unintended orders and does not enable Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 
+## GH-1318 v0.22.0 Dashboard / CLI Live Canary Evidence Surface
+
+日期：2026-07-06
+
+执行者：Codex
+
+- Anchors: `GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE` / `TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE` / `V0220-010-BLOCKED-BY-GH1317` / `V0220-010-LIVE-CANARY-EVIDENCE-CHAIN` / `V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION` / `V0220-010-FAILURE-CLASS-NEXT-ACTION` / `V0220-010-READ-ONLY-DASHBOARD-CLI` / `V0220-010-REDACTION-FAILURE-STATES-VISIBLE` / `V0220-010-NO-TRADING-COMMANDS` / `V0220-010-NO-FUTURES-OKX` / `V0220-010-NO-PRODUCTION-CUTOVER`.
+- Command: `bash checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh`.
+- Scope: GH-1318 projects the live canary evidence chain after GH-1317 failure rollback drill into Dashboard and CLI read-only state surfaces.
+- Boundary: approval, signed preflight, submit, status/cancel, OMS, reconciliation, failure class, next action, rollback and redaction evidence are visible only as redacted read-only rows; no trading button, order form, live command, raw order id, raw broker payload, submit / cancel / replace command, Futures / OKX, release publication or production cutover.
+
 ## GH-1307 v0.21.1 Canary Evidence Wording Guard
 
 日期：2026-07-04
