@@ -14245,4 +14245,41 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "verification.md" "GH-1311 v0.22.0 Credential Secret Material Read Redaction"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1311ReleaseV0220CredentialSecretMaterialReadRedaction"
 
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanarySignedAccountReadOnlyRuntimePreflight.swift" \
+  "docs/contracts/release-v0.22.0-signed-account-runtime-preflight.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0-signed-account-runtime-preflight.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1312-VERIFY-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT"
+  require_contains "$file" "TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT"
+  require_contains "$file" "V0220-004-BLOCKED-BY-GH1311"
+  require_contains "$file" "V0220-004-APPROVED-CANARY-SESSION-ONLY"
+  require_contains "$file" "V0220-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT"
+  require_contains "$file" "V0220-004-REDACTED-FRESHNESS-STATUS-EVIDENCE"
+  require_contains "$file" "V0220-004-RAW-ACCOUNT-PAYLOAD-NEVER-PERSISTED"
+  require_contains "$file" "V0220-004-ENDPOINT-AUTH-TIMESTAMP-PERMISSION-STALE-FAIL-CLOSED"
+  require_contains "$file" "V0220-004-FAILED-PREFLIGHT-BLOCKS-SUBMIT"
+  require_contains "$file" "V0220-004-NO-FUTURES-OKX"
+  require_contains "$file" "V0220-004-NO-ORDER-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0-signed-account-runtime-preflight.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-signed-account-runtime-preflight.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 signed account runtime preflight anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 signed account runtime preflight"
+require_contains "docs/validation/validation-plan.md" "GH-1312 Release v0.22.0 Signed Account Runtime Preflight"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT"
+require_contains "verification.md" "GH-1312 v0.22.0 Signed Account Runtime Preflight"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1312ReleaseV0220SignedAccountRuntimePreflight"
+
 printf 'MTPRO automation readiness checks passed.\n'

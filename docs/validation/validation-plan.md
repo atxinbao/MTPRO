@@ -53,6 +53,23 @@
 - Focused test: `swift test --filter TargetGraphTests/testGH1311ReleaseV0220CredentialSecretMaterialReadRedaction`
 - Boundary: approval-bound ephemeral credential secret material read evidence only; raw secret / signature / listenKey never persist or log, missing / consumed / mismatched approval or missing secret material fails closed, and there is no endpoint connection, signed request, order submission, release publication, or production cutover.
 
+## GH-1312 Release v0.22.0 Signed Account Runtime Preflight
+
+- GH-1312-VERIFY-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT
+- TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT
+- V0220-004-BLOCKED-BY-GH1311
+- V0220-004-APPROVED-CANARY-SESSION-ONLY
+- V0220-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT
+- V0220-004-REDACTED-FRESHNESS-STATUS-EVIDENCE
+- V0220-004-RAW-ACCOUNT-PAYLOAD-NEVER-PERSISTED
+- V0220-004-ENDPOINT-AUTH-TIMESTAMP-PERMISSION-STALE-FAIL-CLOSED
+- V0220-004-FAILED-PREFLIGHT-BLOCKS-SUBMIT
+- V0220-004-NO-FUTURES-OKX
+- V0220-004-NO-ORDER-CUTOVER
+- Focused verifier: `bash checks/verify-v0.22.0-signed-account-runtime-preflight.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1312ReleaseV0220SignedAccountRuntimePreflight`
+- Boundary: approved canary session signed account read-only preflight evidence only; redacted freshness/status evidence is persisted, endpoint / auth / timestamp / permission / stale response failures block submit path, and there is no Futures / OKX, order submission, release publication, or production cutover.
+
 ## GH-1273 Release v0.21.0 Controlled Canary Contract
 
 - GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT

@@ -21,6 +21,11 @@
 - GH-1311 uses `GH-1311-VERIFY-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION`、`TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION`、`V0220-003-BLOCKED-BY-GH1310`、`V0220-003-APPROVAL-BOUND-SECRET-READ`、`V0220-003-EPHEMERAL-SECRET-MATERIAL-ONLY`、`V0220-003-REDACTED-AUDIT-EVIDENCE`、`V0220-003-RAW-SECRET-NEVER-PERSISTED`、`V0220-003-MISSING-APPROVAL-FAILS-CLOSED`、`V0220-003-NO-ENDPOINT-ORDER` 和 `V0220-003-NO-PRODUCTION-CUTOVER` to define the approval-bound ephemeral credential secret material read path.
 - The path persists only redacted credential reference metadata and redacted audit evidence. Raw secret / signature / listenKey never persist or log. Missing approval, consumed approval, mismatched scope, or missing secret material fails closed. This issue does not connect endpoints, sign requests, submit orders, publish a release, or authorize production cutover.
 
+## v0.22.0 signed account runtime preflight
+
+- GH-1312 uses `GH-1312-VERIFY-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT`、`TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT`、`V0220-004-BLOCKED-BY-GH1311`、`V0220-004-APPROVED-CANARY-SESSION-ONLY`、`V0220-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0220-004-REDACTED-FRESHNESS-STATUS-EVIDENCE`、`V0220-004-RAW-ACCOUNT-PAYLOAD-NEVER-PERSISTED`、`V0220-004-ENDPOINT-AUTH-TIMESTAMP-PERMISSION-STALE-FAIL-CLOSED`、`V0220-004-FAILED-PREFLIGHT-BLOCKS-SUBMIT`、`V0220-004-NO-FUTURES-OKX` 和 `V0220-004-NO-ORDER-CUTOVER` to define approved-session signed account read-only preflight evidence.
+- The preflight persists only redacted freshness/status evidence. Endpoint, auth, timestamp, permission, or stale response failures fail closed and block submit path. This issue does not persist raw account payload or signature, enable Futures / OKX, submit orders, publish a release, or authorize production cutover.
+
 ## 当前读序
 
 ```text

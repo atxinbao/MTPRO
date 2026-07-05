@@ -62803,6 +62803,195 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1312ReleaseV0220SignedAccountRuntimePreflight() throws {
+        // 测试场景：GH-1312 固定 v0.22.0 signed account read-only
+        // runtime preflight。
+        // 验证目的：preflight 只能消费 GH-1311 redacted secret-read evidence，
+        // 输出脱敏 freshness/status evidence；endpoint/auth/timestamp/permission/stale
+        // 任一失败都必须阻断后续 submit path。
+        // GH-1312-VERIFY-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT
+        // TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT
+        // V0220-004-BLOCKED-BY-GH1311
+        // V0220-004-APPROVED-CANARY-SESSION-ONLY
+        // V0220-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT
+        // V0220-004-REDACTED-FRESHNESS-STATUS-EVIDENCE
+        // V0220-004-RAW-ACCOUNT-PAYLOAD-NEVER-PERSISTED
+        // V0220-004-ENDPOINT-AUTH-TIMESTAMP-PERMISSION-STALE-FAIL-CLOSED
+        // V0220-004-FAILED-PREFLIGHT-BLOCKS-SUBMIT
+        // V0220-004-NO-FUTURES-OKX
+        // V0220-004-NO-ORDER-CUTOVER
+        let preflight = try ReleaseV0220SpotLiveCanarySignedAccountReadOnlyRuntimePreflight
+            .deterministicFixture()
+
+        XCTAssertTrue(preflight.preflightHeld)
+        XCTAssertTrue(preflight.failClosedEvidenceHeld)
+        XCTAssertTrue(preflight.requiredTrueFlagsHeld)
+        XCTAssertTrue(preflight.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(preflight.issueID.rawValue, "GH-1312")
+        XCTAssertEqual(preflight.blockedByIssueIDs.map(\.rawValue), ["GH-1311"])
+        XCTAssertEqual(preflight.downstreamIssueID.rawValue, "GH-1313")
+        XCTAssertEqual(preflight.canonicalQueueRange, "GH-1309..GH-1320")
+        XCTAssertEqual(preflight.releaseVersion, "v0.22.0")
+        XCTAssertTrue(preflight.upstreamCredentialSecretMaterialReadPath.readPathHeld)
+        XCTAssertTrue(preflight.readyObservation.readyObservationHeld)
+        XCTAssertTrue(preflight.missingSecretReadObservation.failClosedObservationHeld)
+        XCTAssertTrue(preflight.endpointFailureObservation.failClosedObservationHeld)
+        XCTAssertTrue(preflight.authFailureObservation.failClosedObservationHeld)
+        XCTAssertTrue(preflight.timestampFailureObservation.failClosedObservationHeld)
+        XCTAssertTrue(preflight.permissionFailureObservation.failClosedObservationHeld)
+        XCTAssertTrue(preflight.staleResponseObservation.failClosedObservationHeld)
+        XCTAssertTrue(preflight.signedAccountReadOnlyPreflightEnabledByThisIssue)
+        XCTAssertTrue(preflight.redactedFreshnessStatusEvidencePersisted)
+        XCTAssertTrue(preflight.failedPreflightBlocksSubmitPath)
+        XCTAssertFalse(preflight.rawAccountPayloadPersisted)
+        XCTAssertFalse(preflight.signaturePersisted)
+        XCTAssertFalse(preflight.futuresExecutionEnabled)
+        XCTAssertFalse(preflight.okxActiveImplementationEnabled)
+        XCTAssertFalse(preflight.submitCancelReplaceEnabledByThisIssue)
+        XCTAssertFalse(preflight.productionTradingEnabledByDefault)
+        XCTAssertFalse(preflight.productionCutoverAuthorized)
+        XCTAssertFalse(preflight.createsTagOrRelease)
+
+        XCTAssertEqual(preflight.readyObservation.endpointFamilyReference, "https://api.binance.com")
+        XCTAssertEqual(preflight.readyObservation.accountPath, "/api/v3/account")
+        XCTAssertEqual(preflight.readyObservation.method, "GET")
+        XCTAssertTrue(preflight.readyObservation.redactedFreshnessStatusSummary.contains("<redacted>"))
+        XCTAssertTrue(preflight.readyObservation.redactedFreshnessStatusSummary.contains("freshness=<redacted>"))
+        XCTAssertTrue(preflight.readyObservation.redactedFreshnessStatusSummary.contains("status=<redacted>"))
+        XCTAssertTrue(preflight.readyObservation.redactedFreshnessStatusSummary.contains("payload=<redacted>"))
+        XCTAssertFalse(
+            preflight.readyObservation.redactedFreshnessStatusSummary.lowercased().contains("balances=")
+        )
+
+        XCTAssertEqual(
+            preflight.missingSecretReadObservation.failureClass,
+            .missingCredentialSecretRead
+        )
+        XCTAssertEqual(preflight.endpointFailureObservation.failureClass, .endpointRejected)
+        XCTAssertEqual(preflight.authFailureObservation.failureClass, .authenticationRejected)
+        XCTAssertEqual(preflight.timestampFailureObservation.failureClass, .timestampRejected)
+        XCTAssertEqual(preflight.permissionFailureObservation.failureClass, .permissionRejected)
+        XCTAssertEqual(preflight.staleResponseObservation.failureClass, .staleResponse)
+
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanarySignedAccountReadOnlyPreflightObservation(
+                rawAccountPayloadPersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanarySignedAccountReadOnlyPreflightObservation(
+                signaturePersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanarySignedAccountReadOnlyPreflightObservation(
+                orderEndpointTouched: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanarySignedAccountReadOnlyPreflightObservation(
+                redactedFreshnessStatusSummary: "balances=100; permissions=TRADE"
+            )
+        )
+
+        XCTAssertTrue(
+            preflight.requiredValidationCommands.contains(
+                "bash checks/verify-v0.22.0-signed-account-runtime-preflight.sh"
+            )
+        )
+        XCTAssertTrue(
+            preflight.validationAnchors.contains(
+                "GH-1312-VERIFY-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT"
+            )
+        )
+        XCTAssertTrue(preflight.validationAnchors.contains("V0220-004-BLOCKED-BY-GH1311"))
+        XCTAssertTrue(preflight.validationAnchors.contains("V0220-004-FAILED-PREFLIGHT-BLOCKS-SUBMIT"))
+        XCTAssertTrue(preflight.validationAnchors.contains("V0220-004-NO-ORDER-CUTOVER"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1312-VERIFY-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT",
+            "TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT",
+            "V0220-004-BLOCKED-BY-GH1311",
+            "V0220-004-APPROVED-CANARY-SESSION-ONLY",
+            "V0220-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT",
+            "V0220-004-REDACTED-FRESHNESS-STATUS-EVIDENCE",
+            "V0220-004-RAW-ACCOUNT-PAYLOAD-NEVER-PERSISTED",
+            "V0220-004-ENDPOINT-AUTH-TIMESTAMP-PERMISSION-STALE-FAIL-CLOSED",
+            "V0220-004-FAILED-PREFLIGHT-BLOCKS-SUBMIT",
+            "V0220-004-NO-FUTURES-OKX",
+            "V0220-004-NO-ORDER-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanarySignedAccountReadOnlyRuntimePreflight.swift",
+            "docs/contracts/release-v0.22.0-signed-account-runtime-preflight.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.22.0-signed-account-runtime-preflight.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read(
+            "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanarySignedAccountReadOnlyRuntimePreflight.swift"
+        )
+        let contractDoc = try read("docs/contracts/release-v0.22.0-signed-account-runtime-preflight.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let verification = try read("verification.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanarySignedAccountReadOnlyRuntimePreflight"))
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath"))
+        XCTAssertTrue(source.contains("failedPreflightBlocksSubmitPath: Bool = true"))
+        XCTAssertTrue(source.contains("rawAccountPayloadPersisted: Bool = false"))
+        XCTAssertTrue(source.contains("signaturePersisted: Bool = false"))
+        XCTAssertTrue(source.contains("submitCancelReplaceEnabledByThisIssue: Bool = false"))
+        XCTAssertTrue(source.contains("productionCutoverAuthorized: Bool = false"))
+        XCTAssertTrue(contractDoc.contains("signed account runtime preflight"))
+        XCTAssertTrue(contractDoc.contains("Persist only redacted freshness/status evidence"))
+        XCTAssertTrue(readiness.contains("Release v0.22.0 signed account runtime preflight anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1312 Release v0.22.0 Signed Account Runtime Preflight"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT"))
+        XCTAssertTrue(verification.contains("GH-1312 v0.22.0 Signed Account Runtime Preflight"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-signed-account-runtime-preflight.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-signed-account-runtime-preflight.sh"))
+
+        for document in [contractDoc, verification] {
+            for forbidden in [
+                "rawAccountPayloadPersisted=true",
+                "signaturePersisted=true",
+                "productionEndpointConnected=true",
+                "productionBrokerConnected=true",
+                "productionOrderSubmitted=true",
+                "productionCutoverAuthorized=true"
+            ] {
+                XCTAssertFalse(document.contains(forbidden), "\(forbidden) must stay out of GH-1312 docs")
+            }
+        }
+    }
+
     func testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract() throws {
         // 测试场景：GH-1309 定义 v0.22.0 Binance Spot live canary
         // transport completion 顶层合同。
