@@ -37,6 +37,22 @@
 - Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.swift`、`docs/contracts/release-v0.22.0-operator-approval-run-lock.md`、`checks/verify-v0.22.0-operator-approval-run-lock.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: no production cutover, no secret read, no endpoint connection and no order submission in GH-1310. Approval cannot be reused and one-shot run lock blocks concurrent live canary submit attempts.
 
+## TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION
+
+- TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION
+- GH-1311-VERIFY-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION
+- V0220-003-BLOCKED-BY-GH1310
+- V0220-003-APPROVAL-BOUND-SECRET-READ
+- V0220-003-EPHEMERAL-SECRET-MATERIAL-ONLY
+- V0220-003-REDACTED-AUDIT-EVIDENCE
+- V0220-003-RAW-SECRET-NEVER-PERSISTED
+- V0220-003-MISSING-APPROVAL-FAILS-CLOSED
+- V0220-003-NO-ENDPOINT-ORDER
+- V0220-003-NO-PRODUCTION-CUTOVER
+- Command: `bash checks/verify-v0.22.0-credential-secret-material-read-redaction.sh`
+- Evidence files: `Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.swift`、`docs/contracts/release-v0.22.0-credential-secret-material-read-redaction.md`、`checks/verify-v0.22.0-credential-secret-material-read-redaction.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: no production cutover, no endpoint connection, no signed request and no order submission in GH-1311. Secret material read is bound to GH-1310 approval, ephemeral only, and persists only redacted credential reference metadata and redacted audit evidence.
+
 ## TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
 
 - TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT

@@ -34,6 +34,17 @@ Agent / Graphify 默认读取 `docs/validation/latest-verification-summary.md`�
 - Scope: GH-1310 defines the operator approval session and one-shot run lock required after GH-1309.
 - Boundary: approval cannot be reused, missing / stale / mismatched approval fails closed, concurrent live canary submit attempts are blocked, and GH-1310 does not read secrets, connect endpoints, submit orders, publish a release, or authorize production cutover.
 
+## GH-1311 v0.22.0 Credential Secret Material Read Redaction
+
+日期：2026-07-05
+
+执行者：Codex
+
+- Anchors: `GH-1311-VERIFY-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION` / `TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION` / `V0220-003-BLOCKED-BY-GH1310` / `V0220-003-APPROVAL-BOUND-SECRET-READ` / `V0220-003-EPHEMERAL-SECRET-MATERIAL-ONLY` / `V0220-003-REDACTED-AUDIT-EVIDENCE` / `V0220-003-RAW-SECRET-NEVER-PERSISTED` / `V0220-003-MISSING-APPROVAL-FAILS-CLOSED` / `V0220-003-NO-ENDPOINT-ORDER` / `V0220-003-NO-PRODUCTION-CUTOVER`.
+- Command: `bash checks/verify-v0.22.0-credential-secret-material-read-redaction.sh`.
+- Scope: GH-1311 defines the approval-bound ephemeral credential secret material read path required after GH-1310.
+- Boundary: raw secret / signature / listenKey never persist or log, missing / consumed / mismatched approval or missing secret material fails closed, and GH-1311 does not connect endpoints, sign requests, submit orders, publish a release, or authorize production cutover.
+
 ## GH-1307 v0.21.1 Canary Evidence Wording Guard
 
 日期：2026-07-04

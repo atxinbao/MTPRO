@@ -16,6 +16,11 @@
 - GH-1310 uses `GH-1310-VERIFY-V0220-OPERATOR-APPROVAL-RUN-LOCK`、`TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK`、`V0220-002-BLOCKED-BY-GH1309`、`V0220-002-OPERATOR-APPROVAL-SESSION`、`V0220-002-SCOPE-BOUND-APPROVAL`、`V0220-002-APPROVAL-REUSE-FAILS-CLOSED`、`V0220-002-MISSING-STALE-MISMATCHED-FAILS-CLOSED`、`V0220-002-ONE-SHOT-RUN-LOCK`、`V0220-002-NO-SECRET-ENDPOINT-ORDER` 和 `V0220-002-NO-PRODUCTION-CUTOVER` to define the operator approval session and one-shot run lock.
 - Approval cannot be reused; missing, stale, or mismatched approval fails closed; concurrent live canary submit attempts are blocked. This issue does not read secrets, connect endpoints, submit orders, publish a release, or authorize production cutover.
 
+## v0.22.0 credential secret material read redaction
+
+- GH-1311 uses `GH-1311-VERIFY-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION`、`TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION`、`V0220-003-BLOCKED-BY-GH1310`、`V0220-003-APPROVAL-BOUND-SECRET-READ`、`V0220-003-EPHEMERAL-SECRET-MATERIAL-ONLY`、`V0220-003-REDACTED-AUDIT-EVIDENCE`、`V0220-003-RAW-SECRET-NEVER-PERSISTED`、`V0220-003-MISSING-APPROVAL-FAILS-CLOSED`、`V0220-003-NO-ENDPOINT-ORDER` 和 `V0220-003-NO-PRODUCTION-CUTOVER` to define the approval-bound ephemeral credential secret material read path.
+- The path persists only redacted credential reference metadata and redacted audit evidence. Raw secret / signature / listenKey never persist or log. Missing approval, consumed approval, mismatched scope, or missing secret material fails closed. This issue does not connect endpoints, sign requests, submit orders, publish a release, or authorize production cutover.
+
 ## 当前读序
 
 ```text
