@@ -140,6 +140,25 @@
 - Focused verifier: `bash checks/verify-v0.22.0-reconciliation-evidence.sh`
 - Focused test: `swift test --filter TargetGraphTests/testGH1316ReleaseV0220ReconcilesOMSWithSignedAccountAndOrderStatusEvidence`
 - Boundary: OMS event log, signed account preflight, and exchange order status evidence reconcile into a redacted artifact; missing exchange evidence, ambiguous state, or local-only assumptions fail closed with next operator action; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+
+## GH-1317 Release v0.22.0 Failure Rollback Drill
+
+- GH-1317-VERIFY-V0220-FAILURE-ROLLBACK-DRILL
+- TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL
+- V0220-009-BLOCKED-BY-GH1315-GH1316
+- V0220-009-FAILURE-CLASSIFICATION
+- V0220-009-AUTH-ENDPOINT-RISK-KILL-NOTRADE-SUBMIT-CANCEL-STATUS-RECONCILIATION-ARTIFACT
+- V0220-009-DETERMINISTIC-NEXT-ACTION
+- V0220-009-KILL-SWITCH-BLOCKS-SUBMIT-CANCEL
+- V0220-009-NO-TRADE-BLOCKS-SUBMIT-CANCEL
+- V0220-009-ROLLBACK-DRILL-EVIDENCE
+- V0220-009-NO-UNINTENDED-ORDERS
+- V0220-009-NO-FUTURES-OKX
+- V0220-009-NO-DASHBOARD-TRADING-CONTROLS
+- V0220-009-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.22.0-failure-rollback-drill.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1317ReleaseV0220FailureClassificationRollbackKillSwitchNoTradeDrill`
+- Boundary: auth, endpoint, risk, kill switch, no-trade, submit, cancel, status, reconciliation, and artifact failures fail closed with deterministic next action; kill switch / no-trade block submit and cancel; rollback drill sends no unintended orders; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 - Focused test: `swift test --filter TargetGraphTests/testGH1315ReleaseV0220OMSEventLogPersistsExchangeAckStatusCancelEvidence`
 - Boundary: append-only OMS event log evidence only; submit ack, status observation, cancel request, cancel ack, terminal state, and ambiguous-state evidence must share one run/order correlation chain; missing status, missing cancel outcome, out-of-order lifecycle, correlation mismatch, or raw payload evidence fails closed; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 

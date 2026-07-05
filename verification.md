@@ -100,6 +100,17 @@ Agent / Graphify 默认读取 `docs/validation/latest-verification-summary.md`�
 - Scope: GH-1316 defines redacted reconciliation artifact evidence after GH-1312 signed account preflight and GH-1315 OMS event log are ready.
 - Boundary: matched / pending / ambiguous / rejected / cancelled / fill-like observations must be classified with next operator action; missing exchange evidence, ambiguous exchange state, missing OMS log evidence, or local-only assumptions fail closed; GH-1316 persists only redacted reconciliation evidence and does not enable Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 
+## GH-1317 v0.22.0 Failure Rollback Drill
+
+日期：2026-07-05
+
+执行者：Codex
+
+- Anchors: `GH-1317-VERIFY-V0220-FAILURE-ROLLBACK-DRILL` / `TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL` / `V0220-009-BLOCKED-BY-GH1315-GH1316` / `V0220-009-FAILURE-CLASSIFICATION` / `V0220-009-AUTH-ENDPOINT-RISK-KILL-NOTRADE-SUBMIT-CANCEL-STATUS-RECONCILIATION-ARTIFACT` / `V0220-009-DETERMINISTIC-NEXT-ACTION` / `V0220-009-KILL-SWITCH-BLOCKS-SUBMIT-CANCEL` / `V0220-009-NO-TRADE-BLOCKS-SUBMIT-CANCEL` / `V0220-009-ROLLBACK-DRILL-EVIDENCE` / `V0220-009-NO-UNINTENDED-ORDERS` / `V0220-009-NO-FUTURES-OKX` / `V0220-009-NO-DASHBOARD-TRADING-CONTROLS` / `V0220-009-NO-PRODUCTION-CUTOVER`.
+- Command: `bash checks/verify-v0.22.0-failure-rollback-drill.sh`.
+- Scope: GH-1317 defines failure classification and rollback drill evidence after GH-1315 OMS event log and GH-1316 reconciliation evidence are ready.
+- Boundary: auth / endpoint / risk / kill switch / no-trade / submit / cancel / status / reconciliation / artifact failures must fail closed with deterministic next action; kill switch and no-trade block submit / cancel; rollback drill records no unintended orders and does not enable Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+
 ## GH-1307 v0.21.1 Canary Evidence Wording Guard
 
 日期：2026-07-04
