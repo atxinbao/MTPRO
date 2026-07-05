@@ -67,6 +67,17 @@ Agent / Graphify 默认读取 `docs/validation/latest-verification-summary.md`�
 - Scope: GH-1313 defines one allowlisted Binance Spot canary submit transport evidence path after GH-1312 signed account preflight is ready.
 - Boundary: CommandGateway, RiskEngine, kill switch, no-trade, ExecutionEngine and OMS gates are required; only redacted request / exchange ack evidence persists; limit / risk / kill switch / no-trade / duplicate / transport failure cases fail closed; GH-1313 does not enable Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 
+## GH-1314 v0.22.0 Live Order Status / Cancel Transport
+
+日期：2026-07-05
+
+执行者：Codex
+
+- Anchors: `GH-1314-VERIFY-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT` / `TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT` / `V0220-006-BLOCKED-BY-GH1313` / `V0220-006-STATUS-QUERY-BY-EXCHANGE-AND-CLIENT-ID` / `V0220-006-CANCEL-APPROVED-CANARY-ORDER-ONLY` / `V0220-006-IDEMPOTENCY-KEY-RETRY-CLASSIFICATION` / `V0220-006-REDACTED-STATUS-CANCEL-EVIDENCE` / `V0220-006-AMBIGUOUS-STATE-REQUIRES-RECONCILIATION` / `V0220-006-UNKNOWN-STATE-FAILS-CLOSED` / `V0220-006-NO-FUTURES-OKX` / `V0220-006-NO-DASHBOARD-TRADING-CONTROLS` / `V0220-006-NO-PRODUCTION-CUTOVER`.
+- Command: `bash checks/verify-v0.22.0-status-cancel-transport.sh`.
+- Scope: GH-1314 defines approved Binance Spot canary order status / cancel transport evidence after GH-1313 one-shot submit transport is ready.
+- Boundary: status query is scoped to approved exchange/client order identifiers; cancel can target only the approved canary run/order; duplicate retry must be idempotent; ambiguous / unknown exchange state fails closed and requires reconciliation; GH-1314 persists only redacted status / cancel evidence and does not enable Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+
 ## GH-1307 v0.21.1 Canary Evidence Wording Guard
 
 日期：2026-07-04

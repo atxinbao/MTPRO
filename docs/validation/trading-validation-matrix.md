@@ -88,6 +88,24 @@
 - Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOneShotSubmitTransport.swift`、`docs/contracts/release-v0.22.0-live-order-submit-transport.md`、`checks/verify-v0.22.0-live-order-submit-transport.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
 - Boundary: no production cutover, no Futures / OKX, and no Dashboard trading controls in GH-1313. The submit transport is limited to one allowlisted Binance Spot canary order after signed preflight, CommandGateway, RiskEngine, kill switch, no-trade, ExecutionEngine and OMS gates pass, and failed limit / risk / kill switch / no-trade / duplicate / transport cases fail closed.
 
+## TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT
+
+- TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT
+- GH-1314-VERIFY-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT
+- V0220-006-BLOCKED-BY-GH1313
+- V0220-006-STATUS-QUERY-BY-EXCHANGE-AND-CLIENT-ID
+- V0220-006-CANCEL-APPROVED-CANARY-ORDER-ONLY
+- V0220-006-IDEMPOTENCY-KEY-RETRY-CLASSIFICATION
+- V0220-006-REDACTED-STATUS-CANCEL-EVIDENCE
+- V0220-006-AMBIGUOUS-STATE-REQUIRES-RECONCILIATION
+- V0220-006-UNKNOWN-STATE-FAILS-CLOSED
+- V0220-006-NO-FUTURES-OKX
+- V0220-006-NO-DASHBOARD-TRADING-CONTROLS
+- V0220-006-NO-PRODUCTION-CUTOVER
+- Command: `bash checks/verify-v0.22.0-status-cancel-transport.sh`
+- Evidence files: `Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryStatusCancelTransport.swift`、`docs/contracts/release-v0.22.0-status-cancel-transport.md`、`checks/verify-v0.22.0-status-cancel-transport.sh`、`checks/run.sh`、`checks/automation-readiness.sh`、root docs、validation docs 和 `Tests/TargetGraphTests/TargetGraphTests.swift`。
+- Boundary: no production cutover, no Futures / OKX, and no Dashboard trading controls in GH-1314. Status query is scoped to approved exchange/client order identifiers; cancel can target only the approved canary run/order; duplicate retry must be idempotent; ambiguous / unknown exchange state fails closed and requires reconciliation.
+
 ## TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT
 
 - TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT

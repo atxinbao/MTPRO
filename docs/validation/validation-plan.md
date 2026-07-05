@@ -88,6 +88,24 @@
 - Focused test: `swift test --filter TargetGraphTests/testGH1313ReleaseV0220LiveOrderSubmitTransport`
 - Boundary: one allowlisted Binance Spot canary submit transport evidence only; GH-1312 signed preflight, CommandGateway, RiskEngine, kill switch, no-trade, ExecutionEngine and OMS gates are required; limit / risk / kill switch / no-trade / duplicate / transport failures fail closed; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 
+## GH-1314 Release v0.22.0 Live Order Status / Cancel Transport
+
+- GH-1314-VERIFY-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT
+- TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT
+- V0220-006-BLOCKED-BY-GH1313
+- V0220-006-STATUS-QUERY-BY-EXCHANGE-AND-CLIENT-ID
+- V0220-006-CANCEL-APPROVED-CANARY-ORDER-ONLY
+- V0220-006-IDEMPOTENCY-KEY-RETRY-CLASSIFICATION
+- V0220-006-REDACTED-STATUS-CANCEL-EVIDENCE
+- V0220-006-AMBIGUOUS-STATE-REQUIRES-RECONCILIATION
+- V0220-006-UNKNOWN-STATE-FAILS-CLOSED
+- V0220-006-NO-FUTURES-OKX
+- V0220-006-NO-DASHBOARD-TRADING-CONTROLS
+- V0220-006-NO-PRODUCTION-CUTOVER
+- Focused verifier: `bash checks/verify-v0.22.0-status-cancel-transport.sh`
+- Focused test: `swift test --filter TargetGraphTests/testGH1314ReleaseV0220LiveOrderStatusCancelTransport`
+- Boundary: approved Binance Spot canary status / cancel transport evidence only; status query is scoped to approved exchange/client order identifiers; cancel can target only the approved run/order; duplicate retry must be idempotent; ambiguous / unknown exchange state fails closed and requires reconciliation; no Futures / OKX, Dashboard trading controls, release publication, or production cutover.
+
 ## GH-1273 Release v0.21.0 Controlled Canary Contract
 
 - GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT

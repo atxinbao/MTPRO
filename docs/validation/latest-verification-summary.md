@@ -31,6 +31,11 @@
 - GH-1313 uses `GH-1313-VERIFY-V0220-LIVE-ORDER-SUBMIT-TRANSPORT`、`TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT`、`V0220-005-BLOCKED-BY-GH1312`、`V0220-005-BINANCE-SPOT-ONE-SHOT-SUBMIT`、`V0220-005-ALLOWLISTED-SYMBOL-NOTIONAL-SIDE-TIF`、`V0220-005-COMMAND-RISK-KILL-NOTRADE-EXECUTION-OMS-GATES`、`V0220-005-REDACTED-EXCHANGE-ACK-EVIDENCE`、`V0220-005-SINGLE-APPROVED-ORDER-PER-RUN`、`V0220-005-FAIL-CLOSED-LIMIT-RISK-KILL-NOTRADE-TRANSPORT`、`V0220-005-NO-FUTURES-OKX`、`V0220-005-NO-DASHBOARD-TRADING-CONTROLS` 和 `V0220-005-NO-PRODUCTION-CUTOVER` to define one allowlisted Binance Spot canary submit transport evidence path.
 - The transport requires GH-1312 signed preflight plus CommandGateway, RiskEngine, kill switch, no-trade, ExecutionEngine and OMS gates. It stores only redacted request / exchange ack evidence and fails closed for limit, risk, kill switch, no-trade, duplicate, or transport failures. It does not open Futures / OKX, Dashboard trading controls, release publication, or production cutover.
 
+## v0.22.0 live order status / cancel transport
+
+- GH-1314 uses `GH-1314-VERIFY-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT`、`TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT`、`V0220-006-BLOCKED-BY-GH1313`、`V0220-006-STATUS-QUERY-BY-EXCHANGE-AND-CLIENT-ID`、`V0220-006-CANCEL-APPROVED-CANARY-ORDER-ONLY`、`V0220-006-IDEMPOTENCY-KEY-RETRY-CLASSIFICATION`、`V0220-006-REDACTED-STATUS-CANCEL-EVIDENCE`、`V0220-006-AMBIGUOUS-STATE-REQUIRES-RECONCILIATION`、`V0220-006-UNKNOWN-STATE-FAILS-CLOSED`、`V0220-006-NO-FUTURES-OKX`、`V0220-006-NO-DASHBOARD-TRADING-CONTROLS` 和 `V0220-006-NO-PRODUCTION-CUTOVER` to define approved Binance Spot canary order status / cancel transport evidence.
+- Status query is scoped to approved exchange/client order identifiers. Cancel can target only the approved canary run/order. Duplicate retry must be idempotent. Ambiguous or unknown exchange state fails closed and requires reconciliation. Only redacted status / cancel evidence persists; Futures / OKX, Dashboard trading controls, release publication, and production cutover stay closed.
+
 ## 当前读序
 
 ```text

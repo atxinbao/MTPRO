@@ -14320,4 +14320,42 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "verification.md" "GH-1313 v0.22.0 Live Order Submit Transport"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1313ReleaseV0220LiveOrderSubmitTransport"
 
+for file in \
+  "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryStatusCancelTransport.swift" \
+  "docs/contracts/release-v0.22.0-status-cancel-transport.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0-status-cancel-transport.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1314-VERIFY-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT"
+  require_contains "$file" "TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT"
+  require_contains "$file" "V0220-006-BLOCKED-BY-GH1313"
+  require_contains "$file" "V0220-006-STATUS-QUERY-BY-EXCHANGE-AND-CLIENT-ID"
+  require_contains "$file" "V0220-006-CANCEL-APPROVED-CANARY-ORDER-ONLY"
+  require_contains "$file" "V0220-006-IDEMPOTENCY-KEY-RETRY-CLASSIFICATION"
+  require_contains "$file" "V0220-006-REDACTED-STATUS-CANCEL-EVIDENCE"
+  require_contains "$file" "V0220-006-AMBIGUOUS-STATE-REQUIRES-RECONCILIATION"
+  require_contains "$file" "V0220-006-UNKNOWN-STATE-FAILS-CLOSED"
+  require_contains "$file" "V0220-006-NO-FUTURES-OKX"
+  require_contains "$file" "V0220-006-NO-DASHBOARD-TRADING-CONTROLS"
+  require_contains "$file" "V0220-006-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0-status-cancel-transport.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-status-cancel-transport.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 live order status / cancel transport anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 live order status / cancel transport"
+require_contains "docs/validation/validation-plan.md" "GH-1314 Release v0.22.0 Live Order Status / Cancel Transport"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT"
+require_contains "verification.md" "GH-1314 v0.22.0 Live Order Status / Cancel Transport"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1314ReleaseV0220LiveOrderStatusCancelTransport"
+
 printf 'MTPRO automation readiness checks passed.\n'

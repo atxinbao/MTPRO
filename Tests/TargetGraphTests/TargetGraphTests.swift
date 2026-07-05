@@ -63185,6 +63185,221 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1314ReleaseV0220LiveOrderStatusCancelTransport() throws {
+        // 测试场景：GH-1314 固定 v0.22.0 Binance Spot approved canary
+        // order status query / cancel transport。
+        // 验证目的：status query 必须按 exchange/client order identifiers 查询；
+        // cancel 只能命中 approved canary order；duplicate retry 必须 idempotent；
+        // unknown / ambiguous exchange state 必须 fail closed 并要求 reconciliation。
+        // GH-1314-VERIFY-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT
+        // TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT
+        // V0220-006-BLOCKED-BY-GH1313
+        // V0220-006-STATUS-QUERY-BY-EXCHANGE-AND-CLIENT-ID
+        // V0220-006-CANCEL-APPROVED-CANARY-ORDER-ONLY
+        // V0220-006-IDEMPOTENCY-KEY-RETRY-CLASSIFICATION
+        // V0220-006-REDACTED-STATUS-CANCEL-EVIDENCE
+        // V0220-006-AMBIGUOUS-STATE-REQUIRES-RECONCILIATION
+        // V0220-006-UNKNOWN-STATE-FAILS-CLOSED
+        // V0220-006-NO-FUTURES-OKX
+        // V0220-006-NO-DASHBOARD-TRADING-CONTROLS
+        // V0220-006-NO-PRODUCTION-CUTOVER
+        let evidence = try ReleaseV0220SpotLiveCanaryStatusCancelTransportEvidence
+            .deterministicFixture()
+
+        XCTAssertTrue(evidence.evidenceHeld)
+        XCTAssertTrue(evidence.namespaceHeld)
+        XCTAssertTrue(evidence.observationsHeld)
+        XCTAssertTrue(evidence.requiredControlsHeld)
+        XCTAssertTrue(evidence.forbiddenCapabilitiesClosed)
+        XCTAssertEqual(evidence.issueID.rawValue, "GH-1314")
+        XCTAssertEqual(evidence.blockedByIssueIDs.map(\.rawValue), ["GH-1313"])
+        XCTAssertEqual(evidence.downstreamIssueIDs.map(\.rawValue), ["GH-1315", "GH-1316"])
+        XCTAssertEqual(evidence.canonicalQueueRange, "GH-1309..GH-1320")
+        XCTAssertEqual(evidence.releaseVersion, "v0.22.0")
+        XCTAssertEqual(evidence.venueID, .binance)
+        XCTAssertEqual(evidence.productKind, .spot)
+        XCTAssertEqual(evidence.tradingEnvironment, .productionLive)
+        XCTAssertTrue(evidence.upstreamSubmitTransport.evidenceHeld)
+
+        XCTAssertTrue(evidence.acceptedStatusObservation.acceptedObservationHeld)
+        XCTAssertEqual(evidence.acceptedStatusObservation.policy.action, .statusQuery)
+        XCTAssertEqual(evidence.acceptedStatusObservation.method, "GET")
+        XCTAssertEqual(evidence.acceptedStatusObservation.orderPath, "/api/v3/order")
+        XCTAssertTrue(evidence.acceptedStatusObservation.statusQueryTransportCreated)
+        XCTAssertFalse(evidence.acceptedStatusObservation.cancelTransportCreated)
+        XCTAssertTrue(evidence.acceptedStatusObservation.redactedStatusEvidenceEnvelope.contains("<redacted>"))
+
+        XCTAssertTrue(evidence.acceptedCancelObservation.acceptedObservationHeld)
+        XCTAssertEqual(evidence.acceptedCancelObservation.policy.action, .cancel)
+        XCTAssertEqual(evidence.acceptedCancelObservation.method, "DELETE")
+        XCTAssertTrue(evidence.acceptedCancelObservation.statusQueryTransportCreated)
+        XCTAssertTrue(evidence.acceptedCancelObservation.cancelTransportCreated)
+        XCTAssertTrue(evidence.acceptedCancelObservation.redactedCancelEvidenceEnvelope.contains("<redacted>"))
+
+        XCTAssertTrue(evidence.idempotentCancelRetryObservation.idempotentRetryObservationHeld)
+        XCTAssertEqual(
+            evidence.idempotentCancelRetryObservation.retryClassification,
+            .idempotentDuplicateRetry
+        )
+        XCTAssertEqual(
+            evidence.targetMismatchObservation.rejectReasons,
+            [.approvedClientOrderMismatch, .cancelTargetOutsideApprovedOrder]
+        )
+        XCTAssertEqual(
+            evidence.unsafeDuplicateRetryObservation.rejectReasons,
+            [.duplicateRetryNotIdempotent]
+        )
+        XCTAssertEqual(
+            evidence.unsafeDuplicateRetryObservation.retryClassification,
+            .unsafeDuplicateRejected
+        )
+        XCTAssertEqual(
+            evidence.ambiguousStateObservation.rejectReasons,
+            [.ambiguousExchangeStateRequiresReconciliation]
+        )
+        XCTAssertTrue(evidence.ambiguousStateObservation.requiresReconciliation)
+        XCTAssertEqual(evidence.missingCancelEvidenceObservation.rejectReasons, [.cancelEvidenceMissing])
+
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.futuresExecutionEnabled)
+        XCTAssertFalse(evidence.okxActiveImplementationEnabled)
+        XCTAssertFalse(evidence.dashboardTradingCommandEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryStatusCancelTransportPolicy(
+                action: .statusQuery,
+                rawStatusPayloadPersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryStatusCancelTransportPolicy(
+                action: .cancel,
+                rawCancelPayloadPersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryStatusCancelTransportPolicy(
+                action: .cancel,
+                signaturePersisted: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryStatusCancelTransportPolicy(
+                action: .cancel,
+                futuresExecutionEnabled: true
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0220SpotLiveCanaryStatusCancelTransportPolicy(
+                action: .cancel,
+                productionCutoverAuthorized: true
+            )
+        )
+
+        XCTAssertTrue(
+            evidence.requiredValidationCommands.contains(
+                "bash checks/verify-v0.22.0-status-cancel-transport.sh"
+            )
+        )
+        XCTAssertTrue(
+            evidence.validationAnchors.contains(
+                "GH-1314-VERIFY-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT"
+            )
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-006-BLOCKED-BY-GH1313"))
+        XCTAssertTrue(
+            evidence.validationAnchors.contains(
+                "V0220-006-AMBIGUOUS-STATE-REQUIRES-RECONCILIATION"
+            )
+        )
+        XCTAssertTrue(evidence.validationAnchors.contains("V0220-006-NO-PRODUCTION-CUTOVER"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let requiredAnchors = [
+            "GH-1314-VERIFY-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT",
+            "TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT",
+            "V0220-006-BLOCKED-BY-GH1313",
+            "V0220-006-STATUS-QUERY-BY-EXCHANGE-AND-CLIENT-ID",
+            "V0220-006-CANCEL-APPROVED-CANARY-ORDER-ONLY",
+            "V0220-006-IDEMPOTENCY-KEY-RETRY-CLASSIFICATION",
+            "V0220-006-REDACTED-STATUS-CANCEL-EVIDENCE",
+            "V0220-006-AMBIGUOUS-STATE-REQUIRES-RECONCILIATION",
+            "V0220-006-UNKNOWN-STATE-FAILS-CLOSED",
+            "V0220-006-NO-FUTURES-OKX",
+            "V0220-006-NO-DASHBOARD-TRADING-CONTROLS",
+            "V0220-006-NO-PRODUCTION-CUTOVER"
+        ]
+        let requiredFiles = [
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryStatusCancelTransport.swift",
+            "docs/contracts/release-v0.22.0-status-cancel-transport.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.22.0-status-cancel-transport.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let source = try read(
+            "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryStatusCancelTransport.swift"
+        )
+        let contractDoc = try read("docs/contracts/release-v0.22.0-status-cancel-transport.md")
+        let readiness = try read("docs/automation/automation-readiness.md")
+        let validationPlan = try read("docs/validation/validation-plan.md")
+        let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
+        let verification = try read("verification.md")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryStatusCancelTransportEvidence"))
+        XCTAssertTrue(source.contains("ReleaseV0220SpotLiveCanaryOneShotSubmitTransportEvidence"))
+        XCTAssertTrue(source.contains("requiredRunID"))
+        XCTAssertTrue(source.contains("requiredClientOrderID"))
+        XCTAssertTrue(source.contains("requiredExchangeOrderID"))
+        XCTAssertTrue(source.contains("requiredIdempotencyKey"))
+        XCTAssertTrue(source.contains("redactedStatusEvidenceEnvelope"))
+        XCTAssertTrue(source.contains("redactedCancelEvidenceEnvelope"))
+        XCTAssertTrue(contractDoc.contains("approved Binance Spot live canary status / cancel transport"))
+        XCTAssertTrue(readiness.contains("Release v0.22.0 live order status / cancel transport anchor"))
+        XCTAssertTrue(validationPlan.contains("GH-1314 Release v0.22.0 Live Order Status / Cancel Transport"))
+        XCTAssertTrue(tradingMatrix.contains("TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT"))
+        XCTAssertTrue(verification.contains("GH-1314 v0.22.0 Live Order Status / Cancel Transport"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-status-cancel-transport.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-status-cancel-transport.sh"))
+
+        for document in [contractDoc, verification] {
+            for forbidden in [
+                "rawStatusPayloadPersisted=true",
+                "rawCancelPayloadPersisted=true",
+                "rawCredentialValuePersisted=true",
+                "signaturePersisted=true",
+                "productionCutoverAuthorized=true",
+                "Dashboard trading button enabled"
+            ] {
+                XCTAssertFalse(document.contains(forbidden), "\(forbidden) must stay out of GH-1314 docs")
+            }
+        }
+    }
+
     func testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract() throws {
         // 测试场景：GH-1309 定义 v0.22.0 Binance Spot live canary
         // transport completion 顶层合同。
