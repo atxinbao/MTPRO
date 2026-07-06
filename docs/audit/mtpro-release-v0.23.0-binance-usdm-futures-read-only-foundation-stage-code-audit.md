@@ -3,6 +3,29 @@
 Date: 2026-07-06  
 Executor: Codex
 
+## Publication Facts
+
+- GH-1353-VERIFY-V0231-V0230-RELEASE-FACT-SYNC
+- TVM-RELEASE-V0231-V0230-RELEASE-FACT-SYNC
+- V0231-001-V0230-GITHUB-RELEASE-PUBLISHED
+- V0231-001-V0230-TAG-FIXED
+- GH-1354-VERIFY-V0231-V0230-STALE-WORDING-GUARD
+- V0231-002-PUBLISHED-V0230-STALE-WORDING-GUARD
+- GH-1355-VERIFY-V0231-LATEST-VERIFICATION-MILESTONE-FACTS
+- V0231-003-V0221-V0230-MILESTONES-COMPLETE
+- GH-1356-VERIFY-V0231-FUTURES-READONLY-GUARD-HARDENING
+- V0231-004-NO-FUTURES-MUTATION
+- V0231-004-NO-LISTENKEY-PRIVATE-STREAM
+- V0231-004-NO-OKX-PRODUCTION-CUTOVER
+- GH-1357-VERIFY-V0231-PATCH-AUDIT-RELEASE-NOTES
+- V0231-005-PATCH-AUDIT
+- V0231-005-V0240-BLOCKED-BY-V0231-COMPLETION
+- V0231-005-NO-CAPABILITY-CHANGE
+
+Published release: https://github.com/atxinbao/MTPRO/releases/tag/v0.23.0
+
+Published tag target: `abf787792e36dab486a6eb7f6a7477007ed68dee`.
+
 ## Anchors
 
 - GH-1341-VERIFY-V0230-FUTURES-READONLY-CONTRACT
@@ -65,4 +88,4 @@ bash checks/run.sh
 
 ## Residual Risk
 
-v0.23.0 does not perform live Futures network connectivity and does not create a v0.23.0 tag / GitHub Release unless separately requested.
+v0.23.0 does not perform live Futures network connectivity. The v0.23.0 GitHub Release is now published and remains fixed at `abf787792e36dab486a6eb7f6a7477007ed68dee`; v0.23.1 only synchronizes facts and does not move the tag or add trading capability.

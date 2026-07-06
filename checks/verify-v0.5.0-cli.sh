@@ -34,6 +34,23 @@ reject_output_contains() {
   fi
 }
 
+require_help_command() {
+  local output="$1"
+  local command="$2"
+
+  if ! grep -Fq "commands=" <<< "$output"; then
+    printf 'release v0.5.0 CLI verification failed: help output must contain commands= line\n' >&2
+    printf '%s\n' "$output" >&2
+    exit 1
+  fi
+
+  if ! grep -E "(^|,)${command}(,|$)" <<< "$(grep -F "commands=" <<< "$output" | head -n 1 | sed 's/^commands=//')" >/dev/null; then
+    printf 'release v0.5.0 CLI verification failed: commands list must contain: %s\n' "$command" >&2
+    printf '%s\n' "$output" >&2
+    exit 1
+  fi
+}
+
 expect_failure_contains() {
   local expected="$1"
   shift
@@ -60,7 +77,12 @@ swift test --filter TargetGraphTests/testGH727StrictCLICommandParserRejectsUnkno
 
 help_output="$(swift run mtpro help)"
 require_output_contains "$help_output" "mtpro help"
-require_output_contains "$help_output" "commands=help,run,status,stop,recover,risk-policy,readiness,monitor,verify,testnet-execution,spot-testnet-submit,spot-testnet-cancel,spot-testnet-status-query,operator-run,venue-product,production-shadow-readiness,canary-status,canary-live-evidence,futures-readonly-readiness,rehearsal-status,unified-run-status,run-observer,run-detail-observer,testnet-readonly-probe,verify-fast,verify-release"
+legacy_commands="help,run,status,stop,recover,risk-policy,readiness,monitor,verify,testnet-execution,spot-testnet-submit,spot-testnet-cancel,spot-testnet-status-query,operator-run,venue-product,production-shadow-readiness,canary-status,canary-live-evidence,futures-readonly-readiness,rehearsal-status,unified-run-status,run-observer,run-detail-observer,testnet-readonly-probe,verify-fast,verify-release"
+IFS=',' read -r -a legacy_command_array <<< "$legacy_commands"
+for command in "${legacy_command_array[@]}"; do
+  require_help_command "$help_output" "$command"
+done
+require_help_command "$help_output" "dual-product-readonly-readiness"
 require_output_contains "$help_output" "productionTradingEnabledByDefault=false"
 
 run_output="$(swift run mtpro run)"

@@ -2836,3 +2836,22 @@ bash checks/run.sh
 - Binance USD-M Futures read-only foundation.
 - futuresOrderExecutionEnabled=false.
 - production cutover not authorized.
+
+## Release v0.23.1 publication fact sync / read-only guard patch
+
+- GH-1353-VERIFY-V0231-V0230-RELEASE-FACT-SYNC / TVM-RELEASE-V0231-V0230-RELEASE-FACT-SYNC / V0231-001-V0230-GITHUB-RELEASE-PUBLISHED / V0231-001-V0230-TAG-FIXED: v0.23.0 GitHub Release is published at https://github.com/atxinbao/MTPRO/releases/tag/v0.23.0 and the tag is fixed at `abf787792e36dab486a6eb7f6a7477007ed68dee`.
+- GH-1354-VERIFY-V0231-V0230-STALE-WORDING-GUARD / V0231-002-PUBLISHED-V0230-STALE-WORDING-GUARD: v0.23.0 construction-closeout wording is no longer allowed to claim that v0.23.0 was not published.
+- GH-1355-VERIFY-V0231-LATEST-VERIFICATION-MILESTONE-FACTS / V0231-003-V0221-V0230-MILESTONES-COMPLETE: v0.22.1 issues #1337-#1340 closed; v0.23.0 issues #1341-#1351 closed.
+- GH-1356-VERIFY-V0231-FUTURES-READONLY-GUARD-HARDENING / V0231-004-NO-FUTURES-MUTATION / V0231-004-NO-LISTENKEY-PRIVATE-STREAM / V0231-004-NO-OKX-PRODUCTION-CUTOVER: v0.23.1 adds no Futures mutation, listenKey, private stream, OKX, production cutover, production endpoint or live order capability.
+- GH-1357-VERIFY-V0231-PATCH-AUDIT-RELEASE-NOTES / V0231-005-PATCH-AUDIT / V0231-005-V0240-BLOCKED-BY-V0231-COMPLETION / V0231-005-NO-CAPABILITY-CHANGE: v0.23.1 is a publication fact sync patch only; v0.24.0 remains blocked by v0.23.1 completion.
+
+## Release v0.24.0 Spot + Futures unified read-only foundation
+
+- GH-1358-VERIFY-V0240-DUAL-PRODUCT-CONTRACT / TVM-RELEASE-V0240-DUAL-PRODUCT-CONTRACT / V0240-001-SPOT-FUTURES-DUAL-PRODUCT-UNIFICATION / V0240-001-BLOCKED-BY-V0231-COMPLETION: v0.24.0 depends on v0.23.1 completion and unifies Binance Spot canary evidence with Binance USD-M Futures read-only evidence.
+- GH-1359-VERIFY-V0240-PRODUCT-AWARE-OMS-EVIDENCE / V0240-002-UNIFIED-OMS-EVENT-EVIDENCE / V0240-002-NO-FUTURES-ORDER-EXECUTION: OMS evidence is product-aware and local; Futures order execution remains disabled.
+- GH-1360-VERIFY-V0240-UNIFIED-PORTFOLIO-PROJECTION / V0240-003-SPOT-CANARY-FUTURES-READONLY-PORTFOLIO / V0240-003-FUTURES-READONLY-NOT-TRADING-AUTHORIZATION: Portfolio evidence joins Spot canary projection and Futures read-only observation without treating Futures as trading authorization.
+- GH-1361-VERIFY-V0240-UNIFIED-RISK-READINESS / V0240-004-SPOT-FUTURES-RISK-READINESS / V0240-004-READINESS-NOT-PRODUCTION-RISK-APPROVAL: Risk readiness is evidence-only and not production risk approval.
+- GH-1362-VERIFY-V0240-DUAL-PRODUCT-RECONCILIATION / V0240-005-SPOT-FUTURES-RECONCILIATION-FOUNDATION / V0240-005-NO-BROKER-RECONCILIATION-RUNTIME: Reconciliation remains a local dual-product evidence foundation, not broker reconciliation runtime.
+- GH-1363-VERIFY-V0240-DUAL-PRODUCT-FAILURE-MATRIX / V0240-006-DUAL-PRODUCT-FAILURE-CLASSIFICATION / V0240-006-FAIL-CLOSED-EVIDENCE: dual-product failures are classified and fail-closed.
+- GH-1364-VERIFY-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE / TVM-RELEASE-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE / V0240-007-DASHBOARD-CLI-DUAL-PRODUCT-READONLY / V0240-007-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND: Dashboard / CLI are read-only and expose no trading button, order form or live command.
+- GH-1365-VERIFY-V0240-AGGREGATE-VALIDATION / TVM-RELEASE-V0240-AGGREGATE-VALIDATION / V0240-008-AGGREGATE-VALIDATION-SUITE / V0240-008-STAGE-AUDIT-RELEASE-DOCS / V0240-008-NO-PRODUCTION-CUTOVER: v0.24.0 closes aggregate validation and release docs with production cutover not authorized.
