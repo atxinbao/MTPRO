@@ -193,6 +193,13 @@ require_file "checks/verify-v0.21.1-v0210-canary-evidence-wording.sh"
 require_file "checks/verify-v0.21.1.sh"
 require_file "checks/verify-v0.22.1.sh"
 require_file "checks/verify-v0.23.0.sh"
+require_file "checks/verify-v0.23.1.sh"
+require_file "checks/verify-v0.24.0.sh"
+require_file "docs/contracts/release-v0.24.0-spot-futures-unified-readonly-foundation-contract.md"
+require_file "docs/audit/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-notes.md"
+require_file "docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -14737,5 +14744,107 @@ require_contains "docs/validation/validation-plan.md" "GH-1350 Release v0.23.0 A
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0230-AGGREGATE-VALIDATION"
 require_contains "verification.md" "MTPRO Release v0.23.0 Binance USD-M Futures Read-only Foundation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1341To1351ReleaseV0230BinanceUSDMFuturesReadOnlyFoundation"
+
+for file in \
+  "docs/audit/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-notes.md" \
+  "docs/release/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-notes.md" \
+  "docs/audit/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-stage-code-audit.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "verification.md" \
+  "checks/verify-v0.23.1.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1353-VERIFY-V0231-V0230-RELEASE-FACT-SYNC"
+  require_contains "$file" "V0231-001-V0230-GITHUB-RELEASE-PUBLISHED"
+  require_contains "$file" "GH-1354-VERIFY-V0231-V0230-STALE-WORDING-GUARD"
+  require_contains "$file" "GH-1355-VERIFY-V0231-LATEST-VERIFICATION-MILESTONE-FACTS"
+  require_contains "$file" "GH-1356-VERIFY-V0231-FUTURES-READONLY-GUARD-HARDENING"
+  require_contains "$file" "GH-1357-VERIFY-V0231-PATCH-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "V0231-005-V0240-BLOCKED-BY-V0231-COMPLETION"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.23.1.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.23.1.sh"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0240SpotFuturesUnifiedReadOnlyFoundation.swift" \
+  "Sources/Dashboard/Report/ReleaseV0240DashboardCLIDualProductReadOnlyEvidenceSurface.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "docs/contracts/release-v0.24.0-spot-futures-unified-readonly-foundation-contract.md" \
+  "docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.24.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1358-VERIFY-V0240-DUAL-PRODUCT-CONTRACT"
+  require_contains "$file" "TVM-RELEASE-V0240-DUAL-PRODUCT-CONTRACT"
+  require_contains "$file" "V0240-001-SPOT-FUTURES-DUAL-PRODUCT-UNIFICATION"
+  require_contains "$file" "GH-1359-VERIFY-V0240-PRODUCT-AWARE-OMS-EVIDENCE"
+  require_contains "$file" "GH-1360-VERIFY-V0240-UNIFIED-PORTFOLIO-PROJECTION"
+  require_contains "$file" "GH-1361-VERIFY-V0240-UNIFIED-RISK-READINESS"
+  require_contains "$file" "GH-1362-VERIFY-V0240-DUAL-PRODUCT-RECONCILIATION"
+  require_contains "$file" "GH-1363-VERIFY-V0240-DUAL-PRODUCT-FAILURE-MATRIX"
+  require_contains "$file" "GH-1364-VERIFY-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE"
+  require_contains "$file" "GH-1365-VERIFY-V0240-AGGREGATE-VALIDATION"
+  require_contains "$file" "V0240-008-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.24.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.24.0.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1358To1365ReleaseV0240SpotFuturesUnifiedReadOnlyFoundation"
+
+# Release v0.23.1 full anchor inventory:
+# GH-1353-VERIFY-V0231-V0230-RELEASE-FACT-SYNC
+# TVM-RELEASE-V0231-V0230-RELEASE-FACT-SYNC
+# V0231-001-V0230-GITHUB-RELEASE-PUBLISHED
+# V0231-001-V0230-TAG-FIXED
+# GH-1354-VERIFY-V0231-V0230-STALE-WORDING-GUARD
+# V0231-002-PUBLISHED-V0230-STALE-WORDING-GUARD
+# GH-1355-VERIFY-V0231-LATEST-VERIFICATION-MILESTONE-FACTS
+# V0231-003-V0221-V0230-MILESTONES-COMPLETE
+# GH-1356-VERIFY-V0231-FUTURES-READONLY-GUARD-HARDENING
+# V0231-004-NO-FUTURES-MUTATION
+# V0231-004-NO-LISTENKEY-PRIVATE-STREAM
+# V0231-004-NO-OKX-PRODUCTION-CUTOVER
+# GH-1357-VERIFY-V0231-PATCH-AUDIT-RELEASE-NOTES
+# V0231-005-PATCH-AUDIT
+# V0231-005-V0240-BLOCKED-BY-V0231-COMPLETION
+# V0231-005-NO-CAPABILITY-CHANGE
+
+# Release v0.24.0 full anchor inventory:
+# GH-1358-VERIFY-V0240-DUAL-PRODUCT-CONTRACT
+# TVM-RELEASE-V0240-DUAL-PRODUCT-CONTRACT
+# V0240-001-SPOT-FUTURES-DUAL-PRODUCT-UNIFICATION
+# V0240-001-BLOCKED-BY-V0231-COMPLETION
+# GH-1359-VERIFY-V0240-PRODUCT-AWARE-OMS-EVIDENCE
+# V0240-002-UNIFIED-OMS-EVENT-EVIDENCE
+# V0240-002-NO-FUTURES-ORDER-EXECUTION
+# GH-1360-VERIFY-V0240-UNIFIED-PORTFOLIO-PROJECTION
+# V0240-003-SPOT-CANARY-FUTURES-READONLY-PORTFOLIO
+# V0240-003-FUTURES-READONLY-NOT-TRADING-AUTHORIZATION
+# GH-1361-VERIFY-V0240-UNIFIED-RISK-READINESS
+# V0240-004-SPOT-FUTURES-RISK-READINESS
+# V0240-004-READINESS-NOT-PRODUCTION-RISK-APPROVAL
+# GH-1362-VERIFY-V0240-DUAL-PRODUCT-RECONCILIATION
+# V0240-005-SPOT-FUTURES-RECONCILIATION-FOUNDATION
+# V0240-005-NO-BROKER-RECONCILIATION-RUNTIME
+# GH-1363-VERIFY-V0240-DUAL-PRODUCT-FAILURE-MATRIX
+# V0240-006-DUAL-PRODUCT-FAILURE-CLASSIFICATION
+# V0240-006-FAIL-CLOSED-EVIDENCE
+# GH-1364-VERIFY-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE
+# TVM-RELEASE-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE
+# V0240-007-DASHBOARD-CLI-DUAL-PRODUCT-READONLY
+# V0240-007-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+# GH-1365-VERIFY-V0240-AGGREGATE-VALIDATION
+# TVM-RELEASE-V0240-AGGREGATE-VALIDATION
+# V0240-008-AGGREGATE-VALIDATION-SUITE
+# V0240-008-STAGE-AUDIT-RELEASE-DOCS
+# V0240-008-NO-PRODUCTION-CUTOVER
 
 printf 'MTPRO automation readiness checks passed.\n'

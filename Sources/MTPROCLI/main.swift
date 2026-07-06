@@ -272,6 +272,7 @@ private enum MTPROStrictCLI {
         ReleaseV0210CanaryStatusReadOnlySurface.cliCommand,
         ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.cliCommand,
         ReleaseV0230FuturesReadOnlyFoundationEvidence.cliCommand,
+        ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -300,6 +301,7 @@ private enum MTPROStrictCLI {
         ReleaseV0210CanaryStatusReadOnlySurface.cliCommand,
         ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.cliCommand,
         ReleaseV0230FuturesReadOnlyFoundationEvidence.cliCommand,
+        ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -363,6 +365,8 @@ private enum MTPROStrictCLI {
             return try ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.commandLineOutput(arguments: arguments)
         case ReleaseV0230FuturesReadOnlyFoundationEvidence.cliCommand:
             return try ReleaseV0230FuturesReadOnlyFoundationEvidence.commandLineOutput(arguments: arguments)
+        case ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand:
+            return try ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -502,6 +506,38 @@ private enum MTPROStrictCLI {
             "releaseV0230FuturesReadOnlyReadinessValidationAnchor=\(ReleaseV0230FuturesReadOnlyFoundationEvidence.validationAnchor)",
             "releaseV0230FuturesReadOnlyReadinessVerificationAnchor=\(ReleaseV0230FuturesReadOnlyFoundationEvidence.verificationAnchor)",
             "releaseV0230FuturesReadOnlyReadinessActions=\(ReleaseV0230FuturesReadOnlyFoundationEvidence.supportedActions.joined(separator: ","))",
+            // GH-1358-VERIFY-V0240-DUAL-PRODUCT-CONTRACT
+            // TVM-RELEASE-V0240-DUAL-PRODUCT-CONTRACT
+            // V0240-001-SPOT-FUTURES-DUAL-PRODUCT-UNIFICATION
+            // V0240-001-BLOCKED-BY-V0231-COMPLETION
+            // GH-1359-VERIFY-V0240-PRODUCT-AWARE-OMS-EVIDENCE
+            // V0240-002-UNIFIED-OMS-EVENT-EVIDENCE
+            // V0240-002-NO-FUTURES-ORDER-EXECUTION
+            // GH-1360-VERIFY-V0240-UNIFIED-PORTFOLIO-PROJECTION
+            // V0240-003-SPOT-CANARY-FUTURES-READONLY-PORTFOLIO
+            // V0240-003-FUTURES-READONLY-NOT-TRADING-AUTHORIZATION
+            // GH-1361-VERIFY-V0240-UNIFIED-RISK-READINESS
+            // V0240-004-SPOT-FUTURES-RISK-READINESS
+            // V0240-004-READINESS-NOT-PRODUCTION-RISK-APPROVAL
+            // GH-1362-VERIFY-V0240-DUAL-PRODUCT-RECONCILIATION
+            // V0240-005-SPOT-FUTURES-RECONCILIATION-FOUNDATION
+            // V0240-005-NO-BROKER-RECONCILIATION-RUNTIME
+            // GH-1363-VERIFY-V0240-DUAL-PRODUCT-FAILURE-MATRIX
+            // V0240-006-DUAL-PRODUCT-FAILURE-CLASSIFICATION
+            // V0240-006-FAIL-CLOSED-EVIDENCE
+            // GH-1364-VERIFY-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE
+            // TVM-RELEASE-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE
+            // V0240-007-DASHBOARD-CLI-DUAL-PRODUCT-READONLY
+            // V0240-007-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+            // GH-1365-VERIFY-V0240-AGGREGATE-VALIDATION
+            // TVM-RELEASE-V0240-AGGREGATE-VALIDATION
+            // V0240-008-AGGREGATE-VALIDATION-SUITE
+            // V0240-008-STAGE-AUDIT-RELEASE-DOCS
+            // V0240-008-NO-PRODUCTION-CUTOVER
+            "releaseV0240DualProductReadOnlyReadinessCommand=\(ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand)",
+            "releaseV0240DualProductReadOnlyReadinessValidationAnchor=\(ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.validationAnchor)",
+            "releaseV0240DualProductReadOnlyReadinessVerificationAnchor=\(ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.verificationAnchor)",
+            "releaseV0240DualProductReadOnlyReadinessActions=\(ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.supportedActions.joined(separator: ","))",
             "operatorRunFailedEvidenceNonzeroOrReadOnlyReportPath=true",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",

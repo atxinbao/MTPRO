@@ -1,0 +1,53 @@
+# MTPRO Release v0.24.0 Spot + Futures Unified Read-only Foundation Stage Code Audit
+
+Date: 2026-07-07  
+Executor: Codex
+
+## Anchors
+
+- GH-1358-VERIFY-V0240-DUAL-PRODUCT-CONTRACT
+- TVM-RELEASE-V0240-DUAL-PRODUCT-CONTRACT
+- V0240-001-SPOT-FUTURES-DUAL-PRODUCT-UNIFICATION
+- V0240-001-BLOCKED-BY-V0231-COMPLETION
+- GH-1359-VERIFY-V0240-PRODUCT-AWARE-OMS-EVIDENCE
+- V0240-002-UNIFIED-OMS-EVENT-EVIDENCE
+- V0240-002-NO-FUTURES-ORDER-EXECUTION
+- GH-1360-VERIFY-V0240-UNIFIED-PORTFOLIO-PROJECTION
+- V0240-003-SPOT-CANARY-FUTURES-READONLY-PORTFOLIO
+- V0240-003-FUTURES-READONLY-NOT-TRADING-AUTHORIZATION
+- GH-1361-VERIFY-V0240-UNIFIED-RISK-READINESS
+- V0240-004-SPOT-FUTURES-RISK-READINESS
+- V0240-004-READINESS-NOT-PRODUCTION-RISK-APPROVAL
+- GH-1362-VERIFY-V0240-DUAL-PRODUCT-RECONCILIATION
+- V0240-005-SPOT-FUTURES-RECONCILIATION-FOUNDATION
+- V0240-005-NO-BROKER-RECONCILIATION-RUNTIME
+- GH-1363-VERIFY-V0240-DUAL-PRODUCT-FAILURE-MATRIX
+- V0240-006-DUAL-PRODUCT-FAILURE-CLASSIFICATION
+- V0240-006-FAIL-CLOSED-EVIDENCE
+- GH-1364-VERIFY-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE
+- TVM-RELEASE-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE
+- V0240-007-DASHBOARD-CLI-DUAL-PRODUCT-READONLY
+- V0240-007-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+- GH-1365-VERIFY-V0240-AGGREGATE-VALIDATION
+- TVM-RELEASE-V0240-AGGREGATE-VALIDATION
+- V0240-008-AGGREGATE-VALIDATION-SUITE
+- V0240-008-STAGE-AUDIT-RELEASE-DOCS
+- V0240-008-NO-PRODUCTION-CUTOVER
+
+## Evidence Chain
+
+GH-1358 defines the dual-product contract. GH-1359 adds product-aware OMS event evidence. GH-1360 adds unified portfolio projection. GH-1361 adds unified risk readiness. GH-1362 adds reconciliation foundation. GH-1363 adds failure classification. GH-1364 adds Dashboard / CLI read-only surface. GH-1365 closes aggregate validation and release docs.
+
+## Boundary Audit
+
+This release does not add trading capability. Spot remains sourced from controlled canary evidence. Futures remains read-only. There is no Futures order execution, OKX active runtime, broker reconciliation runtime, Dashboard trading control, order form, live command or production cutover.
+
+## Validation
+
+```bash
+swift test --filter TargetGraphTests/testGH1358To1365ReleaseV0240SpotFuturesUnifiedReadOnlyFoundation
+bash checks/verify-v0.24.0.sh
+git diff --check
+bash checks/automation-readiness.sh
+bash checks/run.sh
+```

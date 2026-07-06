@@ -68293,6 +68293,201 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1353To1357ReleaseV0231PublicationFactSyncReadOnlyGuardPatch() throws {
+        // GH-1353-VERIFY-V0231-V0230-RELEASE-FACT-SYNC
+        // TVM-RELEASE-V0231-V0230-RELEASE-FACT-SYNC
+        // V0231-001-V0230-GITHUB-RELEASE-PUBLISHED
+        // V0231-001-V0230-TAG-FIXED
+        // GH-1354-VERIFY-V0231-V0230-STALE-WORDING-GUARD
+        // V0231-002-PUBLISHED-V0230-STALE-WORDING-GUARD
+        // GH-1355-VERIFY-V0231-LATEST-VERIFICATION-MILESTONE-FACTS
+        // V0231-003-V0221-V0230-MILESTONES-COMPLETE
+        // GH-1356-VERIFY-V0231-FUTURES-READONLY-GUARD-HARDENING
+        // V0231-004-NO-FUTURES-MUTATION
+        // V0231-004-NO-LISTENKEY-PRIVATE-STREAM
+        // V0231-004-NO-OKX-PRODUCTION-CUTOVER
+        // GH-1357-VERIFY-V0231-PATCH-AUDIT-RELEASE-NOTES
+        // V0231-005-PATCH-AUDIT
+        // V0231-005-V0240-BLOCKED-BY-V0231-COMPLETION
+        // V0231-005-NO-CAPABILITY-CHANGE
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1353-VERIFY-V0231-V0230-RELEASE-FACT-SYNC",
+            "TVM-RELEASE-V0231-V0230-RELEASE-FACT-SYNC",
+            "V0231-001-V0230-GITHUB-RELEASE-PUBLISHED",
+            "V0231-001-V0230-TAG-FIXED",
+            "GH-1354-VERIFY-V0231-V0230-STALE-WORDING-GUARD",
+            "V0231-002-PUBLISHED-V0230-STALE-WORDING-GUARD",
+            "GH-1355-VERIFY-V0231-LATEST-VERIFICATION-MILESTONE-FACTS",
+            "V0231-003-V0221-V0230-MILESTONES-COMPLETE",
+            "GH-1356-VERIFY-V0231-FUTURES-READONLY-GUARD-HARDENING",
+            "V0231-004-NO-FUTURES-MUTATION",
+            "V0231-004-NO-LISTENKEY-PRIVATE-STREAM",
+            "V0231-004-NO-OKX-PRODUCTION-CUTOVER",
+            "GH-1357-VERIFY-V0231-PATCH-AUDIT-RELEASE-NOTES",
+            "V0231-005-PATCH-AUDIT",
+            "V0231-005-V0240-BLOCKED-BY-V0231-COMPLETION",
+            "V0231-005-NO-CAPABILITY-CHANGE"
+        ]
+
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-notes.md",
+            "docs/release/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-notes.md",
+            "docs/audit/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-stage-code-audit.md",
+            "docs/validation/latest-verification-summary.md",
+            "verification.md",
+            "checks/verify-v0.23.1.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let releaseNotes = try read("docs/release/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-notes.md")
+        XCTAssertTrue(releaseNotes.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.23.0"))
+        XCTAssertTrue(releaseNotes.contains("abf787792e36dab486a6eb7f6a7477007ed68dee"))
+        XCTAssertTrue(releaseNotes.contains("published"))
+        XCTAssertFalse(releaseNotes.contains("does not create a v0.23.0 tag"))
+    }
+
+    func testGH1358To1365ReleaseV0240SpotFuturesUnifiedReadOnlyFoundation() throws {
+        // GH-1358-VERIFY-V0240-DUAL-PRODUCT-CONTRACT
+        // TVM-RELEASE-V0240-DUAL-PRODUCT-CONTRACT
+        // V0240-001-SPOT-FUTURES-DUAL-PRODUCT-UNIFICATION
+        // V0240-001-BLOCKED-BY-V0231-COMPLETION
+        // GH-1359-VERIFY-V0240-PRODUCT-AWARE-OMS-EVIDENCE
+        // V0240-002-UNIFIED-OMS-EVENT-EVIDENCE
+        // V0240-002-NO-FUTURES-ORDER-EXECUTION
+        // GH-1360-VERIFY-V0240-UNIFIED-PORTFOLIO-PROJECTION
+        // V0240-003-SPOT-CANARY-FUTURES-READONLY-PORTFOLIO
+        // V0240-003-FUTURES-READONLY-NOT-TRADING-AUTHORIZATION
+        // GH-1361-VERIFY-V0240-UNIFIED-RISK-READINESS
+        // V0240-004-SPOT-FUTURES-RISK-READINESS
+        // V0240-004-READINESS-NOT-PRODUCTION-RISK-APPROVAL
+        // GH-1362-VERIFY-V0240-DUAL-PRODUCT-RECONCILIATION
+        // V0240-005-SPOT-FUTURES-RECONCILIATION-FOUNDATION
+        // V0240-005-NO-BROKER-RECONCILIATION-RUNTIME
+        // GH-1363-VERIFY-V0240-DUAL-PRODUCT-FAILURE-MATRIX
+        // V0240-006-DUAL-PRODUCT-FAILURE-CLASSIFICATION
+        // V0240-006-FAIL-CLOSED-EVIDENCE
+        // GH-1364-VERIFY-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE
+        // TVM-RELEASE-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE
+        // V0240-007-DASHBOARD-CLI-DUAL-PRODUCT-READONLY
+        // V0240-007-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND
+        // GH-1365-VERIFY-V0240-AGGREGATE-VALIDATION
+        // TVM-RELEASE-V0240-AGGREGATE-VALIDATION
+        // V0240-008-AGGREGATE-VALIDATION-SUITE
+        // V0240-008-STAGE-AUDIT-RELEASE-DOCS
+        // V0240-008-NO-PRODUCTION-CUTOVER
+        let evidence = ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.deterministicFixture
+        XCTAssertEqual(evidence.release, "v0.24.0")
+        XCTAssertEqual(evidence.prerequisitePatchRelease, "v0.23.1")
+        XCTAssertEqual(evidence.productEvidence.map(\.productType), ["spot", "usdsPerpetual"])
+        XCTAssertFalse(evidence.futuresOrderExecutionEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.okxActiveRuntimeEnabled)
+        XCTAssertTrue(evidence.failureClasses.contains(.productionCutoverAttempted))
+
+        let statusOutput = try ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand, "status"]
+        )
+        let omsOutput = try ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand, "oms"]
+        )
+        let portfolioOutput = try ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand, "portfolio"]
+        )
+        let riskOutput = try ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand, "risk"]
+        )
+        let reconciliationOutput = try ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand, "reconciliation"]
+        )
+        let failuresOutput = try ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand, "failures"]
+        )
+        let dashboardOutput = try ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand, "dashboard"]
+        )
+
+        XCTAssertTrue(statusOutput.contains("productEvidence=venue:binance;productType:spot"))
+        XCTAssertTrue(statusOutput.contains("productEvidence=venue:binance;productType:usdsPerpetual"))
+        XCTAssertTrue(omsOutput.contains("futuresOrderLifecycleCreated=false"))
+        XCTAssertTrue(portfolioOutput.contains("futuresReadOnlyNotTradingAuthorization=true"))
+        XCTAssertTrue(riskOutput.contains("productionRiskApproval=false"))
+        XCTAssertTrue(reconciliationOutput.contains("brokerReconciliationRuntime=false"))
+        XCTAssertTrue(failuresOutput.contains("failureClass=production-cutover-attempted;failClosed=true"))
+        XCTAssertTrue(dashboardOutput.contains("tradingButtonVisible=false"))
+
+        let dashboardSurface = ReleaseV0240DashboardCLIDualProductReadOnlyEvidenceSurface()
+        XCTAssertEqual(dashboardSurface.products, ["binance/spot", "binance/usdsPerpetual"])
+        XCTAssertTrue(dashboardSurface.reportLines.contains("commandBoundary=tradingButtonVisible=false"))
+        XCTAssertTrue(dashboardSurface.reportLines.contains("evidence=brokerReconciliationRuntime=false"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.requiredAnchors
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0240SpotFuturesUnifiedReadOnlyFoundation.swift",
+            "Sources/Dashboard/Report/ReleaseV0240DashboardCLIDualProductReadOnlyEvidenceSurface.swift",
+            "Sources/MTPROCLI/main.swift",
+            "docs/contracts/release-v0.24.0-spot-futures-unified-readonly-foundation-contract.md",
+            "docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.24.0.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        for source in [
+            try read("Sources/ExecutionClient/FutureGate/ReleaseV0240SpotFuturesUnifiedReadOnlyFoundation.swift"),
+            try read("Sources/Dashboard/Report/ReleaseV0240DashboardCLIDualProductReadOnlyEvidenceSurface.swift"),
+            try read("docs/contracts/release-v0.24.0-spot-futures-unified-readonly-foundation-contract.md"),
+            try read("docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md"),
+            try read("docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md")
+        ] {
+            for forbidden in [
+                "futuresOrderExecutionEnabled=true",
+                "productionTradingEnabledByDefault=true",
+                "productionCutoverAuthorized=true",
+                "okxActiveRuntimeEnabled=true",
+                "dashboardTradingControlsEnabled=true",
+                "orderFormEnabled=true",
+                "liveCommandEnabled=true",
+                "brokerReconciliationRuntimeEnabled=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1358..GH-1365 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
