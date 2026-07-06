@@ -191,6 +191,8 @@ require_file "checks/verify-v0.21.0-stage-audit-release-docs.sh"
 require_file "checks/verify-v0.21.1-v0210-stale-wording-guard.sh"
 require_file "checks/verify-v0.21.1-v0210-canary-evidence-wording.sh"
 require_file "checks/verify-v0.21.1.sh"
+require_file "checks/verify-v0.22.1.sh"
+require_file "checks/verify-v0.23.0.sh"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -4647,9 +4649,11 @@ require_contains "GOAL.md" "Binance Spot production-shadow / read-only live read
 require_contains "GOAL.md" "v0.21.0"
 require_contains "GOAL.md" "Binance Spot controlled production canary"
 require_contains "GOAL.md" "v0.22.0"
-require_contains "GOAL.md" "Binance USDⓈ-M Futures read-only foundation"
+require_contains "GOAL.md" "Binance Spot live canary transport completion"
+require_contains "GOAL.md" "v0.22.1"
+require_contains "GOAL.md" "v0.22.0 publication fact sync patch"
 require_contains "GOAL.md" "v0.23.0"
-require_contains "GOAL.md" "Binance USDⓈ-M Futures testnet execution closed loop"
+require_contains "GOAL.md" "Binance USDⓈ-M Futures read-only foundation"
 require_contains "GOAL.md" "v0.24.0"
 require_contains "GOAL.md" "Spot + Futures 统一 OMS / Portfolio / Risk / Reconciliation"
 require_contains "GOAL.md" "v0.25.0"
@@ -4729,9 +4733,11 @@ require_contains "README.md" "Binance Spot production-shadow / read-only live re
 require_contains "README.md" "v0.21.0"
 require_contains "README.md" "Binance Spot controlled production canary"
 require_contains "README.md" "v0.22.0"
-require_contains "README.md" "Binance USDⓈ-M Futures read-only foundation"
+require_contains "README.md" "Binance Spot live canary transport completion"
+require_contains "README.md" "v0.22.1"
+require_contains "README.md" "v0.22.0 publication fact sync patch"
 require_contains "README.md" "v0.23.0"
-require_contains "README.md" "Binance USDⓈ-M Futures testnet execution closed loop"
+require_contains "README.md" "Binance USDⓈ-M Futures read-only foundation"
 require_contains "README.md" "v0.24.0"
 require_contains "README.md" "Spot + Futures 统一 OMS / Portfolio / Risk / Reconciliation"
 require_contains "README.md" "v0.25.0"
@@ -14602,5 +14608,134 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "docs/release/release-publication-policy.md" "GH-1320 closes the v0.22.0 stage audit"
 require_contains "verification.md" "MTPRO Release v0.22.0 Stage Audit / Release Docs Closeout"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1320ReleaseV0220StageAuditReleaseDocsCloseout"
+
+for file in \
+  "docs/audit/mtpro-release-v0.22.1-publication-fact-sync-patch-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.22.1-publication-fact-sync-patch-notes.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "verification.md" \
+  "checks/verify-v0.22.1.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1337-VERIFY-V0221-V0220-RELEASE-FACT-SYNC"
+  require_contains "$file" "TVM-RELEASE-V0221-V0220-RELEASE-FACT-SYNC"
+  require_contains "$file" "V0221-001-V0220-RELEASE-FACT-SYNC"
+  require_contains "$file" "GH-1338-VERIFY-V0221-V0220-STALE-WORDING-GUARD"
+  require_contains "$file" "V0221-002-V0220-STALE-WORDING-GUARD"
+  require_contains "$file" "GH-1339-VERIFY-V0221-VERSION-ROADMAP-CORRECTION"
+  require_contains "$file" "V0221-003-V0220-SPOT-LIVE-CANARY-TRANSPORT"
+  require_contains "$file" "V0221-003-V0230-FUTURES-READONLY-NEXT"
+  require_contains "$file" "GH-1340-VERIFY-V0221-PATCH-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "TVM-RELEASE-V0221-PATCH-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "V0221-004-PATCH-AUDIT"
+  require_contains "$file" "V0221-004-RELEASE-NOTES"
+  require_contains "$file" "V0221-004-NO-CAPABILITY-CHANGE"
+  require_contains "$file" "V0221-004-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0221-004-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.1.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.1.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.1 publication fact sync patch anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1340 Release v0.22.1 Patch Audit / Release Notes Closeout"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0221-PATCH-AUDIT-RELEASE-NOTES"
+require_contains "verification.md" "MTPRO Release v0.22.1 Publication Fact Sync Patch"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1337To1340ReleaseV0221PublicationFactSyncPatch"
+
+# GH-1341-VERIFY-V0230-FUTURES-READONLY-CONTRACT
+# TVM-RELEASE-V0230-FUTURES-READONLY-CONTRACT
+# V0230-001-BINANCE-USDM-FUTURES-READONLY-FOUNDATION
+# V0230-001-NO-FUTURES-ORDER-EXECUTION
+# GH-1342-VERIFY-V0230-FUTURES-PROFILE-ENDPOINT-ALLOWLIST
+# V0230-002-BINANCE-USDM-FUTURES-PROFILE
+# V0230-002-READ-ONLY-ENDPOINT-ALLOWLIST
+# GH-1343-VERIFY-V0230-FUTURES-CREDENTIAL-REFERENCE-GATE
+# V0230-003-CREDENTIAL-REFERENCE-ONLY
+# V0230-003-SIGNED-READONLY-APPROVAL-GATE
+# GH-1344-VERIFY-V0230-FUTURES-ACCOUNT-SNAPSHOT-REDACTION
+# V0230-004-REDACTED-ACCOUNT-SNAPSHOT
+# GH-1345-VERIFY-V0230-FUTURES-POSITION-MARGIN-LEVERAGE-READONLY
+# V0230-005-POSITION-MARGIN-LEVERAGE-OBSERVED-STATE
+# GH-1346-VERIFY-V0230-FUTURES-FUNDING-MARK-LIQUIDATION-READONLY
+# V0230-006-FUNDING-MARK-LIQUIDATION-OBSERVATION
+# GH-1347-VERIFY-V0230-FUTURES-TRANSPORT-ARTIFACT-FAILURE-CLASSIFICATION
+# V0230-007-READONLY-TRANSPORT-ARTIFACT
+# V0230-007-FAIL-CLOSED-FAILURE-CLASSIFICATION
+# GH-1348-VERIFY-V0230-FUTURES-READONLY-RECONCILIATION
+# V0230-008-LOCAL-REGISTRY-RECONCILIATION
+# V0230-008-NO-BROKER-RECONCILIATION-RUNTIME
+# GH-1349-VERIFY-V0230-DASHBOARD-CLI-FUTURES-READONLY-SURFACE
+# TVM-RELEASE-V0230-DASHBOARD-CLI-FUTURES-READONLY-SURFACE
+# V0230-009-DASHBOARD-CLI-READONLY-FUTURES-READINESS
+# V0230-009-NO-TRADING-COMMANDS
+# V0230-009-NO-DASHBOARD-TRADING-CONTROLS
+# GH-1350-VERIFY-V0230-AGGREGATE-VALIDATION
+# TVM-RELEASE-V0230-AGGREGATE-VALIDATION
+# V0230-010-AGGREGATE-VALIDATION-SUITE
+# V0230-010-FUTURES-READONLY-FOUNDATION
+# V0230-010-NO-FUTURES-ORDER-EXECUTION
+# GH-1351-VERIFY-V0230-STAGE-AUDIT-RELEASE-DOCS
+# V0230-011-STAGE-CODE-AUDIT
+# V0230-011-NO-PRODUCTION-CUTOVER
+for file in \
+  "docs/contracts/release-v0.23.0-binance-usdm-futures-read-only-foundation-contract.md" \
+  "docs/audit/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-notes.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.23.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Sources/MTPROCLI/main.swift" \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0230BinanceUSDMFuturesReadOnlyFoundation.swift" \
+  "Sources/Dashboard/Report/ReleaseV0230DashboardCLIFuturesReadOnlyReadinessSurface.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1341-VERIFY-V0230-FUTURES-READONLY-CONTRACT"
+  require_contains "$file" "TVM-RELEASE-V0230-FUTURES-READONLY-CONTRACT"
+  require_contains "$file" "V0230-001-BINANCE-USDM-FUTURES-READONLY-FOUNDATION"
+  require_contains "$file" "GH-1342-VERIFY-V0230-FUTURES-PROFILE-ENDPOINT-ALLOWLIST"
+  require_contains "$file" "V0230-002-READ-ONLY-ENDPOINT-ALLOWLIST"
+  require_contains "$file" "GH-1343-VERIFY-V0230-FUTURES-CREDENTIAL-REFERENCE-GATE"
+  require_contains "$file" "V0230-003-CREDENTIAL-REFERENCE-ONLY"
+  require_contains "$file" "GH-1344-VERIFY-V0230-FUTURES-ACCOUNT-SNAPSHOT-REDACTION"
+  require_contains "$file" "V0230-004-REDACTED-ACCOUNT-SNAPSHOT"
+  require_contains "$file" "GH-1345-VERIFY-V0230-FUTURES-POSITION-MARGIN-LEVERAGE-READONLY"
+  require_contains "$file" "V0230-005-POSITION-MARGIN-LEVERAGE-OBSERVED-STATE"
+  require_contains "$file" "GH-1346-VERIFY-V0230-FUTURES-FUNDING-MARK-LIQUIDATION-READONLY"
+  require_contains "$file" "V0230-006-FUNDING-MARK-LIQUIDATION-OBSERVATION"
+  require_contains "$file" "GH-1347-VERIFY-V0230-FUTURES-TRANSPORT-ARTIFACT-FAILURE-CLASSIFICATION"
+  require_contains "$file" "V0230-007-FAIL-CLOSED-FAILURE-CLASSIFICATION"
+  require_contains "$file" "GH-1348-VERIFY-V0230-FUTURES-READONLY-RECONCILIATION"
+  require_contains "$file" "V0230-008-LOCAL-REGISTRY-RECONCILIATION"
+  require_contains "$file" "GH-1349-VERIFY-V0230-DASHBOARD-CLI-FUTURES-READONLY-SURFACE"
+  require_contains "$file" "V0230-009-DASHBOARD-CLI-READONLY-FUTURES-READINESS"
+  require_contains "$file" "GH-1350-VERIFY-V0230-AGGREGATE-VALIDATION"
+  require_contains "$file" "V0230-010-AGGREGATE-VALIDATION-SUITE"
+  require_contains "$file" "GH-1351-VERIFY-V0230-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "V0230-011-STAGE-CODE-AUDIT"
+  require_contains "$file" "V0230-011-NO-PRODUCTION-CUTOVER"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.23.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.23.0.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.23.0 Binance USD-M Futures read-only foundation anchor"
+require_contains "docs/validation/validation-plan.md" "GH-1350 Release v0.23.0 Aggregate Validation Suite"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0230-AGGREGATE-VALIDATION"
+require_contains "verification.md" "MTPRO Release v0.23.0 Binance USD-M Futures Read-only Foundation"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1341To1351ReleaseV0230BinanceUSDMFuturesReadOnlyFoundation"
 
 printf 'MTPRO automation readiness checks passed.\n'
