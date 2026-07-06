@@ -18365,3 +18365,25 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
   - `bash checks/automation-readiness.sh`: required.
   - `bash checks/verify-v0.21.0.sh`: required.
   - `bash checks/run.sh`: required.
+## 2026-07-06 - MTPRO Release v0.22.0 Stage Audit / Release Docs Closeout
+
+- Executor: Codex.
+- Scope:
+  - Added `docs/audit/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-stage-code-audit.md`.
+  - Added `docs/release/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-notes.md`.
+  - Added `checks/verify-v0.22.0-stage-audit-release-docs.sh`.
+  - Added `GH-1320-VERIFY-V0220-STAGE-AUDIT-RELEASE-DOCS`, `TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS`, `V0220-012-STAGE-CODE-AUDIT`, `V0220-012-RELEASE-NOTES`, `V0220-012-VALIDATION-MATRIX`, `V0220-012-ROOT-DOCS-REFRESH`, `V0220-012-STALE-WORDING-GUARD`, `V0220-012-RELEASE-PUBLICATION-GATE-HANDOFF`, `V0220-012-NO-PRODUCTION-CUTOVER`, `V0220-012-NO-TAG-OR-RELEASE-PUBLICATION`, `V0220-012-NO-FUTURES-OKX` and `V0220-012-NO-DASHBOARD-TRADING-CONTROLS`.
+  - Wired `bash checks/verify-v0.22.0-stage-audit-release-docs.sh` into `checks/run.sh`.
+- Boundary:
+  - Did not add Futures or OKX active runtime.
+  - Did not add Dashboard trading controls.
+  - Did not authorize production cutover.
+  - Did not create a tag or GitHub Release.
+- Validation:
+  - `swift test --filter TargetGraphTests/testGH1320ReleaseV0220StageAuditReleaseDocsCloseout`: required.
+  - `bash checks/verify-v0.22.0-stage-audit-release-docs.sh`: required.
+  - `git diff --check`: required.
+  - `bash checks/automation-readiness.sh`: required.
+  - `bash checks/verify-v0.21.0.sh`: required.
+  - `bash checks/verify-v0.22.0.sh`: required.
+  - `bash checks/run.sh`: required.
