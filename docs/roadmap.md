@@ -655,3 +655,21 @@ GH-1317 uses `GH-1317-VERIFY-V0220-FAILURE-ROLLBACK-DRILL`、`TVM-RELEASE-V0220-
 GH-1318 uses `GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE`、`TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE`、`V0220-010-BLOCKED-BY-GH1317`、`V0220-010-LIVE-CANARY-EVIDENCE-CHAIN`、`V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION`、`V0220-010-FAILURE-CLASS-NEXT-ACTION`、`V0220-010-READ-ONLY-DASHBOARD-CLI`、`V0220-010-REDACTION-FAILURE-STATES-VISIBLE`、`V0220-010-NO-TRADING-COMMANDS`、`V0220-010-NO-FUTURES-OKX` and `V0220-010-NO-PRODUCTION-CUTOVER` to define the v0.22.0 Dashboard / CLI live canary evidence surface. The surface shows approval, preflight, submit, status/cancel, OMS, reconciliation, failure class, next action, rollback and redaction evidence as read-only state, without Dashboard trading controls, raw order IDs, raw broker payloads, Futures / OKX, submit / cancel / replace commands, or production cutover.
 
 GH-1319 uses `GH-1319-VERIFY-V0220-AGGREGATE-VALIDATION`、`TVM-RELEASE-V0220-AGGREGATE-VALIDATION`、`V0220-011-AGGREGATE-VALIDATION-SUITE`、`V0220-011-LIVE-CANARY-TRANSPORT-CHAIN`、`V0220-011-FOCUSED-GUARDS-COVERED`、`V0220-011-RUN-AUTOMATION-WIRING`、`V0220-011-FAIL-CLOSED-NEGATIVE-CASES`、`V0220-011-NO-FUTURES-OKX`、`V0220-011-NO-PRODUCTION-CUTOVER` and `V0220-011-NO-TAG-OR-RELEASE-PUBLICATION` to define the v0.22.0 aggregate validation suite. The suite runs all GH-1309..GH-1318 focused verifiers through `checks/verify-v0.22.0.sh`, is wired into `checks/run.sh`, and proves the live canary transport chain remains Binance Spot only, fail-closed, read-only at Dashboard / CLI, without Futures / OKX, production cutover, tag creation or GitHub Release publication.
+## GH-1320 v0.22.0 stage audit / release docs closeout
+
+- GH-1320-VERIFY-V0220-STAGE-AUDIT-RELEASE-DOCS
+- TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS
+- V0220-012-STAGE-CODE-AUDIT
+- V0220-012-RELEASE-NOTES
+- V0220-012-VALIDATION-MATRIX
+- V0220-012-ROOT-DOCS-REFRESH
+- V0220-012-STALE-WORDING-GUARD
+- V0220-012-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0220-012-NO-PRODUCTION-CUTOVER
+- V0220-012-NO-TAG-OR-RELEASE-PUBLICATION
+- V0220-012-NO-FUTURES-OKX
+- V0220-012-NO-DASHBOARD-TRADING-CONTROLS
+- Stage audit: `docs/audit/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-stage-code-audit.md`.
+- Release notes: `docs/release/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-notes.md`.
+- Focused verifier: `bash checks/verify-v0.22.0-stage-audit-release-docs.sh`.
+- Boundary: #1320 closes construction docs only. It creates no tag / GitHub Release, opens no Futures / OKX path, adds no Dashboard trading controls, and production cutover not authorized.

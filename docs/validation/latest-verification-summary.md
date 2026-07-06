@@ -2753,3 +2753,21 @@ bash checks/run.sh
 - Run wiring: `checks/run.sh` executes `bash checks/verify-v0.22.0.sh`.
 - Focused guard coverage: GH-1309 through GH-1318 verifiers must pass before the aggregate suite passes.
 - Boundary: Binance Spot live canary transport chain only; Futures / OKX, production cutover, tag creation and GitHub Release publication remain out of scope.
+## GH-1320 v0.22.0 stage audit / release docs closeout
+
+- GH-1320-VERIFY-V0220-STAGE-AUDIT-RELEASE-DOCS
+- TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS
+- V0220-012-STAGE-CODE-AUDIT
+- V0220-012-RELEASE-NOTES
+- V0220-012-VALIDATION-MATRIX
+- V0220-012-ROOT-DOCS-REFRESH
+- V0220-012-STALE-WORDING-GUARD
+- V0220-012-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0220-012-NO-PRODUCTION-CUTOVER
+- V0220-012-NO-TAG-OR-RELEASE-PUBLICATION
+- V0220-012-NO-FUTURES-OKX
+- V0220-012-NO-DASHBOARD-TRADING-CONTROLS
+- v0.22.0 stage audit / release docs closeout source: `docs/audit/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-stage-code-audit.md`.
+- Release notes source: `docs/release/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-notes.md`.
+- Focused verifier: `bash checks/verify-v0.22.0-stage-audit-release-docs.sh`.
+- Boundary: GH-1320 is construction closeout only. It creates no tag / GitHub Release, enables no Futures / OKX path, adds no Dashboard trading controls, and production cutover not authorized.

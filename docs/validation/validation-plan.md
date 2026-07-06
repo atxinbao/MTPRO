@@ -7314,3 +7314,22 @@ swift test
 - focused test: `swift test --filter TargetGraphTests/testGH1319ReleaseV0220AggregateValidationSuite`
 - validation surface: aggregate suite must run GH-1309..GH-1318 focused verifiers, verify run / automation wiring, and preserve fail-closed negative case evidence.
 - forbidden scope: no Futures / OKX, no Dashboard trading controls, no production cutover, no tag creation and no GitHub Release publication.
+## GH-1320 Release v0.22.0 Stage Audit / Release Docs Closeout
+
+- GH-1320-VERIFY-V0220-STAGE-AUDIT-RELEASE-DOCS
+- TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS
+- V0220-012-STAGE-CODE-AUDIT
+- V0220-012-RELEASE-NOTES
+- V0220-012-VALIDATION-MATRIX
+- V0220-012-ROOT-DOCS-REFRESH
+- V0220-012-STALE-WORDING-GUARD
+- V0220-012-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0220-012-NO-PRODUCTION-CUTOVER
+- V0220-012-NO-TAG-OR-RELEASE-PUBLICATION
+- V0220-012-NO-FUTURES-OKX
+- V0220-012-NO-DASHBOARD-TRADING-CONTROLS
+- focused verifier: `bash checks/verify-v0.22.0-stage-audit-release-docs.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1320ReleaseV0220StageAuditReleaseDocsCloseout`
+- audit: `docs/audit/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-stage-code-audit.md`
+- release notes: `docs/release/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-notes.md`
+- Boundary: GH-1320 closes only v0.22.0 construction evidence docs. It creates no tag / GitHub Release, starts no next Project / Issue, enables no Futures / OKX path, adds no Dashboard trading controls, and production cutover not authorized.

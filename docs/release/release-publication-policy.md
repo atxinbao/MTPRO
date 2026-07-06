@@ -1633,3 +1633,21 @@ GH-1215 closes the v0.19.0 stage audit / release docs / validation matrix / root
 `GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-V0190-STALE-WORDING-GUARD`、`V0191-003-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`、`TVM-RELEASE-V0191-V0190-STALE-WORDING-GUARD`、`V0191-003-CURRENT-FACING-STALE-WORDING-REJECTION` 和 `V0191-003-NO-PRODUCTION-CUTOVER` 固定后续 guard rule：GH-1234 rejects current-facing stale v0.19.0 publication wording；historical construction closeout evidence 只有在同一 artifact 保留 release URL、tag peeled commit 和 publication timestamp 时允许。
 
 v0.19.0 已在 GH-1215 之后通过独立 Release Publication Gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`，tag peeled commit `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`，publication timestamp `2026-06-29T13:42:34Z`。GH-1215 在 construction closeout 当时不创建 tag / GitHub Release、不授权 production cutover、不读取 production secret、不连接 production endpoint / broker endpoint、不提交 / cancel / replace production order；该 historical boundary 不覆盖当前 publication fact。production cutover not authorized.
+## GH-1320-V0220-STAGE-AUDIT-RELEASE-DOCS
+
+`GH-1320-VERIFY-V0220-STAGE-AUDIT-RELEASE-DOCS`
+`TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS`
+`V0220-012-STAGE-CODE-AUDIT`
+`V0220-012-RELEASE-NOTES`
+`V0220-012-VALIDATION-MATRIX`
+`V0220-012-ROOT-DOCS-REFRESH`
+`V0220-012-STALE-WORDING-GUARD`
+`V0220-012-RELEASE-PUBLICATION-GATE-HANDOFF`
+`V0220-012-NO-PRODUCTION-CUTOVER`
+`V0220-012-NO-TAG-OR-RELEASE-PUBLICATION`
+`V0220-012-NO-FUTURES-OKX`
+`V0220-012-NO-DASHBOARD-TRADING-CONTROLS`
+
+GH-1320 closes the v0.22.0 stage audit / release docs for #1309..#1320 and PR #1325..#1335. It records the Binance Spot live canary transport completion construction evidence, Stage Code Audit, release notes, validation matrix, root docs refresh, stale wording guard and Release Publication Gate handoff.
+
+GH-1320 does not create a tag, does not create a GitHub Release, does not move existing tags, does not start the next Project / Issue, does not enable Futures / OKX, does not add Dashboard trading controls and does not authorize production cutover. production cutover not authorized.

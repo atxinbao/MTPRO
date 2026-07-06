@@ -5359,3 +5359,20 @@
 - focused test: `swift test --filter TargetGraphTests/testGH1319ReleaseV0220AggregateValidationSuite`
 - matrix surface: approval, credential redaction, signed preflight, submit, status/cancel, OMS, reconciliation, failure rollback and read-only Dashboard / CLI evidence must all pass through their focused guards and the aggregate suite.
 - forbidden scope: no Futures / OKX, no production cutover, no tag creation and no GitHub Release publication.
+## TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS
+
+- GH-1320-VERIFY-V0220-STAGE-AUDIT-RELEASE-DOCS
+- V0220-012-STAGE-CODE-AUDIT
+- V0220-012-RELEASE-NOTES
+- V0220-012-VALIDATION-MATRIX
+- V0220-012-ROOT-DOCS-REFRESH
+- V0220-012-STALE-WORDING-GUARD
+- V0220-012-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0220-012-NO-PRODUCTION-CUTOVER
+- V0220-012-NO-TAG-OR-RELEASE-PUBLICATION
+- V0220-012-NO-FUTURES-OKX
+- V0220-012-NO-DASHBOARD-TRADING-CONTROLS
+- focused verifier: `bash checks/verify-v0.22.0-stage-audit-release-docs.sh`
+- focused test: `swift test --filter TargetGraphTests/testGH1320ReleaseV0220StageAuditReleaseDocsCloseout`
+- matrix surface: Stage Code Audit, release notes, root docs, latest summary, validation plan, automation readiness, release publication policy and verification log must share the same #1320 anchor set.
+- forbidden scope: no Futures / OKX, no Dashboard trading controls, no production cutover, no tag creation and no GitHub Release publication.

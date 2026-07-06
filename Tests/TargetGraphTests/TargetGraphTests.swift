@@ -67881,6 +67881,119 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1320ReleaseV0220StageAuditReleaseDocsCloseout() throws {
+        // GH-1320-VERIFY-V0220-STAGE-AUDIT-RELEASE-DOCS
+        // TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS
+        // V0220-012-STAGE-CODE-AUDIT
+        // V0220-012-RELEASE-NOTES
+        // V0220-012-VALIDATION-MATRIX
+        // V0220-012-ROOT-DOCS-REFRESH
+        // V0220-012-STALE-WORDING-GUARD
+        // V0220-012-RELEASE-PUBLICATION-GATE-HANDOFF
+        // V0220-012-NO-PRODUCTION-CUTOVER
+        // V0220-012-NO-TAG-OR-RELEASE-PUBLICATION
+        // V0220-012-NO-FUTURES-OKX
+        // V0220-012-NO-DASHBOARD-TRADING-CONTROLS
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1320-VERIFY-V0220-STAGE-AUDIT-RELEASE-DOCS",
+            "TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS",
+            "V0220-012-STAGE-CODE-AUDIT",
+            "V0220-012-RELEASE-NOTES",
+            "V0220-012-VALIDATION-MATRIX",
+            "V0220-012-ROOT-DOCS-REFRESH",
+            "V0220-012-STALE-WORDING-GUARD",
+            "V0220-012-RELEASE-PUBLICATION-GATE-HANDOFF",
+            "V0220-012-NO-PRODUCTION-CUTOVER",
+            "V0220-012-NO-TAG-OR-RELEASE-PUBLICATION",
+            "V0220-012-NO-FUTURES-OKX",
+            "V0220-012-NO-DASHBOARD-TRADING-CONTROLS"
+        ]
+
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-notes.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/release/release-publication-policy.md",
+            "verification.md",
+            "checks/verify-v0.22.0-stage-audit-release-docs.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let audit = try read("docs/audit/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-stage-code-audit.md")
+        let notes = try read("docs/release/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-notes.md")
+        let policy = try read("docs/release/release-publication-policy.md")
+        let verifier = try read("checks/verify-v0.22.0-stage-audit-release-docs.sh")
+        let runScript = try read("checks/run.sh")
+        let automationScript = try read("checks/automation-readiness.sh")
+
+        for section in [
+            "Issue Completion Evidence",
+            "PR / Checks / Merge Evidence",
+            "Boundary Audit",
+            "Validation Summary",
+            "Residual Risk",
+            "Next Handoff"
+        ] {
+            XCTAssertTrue(audit.contains(section), "audit must contain \(section)")
+        }
+
+        XCTAssertTrue(audit.contains("#1309..#1320"))
+        XCTAssertTrue(audit.contains("PR #1325"))
+        XCTAssertTrue(audit.contains("PR #1335"))
+        XCTAssertTrue(audit.contains("required check `checks` SUCCESS"))
+        XCTAssertTrue(notes.contains("#1320 是 historical construction closeout"))
+        XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/testGH1320ReleaseV0220StageAuditReleaseDocsCloseout"))
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-stage-audit-release-docs.sh"))
+        XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-stage-audit-release-docs.sh"))
+        XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.22.0 stage audit / release docs closeout anchor"))
+        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.22.0 stage audit / release docs closeout"))
+        XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1320 Release v0.22.0 Stage Audit / Release Docs Closeout"))
+        XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS"))
+        XCTAssertTrue(policy.contains("GH-1320 closes the v0.22.0 stage audit"))
+        XCTAssertTrue(try read("verification.md").contains("MTPRO Release v0.22.0 Stage Audit / Release Docs Closeout"))
+
+        for source in [audit, notes, policy] {
+            for forbidden in [
+                "API Key:",
+                "Secret Key:",
+                "productionTradingEnabledByDefault=true",
+                "productionCutoverAuthorized=true",
+                "productionSecretValueRead=true",
+                "productionEndpointConnectionEnabled=true",
+                "productionBrokerConnectionEnabled=true",
+                "defaultSubmitCancelReplaceEnabled=true",
+                "futuresCanaryEnabled=true",
+                "okxCanaryEnabled=true",
+                "dashboardTradingButtonVisible=true",
+                "orderFormVisible=true",
+                "liveCommandVisible=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1320 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

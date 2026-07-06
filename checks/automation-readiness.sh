@@ -14563,4 +14563,44 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V02
 require_contains "verification.md" "MTPRO Release v0.22.0 Aggregate Validation Suite"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1319ReleaseV0220AggregateValidationSuite"
 
+for file in \
+  "docs/audit/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-notes.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/release/release-publication-policy.md" \
+  "verification.md" \
+  "checks/verify-v0.22.0-stage-audit-release-docs.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1320-VERIFY-V0220-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "V0220-012-STAGE-CODE-AUDIT"
+  require_contains "$file" "V0220-012-RELEASE-NOTES"
+  require_contains "$file" "V0220-012-VALIDATION-MATRIX"
+  require_contains "$file" "V0220-012-ROOT-DOCS-REFRESH"
+  require_contains "$file" "V0220-012-STALE-WORDING-GUARD"
+  require_contains "$file" "V0220-012-RELEASE-PUBLICATION-GATE-HANDOFF"
+  require_contains "$file" "V0220-012-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0220-012-NO-TAG-OR-RELEASE-PUBLICATION"
+  require_contains "$file" "V0220-012-NO-FUTURES-OKX"
+  require_contains "$file" "V0220-012-NO-DASHBOARD-TRADING-CONTROLS"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.22.0-stage-audit-release-docs.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-stage-audit-release-docs.sh"
+require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 stage audit / release docs closeout anchor"
+require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 stage audit / release docs closeout"
+require_contains "docs/validation/validation-plan.md" "GH-1320 Release v0.22.0 Stage Audit / Release Docs Closeout"
+require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS"
+require_contains "docs/release/release-publication-policy.md" "GH-1320 closes the v0.22.0 stage audit"
+require_contains "verification.md" "MTPRO Release v0.22.0 Stage Audit / Release Docs Closeout"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1320ReleaseV0220StageAuditReleaseDocsCloseout"
+
 printf 'MTPRO automation readiness checks passed.\n'
