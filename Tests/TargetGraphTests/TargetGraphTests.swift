@@ -68882,6 +68882,71 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1376ReleaseV0250UnifiedRiskCapitalExposureNotionalGateEvidence() throws {
+        // GH-1376-VERIFY-V0250-UNIFIED-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATE-EVIDENCE
+        // TVM-RELEASE-V0250-UNIFIED-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATE-EVIDENCE
+        // V0250-005-UNIFIED-RISK-GATE
+        // V0250-005-CAPITAL-GATE
+        // V0250-005-EXPOSURE-GATE
+        // V0250-005-NOTIONAL-GATE
+        // V0250-005-FAIL-CLOSED-READINESS-CLASSIFICATION
+        // V0250-005-NO-LIVE-COMMAND-AUTHORIZATION
+        let evidence = ReleaseV0250UnifiedRiskCapitalExposureNotionalGateEvidence.deterministicFixture
+        XCTAssertEqual(evidence.release, "v0.25.0")
+        XCTAssertEqual(evidence.upstreamPolicyRelease, "v0.25.0/V0250-002")
+        XCTAssertEqual(evidence.spotEvidenceRelease, "v0.25.0/V0250-003")
+        XCTAssertEqual(evidence.futuresEvidenceRelease, "v0.25.0/V0250-004")
+        XCTAssertEqual(Set(evidence.gateKinds), Set(ReleaseV0250RiskGateKind.allCases))
+        XCTAssertEqual(Set(evidence.productEvidence.map(\.product)), Set(ReleaseV0250RiskGateProduct.allCases))
+        XCTAssertTrue(evidence.productEvidence.allSatisfy(\.evidenceHeld))
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.riskEvidenceCanAuthorizeLiveCommand)
+        XCTAssertFalse(evidence.accountBalanceReadEnabled)
+        XCTAssertFalse(evidence.brokerPositionReadEnabled)
+        XCTAssertFalse(evidence.marginReadEnabled)
+        XCTAssertFalse(evidence.leverageReadEnabled)
+        XCTAssertFalse(evidence.orderMutationEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertTrue(evidence.evidenceHeld)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = ReleaseV0250UnifiedRiskCapitalExposureNotionalGateEvidence.requiredAnchors
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0250UnifiedRiskCapitalExposureNotionalGateEvidence.swift",
+            "docs/contracts/release-v0.25.0-unified-risk-capital-exposure-notional-gate-evidence.md",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        for source in [
+            try read("Sources/ExecutionClient/FutureGate/ReleaseV0250UnifiedRiskCapitalExposureNotionalGateEvidence.swift"),
+            try read("docs/contracts/release-v0.25.0-unified-risk-capital-exposure-notional-gate-evidence.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "riskEvidenceCanAuthorizeLiveCommand=true",
+                "accountBalanceReadEnabled=true",
+                "brokerPositionReadEnabled=true",
+                "marginReadEnabled=true",
+                "leverageReadEnabled=true",
+                "orderMutationEnabled=true",
+                "productionCutoverAuthorized=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1376 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
