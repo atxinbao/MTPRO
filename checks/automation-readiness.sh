@@ -196,6 +196,7 @@ require_file "checks/verify-v0.23.0.sh"
 require_file "checks/verify-v0.23.1.sh"
 require_file "checks/verify-v0.24.0.sh"
 require_file "checks/verify-v0.24.1.sh"
+require_file "checks/verify-v0.25.0.sh"
 require_file "docs/contracts/release-v0.24.0-spot-futures-unified-readonly-foundation-contract.md"
 require_file "docs/audit/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-notes.md"
@@ -203,6 +204,8 @@ require_file "docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-fou
 require_file "docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md"
 require_file "docs/audit/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-notes.md"
+require_file "docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -14836,6 +14839,43 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.24.1.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.24.1.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1367To1371ReleaseV0241PublicationFactSyncMilestoneSemanticsPatch"
+
+for file in \
+  "docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.25.0.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1372-VERIFY-V0250-DUAL-PRODUCT-PRODUCTION-READINESS-CONTRACT"
+  require_contains "$file" "GH-1373-VERIFY-V0250-PRODUCTION-ENVIRONMENT-ISOLATION-CREDENTIAL-POLICY"
+  require_contains "$file" "GH-1374-VERIFY-V0250-SPOT-CANARY-OPERATOR-CONTROL-EVIDENCE"
+  require_contains "$file" "GH-1375-VERIFY-V0250-FUTURES-READONLY-FRESHNESS-FAIL-CLOSED-EVIDENCE"
+  require_contains "$file" "GH-1376-VERIFY-V0250-UNIFIED-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATE-EVIDENCE"
+  require_contains "$file" "GH-1377-VERIFY-V0250-INCIDENT-ROLLBACK-NOTRADE-KILLSWITCH-READINESS-EVIDENCE"
+  require_contains "$file" "GH-1378-VERIFY-V0250-DASHBOARD-CLI-OPERATOR-READINESS-SURFACE"
+  require_contains "$file" "GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT"
+  require_contains "$file" "TVM-RELEASE-V0250-AGGREGATE-VALIDATION"
+  require_contains "$file" "V0250-008-AGGREGATE-VALIDATION-SUITE"
+  require_contains "$file" "V0250-008-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "V0250-008-ROOT-DOCS-REFRESH"
+  require_contains "$file" "V0250-008-RELEASE-PUBLICATION-GATE-HANDOFF"
+  require_contains "$file" "V0250-008-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0250-008-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+require_contains "docs/release/release-publication-policy.md" "GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT"
+require_contains "docs/release/release-publication-policy.md" "TVM-RELEASE-V0250-AGGREGATE-VALIDATION"
+require_contains "docs/release/release-publication-policy.md" "V0250-008-RELEASE-PUBLICATION-GATE-HANDOFF"
+require_contains "docs/release/release-publication-policy.md" "V0250-008-NO-PRODUCTION-CUTOVER"
+require_contains "docs/release/release-publication-policy.md" "V0250-008-NO-TAG-OR-RELEASE-PUBLICATION"
+require_contains "checks/run.sh" "GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT"
+require_contains "checks/run.sh" "bash checks/verify-v0.25.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.25.0.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1379ReleaseV0250AggregateValidationReleaseCloseout"
 
 # Release v0.23.1 full anchor inventory:
 # GH-1353-VERIFY-V0231-V0230-RELEASE-FACT-SYNC

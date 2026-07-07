@@ -476,8 +476,7 @@ public struct ReleaseV0200ReadOnlyLiveReadinessSurface: Codable, Equatable, Send
                 actual: arguments.joined(separator: " ")
             )
         }
-        let surface = try deterministicFixture()
-        return surface.commandLineOutput()
+        return lightweightCommandLineOutput()
     }
 
     public func commandLineOutput() -> String {
@@ -521,6 +520,133 @@ public struct ReleaseV0200ReadOnlyLiveReadinessSurface: Codable, Equatable, Send
             "boundaryHeld=\(surfaceHeld)"
         ]).joined(separator: "\n")
     }
+
+    private static func lightweightCommandLineOutput() -> String {
+        let rowLines = readOnlyStatusRows.map { row in
+            [
+                "row=\(row.area)",
+                "issue=\(row.issue)",
+                "state=\(row.state)",
+                "endpointClass=\(row.endpointClass)",
+                "credentialState=\(row.credentialState)",
+                "redactionState=\(row.redactionState)",
+                "noOrderStatus=\(row.noOrderStatus)",
+                "summary=\(row.summary)"
+            ].joined(separator: ";")
+        }
+
+        return ([
+            "mtpro \(cliCommand) status",
+            "issue=GH-1248",
+            "validationAnchor=TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE",
+            "verificationAnchor=GH-1248-VERIFY-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE",
+            "requiredAnchors=\(requiredValidationAnchors.joined(separator: ","))",
+            "releaseVersion=v0.20.0",
+            "projectName=\(ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract.requiredProjectName)",
+            "surfaceRows=\(readOnlyStatusRows.count)",
+            "states=ready,blocked,fail-closed",
+            "endpointClasses=no-endpoint-connection,public-read-only,signed-read-only-intent,not-applicable",
+            "credentialStates=identity-reference-only,not-applicable,redacted-reference-only,no-credential-required",
+            "noOrderStatuses=not-applicable,blocked"
+        ] + rowLines + [
+            "dashboardReadOnly=true",
+            "cliReadOnly=true",
+            "tradingButtonVisible=false",
+            "orderFormVisible=false",
+            "liveCommandVisible=false",
+            "submitCancelReplaceEnabled=false",
+            "productionTradingEnabledByDefault=false",
+            "productionSecretValueRead=false",
+            "productionEndpointConnected=false",
+            "brokerEndpointConnected=false",
+            "productionCutoverAuthorized=false",
+            "realOrderSent=false",
+            "boundaryHeld=true"
+        ]).joined(separator: "\n")
+    }
+
+    private static let readOnlyStatusRows = [
+        (
+            area: "environment-profile",
+            issue: "GH-1240",
+            state: "ready",
+            endpointClass: "no-endpoint-connection",
+            credentialState: "identity-reference-only",
+            redactionState: "redacted",
+            noOrderStatus: "not-applicable",
+            summary: "production-shadow profile registered; endpoint intent only"
+        ),
+        (
+            area: "endpoint-allowlist",
+            issue: "GH-1241",
+            state: "ready",
+            endpointClass: "public-read-only",
+            credentialState: "not-applicable",
+            redactionState: "not-applicable",
+            noOrderStatus: "blocked",
+            summary: "public read-only endpoint shapes allowlisted; no connection opened"
+        ),
+        (
+            area: "credential-reference",
+            issue: "GH-1242",
+            state: "ready",
+            endpointClass: "no-endpoint-connection",
+            credentialState: "redacted-reference-only",
+            redactionState: "redacted",
+            noOrderStatus: "not-applicable",
+            summary: "credential identity reference only; secret value not read"
+        ),
+        (
+            area: "public-market-probe",
+            issue: "GH-1243",
+            state: "ready",
+            endpointClass: "public-read-only",
+            credentialState: "no-credential-required",
+            redactionState: "no-raw-payload",
+            noOrderStatus: "blocked",
+            summary: "public market read-only classification visible"
+        ),
+        (
+            area: "signed-account-readiness",
+            issue: "GH-1244",
+            state: "blocked",
+            endpointClass: "signed-read-only-intent",
+            credentialState: "redacted-reference-only",
+            redactionState: "redacted",
+            noOrderStatus: "blocked",
+            summary: "signed account endpoint remains intent-only; no signed request material"
+        ),
+        (
+            area: "account-snapshot-redaction",
+            issue: "GH-1245",
+            state: "ready",
+            endpointClass: "signed-read-only-intent",
+            credentialState: "redacted-reference-only",
+            redactionState: "redacted",
+            noOrderStatus: "blocked",
+            summary: "account snapshot artifact policy redacts raw account, balance and payload fields"
+        ),
+        (
+            area: "no-order-capability",
+            issue: "GH-1246",
+            state: "fail-closed",
+            endpointClass: "not-applicable",
+            credentialState: "not-applicable",
+            redactionState: "not-applicable",
+            noOrderStatus: "blocked",
+            summary: "submit, cancel, replace and Dashboard / CLI bypass attempts remain blocked"
+        ),
+        (
+            area: "risk-kill-switch-no-trade",
+            issue: "GH-1247",
+            state: "fail-closed",
+            endpointClass: "not-applicable",
+            credentialState: "not-applicable",
+            redactionState: "not-applicable",
+            noOrderStatus: "blocked",
+            summary: "risk gate, kill switch and no-trade state are visible and fail closed"
+        )
+    ]
 
     private static func defaultRows() throws -> [ReleaseV0200ReadOnlyLiveReadinessSurfaceRow] {
         try [

@@ -685,3 +685,6 @@ Release v0.23.0 Binance USD-M Futures read-only foundation anchor：`GH-1341-VER
 `v0.23.1` closes release fact sync for the published `v0.23.0` Binance USD-M Futures read-only foundation release. `v0.24.0` moves the roadmap to a unified Binance Spot + USD-M Futures read-only foundation, joining Spot canary evidence and Futures read-only evidence under one product-aware OMS / Portfolio / Risk / Reconciliation evidence model.
 
 `v0.24.0` remains non-production-cutover: Futures execution, OKX runtime, Dashboard trading controls, broker reconciliation runtime and production cutover are not authorized.
+## v0.25.0 Closeout
+
+`GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT` / `TVM-RELEASE-V0250-AGGREGATE-VALIDATION` / `V0250-008-AGGREGATE-VALIDATION-SUITE` / `V0250-008-STAGE-AUDIT-RELEASE-DOCS` / `V0250-008-ROOT-DOCS-REFRESH` / `V0250-008-RELEASE-PUBLICATION-GATE-HANDOFF` / `V0250-008-NO-PRODUCTION-CUTOVER` / `V0250-008-NO-TAG-OR-RELEASE-PUBLICATION` closes the Binance dual-product production readiness / canary hardening construction queue. Publication is a separate release gate after queue closure; production cutover remains unauthorized.

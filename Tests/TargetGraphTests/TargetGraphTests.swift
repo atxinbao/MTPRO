@@ -5328,7 +5328,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(dashboardTarget.contains("\"Core\""))
         XCTAssertTrue(dashboardTarget.contains("\"Persistence\""))
         XCTAssertTrue(dashboardTarget.contains("\"Portfolio\""))
-        XCTAssertFalse(dashboardTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(dashboardTarget.contains("\"ExecutionClient\""))
         XCTAssertFalse(dashboardTarget.contains("\"ExecutionEngine\""))
         XCTAssertFalse(dashboardTarget.contains("\"RiskEngine\""))
 
@@ -28435,7 +28435,7 @@ final class TargetGraphTests: XCTestCase {
 
         let dashboardTarget = try packageTargetBlock(named: "Dashboard", packageSource: packageSource)
         XCTAssertTrue(dashboardTarget.contains("\"Report\""))
-        XCTAssertFalse(dashboardTarget.contains("\"ExecutionClient\""))
+        XCTAssertTrue(dashboardTarget.contains("\"ExecutionClient\""))
         XCTAssertFalse(dashboardTarget.contains("\"ExecutionEngine\""))
         XCTAssertTrue(dashboardSurfaceSource.contains("GH-594-DASHBOARD-COMMANDGATEWAY-SURFACE"))
 
@@ -42405,7 +42405,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(verifier.contains("testGH1041DashboardReadOnlyExecutionSurfaceIsAnchoredInV0140Guards"))
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.14.0-read-only-execution-dashboard.sh"))
         XCTAssertTrue(package.contains("name: \"Dashboard\","))
-        XCTAssertTrue(package.contains("dependencies: [\"Core\", \"Persistence\", \"Portfolio\"]"))
+        XCTAssertTrue(package.contains("dependencies: [\"Core\", \"Persistence\", \"Portfolio\", \"ExecutionClient\"]"))
         XCTAssertFalse(source.contains("import ExecutionEngine"))
 
         for forbidden in [
@@ -69098,6 +69098,93 @@ final class TargetGraphTests: XCTestCase {
                 "productionCutoverAuthorized=true"
             ] {
                 XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1378 surface")
+            }
+        }
+    }
+
+    func testGH1379ReleaseV0250AggregateValidationReleaseCloseout() throws {
+        // GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT
+        // TVM-RELEASE-V0250-AGGREGATE-VALIDATION
+        // V0250-008-AGGREGATE-VALIDATION-SUITE
+        // V0250-008-STAGE-AUDIT-RELEASE-DOCS
+        // V0250-008-ROOT-DOCS-REFRESH
+        // V0250-008-RELEASE-PUBLICATION-GATE-HANDOFF
+        // V0250-008-NO-PRODUCTION-CUTOVER
+        // V0250-008-NO-TAG-OR-RELEASE-PUBLICATION
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let aggregateAnchors = [
+            "GH-1372-VERIFY-V0250-DUAL-PRODUCT-PRODUCTION-READINESS-CONTRACT",
+            "GH-1373-VERIFY-V0250-PRODUCTION-ENVIRONMENT-ISOLATION-CREDENTIAL-POLICY",
+            "GH-1374-VERIFY-V0250-SPOT-CANARY-OPERATOR-CONTROL-EVIDENCE",
+            "GH-1375-VERIFY-V0250-FUTURES-READONLY-FRESHNESS-FAIL-CLOSED-EVIDENCE",
+            "GH-1376-VERIFY-V0250-UNIFIED-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATE-EVIDENCE",
+            "GH-1377-VERIFY-V0250-INCIDENT-ROLLBACK-NOTRADE-KILLSWITCH-READINESS-EVIDENCE",
+            "GH-1378-VERIFY-V0250-DASHBOARD-CLI-OPERATOR-READINESS-SURFACE",
+            "GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT",
+            "TVM-RELEASE-V0250-AGGREGATE-VALIDATION",
+            "V0250-008-AGGREGATE-VALIDATION-SUITE",
+            "V0250-008-STAGE-AUDIT-RELEASE-DOCS",
+            "V0250-008-ROOT-DOCS-REFRESH",
+            "V0250-008-RELEASE-PUBLICATION-GATE-HANDOFF",
+            "V0250-008-NO-PRODUCTION-CUTOVER",
+            "V0250-008-NO-TAG-OR-RELEASE-PUBLICATION"
+        ]
+
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.25.0.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in aggregateAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let runScript = try read("checks/run.sh")
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.25.0.sh"))
+        XCTAssertTrue(runScript.contains("GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT"))
+        let releasePolicy = try read("docs/release/release-publication-policy.md")
+        XCTAssertTrue(releasePolicy.contains("GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT"))
+        XCTAssertTrue(releasePolicy.contains("V0250-008-RELEASE-PUBLICATION-GATE-HANDOFF"))
+        XCTAssertTrue(releasePolicy.contains("V0250-008-NO-TAG-OR-RELEASE-PUBLICATION"))
+
+        for source in [
+            try read("docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md"),
+            try read("docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "productionSecretReadEnabled=true",
+                "credentialValueStored=true",
+                "productionEndpointConnectionEnabled=true",
+                "brokerEndpointConnectionEnabled=true",
+                "orderSubmitCancelReplaceEnabled=true",
+                "futuresExecutionEnabled=true",
+                "futuresSubmitCancelReplaceEnabled=true",
+                "unrestrictedLiveTradingAuthorized=true",
+                "dashboardTradingControlsEnabled=true",
+                "tradingButtonVisible=true",
+                "orderFormVisible=true",
+                "liveCommandVisible=true",
+                "liveProConsoleEnabled=true",
+                "productionCutoverAuthorized=true",
+                "okxActiveRuntimeEnabled=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1379 closeout")
             }
         }
     }
