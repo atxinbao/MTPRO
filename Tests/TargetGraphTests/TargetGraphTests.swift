@@ -68666,6 +68666,81 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1373ReleaseV0250ProductionEnvironmentIsolationCredentialPolicy() throws {
+        // GH-1373-VERIFY-V0250-PRODUCTION-ENVIRONMENT-ISOLATION-CREDENTIAL-POLICY
+        // TVM-RELEASE-V0250-PRODUCTION-ENVIRONMENT-ISOLATION-CREDENTIAL-POLICY
+        // V0250-002-PRODUCTION-ENVIRONMENT-ISOLATION
+        // V0250-002-CREDENTIAL-REFERENCE-ONLY
+        // V0250-002-MISMATCH-FAILS-CLOSED
+        // V0250-002-MISSING-APPROVAL-FAILS-CLOSED
+        // V0250-002-NO-SECRET-READ
+        let policy = ReleaseV0250ProductionEnvironmentIsolationCredentialPolicy.deterministicFixture
+        XCTAssertEqual(policy.release, "v0.25.0")
+        XCTAssertEqual(policy.upstreamContractRelease, "v0.25.0/V0250-001")
+        XCTAssertEqual(Set(policy.profiles.map(\.profileRole)), Set(ReleaseV0250EnvironmentIsolationProfileRole.allCases))
+        XCTAssertTrue(policy.profiles.allSatisfy(\.failClosed))
+        XCTAssertTrue(policy.mismatchBlockedEvidence.allSatisfy { $0.hasPrefix("blocked:") })
+        XCTAssertTrue(policy.missingApprovalBlockedEvidence.allSatisfy { $0.hasPrefix("blocked:") })
+        XCTAssertFalse(policy.productionTradingEnabledByDefault)
+        XCTAssertFalse(policy.productionSecretReadEnabled)
+        XCTAssertFalse(policy.credentialValueStored)
+        XCTAssertFalse(policy.fallbackCredentialProviderEnabled)
+        XCTAssertFalse(policy.productionEndpointConnectionEnabled)
+        XCTAssertFalse(policy.brokerEndpointConnectionEnabled)
+        XCTAssertFalse(policy.orderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(policy.futuresExecutionEnabled)
+        XCTAssertFalse(policy.okxActiveRuntimeEnabled)
+        XCTAssertFalse(policy.dashboardTradingControlsEnabled)
+        XCTAssertFalse(policy.productionCutoverAuthorized)
+        XCTAssertTrue(policy.policyHeld)
+
+        XCTAssertTrue(policy.statusLines.contains("productionSecretReadEnabled=false"))
+        XCTAssertTrue(policy.statusLines.contains("fallbackCredentialProviderEnabled=false"))
+        XCTAssertTrue(policy.statusLines.contains("productionEndpointConnectionEnabled=false"))
+        XCTAssertTrue(policy.statusLines.contains("orderSubmitCancelReplaceEnabled=false"))
+        XCTAssertTrue(policy.statusLines.contains("policyHeld=true"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = ReleaseV0250ProductionEnvironmentIsolationCredentialPolicy.requiredAnchors
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0250ProductionEnvironmentIsolationCredentialPolicy.swift",
+            "docs/contracts/release-v0.25.0-production-environment-isolation-credential-policy.md",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        for source in [
+            try read("Sources/ExecutionClient/FutureGate/ReleaseV0250ProductionEnvironmentIsolationCredentialPolicy.swift"),
+            try read("docs/contracts/release-v0.25.0-production-environment-isolation-credential-policy.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "productionSecretReadEnabled=true",
+                "credentialValueStored=true",
+                "fallbackCredentialProviderEnabled=true",
+                "productionEndpointConnectionEnabled=true",
+                "brokerEndpointConnectionEnabled=true",
+                "orderSubmitCancelReplaceEnabled=true",
+                "futuresExecutionEnabled=true",
+                "okxActiveRuntimeEnabled=true",
+                "dashboardTradingControlsEnabled=true",
+                "productionCutoverAuthorized=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1373 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
