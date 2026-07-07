@@ -68947,6 +68947,68 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1377ReleaseV0250IncidentRollbackNoTradeKillSwitchReadinessEvidence() throws {
+        // GH-1377-VERIFY-V0250-INCIDENT-ROLLBACK-NOTRADE-KILLSWITCH-READINESS-EVIDENCE
+        // TVM-RELEASE-V0250-INCIDENT-ROLLBACK-NOTRADE-KILLSWITCH-READINESS-EVIDENCE
+        // V0250-006-INCIDENT-ROLLBACK-READINESS
+        // V0250-006-NO-TRADE-STATE-EVIDENCE
+        // V0250-006-KILL-SWITCH-READINESS
+        // V0250-006-BLOCKED-OPERATIONAL-CONTROL
+        // V0250-006-NO-EMERGENCY-STOP-RUNTIME
+        // V0250-006-NO-LIVE-COMMAND-UI
+        let evidence = ReleaseV0250IncidentRollbackNoTradeKillSwitchReadinessEvidence.deterministicFixture
+        XCTAssertEqual(evidence.release, "v0.25.0")
+        XCTAssertEqual(evidence.upstreamRiskGateRelease, "v0.25.0/V0250-005")
+        XCTAssertEqual(Set(evidence.productEvidence.map(\.product)), Set(ReleaseV0250RiskGateProduct.allCases))
+        XCTAssertTrue(evidence.productEvidence.allSatisfy(\.evidenceHeld))
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.operationalControlRuntimeEnabled)
+        XCTAssertFalse(evidence.emergencyStopCommandEnabled)
+        XCTAssertFalse(evidence.shutdownRuntimeEnabled)
+        XCTAssertFalse(evidence.restoreRuntimeEnabled)
+        XCTAssertFalse(evidence.brokerConnectionEnabled)
+        XCTAssertFalse(evidence.liveCommandUIEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertTrue(evidence.evidenceHeld)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = ReleaseV0250IncidentRollbackNoTradeKillSwitchReadinessEvidence.requiredAnchors
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0250IncidentRollbackNoTradeKillSwitchReadinessEvidence.swift",
+            "docs/contracts/release-v0.25.0-incident-rollback-notrade-killswitch-readiness-evidence.md",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        for source in [
+            try read("Sources/ExecutionClient/FutureGate/ReleaseV0250IncidentRollbackNoTradeKillSwitchReadinessEvidence.swift"),
+            try read("docs/contracts/release-v0.25.0-incident-rollback-notrade-killswitch-readiness-evidence.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "operationalControlRuntimeEnabled=true",
+                "emergencyStopCommandEnabled=true",
+                "shutdownRuntimeEnabled=true",
+                "restoreRuntimeEnabled=true",
+                "brokerConnectionEnabled=true",
+                "liveCommandUIEnabled=true",
+                "productionCutoverAuthorized=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1377 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
