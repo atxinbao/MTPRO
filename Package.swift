@@ -542,7 +542,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "Dashboard",
-            dependencies: ["Core", "Persistence", "Portfolio"],
+            dependencies: ["Core", "Persistence", "Portfolio", "ExecutionClient"],
             path: "Sources/Dashboard",
             sources: [
                 "DashboardApplication.swift",

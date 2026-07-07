@@ -69009,6 +69009,99 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1378ReleaseV0250DashboardCLIOperatorReadinessSurface() async throws {
+        // GH-1378-VERIFY-V0250-DASHBOARD-CLI-OPERATOR-READINESS-SURFACE
+        // TVM-RELEASE-V0250-DASHBOARD-CLI-OPERATOR-READINESS-SURFACE
+        // V0250-007-DASHBOARD-CLI-OPERATOR-READINESS
+        // V0250-007-ENVIRONMENT-CREDENTIAL-APPROVAL-EVIDENCE
+        // V0250-007-RISK-ROLLBACK-NOTRADE-EVIDENCE
+        // V0250-007-READ-ONLY-SURFACE
+        // V0250-007-NO-TRADING-BUTTON
+        // V0250-007-NO-ORDER-FORM
+        // V0250-007-NO-LIVE-COMMAND
+        let surface = ReleaseV0250OperatorReadinessSurface.deterministicFixture
+        XCTAssertEqual(surface.release, "v0.25.0")
+        XCTAssertEqual(surface.products, ["binance/spot", "binance/usdsPerpetual"])
+        XCTAssertEqual(surface.upstreamIssueIDs, ["V0250-002", "V0250-003", "V0250-004", "V0250-005", "V0250-006"])
+        XCTAssertFalse(surface.productionTradingEnabledByDefault)
+        XCTAssertFalse(surface.dashboardTradingControlsEnabled)
+        XCTAssertFalse(surface.tradingButtonVisible)
+        XCTAssertFalse(surface.orderFormVisible)
+        XCTAssertFalse(surface.liveCommandVisible)
+        XCTAssertFalse(surface.liveProConsoleEnabled)
+        XCTAssertFalse(surface.submitCancelReplaceEnabled)
+        XCTAssertFalse(surface.productionCutoverAuthorized)
+        XCTAssertTrue(surface.evidenceHeld)
+
+        let statusOutput = try ReleaseV0250OperatorReadinessSurface.commandLineOutput(
+            arguments: [ReleaseV0250OperatorReadinessSurface.cliCommand, "status"]
+        )
+        let evidenceOutput = try ReleaseV0250OperatorReadinessSurface.commandLineOutput(
+            arguments: [ReleaseV0250OperatorReadinessSurface.cliCommand, "evidence"]
+        )
+        let boundariesOutput = try ReleaseV0250OperatorReadinessSurface.commandLineOutput(
+            arguments: [ReleaseV0250OperatorReadinessSurface.cliCommand, "boundaries"]
+        )
+        XCTAssertTrue(statusOutput.contains("surface=dual-product-operator-readiness-read-only"))
+        XCTAssertTrue(evidenceOutput.contains("credential=productionSecretRead=false"))
+        XCTAssertTrue(evidenceOutput.contains("risk=riskCapitalExposureNotionalGate=v0.25.0/V0250-005"))
+        XCTAssertTrue(evidenceOutput.contains("rollback=incidentRollbackNoTradeKillSwitch=v0.25.0/V0250-006"))
+        XCTAssertTrue(boundariesOutput.contains("readOnlySurface=true"))
+        XCTAssertTrue(statusOutput.contains("command=\(ReleaseV0250OperatorReadinessSurface.cliCommand)"))
+
+        let dashboardSurface = ReleaseV0250DashboardCLIOperatorReadinessSurface()
+        XCTAssertTrue(dashboardSurface.boundaryHeld)
+        XCTAssertTrue(dashboardSurface.reportLines.contains("dashboardTradingControlsEnabled=false"))
+        XCTAssertTrue(dashboardSurface.reportLines.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(dashboardSurface.reportLines.contains("orderFormVisible=false"))
+        XCTAssertTrue(dashboardSurface.reportLines.contains("liveCommandVisible=false"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = ReleaseV0250OperatorReadinessSurface.requiredAnchors
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0250OperatorReadinessSurface.swift",
+            "Sources/Dashboard/Report/ReleaseV0250DashboardCLIOperatorReadinessSurface.swift",
+            "docs/contracts/release-v0.25.0-dashboard-cli-operator-readiness-surface.md",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        XCTAssertTrue(cliSource.contains("ReleaseV0250OperatorReadinessSurface.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0250OperatorReadinessSurface.commandLineOutput"))
+        let packageSource = try read("Package.swift")
+        XCTAssertTrue(packageSource.contains("dependencies: [\"Core\", \"Persistence\", \"Portfolio\", \"ExecutionClient\"]"))
+
+        for source in [
+            try read("Sources/ExecutionClient/FutureGate/ReleaseV0250OperatorReadinessSurface.swift"),
+            try read("Sources/Dashboard/Report/ReleaseV0250DashboardCLIOperatorReadinessSurface.swift"),
+            try read("docs/contracts/release-v0.25.0-dashboard-cli-operator-readiness-surface.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "dashboardTradingControlsEnabled=true",
+                "tradingButtonVisible=true",
+                "orderFormVisible=true",
+                "liveCommandVisible=true",
+                "liveProConsoleEnabled=true",
+                "submitCancelReplaceEnabled=true",
+                "productionCutoverAuthorized=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1378 surface")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

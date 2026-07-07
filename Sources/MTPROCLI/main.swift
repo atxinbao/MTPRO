@@ -274,6 +274,7 @@ private enum MTPROStrictCLI {
         ReleaseV0230FuturesReadOnlyFoundationEvidence.cliCommand,
         ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand,
         ReleaseV0250DualProductProductionReadinessContract.cliCommand,
+        ReleaseV0250OperatorReadinessSurface.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -304,6 +305,7 @@ private enum MTPROStrictCLI {
         ReleaseV0230FuturesReadOnlyFoundationEvidence.cliCommand,
         ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand,
         ReleaseV0250DualProductProductionReadinessContract.cliCommand,
+        ReleaseV0250OperatorReadinessSurface.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -371,6 +373,8 @@ private enum MTPROStrictCLI {
             return try ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.commandLineOutput(arguments: arguments)
         case ReleaseV0250DualProductProductionReadinessContract.cliCommand:
             return try ReleaseV0250DualProductProductionReadinessContract.commandLineOutput(arguments: arguments)
+        case ReleaseV0250OperatorReadinessSurface.cliCommand:
+            return try ReleaseV0250OperatorReadinessSurface.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -553,6 +557,10 @@ private enum MTPROStrictCLI {
             "releaseV0250DualProductProductionReadinessValidationAnchor=\(ReleaseV0250DualProductProductionReadinessContract.validationAnchor)",
             "releaseV0250DualProductProductionReadinessVerificationAnchor=\(ReleaseV0250DualProductProductionReadinessContract.verificationAnchor)",
             "releaseV0250DualProductProductionReadinessActions=\(ReleaseV0250DualProductProductionReadinessContract.supportedActions.joined(separator: ","))",
+            "releaseV0250OperatorReadinessSurfaceCommand=\(ReleaseV0250OperatorReadinessSurface.cliCommand)",
+            "releaseV0250OperatorReadinessSurfaceValidationAnchor=\(ReleaseV0250OperatorReadinessSurface.validationAnchor)",
+            "releaseV0250OperatorReadinessSurfaceVerificationAnchor=\(ReleaseV0250OperatorReadinessSurface.verificationAnchor)",
+            "releaseV0250OperatorReadinessSurfaceActions=\(ReleaseV0250OperatorReadinessSurface.supportedActions.joined(separator: ","))",
             "operatorRunFailedEvidenceNonzeroOrReadOnlyReportPath=true",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
