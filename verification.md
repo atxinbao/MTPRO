@@ -18484,3 +18484,23 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
 - GH-1370-VERIFY-V0241-SPOT-CANARY-FUTURES-READONLY-SEMANTICS / V0241-004-SPOT-CANARY-EVIDENCE-NOT-FUTURES-EXECUTION / V0241-004-FUTURES-READONLY-EVIDENCE-NOT-TRADING-AUTHORIZATION: Spot canary evidence and Futures read-only evidence remain separate semantics.
 - GH-1371-VERIFY-V0241-PATCH-AUDIT-RELEASE-NOTES / V0241-005-PATCH-AUDIT / V0241-005-V0250-BLOCKED-BY-V0241-COMPLETION / V0241-005-NO-CAPABILITY-CHANGE: v0.24.1 is docs / guard patch only, with no capability change.
 - Verification: `bash checks/verify-v0.24.1.sh`.
+## 2026-07-07 - MTPRO Release v0.25.0 Aggregate Validation / Release Closeout
+
+- GH-1372-VERIFY-V0250-DUAL-PRODUCT-PRODUCTION-READINESS-CONTRACT
+- GH-1373-VERIFY-V0250-PRODUCTION-ENVIRONMENT-ISOLATION-CREDENTIAL-POLICY
+- GH-1374-VERIFY-V0250-SPOT-CANARY-OPERATOR-CONTROL-EVIDENCE
+- GH-1375-VERIFY-V0250-FUTURES-READONLY-FRESHNESS-FAIL-CLOSED-EVIDENCE
+- GH-1376-VERIFY-V0250-UNIFIED-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATE-EVIDENCE
+- GH-1377-VERIFY-V0250-INCIDENT-ROLLBACK-NOTRADE-KILLSWITCH-READINESS-EVIDENCE
+- GH-1378-VERIFY-V0250-DASHBOARD-CLI-OPERATOR-READINESS-SURFACE
+- GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT
+- TVM-RELEASE-V0250-AGGREGATE-VALIDATION
+- V0250-008-AGGREGATE-VALIDATION-SUITE
+- V0250-008-STAGE-AUDIT-RELEASE-DOCS
+- V0250-008-ROOT-DOCS-REFRESH
+- V0250-008-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0250-008-NO-PRODUCTION-CUTOVER
+- V0250-008-NO-TAG-OR-RELEASE-PUBLICATION
+- Added `checks/verify-v0.25.0.sh`, stage audit report, release notes, root docs refresh, validation matrix and automation readiness anchors.
+- Validation commands: `swift test --filter TargetGraphTests/testGH1379ReleaseV0250AggregateValidationReleaseCloseout`, `bash checks/verify-v0.25.0.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, `bash checks/run.sh`.
+- Boundary: no production cutover, no Futures order execution, no OKX active runtime, no production secret read, no production endpoint / broker endpoint auto-connect, no trading button, no order form, no live command and no tag / GitHub Release publication in the construction PR.
