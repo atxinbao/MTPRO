@@ -3688,7 +3688,7 @@ require_file "docs/contracts/release-v0.4.0-dashboard-cli-unified-run-surface-co
 require_contains "Package.swift" "ReleaseV040UnifiedRunSurface.swift"
 require_contains "Package.swift" "Portfolio/ReleaseV040UnifiedRunSurface.swift"
 require_contains "Package.swift" "dependencies: [\"DomainModel\", \"Database\", \"DataClient\", \"Portfolio\", \"ExecutionClient\", \"ExecutionEngine\"]"
-require_contains "Package.swift" "dependencies: [\"Core\", \"Persistence\", \"Portfolio\"]"
+require_contains "Package.swift" "dependencies: [\"Core\", \"Persistence\", \"Portfolio\", \"ExecutionClient\"]"
 require_contains "Sources/MTPROCLI/main.swift" "ReleaseV040UnifiedRunSurface.cliCommand"
 require_contains "Sources/MTPROCLI/main.swift" "ReleaseV040UnifiedRunSurface.commandLineOutput"
 require_contains "docs/contracts/release-v0.4.0-dashboard-cli-unified-run-surface-contract.md" "V040-12-DASHBOARD-CLI-UNIFIED-RUN-SURFACE"
