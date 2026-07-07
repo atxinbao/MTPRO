@@ -68741,6 +68741,75 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1374ReleaseV0250SpotCanaryOperatorControlEvidence() throws {
+        // GH-1374-VERIFY-V0250-SPOT-CANARY-OPERATOR-CONTROL-EVIDENCE
+        // TVM-RELEASE-V0250-SPOT-CANARY-OPERATOR-CONTROL-EVIDENCE
+        // V0250-003-SPOT-CANARY-OPERATOR-CONFIRMATION
+        // V0250-003-IDEMPOTENCY-EVIDENCE
+        // V0250-003-SIZE-CAP-EVIDENCE
+        // V0250-003-ROLLBACK-EVIDENCE
+        // V0250-003-NO-UNRESTRICTED-LIVE-TRADING
+        let evidence = ReleaseV0250SpotCanaryOperatorControlEvidence.deterministicFixture
+        XCTAssertEqual(evidence.release, "v0.25.0")
+        XCTAssertEqual(evidence.upstreamPolicyRelease, "v0.25.0/V0250-002")
+        XCTAssertEqual(evidence.spotTransportEvidenceSource, "v0.22.0")
+        XCTAssertEqual(evidence.dualProductVocabularySource, "v0.24.0")
+        XCTAssertEqual(evidence.venue, "binance")
+        XCTAssertEqual(evidence.productType, "spot")
+        XCTAssertEqual(evidence.canarySymbolAllowlist, ["BTCUSDT"])
+        XCTAssertEqual(evidence.maxNotionalUSDT, Decimal(10))
+        XCTAssertEqual(evidence.maxBaseQuantity, Decimal(string: "0.001"))
+        XCTAssertTrue(evidence.operatorConfirmationProofRequired)
+        XCTAssertTrue(evidence.idempotencyKeyRequired)
+        XCTAssertTrue(evidence.rollbackEvidenceRequired)
+        XCTAssertEqual(Set(evidence.evidenceItems.map(\.kind)), Set(ReleaseV0250SpotCanaryControlEvidenceKind.allCases))
+        XCTAssertTrue(evidence.evidenceItems.allSatisfy(\.evidenceHeld))
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.unrestrictedLiveTradingAuthorized)
+        XCTAssertFalse(evidence.defaultOrderMutationEnabled)
+        XCTAssertFalse(evidence.dashboardTradingControlsEnabled)
+        XCTAssertFalse(evidence.orderFormEnabled)
+        XCTAssertFalse(evidence.liveCommandEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertTrue(evidence.evidenceHeld)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = ReleaseV0250SpotCanaryOperatorControlEvidence.requiredAnchors
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0250SpotCanaryOperatorControlEvidence.swift",
+            "docs/contracts/release-v0.25.0-spot-canary-operator-control-evidence.md",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        for source in [
+            try read("Sources/ExecutionClient/FutureGate/ReleaseV0250SpotCanaryOperatorControlEvidence.swift"),
+            try read("docs/contracts/release-v0.25.0-spot-canary-operator-control-evidence.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "unrestrictedLiveTradingAuthorized=true",
+                "defaultOrderMutationEnabled=true",
+                "dashboardTradingControlsEnabled=true",
+                "orderFormEnabled=true",
+                "liveCommandEnabled=true",
+                "productionCutoverAuthorized=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1374 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
