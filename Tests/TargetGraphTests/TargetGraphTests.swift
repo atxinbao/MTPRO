@@ -68488,6 +68488,105 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1367To1371ReleaseV0241PublicationFactSyncMilestoneSemanticsPatch() throws {
+        // GH-1367-VERIFY-V0241-V0240-RELEASE-FACT-SYNC
+        // TVM-RELEASE-V0241-V0240-RELEASE-FACT-SYNC
+        // V0241-001-V0240-GITHUB-RELEASE-PUBLISHED
+        // V0241-001-V0240-TAG-FIXED
+        // V0241-001-V0240-PUBLISHED-AT-2026-07-06T19-43-49Z
+        // GH-1368-VERIFY-V0241-MILESTONE-COMPLETION-FACTS
+        // V0241-002-V0231-V0240-MILESTONES-CLOSED
+        // GH-1369-VERIFY-V0241-V0240-STALE-WORDING-GUARD
+        // V0241-003-PUBLISHED-V0240-STALE-WORDING-GUARD
+        // GH-1370-VERIFY-V0241-SPOT-CANARY-FUTURES-READONLY-SEMANTICS
+        // V0241-004-SPOT-CANARY-EVIDENCE-NOT-FUTURES-EXECUTION
+        // V0241-004-FUTURES-READONLY-EVIDENCE-NOT-TRADING-AUTHORIZATION
+        // GH-1371-VERIFY-V0241-PATCH-AUDIT-RELEASE-NOTES
+        // V0241-005-PATCH-AUDIT
+        // V0241-005-V0250-BLOCKED-BY-V0241-COMPLETION
+        // V0241-005-NO-CAPABILITY-CHANGE
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1367-VERIFY-V0241-V0240-RELEASE-FACT-SYNC",
+            "TVM-RELEASE-V0241-V0240-RELEASE-FACT-SYNC",
+            "V0241-001-V0240-GITHUB-RELEASE-PUBLISHED",
+            "V0241-001-V0240-TAG-FIXED",
+            "V0241-001-V0240-PUBLISHED-AT-2026-07-06T19-43-49Z",
+            "GH-1368-VERIFY-V0241-MILESTONE-COMPLETION-FACTS",
+            "V0241-002-V0231-V0240-MILESTONES-CLOSED",
+            "GH-1369-VERIFY-V0241-V0240-STALE-WORDING-GUARD",
+            "V0241-003-PUBLISHED-V0240-STALE-WORDING-GUARD",
+            "GH-1370-VERIFY-V0241-SPOT-CANARY-FUTURES-READONLY-SEMANTICS",
+            "V0241-004-SPOT-CANARY-EVIDENCE-NOT-FUTURES-EXECUTION",
+            "V0241-004-FUTURES-READONLY-EVIDENCE-NOT-TRADING-AUTHORIZATION",
+            "GH-1371-VERIFY-V0241-PATCH-AUDIT-RELEASE-NOTES",
+            "V0241-005-PATCH-AUDIT",
+            "V0241-005-V0250-BLOCKED-BY-V0241-COMPLETION",
+            "V0241-005-NO-CAPABILITY-CHANGE"
+        ]
+
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-notes.md",
+            "docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.24.1.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let v0240Notes = try read("docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md")
+        let v0240Audit = try read("docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md")
+        let latest = try read("docs/validation/latest-verification-summary.md")
+
+        XCTAssertTrue(v0240Notes.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.24.0"))
+        XCTAssertTrue(v0240Notes.contains("995065ba4ae4f9c80009fc68891176e5c0a56270"))
+        XCTAssertTrue(v0240Notes.contains("2026-07-06T19:43:49Z"))
+        XCTAssertTrue(v0240Audit.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.24.0"))
+        XCTAssertTrue(latest.contains("v0.23.1 milestone #38 closed"))
+        XCTAssertTrue(latest.contains("v0.24.0 milestone #39 closed"))
+
+        for source in [
+            v0240Notes,
+            v0240Audit,
+            try read("docs/audit/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-stage-code-audit.md"),
+            try read("docs/release/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-notes.md"),
+            latest,
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "does not create a v0.24.0 tag",
+                "does not create a v0.24.0 tag / GitHub Release",
+                "v0.24.0 tag / GitHub Release unless separately requested",
+                "v0.24.0 remains pending",
+                "v0.24.0 has not been published",
+                "spotCanaryEvidenceImpliesFuturesExecution=true",
+                "futuresReadOnlyEvidenceImpliesTradingAuthorization=true",
+                "futuresOrderExecutionEnabled=true",
+                "productionCutoverAuthorized=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of v0.24.1 publication facts")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

@@ -195,11 +195,14 @@ require_file "checks/verify-v0.22.1.sh"
 require_file "checks/verify-v0.23.0.sh"
 require_file "checks/verify-v0.23.1.sh"
 require_file "checks/verify-v0.24.0.sh"
+require_file "checks/verify-v0.24.1.sh"
 require_file "docs/contracts/release-v0.24.0-spot-futures-unified-readonly-foundation-contract.md"
 require_file "docs/audit/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-notes.md"
 require_file "docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md"
+require_file "docs/audit/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-notes.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -14799,6 +14802,41 @@ require_contains "checks/run.sh" "bash checks/verify-v0.24.0.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.24.0.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1358To1365ReleaseV0240SpotFuturesUnifiedReadOnlyFoundation"
 
+for file in \
+  "docs/audit/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-notes.md" \
+  "docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.24.1.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1367-VERIFY-V0241-V0240-RELEASE-FACT-SYNC"
+  require_contains "$file" "TVM-RELEASE-V0241-V0240-RELEASE-FACT-SYNC"
+  require_contains "$file" "V0241-001-V0240-GITHUB-RELEASE-PUBLISHED"
+  require_contains "$file" "V0241-001-V0240-TAG-FIXED"
+  require_contains "$file" "V0241-001-V0240-PUBLISHED-AT-2026-07-06T19-43-49Z"
+  require_contains "$file" "GH-1368-VERIFY-V0241-MILESTONE-COMPLETION-FACTS"
+  require_contains "$file" "V0241-002-V0231-V0240-MILESTONES-CLOSED"
+  require_contains "$file" "GH-1369-VERIFY-V0241-V0240-STALE-WORDING-GUARD"
+  require_contains "$file" "V0241-003-PUBLISHED-V0240-STALE-WORDING-GUARD"
+  require_contains "$file" "GH-1370-VERIFY-V0241-SPOT-CANARY-FUTURES-READONLY-SEMANTICS"
+  require_contains "$file" "V0241-004-SPOT-CANARY-EVIDENCE-NOT-FUTURES-EXECUTION"
+  require_contains "$file" "V0241-004-FUTURES-READONLY-EVIDENCE-NOT-TRADING-AUTHORIZATION"
+  require_contains "$file" "GH-1371-VERIFY-V0241-PATCH-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "V0241-005-PATCH-AUDIT"
+  require_contains "$file" "V0241-005-V0250-BLOCKED-BY-V0241-COMPLETION"
+  require_contains "$file" "V0241-005-NO-CAPABILITY-CHANGE"
+done
+require_contains "checks/run.sh" "bash checks/verify-v0.24.1.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.24.1.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1367To1371ReleaseV0241PublicationFactSyncMilestoneSemanticsPatch"
+
 # Release v0.23.1 full anchor inventory:
 # GH-1353-VERIFY-V0231-V0230-RELEASE-FACT-SYNC
 # TVM-RELEASE-V0231-V0230-RELEASE-FACT-SYNC
@@ -14846,5 +14884,23 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1358To13
 # V0240-008-AGGREGATE-VALIDATION-SUITE
 # V0240-008-STAGE-AUDIT-RELEASE-DOCS
 # V0240-008-NO-PRODUCTION-CUTOVER
+
+# Release v0.24.1 full anchor inventory:
+# GH-1367-VERIFY-V0241-V0240-RELEASE-FACT-SYNC
+# TVM-RELEASE-V0241-V0240-RELEASE-FACT-SYNC
+# V0241-001-V0240-GITHUB-RELEASE-PUBLISHED
+# V0241-001-V0240-TAG-FIXED
+# V0241-001-V0240-PUBLISHED-AT-2026-07-06T19-43-49Z
+# GH-1368-VERIFY-V0241-MILESTONE-COMPLETION-FACTS
+# V0241-002-V0231-V0240-MILESTONES-CLOSED
+# GH-1369-VERIFY-V0241-V0240-STALE-WORDING-GUARD
+# V0241-003-PUBLISHED-V0240-STALE-WORDING-GUARD
+# GH-1370-VERIFY-V0241-SPOT-CANARY-FUTURES-READONLY-SEMANTICS
+# V0241-004-SPOT-CANARY-EVIDENCE-NOT-FUTURES-EXECUTION
+# V0241-004-FUTURES-READONLY-EVIDENCE-NOT-TRADING-AUTHORIZATION
+# GH-1371-VERIFY-V0241-PATCH-AUDIT-RELEASE-NOTES
+# V0241-005-PATCH-AUDIT
+# V0241-005-V0250-BLOCKED-BY-V0241-COMPLETION
+# V0241-005-NO-CAPABILITY-CHANGE
 
 printf 'MTPRO automation readiness checks passed.\n'

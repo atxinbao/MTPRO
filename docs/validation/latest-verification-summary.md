@@ -58,6 +58,14 @@
 README.md -> AGENTS.md -> GOAL.md -> BLUEPRINT.md -> environment.md -> architecture.md -> docs/roadmap.md -> docs/domain/context.md -> docs/validation/latest-verification-summary.md
 ```
 
+## Release v0.24.1 publication fact sync / milestone semantics patch
+
+- GH-1367-VERIFY-V0241-V0240-RELEASE-FACT-SYNC / TVM-RELEASE-V0241-V0240-RELEASE-FACT-SYNC / V0241-001-V0240-GITHUB-RELEASE-PUBLISHED / V0241-001-V0240-TAG-FIXED / V0241-001-V0240-PUBLISHED-AT-2026-07-06T19-43-49Z: v0.24.0 is published at https://github.com/atxinbao/MTPRO/releases/tag/v0.24.0, fixed at tag target `995065ba4ae4f9c80009fc68891176e5c0a56270`, and published at `2026-07-06T19:43:49Z`.
+- GH-1368-VERIFY-V0241-MILESTONE-COMPLETION-FACTS / V0241-002-V0231-V0240-MILESTONES-CLOSED: v0.23.1 milestone #38 closed with 0 open / 5 closed issues; v0.24.0 milestone #39 closed with 0 open / 8 closed issues.
+- GH-1369-VERIFY-V0241-V0240-STALE-WORDING-GUARD / V0241-003-PUBLISHED-V0240-STALE-WORDING-GUARD: current-facing v0.24.0 docs must not describe v0.24.0 as pending, unpublished, or not creating a tag / GitHub Release.
+- GH-1370-VERIFY-V0241-SPOT-CANARY-FUTURES-READONLY-SEMANTICS / V0241-004-SPOT-CANARY-EVIDENCE-NOT-FUTURES-EXECUTION / V0241-004-FUTURES-READONLY-EVIDENCE-NOT-TRADING-AUTHORIZATION: `spotCanaryEvidenceImpliesFuturesExecution=false` and `futuresReadOnlyEvidenceImpliesTradingAuthorization=false`.
+- GH-1371-VERIFY-V0241-PATCH-AUDIT-RELEASE-NOTES / V0241-005-PATCH-AUDIT / V0241-005-V0250-BLOCKED-BY-V0241-COMPLETION / V0241-005-NO-CAPABILITY-CHANGE: v0.24.1 is a docs / guard patch only; v0.25.0 remains blocked by v0.24.1 completion.
+
 ## 当前基线
 
 | 项 | 当前事实 |
@@ -2855,3 +2863,11 @@ bash checks/run.sh
 - GH-1363-VERIFY-V0240-DUAL-PRODUCT-FAILURE-MATRIX / V0240-006-DUAL-PRODUCT-FAILURE-CLASSIFICATION / V0240-006-FAIL-CLOSED-EVIDENCE: dual-product failures are classified and fail-closed.
 - GH-1364-VERIFY-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE / TVM-RELEASE-V0240-DASHBOARD-CLI-DUAL-PRODUCT-SURFACE / V0240-007-DASHBOARD-CLI-DUAL-PRODUCT-READONLY / V0240-007-NO-TRADING-BUTTON-ORDER-FORM-LIVE-COMMAND: Dashboard / CLI are read-only and expose no trading button, order form or live command.
 - GH-1365-VERIFY-V0240-AGGREGATE-VALIDATION / TVM-RELEASE-V0240-AGGREGATE-VALIDATION / V0240-008-AGGREGATE-VALIDATION-SUITE / V0240-008-STAGE-AUDIT-RELEASE-DOCS / V0240-008-NO-PRODUCTION-CUTOVER: v0.24.0 closes aggregate validation and release docs with production cutover not authorized.
+
+## Release v0.24.1 publication fact sync / milestone semantics patch
+
+- GH-1367-VERIFY-V0241-V0240-RELEASE-FACT-SYNC / TVM-RELEASE-V0241-V0240-RELEASE-FACT-SYNC / V0241-001-V0240-GITHUB-RELEASE-PUBLISHED / V0241-001-V0240-TAG-FIXED / V0241-001-V0240-PUBLISHED-AT-2026-07-06T19-43-49Z: v0.24.0 release facts are fixed to the published GitHub Release and immutable tag target.
+- GH-1368-VERIFY-V0241-MILESTONE-COMPLETION-FACTS / V0241-002-V0231-V0240-MILESTONES-CLOSED: v0.23.1 milestone #38 closed; v0.24.0 milestone #39 closed.
+- GH-1369-VERIFY-V0241-V0240-STALE-WORDING-GUARD / V0241-003-PUBLISHED-V0240-STALE-WORDING-GUARD: current-facing stale v0.24.0 publication wording is rejected.
+- GH-1370-VERIFY-V0241-SPOT-CANARY-FUTURES-READONLY-SEMANTICS / V0241-004-SPOT-CANARY-EVIDENCE-NOT-FUTURES-EXECUTION / V0241-004-FUTURES-READONLY-EVIDENCE-NOT-TRADING-AUTHORIZATION: Spot canary evidence does not imply Futures execution; Futures read-only evidence does not imply trading authorization.
+- GH-1371-VERIFY-V0241-PATCH-AUDIT-RELEASE-NOTES / V0241-005-PATCH-AUDIT / V0241-005-V0250-BLOCKED-BY-V0241-COMPLETION / V0241-005-NO-CAPABILITY-CHANGE: v0.24.1 is docs / guard patch only, with no capability change.
