@@ -68810,6 +68810,78 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1375ReleaseV0250FuturesReadOnlyFreshnessFailClosedEvidence() throws {
+        // GH-1375-VERIFY-V0250-FUTURES-READONLY-FRESHNESS-FAIL-CLOSED-EVIDENCE
+        // TVM-RELEASE-V0250-FUTURES-READONLY-FRESHNESS-FAIL-CLOSED-EVIDENCE
+        // V0250-004-FUTURES-READONLY-FRESHNESS
+        // V0250-004-STALE-FAILS-CLOSED
+        // V0250-004-MISSING-FAILS-CLOSED
+        // V0250-004-ENDPOINT-BLOCKED
+        // V0250-004-CAPABILITY-MISMATCH-BLOCKED
+        // V0250-004-NO-FUTURES-ORDER-MUTATION
+        let evidence = ReleaseV0250FuturesReadOnlyFreshnessFailClosedEvidence.deterministicFixture
+        XCTAssertEqual(evidence.release, "v0.25.0")
+        XCTAssertEqual(evidence.upstreamPolicyRelease, "v0.25.0/V0250-002")
+        XCTAssertEqual(evidence.venue, "binance")
+        XCTAssertEqual(evidence.productType, "usdsPerpetual")
+        XCTAssertEqual(evidence.environment, "productionShadow")
+        XCTAssertEqual(evidence.freshnessWindowSeconds, 300)
+        XCTAssertLessThanOrEqual(evidence.latestEvidenceAgeSeconds, evidence.freshnessWindowSeconds)
+        XCTAssertTrue(evidence.readOnlyEvidenceFresh)
+        XCTAssertTrue(evidence.readOnlyEvidenceRequired)
+        XCTAssertEqual(
+            Set(evidence.failureEvidence.map(\.failureClass)),
+            Set(ReleaseV0250FuturesReadOnlyFailureClass.allCases)
+        )
+        XCTAssertTrue(evidence.failureEvidence.allSatisfy(\.evidenceHeld))
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.futuresSubmitCancelReplaceEnabled)
+        XCTAssertFalse(evidence.leverageMutationEnabled)
+        XCTAssertFalse(evidence.marginModeMutationEnabled)
+        XCTAssertFalse(evidence.positionModeMutationEnabled)
+        XCTAssertFalse(evidence.listenKeyRuntimeEnabled)
+        XCTAssertFalse(evidence.futuresBrokerAdapterEnabled)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertTrue(evidence.evidenceHeld)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = ReleaseV0250FuturesReadOnlyFreshnessFailClosedEvidence.requiredAnchors
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0250FuturesReadOnlyFreshnessFailClosedEvidence.swift",
+            "docs/contracts/release-v0.25.0-futures-readonly-freshness-fail-closed-evidence.md",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        for source in [
+            try read("Sources/ExecutionClient/FutureGate/ReleaseV0250FuturesReadOnlyFreshnessFailClosedEvidence.swift"),
+            try read("docs/contracts/release-v0.25.0-futures-readonly-freshness-fail-closed-evidence.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "futuresSubmitCancelReplaceEnabled=true",
+                "leverageMutationEnabled=true",
+                "marginModeMutationEnabled=true",
+                "positionModeMutationEnabled=true",
+                "listenKeyRuntimeEnabled=true",
+                "futuresBrokerAdapterEnabled=true",
+                "productionCutoverAuthorized=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1375 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
