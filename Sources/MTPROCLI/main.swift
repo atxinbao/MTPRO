@@ -273,6 +273,7 @@ private enum MTPROStrictCLI {
         ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.cliCommand,
         ReleaseV0230FuturesReadOnlyFoundationEvidence.cliCommand,
         ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand,
+        ReleaseV0250DualProductProductionReadinessContract.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -302,6 +303,7 @@ private enum MTPROStrictCLI {
         ReleaseV0220SpotLiveCanaryReadOnlyEvidenceSurface.cliCommand,
         ReleaseV0230FuturesReadOnlyFoundationEvidence.cliCommand,
         ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand,
+        ReleaseV0250DualProductProductionReadinessContract.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -367,6 +369,8 @@ private enum MTPROStrictCLI {
             return try ReleaseV0230FuturesReadOnlyFoundationEvidence.commandLineOutput(arguments: arguments)
         case ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand:
             return try ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.commandLineOutput(arguments: arguments)
+        case ReleaseV0250DualProductProductionReadinessContract.cliCommand:
+            return try ReleaseV0250DualProductProductionReadinessContract.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -538,6 +542,17 @@ private enum MTPROStrictCLI {
             "releaseV0240DualProductReadOnlyReadinessValidationAnchor=\(ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.validationAnchor)",
             "releaseV0240DualProductReadOnlyReadinessVerificationAnchor=\(ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.verificationAnchor)",
             "releaseV0240DualProductReadOnlyReadinessActions=\(ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.supportedActions.joined(separator: ","))",
+            // GH-1372-VERIFY-V0250-DUAL-PRODUCT-PRODUCTION-READINESS-CONTRACT
+            // TVM-RELEASE-V0250-DUAL-PRODUCT-PRODUCTION-READINESS-CONTRACT
+            // V0250-001-DUAL-PRODUCT-PRODUCTION-READINESS
+            // V0250-001-NO-DEFAULT-TRADING
+            // V0250-001-SPOT-CANARY-EVIDENCE-NOT-CUTOVER
+            // V0250-001-FUTURES-READONLY-EVIDENCE-NOT-EXECUTION
+            // V0250-001-BLOCKED-BY-V0241-COMPLETION
+            "releaseV0250DualProductProductionReadinessCommand=\(ReleaseV0250DualProductProductionReadinessContract.cliCommand)",
+            "releaseV0250DualProductProductionReadinessValidationAnchor=\(ReleaseV0250DualProductProductionReadinessContract.validationAnchor)",
+            "releaseV0250DualProductProductionReadinessVerificationAnchor=\(ReleaseV0250DualProductProductionReadinessContract.verificationAnchor)",
+            "releaseV0250DualProductProductionReadinessActions=\(ReleaseV0250DualProductProductionReadinessContract.supportedActions.joined(separator: ","))",
             "operatorRunFailedEvidenceNonzeroOrReadOnlyReportPath=true",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",

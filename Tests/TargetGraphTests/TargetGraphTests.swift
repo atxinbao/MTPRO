@@ -68587,6 +68587,85 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1372ReleaseV0250DualProductProductionReadinessContract() throws {
+        // GH-1372-VERIFY-V0250-DUAL-PRODUCT-PRODUCTION-READINESS-CONTRACT
+        // TVM-RELEASE-V0250-DUAL-PRODUCT-PRODUCTION-READINESS-CONTRACT
+        // V0250-001-DUAL-PRODUCT-PRODUCTION-READINESS
+        // V0250-001-NO-DEFAULT-TRADING
+        // V0250-001-SPOT-CANARY-EVIDENCE-NOT-CUTOVER
+        // V0250-001-FUTURES-READONLY-EVIDENCE-NOT-EXECUTION
+        // V0250-001-BLOCKED-BY-V0241-COMPLETION
+        let evidence = ReleaseV0250DualProductProductionReadinessContract.deterministicFixture
+        XCTAssertEqual(evidence.release, "v0.25.0")
+        XCTAssertEqual(evidence.prerequisitePatchRelease, "v0.24.1")
+        XCTAssertEqual(evidence.productEvidence.map(\.productType), ["spot", "usdsPerpetual"])
+        XCTAssertEqual(evidence.productEvidence.map(\.readinessRole), [.spotControlledCanaryEvidence, .futuresReadOnlyEvidence])
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.futuresSubmitCancelReplaceEnabled)
+        XCTAssertFalse(evidence.okxActiveRuntimeEnabled)
+        XCTAssertFalse(evidence.dashboardTradingControlsEnabled)
+        XCTAssertTrue(evidence.manualApprovalRequired)
+        XCTAssertTrue(evidence.dryRunOrBlockedEvidenceRequired)
+        XCTAssertTrue(evidence.boundaryHeld)
+
+        let statusOutput = try ReleaseV0250DualProductProductionReadinessContract.commandLineOutput(
+            arguments: [ReleaseV0250DualProductProductionReadinessContract.cliCommand, "status"]
+        )
+        let productsOutput = try ReleaseV0250DualProductProductionReadinessContract.commandLineOutput(
+            arguments: [ReleaseV0250DualProductProductionReadinessContract.cliCommand, "products"]
+        )
+        let boundariesOutput = try ReleaseV0250DualProductProductionReadinessContract.commandLineOutput(
+            arguments: [ReleaseV0250DualProductProductionReadinessContract.cliCommand, "boundaries"]
+        )
+
+        XCTAssertTrue(statusOutput.contains("productionTradingEnabledByDefault=false"))
+        XCTAssertTrue(statusOutput.contains("manualApprovalRequired=true"))
+        XCTAssertTrue(productsOutput.contains("role:spot-controlled-canary-evidence"))
+        XCTAssertTrue(productsOutput.contains("role:futures-readonly-evidence"))
+        XCTAssertTrue(productsOutput.contains("orderMutationEnabled:false"))
+        XCTAssertTrue(boundariesOutput.contains("spotCanaryEvidenceNotCutover=true"))
+        XCTAssertTrue(boundariesOutput.contains("futuresReadOnlyEvidenceNotExecution=true"))
+        XCTAssertTrue(boundariesOutput.contains("tradingButtonVisible=false"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = ReleaseV0250DualProductProductionReadinessContract.requiredAnchors
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0250DualProductProductionReadinessContract.swift",
+            "Sources/MTPROCLI/main.swift",
+            "docs/contracts/release-v0.25.0-dual-product-production-readiness-contract.md",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        for source in [
+            try read("Sources/ExecutionClient/FutureGate/ReleaseV0250DualProductProductionReadinessContract.swift"),
+            try read("docs/contracts/release-v0.25.0-dual-product-production-readiness-contract.md")
+        ] {
+            for forbidden in [
+                "productionTradingEnabledByDefault=true",
+                "productionCutoverAuthorized=true",
+                "futuresSubmitCancelReplaceEnabled=true",
+                "okxActiveRuntimeEnabled=true",
+                "dashboardTradingControlsEnabled=true",
+                "orderFormEnabled=true",
+                "liveCommandEnabled=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1372 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
