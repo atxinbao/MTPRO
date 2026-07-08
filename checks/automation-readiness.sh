@@ -198,6 +198,7 @@ require_file "checks/verify-v0.24.0.sh"
 require_file "checks/verify-v0.24.1.sh"
 require_file "checks/verify-v0.25.0.sh"
 require_file "checks/verify-v0.25.1.sh"
+require_file "checks/verify-v0.26.0.sh"
 require_file "docs/contracts/release-v0.24.0-spot-futures-unified-readonly-foundation-contract.md"
 require_file "docs/audit/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-notes.md"
@@ -209,6 +210,8 @@ require_file "docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness
 require_file "docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md"
 require_file "docs/audit/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-notes.md"
+require_file "docs/audit/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-notes.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -14918,6 +14921,60 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.25.1.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.25.1.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1389To1393ReleaseV0251PublicationFactSyncRoadmapCorrectionPatch"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0260FuturesTestnetControlledExecutionFoundation.swift" \
+  "Sources/Dashboard/Report/ReleaseV0260DashboardCLIFuturesTestnetStatusSurface.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "docs/audit/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md" \
+  "checks/verify-v0.26.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1394-VERIFY-V0260-FUTURES-TESTNET-CONTROLLED-EXECUTION-CONTRACT"
+  require_contains "$file" "TVM-RELEASE-V0260-FUTURES-TESTNET-CONTROLLED-EXECUTION"
+  require_contains "$file" "V0260-001-FUTURES-TESTNET-CONTROLLED-EXECUTION"
+  require_contains "$file" "V0260-001-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "GH-1395-VERIFY-V0260-FUTURES-TESTNET-ENVIRONMENT-CREDENTIAL-GATE"
+  require_contains "$file" "V0260-002-FUTURES-TESTNET-ENVIRONMENT-GATE"
+  require_contains "$file" "V0260-002-CREDENTIAL-REFERENCE-ONLY"
+  require_contains "$file" "GH-1396-VERIFY-V0260-FUTURES-TESTNET-ORDER-INTENT-VALIDATION"
+  require_contains "$file" "V0260-003-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0260-003-ORDER-INTENT-VALIDATED"
+  require_contains "$file" "GH-1397-VERIFY-V0260-FUTURES-TESTNET-SUBMIT-EVIDENCE"
+  require_contains "$file" "V0260-004-MANUAL-APPROVAL-HARD-CAPS"
+  require_contains "$file" "V0260-004-IDEMPOTENCY-REDACTION"
+  require_contains "$file" "GH-1398-VERIFY-V0260-FUTURES-TESTNET-CANCEL-STATUS-ROLLBACK"
+  require_contains "$file" "V0260-005-CANCEL-STATUS-ROLLBACK"
+  require_contains "$file" "V0260-005-FAIL-CLOSED-STATUS-AMBIGUITY"
+  require_contains "$file" "GH-1399-VERIFY-V0260-FUTURES-TESTNET-OMS-RECONCILIATION"
+  require_contains "$file" "V0260-006-OMS-EVENT-LOG-RECONCILIATION"
+  require_contains "$file" "V0260-006-APPEND-ONLY-EVIDENCE"
+  require_contains "$file" "GH-1400-VERIFY-V0260-FUTURES-TESTNET-RISK-NOTIONAL-LEVERAGE-GUARDS"
+  require_contains "$file" "V0260-007-RISK-NOTIONAL-LEVERAGE-MODE-GUARD"
+  require_contains "$file" "V0260-007-REDUCE-ONLY-HARD-CAP"
+  require_contains "$file" "GH-1401-VERIFY-V0260-DASHBOARD-CLI-FUTURES-TESTNET-STATUS-SURFACE"
+  require_contains "$file" "TVM-RELEASE-V0260-DASHBOARD-CLI-FUTURES-TESTNET-STATUS-SURFACE"
+  require_contains "$file" "V0260-008-DASHBOARD-CLI-READONLY-FUTURES-TESTNET-STATUS"
+  require_contains "$file" "V0260-008-NO-DASHBOARD-TRADING-CONTROLS"
+  require_contains "$file" "GH-1402-VERIFY-V0260-AGGREGATE-VALIDATION"
+  require_contains "$file" "TVM-RELEASE-V0260-AGGREGATE-VALIDATION"
+  require_contains "$file" "V0260-009-AGGREGATE-VALIDATION-SUITE"
+  require_contains "$file" "GH-1403-VERIFY-V0260-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "V0260-010-STAGE-CODE-AUDIT"
+  require_contains "$file" "V0260-010-NO-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0260-010-NO-TAG-OR-RELEASE-PUBLICATION"
+done
+
+require_contains "checks/run.sh" "bash checks/verify-v0.26.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.26.0.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1394To1403ReleaseV0260FuturesTestnetControlledExecutionFoundation"
 
 # Release v0.23.1 full anchor inventory:
 # GH-1353-VERIFY-V0231-V0230-RELEASE-FACT-SYNC

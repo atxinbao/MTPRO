@@ -69303,6 +69303,178 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1394To1403ReleaseV0260FuturesTestnetControlledExecutionFoundation() throws {
+        // GH-1394-VERIFY-V0260-FUTURES-TESTNET-CONTROLLED-EXECUTION-CONTRACT
+        // TVM-RELEASE-V0260-FUTURES-TESTNET-CONTROLLED-EXECUTION
+        // V0260-001-FUTURES-TESTNET-CONTROLLED-EXECUTION
+        // V0260-001-NO-PRODUCTION-CUTOVER
+        // GH-1395-VERIFY-V0260-FUTURES-TESTNET-ENVIRONMENT-CREDENTIAL-GATE
+        // V0260-002-FUTURES-TESTNET-ENVIRONMENT-GATE
+        // V0260-002-CREDENTIAL-REFERENCE-ONLY
+        // GH-1396-VERIFY-V0260-FUTURES-TESTNET-ORDER-INTENT-VALIDATION
+        // V0260-003-NO-PRODUCTION-CUTOVER
+        // V0260-003-ORDER-INTENT-VALIDATED
+        // GH-1397-VERIFY-V0260-FUTURES-TESTNET-SUBMIT-EVIDENCE
+        // V0260-004-MANUAL-APPROVAL-HARD-CAPS
+        // V0260-004-IDEMPOTENCY-REDACTION
+        // GH-1398-VERIFY-V0260-FUTURES-TESTNET-CANCEL-STATUS-ROLLBACK
+        // V0260-005-CANCEL-STATUS-ROLLBACK
+        // V0260-005-FAIL-CLOSED-STATUS-AMBIGUITY
+        // GH-1399-VERIFY-V0260-FUTURES-TESTNET-OMS-RECONCILIATION
+        // V0260-006-OMS-EVENT-LOG-RECONCILIATION
+        // V0260-006-APPEND-ONLY-EVIDENCE
+        // GH-1400-VERIFY-V0260-FUTURES-TESTNET-RISK-NOTIONAL-LEVERAGE-GUARDS
+        // V0260-007-RISK-NOTIONAL-LEVERAGE-MODE-GUARD
+        // V0260-007-REDUCE-ONLY-HARD-CAP
+        // GH-1401-VERIFY-V0260-DASHBOARD-CLI-FUTURES-TESTNET-STATUS-SURFACE
+        // TVM-RELEASE-V0260-DASHBOARD-CLI-FUTURES-TESTNET-STATUS-SURFACE
+        // V0260-008-DASHBOARD-CLI-READONLY-FUTURES-TESTNET-STATUS
+        // V0260-008-NO-DASHBOARD-TRADING-CONTROLS
+        // GH-1402-VERIFY-V0260-AGGREGATE-VALIDATION
+        // TVM-RELEASE-V0260-AGGREGATE-VALIDATION
+        // V0260-009-AGGREGATE-VALIDATION-SUITE
+        // GH-1403-VERIFY-V0260-STAGE-AUDIT-RELEASE-DOCS
+        // V0260-010-STAGE-CODE-AUDIT
+        // V0260-010-NO-PRODUCTION-CUTOVER
+        // V0260-010-NO-TAG-OR-RELEASE-PUBLICATION
+        let evidence = ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.deterministicFixture
+        XCTAssertEqual(evidence.release, "v0.26.0")
+        XCTAssertEqual(evidence.venue, "binance")
+        XCTAssertEqual(evidence.productType, "usdsPerpetual")
+        XCTAssertEqual(evidence.environment, "testnet")
+        XCTAssertTrue(evidence.credentialReferenceOnly)
+        XCTAssertFalse(evidence.secretValueRead)
+        XCTAssertTrue(evidence.manualApprovalRequired)
+        XCTAssertTrue(evidence.manualApprovalPresent)
+        XCTAssertTrue(evidence.orderIntentValidated)
+        XCTAssertEqual(evidence.symbolAllowlist, ["BTCUSDT"])
+        XCTAssertEqual(evidence.orderTypeAllowlist, ["LIMIT"])
+        XCTAssertEqual(evidence.maxLeverage, 2)
+        XCTAssertFalse(evidence.leverageModeMutationEnabled)
+        XCTAssertFalse(evidence.marginModeMutationEnabled)
+        XCTAssertFalse(evidence.positionModeMutationEnabled)
+        XCTAssertTrue(evidence.riskGatePassed)
+        XCTAssertTrue(evidence.killSwitchClear)
+        XCTAssertTrue(evidence.noTradeClear)
+        XCTAssertTrue(evidence.idempotencyKeyRequired)
+        XCTAssertTrue(evidence.redactionEnabled)
+        XCTAssertTrue(evidence.submitEvidenceRecorded)
+        XCTAssertTrue(evidence.cancelEvidenceRecorded)
+        XCTAssertTrue(evidence.statusRollbackEvidenceRecorded)
+        XCTAssertTrue(evidence.omsEventLogRecorded)
+        XCTAssertTrue(evidence.reconciliationEvidenceRecorded)
+        XCTAssertEqual(Set(evidence.failureClasses), Set(ReleaseV0260FuturesTestnetFailureClass.allCases))
+        XCTAssertEqual(Set(evidence.lifecycleEvents.map(\.kind)), Set(ReleaseV0260FuturesTestnetEventKind.allCases))
+        XCTAssertTrue(evidence.testnetSubmitCancelReplaceEnabled)
+        XCTAssertFalse(evidence.productionFuturesOrderExecutionEnabled)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.okxActiveRuntimeEnabled)
+        XCTAssertFalse(evidence.dashboardTradingControlsEnabled)
+        XCTAssertTrue(evidence.boundaryHeld)
+
+        let statusOutput = try ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand, "status"]
+        )
+        let gatesOutput = try ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand, "gates"]
+        )
+        let executionOutput = try ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand, "execution"]
+        )
+        let reconciliationOutput = try ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand, "reconciliation"]
+        )
+        let boundariesOutput = try ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.commandLineOutput(
+            arguments: [ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand, "boundaries"]
+        )
+
+        XCTAssertTrue(statusOutput.contains("testnetSubmitCancelReplaceEnabled=true"))
+        XCTAssertTrue(statusOutput.contains("productionFuturesOrderExecutionEnabled=false"))
+        XCTAssertTrue(gatesOutput.contains("maxNotionalUSDT=25"))
+        XCTAssertTrue(gatesOutput.contains("riskGatePassed=true"))
+        XCTAssertTrue(executionOutput.contains("lifecycleEvent=sequence:3;kind:submit-evidence-recorded"))
+        XCTAssertTrue(reconciliationOutput.contains("failureClass=reconciliation-mismatch;failClosed=true"))
+        XCTAssertTrue(boundariesOutput.contains("productionOrderSubmitted=false"))
+        XCTAssertTrue(boundariesOutput.contains("okxActiveRuntimeEnabled=false"))
+
+        let dashboardSurface = ReleaseV0260DashboardCLIFuturesTestnetStatusSurface()
+        XCTAssertTrue(dashboardSurface.boundaryHeld)
+        XCTAssertTrue(dashboardSurface.reportLines.contains("dashboardBoundary=read-only"))
+        XCTAssertTrue(dashboardSurface.reportLines.contains("dashboardTradingControlsEnabled=false"))
+        XCTAssertTrue(dashboardSurface.reportLines.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(dashboardSurface.reportLines.contains("orderFormVisible=false"))
+        XCTAssertTrue(dashboardSurface.reportLines.contains("liveCommandVisible=false"))
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.requiredAnchors
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0260FuturesTestnetControlledExecutionFoundation.swift",
+            "Sources/Dashboard/Report/ReleaseV0260DashboardCLIFuturesTestnetStatusSurface.swift",
+            "Sources/MTPROCLI/main.swift",
+            "docs/audit/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-notes.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "verification.md",
+            "checks/verify-v0.26.0.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        XCTAssertTrue(cliSource.contains("ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.commandLineOutput"))
+        XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.26.0.sh"))
+        XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.26.0.sh"))
+
+        for source in [
+            try read("Sources/ExecutionClient/FutureGate/ReleaseV0260FuturesTestnetControlledExecutionFoundation.swift"),
+            try read("Sources/Dashboard/Report/ReleaseV0260DashboardCLIFuturesTestnetStatusSurface.swift"),
+            try read("docs/audit/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-stage-code-audit.md"),
+            try read("docs/release/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-notes.md"),
+            try read("docs/validation/latest-verification-summary.md"),
+            try read("verification.md")
+        ] {
+            for expected in [
+                "Binance USD-M Futures testnet controlled execution foundation",
+                "productionFuturesOrderExecutionEnabled=false",
+                "production cutover not authorized"
+            ] {
+                XCTAssertTrue(source.contains(expected), "\(expected) must be present in v0.26.0 evidence")
+            }
+            for forbidden in [
+                "productionFuturesOrderExecutionEnabled=true",
+                "productionTradingEnabledByDefault=true",
+                "productionCutoverAuthorized=true",
+                "okxActiveRuntimeEnabled=true",
+                "dashboardTradingControlsEnabled=true",
+                "tradingButtonVisible=true",
+                "orderFormVisible=true",
+                "liveCommandVisible=true",
+                "unrestrictedLiveTradingAuthorized=true",
+                "API Key:",
+                "Secret Key:"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of GH-1394..GH-1403 evidence")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
