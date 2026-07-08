@@ -69,4 +69,23 @@ bash checks/run.sh
 
 ## Release Publication Handoff
 
-This PR closes construction evidence only. It does not create or move the `v0.25.0` tag and does not publish a GitHub Release. The release publication gate must run after #1379 is merged, with open PR count = 0, open `release/v0.25.0` issue count = 0, and validation green on `main`.
+This audit section is historical construction evidence. Current publication fact: `v0.25.0` is published as a stable GitHub Release at https://github.com/atxinbao/MTPRO/releases/tag/v0.25.0, the tag target is `1dad68196b28eca7285a5c8efb3d15ce74c`, and the release was published at `2026-07-07T14:47:50Z`. v0.25.0 milestone #41 closed with 0 open / 8 closed issues. Production cutover remains not authorized.
+
+## v0.25.1 Publication Fact Sync Patch Anchors
+
+- GH-1389-VERIFY-V0251-V0250-RELEASE-FACT-SYNC
+- TVM-RELEASE-V0251-V0250-RELEASE-FACT-SYNC
+- V0251-001-V0250-GITHUB-RELEASE-PUBLISHED
+- V0251-001-V0250-TAG-FIXED
+- V0251-001-V0250-PUBLISHED-AT-2026-07-07T14-47-50Z
+- GH-1390-VERIFY-V0251-MILESTONE-COMPLETION-FACTS
+- V0251-002-V0250-MILESTONE-CLOSED
+- GH-1391-VERIFY-V0251-V022-V023-MAINLINE-WORDING
+- V0251-003-V0220-SPOT-LIVE-CANARY-TRANSPORT
+- V0251-003-V0230-FUTURES-READONLY-FOUNDATION
+- GH-1392-VERIFY-V0251-V0250-STALE-WORDING-GUARD
+- V0251-004-PUBLISHED-V0250-STALE-WORDING-GUARD
+- GH-1393-VERIFY-V0251-PATCH-AUDIT-RELEASE-NOTES
+- V0251-005-PATCH-AUDIT
+- V0251-005-V0260-BLOCKED-BY-V0251-COMPLETION
+- V0251-005-NO-CAPABILITY-CHANGE

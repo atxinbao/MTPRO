@@ -7420,3 +7420,24 @@ swift test
 - `V0250-008-NO-TAG-OR-RELEASE-PUBLICATION`
 
 Run `bash checks/verify-v0.25.0.sh` plus the full `bash checks/run.sh`. The validation suite must preserve production cutover disabled, Futures order execution disabled, OKX active runtime disabled, and Dashboard trading controls disabled.
+
+## Release v0.25.1 Validation Plan
+
+- `GH-1389-VERIFY-V0251-V0250-RELEASE-FACT-SYNC`
+- `TVM-RELEASE-V0251-V0250-RELEASE-FACT-SYNC`
+- `V0251-001-V0250-GITHUB-RELEASE-PUBLISHED`
+- `V0251-001-V0250-TAG-FIXED`
+- `V0251-001-V0250-PUBLISHED-AT-2026-07-07T14-47-50Z`
+- `GH-1390-VERIFY-V0251-MILESTONE-COMPLETION-FACTS`
+- `V0251-002-V0250-MILESTONE-CLOSED`
+- `GH-1391-VERIFY-V0251-V022-V023-MAINLINE-WORDING`
+- `V0251-003-V0220-SPOT-LIVE-CANARY-TRANSPORT`
+- `V0251-003-V0230-FUTURES-READONLY-FOUNDATION`
+- `GH-1392-VERIFY-V0251-V0250-STALE-WORDING-GUARD`
+- `V0251-004-PUBLISHED-V0250-STALE-WORDING-GUARD`
+- `GH-1393-VERIFY-V0251-PATCH-AUDIT-RELEASE-NOTES`
+- `V0251-005-PATCH-AUDIT`
+- `V0251-005-V0260-BLOCKED-BY-V0251-COMPLETION`
+- `V0251-005-NO-CAPABILITY-CHANGE`
+
+Run `bash checks/verify-v0.25.1.sh` plus the full `bash checks/run.sh`. The validation suite must prove the published v0.25.0 GitHub Release facts, closed v0.25.0 milestone, corrected v0.22 / v0.23 mainline wording, and stale wording rejection. v0.25.1 must remain no-capability-change and production cutover not authorized.

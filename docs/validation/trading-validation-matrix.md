@@ -5404,3 +5404,23 @@
 - V0250-008-NO-TAG-OR-RELEASE-PUBLICATION
 
 The matrix validates Binance Spot canary evidence and Binance USD-M Futures read-only evidence as a dual-product readiness surface. It does not validate production cutover, Futures order execution, OKX active runtime, trading button, order form, live command, Live PRO Console, production secret read, or broker endpoint connection.
+
+## TVM-RELEASE-V0251-V0250-RELEASE-FACT-SYNC
+
+- GH-1389-VERIFY-V0251-V0250-RELEASE-FACT-SYNC
+- V0251-001-V0250-GITHUB-RELEASE-PUBLISHED
+- V0251-001-V0250-TAG-FIXED
+- V0251-001-V0250-PUBLISHED-AT-2026-07-07T14-47-50Z
+- GH-1390-VERIFY-V0251-MILESTONE-COMPLETION-FACTS
+- V0251-002-V0250-MILESTONE-CLOSED
+- GH-1391-VERIFY-V0251-V022-V023-MAINLINE-WORDING
+- V0251-003-V0220-SPOT-LIVE-CANARY-TRANSPORT
+- V0251-003-V0230-FUTURES-READONLY-FOUNDATION
+- GH-1392-VERIFY-V0251-V0250-STALE-WORDING-GUARD
+- V0251-004-PUBLISHED-V0250-STALE-WORDING-GUARD
+- GH-1393-VERIFY-V0251-PATCH-AUDIT-RELEASE-NOTES
+- V0251-005-PATCH-AUDIT
+- V0251-005-V0260-BLOCKED-BY-V0251-COMPLETION
+- V0251-005-NO-CAPABILITY-CHANGE
+
+The matrix validates that v0.25.0 is already published at `https://github.com/atxinbao/MTPRO/releases/tag/v0.25.0`, fixed at `1dad68196b28eca7285a5c8efb3d15ce74c`, published at `2026-07-07T14:47:50Z`, and that milestone #41 is closed. It also validates that v0.22.0 is Binance Spot live canary transport completion and v0.23.0 is Binance USD-M Futures read-only foundation. v0.25.1 is a no-capability-change patch and does not authorize production cutover.

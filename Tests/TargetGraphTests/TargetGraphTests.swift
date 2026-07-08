@@ -69189,6 +69189,120 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1389To1393ReleaseV0251PublicationFactSyncRoadmapCorrectionPatch() throws {
+        // GH-1389-VERIFY-V0251-V0250-RELEASE-FACT-SYNC
+        // TVM-RELEASE-V0251-V0250-RELEASE-FACT-SYNC
+        // V0251-001-V0250-GITHUB-RELEASE-PUBLISHED
+        // V0251-001-V0250-TAG-FIXED
+        // V0251-001-V0250-PUBLISHED-AT-2026-07-07T14-47-50Z
+        // GH-1390-VERIFY-V0251-MILESTONE-COMPLETION-FACTS
+        // V0251-002-V0250-MILESTONE-CLOSED
+        // GH-1391-VERIFY-V0251-V022-V023-MAINLINE-WORDING
+        // V0251-003-V0220-SPOT-LIVE-CANARY-TRANSPORT
+        // V0251-003-V0230-FUTURES-READONLY-FOUNDATION
+        // GH-1392-VERIFY-V0251-V0250-STALE-WORDING-GUARD
+        // V0251-004-PUBLISHED-V0250-STALE-WORDING-GUARD
+        // GH-1393-VERIFY-V0251-PATCH-AUDIT-RELEASE-NOTES
+        // V0251-005-PATCH-AUDIT
+        // V0251-005-V0260-BLOCKED-BY-V0251-COMPLETION
+        // V0251-005-NO-CAPABILITY-CHANGE
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1389-VERIFY-V0251-V0250-RELEASE-FACT-SYNC",
+            "TVM-RELEASE-V0251-V0250-RELEASE-FACT-SYNC",
+            "V0251-001-V0250-GITHUB-RELEASE-PUBLISHED",
+            "V0251-001-V0250-TAG-FIXED",
+            "V0251-001-V0250-PUBLISHED-AT-2026-07-07T14-47-50Z",
+            "GH-1390-VERIFY-V0251-MILESTONE-COMPLETION-FACTS",
+            "V0251-002-V0250-MILESTONE-CLOSED",
+            "GH-1391-VERIFY-V0251-V022-V023-MAINLINE-WORDING",
+            "V0251-003-V0220-SPOT-LIVE-CANARY-TRANSPORT",
+            "V0251-003-V0230-FUTURES-READONLY-FOUNDATION",
+            "GH-1392-VERIFY-V0251-V0250-STALE-WORDING-GUARD",
+            "V0251-004-PUBLISHED-V0250-STALE-WORDING-GUARD",
+            "GH-1393-VERIFY-V0251-PATCH-AUDIT-RELEASE-NOTES",
+            "V0251-005-PATCH-AUDIT",
+            "V0251-005-V0260-BLOCKED-BY-V0251-COMPLETION",
+            "V0251-005-NO-CAPABILITY-CHANGE"
+        ]
+
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-notes.md",
+            "docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/roadmap.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md",
+            "checks/verify-v0.25.1.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let releaseNotes = try read("docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md")
+        XCTAssertTrue(releaseNotes.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.25.0"))
+        XCTAssertTrue(releaseNotes.contains("1dad68196b28eca7285a5c8efb3d15ce74c"))
+        XCTAssertTrue(releaseNotes.contains("2026-07-07T14:47:50Z"))
+
+        let audit = try read("docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md")
+        XCTAssertTrue(audit.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.25.0"))
+        XCTAssertTrue(audit.contains("v0.25.0 milestone #41 closed"))
+
+        let latest = try read("docs/validation/latest-verification-summary.md")
+        XCTAssertTrue(latest.contains("v0.25.0 milestone #41 closed"))
+
+        let roadmap = try read("docs/roadmap.md")
+        XCTAssertTrue(roadmap.contains("v0.22.0 is Binance Spot live canary transport completion"))
+        XCTAssertTrue(roadmap.contains("v0.23.0 is Binance USD-M Futures read-only foundation"))
+
+        let runScript = try read("checks/run.sh")
+        XCTAssertTrue(runScript.contains("bash checks/verify-v0.25.1.sh"))
+        let automation = try read("checks/automation-readiness.sh")
+        XCTAssertTrue(automation.contains("checks/verify-v0.25.1.sh"))
+
+        for source in [
+            try read("docs/audit/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-stage-code-audit.md"),
+            try read("docs/release/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-notes.md"),
+            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/roadmap.md"),
+            try read("GOAL.md"),
+            try read("BLUEPRINT.md"),
+            try read("verification.md")
+        ] {
+            for forbidden in [
+                "does not create or move v0.25.0",
+                "does not create the GitHub Release",
+                "does not create the tag",
+                "v0.25.0 remains pending",
+                "v0.25.0 has not been published",
+                "v0.25.0 tag / GitHub Release publication is a separate gate",
+                "futuresOrderExecutionEnabled=true",
+                "okxActiveRuntimeEnabled=true",
+                "dashboardTradingControlsEnabled=true",
+                "productionCutoverAuthorized=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of current v0.25.1 surfaces")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
