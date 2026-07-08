@@ -197,6 +197,7 @@ require_file "checks/verify-v0.23.1.sh"
 require_file "checks/verify-v0.24.0.sh"
 require_file "checks/verify-v0.24.1.sh"
 require_file "checks/verify-v0.25.0.sh"
+require_file "checks/verify-v0.25.1.sh"
 require_file "docs/contracts/release-v0.24.0-spot-futures-unified-readonly-foundation-contract.md"
 require_file "docs/audit/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-notes.md"
@@ -206,6 +207,8 @@ require_file "docs/audit/mtpro-release-v0.24.1-publication-fact-sync-milestone-s
 require_file "docs/release/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-notes.md"
 require_file "docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md"
+require_file "docs/audit/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-notes.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md"
 require_file "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md"
@@ -14876,6 +14879,45 @@ require_contains "checks/run.sh" "GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELE
 require_contains "checks/run.sh" "bash checks/verify-v0.25.0.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.25.0.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1379ReleaseV0250AggregateValidationReleaseCloseout"
+
+for file in \
+  "docs/audit/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-notes.md" \
+  "docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "docs/roadmap.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "verification.md" \
+  "checks/verify-v0.25.1.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1389-VERIFY-V0251-V0250-RELEASE-FACT-SYNC"
+  require_contains "$file" "TVM-RELEASE-V0251-V0250-RELEASE-FACT-SYNC"
+  require_contains "$file" "V0251-001-V0250-GITHUB-RELEASE-PUBLISHED"
+  require_contains "$file" "V0251-001-V0250-TAG-FIXED"
+  require_contains "$file" "V0251-001-V0250-PUBLISHED-AT-2026-07-07T14-47-50Z"
+  require_contains "$file" "GH-1390-VERIFY-V0251-MILESTONE-COMPLETION-FACTS"
+  require_contains "$file" "V0251-002-V0250-MILESTONE-CLOSED"
+  require_contains "$file" "GH-1391-VERIFY-V0251-V022-V023-MAINLINE-WORDING"
+  require_contains "$file" "V0251-003-V0220-SPOT-LIVE-CANARY-TRANSPORT"
+  require_contains "$file" "V0251-003-V0230-FUTURES-READONLY-FOUNDATION"
+  require_contains "$file" "GH-1392-VERIFY-V0251-V0250-STALE-WORDING-GUARD"
+  require_contains "$file" "V0251-004-PUBLISHED-V0250-STALE-WORDING-GUARD"
+  require_contains "$file" "GH-1393-VERIFY-V0251-PATCH-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "V0251-005-PATCH-AUDIT"
+  require_contains "$file" "V0251-005-V0260-BLOCKED-BY-V0251-COMPLETION"
+  require_contains "$file" "V0251-005-NO-CAPABILITY-CHANGE"
+done
+
+require_contains "checks/run.sh" "bash checks/verify-v0.25.1.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.25.1.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1389To1393ReleaseV0251PublicationFactSyncRoadmapCorrectionPatch"
 
 # Release v0.23.1 full anchor inventory:
 # GH-1353-VERIFY-V0231-V0230-RELEASE-FACT-SYNC

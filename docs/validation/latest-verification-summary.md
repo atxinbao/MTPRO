@@ -2890,3 +2890,24 @@ bash checks/run.sh
 - V0250-008-NO-TAG-OR-RELEASE-PUBLICATION
 
 v0.25.0 construction closes Binance Spot canary evidence + Binance USD-M Futures read-only evidence into dual-product production readiness / canary hardening. This is not unrestricted production cutover, not Futures order execution, not OKX active runtime, and not a Dashboard trading command surface. Release publication remains a separate gate after the #1379 closeout merge.
+
+## Release v0.25.1 Publication Fact Sync / Roadmap Correction Patch
+
+- GH-1389-VERIFY-V0251-V0250-RELEASE-FACT-SYNC
+- TVM-RELEASE-V0251-V0250-RELEASE-FACT-SYNC
+- V0251-001-V0250-GITHUB-RELEASE-PUBLISHED
+- V0251-001-V0250-TAG-FIXED
+- V0251-001-V0250-PUBLISHED-AT-2026-07-07T14-47-50Z
+- GH-1390-VERIFY-V0251-MILESTONE-COMPLETION-FACTS
+- V0251-002-V0250-MILESTONE-CLOSED
+- GH-1391-VERIFY-V0251-V022-V023-MAINLINE-WORDING
+- V0251-003-V0220-SPOT-LIVE-CANARY-TRANSPORT
+- V0251-003-V0230-FUTURES-READONLY-FOUNDATION
+- GH-1392-VERIFY-V0251-V0250-STALE-WORDING-GUARD
+- V0251-004-PUBLISHED-V0250-STALE-WORDING-GUARD
+- GH-1393-VERIFY-V0251-PATCH-AUDIT-RELEASE-NOTES
+- V0251-005-PATCH-AUDIT
+- V0251-005-V0260-BLOCKED-BY-V0251-COMPLETION
+- V0251-005-NO-CAPABILITY-CHANGE
+
+v0.25.0 GitHub Release is published at `https://github.com/atxinbao/MTPRO/releases/tag/v0.25.0`; tag fixed at `1dad68196b28eca7285a5c8efb3d15ce74c`; published at `2026-07-07T14:47:50Z`; v0.25.0 milestone #41 closed. v0.22.0 is Binance Spot live canary transport completion. v0.23.0 is Binance USD-M Futures read-only foundation. v0.25.1 is a no-capability-change patch; v0.26.0 remains blocked by v0.25.1 completion; production cutover not authorized.

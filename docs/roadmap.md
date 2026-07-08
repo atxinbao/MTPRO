@@ -688,3 +688,9 @@ Release v0.23.0 Binance USD-M Futures read-only foundation anchor：`GH-1341-VER
 ## v0.25.0 Closeout
 
 `GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT` / `TVM-RELEASE-V0250-AGGREGATE-VALIDATION` / `V0250-008-AGGREGATE-VALIDATION-SUITE` / `V0250-008-STAGE-AUDIT-RELEASE-DOCS` / `V0250-008-ROOT-DOCS-REFRESH` / `V0250-008-RELEASE-PUBLICATION-GATE-HANDOFF` / `V0250-008-NO-PRODUCTION-CUTOVER` / `V0250-008-NO-TAG-OR-RELEASE-PUBLICATION` closes the Binance dual-product production readiness / canary hardening construction queue. Publication is a separate release gate after queue closure; production cutover remains unauthorized.
+
+## v0.25.1 Publication Fact Sync / Roadmap Correction Patch
+
+`GH-1389-VERIFY-V0251-V0250-RELEASE-FACT-SYNC` / `TVM-RELEASE-V0251-V0250-RELEASE-FACT-SYNC` / `V0251-001-V0250-GITHUB-RELEASE-PUBLISHED` / `V0251-001-V0250-TAG-FIXED` / `V0251-001-V0250-PUBLISHED-AT-2026-07-07T14-47-50Z` records the stable v0.25.0 GitHub Release at `https://github.com/atxinbao/MTPRO/releases/tag/v0.25.0`, tag target `1dad68196b28eca7285a5c8efb3d15ce74c`, and publication timestamp `2026-07-07T14:47:50Z`.
+
+`GH-1390-VERIFY-V0251-MILESTONE-COMPLETION-FACTS` / `V0251-002-V0250-MILESTONE-CLOSED` records v0.25.0 milestone #41 closed with 0 open / 8 closed issues. `GH-1391-VERIFY-V0251-V022-V023-MAINLINE-WORDING` / `V0251-003-V0220-SPOT-LIVE-CANARY-TRANSPORT` / `V0251-003-V0230-FUTURES-READONLY-FOUNDATION` fixes the mainline wording: v0.22.0 is Binance Spot live canary transport completion and v0.23.0 is Binance USD-M Futures read-only foundation. `GH-1392-VERIFY-V0251-V0250-STALE-WORDING-GUARD` / `V0251-004-PUBLISHED-V0250-STALE-WORDING-GUARD` rejects stale published v0.25.0 wording. `GH-1393-VERIFY-V0251-PATCH-AUDIT-RELEASE-NOTES` / `V0251-005-PATCH-AUDIT` / `V0251-005-V0260-BLOCKED-BY-V0251-COMPLETION` / `V0251-005-NO-CAPABILITY-CHANGE` keeps v0.26.0 blocked until v0.25.1 completion and adds no trading capability.

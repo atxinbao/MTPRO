@@ -691,3 +691,9 @@ Release v0.24.1 publication fact sync / milestone semantics patch anchor：`GH-1
 - V0250-008-NO-TAG-OR-RELEASE-PUBLICATION
 
 Automation readiness requires `bash checks/verify-v0.25.0.sh`, `bash checks/automation-readiness.sh` and `bash checks/run.sh` to preserve the v0.25.0 construction closeout anchors. The closeout does not create the `v0.25.0` tag or GitHub Release and does not authorize production cutover.
+
+## Release v0.25.1 Publication Fact Sync / Roadmap Correction Patch
+
+Automation readiness anchor：`GH-1389-VERIFY-V0251-V0250-RELEASE-FACT-SYNC`、`TVM-RELEASE-V0251-V0250-RELEASE-FACT-SYNC`、`V0251-001-V0250-GITHUB-RELEASE-PUBLISHED`、`V0251-001-V0250-TAG-FIXED`、`V0251-001-V0250-PUBLISHED-AT-2026-07-07T14-47-50Z`、`GH-1390-VERIFY-V0251-MILESTONE-COMPLETION-FACTS`、`V0251-002-V0250-MILESTONE-CLOSED`、`GH-1391-VERIFY-V0251-V022-V023-MAINLINE-WORDING`、`V0251-003-V0220-SPOT-LIVE-CANARY-TRANSPORT`、`V0251-003-V0230-FUTURES-READONLY-FOUNDATION`、`GH-1392-VERIFY-V0251-V0250-STALE-WORDING-GUARD`、`V0251-004-PUBLISHED-V0250-STALE-WORDING-GUARD`、`GH-1393-VERIFY-V0251-PATCH-AUDIT-RELEASE-NOTES`、`V0251-005-PATCH-AUDIT`、`V0251-005-V0260-BLOCKED-BY-V0251-COMPLETION`、`V0251-005-NO-CAPABILITY-CHANGE`。
+
+Automation readiness requires `checks/verify-v0.25.1.sh`, `checks/run.sh`, `checks/automation-readiness.sh`, `docs/audit/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-stage-code-audit.md`, `docs/release/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-notes.md`, root docs, validation docs, verification log and `Tests/TargetGraphTests/TargetGraphTests.swift` to preserve the v0.25.1 no-capability-change patch anchors. v0.26.0 remains blocked by v0.25.1 completion; production cutover not authorized.
