@@ -275,6 +275,7 @@ private enum MTPROStrictCLI {
         ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand,
         ReleaseV0250DualProductProductionReadinessContract.cliCommand,
         ReleaseV0250OperatorReadinessSurface.cliCommand,
+        ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -306,6 +307,7 @@ private enum MTPROStrictCLI {
         ReleaseV0240SpotFuturesUnifiedReadOnlyFoundationEvidence.cliCommand,
         ReleaseV0250DualProductProductionReadinessContract.cliCommand,
         ReleaseV0250OperatorReadinessSurface.cliCommand,
+        ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -375,6 +377,10 @@ private enum MTPROStrictCLI {
             return try ReleaseV0250DualProductProductionReadinessContract.commandLineOutput(arguments: arguments)
         case ReleaseV0250OperatorReadinessSurface.cliCommand:
             return try ReleaseV0250OperatorReadinessSurface.commandLineOutput(arguments: arguments)
+        case ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand:
+            return try ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.commandLineOutput(
+                arguments: arguments
+            )
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -561,6 +567,43 @@ private enum MTPROStrictCLI {
             "releaseV0250OperatorReadinessSurfaceValidationAnchor=\(ReleaseV0250OperatorReadinessSurface.validationAnchor)",
             "releaseV0250OperatorReadinessSurfaceVerificationAnchor=\(ReleaseV0250OperatorReadinessSurface.verificationAnchor)",
             "releaseV0250OperatorReadinessSurfaceActions=\(ReleaseV0250OperatorReadinessSurface.supportedActions.joined(separator: ","))",
+            // GH-1394-VERIFY-V0260-FUTURES-TESTNET-CONTROLLED-EXECUTION-CONTRACT
+            // TVM-RELEASE-V0260-FUTURES-TESTNET-CONTROLLED-EXECUTION
+            // V0260-001-FUTURES-TESTNET-CONTROLLED-EXECUTION
+            // V0260-001-NO-PRODUCTION-CUTOVER
+            // GH-1395-VERIFY-V0260-FUTURES-TESTNET-ENVIRONMENT-CREDENTIAL-GATE
+            // V0260-002-FUTURES-TESTNET-ENVIRONMENT-GATE
+            // V0260-002-CREDENTIAL-REFERENCE-ONLY
+            // GH-1396-VERIFY-V0260-FUTURES-TESTNET-ORDER-INTENT-VALIDATION
+            // V0260-003-NO-PRODUCTION-CUTOVER
+            // V0260-003-ORDER-INTENT-VALIDATED
+            // GH-1397-VERIFY-V0260-FUTURES-TESTNET-SUBMIT-EVIDENCE
+            // V0260-004-MANUAL-APPROVAL-HARD-CAPS
+            // V0260-004-IDEMPOTENCY-REDACTION
+            // GH-1398-VERIFY-V0260-FUTURES-TESTNET-CANCEL-STATUS-ROLLBACK
+            // V0260-005-CANCEL-STATUS-ROLLBACK
+            // V0260-005-FAIL-CLOSED-STATUS-AMBIGUITY
+            // GH-1399-VERIFY-V0260-FUTURES-TESTNET-OMS-RECONCILIATION
+            // V0260-006-OMS-EVENT-LOG-RECONCILIATION
+            // V0260-006-APPEND-ONLY-EVIDENCE
+            // GH-1400-VERIFY-V0260-FUTURES-TESTNET-RISK-NOTIONAL-LEVERAGE-GUARDS
+            // V0260-007-RISK-NOTIONAL-LEVERAGE-MODE-GUARD
+            // V0260-007-REDUCE-ONLY-HARD-CAP
+            // GH-1401-VERIFY-V0260-DASHBOARD-CLI-FUTURES-TESTNET-STATUS-SURFACE
+            // TVM-RELEASE-V0260-DASHBOARD-CLI-FUTURES-TESTNET-STATUS-SURFACE
+            // V0260-008-DASHBOARD-CLI-READONLY-FUTURES-TESTNET-STATUS
+            // V0260-008-NO-DASHBOARD-TRADING-CONTROLS
+            // GH-1402-VERIFY-V0260-AGGREGATE-VALIDATION
+            // TVM-RELEASE-V0260-AGGREGATE-VALIDATION
+            // V0260-009-AGGREGATE-VALIDATION-SUITE
+            // GH-1403-VERIFY-V0260-STAGE-AUDIT-RELEASE-DOCS
+            // V0260-010-STAGE-CODE-AUDIT
+            // V0260-010-NO-PRODUCTION-CUTOVER
+            // V0260-010-NO-TAG-OR-RELEASE-PUBLICATION
+            "releaseV0260FuturesTestnetControlledExecutionCommand=\(ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand)",
+            "releaseV0260FuturesTestnetControlledExecutionValidationAnchor=\(ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.validationAnchor)",
+            "releaseV0260FuturesTestnetControlledExecutionVerificationAnchor=\(ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.verificationAnchor)",
+            "releaseV0260FuturesTestnetControlledExecutionActions=\(ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.supportedActions.joined(separator: ","))",
             "operatorRunFailedEvidenceNonzeroOrReadOnlyReportPath=true",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
