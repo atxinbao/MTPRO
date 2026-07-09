@@ -277,6 +277,7 @@ private enum MTPROStrictCLI {
         ReleaseV0250OperatorReadinessSurface.cliCommand,
         ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand,
         ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.cliCommand,
+        ReleaseV0280ProductionCutoverReadinessGate.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -310,6 +311,7 @@ private enum MTPROStrictCLI {
         ReleaseV0250OperatorReadinessSurface.cliCommand,
         ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand,
         ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.cliCommand,
+        ReleaseV0280ProductionCutoverReadinessGate.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -387,6 +389,8 @@ private enum MTPROStrictCLI {
             return try ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.commandLineOutput(
                 arguments: arguments
             )
+        case ReleaseV0280ProductionCutoverReadinessGate.cliCommand:
+            return try ReleaseV0280ProductionCutoverReadinessGate.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
@@ -645,6 +649,45 @@ private enum MTPROStrictCLI {
             "releaseV0270FuturesTestnetOperatorHardeningValidationAnchor=\(ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.validationAnchor)",
             "releaseV0270FuturesTestnetOperatorHardeningVerificationAnchor=\(ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.verificationAnchor)",
             "releaseV0270FuturesTestnetOperatorHardeningActions=\(ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.supportedActions.joined(separator: ","))",
+            // GH-1429-VERIFY-V0280-BINANCE-PRODUCTION-CUTOVER-READINESS-CONTRACT
+            // TVM-RELEASE-V0280-PRODUCTION-CUTOVER-READINESS-GATE
+            // V0280-001-BINANCE-ONLY-PRODUCTION-CUTOVER-READINESS
+            // V0280-001-NOT-PRODUCTION-CUTOVER
+            // V0280-001-SPOT-USDM-FUTURES-ONLY
+            // V0280-001-OKX-NOT-ACTIVE
+            // GH-1430-VERIFY-V0280-PRODUCTION-CREDENTIAL-SECRET-ACCESS-POLICY
+            // V0280-002-SECRET-ACCESS-EXPLICIT-APPROVAL
+            // V0280-002-NO-DEFAULT-SECRET-READ
+            // V0280-002-REDACTION-REQUIRED
+            // GH-1431-VERIFY-V0280-PRODUCTION-ENVIRONMENT-ENDPOINT-ALLOWLIST
+            // V0280-003-ENDPOINT-ALLOWLIST
+            // V0280-003-PRODUCTION-ENVIRONMENT-ISOLATION
+            // V0280-003-BINANCE-SPOT-USDM-FUTURES-ENDPOINTS
+            // GH-1432-VERIFY-V0280-MANUAL-APPROVAL-OPERATOR-CONFIRMATION
+            // V0280-004-MANUAL-APPROVAL-REQUIRED
+            // V0280-004-OPERATOR-CONFIRMATION-REQUIRED
+            // V0280-004-NO-AUTO-CUTOVER
+            // GH-1433-VERIFY-V0280-CAPITAL-RISK-NOTIONAL-EXPOSURE-LEVERAGE
+            // V0280-005-CAPITAL-RISK-GATE
+            // V0280-005-NOTIONAL-EXPOSURE-LEVERAGE-LIMITS
+            // V0280-005-FUTURES-LEVERAGE-FAIL-CLOSED
+            // GH-1434-VERIFY-V0280-KILL-NOTRADE-ROLLBACK-INCIDENT-STOP
+            // V0280-006-KILL-SWITCH-REQUIRED
+            // V0280-006-NO-TRADE-STATE-REQUIRED
+            // V0280-006-ROLLBACK-INCIDENT-STOP-READY
+            // GH-1435-VERIFY-V0280-DASHBOARD-CLI-READINESS-SURFACE
+            // V0280-007-DASHBOARD-CLI-READINESS
+            // V0280-007-NO-TRADING-BUTTON
+            // V0280-007-NO-ORDER-FORM
+            // V0280-007-NO-LIVE-COMMAND
+            // GH-1436-VERIFY-V0280-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT
+            // V0280-008-AGGREGATE-VALIDATION
+            // V0280-008-STAGE-AUDIT-RELEASE-DOCS
+            // V0280-008-NO-PRODUCTION-CUTOVER
+            "releaseV0280ProductionCutoverReadinessCommand=\(ReleaseV0280ProductionCutoverReadinessGate.cliCommand)",
+            "releaseV0280ProductionCutoverReadinessValidationAnchor=\(ReleaseV0280ProductionCutoverReadinessGate.validationAnchor)",
+            "releaseV0280ProductionCutoverReadinessVerificationAnchor=\(ReleaseV0280ProductionCutoverReadinessGate.verificationAnchor)",
+            "releaseV0280ProductionCutoverReadinessActions=\(ReleaseV0280ProductionCutoverReadinessGate.supportedActions.joined(separator: ","))",
             "operatorRunFailedEvidenceNonzeroOrReadOnlyReportPath=true",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
