@@ -276,6 +276,7 @@ private enum MTPROStrictCLI {
         ReleaseV0250DualProductProductionReadinessContract.cliCommand,
         ReleaseV0250OperatorReadinessSurface.cliCommand,
         ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand,
+        ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -308,6 +309,7 @@ private enum MTPROStrictCLI {
         ReleaseV0250DualProductProductionReadinessContract.cliCommand,
         ReleaseV0250OperatorReadinessSurface.cliCommand,
         ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand,
+        ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -379,6 +381,10 @@ private enum MTPROStrictCLI {
             return try ReleaseV0250OperatorReadinessSurface.commandLineOutput(arguments: arguments)
         case ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand:
             return try ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.commandLineOutput(
+                arguments: arguments
+            )
+        case ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.cliCommand:
+            return try ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.commandLineOutput(
                 arguments: arguments
             )
         case ReleaseV030CLIRehearsalSurface.cliCommand:
@@ -604,6 +610,41 @@ private enum MTPROStrictCLI {
             "releaseV0260FuturesTestnetControlledExecutionValidationAnchor=\(ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.validationAnchor)",
             "releaseV0260FuturesTestnetControlledExecutionVerificationAnchor=\(ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.verificationAnchor)",
             "releaseV0260FuturesTestnetControlledExecutionActions=\(ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.supportedActions.joined(separator: ","))",
+            // GH-1411-VERIFY-V0270-FUTURES-TESTNET-OPERATOR-RUN-HARDENING-CONTRACT
+            // TVM-RELEASE-V0270-FUTURES-TESTNET-OPERATOR-RUNTIME-HARDENING
+            // V0270-001-FUTURES-TESTNET-OPERATOR-RUN-HARDENING-CONTRACT
+            // V0270-001-FAIL-CLOSED-SEMANTICS
+            // GH-1412-VERIFY-V0270-FUTURES-TESTNET-RUN-REGISTRY-ARTIFACT-MANIFEST
+            // V0270-002-RUN-REGISTRY-ARTIFACT-MANIFEST
+            // V0270-002-RUN-IDENTITY-EVIDENCE
+            // GH-1413-VERIFY-V0270-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL
+            // V0270-003-SIGNED-STATUS-RETRY-TIMEOUT
+            // V0270-003-CLASSIFIED-FAILURE-EVIDENCE
+            // GH-1414-VERIFY-V0270-CANCEL-STATUS-RECONCILIATION-RECOVERY
+            // V0270-004-CANCEL-STATUS-RECOVERY
+            // V0270-004-RECONCILIATION-RECOVERY
+            // GH-1415-VERIFY-V0270-ARTIFACT-BUNDLE-REPLAY-VALIDATOR
+            // V0270-005-ARTIFACT-BUNDLE-REPLAY-VALIDATOR
+            // V0270-005-CHECKSUM-FAIL-CLOSED
+            // GH-1416-VERIFY-V0270-IDEMPOTENCY-DUPLICATE-SUBMIT-RUN-LOCK
+            // V0270-006-IDEMPOTENCY-DUPLICATE-SUBMIT-GUARD
+            // V0270-006-RUN-LOCK-HARDENING
+            // GH-1417-VERIFY-V0270-DASHBOARD-CLI-FAILURE-DRILLDOWN-READONLY
+            // V0270-007-DASHBOARD-CLI-FAILURE-DRILLDOWN
+            // V0270-007-NO-DASHBOARD-TRADING-CONTROLS
+            // GH-1418-VERIFY-V0270-MANUAL-WORKFLOW-ARTIFACT-REDACTION
+            // V0270-008-MANUAL-WORKFLOW-ARTIFACT-VALIDATION
+            // V0270-008-REDACTION-EVIDENCE
+            // GH-1419-VERIFY-V0270-AGGREGATE-VALIDATION
+            // V0270-009-AGGREGATE-VALIDATION-SUITE
+            // GH-1420-VERIFY-V0270-STAGE-AUDIT-RELEASE-DOCS
+            // V0270-010-STAGE-CODE-AUDIT
+            // V0270-010-RELEASE-NOTES
+            // V0270-010-NO-PRODUCTION-CUTOVER
+            "releaseV0270FuturesTestnetOperatorHardeningCommand=\(ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.cliCommand)",
+            "releaseV0270FuturesTestnetOperatorHardeningValidationAnchor=\(ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.validationAnchor)",
+            "releaseV0270FuturesTestnetOperatorHardeningVerificationAnchor=\(ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.verificationAnchor)",
+            "releaseV0270FuturesTestnetOperatorHardeningActions=\(ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.supportedActions.joined(separator: ","))",
             "operatorRunFailedEvidenceNonzeroOrReadOnlyReportPath=true",
             "readinessPlaceholderOnly=false",
             "readinessArtifactRuntimeImplemented=true",
