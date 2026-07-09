@@ -18625,3 +18625,45 @@ Validation commands for this closeout: `swift test --filter TargetGraphTests/tes
 v0.27.2 records v0.27.1 publication facts: https://github.com/atxinbao/MTPRO/releases/tag/v0.27.1, tag target `a69eed3b1a83028de14ce64ce42d1e2578eaab96`, published at `2026-07-09T15:19:56Z`, title `MTPRO v0.27.1 v0.27 Dashboard macOS Type-check Patch`. It records v0.27.0 publication facts: https://github.com/atxinbao/MTPRO/releases/tag/v0.27.0, tag target `4ee83ecece5c434cbc97999ae30ee680c1072020`, published at `2026-07-09T14:06:49Z`, and v0.27.0 milestone #45 closed with 0 open / 10 closed issues. Binance Spot + Binance USD-M Futures remain the continuation scope; OKX out of current target path; v0.28.0 remains blocked until v0.27.2 completion; production cutover not authorized.
 
 Validation commands: `swift test --filter TargetGraphTests/testGH1424To1428ReleaseV0272PublicationFactSyncMilestoneClosurePatch`, `bash checks/verify-v0.27.2.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, `bash checks/run.sh`.
+
+## Release v0.28.0 Binance Production Cutover Readiness Gate Verification
+
+- GH-1429-VERIFY-V0280-BINANCE-PRODUCTION-CUTOVER-READINESS-CONTRACT
+- TVM-RELEASE-V0280-PRODUCTION-CUTOVER-READINESS-GATE
+- V0280-001-BINANCE-ONLY-PRODUCTION-CUTOVER-READINESS
+- V0280-001-NOT-PRODUCTION-CUTOVER
+- V0280-001-SPOT-USDM-FUTURES-ONLY
+- V0280-001-OKX-NOT-ACTIVE
+- GH-1430-VERIFY-V0280-PRODUCTION-CREDENTIAL-SECRET-ACCESS-POLICY
+- V0280-002-SECRET-ACCESS-EXPLICIT-APPROVAL
+- V0280-002-NO-DEFAULT-SECRET-READ
+- V0280-002-REDACTION-REQUIRED
+- GH-1431-VERIFY-V0280-PRODUCTION-ENVIRONMENT-ENDPOINT-ALLOWLIST
+- V0280-003-ENDPOINT-ALLOWLIST
+- V0280-003-PRODUCTION-ENVIRONMENT-ISOLATION
+- V0280-003-BINANCE-SPOT-USDM-FUTURES-ENDPOINTS
+- GH-1432-VERIFY-V0280-MANUAL-APPROVAL-OPERATOR-CONFIRMATION
+- V0280-004-MANUAL-APPROVAL-REQUIRED
+- V0280-004-OPERATOR-CONFIRMATION-REQUIRED
+- V0280-004-NO-AUTO-CUTOVER
+- GH-1433-VERIFY-V0280-CAPITAL-RISK-NOTIONAL-EXPOSURE-LEVERAGE
+- V0280-005-CAPITAL-RISK-GATE
+- V0280-005-NOTIONAL-EXPOSURE-LEVERAGE-LIMITS
+- V0280-005-FUTURES-LEVERAGE-FAIL-CLOSED
+- GH-1434-VERIFY-V0280-KILL-NOTRADE-ROLLBACK-INCIDENT-STOP
+- V0280-006-KILL-SWITCH-REQUIRED
+- V0280-006-NO-TRADE-STATE-REQUIRED
+- V0280-006-ROLLBACK-INCIDENT-STOP-READY
+- GH-1435-VERIFY-V0280-DASHBOARD-CLI-READINESS-SURFACE
+- V0280-007-DASHBOARD-CLI-READINESS
+- V0280-007-NO-TRADING-BUTTON
+- V0280-007-NO-ORDER-FORM
+- V0280-007-NO-LIVE-COMMAND
+- GH-1436-VERIFY-V0280-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT
+- V0280-008-AGGREGATE-VALIDATION
+- V0280-008-STAGE-AUDIT-RELEASE-DOCS
+- V0280-008-NO-PRODUCTION-CUTOVER
+
+v0.28.0 verifies Binance Spot + USD-M Futures production cutover readiness only. Production cutover is not authorized. Production trading, production secret read, production endpoint connection, broker endpoint connection, submit / cancel / replace, Futures production order execution, OKX active runtime, Dashboard trading controls, order form and live command remain disabled.
+
+Validation commands: `swift test --filter TargetGraphTests/testGH1429To1436ReleaseV0280ProductionCutoverReadinessGate`, `bash checks/verify-v0.28.0.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, `bash checks/run.sh`.

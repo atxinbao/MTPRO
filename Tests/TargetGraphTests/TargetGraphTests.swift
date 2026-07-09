@@ -69925,6 +69925,168 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1429To1436ReleaseV0280ProductionCutoverReadinessGate() throws {
+        // GH-1429-VERIFY-V0280-BINANCE-PRODUCTION-CUTOVER-READINESS-CONTRACT
+        // TVM-RELEASE-V0280-PRODUCTION-CUTOVER-READINESS-GATE
+        // V0280-001-BINANCE-ONLY-PRODUCTION-CUTOVER-READINESS
+        // V0280-001-NOT-PRODUCTION-CUTOVER
+        // V0280-001-SPOT-USDM-FUTURES-ONLY
+        // V0280-001-OKX-NOT-ACTIVE
+        // GH-1430-VERIFY-V0280-PRODUCTION-CREDENTIAL-SECRET-ACCESS-POLICY
+        // V0280-002-SECRET-ACCESS-EXPLICIT-APPROVAL
+        // V0280-002-NO-DEFAULT-SECRET-READ
+        // V0280-002-REDACTION-REQUIRED
+        // GH-1431-VERIFY-V0280-PRODUCTION-ENVIRONMENT-ENDPOINT-ALLOWLIST
+        // V0280-003-ENDPOINT-ALLOWLIST
+        // V0280-003-PRODUCTION-ENVIRONMENT-ISOLATION
+        // V0280-003-BINANCE-SPOT-USDM-FUTURES-ENDPOINTS
+        // GH-1432-VERIFY-V0280-MANUAL-APPROVAL-OPERATOR-CONFIRMATION
+        // V0280-004-MANUAL-APPROVAL-REQUIRED
+        // V0280-004-OPERATOR-CONFIRMATION-REQUIRED
+        // V0280-004-NO-AUTO-CUTOVER
+        // GH-1433-VERIFY-V0280-CAPITAL-RISK-NOTIONAL-EXPOSURE-LEVERAGE
+        // V0280-005-CAPITAL-RISK-GATE
+        // V0280-005-NOTIONAL-EXPOSURE-LEVERAGE-LIMITS
+        // V0280-005-FUTURES-LEVERAGE-FAIL-CLOSED
+        // GH-1434-VERIFY-V0280-KILL-NOTRADE-ROLLBACK-INCIDENT-STOP
+        // V0280-006-KILL-SWITCH-REQUIRED
+        // V0280-006-NO-TRADE-STATE-REQUIRED
+        // V0280-006-ROLLBACK-INCIDENT-STOP-READY
+        // GH-1435-VERIFY-V0280-DASHBOARD-CLI-READINESS-SURFACE
+        // V0280-007-DASHBOARD-CLI-READINESS
+        // V0280-007-NO-TRADING-BUTTON
+        // V0280-007-NO-ORDER-FORM
+        // V0280-007-NO-LIVE-COMMAND
+        // GH-1436-VERIFY-V0280-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT
+        // V0280-008-AGGREGATE-VALIDATION
+        // V0280-008-STAGE-AUDIT-RELEASE-DOCS
+        // V0280-008-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let evidence = ReleaseV0280ProductionCutoverReadinessGate.deterministicFixture
+        XCTAssertEqual(evidence.release, "v0.28.0")
+        XCTAssertEqual(evidence.venue, "binance")
+        XCTAssertEqual(evidence.productTypes, ["spot", "usdsPerpetual"])
+        XCTAssertEqual(evidence.environmentScope, "production-readiness-only")
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.productionSecretReadEnabledByDefault)
+        XCTAssertFalse(evidence.productionEndpointConnectionEnabledByDefault)
+        XCTAssertFalse(evidence.brokerEndpointConnectionEnabledByDefault)
+        XCTAssertFalse(evidence.productionOrderSubmitCancelReplaceEnabled)
+        XCTAssertFalse(evidence.futuresProductionOrderExecutionEnabled)
+        XCTAssertFalse(evidence.okxActiveRuntimeEnabled)
+        XCTAssertFalse(evidence.dashboardTradingControlsEnabled)
+        XCTAssertFalse(evidence.orderFormEnabled)
+        XCTAssertFalse(evidence.liveCommandEnabled)
+        XCTAssertTrue(evidence.manualApprovalRequired)
+        XCTAssertTrue(evidence.operatorConfirmationRequired)
+        XCTAssertTrue(evidence.capitalRiskGateRequired)
+        XCTAssertTrue(evidence.notionalExposureLeverageGateRequired)
+        XCTAssertTrue(evidence.killSwitchRequired)
+        XCTAssertTrue(evidence.noTradeStateRequired)
+        XCTAssertTrue(evidence.rollbackIncidentStopRequired)
+        XCTAssertTrue(evidence.redactionRequired)
+        XCTAssertTrue(evidence.endpointAllowlistRequired)
+        XCTAssertEqual(evidence.gates.count, ReleaseV0280ReadinessGateKind.allCases.count)
+
+        let statusOutput = try ReleaseV0280ProductionCutoverReadinessGate.commandLineOutput(
+            arguments: [ReleaseV0280ProductionCutoverReadinessGate.cliCommand, "status"]
+        )
+        XCTAssertTrue(statusOutput.contains("release=v0.28.0"))
+        XCTAssertTrue(statusOutput.contains("productTypes=spot,usdsPerpetual"))
+        XCTAssertTrue(statusOutput.contains("boundaryHeld=true"))
+
+        let boundaryOutput = try ReleaseV0280ProductionCutoverReadinessGate.commandLineOutput(
+            arguments: [ReleaseV0280ProductionCutoverReadinessGate.cliCommand, "boundaries"]
+        )
+        for expected in [
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "productionSecretReadEnabledByDefault=false",
+            "productionEndpointConnectionEnabledByDefault=false",
+            "brokerEndpointConnectionEnabledByDefault=false",
+            "productionOrderSubmitCancelReplaceEnabled=false",
+            "futuresProductionOrderExecutionEnabled=false",
+            "okxActiveRuntimeEnabled=false",
+            "dashboardTradingControlsEnabled=false",
+            "tradingButtonVisible=false",
+            "orderFormEnabled=false",
+            "liveCommandEnabled=false"
+        ] {
+            XCTAssertTrue(boundaryOutput.contains(expected), "boundary output must contain \(expected)")
+        }
+
+        let dashboardSurface = ReleaseV0280DashboardCLIProductionReadinessSurface()
+        XCTAssertTrue(dashboardSurface.boundaryHeld)
+        XCTAssertTrue(dashboardSurface.reportLines.joined(separator: "\n").contains("dashboardBoundary=read-only"))
+        XCTAssertTrue(dashboardSurface.reportLines.joined(separator: "\n").contains("productionCutoverAuthorized=false"))
+
+        let anchors = ReleaseV0280ProductionCutoverReadinessGate.requiredAnchors
+        let requiredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0280ProductionCutoverReadinessGate.swift",
+            "Sources/Dashboard/Report/ReleaseV0280DashboardCLIProductionReadinessSurface.swift",
+            "Sources/MTPROCLI/main.swift",
+            "docs/audit/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-notes.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/roadmap.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md",
+            "checks/verify-v0.28.0.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        XCTAssertTrue(cliSource.contains("ReleaseV0280ProductionCutoverReadinessGate.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0280ProductionCutoverReadinessGate.commandLineOutput"))
+        XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.28.0.sh"))
+        XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.28.0.sh"))
+
+        let runtimeSurface = (
+            evidence.statusLines
+                + evidence.gateLines
+                + evidence.boundaryLines
+                + dashboardSurface.reportLines
+        ).joined(separator: "\n")
+
+        for forbidden in [
+            "productionTradingEnabledByDefault=true",
+            "productionCutoverAuthorized=true",
+            "productionSecretReadEnabledByDefault=true",
+            "productionEndpointConnectionEnabledByDefault=true",
+            "brokerEndpointConnectionEnabledByDefault=true",
+            "productionOrderSubmitCancelReplaceEnabled=true",
+            "futuresProductionOrderExecutionEnabled=true",
+            "okxActiveRuntimeEnabled=true",
+            "dashboardTradingControlsEnabled=true",
+            "orderFormEnabled=true",
+            "liveCommandEnabled=true",
+            "V0280 production cutover authorized",
+            "OKX active runtime enabled"
+        ] {
+            XCTAssertFalse(runtimeSurface.contains(forbidden), "\(forbidden) must stay out of v0.28.0 runtime surfaces")
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

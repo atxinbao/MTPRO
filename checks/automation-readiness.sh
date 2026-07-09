@@ -15141,4 +15141,101 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1411To14
 # V0241-005-V0250-BLOCKED-BY-V0241-COMPLETION
 # V0241-005-NO-CAPABILITY-CHANGE
 
+# Release v0.28.0 full anchor inventory:
+# GH-1429-VERIFY-V0280-BINANCE-PRODUCTION-CUTOVER-READINESS-CONTRACT
+# TVM-RELEASE-V0280-PRODUCTION-CUTOVER-READINESS-GATE
+# V0280-001-BINANCE-ONLY-PRODUCTION-CUTOVER-READINESS
+# V0280-001-NOT-PRODUCTION-CUTOVER
+# V0280-001-SPOT-USDM-FUTURES-ONLY
+# V0280-001-OKX-NOT-ACTIVE
+# GH-1430-VERIFY-V0280-PRODUCTION-CREDENTIAL-SECRET-ACCESS-POLICY
+# V0280-002-SECRET-ACCESS-EXPLICIT-APPROVAL
+# V0280-002-NO-DEFAULT-SECRET-READ
+# V0280-002-REDACTION-REQUIRED
+# GH-1431-VERIFY-V0280-PRODUCTION-ENVIRONMENT-ENDPOINT-ALLOWLIST
+# V0280-003-ENDPOINT-ALLOWLIST
+# V0280-003-PRODUCTION-ENVIRONMENT-ISOLATION
+# V0280-003-BINANCE-SPOT-USDM-FUTURES-ENDPOINTS
+# GH-1432-VERIFY-V0280-MANUAL-APPROVAL-OPERATOR-CONFIRMATION
+# V0280-004-MANUAL-APPROVAL-REQUIRED
+# V0280-004-OPERATOR-CONFIRMATION-REQUIRED
+# V0280-004-NO-AUTO-CUTOVER
+# GH-1433-VERIFY-V0280-CAPITAL-RISK-NOTIONAL-EXPOSURE-LEVERAGE
+# V0280-005-CAPITAL-RISK-GATE
+# V0280-005-NOTIONAL-EXPOSURE-LEVERAGE-LIMITS
+# V0280-005-FUTURES-LEVERAGE-FAIL-CLOSED
+# GH-1434-VERIFY-V0280-KILL-NOTRADE-ROLLBACK-INCIDENT-STOP
+# V0280-006-KILL-SWITCH-REQUIRED
+# V0280-006-NO-TRADE-STATE-REQUIRED
+# V0280-006-ROLLBACK-INCIDENT-STOP-READY
+# GH-1435-VERIFY-V0280-DASHBOARD-CLI-READINESS-SURFACE
+# V0280-007-DASHBOARD-CLI-READINESS
+# V0280-007-NO-TRADING-BUTTON
+# V0280-007-NO-ORDER-FORM
+# V0280-007-NO-LIVE-COMMAND
+# GH-1436-VERIFY-V0280-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT
+# V0280-008-AGGREGATE-VALIDATION
+# V0280-008-STAGE-AUDIT-RELEASE-DOCS
+# V0280-008-NO-PRODUCTION-CUTOVER
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0280ProductionCutoverReadinessGate.swift" \
+  "Sources/Dashboard/Report/ReleaseV0280DashboardCLIProductionReadinessSurface.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "docs/audit/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "verification.md" \
+  "checks/verify-v0.28.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1429-VERIFY-V0280-BINANCE-PRODUCTION-CUTOVER-READINESS-CONTRACT"
+  require_contains "$file" "TVM-RELEASE-V0280-PRODUCTION-CUTOVER-READINESS-GATE"
+  require_contains "$file" "V0280-001-BINANCE-ONLY-PRODUCTION-CUTOVER-READINESS"
+  require_contains "$file" "V0280-001-NOT-PRODUCTION-CUTOVER"
+  require_contains "$file" "V0280-001-SPOT-USDM-FUTURES-ONLY"
+  require_contains "$file" "V0280-001-OKX-NOT-ACTIVE"
+  require_contains "$file" "GH-1430-VERIFY-V0280-PRODUCTION-CREDENTIAL-SECRET-ACCESS-POLICY"
+  require_contains "$file" "V0280-002-SECRET-ACCESS-EXPLICIT-APPROVAL"
+  require_contains "$file" "V0280-002-NO-DEFAULT-SECRET-READ"
+  require_contains "$file" "V0280-002-REDACTION-REQUIRED"
+  require_contains "$file" "GH-1431-VERIFY-V0280-PRODUCTION-ENVIRONMENT-ENDPOINT-ALLOWLIST"
+  require_contains "$file" "V0280-003-ENDPOINT-ALLOWLIST"
+  require_contains "$file" "V0280-003-PRODUCTION-ENVIRONMENT-ISOLATION"
+  require_contains "$file" "V0280-003-BINANCE-SPOT-USDM-FUTURES-ENDPOINTS"
+  require_contains "$file" "GH-1432-VERIFY-V0280-MANUAL-APPROVAL-OPERATOR-CONFIRMATION"
+  require_contains "$file" "V0280-004-MANUAL-APPROVAL-REQUIRED"
+  require_contains "$file" "V0280-004-OPERATOR-CONFIRMATION-REQUIRED"
+  require_contains "$file" "V0280-004-NO-AUTO-CUTOVER"
+  require_contains "$file" "GH-1433-VERIFY-V0280-CAPITAL-RISK-NOTIONAL-EXPOSURE-LEVERAGE"
+  require_contains "$file" "V0280-005-CAPITAL-RISK-GATE"
+  require_contains "$file" "V0280-005-NOTIONAL-EXPOSURE-LEVERAGE-LIMITS"
+  require_contains "$file" "V0280-005-FUTURES-LEVERAGE-FAIL-CLOSED"
+  require_contains "$file" "GH-1434-VERIFY-V0280-KILL-NOTRADE-ROLLBACK-INCIDENT-STOP"
+  require_contains "$file" "V0280-006-KILL-SWITCH-REQUIRED"
+  require_contains "$file" "V0280-006-NO-TRADE-STATE-REQUIRED"
+  require_contains "$file" "V0280-006-ROLLBACK-INCIDENT-STOP-READY"
+  require_contains "$file" "GH-1435-VERIFY-V0280-DASHBOARD-CLI-READINESS-SURFACE"
+  require_contains "$file" "V0280-007-DASHBOARD-CLI-READINESS"
+  require_contains "$file" "V0280-007-NO-TRADING-BUTTON"
+  require_contains "$file" "V0280-007-NO-ORDER-FORM"
+  require_contains "$file" "V0280-007-NO-LIVE-COMMAND"
+  require_contains "$file" "GH-1436-VERIFY-V0280-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT"
+  require_contains "$file" "V0280-008-AGGREGATE-VALIDATION"
+  require_contains "$file" "V0280-008-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "V0280-008-NO-PRODUCTION-CUTOVER"
+done
+
+require_contains "checks/run.sh" "bash checks/verify-v0.28.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.28.0.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1429To1436ReleaseV0280ProductionCutoverReadinessGate"
+
 printf 'MTPRO automation readiness checks passed.\n'
