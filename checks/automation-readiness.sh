@@ -217,6 +217,9 @@ require_file "checks/verify-v0.26.0.sh"
 # V0261-005-V0270-BLOCKED-BY-V0261-COMPLETION
 # V0261-005-NO-CAPABILITY-CHANGE
 require_file "checks/verify-v0.26.1.sh"
+require_file "checks/verify-v0.27.0.sh"
+require_file "docs/audit/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-notes.md"
 require_file "docs/audit/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-stage-code-audit.md"
 require_file "docs/release/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-notes.md"
 require_file "docs/contracts/release-v0.24.0-spot-futures-unified-readonly-foundation-contract.md"
@@ -14995,6 +14998,62 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.26.0.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.26.0.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1394To1403ReleaseV0260FuturesTestnetControlledExecutionFoundation"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0270FuturesTestnetOperatorRuntimeHardening.swift" \
+  "Sources/Dashboard/Report/ReleaseV0270DashboardCLIFuturesTestnetFailureDrilldownSurface.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "docs/audit/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "verification.md" \
+  "checks/verify-v0.27.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1411-VERIFY-V0270-FUTURES-TESTNET-OPERATOR-RUN-HARDENING-CONTRACT"
+  require_contains "$file" "TVM-RELEASE-V0270-FUTURES-TESTNET-OPERATOR-RUNTIME-HARDENING"
+  require_contains "$file" "V0270-001-FUTURES-TESTNET-OPERATOR-RUN-HARDENING-CONTRACT"
+  require_contains "$file" "V0270-001-FAIL-CLOSED-SEMANTICS"
+  require_contains "$file" "GH-1412-VERIFY-V0270-FUTURES-TESTNET-RUN-REGISTRY-ARTIFACT-MANIFEST"
+  require_contains "$file" "V0270-002-RUN-REGISTRY-ARTIFACT-MANIFEST"
+  require_contains "$file" "V0270-002-RUN-IDENTITY-EVIDENCE"
+  require_contains "$file" "GH-1413-VERIFY-V0270-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL"
+  require_contains "$file" "V0270-003-SIGNED-STATUS-RETRY-TIMEOUT"
+  require_contains "$file" "V0270-003-CLASSIFIED-FAILURE-EVIDENCE"
+  require_contains "$file" "GH-1414-VERIFY-V0270-CANCEL-STATUS-RECONCILIATION-RECOVERY"
+  require_contains "$file" "V0270-004-CANCEL-STATUS-RECOVERY"
+  require_contains "$file" "V0270-004-RECONCILIATION-RECOVERY"
+  require_contains "$file" "GH-1415-VERIFY-V0270-ARTIFACT-BUNDLE-REPLAY-VALIDATOR"
+  require_contains "$file" "V0270-005-ARTIFACT-BUNDLE-REPLAY-VALIDATOR"
+  require_contains "$file" "V0270-005-CHECKSUM-FAIL-CLOSED"
+  require_contains "$file" "GH-1416-VERIFY-V0270-IDEMPOTENCY-DUPLICATE-SUBMIT-RUN-LOCK"
+  require_contains "$file" "V0270-006-IDEMPOTENCY-DUPLICATE-SUBMIT-GUARD"
+  require_contains "$file" "V0270-006-RUN-LOCK-HARDENING"
+  require_contains "$file" "GH-1417-VERIFY-V0270-DASHBOARD-CLI-FAILURE-DRILLDOWN-READONLY"
+  require_contains "$file" "V0270-007-DASHBOARD-CLI-FAILURE-DRILLDOWN"
+  require_contains "$file" "V0270-007-NO-DASHBOARD-TRADING-CONTROLS"
+  require_contains "$file" "GH-1418-VERIFY-V0270-MANUAL-WORKFLOW-ARTIFACT-REDACTION"
+  require_contains "$file" "V0270-008-MANUAL-WORKFLOW-ARTIFACT-VALIDATION"
+  require_contains "$file" "V0270-008-REDACTION-EVIDENCE"
+  require_contains "$file" "GH-1419-VERIFY-V0270-AGGREGATE-VALIDATION"
+  require_contains "$file" "V0270-009-AGGREGATE-VALIDATION-SUITE"
+  require_contains "$file" "GH-1420-VERIFY-V0270-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "V0270-010-STAGE-CODE-AUDIT"
+  require_contains "$file" "V0270-010-RELEASE-NOTES"
+  require_contains "$file" "V0270-010-NO-PRODUCTION-CUTOVER"
+done
+
+require_contains "checks/run.sh" "bash checks/verify-v0.27.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.27.0.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1411To1420ReleaseV0270FuturesTestnetOperatorRuntimeHardening"
 
 # Release v0.23.1 full anchor inventory:
 # GH-1353-VERIFY-V0231-V0230-RELEASE-FACT-SYNC
