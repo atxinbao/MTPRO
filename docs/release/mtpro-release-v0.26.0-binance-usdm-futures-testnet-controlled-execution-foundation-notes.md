@@ -62,6 +62,30 @@ bash checks/verify-v0.26.0.sh
 bash checks/run.sh
 ```
 
-## Publication Boundary
+## Historical Construction Boundary and Current Publication Fact
 
-The construction closeout does not create a tag or GitHub Release. Publication is a separate release action after the v0.26.0 queue closes.
+The construction closeout did not create a tag or GitHub Release. That statement is historical construction evidence only.
+
+Current release fact: v0.26.0 is published as a stable GitHub Release at https://github.com/atxinbao/MTPRO/releases/tag/v0.26.0. The tag resolves to `e3b65f2337c5275eaa7ce5c5f224b69475a7c9bb`, and GitHub records the release publication timestamp as `2026-07-08T13:00:01Z`.
+
+The publication does not authorize production cutover, production Futures order execution, OKX active runtime, Dashboard trading controls, unrestricted live trading, production secret read, production endpoint connection, broker endpoint connection, or production order submission.
+
+## v0.26.1 Publication Fact Sync Anchors
+
+- GH-1406-VERIFY-V0261-V0260-RELEASE-FACT-SYNC
+- TVM-RELEASE-V0261-V0260-RELEASE-FACT-SYNC
+- V0261-001-V0260-GITHUB-RELEASE-PUBLISHED
+- V0261-001-V0260-TAG-FIXED
+- V0261-001-V0260-PUBLISHED-AT-2026-07-08T13-00-01Z
+- GH-1407-VERIFY-V0261-V0260-MILESTONE-COMPLETION
+- V0261-002-V0260-MILESTONE-CLOSED
+- V0261-002-V0260-ISSUES-1394-1403-DONE
+- GH-1408-VERIFY-V0261-V0260-STALE-WORDING-GUARD
+- V0261-003-PUBLISHED-V0260-STALE-WORDING-GUARD
+- GH-1409-VERIFY-V0261-V0260-BASELINE-WORDING
+- V0261-004-V0260-CURRENT-PUBLISHED-BASELINE
+- V0261-004-FUTURES-TESTNET-CONTROLLED-EXECUTION-FOUNDATION
+- GH-1410-VERIFY-V0261-PATCH-AUDIT-RELEASE-NOTES
+- V0261-005-PATCH-AUDIT
+- V0261-005-V0270-BLOCKED-BY-V0261-COMPLETION
+- V0261-005-NO-CAPABILITY-CHANGE
