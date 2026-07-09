@@ -69797,6 +69797,134 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1424To1428ReleaseV0272PublicationFactSyncMilestoneClosurePatch() throws {
+        // GH-1424-VERIFY-V0272-V0271-RELEASE-FACT-SYNC
+        // TVM-RELEASE-V0272-V0271-RELEASE-FACT-SYNC
+        // V0272-001-V0271-GITHUB-RELEASE-PUBLISHED
+        // V0272-001-V0271-TAG-FIXED
+        // V0272-001-V0271-PUBLISHED-AT-2026-07-09T15-19-56Z
+        // GH-1425-VERIFY-V0272-V0270-MILESTONE-COMPLETION
+        // V0272-002-V0270-MILESTONE-CLOSED
+        // V0272-002-V0270-ISSUES-1411-1420-DONE
+        // GH-1426-VERIFY-V0272-V0271-STALE-WORDING-GUARD
+        // V0272-003-PUBLISHED-V0271-STALE-WORDING-GUARD
+        // GH-1427-VERIFY-V0272-BINANCE-ONLY-CONTINUATION-SCOPE
+        // V0272-004-BINANCE-SPOT-USDM-FUTURES-CONTINUATION
+        // V0272-004-OKX-OUT-OF-CURRENT-TARGET-PATH
+        // GH-1428-VERIFY-V0272-PATCH-AUDIT-RELEASE-NOTES
+        // V0272-005-PATCH-AUDIT
+        // V0272-005-V0280-BLOCKED-BY-V0272-COMPLETION
+        // V0272-005-NO-CAPABILITY-CHANGE
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let anchors = [
+            "GH-1424-VERIFY-V0272-V0271-RELEASE-FACT-SYNC",
+            "TVM-RELEASE-V0272-V0271-RELEASE-FACT-SYNC",
+            "V0272-001-V0271-GITHUB-RELEASE-PUBLISHED",
+            "V0272-001-V0271-TAG-FIXED",
+            "V0272-001-V0271-PUBLISHED-AT-2026-07-09T15-19-56Z",
+            "GH-1425-VERIFY-V0272-V0270-MILESTONE-COMPLETION",
+            "V0272-002-V0270-MILESTONE-CLOSED",
+            "V0272-002-V0270-ISSUES-1411-1420-DONE",
+            "GH-1426-VERIFY-V0272-V0271-STALE-WORDING-GUARD",
+            "V0272-003-PUBLISHED-V0271-STALE-WORDING-GUARD",
+            "GH-1427-VERIFY-V0272-BINANCE-ONLY-CONTINUATION-SCOPE",
+            "V0272-004-BINANCE-SPOT-USDM-FUTURES-CONTINUATION",
+            "V0272-004-OKX-OUT-OF-CURRENT-TARGET-PATH",
+            "GH-1428-VERIFY-V0272-PATCH-AUDIT-RELEASE-NOTES",
+            "V0272-005-PATCH-AUDIT",
+            "V0272-005-V0280-BLOCKED-BY-V0272-COMPLETION",
+            "V0272-005-NO-CAPABILITY-CHANGE"
+        ]
+
+        let requiredFiles = [
+            "docs/audit/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-notes.md",
+            "docs/audit/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-notes.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/roadmap.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md",
+            "checks/verify-v0.27.2.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in requiredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        for file in [
+            "docs/release/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-notes.md",
+            "docs/audit/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-stage-code-audit.md",
+            "docs/audit/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-notes.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/roadmap.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md"
+        ] {
+            let source = try read(file)
+            XCTAssertTrue(source.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.27.1"))
+            XCTAssertTrue(source.contains("a69eed3b1a83028de14ce64ce42d1e2578eaab96"))
+            XCTAssertTrue(source.contains("2026-07-09T15:19:56Z"))
+            XCTAssertTrue(source.contains("MTPRO v0.27.1 v0.27 Dashboard macOS Type-check Patch"))
+            XCTAssertTrue(source.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.27.0"))
+            XCTAssertTrue(source.contains("4ee83ecece5c434cbc97999ae30ee680c1072020"))
+            XCTAssertTrue(source.contains("2026-07-09T14:06:49Z"))
+            XCTAssertTrue(source.contains("Binance Spot + Binance USD-M Futures"))
+            XCTAssertTrue(source.contains("OKX out of current target path"))
+            XCTAssertTrue(source.contains("production cutover not authorized"))
+        }
+
+        XCTAssertTrue(try read("docs/release/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-notes.md").contains("v0.27.0 milestone #45: closed with 0 open / 10 closed issues"))
+        XCTAssertTrue(try read("docs/audit/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-stage-code-audit.md").contains("v0.27.0 milestone #45 is closed with 0 open / 10 closed issues"))
+        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.27.0 milestone #45 closed"))
+        XCTAssertTrue(try read("docs/roadmap.md").contains("v0.28.0 remains blocked until v0.27.2 completion"))
+        XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.27.2.sh"))
+        XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.27.2.sh"))
+
+        for file in [
+            "docs/release/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-notes.md",
+            "docs/audit/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-stage-code-audit.md",
+            "docs/audit/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-notes.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/roadmap.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md"
+        ] {
+            let source = try read(file)
+            for forbidden in [
+                "v0.27.1 remains pending",
+                "v0.27.1 has not been published",
+                "v0.27.1 publication remains a separate release gate",
+                "Creating the v0.27.1 tag",
+                "productionFuturesOrderExecutionEnabled=true",
+                "productionCutoverAuthorized=true",
+                "okxActiveRuntimeEnabled=true",
+                "dashboardTradingControlsEnabled=true",
+                "unrestrictedLiveTradingAuthorized=true"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(forbidden) must stay out of current v0.27.2 surfaces")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
