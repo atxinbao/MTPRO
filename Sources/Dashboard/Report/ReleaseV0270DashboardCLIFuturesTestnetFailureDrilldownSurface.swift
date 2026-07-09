@@ -58,20 +58,22 @@ public struct ReleaseV0270DashboardCLIFuturesTestnetFailureDrilldownSurface:
     }
 
     public var reportLines: [String] {
-        [
+        var lines = [
             "panelID=\(Self.panelID)",
             "validationAnchor=\(Self.validationAnchor)",
             "verificationAnchor=\(Self.verificationAnchor)"
-        ] + source.statusLines
-            + source.failureLines
-            + source.recoveryLines
-            + source.surfaceLines
-            + [
-                "dashboardBoundary=read-only",
-                "rawBrokerPayloadVisible=false",
-                "rawSecretVisible=false",
-                "productionCutoverAuthorized=false"
-            ]
+        ]
+        lines.append(contentsOf: source.statusLines)
+        lines.append(contentsOf: source.failureLines)
+        lines.append(contentsOf: source.recoveryLines)
+        lines.append(contentsOf: source.surfaceLines)
+        lines.append(contentsOf: [
+            "dashboardBoundary=read-only",
+            "rawBrokerPayloadVisible=false",
+            "rawSecretVisible=false",
+            "productionCutoverAuthorized=false"
+        ])
+        return lines
     }
 
     public var boundaryHeld: Bool {
