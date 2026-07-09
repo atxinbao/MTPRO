@@ -18572,3 +18572,27 @@ GitHub Issue：[#379](https://github.com/atxinbao/MTPRO/issues/379)
 - `productionFuturesOrderExecutionEnabled=false`.
 - production cutover not authorized.
 - Validation commands: `swift test --filter TargetGraphTests/testGH1394To1403ReleaseV0260FuturesTestnetControlledExecutionFoundation`, `bash checks/verify-v0.26.0.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, `bash checks/run.sh`.
+
+## Release v0.26.1 Publication Fact Sync / Milestone Closure Patch Verification
+
+- GH-1406-VERIFY-V0261-V0260-RELEASE-FACT-SYNC
+- TVM-RELEASE-V0261-V0260-RELEASE-FACT-SYNC
+- V0261-001-V0260-GITHUB-RELEASE-PUBLISHED
+- V0261-001-V0260-TAG-FIXED
+- V0261-001-V0260-PUBLISHED-AT-2026-07-08T13-00-01Z
+- GH-1407-VERIFY-V0261-V0260-MILESTONE-COMPLETION
+- V0261-002-V0260-MILESTONE-CLOSED
+- V0261-002-V0260-ISSUES-1394-1403-DONE
+- GH-1408-VERIFY-V0261-V0260-STALE-WORDING-GUARD
+- V0261-003-PUBLISHED-V0260-STALE-WORDING-GUARD
+- GH-1409-VERIFY-V0261-V0260-BASELINE-WORDING
+- V0261-004-V0260-CURRENT-PUBLISHED-BASELINE
+- V0261-004-FUTURES-TESTNET-CONTROLLED-EXECUTION-FOUNDATION
+- GH-1410-VERIFY-V0261-PATCH-AUDIT-RELEASE-NOTES
+- V0261-005-PATCH-AUDIT
+- V0261-005-V0270-BLOCKED-BY-V0261-COMPLETION
+- V0261-005-NO-CAPABILITY-CHANGE
+
+v0.26.1 records the published v0.26.0 GitHub Release at https://github.com/atxinbao/MTPRO/releases/tag/v0.26.0, tag target `e3b65f2337c5275eaa7ce5c5f224b69475a7c9bb`, publication timestamp `2026-07-08T13:00:01Z`, and current maturity `Binance USD-M Futures testnet controlled execution foundation`. v0.26.0 milestone #43 is closed with 0 open / 10 closed issues; #1394 through #1403 are closed / done. production cutover not authorized. v0.27.0 remains blocked until v0.26.1 completion.
+
+Validation commands: `swift test --filter TargetGraphTests/testGH1406To1410ReleaseV0261PublicationFactSyncMilestoneClosurePatch`, `bash checks/verify-v0.26.1.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, `bash checks/run.sh`.
