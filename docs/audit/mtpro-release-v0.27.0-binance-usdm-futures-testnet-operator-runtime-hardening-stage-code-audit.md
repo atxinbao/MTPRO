@@ -74,6 +74,39 @@ Required validation:
 - `bash checks/automation-readiness.sh`
 - `bash checks/run.sh`
 
-## Release Publication Boundary
+## Release Publication Facts And Patch Follow-up
 
-This audit closes the construction queue. It does not itself create, move, or overwrite the `v0.27.0` tag or GitHub Release. Tag and GitHub Release publication remain a separate release gate after the queue is merged and verified.
+This audit was first written for the construction queue. Current release facts are now fixed:
+
+- v0.27.0 GitHub Release: https://github.com/atxinbao/MTPRO/releases/tag/v0.27.0
+- v0.27.0 tag fixed at: `4ee83ecece5c434cbc97999ae30ee680c1072020`
+- v0.27.0 published at: `2026-07-09T14:06:49Z`
+- v0.27.1 GitHub Release: https://github.com/atxinbao/MTPRO/releases/tag/v0.27.1
+- v0.27.1 tag fixed at: `a69eed3b1a83028de14ce64ce42d1e2578eaab96`
+- v0.27.1 published at: `2026-07-09T15:19:56Z`
+- v0.27.1 title: `MTPRO v0.27.1 v0.27 Dashboard macOS Type-check Patch`
+- v0.27.0 milestone #45: closed with 0 open / 10 closed issues
+- v0.27.0 issues #1411 through #1420: closed / done
+- Binance Spot + Binance USD-M Futures remain the continuation scope
+- OKX out of current target path
+- production cutover not authorized
+
+v0.27.2 records the publication fact sync / milestone closure patch:
+
+- GH-1424-VERIFY-V0272-V0271-RELEASE-FACT-SYNC
+- TVM-RELEASE-V0272-V0271-RELEASE-FACT-SYNC
+- V0272-001-V0271-GITHUB-RELEASE-PUBLISHED
+- V0272-001-V0271-TAG-FIXED
+- V0272-001-V0271-PUBLISHED-AT-2026-07-09T15-19-56Z
+- GH-1425-VERIFY-V0272-V0270-MILESTONE-COMPLETION
+- V0272-002-V0270-MILESTONE-CLOSED
+- V0272-002-V0270-ISSUES-1411-1420-DONE
+- GH-1426-VERIFY-V0272-V0271-STALE-WORDING-GUARD
+- V0272-003-PUBLISHED-V0271-STALE-WORDING-GUARD
+- GH-1427-VERIFY-V0272-BINANCE-ONLY-CONTINUATION-SCOPE
+- V0272-004-BINANCE-SPOT-USDM-FUTURES-CONTINUATION
+- V0272-004-OKX-OUT-OF-CURRENT-TARGET-PATH
+- GH-1428-VERIFY-V0272-PATCH-AUDIT-RELEASE-NOTES
+- V0272-005-PATCH-AUDIT
+- V0272-005-V0280-BLOCKED-BY-V0272-COMPLETION
+- V0272-005-NO-CAPABILITY-CHANGE
