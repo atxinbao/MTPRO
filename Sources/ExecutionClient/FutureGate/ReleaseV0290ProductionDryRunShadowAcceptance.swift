@@ -1,5 +1,6 @@
 import Foundation
 
+/// v0.29.0 acceptance evidence 的固定分类；每个 kind 都是 dry-run shadow 的只读证据槽。
 public enum ReleaseV0290EvidenceKind: String, Codable, Equatable, Sendable, CaseIterable {
     case contract = "contract"
     case configuration = "configuration"
@@ -12,12 +13,14 @@ public enum ReleaseV0290EvidenceKind: String, Codable, Equatable, Sendable, Case
     case aggregateValidation = "aggregate-validation"
 }
 
+/// v0.29.0 单条 evidence 的局部状态；blocked 表示对应路径被正确阻断。
 public enum ReleaseV0290AcceptanceState: String, Codable, Equatable, Sendable {
     case passed
     case blocked
     case failed
 }
 
+/// v0.29.0 单条 shadow acceptance evidence，不代表 observed production run。
 public struct ReleaseV0290ShadowAcceptanceEvidence: Codable, Equatable, Sendable {
     public let kind: ReleaseV0290EvidenceKind
     public let release: String
@@ -64,6 +67,11 @@ public struct ReleaseV0290ShadowAcceptanceEvidence: Codable, Equatable, Sendable
     }
 }
 
+/// v0.29.0 production dry-run shadow acceptance 聚合面。
+///
+/// 该类型在 v0.29.1 后明确是 deterministic fixture / contract evidence，不是 observed-run
+/// acceptance。真实 observed artifact 必须走 `ReleaseV0291ShadowAcceptanceIntegrity` 校验。
+// TVM-RELEASE-V0291-SHADOW-ACCEPTANCE-INTEGRITY-PUBLICATION-GATE-REPAIR
 public struct ReleaseV0290ProductionDryRunShadowAcceptance: Codable, Equatable, Sendable {
     // GH-1447-VERIFY-V0290-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE-CONTRACT
     // TVM-RELEASE-V0290-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE
@@ -264,7 +272,9 @@ public struct ReleaseV0290ProductionDryRunShadowAcceptance: Codable, Equatable, 
                     state: kind == .endpoint ? .blocked : .passed,
                     source: "v0.29.0-production-dry-run-shadow-acceptance",
                     artifactPath: "artifacts/v0.29.0/\(product)/\(kind.rawValue).json",
-                    checksum: "sha256:v0.29.0-\(product)-\(kind.rawValue)",
+                    checksum: ReleaseV0291ShadowAcceptanceIntegrity.sha256Hex(
+                        string: "v0.29.0-\(product)-\(kind.rawValue)"
+                    ),
                     reason: reason(for: kind, productType: product),
                     required: true,
                     failClosed: true,
@@ -297,12 +307,26 @@ public struct ReleaseV0290ProductionDryRunShadowAcceptance: Codable, Equatable, 
             endpointAllowlistRequired: true,
             noSubmitTransportMode: true,
             shadowOnly: true,
-            artifactBundleChecksum: "sha256:v0.29.0-production-shadow-acceptance-bundle",
+            artifactBundleChecksum: ReleaseV0291ShadowAcceptanceIntegrity.sha256Hex(
+                string: "v0.29.0-production-shadow-acceptance-bundle"
+            ),
             sbomOrProvenanceEvidence: "release-v0.29.0-prepublication-linux-macos-matrix",
             linuxMatrixRequired: true,
             macOSMatrixRequired: true,
             evidence: evidence
         )
+    }
+
+    public var evidenceOrigin: ReleaseV0291EvidenceOrigin {
+        .deterministicFixture
+    }
+
+    public var acceptanceDecision: ReleaseV0291AcceptanceDecision {
+        .blocked
+    }
+
+    public var observedRunAccepted: Bool {
+        false
     }
 
     public var evidenceComplete: Bool {
@@ -388,6 +412,10 @@ public struct ReleaseV0290ProductionDryRunShadowAcceptance: Codable, Equatable, 
             "requiredAnchors=\(Self.requiredAnchors.joined(separator: ","))",
             "artifactBundleChecksum=\(artifactBundleChecksum)",
             "sbomOrProvenanceEvidence=\(sbomOrProvenanceEvidence)",
+            "evidenceOrigin=\(evidenceOrigin.rawValue)",
+            "acceptanceDecision=\(acceptanceDecision.rawValue)",
+            "acceptanceClassification=contract-deterministic-fixture",
+            "observedRunAccepted=\(observedRunAccepted)",
             "evidenceComplete=\(evidenceComplete)",
             "boundaryHeld=\(boundaryHeld)"
         ]

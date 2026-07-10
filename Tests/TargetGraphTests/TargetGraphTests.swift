@@ -70699,6 +70699,217 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1459To1467ReleaseV0291ShadowAcceptanceIntegrityPatch() throws {
+        // GH-1459-SYNC-V0290-PUBLICATION-FACTS
+        // GH-1460-RECLASSIFY-V0290-DETERMINISTIC-FIXTURE-EVIDENCE
+        // GH-1461-WIRE-V0290-CLI-DASHBOARD-ACCEPTANCE-SURFACE
+        // GH-1462-VALIDATE-V0290-ARTIFACT-FILES-SHA-RUN-APPROVAL-FRESHNESS-PROVENANCE
+        // GH-1463-SEPARATE-FIXTURE-FROM-OBSERVED-RUN-ACCEPTANCE
+        // GH-1464-ENFORCE-PRE-TAG-WORKFLOW-DISPATCH-RELEASE-BRANCH-GATE
+        // GH-1465-SYNC-CURRENT-DOCS-CANONICAL-VENUE-PRODUCT-TARGETS
+        // GH-1466-DEDUPE-NESTED-SWIFT-TEST-ORCHESTRATION
+        // GH-1467-CLOSE-V0291-STAGE-AUDIT-RELEASE-NOTES
+        // TVM-RELEASE-V0291-SHADOW-ACCEPTANCE-INTEGRITY-PUBLICATION-GATE-REPAIR
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let facts = ReleaseV0291PublicationFacts.current
+        XCTAssertTrue(facts.factsHeld)
+        XCTAssertEqual(facts.releaseURL, "https://github.com/atxinbao/MTPRO/releases/tag/v0.29.0")
+        XCTAssertEqual(facts.publishedAt, "2026-07-10T14:23:30Z")
+        XCTAssertEqual(facts.tagTargetCommit, "2b070ea979adfec5fccf90fcd823512d99ec4c3c")
+        XCTAssertEqual(facts.pullRequest, "PR #1458")
+        XCTAssertEqual(facts.workflowRunID, "29099609391")
+        XCTAssertEqual(facts.workflowConclusion, "success")
+        XCTAssertEqual(facts.milestoneNumbersClosed, [48, 49])
+        XCTAssertEqual(facts.issueRangeClosed, "#1439-#1456")
+
+        let deterministic = ReleaseV0290ProductionDryRunShadowAcceptance.deterministicFixture
+        XCTAssertEqual(deterministic.evidenceOrigin, .deterministicFixture)
+        XCTAssertEqual(deterministic.acceptanceDecision, .blocked)
+        XCTAssertFalse(deterministic.observedRunAccepted)
+        XCTAssertEqual(ReleaseV0291ShadowAcceptanceIntegrity.deterministicFixtureDecision, .blocked)
+
+        let statusOutput = try ReleaseV0290ProductionDryRunShadowAcceptance.commandLineOutput(
+            arguments: [ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand, "status"]
+        )
+        for expected in [
+            "evidenceOrigin=deterministic-fixture",
+            "acceptanceDecision=blocked",
+            "acceptanceClassification=contract-deterministic-fixture",
+            "observedRunAccepted=false"
+        ] {
+            XCTAssertTrue(statusOutput.contains(expected), "status output must contain \(expected)")
+        }
+
+        let dashboardReport = ReleaseV0290DashboardCLIShadowAcceptanceSurface()
+            .reportLines
+            .joined(separator: "\n")
+        XCTAssertTrue(dashboardReport.contains("evidenceOrigin=deterministic-fixture"))
+        XCTAssertTrue(dashboardReport.contains("acceptanceDecision=blocked"))
+        XCTAssertTrue(dashboardReport.contains("observedRunAccepted=false"))
+
+        let tempRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("mtpro-v0291-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tempRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempRoot) }
+
+        let artifact = tempRoot.appendingPathComponent("observed-run.json")
+        let content = """
+        {"runID":"v0.29.0-observed-shadow-run","venue":"binance","productType":"spot","environment":"production-shadow"}
+        """
+        let contentData = Data(content.utf8)
+        try contentData.write(to: artifact)
+
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        let now = try XCTUnwrap(formatter.date(from: "2026-07-10T14:30:00Z"))
+
+        func manifest(
+            relativePath: String = "artifacts/v0.29.0/observed-run.json",
+            byteCount: Int = contentData.count,
+            sha256: String = ReleaseV0291ShadowAcceptanceIntegrity.sha256Hex(data: contentData),
+            runID: String = "v0.29.0-observed-shadow-run",
+            sourceCommit: String = "2b070ea979adfec5fccf90fcd823512d99ec4c3c",
+            operatorApprovalID: String = "approval-v0290-observed-run",
+            operatorActor: String = "codex-release-operator",
+            observedAt: String = "2026-07-10T14:20:00Z",
+            expiresAt: String = "2026-07-10T15:20:00Z",
+            venue: String = "binance",
+            productType: String = "spot",
+            environment: String = "production-shadow",
+            evidenceOrigin: ReleaseV0291EvidenceOrigin = .observedRun,
+            provenanceKind: String = "observed-run-artifact",
+            redactionChecked: Bool = true,
+            immutableManifest: Bool = true
+        ) -> ReleaseV0291ArtifactManifest {
+            ReleaseV0291ArtifactManifest(
+                relativePath: relativePath,
+                byteCount: byteCount,
+                sha256: sha256,
+                runID: runID,
+                sourceCommit: sourceCommit,
+                operatorApprovalID: operatorApprovalID,
+                operatorActor: operatorActor,
+                observedAt: observedAt,
+                expiresAt: expiresAt,
+                venue: venue,
+                productType: productType,
+                environment: environment,
+                evidenceOrigin: evidenceOrigin,
+                provenanceKind: provenanceKind,
+                redactionChecked: redactionChecked,
+                immutableManifest: immutableManifest
+            )
+        }
+
+        let accepted = ReleaseV0291ShadowAcceptanceIntegrity.validateObservedArtifact(
+            fileURL: artifact,
+            manifest: manifest(),
+            now: now
+        )
+        XCTAssertTrue(accepted.passed)
+        XCTAssertEqual(accepted.acceptanceDecision, .accepted)
+        XCTAssertTrue(ReleaseV0291ShadowAcceptanceIntegrity.observedRunAccepted(accepted))
+        XCTAssertEqual(accepted.actualByteCount, contentData.count)
+        XCTAssertEqual(accepted.actualSHA256, ReleaseV0291ShadowAcceptanceIntegrity.sha256Hex(data: contentData))
+
+        let badHash = ReleaseV0291ShadowAcceptanceIntegrity.validateObservedArtifact(
+            fileURL: artifact,
+            manifest: manifest(sha256: String(repeating: "0", count: 64)),
+            now: now
+        )
+        XCTAssertFalse(badHash.passed)
+        XCTAssertEqual(badHash.acceptanceDecision, .failed)
+        XCTAssertTrue(badHash.failureReasons.contains("sha256 mismatch"))
+
+        let missing = ReleaseV0291ShadowAcceptanceIntegrity.validateObservedArtifact(
+            fileURL: tempRoot.appendingPathComponent("missing.json"),
+            manifest: manifest(),
+            now: now
+        )
+        XCTAssertFalse(missing.passed)
+        XCTAssertTrue(missing.failureReasons.contains("artifact file missing"))
+
+        let unsafePath = ReleaseV0291ShadowAcceptanceIntegrity.validateObservedArtifact(
+            fileURL: artifact,
+            manifest: manifest(relativePath: "../observed-run.json"),
+            now: now
+        )
+        XCTAssertFalse(unsafePath.passed)
+        XCTAssertTrue(unsafePath.failureReasons.contains("unsafe relative path"))
+
+        let stale = ReleaseV0291ShadowAcceptanceIntegrity.validateObservedArtifact(
+            fileURL: artifact,
+            manifest: manifest(expiresAt: "2026-07-10T14:25:00Z"),
+            now: now
+        )
+        XCTAssertFalse(stale.passed)
+        XCTAssertTrue(stale.failureReasons.contains("freshness window invalid"))
+
+        let synthetic = ReleaseV0291ShadowAcceptanceIntegrity.validateObservedArtifact(
+            fileURL: artifact,
+            manifest: manifest(evidenceOrigin: .deterministicFixture),
+            now: now
+        )
+        XCTAssertFalse(synthetic.passed)
+        XCTAssertTrue(synthetic.failureReasons.contains("observed-run provenance invalid"))
+
+        let expectedFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0291ShadowAcceptanceIntegrity.swift",
+            "Sources/ExecutionClient/FutureGate/ReleaseV0290ProductionDryRunShadowAcceptance.swift",
+            "Sources/Dashboard/Report/ReleaseV0290DashboardCLIShadowAcceptanceSurface.swift",
+            "Sources/MTPROCLI/main.swift",
+            "docs/audit/mtpro-release-v0.29.1-shadow-acceptance-integrity-publication-gate-repair-patch-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.29.1-shadow-acceptance-integrity-publication-gate-repair-patch-notes.md",
+            "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/roadmap.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md",
+            "checks/verify-v0.29.1.sh",
+            "checks/verify-v0.29.0.sh",
+            "checks/run.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in expectedFiles {
+            let source = try read(file)
+            XCTAssertTrue(
+                source.contains("TVM-RELEASE-V0291-SHADOW-ACCEPTANCE-INTEGRITY-PUBLICATION-GATE-REPAIR"),
+                "\(file) must contain v0.29.1 validation anchor"
+            )
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        XCTAssertTrue(cliSource.contains("ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0290ProductionDryRunShadowAcceptance.commandLineOutput"))
+
+        for file in [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/validation/latest-verification-summary.md",
+            "verification.md",
+            "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md",
+            "docs/release/mtpro-release-v0.29.1-shadow-acceptance-integrity-publication-gate-repair-patch-notes.md"
+        ] {
+            let source = try read(file)
+            XCTAssertTrue(source.contains("v0.29.0 GitHub Release is published"), "\(file) must record published facts")
+            XCTAssertTrue(source.contains("evidenceOrigin=deterministic-fixture"), "\(file) must classify fixture evidence")
+            XCTAssertTrue(source.contains("acceptanceDecision=blocked"), "\(file) must block fixture acceptance")
+            XCTAssertFalse(
+                source.contains("does not create the v0.29.0 tag or GitHub Release"),
+                "\(file) must not retain stale construction closeout wording"
+            )
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

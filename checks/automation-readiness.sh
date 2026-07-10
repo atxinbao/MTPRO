@@ -15326,6 +15326,7 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1439To14
 # GH-1456-VERIFY-V0290-STAGE-AUDIT-RELEASE-DOCS
 # V0290-010-STAGE-AUDIT-RELEASE-DOCS
 # V0290-010-NO-PRODUCTION-CUTOVER
+# TVM-RELEASE-V0291-SHADOW-ACCEPTANCE-INTEGRITY-PUBLICATION-GATE-REPAIR
 
 for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0290ProductionDryRunShadowAcceptance.swift" \
@@ -15385,5 +15386,33 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.29.0.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.29.0.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1447To1456ReleaseV0290ProductionDryRunShadowAcceptance"
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0291ShadowAcceptanceIntegrity.swift" \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0290ProductionDryRunShadowAcceptance.swift" \
+  "Sources/Dashboard/Report/ReleaseV0290DashboardCLIShadowAcceptanceSurface.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "docs/audit/mtpro-release-v0.29.1-shadow-acceptance-integrity-publication-gate-repair-patch-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.29.1-shadow-acceptance-integrity-publication-gate-repair-patch-notes.md" \
+  "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "verification.md" \
+  "checks/verify-v0.29.1.sh" \
+  "checks/verify-v0.29.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "TVM-RELEASE-V0291-SHADOW-ACCEPTANCE-INTEGRITY-PUBLICATION-GATE-REPAIR"
+done
+
+require_contains "checks/run.sh" "bash checks/verify-v0.29.1.sh"
+require_contains "checks/run.sh" "MTPRO_SKIP_FOCUSED_SWIFT_TEST=1 bash checks/verify-v0.29.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.29.1.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1459To1467ReleaseV0291ShadowAcceptanceIntegrityPatch"
 
 printf 'MTPRO automation readiness checks passed.\n'

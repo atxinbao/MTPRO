@@ -5,7 +5,11 @@ Executor: Codex
 
 ## Release Intent
 
-v0.29.0 accepts Binance Spot and Binance USD-M Futures production dry-run / shadow run evidence. The construction closeout PR itself does not create the v0.29.0 tag or GitHub Release; the separate publication gate creates them after merge and required checks pass.
+v0.29.0 accepts Binance Spot and Binance USD-M Futures production dry-run / shadow run evidence. v0.29.0 GitHub Release is published at https://github.com/atxinbao/MTPRO/releases/tag/v0.29.0; the tag points to `2b070ea979adfec5fccf90fcd823512d99ec4c3c`, was published at `2026-07-10T14:23:30Z`, and PR #1458 plus GitHub Actions run `29099609391` completed successfully. The acceptance evidence remains `evidenceOrigin=deterministic-fixture` with `acceptanceDecision=blocked`; it is not observed-run acceptance.
+
+## v0.29.1 Publication Fact Sync
+
+`TVM-RELEASE-V0291-SHADOW-ACCEPTANCE-INTEGRITY-PUBLICATION-GATE-REPAIR` records that v0.29.0 publication is complete while preserving v0.29.0 as contract + deterministic fixture evidence. Deterministic fixture evidence is classified as `evidenceOrigin=deterministic-fixture`, `acceptanceDecision=blocked`, `observedRunAccepted=false`. Observed-run acceptance requires a validated artifact manifest with file existence, regular file proof, safe relative path, byte count, SHA-256, run ID, source commit, operator approval, actor, freshness, provenance, redaction and immutable manifest checks.
 
 ## Anchor Inventory
 
