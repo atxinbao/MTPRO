@@ -15290,4 +15290,100 @@ require_contains "checks/run.sh" "bash checks/verify-v0.28.1.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.28.1.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1439To1446ReleaseV0281ReadinessSemanticsPatch"
 
+# Release v0.29.0 full anchor inventory:
+# GH-1447-VERIFY-V0290-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE-CONTRACT
+# TVM-RELEASE-V0290-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE
+# V0290-001-BINANCE-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE
+# V0290-001-SHADOW-ACCEPTANCE-NOT-PRODUCTION-ENABLEMENT
+# V0290-001-NO-DEFAULT-TRADING
+# V0290-001-NO-SUBMIT
+# GH-1448-VERIFY-V0290-PRODUCTION-CONFIGURATION-REHEARSAL
+# V0290-002-PRODUCTION-SHADOW-CONFIGURATION
+# V0290-002-NO-SECRET-CONFIGURATION
+# V0290-002-MISMATCH-FAILS-CLOSED
+# GH-1449-VERIFY-V0290-CREDENTIAL-APPROVAL-REDACTION
+# V0290-003-CREDENTIAL-REFERENCE-ONLY
+# V0290-003-OPERATOR-APPROVAL-REQUIRED
+# V0290-003-SECRET-VALUE-NOT-PERSISTED
+# GH-1450-VERIFY-V0290-ENDPOINT-NOSUBMIT-PREFLIGHT
+# V0290-004-ENDPOINT-ALLOWLIST-READONLY
+# V0290-004-MUTATION-ENDPOINTS-BLOCKED
+# GH-1451-VERIFY-V0290-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATES
+# V0290-005-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATES
+# V0290-005-STALE-MISSING-INPUTS-BLOCKED
+# GH-1452-VERIFY-V0290-OMS-RECONCILIATION-DRY-RUN-BUNDLE
+# V0290-006-OMS-RECONCILIATION-SHADOW-BUNDLE
+# V0290-006-NO-BROKER-FILL-INTERPRETATION
+# GH-1453-VERIFY-V0290-INCIDENT-ROLLBACK-KILL-NOTRADE-DRILL
+# V0290-007-INCIDENT-ROLLBACK-KILL-NOTRADE-DRILL
+# V0290-007-NO-BROKER-SIDE-EFFECT
+# GH-1454-VERIFY-V0290-DASHBOARD-CLI-SHADOW-ACCEPTANCE-SURFACE
+# V0290-008-DASHBOARD-CLI-READONLY-SHADOW-SURFACE
+# V0290-008-NO-TRADING-CONTROLS
+# GH-1455-VERIFY-V0290-AGGREGATE-VALIDATION
+# V0290-009-AGGREGATE-VALIDATION
+# V0290-009-PREPUBLICATION-LINUX-MACOS-MATRIX
+# GH-1456-VERIFY-V0290-STAGE-AUDIT-RELEASE-DOCS
+# V0290-010-STAGE-AUDIT-RELEASE-DOCS
+# V0290-010-NO-PRODUCTION-CUTOVER
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0290ProductionDryRunShadowAcceptance.swift" \
+  "Sources/Dashboard/Report/ReleaseV0290DashboardCLIShadowAcceptanceSurface.swift" \
+  "docs/audit/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "verification.md" \
+  "checks/verify-v0.29.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1447-VERIFY-V0290-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE-CONTRACT"
+  require_contains "$file" "TVM-RELEASE-V0290-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE"
+  require_contains "$file" "V0290-001-BINANCE-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE"
+  require_contains "$file" "V0290-001-SHADOW-ACCEPTANCE-NOT-PRODUCTION-ENABLEMENT"
+  require_contains "$file" "V0290-001-NO-DEFAULT-TRADING"
+  require_contains "$file" "V0290-001-NO-SUBMIT"
+  require_contains "$file" "GH-1448-VERIFY-V0290-PRODUCTION-CONFIGURATION-REHEARSAL"
+  require_contains "$file" "V0290-002-PRODUCTION-SHADOW-CONFIGURATION"
+  require_contains "$file" "V0290-002-NO-SECRET-CONFIGURATION"
+  require_contains "$file" "V0290-002-MISMATCH-FAILS-CLOSED"
+  require_contains "$file" "GH-1449-VERIFY-V0290-CREDENTIAL-APPROVAL-REDACTION"
+  require_contains "$file" "V0290-003-CREDENTIAL-REFERENCE-ONLY"
+  require_contains "$file" "V0290-003-OPERATOR-APPROVAL-REQUIRED"
+  require_contains "$file" "V0290-003-SECRET-VALUE-NOT-PERSISTED"
+  require_contains "$file" "GH-1450-VERIFY-V0290-ENDPOINT-NOSUBMIT-PREFLIGHT"
+  require_contains "$file" "V0290-004-ENDPOINT-ALLOWLIST-READONLY"
+  require_contains "$file" "V0290-004-MUTATION-ENDPOINTS-BLOCKED"
+  require_contains "$file" "GH-1451-VERIFY-V0290-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATES"
+  require_contains "$file" "V0290-005-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATES"
+  require_contains "$file" "V0290-005-STALE-MISSING-INPUTS-BLOCKED"
+  require_contains "$file" "GH-1452-VERIFY-V0290-OMS-RECONCILIATION-DRY-RUN-BUNDLE"
+  require_contains "$file" "V0290-006-OMS-RECONCILIATION-SHADOW-BUNDLE"
+  require_contains "$file" "V0290-006-NO-BROKER-FILL-INTERPRETATION"
+  require_contains "$file" "GH-1453-VERIFY-V0290-INCIDENT-ROLLBACK-KILL-NOTRADE-DRILL"
+  require_contains "$file" "V0290-007-INCIDENT-ROLLBACK-KILL-NOTRADE-DRILL"
+  require_contains "$file" "V0290-007-NO-BROKER-SIDE-EFFECT"
+  require_contains "$file" "GH-1454-VERIFY-V0290-DASHBOARD-CLI-SHADOW-ACCEPTANCE-SURFACE"
+  require_contains "$file" "V0290-008-DASHBOARD-CLI-READONLY-SHADOW-SURFACE"
+  require_contains "$file" "V0290-008-NO-TRADING-CONTROLS"
+  require_contains "$file" "GH-1455-VERIFY-V0290-AGGREGATE-VALIDATION"
+  require_contains "$file" "V0290-009-AGGREGATE-VALIDATION"
+  require_contains "$file" "V0290-009-PREPUBLICATION-LINUX-MACOS-MATRIX"
+  require_contains "$file" "GH-1456-VERIFY-V0290-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "V0290-010-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "V0290-010-NO-PRODUCTION-CUTOVER"
+done
+
+require_contains "checks/run.sh" "bash checks/verify-v0.29.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.29.0.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1447To1456ReleaseV0290ProductionDryRunShadowAcceptance"
+
 printf 'MTPRO automation readiness checks passed.\n'

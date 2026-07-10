@@ -70339,6 +70339,366 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1447To1456ReleaseV0290ProductionDryRunShadowAcceptance() throws {
+        // GH-1447-VERIFY-V0290-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE-CONTRACT
+        // TVM-RELEASE-V0290-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE
+        // V0290-001-BINANCE-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE
+        // V0290-001-SHADOW-ACCEPTANCE-NOT-PRODUCTION-ENABLEMENT
+        // V0290-001-NO-DEFAULT-TRADING
+        // V0290-001-NO-SUBMIT
+        // GH-1448-VERIFY-V0290-PRODUCTION-CONFIGURATION-REHEARSAL
+        // V0290-002-PRODUCTION-SHADOW-CONFIGURATION
+        // V0290-002-NO-SECRET-CONFIGURATION
+        // V0290-002-MISMATCH-FAILS-CLOSED
+        // GH-1449-VERIFY-V0290-CREDENTIAL-APPROVAL-REDACTION
+        // V0290-003-CREDENTIAL-REFERENCE-ONLY
+        // V0290-003-OPERATOR-APPROVAL-REQUIRED
+        // V0290-003-SECRET-VALUE-NOT-PERSISTED
+        // GH-1450-VERIFY-V0290-ENDPOINT-NOSUBMIT-PREFLIGHT
+        // V0290-004-ENDPOINT-ALLOWLIST-READONLY
+        // V0290-004-MUTATION-ENDPOINTS-BLOCKED
+        // GH-1451-VERIFY-V0290-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATES
+        // V0290-005-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATES
+        // V0290-005-STALE-MISSING-INPUTS-BLOCKED
+        // GH-1452-VERIFY-V0290-OMS-RECONCILIATION-DRY-RUN-BUNDLE
+        // V0290-006-OMS-RECONCILIATION-SHADOW-BUNDLE
+        // V0290-006-NO-BROKER-FILL-INTERPRETATION
+        // GH-1453-VERIFY-V0290-INCIDENT-ROLLBACK-KILL-NOTRADE-DRILL
+        // V0290-007-INCIDENT-ROLLBACK-KILL-NOTRADE-DRILL
+        // V0290-007-NO-BROKER-SIDE-EFFECT
+        // GH-1454-VERIFY-V0290-DASHBOARD-CLI-SHADOW-ACCEPTANCE-SURFACE
+        // V0290-008-DASHBOARD-CLI-READONLY-SHADOW-SURFACE
+        // V0290-008-NO-TRADING-CONTROLS
+        // GH-1455-VERIFY-V0290-AGGREGATE-VALIDATION
+        // V0290-009-AGGREGATE-VALIDATION
+        // V0290-009-PREPUBLICATION-LINUX-MACOS-MATRIX
+        // GH-1456-VERIFY-V0290-STAGE-AUDIT-RELEASE-DOCS
+        // V0290-010-STAGE-AUDIT-RELEASE-DOCS
+        // V0290-010-NO-PRODUCTION-CUTOVER
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let evidence = ReleaseV0290ProductionDryRunShadowAcceptance.deterministicFixture
+
+        func copy(
+            release: String = evidence.release,
+            venue: String = evidence.venue,
+            productTypes: [String] = evidence.productTypes,
+            environmentScope: String = evidence.environmentScope,
+            productionSubmitCancelReplaceEnabled: Bool = evidence.productionSubmitCancelReplaceEnabled,
+            noSubmitTransportMode: Bool = evidence.noSubmitTransportMode,
+            evidenceItems: [ReleaseV0290ShadowAcceptanceEvidence] = evidence.evidence
+        ) -> ReleaseV0290ProductionDryRunShadowAcceptance {
+            ReleaseV0290ProductionDryRunShadowAcceptance(
+                release: release,
+                prerequisitePatchRelease: evidence.prerequisitePatchRelease,
+                venue: venue,
+                productTypes: productTypes,
+                environmentScope: environmentScope,
+                runID: evidence.runID,
+                acceptanceMode: evidence.acceptanceMode,
+                productionTradingEnabledByDefault: evidence.productionTradingEnabledByDefault,
+                productionCutoverAuthorized: evidence.productionCutoverAuthorized,
+                productionSecretAutoReadEnabled: evidence.productionSecretAutoReadEnabled,
+                automaticBrokerConnectionEnabled: evidence.automaticBrokerConnectionEnabled,
+                productionSubmitCancelReplaceEnabled: productionSubmitCancelReplaceEnabled,
+                futuresProductionExecutionEnabled: evidence.futuresProductionExecutionEnabled,
+                leverageMarginPositionMutationEnabled: evidence.leverageMarginPositionMutationEnabled,
+                okxActiveRuntimeEnabled: evidence.okxActiveRuntimeEnabled,
+                dashboardTradingControlsEnabled: evidence.dashboardTradingControlsEnabled,
+                orderFormEnabled: evidence.orderFormEnabled,
+                liveCommandEnabled: evidence.liveCommandEnabled,
+                humanApprovalRequired: evidence.humanApprovalRequired,
+                redactionRequired: evidence.redactionRequired,
+                endpointAllowlistRequired: evidence.endpointAllowlistRequired,
+                noSubmitTransportMode: noSubmitTransportMode,
+                shadowOnly: evidence.shadowOnly,
+                artifactBundleChecksum: evidence.artifactBundleChecksum,
+                sbomOrProvenanceEvidence: evidence.sbomOrProvenanceEvidence,
+                linuxMatrixRequired: evidence.linuxMatrixRequired,
+                macOSMatrixRequired: evidence.macOSMatrixRequired,
+                evidence: evidenceItems
+            )
+        }
+
+        XCTAssertEqual(evidence.release, "v0.29.0")
+        XCTAssertEqual(evidence.prerequisitePatchRelease, "v0.28.1")
+        XCTAssertEqual(evidence.venue, "binance")
+        XCTAssertEqual(evidence.productTypes, ["spot", "usdsPerpetual"])
+        XCTAssertEqual(evidence.environmentScope, "production-dry-run-shadow-only")
+        XCTAssertEqual(evidence.acceptanceMode, "dry-run-shadow-acceptance")
+        XCTAssertTrue(evidence.evidenceComplete)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertFalse(evidence.productionTradingEnabledByDefault)
+        XCTAssertFalse(evidence.productionCutoverAuthorized)
+        XCTAssertFalse(evidence.productionSecretAutoReadEnabled)
+        XCTAssertFalse(evidence.automaticBrokerConnectionEnabled)
+        XCTAssertFalse(evidence.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(evidence.futuresProductionExecutionEnabled)
+        XCTAssertFalse(evidence.leverageMarginPositionMutationEnabled)
+        XCTAssertFalse(evidence.okxActiveRuntimeEnabled)
+        XCTAssertFalse(evidence.dashboardTradingControlsEnabled)
+        XCTAssertFalse(evidence.orderFormEnabled)
+        XCTAssertFalse(evidence.liveCommandEnabled)
+        XCTAssertTrue(evidence.humanApprovalRequired)
+        XCTAssertTrue(evidence.redactionRequired)
+        XCTAssertTrue(evidence.endpointAllowlistRequired)
+        XCTAssertTrue(evidence.noSubmitTransportMode)
+        XCTAssertTrue(evidence.shadowOnly)
+        XCTAssertTrue(evidence.linuxMatrixRequired)
+        XCTAssertTrue(evidence.macOSMatrixRequired)
+        XCTAssertEqual(evidence.evidence.count, ReleaseV0290EvidenceKind.allCases.count * evidence.productTypes.count)
+
+        XCTAssertFalse(copy(evidenceItems: []).evidenceComplete)
+        XCTAssertFalse(copy(evidenceItems: []).boundaryHeld)
+        XCTAssertFalse(copy(evidenceItems: Array(evidence.evidence.dropLast())).evidenceComplete)
+        XCTAssertFalse(copy(evidenceItems: Array(evidence.evidence.dropLast())).boundaryHeld)
+
+        var duplicateEvidence = Array(evidence.evidence.dropLast())
+        duplicateEvidence.append(evidence.evidence[0])
+        XCTAssertFalse(copy(evidenceItems: duplicateEvidence).evidenceComplete)
+        XCTAssertFalse(copy(evidenceItems: duplicateEvidence).boundaryHeld)
+
+        var wrongVenueEvidence = evidence.evidence
+        wrongVenueEvidence[0] = ReleaseV0290ShadowAcceptanceEvidence(
+            kind: wrongVenueEvidence[0].kind,
+            release: wrongVenueEvidence[0].release,
+            venue: "okx",
+            productType: wrongVenueEvidence[0].productType,
+            environmentScope: wrongVenueEvidence[0].environmentScope,
+            state: wrongVenueEvidence[0].state,
+            source: wrongVenueEvidence[0].source,
+            artifactPath: wrongVenueEvidence[0].artifactPath,
+            checksum: wrongVenueEvidence[0].checksum,
+            reason: wrongVenueEvidence[0].reason,
+            required: wrongVenueEvidence[0].required,
+            failClosed: wrongVenueEvidence[0].failClosed,
+            noSubmit: wrongVenueEvidence[0].noSubmit
+        )
+        XCTAssertFalse(copy(evidenceItems: wrongVenueEvidence).evidenceComplete)
+        XCTAssertFalse(copy(evidenceItems: wrongVenueEvidence).boundaryHeld)
+
+        var wrongProductEvidence = evidence.evidence
+        wrongProductEvidence[0] = ReleaseV0290ShadowAcceptanceEvidence(
+            kind: wrongProductEvidence[0].kind,
+            release: wrongProductEvidence[0].release,
+            venue: wrongProductEvidence[0].venue,
+            productType: "okxSwap",
+            environmentScope: wrongProductEvidence[0].environmentScope,
+            state: wrongProductEvidence[0].state,
+            source: wrongProductEvidence[0].source,
+            artifactPath: wrongProductEvidence[0].artifactPath,
+            checksum: wrongProductEvidence[0].checksum,
+            reason: wrongProductEvidence[0].reason,
+            required: wrongProductEvidence[0].required,
+            failClosed: wrongProductEvidence[0].failClosed,
+            noSubmit: wrongProductEvidence[0].noSubmit
+        )
+        XCTAssertFalse(copy(evidenceItems: wrongProductEvidence).evidenceComplete)
+        XCTAssertFalse(copy(evidenceItems: wrongProductEvidence).boundaryHeld)
+
+        var failedEvidence = evidence.evidence
+        failedEvidence[0] = ReleaseV0290ShadowAcceptanceEvidence(
+            kind: failedEvidence[0].kind,
+            release: failedEvidence[0].release,
+            venue: failedEvidence[0].venue,
+            productType: failedEvidence[0].productType,
+            environmentScope: failedEvidence[0].environmentScope,
+            state: .failed,
+            source: failedEvidence[0].source,
+            artifactPath: failedEvidence[0].artifactPath,
+            checksum: failedEvidence[0].checksum,
+            reason: failedEvidence[0].reason,
+            required: failedEvidence[0].required,
+            failClosed: failedEvidence[0].failClosed,
+            noSubmit: failedEvidence[0].noSubmit
+        )
+        XCTAssertFalse(copy(evidenceItems: failedEvidence).evidenceComplete)
+        XCTAssertFalse(copy(evidenceItems: failedEvidence).boundaryHeld)
+
+        var missingChecksumEvidence = evidence.evidence
+        missingChecksumEvidence[0] = ReleaseV0290ShadowAcceptanceEvidence(
+            kind: missingChecksumEvidence[0].kind,
+            release: missingChecksumEvidence[0].release,
+            venue: missingChecksumEvidence[0].venue,
+            productType: missingChecksumEvidence[0].productType,
+            environmentScope: missingChecksumEvidence[0].environmentScope,
+            state: missingChecksumEvidence[0].state,
+            source: missingChecksumEvidence[0].source,
+            artifactPath: missingChecksumEvidence[0].artifactPath,
+            checksum: "",
+            reason: missingChecksumEvidence[0].reason,
+            required: missingChecksumEvidence[0].required,
+            failClosed: missingChecksumEvidence[0].failClosed,
+            noSubmit: missingChecksumEvidence[0].noSubmit
+        )
+        XCTAssertFalse(copy(evidenceItems: missingChecksumEvidence).evidenceComplete)
+        XCTAssertFalse(copy(evidenceItems: missingChecksumEvidence).boundaryHeld)
+
+        var submitEnabledEvidence = evidence.evidence
+        submitEnabledEvidence[0] = ReleaseV0290ShadowAcceptanceEvidence(
+            kind: submitEnabledEvidence[0].kind,
+            release: submitEnabledEvidence[0].release,
+            venue: submitEnabledEvidence[0].venue,
+            productType: submitEnabledEvidence[0].productType,
+            environmentScope: submitEnabledEvidence[0].environmentScope,
+            state: submitEnabledEvidence[0].state,
+            source: submitEnabledEvidence[0].source,
+            artifactPath: submitEnabledEvidence[0].artifactPath,
+            checksum: submitEnabledEvidence[0].checksum,
+            reason: submitEnabledEvidence[0].reason,
+            required: submitEnabledEvidence[0].required,
+            failClosed: submitEnabledEvidence[0].failClosed,
+            noSubmit: false
+        )
+        XCTAssertFalse(copy(evidenceItems: submitEnabledEvidence).evidenceComplete)
+        XCTAssertFalse(copy(evidenceItems: submitEnabledEvidence).boundaryHeld)
+        XCTAssertFalse(copy(productionSubmitCancelReplaceEnabled: true).boundaryHeld)
+        XCTAssertFalse(copy(noSubmitTransportMode: false).boundaryHeld)
+
+        let roundTrip = try JSONDecoder().decode(
+            ReleaseV0290ProductionDryRunShadowAcceptance.self,
+            from: JSONEncoder().encode(evidence)
+        )
+        XCTAssertEqual(roundTrip, evidence)
+        XCTAssertTrue(roundTrip.boundaryHeld)
+
+        let statusOutput = try ReleaseV0290ProductionDryRunShadowAcceptance.commandLineOutput(
+            arguments: [ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand, "status"]
+        )
+        for expected in [
+            "release=v0.29.0",
+            "prerequisitePatchRelease=v0.28.1",
+            "productTypes=spot,usdsPerpetual",
+            "environmentScope=production-dry-run-shadow-only",
+            "acceptanceMode=dry-run-shadow-acceptance",
+            "evidenceComplete=true",
+            "boundaryHeld=true"
+        ] {
+            XCTAssertTrue(statusOutput.contains(expected), "status output must contain \(expected)")
+        }
+
+        let evidenceOutput = try ReleaseV0290ProductionDryRunShadowAcceptance.commandLineOutput(
+            arguments: [ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand, "evidence"]
+        )
+        for expected in [
+            "state:passed",
+            "state:blocked",
+            "source:v0.29.0-production-dry-run-shadow-acceptance",
+            "noSubmit:true",
+            "failClosed:true",
+            "productType:spot",
+            "productType:usdsPerpetual"
+        ] {
+            XCTAssertTrue(evidenceOutput.contains(expected), "evidence output must contain \(expected)")
+        }
+
+        let boundaryOutput = try ReleaseV0290ProductionDryRunShadowAcceptance.commandLineOutput(
+            arguments: [ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand, "boundaries"]
+        )
+        for expected in [
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "productionSecretAutoReadEnabled=false",
+            "automaticBrokerConnectionEnabled=false",
+            "productionSubmitCancelReplaceEnabled=false",
+            "futuresProductionExecutionEnabled=false",
+            "leverageMarginPositionMutationEnabled=false",
+            "okxActiveRuntimeEnabled=false",
+            "dashboardTradingControlsEnabled=false",
+            "orderFormEnabled=false",
+            "liveCommandEnabled=false",
+            "noSubmitTransportMode=true",
+            "shadowOnly=true"
+        ] {
+            XCTAssertTrue(boundaryOutput.contains(expected), "boundary output must contain \(expected)")
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV0290ProductionDryRunShadowAcceptance.commandLineOutput(arguments: ["wrong", "status"])
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0290ProductionDryRunShadowAcceptance.commandLineOutput(
+                arguments: [ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand, "submit"]
+            )
+        )
+
+        let dashboardSurface = ReleaseV0290DashboardCLIShadowAcceptanceSurface()
+        let dashboardReport = dashboardSurface.reportLines.joined(separator: "\n")
+        XCTAssertTrue(dashboardSurface.boundaryHeld)
+        XCTAssertTrue(dashboardReport.contains("dashboardBoundary=read-only"))
+        XCTAssertTrue(dashboardReport.contains("cliBoundary=inspect-status-verify-export-only"))
+        XCTAssertTrue(dashboardReport.contains("shadowOnly=true"))
+        XCTAssertTrue(dashboardReport.contains("noSubmit=true"))
+        XCTAssertTrue(dashboardReport.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(dashboardReport.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("orderFormVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("liveCommandVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("rawSecretVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("rawBrokerPayloadVisible=false"))
+
+        let expectedFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0290ProductionDryRunShadowAcceptance.swift",
+            "Sources/Dashboard/Report/ReleaseV0290DashboardCLIShadowAcceptanceSurface.swift",
+            "docs/audit/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/roadmap.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md",
+            "checks/verify-v0.29.0.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in expectedFiles {
+            let source = try read(file)
+            for anchor in ReleaseV0290ProductionDryRunShadowAcceptance.requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        for file in [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/validation/latest-verification-summary.md",
+            "verification.md",
+            "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md"
+        ] {
+            let source = try read(file)
+            for expected in [
+                "productionTradingEnabledByDefault=false",
+                "productionCutoverAuthorized=false",
+                "productionSecretAutoReadEnabled=false",
+                "automaticBrokerConnectionEnabled=false",
+                "productionSubmitCancelReplaceEnabled=false",
+                "noSubmitTransportMode=true",
+                "shadowOnly=true"
+            ] {
+                XCTAssertTrue(source.contains(expected), "\(file) must contain \(expected)")
+            }
+            for forbidden in [
+                "v0.29.0 production cutover authorized",
+                "production trading enabled by default",
+                "automatic broker connection enabled",
+                "OKX active runtime enabled",
+                "Dashboard trading controls enabled"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(file) must not contain unsafe wording: \(forbidden)")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
