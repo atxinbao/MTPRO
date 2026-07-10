@@ -15238,4 +15238,56 @@ require_contains "checks/run.sh" "bash checks/verify-v0.28.0.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.28.0.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1429To1436ReleaseV0280ProductionCutoverReadinessGate"
 
+# Release v0.28.1 full anchor inventory:
+# GH-1439-VERIFY-V0281-V0280-RELEASE-FACT-SYNC
+# GH-1440-VERIFY-V0281-BINANCE-ONLY-CURRENT-BASELINE
+# GH-1441-VERIFY-V0281-PUBLISHED-V0280-STALE-WORDING-GUARD
+# GH-1442-VERIFY-V0281-READINESS-SEMANTIC-STATES
+# V0281-004-EVALUATION-MODE-CONTRACT-ONLY
+# V0281-004-READINESS-STATUS-NOT-EVALUATED
+# V0281-004-CUTOVER-DECISION-BLOCKED
+# GH-1443-VERIFY-V0281-READINESS-GATE-FAIL-CLOSED-EVIDENCE
+# V0281-005-REJECT-INCOMPLETE-DUPLICATE-MALFORMED-GATES
+# GH-1444-VERIFY-V0281-PREPUBLICATION-FULL-MATRIX-EVIDENCE
+# GH-1445-VERIFY-V0281-RELEASE-VERIFICATION-DEDUPE
+# GH-1446-VERIFY-V0281-PATCH-AUDIT-RELEASE-NOTES
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0280ProductionCutoverReadinessGate.swift" \
+  "Sources/Dashboard/Report/ReleaseV0280DashboardCLIProductionReadinessSurface.swift" \
+  "docs/audit/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-notes.md" \
+  "docs/audit/mtpro-release-v0.28.1-v028-publication-fact-readiness-semantics-validation-patch-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.28.1-v028-publication-fact-readiness-semantics-validation-patch-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "verification.md" \
+  "checks/verify-v0.28.1.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1439-VERIFY-V0281-V0280-RELEASE-FACT-SYNC"
+  require_contains "$file" "GH-1440-VERIFY-V0281-BINANCE-ONLY-CURRENT-BASELINE"
+  require_contains "$file" "GH-1441-VERIFY-V0281-PUBLISHED-V0280-STALE-WORDING-GUARD"
+  require_contains "$file" "GH-1442-VERIFY-V0281-READINESS-SEMANTIC-STATES"
+  require_contains "$file" "V0281-004-EVALUATION-MODE-CONTRACT-ONLY"
+  require_contains "$file" "V0281-004-READINESS-STATUS-NOT-EVALUATED"
+  require_contains "$file" "V0281-004-CUTOVER-DECISION-BLOCKED"
+  require_contains "$file" "GH-1443-VERIFY-V0281-READINESS-GATE-FAIL-CLOSED-EVIDENCE"
+  require_contains "$file" "V0281-005-REJECT-INCOMPLETE-DUPLICATE-MALFORMED-GATES"
+  require_contains "$file" "GH-1444-VERIFY-V0281-PREPUBLICATION-FULL-MATRIX-EVIDENCE"
+  require_contains "$file" "GH-1445-VERIFY-V0281-RELEASE-VERIFICATION-DEDUPE"
+  require_contains "$file" "GH-1446-VERIFY-V0281-PATCH-AUDIT-RELEASE-NOTES"
+done
+
+require_contains "checks/run.sh" "bash checks/verify-v0.28.1.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.28.1.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1439To1446ReleaseV0281ReadinessSemanticsPatch"
+
 printf 'MTPRO automation readiness checks passed.\n'

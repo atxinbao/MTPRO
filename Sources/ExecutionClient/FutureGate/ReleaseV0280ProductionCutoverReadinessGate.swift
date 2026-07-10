@@ -11,23 +11,60 @@ public enum ReleaseV0280ReadinessGateKind: String, Codable, Equatable, Sendable,
     case aggregateValidation = "aggregate-validation"
 }
 
+public enum ReleaseV0280ReadinessEvaluationMode: String, Codable, Equatable, Sendable {
+    case contractOnly = "contract-only"
+}
+
+public enum ReleaseV0280ReadinessStatus: String, Codable, Equatable, Sendable {
+    case notEvaluated = "not-evaluated"
+}
+
+public enum ReleaseV0280CutoverDecision: String, Codable, Equatable, Sendable {
+    case blocked
+}
+
+public enum ReleaseV0280ReadinessGateState: String, Codable, Equatable, Sendable {
+    case present
+}
+
 public struct ReleaseV0280ReadinessGateEvidence: Codable, Equatable, Sendable {
     public let kind: ReleaseV0280ReadinessGateKind
+    public let release: String
+    public let environmentScope: String
     public let anchor: String
     public let description: String
+    public let state: ReleaseV0280ReadinessGateState
+    public let source: String
+    public let freshness: String
+    public let checksum: String
+    public let reason: String
     public let required: Bool
     public let failClosed: Bool
 
     public init(
         kind: ReleaseV0280ReadinessGateKind,
+        release: String = "v0.28.0",
+        environmentScope: String = "production-readiness-only",
         anchor: String,
         description: String,
+        state: ReleaseV0280ReadinessGateState = .present,
+        source: String = "v0.28.1-readiness-semantics-validation",
+        freshness: String = "deterministic-current",
+        checksum: String = "sha256:v0.28.1-readiness-gate-evidence",
+        reason: String = "required gate evidence is present and fail-closed",
         required: Bool,
         failClosed: Bool
     ) {
         self.kind = kind
+        self.release = release
+        self.environmentScope = environmentScope
         self.anchor = anchor
         self.description = description
+        self.state = state
+        self.source = source
+        self.freshness = freshness
+        self.checksum = checksum
+        self.reason = reason
         self.required = required
         self.failClosed = failClosed
     }
@@ -69,6 +106,22 @@ public struct ReleaseV0280ProductionCutoverReadinessGate: Codable, Equatable, Se
     // V0280-008-AGGREGATE-VALIDATION
     // V0280-008-STAGE-AUDIT-RELEASE-DOCS
     // V0280-008-NO-PRODUCTION-CUTOVER
+    // GH-1439-VERIFY-V0281-V0280-RELEASE-FACT-SYNC
+    // GH-1440-VERIFY-V0281-BINANCE-ONLY-CURRENT-BASELINE
+    // GH-1441-VERIFY-V0281-PUBLISHED-V0280-STALE-WORDING-GUARD
+    // GH-1442-VERIFY-V0281-READINESS-SEMANTIC-STATES
+    // V0281-004-EVALUATION-MODE-CONTRACT-ONLY
+    // V0281-004-READINESS-STATUS-NOT-EVALUATED
+    // V0281-004-CUTOVER-DECISION-BLOCKED
+    // GH-1443-VERIFY-V0281-READINESS-GATE-FAIL-CLOSED-EVIDENCE
+    // V0281-005-REJECT-INCOMPLETE-DUPLICATE-MALFORMED-GATES
+    // GH-1444-VERIFY-V0281-PREPUBLICATION-FULL-MATRIX-EVIDENCE
+    // GH-1445-VERIFY-V0281-RELEASE-VERIFICATION-DEDUPE
+    // GH-1446-VERIFY-V0281-PATCH-AUDIT-RELEASE-NOTES
+    // evaluationMode=contract-only
+    // readinessStatus=not-evaluated
+    // cutoverDecision=blocked
+    // readinessGateEvidenceComplete=true
 
     public static let cliCommand = "production-cutover-readiness-gate"
     public static let supportedActions = [
@@ -123,6 +176,9 @@ public struct ReleaseV0280ProductionCutoverReadinessGate: Codable, Equatable, Se
     public let venue: String
     public let productTypes: [String]
     public let environmentScope: String
+    public let evaluationMode: ReleaseV0280ReadinessEvaluationMode
+    public let readinessStatus: ReleaseV0280ReadinessStatus
+    public let cutoverDecision: ReleaseV0280CutoverDecision
     public let productionTradingEnabledByDefault: Bool
     public let productionCutoverAuthorized: Bool
     public let productionSecretReadEnabledByDefault: Bool
@@ -145,12 +201,75 @@ public struct ReleaseV0280ProductionCutoverReadinessGate: Codable, Equatable, Se
     public let endpointAllowlistRequired: Bool
     public let gates: [ReleaseV0280ReadinessGateEvidence]
 
+    public init(
+        release: String,
+        venue: String,
+        productTypes: [String],
+        environmentScope: String,
+        evaluationMode: ReleaseV0280ReadinessEvaluationMode,
+        readinessStatus: ReleaseV0280ReadinessStatus,
+        cutoverDecision: ReleaseV0280CutoverDecision,
+        productionTradingEnabledByDefault: Bool,
+        productionCutoverAuthorized: Bool,
+        productionSecretReadEnabledByDefault: Bool,
+        productionEndpointConnectionEnabledByDefault: Bool,
+        brokerEndpointConnectionEnabledByDefault: Bool,
+        productionOrderSubmitCancelReplaceEnabled: Bool,
+        futuresProductionOrderExecutionEnabled: Bool,
+        okxActiveRuntimeEnabled: Bool,
+        dashboardTradingControlsEnabled: Bool,
+        orderFormEnabled: Bool,
+        liveCommandEnabled: Bool,
+        manualApprovalRequired: Bool,
+        operatorConfirmationRequired: Bool,
+        capitalRiskGateRequired: Bool,
+        notionalExposureLeverageGateRequired: Bool,
+        killSwitchRequired: Bool,
+        noTradeStateRequired: Bool,
+        rollbackIncidentStopRequired: Bool,
+        redactionRequired: Bool,
+        endpointAllowlistRequired: Bool,
+        gates: [ReleaseV0280ReadinessGateEvidence]
+    ) {
+        self.release = release
+        self.venue = venue
+        self.productTypes = productTypes
+        self.environmentScope = environmentScope
+        self.evaluationMode = evaluationMode
+        self.readinessStatus = readinessStatus
+        self.cutoverDecision = cutoverDecision
+        self.productionTradingEnabledByDefault = productionTradingEnabledByDefault
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.productionSecretReadEnabledByDefault = productionSecretReadEnabledByDefault
+        self.productionEndpointConnectionEnabledByDefault = productionEndpointConnectionEnabledByDefault
+        self.brokerEndpointConnectionEnabledByDefault = brokerEndpointConnectionEnabledByDefault
+        self.productionOrderSubmitCancelReplaceEnabled = productionOrderSubmitCancelReplaceEnabled
+        self.futuresProductionOrderExecutionEnabled = futuresProductionOrderExecutionEnabled
+        self.okxActiveRuntimeEnabled = okxActiveRuntimeEnabled
+        self.dashboardTradingControlsEnabled = dashboardTradingControlsEnabled
+        self.orderFormEnabled = orderFormEnabled
+        self.liveCommandEnabled = liveCommandEnabled
+        self.manualApprovalRequired = manualApprovalRequired
+        self.operatorConfirmationRequired = operatorConfirmationRequired
+        self.capitalRiskGateRequired = capitalRiskGateRequired
+        self.notionalExposureLeverageGateRequired = notionalExposureLeverageGateRequired
+        self.killSwitchRequired = killSwitchRequired
+        self.noTradeStateRequired = noTradeStateRequired
+        self.rollbackIncidentStopRequired = rollbackIncidentStopRequired
+        self.redactionRequired = redactionRequired
+        self.endpointAllowlistRequired = endpointAllowlistRequired
+        self.gates = gates
+    }
+
     public static var deterministicFixture: Self {
         Self(
             release: "v0.28.0",
             venue: "binance",
             productTypes: ["spot", "usdsPerpetual"],
             environmentScope: "production-readiness-only",
+            evaluationMode: .contractOnly,
+            readinessStatus: .notEvaluated,
+            cutoverDecision: .blocked,
             productionTradingEnabledByDefault: false,
             productionCutoverAuthorized: false,
             productionSecretReadEnabledByDefault: false,
@@ -232,9 +351,47 @@ public struct ReleaseV0280ProductionCutoverReadinessGate: Codable, Equatable, Se
         )
     }
 
+    public var readinessGateEvidenceComplete: Bool {
+        guard !gates.isEmpty else {
+            return false
+        }
+
+        let expectedKinds = Set(ReleaseV0280ReadinessGateKind.allCases)
+        var observedKinds = Set<ReleaseV0280ReadinessGateKind>()
+
+        for gate in gates {
+            guard observedKinds.insert(gate.kind).inserted else {
+                return false
+            }
+            guard expectedKinds.contains(gate.kind) else {
+                return false
+            }
+            guard gate.release == release,
+                  gate.environmentScope == environmentScope,
+                  gate.state == .present,
+                  gate.required,
+                  gate.failClosed else {
+                return false
+            }
+            guard !gate.anchor.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  !gate.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  !gate.source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  !gate.freshness.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  !gate.checksum.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  !gate.reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return false
+            }
+        }
+
+        return observedKinds == expectedKinds
+    }
+
     public var boundaryHeld: Bool {
         productTypes == ["spot", "usdsPerpetual"]
             && venue == "binance"
+            && evaluationMode == .contractOnly
+            && readinessStatus == .notEvaluated
+            && cutoverDecision == .blocked
             && !productionTradingEnabledByDefault
             && !productionCutoverAuthorized
             && !productionSecretReadEnabledByDefault
@@ -255,7 +412,7 @@ public struct ReleaseV0280ProductionCutoverReadinessGate: Codable, Equatable, Se
             && rollbackIncidentStopRequired
             && redactionRequired
             && endpointAllowlistRequired
-            && gates.allSatisfy { $0.required && $0.failClosed }
+            && readinessGateEvidenceComplete
     }
 
     public var statusLines: [String] {
@@ -265,16 +422,20 @@ public struct ReleaseV0280ProductionCutoverReadinessGate: Codable, Equatable, Se
             "venue=\(venue)",
             "productTypes=\(productTypes.joined(separator: ","))",
             "environmentScope=\(environmentScope)",
+            "evaluationMode=\(evaluationMode.rawValue)",
+            "readinessStatus=\(readinessStatus.rawValue)",
+            "cutoverDecision=\(cutoverDecision.rawValue)",
             "validationAnchor=\(Self.validationAnchor)",
             "verificationAnchor=\(Self.verificationAnchor)",
             "requiredAnchors=\(Self.requiredAnchors.joined(separator: ","))",
+            "readinessGateEvidenceComplete=\(readinessGateEvidenceComplete)",
             "boundaryHeld=\(boundaryHeld)"
         ]
     }
 
     public var gateLines: [String] {
         gates.map {
-            "gate=kind:\($0.kind.rawValue);anchor:\($0.anchor);required:\($0.required);failClosed:\($0.failClosed);description:\($0.description)"
+            "gate=kind:\($0.kind.rawValue);release:\($0.release);environmentScope:\($0.environmentScope);anchor:\($0.anchor);state:\($0.state.rawValue);source:\($0.source);freshness:\($0.freshness);checksum:\($0.checksum);required:\($0.required);failClosed:\($0.failClosed);reason:\($0.reason);description:\($0.description)"
         }
     }
 

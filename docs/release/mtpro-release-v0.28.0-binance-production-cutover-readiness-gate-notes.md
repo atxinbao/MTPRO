@@ -1,6 +1,6 @@
 # MTPRO Release v0.28.0 Binance Production Cutover Readiness Gate Notes
 
-Date: 2026-07-10  
+Date: 2026-07-10
 Executor: Codex
 
 ## Anchor Inventory
@@ -27,3 +27,19 @@ v0.28.0 is the Binance production cutover readiness gate for Spot and USD-M Futu
 ## Validation
 
 Run `swift test --filter TargetGraphTests/testGH1429To1436ReleaseV0280ProductionCutoverReadinessGate`, `bash checks/verify-v0.28.0.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.
+
+## v0.28.1 Publication Fact / Readiness Semantics Patch Addendum
+
+Date: 2026-07-10
+Executor: Codex
+
+Anchors: `GH-1439-VERIFY-V0281-V0280-RELEASE-FACT-SYNC`, `GH-1440-VERIFY-V0281-BINANCE-ONLY-CURRENT-BASELINE`, `GH-1441-VERIFY-V0281-PUBLISHED-V0280-STALE-WORDING-GUARD`, `GH-1442-VERIFY-V0281-READINESS-SEMANTIC-STATES`, `V0281-004-EVALUATION-MODE-CONTRACT-ONLY`, `V0281-004-READINESS-STATUS-NOT-EVALUATED`, `V0281-004-CUTOVER-DECISION-BLOCKED`, `GH-1443-VERIFY-V0281-READINESS-GATE-FAIL-CLOSED-EVIDENCE`, `V0281-005-REJECT-INCOMPLETE-DUPLICATE-MALFORMED-GATES`, `GH-1444-VERIFY-V0281-PREPUBLICATION-FULL-MATRIX-EVIDENCE`, `GH-1445-VERIFY-V0281-RELEASE-VERIFICATION-DEDUPE`, `GH-1446-VERIFY-V0281-PATCH-AUDIT-RELEASE-NOTES`.
+
+v0.28.0 GitHub Release is published at https://github.com/atxinbao/MTPRO/releases/tag/v0.28.0. The fixed tag / release commit is `4411bf8536c3bae55e365d832627873b6042e4d1`, published at `2026-07-09T20:10:10Z`, from PR #1438. v0.27.2 milestone #46 closed and v0.28.0 milestone #47 closed.
+
+- evaluationMode=contract-only
+- readinessStatus=not-evaluated
+- cutoverDecision=blocked
+- readinessGateEvidenceComplete=true
+
+v0.28.1 adds no trading capability. Binance Spot + USD-M Futures remain the current baseline; OKX stays out of the current target path. v0.29.0 remains blocked until v0.28.1 is complete.
