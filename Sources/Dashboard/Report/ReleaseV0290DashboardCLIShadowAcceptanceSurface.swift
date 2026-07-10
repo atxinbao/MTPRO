@@ -51,6 +51,7 @@ import Foundation
 // shadowOnly=true
 // evidenceComplete=true
 // boundaryHeld=true
+// TVM-RELEASE-V0291-SHADOW-ACCEPTANCE-INTEGRITY-PUBLICATION-GATE-REPAIR
 
 public struct ReleaseV0290DashboardCLIShadowAcceptanceSurface: Equatable, Sendable {
     public static let panelID = "release-v0.29.0-production-dry-run-shadow-acceptance"
@@ -77,6 +78,10 @@ public struct ReleaseV0290DashboardCLIShadowAcceptanceSurface: Equatable, Sendab
         lines.append(contentsOf: source.evidenceLines)
         lines.append(contentsOf: source.boundaryLines)
         lines.append(contentsOf: [
+            "evidenceOrigin=\(source.evidenceOrigin.rawValue)",
+            "acceptanceDecision=\(source.acceptanceDecision.rawValue)",
+            "acceptanceClassification=contract-deterministic-fixture",
+            "observedRunAccepted=\(source.observedRunAccepted)",
             "dashboardBoundary=read-only",
             "cliBoundary=inspect-status-verify-export-only",
             "shadowOnly=true",

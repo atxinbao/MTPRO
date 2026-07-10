@@ -36,6 +36,7 @@ set -euo pipefail
 # GH-1456-VERIFY-V0290-STAGE-AUDIT-RELEASE-DOCS
 # V0290-010-STAGE-AUDIT-RELEASE-DOCS
 # V0290-010-NO-PRODUCTION-CUTOVER
+# TVM-RELEASE-V0291-SHADOW-ACCEPTANCE-INTEGRITY-PUBLICATION-GATE-REPAIR
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
@@ -77,7 +78,9 @@ TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
 RUN_SCRIPT="checks/run.sh"
 AUTOMATION_SCRIPT="checks/automation-readiness.sh"
 
-swift test --filter TargetGraphTests/testGH1447To1456ReleaseV0290ProductionDryRunShadowAcceptance
+if [[ "${MTPRO_SKIP_FOCUSED_SWIFT_TEST:-0}" != "1" ]]; then
+  swift test --filter TargetGraphTests/testGH1447To1456ReleaseV0290ProductionDryRunShadowAcceptance
+fi
 
 for file in \
   "$SOURCE" \
@@ -158,6 +161,9 @@ require_file_contains "$RUN_SCRIPT" "bash checks/verify-v0.29.0.sh"
 require_file_contains "$AUTOMATION_SCRIPT" "checks/verify-v0.29.0.sh"
 require_file_contains "$TESTS" "testGH1447To1456ReleaseV0290ProductionDryRunShadowAcceptance"
 require_file_contains "$AUDIT" "Linux checks and macOS Dashboard smoke are pre-publication requirements"
-require_file_contains "$NOTES" "The construction closeout PR itself does not create the v0.29.0 tag or GitHub Release"
+require_file_contains "$NOTES" "v0.29.0 GitHub Release is published"
+require_file_contains "$NOTES" "evidenceOrigin=deterministic-fixture"
+require_file_contains "$NOTES" "acceptanceDecision=blocked"
+reject_file_contains "$NOTES" "does not create the v0.29.0 tag or GitHub Release"
 
 printf 'MTPRO v0.29.0 production dry-run shadow acceptance checks passed.\n'

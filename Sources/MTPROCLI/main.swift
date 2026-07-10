@@ -251,6 +251,7 @@ private enum MTPROStrictCLI {
         // V0220-010-NO-TRADING-COMMANDS
         // V0220-010-NO-FUTURES-OKX
         // V0220-010-NO-PRODUCTION-CUTOVER
+        // TVM-RELEASE-V0291-SHADOW-ACCEPTANCE-INTEGRITY-PUBLICATION-GATE-REPAIR
         "help",
         "run",
         "status",
@@ -278,6 +279,7 @@ private enum MTPROStrictCLI {
         ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand,
         ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.cliCommand,
         ReleaseV0280ProductionCutoverReadinessGate.cliCommand,
+        ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -312,6 +314,7 @@ private enum MTPROStrictCLI {
         ReleaseV0260FuturesTestnetControlledExecutionFoundationEvidence.cliCommand,
         ReleaseV0270FuturesTestnetOperatorRuntimeHardeningEvidence.cliCommand,
         ReleaseV0280ProductionCutoverReadinessGate.cliCommand,
+        ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -391,6 +394,8 @@ private enum MTPROStrictCLI {
             )
         case ReleaseV0280ProductionCutoverReadinessGate.cliCommand:
             return try ReleaseV0280ProductionCutoverReadinessGate.commandLineOutput(arguments: arguments)
+        case ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand:
+            return try ReleaseV0290ProductionDryRunShadowAcceptance.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:

@@ -25,3 +25,7 @@ Release v0.29.0 closes #1447-#1456 as a Binance-only production dry-run / shadow
 ## Conclusion
 
 v0.29.0 is acceptable as a production dry-run / shadow acceptance release. It is not a production cutover, does not read production secrets, does not connect to broker endpoints, and does not submit, cancel or replace real orders.
+
+## Publication Fact Addendum
+
+`TVM-RELEASE-V0291-SHADOW-ACCEPTANCE-INTEGRITY-PUBLICATION-GATE-REPAIR` records the post-publication fact sync: v0.29.0 GitHub Release is published at https://github.com/atxinbao/MTPRO/releases/tag/v0.29.0, published at `2026-07-10T14:23:30Z`, and points to `2b070ea979adfec5fccf90fcd823512d99ec4c3c` after PR #1458 and workflow run `29099609391` completed successfully. The v0.29.0 evidence remains `evidenceOrigin=deterministic-fixture`, `acceptanceDecision=blocked`, and `observedRunAccepted=false`; observed-run acceptance must be validated by the v0.29.1 artifact integrity gate.
