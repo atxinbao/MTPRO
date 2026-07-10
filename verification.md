@@ -18667,3 +18667,24 @@ Validation commands: `swift test --filter TargetGraphTests/testGH1424To1428Relea
 v0.28.0 verifies Binance Spot + USD-M Futures production cutover readiness only. Production cutover is not authorized. Production trading, production secret read, production endpoint connection, broker endpoint connection, submit / cancel / replace, Futures production order execution, OKX active runtime, Dashboard trading controls, order form and live command remain disabled.
 
 Validation commands: `swift test --filter TargetGraphTests/testGH1429To1436ReleaseV0280ProductionCutoverReadinessGate`, `bash checks/verify-v0.28.0.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, `bash checks/run.sh`.
+
+## Release v0.28.1 Publication Fact / Readiness Semantics Patch Verification
+
+- GH-1439-VERIFY-V0281-V0280-RELEASE-FACT-SYNC
+- GH-1440-VERIFY-V0281-BINANCE-ONLY-CURRENT-BASELINE
+- GH-1441-VERIFY-V0281-PUBLISHED-V0280-STALE-WORDING-GUARD
+- GH-1442-VERIFY-V0281-READINESS-SEMANTIC-STATES
+- V0281-004-EVALUATION-MODE-CONTRACT-ONLY
+- V0281-004-READINESS-STATUS-NOT-EVALUATED
+- V0281-004-CUTOVER-DECISION-BLOCKED
+- GH-1443-VERIFY-V0281-READINESS-GATE-FAIL-CLOSED-EVIDENCE
+- V0281-005-REJECT-INCOMPLETE-DUPLICATE-MALFORMED-GATES
+- GH-1444-VERIFY-V0281-PREPUBLICATION-FULL-MATRIX-EVIDENCE
+- GH-1445-VERIFY-V0281-RELEASE-VERIFICATION-DEDUPE
+- GH-1446-VERIFY-V0281-PATCH-AUDIT-RELEASE-NOTES
+
+v0.28.1 records the published v0.28.0 GitHub Release at https://github.com/atxinbao/MTPRO/releases/tag/v0.28.0, tag target `4411bf8536c3bae55e365d832627873b6042e4d1`, publication timestamp `2026-07-09T20:10:10Z`, final PR #1438, v0.27.2 milestone #46 closed, and v0.28.0 milestone #47 closed. Current target remains Binance Spot + Binance USD-M Futures only; OKX stays out of the current target path.
+
+Readiness semantics: `evaluationMode=contract-only`, `readinessStatus=not-evaluated`, `cutoverDecision=blocked`, `readinessGateEvidenceComplete=true`. Incomplete, duplicate or malformed readiness gates must fail closed. v0.29.0 remains blocked until v0.28.1 is complete.
+
+Validation commands: `swift test --filter TargetGraphTests/testGH1439To1446ReleaseV0281ReadinessSemanticsPatch`, `bash checks/verify-v0.28.1.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, `bash checks/run.sh`.

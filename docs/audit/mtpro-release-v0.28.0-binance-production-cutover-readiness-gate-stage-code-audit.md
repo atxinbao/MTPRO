@@ -1,6 +1,6 @@
 # MTPRO Release v0.28.0 Binance Production Cutover Readiness Gate Stage Code Audit
 
-Date: 2026-07-10  
+Date: 2026-07-10
 Executor: Codex
 
 ## Anchor Inventory
@@ -67,4 +67,18 @@ This is not production cutover. `productionTradingEnabledByDefault=false`, `prod
 
 ## Release Gate
 
-This construction closeout prepares the release gate. Tag and GitHub Release publication are performed only after the v0.28.0 issue queue is closed and verified.
+v0.28.0 is now published at https://github.com/atxinbao/MTPRO/releases/tag/v0.28.0. The fixed tag / release commit is `4411bf8536c3bae55e365d832627873b6042e4d1`, published at `2026-07-09T20:10:10Z`, from PR #1438. v0.27.2 milestone #46 closed and v0.28.0 milestone #47 closed.
+
+## v0.28.1 Publication Fact / Readiness Semantics Patch Addendum
+
+Date: 2026-07-10
+Executor: Codex
+
+Anchors: `GH-1439-VERIFY-V0281-V0280-RELEASE-FACT-SYNC`, `GH-1440-VERIFY-V0281-BINANCE-ONLY-CURRENT-BASELINE`, `GH-1441-VERIFY-V0281-PUBLISHED-V0280-STALE-WORDING-GUARD`, `GH-1442-VERIFY-V0281-READINESS-SEMANTIC-STATES`, `V0281-004-EVALUATION-MODE-CONTRACT-ONLY`, `V0281-004-READINESS-STATUS-NOT-EVALUATED`, `V0281-004-CUTOVER-DECISION-BLOCKED`, `GH-1443-VERIFY-V0281-READINESS-GATE-FAIL-CLOSED-EVIDENCE`, `V0281-005-REJECT-INCOMPLETE-DUPLICATE-MALFORMED-GATES`, `GH-1444-VERIFY-V0281-PREPUBLICATION-FULL-MATRIX-EVIDENCE`, `GH-1445-VERIFY-V0281-RELEASE-VERIFICATION-DEDUPE`, `GH-1446-VERIFY-V0281-PATCH-AUDIT-RELEASE-NOTES`.
+
+- evaluationMode=contract-only
+- readinessStatus=not-evaluated
+- cutoverDecision=blocked
+- readinessGateEvidenceComplete=true
+
+v0.28.1 hardens published release facts, Binance-only current baseline wording, explicit readiness semantics, complete/unique readiness gate evidence, Linux + macOS pre-publication evidence, and verifier de-duplication. It adds no trading capability.

@@ -69971,6 +69971,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(evidence.venue, "binance")
         XCTAssertEqual(evidence.productTypes, ["spot", "usdsPerpetual"])
         XCTAssertEqual(evidence.environmentScope, "production-readiness-only")
+        XCTAssertEqual(evidence.evaluationMode, .contractOnly)
+        XCTAssertEqual(evidence.readinessStatus, .notEvaluated)
+        XCTAssertEqual(evidence.cutoverDecision, .blocked)
+        XCTAssertTrue(evidence.readinessGateEvidenceComplete)
         XCTAssertTrue(evidence.boundaryHeld)
         XCTAssertFalse(evidence.productionTradingEnabledByDefault)
         XCTAssertFalse(evidence.productionCutoverAuthorized)
@@ -69999,6 +70003,10 @@ final class TargetGraphTests: XCTestCase {
         )
         XCTAssertTrue(statusOutput.contains("release=v0.28.0"))
         XCTAssertTrue(statusOutput.contains("productTypes=spot,usdsPerpetual"))
+        XCTAssertTrue(statusOutput.contains("evaluationMode=contract-only"))
+        XCTAssertTrue(statusOutput.contains("readinessStatus=not-evaluated"))
+        XCTAssertTrue(statusOutput.contains("cutoverDecision=blocked"))
+        XCTAssertTrue(statusOutput.contains("readinessGateEvidenceComplete=true"))
         XCTAssertTrue(statusOutput.contains("boundaryHeld=true"))
 
         let boundaryOutput = try ReleaseV0280ProductionCutoverReadinessGate.commandLineOutput(
@@ -70024,6 +70032,9 @@ final class TargetGraphTests: XCTestCase {
         let dashboardSurface = ReleaseV0280DashboardCLIProductionReadinessSurface()
         XCTAssertTrue(dashboardSurface.boundaryHeld)
         XCTAssertTrue(dashboardSurface.reportLines.joined(separator: "\n").contains("dashboardBoundary=read-only"))
+        XCTAssertTrue(dashboardSurface.reportLines.joined(separator: "\n").contains("evaluationMode=contract-only"))
+        XCTAssertTrue(dashboardSurface.reportLines.joined(separator: "\n").contains("readinessStatus=not-evaluated"))
+        XCTAssertTrue(dashboardSurface.reportLines.joined(separator: "\n").contains("cutoverDecision=blocked"))
         XCTAssertTrue(dashboardSurface.reportLines.joined(separator: "\n").contains("productionCutoverAuthorized=false"))
 
         let anchors = ReleaseV0280ProductionCutoverReadinessGate.requiredAnchors
@@ -70084,6 +70095,247 @@ final class TargetGraphTests: XCTestCase {
             "OKX active runtime enabled"
         ] {
             XCTAssertFalse(runtimeSurface.contains(forbidden), "\(forbidden) must stay out of v0.28.0 runtime surfaces")
+        }
+    }
+
+    func testGH1439To1446ReleaseV0281ReadinessSemanticsPatch() throws {
+        // GH-1439-VERIFY-V0281-V0280-RELEASE-FACT-SYNC
+        // GH-1440-VERIFY-V0281-BINANCE-ONLY-CURRENT-BASELINE
+        // GH-1441-VERIFY-V0281-PUBLISHED-V0280-STALE-WORDING-GUARD
+        // GH-1442-VERIFY-V0281-READINESS-SEMANTIC-STATES
+        // V0281-004-EVALUATION-MODE-CONTRACT-ONLY
+        // V0281-004-READINESS-STATUS-NOT-EVALUATED
+        // V0281-004-CUTOVER-DECISION-BLOCKED
+        // GH-1443-VERIFY-V0281-READINESS-GATE-FAIL-CLOSED-EVIDENCE
+        // V0281-005-REJECT-INCOMPLETE-DUPLICATE-MALFORMED-GATES
+        // GH-1444-VERIFY-V0281-PREPUBLICATION-FULL-MATRIX-EVIDENCE
+        // GH-1445-VERIFY-V0281-RELEASE-VERIFICATION-DEDUPE
+        // GH-1446-VERIFY-V0281-PATCH-AUDIT-RELEASE-NOTES
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let evidence = ReleaseV0280ProductionCutoverReadinessGate.deterministicFixture
+
+        func copy(
+            release: String = evidence.release,
+            environmentScope: String = evidence.environmentScope,
+            evaluationMode: ReleaseV0280ReadinessEvaluationMode = evidence.evaluationMode,
+            readinessStatus: ReleaseV0280ReadinessStatus = evidence.readinessStatus,
+            cutoverDecision: ReleaseV0280CutoverDecision = evidence.cutoverDecision,
+            gates: [ReleaseV0280ReadinessGateEvidence] = evidence.gates
+        ) -> ReleaseV0280ProductionCutoverReadinessGate {
+            ReleaseV0280ProductionCutoverReadinessGate(
+                release: release,
+                venue: evidence.venue,
+                productTypes: evidence.productTypes,
+                environmentScope: environmentScope,
+                evaluationMode: evaluationMode,
+                readinessStatus: readinessStatus,
+                cutoverDecision: cutoverDecision,
+                productionTradingEnabledByDefault: evidence.productionTradingEnabledByDefault,
+                productionCutoverAuthorized: evidence.productionCutoverAuthorized,
+                productionSecretReadEnabledByDefault: evidence.productionSecretReadEnabledByDefault,
+                productionEndpointConnectionEnabledByDefault: evidence.productionEndpointConnectionEnabledByDefault,
+                brokerEndpointConnectionEnabledByDefault: evidence.brokerEndpointConnectionEnabledByDefault,
+                productionOrderSubmitCancelReplaceEnabled: evidence.productionOrderSubmitCancelReplaceEnabled,
+                futuresProductionOrderExecutionEnabled: evidence.futuresProductionOrderExecutionEnabled,
+                okxActiveRuntimeEnabled: evidence.okxActiveRuntimeEnabled,
+                dashboardTradingControlsEnabled: evidence.dashboardTradingControlsEnabled,
+                orderFormEnabled: evidence.orderFormEnabled,
+                liveCommandEnabled: evidence.liveCommandEnabled,
+                manualApprovalRequired: evidence.manualApprovalRequired,
+                operatorConfirmationRequired: evidence.operatorConfirmationRequired,
+                capitalRiskGateRequired: evidence.capitalRiskGateRequired,
+                notionalExposureLeverageGateRequired: evidence.notionalExposureLeverageGateRequired,
+                killSwitchRequired: evidence.killSwitchRequired,
+                noTradeStateRequired: evidence.noTradeStateRequired,
+                rollbackIncidentStopRequired: evidence.rollbackIncidentStopRequired,
+                redactionRequired: evidence.redactionRequired,
+                endpointAllowlistRequired: evidence.endpointAllowlistRequired,
+                gates: gates
+            )
+        }
+
+        XCTAssertTrue(evidence.readinessGateEvidenceComplete)
+        XCTAssertTrue(evidence.boundaryHeld)
+        XCTAssertEqual(evidence.evaluationMode.rawValue, "contract-only")
+        XCTAssertEqual(evidence.readinessStatus.rawValue, "not-evaluated")
+        XCTAssertEqual(evidence.cutoverDecision.rawValue, "blocked")
+
+        XCTAssertFalse(copy(gates: []).readinessGateEvidenceComplete)
+        XCTAssertFalse(copy(gates: []).boundaryHeld)
+        XCTAssertFalse(copy(gates: Array(evidence.gates.dropLast())).readinessGateEvidenceComplete)
+        XCTAssertFalse(copy(gates: Array(evidence.gates.dropLast())).boundaryHeld)
+
+        var duplicateGates = Array(evidence.gates.dropLast())
+        duplicateGates.append(evidence.gates[0])
+        XCTAssertFalse(copy(gates: duplicateGates).readinessGateEvidenceComplete)
+        XCTAssertFalse(copy(gates: duplicateGates).boundaryHeld)
+
+        var wrongReleaseGates = evidence.gates
+        wrongReleaseGates[0] = ReleaseV0280ReadinessGateEvidence(
+            kind: wrongReleaseGates[0].kind,
+            release: "v0.28.1",
+            environmentScope: wrongReleaseGates[0].environmentScope,
+            anchor: wrongReleaseGates[0].anchor,
+            description: wrongReleaseGates[0].description,
+            state: wrongReleaseGates[0].state,
+            source: wrongReleaseGates[0].source,
+            freshness: wrongReleaseGates[0].freshness,
+            checksum: wrongReleaseGates[0].checksum,
+            reason: wrongReleaseGates[0].reason,
+            required: wrongReleaseGates[0].required,
+            failClosed: wrongReleaseGates[0].failClosed
+        )
+        XCTAssertFalse(copy(gates: wrongReleaseGates).readinessGateEvidenceComplete)
+        XCTAssertFalse(copy(gates: wrongReleaseGates).boundaryHeld)
+
+        var wrongEnvironmentGates = evidence.gates
+        wrongEnvironmentGates[0] = ReleaseV0280ReadinessGateEvidence(
+            kind: wrongEnvironmentGates[0].kind,
+            release: wrongEnvironmentGates[0].release,
+            environmentScope: "production-live",
+            anchor: wrongEnvironmentGates[0].anchor,
+            description: wrongEnvironmentGates[0].description,
+            state: wrongEnvironmentGates[0].state,
+            source: wrongEnvironmentGates[0].source,
+            freshness: wrongEnvironmentGates[0].freshness,
+            checksum: wrongEnvironmentGates[0].checksum,
+            reason: wrongEnvironmentGates[0].reason,
+            required: wrongEnvironmentGates[0].required,
+            failClosed: wrongEnvironmentGates[0].failClosed
+        )
+        XCTAssertFalse(copy(gates: wrongEnvironmentGates).readinessGateEvidenceComplete)
+        XCTAssertFalse(copy(gates: wrongEnvironmentGates).boundaryHeld)
+
+        var malformedGates = evidence.gates
+        malformedGates[0] = ReleaseV0280ReadinessGateEvidence(
+            kind: malformedGates[0].kind,
+            release: malformedGates[0].release,
+            environmentScope: malformedGates[0].environmentScope,
+            anchor: "",
+            description: malformedGates[0].description,
+            state: malformedGates[0].state,
+            source: malformedGates[0].source,
+            freshness: malformedGates[0].freshness,
+            checksum: malformedGates[0].checksum,
+            reason: malformedGates[0].reason,
+            required: malformedGates[0].required,
+            failClosed: malformedGates[0].failClosed
+        )
+        XCTAssertFalse(copy(gates: malformedGates).readinessGateEvidenceComplete)
+        XCTAssertFalse(copy(gates: malformedGates).boundaryHeld)
+
+        let roundTrip = try JSONDecoder().decode(
+            ReleaseV0280ProductionCutoverReadinessGate.self,
+            from: JSONEncoder().encode(evidence)
+        )
+        XCTAssertEqual(roundTrip, evidence)
+        XCTAssertTrue(roundTrip.boundaryHeld)
+
+        let statusOutput = try ReleaseV0280ProductionCutoverReadinessGate.commandLineOutput(
+            arguments: [ReleaseV0280ProductionCutoverReadinessGate.cliCommand, "status"]
+        )
+        for expected in [
+            "evaluationMode=contract-only",
+            "readinessStatus=not-evaluated",
+            "cutoverDecision=blocked",
+            "readinessGateEvidenceComplete=true",
+            "boundaryHeld=true"
+        ] {
+            XCTAssertTrue(statusOutput.contains(expected), "status output must contain \(expected)")
+        }
+
+        let gateOutput = try ReleaseV0280ProductionCutoverReadinessGate.commandLineOutput(
+            arguments: [ReleaseV0280ProductionCutoverReadinessGate.cliCommand, "gates"]
+        )
+        for expected in [
+            "release:v0.28.0",
+            "environmentScope:production-readiness-only",
+            "state:present",
+            "source:v0.28.1-readiness-semantics-validation",
+            "freshness:deterministic-current",
+            "checksum:sha256:v0.28.1-readiness-gate-evidence"
+        ] {
+            XCTAssertTrue(gateOutput.contains(expected), "gate output must contain \(expected)")
+        }
+
+        let expectedFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0280ProductionCutoverReadinessGate.swift",
+            "Sources/Dashboard/Report/ReleaseV0280DashboardCLIProductionReadinessSurface.swift",
+            "docs/release/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-notes.md",
+            "docs/audit/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.28.1-v028-publication-fact-readiness-semantics-validation-patch-notes.md",
+            "docs/audit/mtpro-release-v0.28.1-v028-publication-fact-readiness-semantics-validation-patch-stage-code-audit.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/roadmap.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md",
+            "checks/verify-v0.28.1.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+        let expectedAnchors = [
+            "GH-1439-VERIFY-V0281-V0280-RELEASE-FACT-SYNC",
+            "GH-1440-VERIFY-V0281-BINANCE-ONLY-CURRENT-BASELINE",
+            "GH-1441-VERIFY-V0281-PUBLISHED-V0280-STALE-WORDING-GUARD",
+            "GH-1442-VERIFY-V0281-READINESS-SEMANTIC-STATES",
+            "V0281-004-EVALUATION-MODE-CONTRACT-ONLY",
+            "V0281-004-READINESS-STATUS-NOT-EVALUATED",
+            "V0281-004-CUTOVER-DECISION-BLOCKED",
+            "GH-1443-VERIFY-V0281-READINESS-GATE-FAIL-CLOSED-EVIDENCE",
+            "V0281-005-REJECT-INCOMPLETE-DUPLICATE-MALFORMED-GATES",
+            "GH-1444-VERIFY-V0281-PREPUBLICATION-FULL-MATRIX-EVIDENCE",
+            "GH-1445-VERIFY-V0281-RELEASE-VERIFICATION-DEDUPE",
+            "GH-1446-VERIFY-V0281-PATCH-AUDIT-RELEASE-NOTES"
+        ]
+
+        for file in expectedFiles {
+            let source = try read(file)
+            for anchor in expectedAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let releaseFacts = [
+            "https://github.com/atxinbao/MTPRO/releases/tag/v0.28.0",
+            "4411bf8536c3bae55e365d832627873b6042e4d1",
+            "2026-07-09T20:10:10Z",
+            "PR #1438",
+            "milestone #46 closed",
+            "milestone #47 closed"
+        ]
+        for fact in releaseFacts {
+            XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains(fact), "latest summary must contain \(fact)")
+        }
+
+        let currentFacingDocs = [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/validation/latest-verification-summary.md",
+            "verification.md"
+        ]
+        for file in currentFacingDocs {
+            let source = try read(file)
+            for forbidden in [
+                "v0.28.0 release remains pending",
+                "v0.28.0 has not been published",
+                "v0.28.0 tag/release remains to be created",
+                "OKX active runtime enabled",
+                "production cutover authorized"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(file) must not contain stale or unsafe wording: \(forbidden)")
+            }
         }
     }
 
