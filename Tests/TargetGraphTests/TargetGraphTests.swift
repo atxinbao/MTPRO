@@ -70910,6 +70910,411 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    func testGH1468To1475ReleaseV0300ObservedProductionShadowRun() throws {
+        // GH-1468-VERIFY-V0300-OBSERVED-RUN-LIFECYCLE-NOSUBMIT-CONTRACT
+        // GH-1469-VERIFY-V0300-APPROVAL-CREDENTIAL-ENDPOINT-NOSUBMIT-GATE
+        // GH-1470-VERIFY-V0300-IMMUTABLE-ARTIFACT-MANIFEST-PROVENANCE
+        // GH-1471-VERIFY-V0300-BINANCE-READONLY-ENDPOINT-PREFLIGHT
+        // GH-1472-VERIFY-V0300-NO-MUTATION-RISK-OMS-RECONCILIATION-INCIDENT
+        // GH-1473-VERIFY-V0300-DASHBOARD-CLI-READONLY-SURFACE
+        // GH-1474-VERIFY-V0300-AGGREGATE-VALIDATION-PREPUBLICATION
+        // GH-1475-VERIFY-V0300-STAGE-AUDIT-RELEASE-DOCS
+        // TVM-RELEASE-V0300-OBSERVED-PRODUCTION-SHADOW-RUN
+        // V0300-001-OBSERVED-RUN-LIFECYCLE
+        // V0300-001-NO-SUBMIT-CONTRACT
+        // V0300-002-OPERATOR-APPROVAL-CREDENTIAL-REFERENCE
+        // V0300-002-ENDPOINT-ALLOWLIST-NOSUBMIT-GATE
+        // V0300-003-IMMUTABLE-MANIFEST-PROVENANCE
+        // V0300-004-BINANCE-SPOT-FUTURES-READONLY-PREFLIGHT
+        // V0300-005-NO-MUTATION-RISK-OMS-RECONCILIATION-INCIDENT
+        // V0300-006-DASHBOARD-CLI-READONLY-SURFACE
+        // V0300-007-AGGREGATE-VALIDATION-PREPUBLICATION
+        // V0300-008-STAGE-AUDIT-RELEASE-DOCS
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let run = ReleaseV0300ObservedProductionShadowRun.deterministicFixture
+        XCTAssertEqual(run.release, "v0.30.0")
+        XCTAssertEqual(run.prerequisitePatchRelease, "v0.29.1")
+        XCTAssertEqual(run.venue, "binance")
+        XCTAssertEqual(run.productTypes, [.spot, .usdsPerpetual])
+        XCTAssertEqual(run.environmentScope, "production-shadow-observed-no-submit")
+        XCTAssertEqual(run.policyIdentity, ReleaseV0300ObservedProductionShadowRun.requiredScope)
+        XCTAssertEqual(run.lifecycle, [.planned, .approved, .running, .observed, .completed])
+        XCTAssertTrue(run.lifecycleValid)
+        XCTAssertTrue(run.boundaryHeld)
+        XCTAssertTrue(run.observedRunAccepted)
+        XCTAssertTrue(run.endpointAllowlistHeld)
+        XCTAssertTrue(run.endpointPreflightsHeld)
+        XCTAssertTrue(run.noMutationEvidenceHeld)
+        XCTAssertFalse(run.productionTradingEnabledByDefault)
+        XCTAssertFalse(run.productionCutoverAuthorized)
+        XCTAssertFalse(run.productionSecretAutoReadEnabled)
+        XCTAssertFalse(run.automaticBrokerConnectionEnabled)
+        XCTAssertFalse(run.productionSubmitCancelReplaceEnabled)
+        XCTAssertFalse(run.futuresProductionExecutionEnabled)
+        XCTAssertFalse(run.leverageMarginPositionMutationEnabled)
+        XCTAssertFalse(run.okxActiveRuntimeEnabled)
+        XCTAssertFalse(run.dashboardTradingControlsEnabled)
+        XCTAssertFalse(run.orderFormEnabled)
+        XCTAssertFalse(run.liveCommandEnabled)
+        XCTAssertTrue(run.noSubmitTransportMode)
+        XCTAssertTrue(run.noMutationTransportMode)
+        XCTAssertTrue(run.observedShadowRun)
+
+        func copy(
+            lifecycle: [ReleaseV0300ObservedRunState] = run.lifecycle,
+            approval: ReleaseV0300OperatorApproval = run.approval,
+            credentialReference: ReleaseV0300CredentialReference = run.credentialReference,
+            endpointPreflights: [ReleaseV0300EndpointPreflightEvidence] = run.endpointPreflights,
+            noMutationEvidence: [ReleaseV0300NoMutationDrillEvidence] = run.noMutationEvidence,
+            productionSubmitCancelReplaceEnabled: Bool = run.productionSubmitCancelReplaceEnabled,
+            noSubmitTransportMode: Bool = run.noSubmitTransportMode
+        ) -> ReleaseV0300ObservedProductionShadowRun {
+            ReleaseV0300ObservedProductionShadowRun(
+                release: run.release,
+                prerequisitePatchRelease: run.prerequisitePatchRelease,
+                venue: run.venue,
+                productTypes: run.productTypes,
+                environmentScope: run.environmentScope,
+                runID: run.runID,
+                sourceCommit: run.sourceCommit,
+                policyIdentity: run.policyIdentity,
+                lifecycle: lifecycle,
+                approval: approval,
+                credentialReference: credentialReference,
+                endpointPolicies: run.endpointPolicies,
+                endpointPreflights: endpointPreflights,
+                artifacts: run.artifacts,
+                noMutationEvidence: noMutationEvidence,
+                productionTradingEnabledByDefault: run.productionTradingEnabledByDefault,
+                productionCutoverAuthorized: run.productionCutoverAuthorized,
+                productionSecretAutoReadEnabled: run.productionSecretAutoReadEnabled,
+                automaticBrokerConnectionEnabled: run.automaticBrokerConnectionEnabled,
+                productionSubmitCancelReplaceEnabled: productionSubmitCancelReplaceEnabled,
+                futuresProductionExecutionEnabled: run.futuresProductionExecutionEnabled,
+                leverageMarginPositionMutationEnabled: run.leverageMarginPositionMutationEnabled,
+                okxActiveRuntimeEnabled: run.okxActiveRuntimeEnabled,
+                dashboardTradingControlsEnabled: run.dashboardTradingControlsEnabled,
+                orderFormEnabled: run.orderFormEnabled,
+                liveCommandEnabled: run.liveCommandEnabled,
+                noSubmitTransportMode: noSubmitTransportMode,
+                noMutationTransportMode: run.noMutationTransportMode,
+                observedShadowRun: run.observedShadowRun
+            )
+        }
+
+        XCTAssertFalse(copy(lifecycle: [.planned, .running, .observed, .completed]).lifecycleValid)
+        XCTAssertFalse(copy(lifecycle: [.planned, .blocked, .completed]).observedRunAccepted)
+        XCTAssertFalse(copy(productionSubmitCancelReplaceEnabled: true).boundaryHeld)
+        XCTAssertFalse(copy(noSubmitTransportMode: false).boundaryHeld)
+
+        let expiredApproval = ReleaseV0300OperatorApproval(
+            approvalID: run.approval.approvalID,
+            operatorIdentity: run.approval.operatorIdentity,
+            approvedAt: "2026-07-09T00:00:00Z",
+            expiresAt: "2026-07-10T00:00:00Z",
+            scope: run.approval.scope,
+            noSubmitModeSelected: true
+        )
+        XCTAssertFalse(copy(approval: expiredApproval).observedRunAccepted)
+
+        let scopeMismatchApproval = ReleaseV0300OperatorApproval(
+            approvalID: run.approval.approvalID,
+            operatorIdentity: run.approval.operatorIdentity,
+            approvedAt: run.approval.approvedAt,
+            expiresAt: run.approval.expiresAt,
+            scope: "production-live-submit",
+            noSubmitModeSelected: true
+        )
+        XCTAssertFalse(copy(approval: scopeMismatchApproval).observedRunAccepted)
+
+        let unsafeCredential = ReleaseV0300CredentialReference(
+            referenceID: "credential-ref-binance-production-shadow-readonly",
+            providerIdentity: "operator-managed-secret-store",
+            redactedDisplay: "raw-secret-visible",
+            secretValuePersisted: true,
+            automaticSecretReadEnabled: true
+        )
+        XCTAssertFalse(copy(credentialReference: unsafeCredential).observedRunAccepted)
+
+        XCTAssertTrue(ReleaseV0300ObservedProductionShadowRun.endpointAllowed(
+            urlString: "https://api.binance.com/api/v3/exchangeInfo?symbol=BTCUSDT",
+            product: .spot
+        ))
+        XCTAssertTrue(ReleaseV0300ObservedProductionShadowRun.endpointAllowed(
+            urlString: "https://fapi.binance.com/fapi/v1/exchangeInfo?symbol=BTCUSDT",
+            product: .usdsPerpetual
+        ))
+        XCTAssertFalse(ReleaseV0300ObservedProductionShadowRun.endpointAllowed(
+            urlString: "https://api.binance.com/api/v3/order?symbol=BTCUSDT",
+            product: .spot
+        ))
+        XCTAssertFalse(ReleaseV0300ObservedProductionShadowRun.endpointAllowed(
+            urlString: "https://fapi.binance.com/fapi/v1/leverage?symbol=BTCUSDT",
+            product: .usdsPerpetual
+        ))
+        XCTAssertFalse(ReleaseV0300ObservedProductionShadowRun.endpointAllowed(
+            urlString: "http://api.binance.com/api/v3/exchangeInfo",
+            product: .spot
+        ))
+        XCTAssertFalse(ReleaseV0300ObservedProductionShadowRun.endpointAllowed(
+            urlString: "https://user:pass@api.binance.com/api/v3/exchangeInfo",
+            product: .spot
+        ))
+
+        var mutationPreflight = run.endpointPreflights
+        mutationPreflight[0] = ReleaseV0300EndpointPreflightEvidence(
+            product: .spot,
+            url: "https://api.binance.com/api/v3/order",
+            requestClass: "production-mutation",
+            state: .blockedMutation,
+            failureClass: "mutation-endpoint-blocked",
+            freshness: "fresh",
+            rawPayloadPersisted: false,
+            mutationAttempted: true,
+            networkCallPerformed: false
+        )
+        XCTAssertFalse(copy(endpointPreflights: mutationPreflight).observedRunAccepted)
+
+        var failedNoMutation = run.noMutationEvidence
+        failedNoMutation[0] = ReleaseV0300NoMutationDrillEvidence(
+            component: "risk",
+            state: .failed,
+            inputFresh: false,
+            expectedLifecycleRecorded: false,
+            operatorAcknowledged: false,
+            transportMutationEnabled: true,
+            brokerFillInterpreted: true,
+            nextAction: ""
+        )
+        XCTAssertFalse(copy(noMutationEvidence: failedNoMutation).observedRunAccepted)
+
+        let tempRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("mtpro-v0300-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tempRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempRoot) }
+
+        for artifact in run.artifacts {
+            let url = tempRoot.appendingPathComponent(artifact.relativePath)
+            try FileManager.default.createDirectory(
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            let contentSuffix: String
+            if artifact.relativePath.contains("run-status") {
+                contentSuffix = "run-status"
+            } else if artifact.relativePath.contains("preflight") {
+                contentSuffix = "read-only-preflight"
+            } else {
+                contentSuffix = "no-mutation"
+            }
+            try Data("v0.30.0:\(contentSuffix)".utf8).write(to: url)
+        }
+
+        let manifestReport = ReleaseV0300ObservedProductionShadowRun.validateArtifacts(
+            rootURL: tempRoot,
+            artifacts: run.artifacts
+        )
+        XCTAssertTrue(manifestReport.passed)
+        XCTAssertEqual(manifestReport.artifactsChecked, 3)
+
+        var corruptArtifacts = run.artifacts
+        corruptArtifacts[0] = ReleaseV0300ObservedArtifact(
+            relativePath: corruptArtifacts[0].relativePath,
+            byteCount: corruptArtifacts[0].byteCount,
+            sha256: String(repeating: "0", count: 64),
+            generationIdentity: corruptArtifacts[0].generationIdentity,
+            redactionChecked: corruptArtifacts[0].redactionChecked,
+            immutable: corruptArtifacts[0].immutable
+        )
+        let corruptReport = ReleaseV0300ObservedProductionShadowRun.validateArtifacts(
+            rootURL: tempRoot,
+            artifacts: corruptArtifacts
+        )
+        XCTAssertFalse(corruptReport.passed)
+        XCTAssertTrue(corruptReport.failureReasons.contains { $0.contains("sha256 mismatch") })
+
+        let unsafeReport = ReleaseV0300ObservedProductionShadowRun.validateArtifacts(
+            rootURL: tempRoot,
+            artifacts: [
+                ReleaseV0300ObservedArtifact(
+                    relativePath: "../secret.json",
+                    byteCount: 0,
+                    sha256: String(repeating: "0", count: 64),
+                    generationIdentity: "observed-run-artifact",
+                    redactionChecked: true,
+                    immutable: true
+                )
+            ]
+        )
+        XCTAssertFalse(unsafeReport.passed)
+        XCTAssertTrue(unsafeReport.failureReasons.contains { $0.contains("unsafe relative path") })
+
+        let roundTrip = try JSONDecoder().decode(
+            ReleaseV0300ObservedProductionShadowRun.self,
+            from: JSONEncoder().encode(run)
+        )
+        XCTAssertEqual(roundTrip, run)
+        XCTAssertTrue(roundTrip.observedRunAccepted)
+
+        let statusOutput = try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(
+            arguments: [ReleaseV0300ObservedProductionShadowRun.cliCommand, "status"]
+        )
+        for expected in [
+            "release=v0.30.0",
+            "productTypes=spot,usdsPerpetual",
+            "environmentScope=production-shadow-observed-no-submit",
+            "lifecycle=planned->approved->running->observed->completed",
+            "observedShadowRun=true",
+            "observedRunAccepted=true",
+            "boundaryHeld=true"
+        ] {
+            XCTAssertTrue(statusOutput.contains(expected), "status output must contain \(expected)")
+        }
+
+        let validateOutput = try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(
+            arguments: [ReleaseV0300ObservedProductionShadowRun.cliCommand, "validate"]
+        )
+        for expected in [
+            "lifecycleValid=true",
+            "approvalValid=true",
+            "credentialReferenceHeld=true",
+            "endpointAllowlistHeld=true",
+            "endpointPreflightsHeld=true",
+            "noMutationEvidenceHeld=true",
+            "observedRunAccepted=true"
+        ] {
+            XCTAssertTrue(validateOutput.contains(expected), "validate output must contain \(expected)")
+        }
+
+        let evidenceOutput = try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(
+            arguments: [ReleaseV0300ObservedProductionShadowRun.cliCommand, "evidence"]
+        )
+        XCTAssertTrue(evidenceOutput.contains("endpointPreflight=product:spot"))
+        XCTAssertTrue(evidenceOutput.contains("endpointPreflight=product:usdsPerpetual"))
+        XCTAssertTrue(evidenceOutput.contains("artifact=path:artifacts/v0.30.0/observed/run-status.json"))
+        XCTAssertTrue(evidenceOutput.contains("noMutation=component:risk"))
+        XCTAssertTrue(evidenceOutput.contains("noMutation=component:incident"))
+
+        let exportOutput = try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(
+            arguments: [ReleaseV0300ObservedProductionShadowRun.cliCommand, "export"]
+        )
+        XCTAssertTrue(exportOutput.contains(#""release" : "v0.30.0""#))
+        XCTAssertTrue(exportOutput.contains(#""observedShadowRun" : true"#))
+
+        let boundaryOutput = try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(
+            arguments: [ReleaseV0300ObservedProductionShadowRun.cliCommand, "boundaries"]
+        )
+        for expected in [
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "productionSecretAutoReadEnabled=false",
+            "automaticBrokerConnectionEnabled=false",
+            "productionSubmitCancelReplaceEnabled=false",
+            "futuresProductionExecutionEnabled=false",
+            "leverageMarginPositionMutationEnabled=false",
+            "okxActiveRuntimeEnabled=false",
+            "dashboardTradingControlsEnabled=false",
+            "orderFormEnabled=false",
+            "liveCommandEnabled=false",
+            "noSubmitTransportMode=true",
+            "noMutationTransportMode=true"
+        ] {
+            XCTAssertTrue(boundaryOutput.contains(expected), "boundary output must contain \(expected)")
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(
+                arguments: [ReleaseV0300ObservedProductionShadowRun.cliCommand, "submit"]
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(arguments: ["wrong", "status"])
+        )
+
+        let dashboardSurface = ReleaseV0300DashboardCLIObservedShadowRunSurface()
+        let dashboardReport = dashboardSurface.reportLines.joined(separator: "\n")
+        XCTAssertTrue(dashboardSurface.boundaryHeld)
+        XCTAssertTrue(dashboardReport.contains("dashboardBoundary=read-only"))
+        XCTAssertTrue(dashboardReport.contains("cliBoundary=run-status-evidence-validate-export-only"))
+        XCTAssertTrue(dashboardReport.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("orderFormVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("liveCommandVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("rawSecretVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("rawBrokerPayloadVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("adapterRequestVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("uiCanModifyRunEvidence=false"))
+
+        let expectedFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0300ObservedProductionShadowRun.swift",
+            "Sources/Dashboard/Report/ReleaseV0300DashboardCLIObservedShadowRunSurface.swift",
+            "Sources/MTPROCLI/main.swift",
+            "docs/audit/mtpro-release-v0.30.0-observed-production-shadow-run-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.30.0-observed-production-shadow-run-notes.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/roadmap.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md",
+            "checks/verify-v0.30.0.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in expectedFiles {
+            let source = try read(file)
+            for anchor in ReleaseV0300ObservedProductionShadowRun.requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        XCTAssertTrue(cliSource.contains("ReleaseV0300ObservedProductionShadowRun.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0300ObservedProductionShadowRun.commandLineOutput"))
+
+        for file in [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/validation/latest-verification-summary.md",
+            "verification.md",
+            "docs/release/mtpro-release-v0.30.0-observed-production-shadow-run-notes.md"
+        ] {
+            let source = try read(file)
+            for expected in [
+                "observedShadowRun=true",
+                "observedRunAccepted=true",
+                "productionTradingEnabledByDefault=false",
+                "productionCutoverAuthorized=false",
+                "productionSecretAutoReadEnabled=false",
+                "automaticBrokerConnectionEnabled=false",
+                "productionSubmitCancelReplaceEnabled=false",
+                "noSubmitTransportMode=true",
+                "noMutationTransportMode=true"
+            ] {
+                XCTAssertTrue(source.contains(expected), "\(file) must contain \(expected)")
+            }
+            for forbidden in [
+                "production cutover authorized",
+                "production trading enabled by default",
+                "automatic broker connection enabled",
+                "real order mutation enabled",
+                "OKX active runtime enabled"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(file) must not contain unsafe wording: \(forbidden)")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
