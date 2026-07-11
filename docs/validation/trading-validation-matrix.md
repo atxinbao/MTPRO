@@ -5499,3 +5499,17 @@ Release v0.29.0 anchor inventory: `GH-1447-VERIFY-V0290-PRODUCTION-DRY-RUN-SHADO
 | Dashboard / CLI | Read-only report surface | `dashboardTradingControlsEnabled=false`, `orderFormEnabled=false`, `liveCommandEnabled=false` |
 
 Boundary facts: `productionTradingEnabledByDefault=false`, `productionCutoverAuthorized=false`, `futuresProductionExecutionEnabled=false`, `leverageMarginPositionMutationEnabled=false`, `okxActiveRuntimeEnabled=false`, `shadowOnly=true`.
+
+## Release v0.30.0 Observed Production Shadow Run Acceptance
+
+Release v0.30.0 anchor inventory: `GH-1468-VERIFY-V0300-OBSERVED-RUN-LIFECYCLE-NOSUBMIT-CONTRACT`, `GH-1469-VERIFY-V0300-APPROVAL-CREDENTIAL-ENDPOINT-NOSUBMIT-GATE`, `GH-1470-VERIFY-V0300-IMMUTABLE-ARTIFACT-MANIFEST-PROVENANCE`, `GH-1471-VERIFY-V0300-BINANCE-READONLY-ENDPOINT-PREFLIGHT`, `GH-1472-VERIFY-V0300-NO-MUTATION-RISK-OMS-RECONCILIATION-INCIDENT`, `GH-1473-VERIFY-V0300-DASHBOARD-CLI-READONLY-SURFACE`, `GH-1474-VERIFY-V0300-AGGREGATE-VALIDATION-PREPUBLICATION`, `GH-1475-VERIFY-V0300-STAGE-AUDIT-RELEASE-DOCS`, `TVM-RELEASE-V0300-OBSERVED-PRODUCTION-SHADOW-RUN`, `V0300-001-OBSERVED-RUN-LIFECYCLE`, `V0300-001-NO-SUBMIT-CONTRACT`, `V0300-002-OPERATOR-APPROVAL-CREDENTIAL-REFERENCE`, `V0300-002-ENDPOINT-ALLOWLIST-NOSUBMIT-GATE`, `V0300-003-IMMUTABLE-MANIFEST-PROVENANCE`, `V0300-004-BINANCE-SPOT-FUTURES-READONLY-PREFLIGHT`, `V0300-005-NO-MUTATION-RISK-OMS-RECONCILIATION-INCIDENT`, `V0300-006-DASHBOARD-CLI-READONLY-SURFACE`, `V0300-007-AGGREGATE-VALIDATION-PREPUBLICATION`, `V0300-008-STAGE-AUDIT-RELEASE-DOCS`.
+
+| Surface | v0.30.0 validation | Required result |
+| --- | --- | --- |
+| Observed production shadow run | `ReleaseV0300ObservedProductionShadowRun` | `observedShadowRun=true`, `observedRunAccepted=true` |
+| Transport | Read-only endpoint allowlist and no-submit preflight | `noSubmitTransportMode=true` |
+| Mutation boundary | Risk / OMS / reconciliation / incident evidence only | `noMutationTransportMode=true` |
+| Secrets and broker connection | Credential reference and endpoint intent only | `productionSecretAutoReadEnabled=false`, `automaticBrokerConnectionEnabled=false` |
+| Dashboard / CLI | Read-only observed-run surface | `productionSubmitCancelReplaceEnabled=false`, `boundaryHeld=true` |
+
+Production cutover remains not authorized; production trading remains disabled by default.

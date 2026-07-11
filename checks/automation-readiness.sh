@@ -15415,4 +15415,68 @@ require_contains "checks/run.sh" "MTPRO_SKIP_FOCUSED_SWIFT_TEST=1 bash checks/ve
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.29.1.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1459To1467ReleaseV0291ShadowAcceptanceIntegrityPatch"
 
+# GH-1468-VERIFY-V0300-OBSERVED-RUN-LIFECYCLE-NOSUBMIT-CONTRACT
+# GH-1469-VERIFY-V0300-APPROVAL-CREDENTIAL-ENDPOINT-NOSUBMIT-GATE
+# GH-1470-VERIFY-V0300-IMMUTABLE-ARTIFACT-MANIFEST-PROVENANCE
+# GH-1471-VERIFY-V0300-BINANCE-READONLY-ENDPOINT-PREFLIGHT
+# GH-1472-VERIFY-V0300-NO-MUTATION-RISK-OMS-RECONCILIATION-INCIDENT
+# GH-1473-VERIFY-V0300-DASHBOARD-CLI-READONLY-SURFACE
+# GH-1474-VERIFY-V0300-AGGREGATE-VALIDATION-PREPUBLICATION
+# GH-1475-VERIFY-V0300-STAGE-AUDIT-RELEASE-DOCS
+# TVM-RELEASE-V0300-OBSERVED-PRODUCTION-SHADOW-RUN
+# V0300-001-OBSERVED-RUN-LIFECYCLE
+# V0300-001-NO-SUBMIT-CONTRACT
+# V0300-002-OPERATOR-APPROVAL-CREDENTIAL-REFERENCE
+# V0300-002-ENDPOINT-ALLOWLIST-NOSUBMIT-GATE
+# V0300-003-IMMUTABLE-MANIFEST-PROVENANCE
+# V0300-004-BINANCE-SPOT-FUTURES-READONLY-PREFLIGHT
+# V0300-005-NO-MUTATION-RISK-OMS-RECONCILIATION-INCIDENT
+# V0300-006-DASHBOARD-CLI-READONLY-SURFACE
+# V0300-007-AGGREGATE-VALIDATION-PREPUBLICATION
+# V0300-008-STAGE-AUDIT-RELEASE-DOCS
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0300ObservedProductionShadowRun.swift" \
+  "Sources/Dashboard/Report/ReleaseV0300DashboardCLIObservedShadowRunSurface.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "docs/audit/mtpro-release-v0.30.0-observed-production-shadow-run-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.30.0-observed-production-shadow-run-notes.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "verification.md" \
+  "checks/verify-v0.30.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift"; do
+  require_contains "$file" "GH-1468-VERIFY-V0300-OBSERVED-RUN-LIFECYCLE-NOSUBMIT-CONTRACT"
+  require_contains "$file" "GH-1469-VERIFY-V0300-APPROVAL-CREDENTIAL-ENDPOINT-NOSUBMIT-GATE"
+  require_contains "$file" "GH-1470-VERIFY-V0300-IMMUTABLE-ARTIFACT-MANIFEST-PROVENANCE"
+  require_contains "$file" "GH-1471-VERIFY-V0300-BINANCE-READONLY-ENDPOINT-PREFLIGHT"
+  require_contains "$file" "GH-1472-VERIFY-V0300-NO-MUTATION-RISK-OMS-RECONCILIATION-INCIDENT"
+  require_contains "$file" "GH-1473-VERIFY-V0300-DASHBOARD-CLI-READONLY-SURFACE"
+  require_contains "$file" "GH-1474-VERIFY-V0300-AGGREGATE-VALIDATION-PREPUBLICATION"
+  require_contains "$file" "GH-1475-VERIFY-V0300-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "TVM-RELEASE-V0300-OBSERVED-PRODUCTION-SHADOW-RUN"
+  require_contains "$file" "V0300-001-OBSERVED-RUN-LIFECYCLE"
+  require_contains "$file" "V0300-001-NO-SUBMIT-CONTRACT"
+  require_contains "$file" "V0300-002-OPERATOR-APPROVAL-CREDENTIAL-REFERENCE"
+  require_contains "$file" "V0300-002-ENDPOINT-ALLOWLIST-NOSUBMIT-GATE"
+  require_contains "$file" "V0300-003-IMMUTABLE-MANIFEST-PROVENANCE"
+  require_contains "$file" "V0300-004-BINANCE-SPOT-FUTURES-READONLY-PREFLIGHT"
+  require_contains "$file" "V0300-005-NO-MUTATION-RISK-OMS-RECONCILIATION-INCIDENT"
+  require_contains "$file" "V0300-006-DASHBOARD-CLI-READONLY-SURFACE"
+  require_contains "$file" "V0300-007-AGGREGATE-VALIDATION-PREPUBLICATION"
+  require_contains "$file" "V0300-008-STAGE-AUDIT-RELEASE-DOCS"
+done
+
+require_contains "checks/run.sh" "bash checks/verify-v0.30.0.sh"
+require_contains "checks/automation-readiness.sh" "checks/verify-v0.30.0.sh"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1468To1475ReleaseV0300ObservedProductionShadowRun"
+
 printf 'MTPRO automation readiness checks passed.\n'
