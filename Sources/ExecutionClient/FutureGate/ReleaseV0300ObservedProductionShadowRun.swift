@@ -1,6 +1,17 @@
 import Crypto
 import Foundation
 
+// GH-1478-VERIFY-V0301-V0300-PUBLICATION-FACTS
+// GH-1479-VERIFY-V0301-DETERMINISTIC-FIXTURE-FAIL-CLOSED
+// GH-1480-VERIFY-V0301-ARTIFACT-INTEGRITY-ACCEPTANCE
+// GH-1481-VERIFY-V0301-CLI-EXPLICIT-ARTIFACT-INPUT
+// GH-1482-VERIFY-V0301-HUMAN-APPROVED-OBSERVED-BUNDLE
+// GH-1483-VERIFY-V0301-PREPUBLICATION-MATRIX-GATE
+// GH-1484-VERIFY-V0301-DEDUPE-VALIDATION-ORCHESTRATION
+// GH-1485-VERIFY-V0301-BINANCE-ONLY-ROOT-DOCS-MILESTONES
+// GH-1486-VERIFY-V0301-STAGE-AUDIT-RELEASE-NOTES
+// TVM-RELEASE-V0301-OBSERVED-SHADOW-INTEGRITY-REPAIR
+
 /// v0.30.0 observed production shadow run 的生命周期状态。
 ///
 /// 该状态机只描述 operator 观测链路，不授权生产下单。任何跳过审批、跳过运行、
@@ -205,11 +216,33 @@ public struct ReleaseV0300ManifestValidationReport: Codable, Equatable, Sendable
     public let artifactsChecked: Int
     public let passed: Bool
     public let failureReasons: [String]
+    public let sourceCommitVerified: Bool
+    public let operatorApprovalVerified: Bool
+    public let freshnessVerified: Bool
+    public let provenanceVerified: Bool
+    public let redactionVerified: Bool
+    public let immutableManifestVerified: Bool
 
-    public init(artifactsChecked: Int, passed: Bool, failureReasons: [String]) {
+    public init(
+        artifactsChecked: Int,
+        passed: Bool,
+        failureReasons: [String],
+        sourceCommitVerified: Bool = false,
+        operatorApprovalVerified: Bool = false,
+        freshnessVerified: Bool = false,
+        provenanceVerified: Bool = false,
+        redactionVerified: Bool = false,
+        immutableManifestVerified: Bool = false
+    ) {
         self.artifactsChecked = artifactsChecked
         self.passed = passed
         self.failureReasons = failureReasons
+        self.sourceCommitVerified = sourceCommitVerified
+        self.operatorApprovalVerified = operatorApprovalVerified
+        self.freshnessVerified = freshnessVerified
+        self.provenanceVerified = provenanceVerified
+        self.redactionVerified = redactionVerified
+        self.immutableManifestVerified = immutableManifestVerified
     }
 }
 
@@ -294,12 +327,18 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
     // observedShadowRun=true
     // noSubmitTransportMode=true
     // noMutationTransportMode=true
-    // observedRunAccepted=true
+    // observedRunAccepted=false for deterministic fixture evidence
+    // observedRunAccepted=true only after explicit artifact-root manifest validation passes
     public static let cliCommand = "observed-production-shadow"
     public static let validationAnchor = "TVM-RELEASE-V0300-OBSERVED-PRODUCTION-SHADOW-RUN"
     public static let verificationAnchor =
         "GH-1468-TO-1475-VERIFY-V0300-OBSERVED-PRODUCTION-SHADOW-RUN"
     public static let requiredScope = "v0.30.0-observed-production-shadow-no-submit"
+    public static let manifestFileName = "manifest.json"
+    public static let deterministicEvidenceOrigin = "deterministic-fixture"
+    public static let observedArtifactBundleEvidenceOrigin = "observed-artifact-bundle"
+    public static let acceptedDecision = "accepted"
+    public static let blockedDecision = "blocked"
     public static let supportedActions = [
         "run",
         "status",
@@ -331,6 +370,16 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
         "V0300-008-STAGE-AUDIT-RELEASE-DOCS"
     ]
 
+    public static let blockedFixtureManifestReport = ReleaseV0300ManifestValidationReport(
+        artifactsChecked: 0,
+        passed: false,
+        failureReasons: [
+            "deterministic fixture is not an observed artifact bundle",
+            "source commit is prepublication placeholder",
+            "explicit artifact root manifest was not provided"
+        ]
+    )
+
     public let release: String
     public let prerequisitePatchRelease: String
     public let venue: String
@@ -360,6 +409,9 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
     public let noSubmitTransportMode: Bool
     public let noMutationTransportMode: Bool
     public let observedShadowRun: Bool
+    public let evidenceOrigin: String
+    public let acceptanceDecision: String
+    public let artifactValidationReport: ReleaseV0300ManifestValidationReport
 
     public init(
         release: String,
@@ -390,7 +442,11 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
         liveCommandEnabled: Bool,
         noSubmitTransportMode: Bool,
         noMutationTransportMode: Bool,
-        observedShadowRun: Bool
+        observedShadowRun: Bool,
+        evidenceOrigin: String = ReleaseV0300ObservedProductionShadowRun.deterministicEvidenceOrigin,
+        acceptanceDecision: String = ReleaseV0300ObservedProductionShadowRun.blockedDecision,
+        artifactValidationReport: ReleaseV0300ManifestValidationReport =
+            ReleaseV0300ObservedProductionShadowRun.blockedFixtureManifestReport
     ) {
         self.release = release
         self.prerequisitePatchRelease = prerequisitePatchRelease
@@ -421,6 +477,9 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
         self.noSubmitTransportMode = noSubmitTransportMode
         self.noMutationTransportMode = noMutationTransportMode
         self.observedShadowRun = observedShadowRun
+        self.evidenceOrigin = evidenceOrigin
+        self.acceptanceDecision = acceptanceDecision
+        self.artifactValidationReport = artifactValidationReport
     }
 
     public static var deterministicFixture: Self {
@@ -466,12 +525,24 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
             liveCommandEnabled: false,
             noSubmitTransportMode: true,
             noMutationTransportMode: true,
-            observedShadowRun: true
+            observedShadowRun: true,
+            evidenceOrigin: deterministicEvidenceOrigin,
+            acceptanceDecision: blockedDecision,
+            artifactValidationReport: blockedFixtureManifestReport
         )
     }
 
     public var observedRunAccepted: Bool {
-        lifecycleValid
+        evidenceOrigin == Self.observedArtifactBundleEvidenceOrigin
+            && acceptanceDecision == Self.acceptedDecision
+            && artifactValidationReport.passed
+            && artifactValidationReport.sourceCommitVerified
+            && artifactValidationReport.operatorApprovalVerified
+            && artifactValidationReport.freshnessVerified
+            && artifactValidationReport.provenanceVerified
+            && artifactValidationReport.redactionVerified
+            && artifactValidationReport.immutableManifestVerified
+            && lifecycleValid
             && approval.valid(now: Self.fixtureNow, requiredScope: Self.requiredScope)
             && credentialReference.boundaryHeld
             && endpointAllowlistHeld
@@ -544,6 +615,8 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
             "environmentScope=\(environmentScope)",
             "runID=\(runID)",
             "sourceCommit=\(sourceCommit)",
+            "evidenceOrigin=\(evidenceOrigin)",
+            "acceptanceDecision=\(acceptanceDecision)",
             "policyIdentity=\(policyIdentity)",
             "lifecycle=\(lifecycle.map(\.rawValue).joined(separator: "->"))",
             "validationAnchor=\(Self.validationAnchor)",
@@ -551,6 +624,8 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
             "approvalID=\(approval.approvalID)",
             "credentialReference=\(credentialReference.referenceID)",
             "observedShadowRun=\(observedShadowRun)",
+            "artifactValidationPassed=\(artifactValidationReport.passed)",
+            "artifactValidationFailures=\(artifactValidationReport.failureReasons.joined(separator: "|"))",
             "observedRunAccepted=\(observedRunAccepted)",
             "productionTradingEnabledByDefault=\(productionTradingEnabledByDefault)",
             "productionCutoverAuthorized=\(productionCutoverAuthorized)",
@@ -581,8 +656,15 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
             "endpointAllowlistHeld=\(endpointAllowlistHeld)",
             "endpointPreflightsHeld=\(endpointPreflightsHeld)",
             "noMutationEvidenceHeld=\(noMutationEvidenceHeld)",
+            "artifactValidationPassed=\(artifactValidationReport.passed)",
+            "sourceCommitVerified=\(artifactValidationReport.sourceCommitVerified)",
+            "operatorApprovalVerified=\(artifactValidationReport.operatorApprovalVerified)",
+            "freshnessVerified=\(artifactValidationReport.freshnessVerified)",
+            "provenanceVerified=\(artifactValidationReport.provenanceVerified)",
+            "redactionVerified=\(artifactValidationReport.redactionVerified)",
+            "immutableManifestVerified=\(artifactValidationReport.immutableManifestVerified)",
             "observedRunAccepted=\(observedRunAccepted)",
-            "failureReason=none"
+            "failureReason=\(artifactValidationReport.failureReasons.isEmpty ? "none" : artifactValidationReport.failureReasons.joined(separator: "|"))"
         ]
     }
 
@@ -679,8 +761,63 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
         return ReleaseV0300ManifestValidationReport(
             artifactsChecked: artifacts.count,
             passed: reasons.isEmpty && !artifacts.isEmpty,
-            failureReasons: reasons
+            failureReasons: reasons.isEmpty && !artifacts.isEmpty ? [] : reasons + (artifacts.isEmpty ? ["artifact manifest is empty"] : []),
+            provenanceVerified: reasons.isEmpty && !artifacts.isEmpty,
+            redactionVerified: reasons.isEmpty && !artifacts.isEmpty,
+            immutableManifestVerified: reasons.isEmpty && !artifacts.isEmpty
         )
+    }
+
+    public static func loadObservedArtifactBundle(rootURL: URL) throws -> Self {
+        let manifestURL = rootURL.appendingPathComponent(manifestFileName)
+        let manifestData = try Data(contentsOf: manifestURL)
+        let decoded = try JSONDecoder().decode(Self.self, from: manifestData)
+        let artifactReport = validateArtifacts(rootURL: rootURL, artifacts: decoded.artifacts)
+        var reasons = artifactReport.failureReasons
+        let sourceCommitVerified = decoded.sourceCommit.range(
+            of: #"^[0-9a-f]{40}$"#,
+            options: .regularExpression
+        ) != nil
+        if !sourceCommitVerified {
+            reasons.append("source commit is not a full git sha")
+        }
+        let approvalVerified = decoded.approval.valid(now: fixtureNow, requiredScope: requiredScope)
+        if !approvalVerified {
+            reasons.append("operator approval is invalid or stale")
+        }
+        let freshnessVerified = decoded.endpointPreflights.allSatisfy { $0.freshness == "fresh" }
+        if !freshnessVerified {
+            reasons.append("endpoint preflight freshness is not fresh")
+        }
+        let provenanceVerified = artifactReport.provenanceVerified
+            && decoded.runID == deterministicFixture.runID
+            && decoded.policyIdentity == requiredScope
+        if !provenanceVerified {
+            reasons.append("artifact provenance does not match run identity and policy")
+        }
+        let redactionVerified = artifactReport.redactionVerified
+            && decoded.artifacts.allSatisfy(\.redactionChecked)
+        if !redactionVerified {
+            reasons.append("artifact redaction evidence is incomplete")
+        }
+        let immutableManifestVerified = artifactReport.immutableManifestVerified
+            && decoded.artifacts.allSatisfy(\.immutable)
+        if !immutableManifestVerified {
+            reasons.append("immutable manifest evidence is incomplete")
+        }
+
+        let report = ReleaseV0300ManifestValidationReport(
+            artifactsChecked: artifactReport.artifactsChecked,
+            passed: reasons.isEmpty,
+            failureReasons: reasons,
+            sourceCommitVerified: sourceCommitVerified,
+            operatorApprovalVerified: approvalVerified,
+            freshnessVerified: freshnessVerified,
+            provenanceVerified: provenanceVerified,
+            redactionVerified: redactionVerified,
+            immutableManifestVerified: immutableManifestVerified
+        )
+        return decoded.withArtifactAcceptance(report: report)
     }
 
     public static func commandLineOutput(arguments: [String]) throws -> String {
@@ -690,17 +827,22 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
                 actual: arguments.joined(separator: " ")
             )
         }
-        let action = arguments.dropFirst().first ?? "status"
-        guard arguments.count <= 2, supportedActions.contains(action) else {
+        let parsed = try parseArguments(arguments)
+        guard supportedActions.contains(parsed.action) else {
             throw ReleaseV0300ObservedProductionShadowRunCLIError.invalidArguments(
                 expected: "\(cliCommand) \(supportedActions.joined(separator: "|"))",
                 actual: arguments.joined(separator: " ")
             )
         }
 
-        let run = deterministicFixture
+        let run: Self
+        if let artifactRoot = parsed.artifactRoot {
+            run = try loadObservedArtifactBundle(rootURL: artifactRoot)
+        } else {
+            run = deterministicFixture
+        }
         let lines: [String]
-        switch action {
+        switch parsed.action {
         case "run":
             lines = [
                 "command=run",
@@ -723,6 +865,43 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
             lines = run.statusLines
         }
         return lines.joined(separator: "\n")
+    }
+
+    public func withArtifactAcceptance(report: ReleaseV0300ManifestValidationReport) -> Self {
+        Self(
+            release: release,
+            prerequisitePatchRelease: prerequisitePatchRelease,
+            venue: venue,
+            productTypes: productTypes,
+            environmentScope: environmentScope,
+            runID: runID,
+            sourceCommit: sourceCommit,
+            policyIdentity: policyIdentity,
+            lifecycle: lifecycle,
+            approval: approval,
+            credentialReference: credentialReference,
+            endpointPolicies: endpointPolicies,
+            endpointPreflights: endpointPreflights,
+            artifacts: artifacts,
+            noMutationEvidence: noMutationEvidence,
+            productionTradingEnabledByDefault: productionTradingEnabledByDefault,
+            productionCutoverAuthorized: productionCutoverAuthorized,
+            productionSecretAutoReadEnabled: productionSecretAutoReadEnabled,
+            automaticBrokerConnectionEnabled: automaticBrokerConnectionEnabled,
+            productionSubmitCancelReplaceEnabled: productionSubmitCancelReplaceEnabled,
+            futuresProductionExecutionEnabled: futuresProductionExecutionEnabled,
+            leverageMarginPositionMutationEnabled: leverageMarginPositionMutationEnabled,
+            okxActiveRuntimeEnabled: okxActiveRuntimeEnabled,
+            dashboardTradingControlsEnabled: dashboardTradingControlsEnabled,
+            orderFormEnabled: orderFormEnabled,
+            liveCommandEnabled: liveCommandEnabled,
+            noSubmitTransportMode: noSubmitTransportMode,
+            noMutationTransportMode: noMutationTransportMode,
+            observedShadowRun: observedShadowRun,
+            evidenceOrigin: report.passed ? Self.observedArtifactBundleEvidenceOrigin : evidenceOrigin,
+            acceptanceDecision: report.passed ? Self.acceptedDecision : Self.blockedDecision,
+            artifactValidationReport: report
+        )
     }
 
     public static func sha256Hex(data: Data) -> String {
@@ -851,6 +1030,26 @@ public struct ReleaseV0300ObservedProductionShadowRun: Codable, Equatable, Senda
             return false
         }
         return true
+    }
+
+    private static func parseArguments(_ arguments: [String]) throws -> (action: String, artifactRoot: URL?) {
+        let tail = Array(arguments.dropFirst())
+        let action = tail.first ?? "status"
+        var artifactRoot: URL?
+        var index = 1
+        while index < tail.count {
+            let argument = tail[index]
+            if argument == "--artifact-root", index + 1 < tail.count {
+                artifactRoot = URL(fileURLWithPath: tail[index + 1], isDirectory: true)
+                index += 2
+            } else {
+                throw ReleaseV0300ObservedProductionShadowRunCLIError.invalidArguments(
+                    expected: "\(cliCommand) \(supportedActions.joined(separator: "|")) [--artifact-root path]",
+                    actual: arguments.joined(separator: " ")
+                )
+            }
+        }
+        return (action, artifactRoot)
     }
 }
 

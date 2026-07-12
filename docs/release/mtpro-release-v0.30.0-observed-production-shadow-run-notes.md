@@ -9,12 +9,12 @@ Executor: Codex
 
 ## Summary
 
-v0.30.0 moves the production-shadow track from deterministic acceptance evidence to an observed, immutable, no-submit production shadow run acceptance surface. The release remains Binance-only for Spot and USD-M Futures.
+v0.30.0 moves the production-shadow track from deterministic acceptance evidence to an observed, immutable, no-submit production shadow run evidence surface; deterministic fixture evidence remains fail-closed until an explicit artifact-root manifest validates. The release remains Binance-only for Spot and USD-M Futures.
 
 ## Release Facts
 
 - `observedShadowRun=true`
-- `observedRunAccepted=true`
+- `observedRunAccepted=false`
 - `productionTradingEnabledByDefault=false`
 - `productionCutoverAuthorized=false`
 - `productionSecretAutoReadEnabled=false`

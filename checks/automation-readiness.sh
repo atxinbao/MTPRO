@@ -18,7 +18,7 @@ require_file() {
 require_contains() {
   local file="$1"
   local expected="$2"
-  grep -Fq "$expected" "$file" || fail "$file must contain: $expected"
+  grep -Fq -- "$expected" "$file" || fail "$file must contain: $expected"
 }
 
 require_absent() {
@@ -15475,8 +15475,52 @@ for file in \
   require_contains "$file" "V0300-008-STAGE-AUDIT-RELEASE-DOCS"
 done
 
-require_contains "checks/run.sh" "bash checks/verify-v0.30.0.sh"
+require_contains "checks/run.sh" "MTPRO_SKIP_FOCUSED_SWIFT_TEST=1 bash checks/verify-v0.30.0.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.30.0.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1468To1475ReleaseV0300ObservedProductionShadowRun"
+
+# GH-1478-VERIFY-V0301-V0300-PUBLICATION-FACTS
+# GH-1479-VERIFY-V0301-DETERMINISTIC-FIXTURE-FAIL-CLOSED
+# GH-1480-VERIFY-V0301-ARTIFACT-INTEGRITY-ACCEPTANCE
+# GH-1481-VERIFY-V0301-CLI-EXPLICIT-ARTIFACT-INPUT
+# GH-1482-VERIFY-V0301-HUMAN-APPROVED-OBSERVED-BUNDLE
+# GH-1483-VERIFY-V0301-PREPUBLICATION-MATRIX-GATE
+# GH-1484-VERIFY-V0301-DEDUPE-VALIDATION-ORCHESTRATION
+# GH-1485-VERIFY-V0301-BINANCE-ONLY-ROOT-DOCS-MILESTONES
+# GH-1486-VERIFY-V0301-STAGE-AUDIT-RELEASE-NOTES
+# TVM-RELEASE-V0301-OBSERVED-SHADOW-INTEGRITY-REPAIR
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0300ObservedProductionShadowRun.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.30.1.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/audit/mtpro-release-v0.30.1-observed-shadow-integrity-repair-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.30.1-observed-shadow-integrity-repair-patch-notes.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md"; do
+  require_contains "$file" "GH-1478-VERIFY-V0301-V0300-PUBLICATION-FACTS"
+  require_contains "$file" "GH-1479-VERIFY-V0301-DETERMINISTIC-FIXTURE-FAIL-CLOSED"
+  require_contains "$file" "GH-1480-VERIFY-V0301-ARTIFACT-INTEGRITY-ACCEPTANCE"
+  require_contains "$file" "GH-1481-VERIFY-V0301-CLI-EXPLICIT-ARTIFACT-INPUT"
+  require_contains "$file" "GH-1482-VERIFY-V0301-HUMAN-APPROVED-OBSERVED-BUNDLE"
+  require_contains "$file" "GH-1483-VERIFY-V0301-PREPUBLICATION-MATRIX-GATE"
+  require_contains "$file" "GH-1484-VERIFY-V0301-DEDUPE-VALIDATION-ORCHESTRATION"
+  require_contains "$file" "GH-1485-VERIFY-V0301-BINANCE-ONLY-ROOT-DOCS-MILESTONES"
+  require_contains "$file" "GH-1486-VERIFY-V0301-STAGE-AUDIT-RELEASE-NOTES"
+  require_contains "$file" "TVM-RELEASE-V0301-OBSERVED-SHADOW-INTEGRITY-REPAIR"
+done
+
+require_contains "checks/run.sh" "bash checks/verify-v0.30.1.sh"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0300ObservedProductionShadowRun.swift" "loadObservedArtifactBundle"
+require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0300ObservedProductionShadowRun.swift" "--artifact-root"
+require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "acceptedRun.observedRunAccepted"
 
 printf 'MTPRO automation readiness checks passed.\n'

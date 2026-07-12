@@ -5506,10 +5506,20 @@ Release v0.30.0 anchor inventory: `GH-1468-VERIFY-V0300-OBSERVED-RUN-LIFECYCLE-N
 
 | Surface | v0.30.0 validation | Required result |
 | --- | --- | --- |
-| Observed production shadow run | `ReleaseV0300ObservedProductionShadowRun` | `observedShadowRun=true`, `observedRunAccepted=true` |
+| Observed production shadow run | `ReleaseV0300ObservedProductionShadowRun` | `observedShadowRun=true`, `observedRunAccepted=false` |
 | Transport | Read-only endpoint allowlist and no-submit preflight | `noSubmitTransportMode=true` |
 | Mutation boundary | Risk / OMS / reconciliation / incident evidence only | `noMutationTransportMode=true` |
 | Secrets and broker connection | Credential reference and endpoint intent only | `productionSecretAutoReadEnabled=false`, `automaticBrokerConnectionEnabled=false` |
 | Dashboard / CLI | Read-only observed-run surface | `productionSubmitCancelReplaceEnabled=false`, `boundaryHeld=true` |
 
 Production cutover remains not authorized; production trading remains disabled by default.
+
+## Release v0.30.1 Observed Shadow Integrity Repair Patch
+
+`GH-1478-VERIFY-V0301-V0300-PUBLICATION-FACTS`, `GH-1479-VERIFY-V0301-DETERMINISTIC-FIXTURE-FAIL-CLOSED`, `GH-1480-VERIFY-V0301-ARTIFACT-INTEGRITY-ACCEPTANCE`, `GH-1481-VERIFY-V0301-CLI-EXPLICIT-ARTIFACT-INPUT`, `GH-1482-VERIFY-V0301-HUMAN-APPROVED-OBSERVED-BUNDLE`, `GH-1483-VERIFY-V0301-PREPUBLICATION-MATRIX-GATE`, `GH-1484-VERIFY-V0301-DEDUPE-VALIDATION-ORCHESTRATION`, `GH-1485-VERIFY-V0301-BINANCE-ONLY-ROOT-DOCS-MILESTONES`, `GH-1486-VERIFY-V0301-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0301-OBSERVED-SHADOW-INTEGRITY-REPAIR`.
+
+| Surface | v0.30.1 validation | Required result |
+| --- | --- | --- |
+| Deterministic fixture | `mtpro observed-production-shadow status` | `evidenceOrigin=deterministic-fixture`, `acceptanceDecision=blocked`, `observedRunAccepted=false` |
+| Artifact bundle | `mtpro observed-production-shadow validate --artifact-root <path>` | acceptance requires source commit, approval, freshness, provenance, redaction, immutable manifest and SHA-256 checks |
+| Validation orchestration | `checks/run.sh` | `MTPRO_SKIP_FOCUSED_SWIFT_TEST=1 bash checks/verify-v0.30.0.sh`, `bash checks/verify-v0.30.1.sh` |
