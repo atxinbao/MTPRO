@@ -5523,3 +5523,16 @@ Production cutover remains not authorized; production trading remains disabled b
 | Deterministic fixture | `mtpro observed-production-shadow status` | `evidenceOrigin=deterministic-fixture`, `acceptanceDecision=blocked`, `observedRunAccepted=false` |
 | Artifact bundle | `mtpro observed-production-shadow validate --artifact-root <path>` | acceptance requires source commit, approval, freshness, provenance, redaction, immutable manifest and SHA-256 checks |
 | Validation orchestration | `checks/run.sh` | `MTPRO_SKIP_FOCUSED_SWIFT_TEST=1 bash checks/verify-v0.30.0.sh`, `bash checks/verify-v0.30.1.sh` |
+
+## Release v0.31.0 Controlled Production Enablement Gate
+
+`GH-1487-VERIFY-V0310-NO-DEFAULT-TRADING-CONTRACT`, `GH-1488-VERIFY-V0310-CREDENTIAL-APPROVAL-GATE`, `GH-1489-VERIFY-V0310-PRODUCTION-ENDPOINT-READ-ONLY-ALLOWLIST`, `GH-1490-VERIFY-V0310-CAPITAL-RISK-STALE-INPUT-GATES`, `GH-1491-VERIFY-V0310-MANUAL-APPROVAL-RUN-LOCK`, `GH-1492-VERIFY-V0310-NO-TRADE-KILL-SWITCH-ROLLBACK-GATES`, `GH-1493-VERIFY-V0310-SIGNED-READ-ONLY-PREFLIGHT-NO-MUTATION`, `GH-1494-VERIFY-V0310-IMMUTABLE-ENABLEMENT-AUDIT-BUNDLE`, `GH-1495-VERIFY-V0310-READ-ONLY-STATUS-SURFACE`, `GH-1496-VERIFY-V0310-STAGE-AUDIT-RELEASE-DOCS`, `TVM-RELEASE-V0310-CONTROLLED-PRODUCTION-ENABLEMENT-GATE`, `V0310-001-NO-DEFAULT-TRADING-CONTRACT`, `V0310-002-CREDENTIAL-APPROVAL-GATE`, `V0310-003-READ-ONLY-ENDPOINT-ALLOWLIST`, `V0310-004-CAPITAL-RISK-STALE-INPUT-GATES`, `V0310-005-MANUAL-APPROVAL-RUN-LOCK`, `V0310-006-KILL-NOTRADE-ROLLBACK-GATES`, `V0310-007-SIGNED-READONLY-NO-MUTATION`, `V0310-008-IMMUTABLE-AUDIT-BUNDLE`, `V0310-009-READONLY-STATUS-SURFACE`, `V0310-010-STAGE-AUDIT-RELEASE-DOCS`.
+
+| Surface | v0.31.0 validation | Required result |
+| --- | --- | --- |
+| Enablement decision | `ReleaseV0310ControlledProductionEnablementGate` | `decision=blocked`, `boundaryHeld=true` |
+| Defaults | status / boundaries CLI | `productionTradingEnabledByDefault=false`, `productionCutoverAuthorized=false` |
+| Credentials | credential approval gate | `automaticSecretReadEnabled=false`, secret value not persisted |
+| Endpoints | signed read-only preflight | Binance Spot `/api/v3/account` and USD-M Futures `/fapi/v3/account` only |
+| Orders | no-mutation boundary | `productionSubmitCancelReplaceEnabled=false` |
+| Dashboard / CLI | read-only surface | no trading button, order form or live command |
