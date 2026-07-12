@@ -9,9 +9,9 @@ Executor: Codex
 
 ## Result
 
-v0.30.0 adds observed production shadow run acceptance for Binance Spot and Binance USD-M Futures. The release records a no-submit, no-mutation operator-observed run lifecycle, approval scope, credential reference, endpoint allowlist, immutable artifact manifest, read-only endpoint preflight evidence, no-mutation Risk / OMS / Reconciliation / Incident drill evidence, and Dashboard / CLI read-only surface.
+v0.30.0 adds observed production shadow run evidence with fail-closed acceptance for Binance Spot and Binance USD-M Futures. The release records a no-submit, no-mutation operator-observed run lifecycle, approval scope, credential reference, endpoint allowlist, immutable artifact manifest, read-only endpoint preflight evidence, no-mutation Risk / OMS / Reconciliation / Incident drill evidence, and Dashboard / CLI read-only surface.
 
-Required boundary facts: `observedShadowRun=true`, `observedRunAccepted=true`, `productionTradingEnabledByDefault=false`, `productionCutoverAuthorized=false`, `productionSecretAutoReadEnabled=false`, `automaticBrokerConnectionEnabled=false`, `productionSubmitCancelReplaceEnabled=false`, `noSubmitTransportMode=true`, `noMutationTransportMode=true`, `boundaryHeld=true`.
+Required boundary facts: `observedShadowRun=true`, `observedRunAccepted=false` by default, `productionTradingEnabledByDefault=false`, `productionCutoverAuthorized=false`, `productionSecretAutoReadEnabled=false`, `automaticBrokerConnectionEnabled=false`, `productionSubmitCancelReplaceEnabled=false`, `noSubmitTransportMode=true`, `noMutationTransportMode=true`, `boundaryHeld=true`.
 
 ## Validation
 

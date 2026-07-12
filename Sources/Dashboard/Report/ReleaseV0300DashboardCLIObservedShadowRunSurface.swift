@@ -60,7 +60,6 @@ public struct ReleaseV0300DashboardCLIObservedShadowRunSurface: Equatable, Senda
 
     public var boundaryHeld: Bool {
         source.boundaryHeld
-            && source.observedRunAccepted
             && !source.dashboardTradingControlsEnabled
             && !source.orderFormEnabled
             && !source.liveCommandEnabled

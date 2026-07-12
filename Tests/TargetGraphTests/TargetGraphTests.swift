@@ -17,6 +17,17 @@ import Trader
 import TraderStrategies
 import XCTest
 
+// GH-1478-VERIFY-V0301-V0300-PUBLICATION-FACTS
+// GH-1479-VERIFY-V0301-DETERMINISTIC-FIXTURE-FAIL-CLOSED
+// GH-1480-VERIFY-V0301-ARTIFACT-INTEGRITY-ACCEPTANCE
+// GH-1481-VERIFY-V0301-CLI-EXPLICIT-ARTIFACT-INPUT
+// GH-1482-VERIFY-V0301-HUMAN-APPROVED-OBSERVED-BUNDLE
+// GH-1483-VERIFY-V0301-PREPUBLICATION-MATRIX-GATE
+// GH-1484-VERIFY-V0301-DEDUPE-VALIDATION-ORCHESTRATION
+// GH-1485-VERIFY-V0301-BINANCE-ONLY-ROOT-DOCS-MILESTONES
+// GH-1486-VERIFY-V0301-STAGE-AUDIT-RELEASE-NOTES
+// TVM-RELEASE-V0301-OBSERVED-SHADOW-INTEGRITY-REPAIR
+
 private struct GH1096CapturedURLSessionRequest: Equatable, Sendable {
     let method: String?
     let absoluteString: String
@@ -70945,7 +70956,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(run.lifecycle, [.planned, .approved, .running, .observed, .completed])
         XCTAssertTrue(run.lifecycleValid)
         XCTAssertTrue(run.boundaryHeld)
-        XCTAssertTrue(run.observedRunAccepted)
+        XCTAssertEqual(run.evidenceOrigin, ReleaseV0300ObservedProductionShadowRun.deterministicEvidenceOrigin)
+        XCTAssertEqual(run.acceptanceDecision, ReleaseV0300ObservedProductionShadowRun.blockedDecision)
+        XCTAssertFalse(run.artifactValidationReport.passed)
+        XCTAssertFalse(run.observedRunAccepted)
         XCTAssertTrue(run.endpointAllowlistHeld)
         XCTAssertTrue(run.endpointPreflightsHeld)
         XCTAssertTrue(run.noMutationEvidenceHeld)
@@ -70965,10 +70979,12 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(run.observedShadowRun)
 
         func copy(
+            sourceCommit: String = run.sourceCommit,
             lifecycle: [ReleaseV0300ObservedRunState] = run.lifecycle,
             approval: ReleaseV0300OperatorApproval = run.approval,
             credentialReference: ReleaseV0300CredentialReference = run.credentialReference,
             endpointPreflights: [ReleaseV0300EndpointPreflightEvidence] = run.endpointPreflights,
+            artifacts: [ReleaseV0300ObservedArtifact] = run.artifacts,
             noMutationEvidence: [ReleaseV0300NoMutationDrillEvidence] = run.noMutationEvidence,
             productionSubmitCancelReplaceEnabled: Bool = run.productionSubmitCancelReplaceEnabled,
             noSubmitTransportMode: Bool = run.noSubmitTransportMode
@@ -70980,14 +70996,14 @@ final class TargetGraphTests: XCTestCase {
                 productTypes: run.productTypes,
                 environmentScope: run.environmentScope,
                 runID: run.runID,
-                sourceCommit: run.sourceCommit,
+                sourceCommit: sourceCommit,
                 policyIdentity: run.policyIdentity,
                 lifecycle: lifecycle,
                 approval: approval,
                 credentialReference: credentialReference,
                 endpointPolicies: run.endpointPolicies,
                 endpointPreflights: endpointPreflights,
-                artifacts: run.artifacts,
+                artifacts: artifacts,
                 noMutationEvidence: noMutationEvidence,
                 productionTradingEnabledByDefault: run.productionTradingEnabledByDefault,
                 productionCutoverAuthorized: run.productionCutoverAuthorized,
@@ -71120,6 +71136,30 @@ final class TargetGraphTests: XCTestCase {
         )
         XCTAssertTrue(manifestReport.passed)
         XCTAssertEqual(manifestReport.artifactsChecked, 3)
+        XCTAssertTrue(manifestReport.provenanceVerified)
+        XCTAssertTrue(manifestReport.redactionVerified)
+        XCTAssertTrue(manifestReport.immutableManifestVerified)
+
+        let observedManifest = copy(sourceCommit: "4a9fff2add7e0a133b461afd0f4151ba1698db01")
+        try JSONEncoder().encode(observedManifest).write(
+            to: tempRoot.appendingPathComponent(ReleaseV0300ObservedProductionShadowRun.manifestFileName)
+        )
+        let acceptedRun = try ReleaseV0300ObservedProductionShadowRun.loadObservedArtifactBundle(
+            rootURL: tempRoot
+        )
+        XCTAssertEqual(
+            acceptedRun.evidenceOrigin,
+            ReleaseV0300ObservedProductionShadowRun.observedArtifactBundleEvidenceOrigin
+        )
+        XCTAssertEqual(acceptedRun.acceptanceDecision, ReleaseV0300ObservedProductionShadowRun.acceptedDecision)
+        XCTAssertTrue(acceptedRun.artifactValidationReport.passed)
+        XCTAssertTrue(acceptedRun.artifactValidationReport.sourceCommitVerified)
+        XCTAssertTrue(acceptedRun.artifactValidationReport.operatorApprovalVerified)
+        XCTAssertTrue(acceptedRun.artifactValidationReport.freshnessVerified)
+        XCTAssertTrue(acceptedRun.artifactValidationReport.provenanceVerified)
+        XCTAssertTrue(acceptedRun.artifactValidationReport.redactionVerified)
+        XCTAssertTrue(acceptedRun.artifactValidationReport.immutableManifestVerified)
+        XCTAssertTrue(acceptedRun.observedRunAccepted)
 
         var corruptArtifacts = run.artifacts
         corruptArtifacts[0] = ReleaseV0300ObservedArtifact(
@@ -71158,7 +71198,7 @@ final class TargetGraphTests: XCTestCase {
             from: JSONEncoder().encode(run)
         )
         XCTAssertEqual(roundTrip, run)
-        XCTAssertTrue(roundTrip.observedRunAccepted)
+        XCTAssertFalse(roundTrip.observedRunAccepted)
 
         let statusOutput = try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(
             arguments: [ReleaseV0300ObservedProductionShadowRun.cliCommand, "status"]
@@ -71168,8 +71208,11 @@ final class TargetGraphTests: XCTestCase {
             "productTypes=spot,usdsPerpetual",
             "environmentScope=production-shadow-observed-no-submit",
             "lifecycle=planned->approved->running->observed->completed",
+            "evidenceOrigin=deterministic-fixture",
+            "acceptanceDecision=blocked",
             "observedShadowRun=true",
-            "observedRunAccepted=true",
+            "artifactValidationPassed=false",
+            "observedRunAccepted=false",
             "boundaryHeld=true"
         ] {
             XCTAssertTrue(statusOutput.contains(expected), "status output must contain \(expected)")
@@ -71185,9 +71228,28 @@ final class TargetGraphTests: XCTestCase {
             "endpointAllowlistHeld=true",
             "endpointPreflightsHeld=true",
             "noMutationEvidenceHeld=true",
-            "observedRunAccepted=true"
+            "artifactValidationPassed=false",
+            "sourceCommitVerified=false",
+            "observedRunAccepted=false"
         ] {
             XCTAssertTrue(validateOutput.contains(expected), "validate output must contain \(expected)")
+        }
+
+        let acceptedValidateOutput = try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(
+            arguments: [
+                ReleaseV0300ObservedProductionShadowRun.cliCommand,
+                "validate",
+                "--artifact-root",
+                tempRoot.path
+            ]
+        )
+        for expected in [
+            "artifactValidationPassed=true",
+            "sourceCommitVerified=true",
+            "operatorApprovalVerified=true",
+            "observedRunAccepted=true"
+        ] {
+            XCTAssertTrue(acceptedValidateOutput.contains(expected), "accepted validate output must contain \(expected)")
         }
 
         let evidenceOutput = try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(
@@ -71292,7 +71354,7 @@ final class TargetGraphTests: XCTestCase {
             let source = try read(file)
             for expected in [
                 "observedShadowRun=true",
-                "observedRunAccepted=true",
+                "observedRunAccepted=false",
                 "productionTradingEnabledByDefault=false",
                 "productionCutoverAuthorized=false",
                 "productionSecretAutoReadEnabled=false",

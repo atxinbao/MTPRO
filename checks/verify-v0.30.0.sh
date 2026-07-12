@@ -10,6 +10,16 @@ set -euo pipefail
 # GH-1474-VERIFY-V0300-AGGREGATE-VALIDATION-PREPUBLICATION
 # GH-1475-VERIFY-V0300-STAGE-AUDIT-RELEASE-DOCS
 # TVM-RELEASE-V0300-OBSERVED-PRODUCTION-SHADOW-RUN
+# GH-1478-VERIFY-V0301-V0300-PUBLICATION-FACTS
+# GH-1479-VERIFY-V0301-DETERMINISTIC-FIXTURE-FAIL-CLOSED
+# GH-1480-VERIFY-V0301-ARTIFACT-INTEGRITY-ACCEPTANCE
+# GH-1481-VERIFY-V0301-CLI-EXPLICIT-ARTIFACT-INPUT
+# GH-1482-VERIFY-V0301-HUMAN-APPROVED-OBSERVED-BUNDLE
+# GH-1483-VERIFY-V0301-PREPUBLICATION-MATRIX-GATE
+# GH-1484-VERIFY-V0301-DEDUPE-VALIDATION-ORCHESTRATION
+# GH-1485-VERIFY-V0301-BINANCE-ONLY-ROOT-DOCS-MILESTONES
+# GH-1486-VERIFY-V0301-STAGE-AUDIT-RELEASE-NOTES
+# TVM-RELEASE-V0301-OBSERVED-SHADOW-INTEGRITY-REPAIR
 # V0300-001-OBSERVED-RUN-LIFECYCLE
 # V0300-001-NO-SUBMIT-CONTRACT
 # V0300-002-OPERATOR-APPROVAL-CREDENTIAL-REFERENCE
@@ -87,13 +97,18 @@ ANCHORS=(
   "V0300-008-STAGE-AUDIT-RELEASE-DOCS"
 )
 
-swift test --filter TargetGraphTests/testGH1468To1475ReleaseV0300ObservedProductionShadowRun
+if [[ "${MTPRO_SKIP_FOCUSED_SWIFT_TEST:-0}" != "1" ]]; then
+  swift test --filter TargetGraphTests/testGH1468To1475ReleaseV0300ObservedProductionShadowRun
+fi
 
 CLI_STATUS="$(swift run mtpro observed-production-shadow status)"
 for expected in \
   "release=v0.30.0" \
   "observedShadowRun=true" \
-  "observedRunAccepted=true" \
+  "evidenceOrigin=deterministic-fixture" \
+  "acceptanceDecision=blocked" \
+  "artifactValidationPassed=false" \
+  "observedRunAccepted=false" \
   "productionTradingEnabledByDefault=false" \
   "productionCutoverAuthorized=false" \
   "productionSecretAutoReadEnabled=false" \
@@ -124,7 +139,7 @@ for file in \
   "docs/release/mtpro-release-v0.30.0-observed-production-shadow-run-notes.md"; do
   for expected in \
     "observedShadowRun=true" \
-    "observedRunAccepted=true" \
+    "observedRunAccepted=false" \
     "productionTradingEnabledByDefault=false" \
     "productionCutoverAuthorized=false" \
     "productionSecretAutoReadEnabled=false" \
@@ -141,7 +156,7 @@ for file in \
   reject_file_contains "$file" "OKX active runtime enabled"
 done
 
-require_file_contains "checks/run.sh" "bash checks/verify-v0.30.0.sh"
+require_file_contains "checks/run.sh" "MTPRO_SKIP_FOCUSED_SWIFT_TEST=1 bash checks/verify-v0.30.0.sh"
 require_file_contains "checks/automation-readiness.sh" "checks/verify-v0.30.0.sh"
 require_file_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1468To1475ReleaseV0300ObservedProductionShadowRun"
 
