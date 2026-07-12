@@ -6,6 +6,28 @@ import ExecutionEngine
 import Foundation
 import Portfolio
 
+// GH-1487-VERIFY-V0310-NO-DEFAULT-TRADING-CONTRACT
+// GH-1488-VERIFY-V0310-CREDENTIAL-APPROVAL-GATE
+// GH-1489-VERIFY-V0310-PRODUCTION-ENDPOINT-READ-ONLY-ALLOWLIST
+// GH-1490-VERIFY-V0310-CAPITAL-RISK-STALE-INPUT-GATES
+// GH-1491-VERIFY-V0310-MANUAL-APPROVAL-RUN-LOCK
+// GH-1492-VERIFY-V0310-NO-TRADE-KILL-SWITCH-ROLLBACK-GATES
+// GH-1493-VERIFY-V0310-SIGNED-READ-ONLY-PREFLIGHT-NO-MUTATION
+// GH-1494-VERIFY-V0310-IMMUTABLE-ENABLEMENT-AUDIT-BUNDLE
+// GH-1495-VERIFY-V0310-READ-ONLY-STATUS-SURFACE
+// GH-1496-VERIFY-V0310-STAGE-AUDIT-RELEASE-DOCS
+// TVM-RELEASE-V0310-CONTROLLED-PRODUCTION-ENABLEMENT-GATE
+// V0310-001-NO-DEFAULT-TRADING-CONTRACT
+// V0310-002-CREDENTIAL-APPROVAL-GATE
+// V0310-003-READ-ONLY-ENDPOINT-ALLOWLIST
+// V0310-004-CAPITAL-RISK-STALE-INPUT-GATES
+// V0310-005-MANUAL-APPROVAL-RUN-LOCK
+// V0310-006-KILL-NOTRADE-ROLLBACK-GATES
+// V0310-007-SIGNED-READONLY-NO-MUTATION
+// V0310-008-IMMUTABLE-AUDIT-BUNDLE
+// V0310-009-READONLY-STATUS-SURFACE
+// V0310-010-STAGE-AUDIT-RELEASE-DOCS
+
 do {
     let arguments = Array(CommandLine.arguments.dropFirst())
     let output = try await MTPROStrictCLI.commandLineOutput(arguments: arguments)
@@ -300,6 +322,7 @@ private enum MTPROStrictCLI {
         ReleaseV0280ProductionCutoverReadinessGate.cliCommand,
         ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand,
         ReleaseV0300ObservedProductionShadowRun.cliCommand,
+        ReleaseV0310ControlledProductionEnablementGate.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -336,6 +359,7 @@ private enum MTPROStrictCLI {
         ReleaseV0280ProductionCutoverReadinessGate.cliCommand,
         ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand,
         ReleaseV0300ObservedProductionShadowRun.cliCommand,
+        ReleaseV0310ControlledProductionEnablementGate.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -419,6 +443,8 @@ private enum MTPROStrictCLI {
             return try ReleaseV0290ProductionDryRunShadowAcceptance.commandLineOutput(arguments: arguments)
         case ReleaseV0300ObservedProductionShadowRun.cliCommand:
             return try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(arguments: arguments)
+        case ReleaseV0310ControlledProductionEnablementGate.cliCommand:
+            return try ReleaseV0310ControlledProductionEnablementGate.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:

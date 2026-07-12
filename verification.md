@@ -18727,3 +18727,14 @@ Executor: Codex
 v0.30.1 records the v0.30.0 publication facts and repairs observed-run acceptance semantics. Deterministic fixture evidence is `evidenceOrigin=deterministic-fixture`, `acceptanceDecision=blocked`, `observedRunAccepted=false`; accepted observed evidence requires explicit `--artifact-root` manifest validation with source commit, approval, freshness, provenance, redaction and immutable SHA-256 artifact checks.
 
 Validation commands: `swift test --filter TargetGraphTests/testGH1468To1475ReleaseV0300ObservedProductionShadowRun`, `bash checks/verify-v0.30.0.sh`, `bash checks/verify-v0.30.1.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, `bash checks/run.sh`.
+
+## Release v0.31.0 Controlled Production Enablement Gate Verification
+
+Date: 2026-07-12
+Executor: Codex
+
+`GH-1487-VERIFY-V0310-NO-DEFAULT-TRADING-CONTRACT`, `GH-1488-VERIFY-V0310-CREDENTIAL-APPROVAL-GATE`, `GH-1489-VERIFY-V0310-PRODUCTION-ENDPOINT-READ-ONLY-ALLOWLIST`, `GH-1490-VERIFY-V0310-CAPITAL-RISK-STALE-INPUT-GATES`, `GH-1491-VERIFY-V0310-MANUAL-APPROVAL-RUN-LOCK`, `GH-1492-VERIFY-V0310-NO-TRADE-KILL-SWITCH-ROLLBACK-GATES`, `GH-1493-VERIFY-V0310-SIGNED-READ-ONLY-PREFLIGHT-NO-MUTATION`, `GH-1494-VERIFY-V0310-IMMUTABLE-ENABLEMENT-AUDIT-BUNDLE`, `GH-1495-VERIFY-V0310-READ-ONLY-STATUS-SURFACE`, `GH-1496-VERIFY-V0310-STAGE-AUDIT-RELEASE-DOCS`, `TVM-RELEASE-V0310-CONTROLLED-PRODUCTION-ENABLEMENT-GATE`, `V0310-001-NO-DEFAULT-TRADING-CONTRACT`, `V0310-002-CREDENTIAL-APPROVAL-GATE`, `V0310-003-READ-ONLY-ENDPOINT-ALLOWLIST`, `V0310-004-CAPITAL-RISK-STALE-INPUT-GATES`, `V0310-005-MANUAL-APPROVAL-RUN-LOCK`, `V0310-006-KILL-NOTRADE-ROLLBACK-GATES`, `V0310-007-SIGNED-READONLY-NO-MUTATION`, `V0310-008-IMMUTABLE-AUDIT-BUNDLE`, `V0310-009-READONLY-STATUS-SURFACE`, `V0310-010-STAGE-AUDIT-RELEASE-DOCS`.
+
+v0.31.0 verification records a fail-closed controlled production enablement gate: `decision=blocked`, `productionTradingEnabledByDefault=false`, `productionCutoverAuthorized=false`, `automaticSecretReadEnabled=false`, `automaticBrokerConnectionEnabled=false`, `productionSubmitCancelReplaceEnabled=false`.
+
+Validation commands: `swift test --filter TargetGraphTests/testGH1487To1496ReleaseV0310ControlledProductionEnablementGate`, `bash checks/verify-v0.31.0.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, `bash checks/run.sh`.

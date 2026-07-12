@@ -71377,6 +71377,224 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    // GH-1487-VERIFY-V0310-NO-DEFAULT-TRADING-CONTRACT
+    // GH-1488-VERIFY-V0310-CREDENTIAL-APPROVAL-GATE
+    // GH-1489-VERIFY-V0310-PRODUCTION-ENDPOINT-READ-ONLY-ALLOWLIST
+    // GH-1490-VERIFY-V0310-CAPITAL-RISK-STALE-INPUT-GATES
+    // GH-1491-VERIFY-V0310-MANUAL-APPROVAL-RUN-LOCK
+    // GH-1492-VERIFY-V0310-NO-TRADE-KILL-SWITCH-ROLLBACK-GATES
+    // GH-1493-VERIFY-V0310-SIGNED-READ-ONLY-PREFLIGHT-NO-MUTATION
+    // GH-1494-VERIFY-V0310-IMMUTABLE-ENABLEMENT-AUDIT-BUNDLE
+    // GH-1495-VERIFY-V0310-READ-ONLY-STATUS-SURFACE
+    // GH-1496-VERIFY-V0310-STAGE-AUDIT-RELEASE-DOCS
+    // TVM-RELEASE-V0310-CONTROLLED-PRODUCTION-ENABLEMENT-GATE
+    // V0310-001-NO-DEFAULT-TRADING-CONTRACT
+    // V0310-002-CREDENTIAL-APPROVAL-GATE
+    // V0310-003-READ-ONLY-ENDPOINT-ALLOWLIST
+    // V0310-004-CAPITAL-RISK-STALE-INPUT-GATES
+    // V0310-005-MANUAL-APPROVAL-RUN-LOCK
+    // V0310-006-KILL-NOTRADE-ROLLBACK-GATES
+    // V0310-007-SIGNED-READONLY-NO-MUTATION
+    // V0310-008-IMMUTABLE-AUDIT-BUNDLE
+    // V0310-009-READONLY-STATUS-SURFACE
+    // V0310-010-STAGE-AUDIT-RELEASE-DOCS
+    func testGH1487To1496ReleaseV0310ControlledProductionEnablementGate() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let gate = ReleaseV0310ControlledProductionEnablementGate.deterministicFixture
+
+        XCTAssertEqual(gate.release, "v0.31.0")
+        XCTAssertEqual(gate.decision, .blocked)
+        XCTAssertEqual(gate.products, [.spot, .usdsPerpetual])
+        XCTAssertTrue(gate.credentialGate.held)
+        XCTAssertEqual(gate.endpointAllowlist.count, 2)
+        XCTAssertTrue(gate.endpointAllowlist.allSatisfy(\.held))
+        XCTAssertTrue(gate.capitalRiskGate.held)
+        XCTAssertEqual(gate.capitalRiskGate.staleInputStatus, .passed)
+        XCTAssertEqual(gate.capitalRiskGate.maxLeverage, Decimal(2))
+        XCTAssertTrue(gate.runLock.held)
+        XCTAssertTrue(gate.safetyGate.held)
+        XCTAssertTrue(gate.safetyGate.killSwitchArmed)
+        XCTAssertTrue(gate.safetyGate.incidentStopReady)
+        XCTAssertTrue(gate.safetyGate.rollbackPlanReady)
+        XCTAssertEqual(gate.signedReadOnlyPreflights.count, 2)
+        XCTAssertTrue(gate.signedReadOnlyPreflights.allSatisfy(\.held))
+        XCTAssertTrue(gate.auditBundle.held)
+        XCTAssertTrue(gate.boundaryHeld)
+        XCTAssertTrue(gate.productionDefaultsHeld)
+        XCTAssertFalse(gate.productionTradingEnabledByDefault)
+        XCTAssertFalse(gate.productionCutoverAuthorized)
+        XCTAssertFalse(gate.automaticSecretReadEnabled)
+        XCTAssertFalse(gate.automaticBrokerConnectionEnabled)
+        XCTAssertFalse(gate.submitCancelReplaceEnabled)
+        XCTAssertFalse(gate.dashboardTradingControlsEnabled)
+        XCTAssertFalse(gate.orderFormEnabled)
+        XCTAssertFalse(gate.liveCommandEnabled)
+
+        let statusOutput = try ReleaseV0310ControlledProductionEnablementGate.commandLineOutput(
+            arguments: [ReleaseV0310ControlledProductionEnablementGate.cliCommand, "status"]
+        )
+        for expected in [
+            "release=v0.31.0",
+            "decision=blocked",
+            "products=spot,usdsPerpetual",
+            "productionTradingEnabledByDefault=false",
+            "productionCutoverAuthorized=false",
+            "submitCancelReplaceEnabled=false",
+            "boundaryHeld=true"
+        ] {
+            XCTAssertTrue(statusOutput.contains(expected), "status output must contain \(expected)")
+        }
+
+        let gatesOutput = try ReleaseV0310ControlledProductionEnablementGate.commandLineOutput(
+            arguments: [ReleaseV0310ControlledProductionEnablementGate.cliCommand, "gates"]
+        )
+        for expected in [
+            "credentialGateHeld=true",
+            "endpointAllowlistHeld=true",
+            "capitalRiskGateHeld=true",
+            "manualApprovalRunLockHeld=true",
+            "safetyGateHeld=true",
+            "signedReadOnlyPreflightHeld=true",
+            "auditBundleHeld=true"
+        ] {
+            XCTAssertTrue(gatesOutput.contains(expected), "gates output must contain \(expected)")
+        }
+
+        let preflightOutput = try ReleaseV0310ControlledProductionEnablementGate.commandLineOutput(
+            arguments: [ReleaseV0310ControlledProductionEnablementGate.cliCommand, "preflight"]
+        )
+        for expected in [
+            "endpoint=product:spot;family:spot-signed-read-only;scheme:https;host:api.binance.com;path:/api/v3/account",
+            "endpoint=product:usdsPerpetual;family:futures-signed-read-only;scheme:https;host:fapi.binance.com;path:/fapi/v3/account",
+            "rawPayloadPersisted:false",
+            "mutationEndpointTouched:false",
+            "submitCancelReplaceAttempted:false",
+            "brokerSideEffectObserved:false"
+        ] {
+            XCTAssertTrue(preflightOutput.contains(expected), "preflight output must contain \(expected)")
+        }
+
+        let auditOutput = try ReleaseV0310ControlledProductionEnablementGate.commandLineOutput(
+            arguments: [ReleaseV0310ControlledProductionEnablementGate.cliCommand, "audit"]
+        )
+        for expected in [
+            "bundleID=v0310-audit-bundle-controlled-production-enablement-readiness",
+            "artifactCount=8",
+            "sha256Manifest=sha256:v0310-controlled-production-enablement-readiness",
+            "immutable=true",
+            "replayable=true",
+            "redactionChecked=true",
+            "decisionRecorded=true"
+        ] {
+            XCTAssertTrue(auditOutput.contains(expected), "audit output must contain \(expected)")
+        }
+
+        let boundaryOutput = try ReleaseV0310ControlledProductionEnablementGate.commandLineOutput(
+            arguments: [ReleaseV0310ControlledProductionEnablementGate.cliCommand, "boundaries"]
+        )
+        for expected in [
+            "automaticSecretReadEnabled=false",
+            "automaticBrokerConnectionEnabled=false",
+            "productionSubmitCancelReplaceEnabled=false",
+            "dashboardTradingControlsEnabled=false",
+            "orderFormEnabled=false",
+            "liveCommandEnabled=false",
+            "orderMutationAuthorized=false",
+            "productionCutoverAuthorized=false"
+        ] {
+            XCTAssertTrue(boundaryOutput.contains(expected), "boundary output must contain \(expected)")
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV0310ControlledProductionEnablementGate.commandLineOutput(
+                arguments: [ReleaseV0310ControlledProductionEnablementGate.cliCommand, "submit"]
+            )
+        )
+        XCTAssertThrowsError(
+            try ReleaseV0310ControlledProductionEnablementGate.commandLineOutput(arguments: ["wrong", "status"])
+        )
+
+        let dashboardSurface = ReleaseV0310DashboardCLIProductionEnablementStatusSurface()
+        let dashboardReport = dashboardSurface.reportLines.joined(separator: "\n")
+        XCTAssertTrue(dashboardSurface.boundaryHeld)
+        XCTAssertTrue(dashboardReport.contains("dashboardBoundary=read-only"))
+        XCTAssertTrue(dashboardReport.contains("cliBoundary=status-gates-preflight-audit-boundaries-only"))
+        XCTAssertTrue(dashboardReport.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("orderFormVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("liveCommandVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("rawSecretVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("rawAccountPayloadVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("adapterMutationRequestVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("uiCanEnableProductionTrading=false"))
+        XCTAssertTrue(dashboardReport.contains("uiCanSubmitCancelReplace=false"))
+
+        let cliSource = try read("Sources/MTPROCLI/main.swift")
+        XCTAssertTrue(cliSource.contains("ReleaseV0310ControlledProductionEnablementGate.cliCommand"))
+        XCTAssertTrue(cliSource.contains("ReleaseV0310ControlledProductionEnablementGate.commandLineOutput"))
+
+        let expectedFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0310ControlledProductionEnablementGate.swift",
+            "Sources/Dashboard/Report/ReleaseV0310DashboardCLIProductionEnablementStatusSurface.swift",
+            "Sources/MTPROCLI/main.swift",
+            "docs/audit/mtpro-release-v0.31.0-controlled-production-enablement-gate-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.31.0-controlled-production-enablement-gate-notes.md",
+            "docs/automation/automation-readiness.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/roadmap.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md",
+            "checks/verify-v0.31.0.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "Tests/TargetGraphTests/TargetGraphTests.swift"
+        ]
+
+        for file in expectedFiles {
+            let source = try read(file)
+            for anchor in ReleaseV0310ControlledProductionEnablementGate.requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        for file in [
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "docs/validation/latest-verification-summary.md",
+            "verification.md",
+            "docs/release/mtpro-release-v0.31.0-controlled-production-enablement-gate-notes.md"
+        ] {
+            let source = try read(file)
+            for expected in [
+                "decision=blocked",
+                "productionTradingEnabledByDefault=false",
+                "productionCutoverAuthorized=false",
+                "automaticSecretReadEnabled=false",
+                "automaticBrokerConnectionEnabled=false",
+                "productionSubmitCancelReplaceEnabled=false"
+            ] {
+                XCTAssertTrue(source.contains(expected), "\(file) must contain \(expected)")
+            }
+            for forbidden in [
+                "production trading enabled by default",
+                "production cutover authorized",
+                "automatic broker connection enabled",
+                "real order mutation enabled"
+            ] {
+                XCTAssertFalse(source.contains(forbidden), "\(file) must not contain unsafe wording: \(forbidden)")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int

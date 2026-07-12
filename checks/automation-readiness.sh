@@ -15523,4 +15523,75 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0300ObservedProduct
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0300ObservedProductionShadowRun.swift" "--artifact-root"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "acceptedRun.observedRunAccepted"
 
+# GH-1487-VERIFY-V0310-NO-DEFAULT-TRADING-CONTRACT
+# GH-1488-VERIFY-V0310-CREDENTIAL-APPROVAL-GATE
+# GH-1489-VERIFY-V0310-PRODUCTION-ENDPOINT-READ-ONLY-ALLOWLIST
+# GH-1490-VERIFY-V0310-CAPITAL-RISK-STALE-INPUT-GATES
+# GH-1491-VERIFY-V0310-MANUAL-APPROVAL-RUN-LOCK
+# GH-1492-VERIFY-V0310-NO-TRADE-KILL-SWITCH-ROLLBACK-GATES
+# GH-1493-VERIFY-V0310-SIGNED-READ-ONLY-PREFLIGHT-NO-MUTATION
+# GH-1494-VERIFY-V0310-IMMUTABLE-ENABLEMENT-AUDIT-BUNDLE
+# GH-1495-VERIFY-V0310-READ-ONLY-STATUS-SURFACE
+# GH-1496-VERIFY-V0310-STAGE-AUDIT-RELEASE-DOCS
+# TVM-RELEASE-V0310-CONTROLLED-PRODUCTION-ENABLEMENT-GATE
+# V0310-001-NO-DEFAULT-TRADING-CONTRACT
+# V0310-002-CREDENTIAL-APPROVAL-GATE
+# V0310-003-READ-ONLY-ENDPOINT-ALLOWLIST
+# V0310-004-CAPITAL-RISK-STALE-INPUT-GATES
+# V0310-005-MANUAL-APPROVAL-RUN-LOCK
+# V0310-006-KILL-NOTRADE-ROLLBACK-GATES
+# V0310-007-SIGNED-READONLY-NO-MUTATION
+# V0310-008-IMMUTABLE-AUDIT-BUNDLE
+# V0310-009-READONLY-STATUS-SURFACE
+# V0310-010-STAGE-AUDIT-RELEASE-DOCS
+
+for file in \
+  "Sources/ExecutionClient/FutureGate/ReleaseV0310ControlledProductionEnablementGate.swift" \
+  "Sources/Dashboard/Report/ReleaseV0310DashboardCLIProductionEnablementStatusSurface.swift" \
+  "Sources/MTPROCLI/main.swift" \
+  "Tests/TargetGraphTests/TargetGraphTests.swift" \
+  "checks/verify-v0.31.0.sh" \
+  "checks/run.sh" \
+  "checks/automation-readiness.sh" \
+  "docs/audit/mtpro-release-v0.31.0-controlled-production-enablement-gate-stage-code-audit.md" \
+  "docs/release/mtpro-release-v0.31.0-controlled-production-enablement-gate-notes.md" \
+  "README.md" \
+  "GOAL.md" \
+  "BLUEPRINT.md" \
+  "docs/roadmap.md" \
+  "docs/automation/automation-readiness.md" \
+  "docs/validation/latest-verification-summary.md" \
+  "docs/validation/validation-plan.md" \
+  "docs/validation/trading-validation-matrix.md" \
+  "verification.md"; do
+  require_contains "$file" "GH-1487-VERIFY-V0310-NO-DEFAULT-TRADING-CONTRACT"
+  require_contains "$file" "GH-1488-VERIFY-V0310-CREDENTIAL-APPROVAL-GATE"
+  require_contains "$file" "GH-1489-VERIFY-V0310-PRODUCTION-ENDPOINT-READ-ONLY-ALLOWLIST"
+  require_contains "$file" "GH-1490-VERIFY-V0310-CAPITAL-RISK-STALE-INPUT-GATES"
+  require_contains "$file" "GH-1491-VERIFY-V0310-MANUAL-APPROVAL-RUN-LOCK"
+  require_contains "$file" "GH-1492-VERIFY-V0310-NO-TRADE-KILL-SWITCH-ROLLBACK-GATES"
+  require_contains "$file" "GH-1493-VERIFY-V0310-SIGNED-READ-ONLY-PREFLIGHT-NO-MUTATION"
+  require_contains "$file" "GH-1494-VERIFY-V0310-IMMUTABLE-ENABLEMENT-AUDIT-BUNDLE"
+  require_contains "$file" "GH-1495-VERIFY-V0310-READ-ONLY-STATUS-SURFACE"
+  require_contains "$file" "GH-1496-VERIFY-V0310-STAGE-AUDIT-RELEASE-DOCS"
+  require_contains "$file" "TVM-RELEASE-V0310-CONTROLLED-PRODUCTION-ENABLEMENT-GATE"
+  require_contains "$file" "V0310-001-NO-DEFAULT-TRADING-CONTRACT"
+  require_contains "$file" "V0310-002-CREDENTIAL-APPROVAL-GATE"
+  require_contains "$file" "V0310-003-READ-ONLY-ENDPOINT-ALLOWLIST"
+  require_contains "$file" "V0310-004-CAPITAL-RISK-STALE-INPUT-GATES"
+  require_contains "$file" "V0310-005-MANUAL-APPROVAL-RUN-LOCK"
+  require_contains "$file" "V0310-006-KILL-NOTRADE-ROLLBACK-GATES"
+  require_contains "$file" "V0310-007-SIGNED-READONLY-NO-MUTATION"
+  require_contains "$file" "V0310-008-IMMUTABLE-AUDIT-BUNDLE"
+  require_contains "$file" "V0310-009-READONLY-STATUS-SURFACE"
+  require_contains "$file" "V0310-010-STAGE-AUDIT-RELEASE-DOCS"
+done
+
+require_contains "checks/run.sh" "bash checks/verify-v0.31.0.sh"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0310ControlledProductionEnablementGate.cliCommand"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0310ControlledProductionEnablementGate.commandLineOutput"
+require_contains "README.md" "decision=blocked"
+require_contains "GOAL.md" "productionTradingEnabledByDefault=false"
+require_contains "BLUEPRINT.md" "productionCutoverAuthorized=false"
+
 printf 'MTPRO automation readiness checks passed.\n'
