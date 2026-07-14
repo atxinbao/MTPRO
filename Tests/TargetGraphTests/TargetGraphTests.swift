@@ -71595,6 +71595,252 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    // GH-1499-VERIFY-V0311-RELEASE-PUBLICATION-GATE
+    // GH-1500-VERIFY-V0311-ENDPOINT-ALLOWLIST-METHOD-HOST-PATH
+    // GH-1501-VERIFY-V0311-APPROVAL-SCOPE-EXPIRY-POLICY
+    // GH-1502-VERIFY-V0311-PERSISTENT-RUN-LOCK-REPLAY
+    // GH-1503-VERIFY-V0311-EVIDENCE-ROOT-ARTIFACT-VALIDATION
+    // GH-1504-VERIFY-V0311-RISK-GATE-NEGATIVE-INPUTS
+    // GH-1505-VERIFY-V0311-NEGATIVE-REGRESSION-MATRIX
+    // GH-1506-VERIFY-V0311-V0310-PUBLICATION-FACTS
+    // GH-1507-VERIFY-V0311-STAGE-AUDIT-RELEASE-NOTES
+    // TVM-RELEASE-V0311-CONTROLLED-ENABLEMENT-INTEGRITY-REPAIR
+    // V0311-001-RELEASE-PUBLICATION-AFTER-FULL-MATRIX
+    // V0311-002-ENDPOINT-METHOD-HOST-PATH-PRODUCT-FAMILY
+    // V0311-003-APPROVAL-SCOPE-EXPIRY-SOURCE-POLICY
+    // V0311-004-PERSISTENT-RUN-LOCK-REPLAY-PROTECTION
+    // V0311-005-EVIDENCE-ROOT-ARTIFACT-VALIDATION
+    // V0311-006-RISK-GATE-NEGATIVE-INPUTS
+    // V0311-007-NEGATIVE-REGRESSION-MATRIX
+    // V0311-008-V0310-PUBLICATION-FACTS
+    // V0311-009-STAGE-AUDIT-RELEASE-NOTES
+    func testGH1499To1507ReleaseV0311ControlledEnablementIntegrityRepair() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let repair = ReleaseV0311ControlledEnablementIntegrityRepair.deterministicFixture
+        XCTAssertEqual(repair.release, "v0.31.1")
+        XCTAssertEqual(repair.repairedRelease, "v0.31.0")
+        XCTAssertTrue(repair.publicationGate.held)
+        XCTAssertTrue(repair.endpointAllowlist.allSatisfy(\.held))
+        XCTAssertTrue(repair.endpointNegativeCases.allSatisfy { $0.held == false })
+        XCTAssertTrue(repair.approval.held)
+        XCTAssertTrue(repair.approvalNegativeCases.allSatisfy { $0.held == false })
+        XCTAssertTrue(repair.runLock.held)
+        XCTAssertTrue(repair.auditBundle.held)
+        XCTAssertTrue(repair.validRiskInputs.allSatisfy(\.held))
+        XCTAssertTrue(repair.invalidRiskInputs.allSatisfy { $0.held == false })
+        XCTAssertTrue(repair.boundaryHeld)
+        XCTAssertTrue(repair.noProductionCanary)
+        XCTAssertTrue(repair.noProductionCutover)
+        XCTAssertTrue(repair.noAutomaticSecretRead)
+        XCTAssertTrue(repair.noBrokerAutoConnect)
+        XCTAssertTrue(repair.noSubmitCancelReplace)
+
+        let publicationOutput = try ReleaseV0311ControlledEnablementIntegrityRepair.commandLineOutput(
+            arguments: [ReleaseV0311ControlledEnablementIntegrityRepair.cliCommand, "publication"]
+        )
+        for expected in [
+            "release=v0.31.1",
+            "repairedRelease=v0.31.0",
+            "releaseCreatedAfterFullMatrix=true",
+            "previousEarlyPublicationFindingRecorded=true",
+            "boundaryHeld=true"
+        ] {
+            XCTAssertTrue(publicationOutput.contains(expected), "publication output must contain \(expected)")
+        }
+
+        let endpointOutput = try ReleaseV0311ControlledEnablementIntegrityRepair.commandLineOutput(
+            arguments: [ReleaseV0311ControlledEnablementIntegrityRepair.cliCommand, "endpoints"]
+        )
+        for expected in [
+            "allow=method:GET;product:spot;family:spot-signed-read-only;scheme:https;host:api.binance.com;path:/api/v3/account",
+            "allow=method:GET;product:usdsPerpetual;family:futures-signed-read-only;scheme:https;host:fapi.binance.com;path:/fapi/v3/account",
+            "reject=method:POST",
+            "path:/api/v3/order"
+        ] {
+            XCTAssertTrue(endpointOutput.contains(expected), "endpoint output must contain \(expected)")
+        }
+
+        let negativeOutput = try ReleaseV0311ControlledEnablementIntegrityRepair.commandLineOutput(
+            arguments: [ReleaseV0311ControlledEnablementIntegrityRepair.cliCommand, "negative-cases"]
+        )
+        for expected in [
+            "wrongHostRejected=true",
+            "wrongMethodRejected=true",
+            "expiredApprovalRejected=true",
+            "staleBundleRejected=true",
+            "corruptBundleRejected=true",
+            "negativeRiskRejected=true"
+        ] {
+            XCTAssertTrue(negativeOutput.contains(expected), "negative output must contain \(expected)")
+        }
+
+        XCTAssertThrowsError(
+            try ReleaseV0311ControlledEnablementIntegrityRepair.commandLineOutput(
+                arguments: [ReleaseV0311ControlledEnablementIntegrityRepair.cliCommand, "submit"]
+            )
+        )
+
+        let workflow = try read(".github/workflows/checks.yml")
+        XCTAssertTrue(workflow.contains("release_publication_checks:"))
+        XCTAssertTrue(workflow.contains("linux_checks"))
+        XCTAssertTrue(workflow.contains("dashboard_macos"))
+
+        let expectedFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0311ControlledEnablementIntegrityRepair.swift",
+            "Sources/MTPROCLI/main.swift",
+            "Tests/TargetGraphTests/TargetGraphTests.swift",
+            "checks/verify-v0.31.1.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "docs/audit/mtpro-release-v0.31.1-controlled-enablement-integrity-publication-gate-repair-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.31.1-controlled-enablement-integrity-publication-gate-repair-notes.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/trading-validation-matrix.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md"
+        ]
+
+        for file in expectedFiles {
+            let source = try read(file)
+            for anchor in ReleaseV0311ControlledEnablementIntegrityRepair.requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+    }
+
+    // GH-1508-VERIFY-V0320-CANARY-OPERATIONS-CONTRACT
+    // GH-1509-VERIFY-V0320-HUMAN-APPROVED-ENABLEMENT-BUNDLE
+    // GH-1510-VERIFY-V0320-STRICT-SIZE-CAP-FINAL-GATE
+    // GH-1511-VERIFY-V0320-SPOT-CANARY-SUBMIT-STATUS-CANCEL
+    // GH-1512-VERIFY-V0320-FUTURES-CANARY-SUBMIT-STATUS-CANCEL
+    // GH-1513-VERIFY-V0320-OMS-RECONCILIATION-ROLLBACK
+    // GH-1514-VERIFY-V0320-KILL-NOTRADE-INCIDENT-STOP
+    // GH-1515-VERIFY-V0320-DASHBOARD-CLI-CANARY-STATUS
+    // GH-1516-VERIFY-V0320-AGGREGATE-VALIDATION-SUITE
+    // GH-1517-VERIFY-V0320-STAGE-AUDIT-RELEASE-DOCS
+    // TVM-RELEASE-V0320-BINANCE-CONTROLLED-PRODUCTION-CANARY-OPERATIONS
+    // V0320-001-CANARY-OPERATIONS-CONTRACT
+    // V0320-002-HUMAN-APPROVED-ENABLEMENT-BUNDLE
+    // V0320-003-STRICT-SIZE-CAP-FINAL-GATE
+    // V0320-004-SPOT-CANARY-SUBMIT-STATUS-CANCEL
+    // V0320-005-FUTURES-CANARY-SUBMIT-STATUS-CANCEL
+    // V0320-006-OMS-RECONCILIATION-ROLLBACK
+    // V0320-007-KILL-NOTRADE-INCIDENT-STOP
+    // V0320-008-DASHBOARD-CLI-CANARY-STATUS
+    // V0320-009-AGGREGATE-VALIDATION-SUITE
+    // V0320-010-STAGE-AUDIT-RELEASE-DOCS
+    func testGH1508To1517ReleaseV0320ControlledProductionCanaryOperations() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let canary = ReleaseV0320ControlledProductionCanaryOperations.deterministicFixture
+        XCTAssertEqual(canary.release, "v0.32.0")
+        XCTAssertEqual(canary.decision, .readyForHumanApprovedCanary)
+        XCTAssertTrue(canary.contract.held)
+        XCTAssertTrue(canary.enablementBundle.held)
+        XCTAssertTrue(canary.sizeCaps.allSatisfy(\.held))
+        XCTAssertEqual(canary.operationEvidence.count, 6)
+        XCTAssertTrue(canary.operationEvidence.allSatisfy(\.held))
+        XCTAssertTrue(canary.omsEvidence.held)
+        XCTAssertTrue(canary.incidentStopEvidence.held)
+        XCTAssertTrue(canary.v0311DependencyClosed)
+        XCTAssertFalse(canary.productionCutoverAuthorized)
+        XCTAssertTrue(canary.boundaryHeld)
+
+        let contractOutput = try ReleaseV0320ControlledProductionCanaryOperations.commandLineOutput(
+            arguments: [ReleaseV0320ControlledProductionCanaryOperations.cliCommand, "contract"]
+        )
+        for expected in [
+            "release=v0.32.0",
+            "venue=binance",
+            "products=spot,usdsPerpetual",
+            "defaultProductionTradingEnabled=false",
+            "unrestrictedTradingEnabled=false",
+            "automaticSecretReadEnabled=false",
+            "automaticBrokerConnectionEnabled=false",
+            "okxRuntimeEnabled=false",
+            "dashboardTradingButtonEnabled=false"
+        ] {
+            XCTAssertTrue(contractOutput.contains(expected), "contract output must contain \(expected)")
+        }
+
+        let spotOutput = try ReleaseV0320ControlledProductionCanaryOperations.commandLineOutput(
+            arguments: [ReleaseV0320ControlledProductionCanaryOperations.cliCommand, "spot"]
+        )
+        for expected in [
+            "action:submit",
+            "action:status",
+            "action:cancel",
+            "automaticBrokerConnection:false",
+            "unrestrictedTrading:false"
+        ] {
+            XCTAssertTrue(spotOutput.contains(expected), "spot output must contain \(expected)")
+        }
+
+        let futuresOutput = try ReleaseV0320ControlledProductionCanaryOperations.commandLineOutput(
+            arguments: [ReleaseV0320ControlledProductionCanaryOperations.cliCommand, "futures"]
+        )
+        XCTAssertTrue(futuresOutput.contains("product:usdsPerpetual"))
+        XCTAssertTrue(futuresOutput.contains("action:submit"))
+        XCTAssertTrue(futuresOutput.contains("action:cancel"))
+
+        let omsOutput = try ReleaseV0320ControlledProductionCanaryOperations.commandLineOutput(
+            arguments: [ReleaseV0320ControlledProductionCanaryOperations.cliCommand, "oms"]
+        )
+        XCTAssertTrue(omsOutput.contains("eventLogAppendOnly=true"))
+        XCTAssertTrue(omsOutput.contains("reconciliationReplayable=true"))
+        XCTAssertTrue(omsOutput.contains("rollbackArtifactReady=true"))
+        XCTAssertTrue(omsOutput.contains("rawSecretPersisted=false"))
+
+        let dashboardSurface = ReleaseV0320DashboardCLICanaryStatusSurface()
+        let dashboardReport = dashboardSurface.reportLines.joined(separator: "\n")
+        XCTAssertTrue(dashboardSurface.boundaryHeld)
+        XCTAssertTrue(dashboardReport.contains("dashboardBoundary=read-only-canary-status"))
+        XCTAssertTrue(dashboardReport.contains("tradingButtonVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("orderFormVisible=false"))
+        XCTAssertTrue(dashboardReport.contains("uiCanBypassRisk=false"))
+        XCTAssertTrue(dashboardReport.contains("uiCanBypassKillSwitch=false"))
+
+        XCTAssertThrowsError(
+            try ReleaseV0320ControlledProductionCanaryOperations.commandLineOutput(
+                arguments: [ReleaseV0320ControlledProductionCanaryOperations.cliCommand, "production-cutover"]
+            )
+        )
+
+        let expectedFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0320ControlledProductionCanaryOperations.swift",
+            "Sources/Dashboard/Report/ReleaseV0320DashboardCLICanaryStatusSurface.swift",
+            "Sources/MTPROCLI/main.swift",
+            "Tests/TargetGraphTests/TargetGraphTests.swift",
+            "checks/verify-v0.32.0.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "docs/audit/mtpro-release-v0.32.0-binance-controlled-production-canary-operations-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.32.0-binance-controlled-production-canary-operations-notes.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/trading-validation-matrix.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "verification.md"
+        ]
+
+        for file in expectedFiles {
+            let source = try read(file)
+            for anchor in ReleaseV0320ControlledProductionCanaryOperations.requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+    }
+
     private struct UnsafeConstructOccurrence {
         let relativePath: String
         let lineNumber: Int
