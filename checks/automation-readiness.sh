@@ -15594,4 +15594,62 @@ require_contains "README.md" "decision=blocked"
 require_contains "GOAL.md" "productionTradingEnabledByDefault=false"
 require_contains "BLUEPRINT.md" "productionCutoverAuthorized=false"
 
+# GH-1499-VERIFY-V0311-RELEASE-PUBLICATION-GATE
+# GH-1500-VERIFY-V0311-ENDPOINT-ALLOWLIST-METHOD-HOST-PATH
+# GH-1501-VERIFY-V0311-APPROVAL-SCOPE-EXPIRY-POLICY
+# GH-1502-VERIFY-V0311-PERSISTENT-RUN-LOCK-REPLAY
+# GH-1503-VERIFY-V0311-EVIDENCE-ROOT-ARTIFACT-VALIDATION
+# GH-1504-VERIFY-V0311-RISK-GATE-NEGATIVE-INPUTS
+# GH-1505-VERIFY-V0311-NEGATIVE-REGRESSION-MATRIX
+# GH-1506-VERIFY-V0311-V0310-PUBLICATION-FACTS
+# GH-1507-VERIFY-V0311-STAGE-AUDIT-RELEASE-NOTES
+# TVM-RELEASE-V0311-CONTROLLED-ENABLEMENT-INTEGRITY-REPAIR
+# V0311-001-RELEASE-PUBLICATION-AFTER-FULL-MATRIX
+# V0311-002-ENDPOINT-METHOD-HOST-PATH-PRODUCT-FAMILY
+# V0311-003-APPROVAL-SCOPE-EXPIRY-SOURCE-POLICY
+# V0311-004-PERSISTENT-RUN-LOCK-REPLAY-PROTECTION
+# V0311-005-EVIDENCE-ROOT-ARTIFACT-VALIDATION
+# V0311-006-RISK-GATE-NEGATIVE-INPUTS
+# V0311-007-NEGATIVE-REGRESSION-MATRIX
+# V0311-008-V0310-PUBLICATION-FACTS
+# V0311-009-STAGE-AUDIT-RELEASE-NOTES
+require_file "checks/verify-v0.31.1.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0311ControlledEnablementIntegrityRepair.swift"
+require_file "docs/audit/mtpro-release-v0.31.1-controlled-enablement-integrity-publication-gate-repair-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.31.1-controlled-enablement-integrity-publication-gate-repair-notes.md"
+require_contains "checks/run.sh" "bash checks/verify-v0.31.1.sh"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0311ControlledEnablementIntegrityRepair.cliCommand"
+require_contains ".github/workflows/checks.yml" "release_publication_checks:"
+require_contains ".github/workflows/checks.yml" "GH-1499-VERIFY-V0311-RELEASE-PUBLICATION-GATE"
+
+# GH-1508-VERIFY-V0320-CANARY-OPERATIONS-CONTRACT
+# GH-1509-VERIFY-V0320-HUMAN-APPROVED-ENABLEMENT-BUNDLE
+# GH-1510-VERIFY-V0320-STRICT-SIZE-CAP-FINAL-GATE
+# GH-1511-VERIFY-V0320-SPOT-CANARY-SUBMIT-STATUS-CANCEL
+# GH-1512-VERIFY-V0320-FUTURES-CANARY-SUBMIT-STATUS-CANCEL
+# GH-1513-VERIFY-V0320-OMS-RECONCILIATION-ROLLBACK
+# GH-1514-VERIFY-V0320-KILL-NOTRADE-INCIDENT-STOP
+# GH-1515-VERIFY-V0320-DASHBOARD-CLI-CANARY-STATUS
+# GH-1516-VERIFY-V0320-AGGREGATE-VALIDATION-SUITE
+# GH-1517-VERIFY-V0320-STAGE-AUDIT-RELEASE-DOCS
+# TVM-RELEASE-V0320-BINANCE-CONTROLLED-PRODUCTION-CANARY-OPERATIONS
+# V0320-001-CANARY-OPERATIONS-CONTRACT
+# V0320-002-HUMAN-APPROVED-ENABLEMENT-BUNDLE
+# V0320-003-STRICT-SIZE-CAP-FINAL-GATE
+# V0320-004-SPOT-CANARY-SUBMIT-STATUS-CANCEL
+# V0320-005-FUTURES-CANARY-SUBMIT-STATUS-CANCEL
+# V0320-006-OMS-RECONCILIATION-ROLLBACK
+# V0320-007-KILL-NOTRADE-INCIDENT-STOP
+# V0320-008-DASHBOARD-CLI-CANARY-STATUS
+# V0320-009-AGGREGATE-VALIDATION-SUITE
+# V0320-010-STAGE-AUDIT-RELEASE-DOCS
+require_file "checks/verify-v0.32.0.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0320ControlledProductionCanaryOperations.swift"
+require_file "Sources/Dashboard/Report/ReleaseV0320DashboardCLICanaryStatusSurface.swift"
+require_file "docs/audit/mtpro-release-v0.32.0-binance-controlled-production-canary-operations-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.32.0-binance-controlled-production-canary-operations-notes.md"
+require_contains "checks/run.sh" "bash checks/verify-v0.32.0.sh"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0320ControlledProductionCanaryOperations.cliCommand"
+require_contains "Sources/Dashboard/Report/ReleaseV0320DashboardCLICanaryStatusSurface.swift" "dashboardBoundary=read-only-canary-status"
+
 printf 'MTPRO automation readiness checks passed.\n'

@@ -27,6 +27,46 @@ import Portfolio
 // V0310-008-IMMUTABLE-AUDIT-BUNDLE
 // V0310-009-READONLY-STATUS-SURFACE
 // V0310-010-STAGE-AUDIT-RELEASE-DOCS
+// GH-1499-VERIFY-V0311-RELEASE-PUBLICATION-GATE
+// GH-1500-VERIFY-V0311-ENDPOINT-ALLOWLIST-METHOD-HOST-PATH
+// GH-1501-VERIFY-V0311-APPROVAL-SCOPE-EXPIRY-POLICY
+// GH-1502-VERIFY-V0311-PERSISTENT-RUN-LOCK-REPLAY
+// GH-1503-VERIFY-V0311-EVIDENCE-ROOT-ARTIFACT-VALIDATION
+// GH-1504-VERIFY-V0311-RISK-GATE-NEGATIVE-INPUTS
+// GH-1505-VERIFY-V0311-NEGATIVE-REGRESSION-MATRIX
+// GH-1506-VERIFY-V0311-V0310-PUBLICATION-FACTS
+// GH-1507-VERIFY-V0311-STAGE-AUDIT-RELEASE-NOTES
+// TVM-RELEASE-V0311-CONTROLLED-ENABLEMENT-INTEGRITY-REPAIR
+// V0311-001-RELEASE-PUBLICATION-AFTER-FULL-MATRIX
+// V0311-002-ENDPOINT-METHOD-HOST-PATH-PRODUCT-FAMILY
+// V0311-003-APPROVAL-SCOPE-EXPIRY-SOURCE-POLICY
+// V0311-004-PERSISTENT-RUN-LOCK-REPLAY-PROTECTION
+// V0311-005-EVIDENCE-ROOT-ARTIFACT-VALIDATION
+// V0311-006-RISK-GATE-NEGATIVE-INPUTS
+// V0311-007-NEGATIVE-REGRESSION-MATRIX
+// V0311-008-V0310-PUBLICATION-FACTS
+// V0311-009-STAGE-AUDIT-RELEASE-NOTES
+// GH-1508-VERIFY-V0320-CANARY-OPERATIONS-CONTRACT
+// GH-1509-VERIFY-V0320-HUMAN-APPROVED-ENABLEMENT-BUNDLE
+// GH-1510-VERIFY-V0320-STRICT-SIZE-CAP-FINAL-GATE
+// GH-1511-VERIFY-V0320-SPOT-CANARY-SUBMIT-STATUS-CANCEL
+// GH-1512-VERIFY-V0320-FUTURES-CANARY-SUBMIT-STATUS-CANCEL
+// GH-1513-VERIFY-V0320-OMS-RECONCILIATION-ROLLBACK
+// GH-1514-VERIFY-V0320-KILL-NOTRADE-INCIDENT-STOP
+// GH-1515-VERIFY-V0320-DASHBOARD-CLI-CANARY-STATUS
+// GH-1516-VERIFY-V0320-AGGREGATE-VALIDATION-SUITE
+// GH-1517-VERIFY-V0320-STAGE-AUDIT-RELEASE-DOCS
+// TVM-RELEASE-V0320-BINANCE-CONTROLLED-PRODUCTION-CANARY-OPERATIONS
+// V0320-001-CANARY-OPERATIONS-CONTRACT
+// V0320-002-HUMAN-APPROVED-ENABLEMENT-BUNDLE
+// V0320-003-STRICT-SIZE-CAP-FINAL-GATE
+// V0320-004-SPOT-CANARY-SUBMIT-STATUS-CANCEL
+// V0320-005-FUTURES-CANARY-SUBMIT-STATUS-CANCEL
+// V0320-006-OMS-RECONCILIATION-ROLLBACK
+// V0320-007-KILL-NOTRADE-INCIDENT-STOP
+// V0320-008-DASHBOARD-CLI-CANARY-STATUS
+// V0320-009-AGGREGATE-VALIDATION-SUITE
+// V0320-010-STAGE-AUDIT-RELEASE-DOCS
 
 do {
     let arguments = Array(CommandLine.arguments.dropFirst())
@@ -323,6 +363,8 @@ private enum MTPROStrictCLI {
         ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand,
         ReleaseV0300ObservedProductionShadowRun.cliCommand,
         ReleaseV0310ControlledProductionEnablementGate.cliCommand,
+        ReleaseV0311ControlledEnablementIntegrityRepair.cliCommand,
+        ReleaseV0320ControlledProductionCanaryOperations.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -360,6 +402,8 @@ private enum MTPROStrictCLI {
         ReleaseV0290ProductionDryRunShadowAcceptance.cliCommand,
         ReleaseV0300ObservedProductionShadowRun.cliCommand,
         ReleaseV0310ControlledProductionEnablementGate.cliCommand,
+        ReleaseV0311ControlledEnablementIntegrityRepair.cliCommand,
+        ReleaseV0320ControlledProductionCanaryOperations.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -445,6 +489,10 @@ private enum MTPROStrictCLI {
             return try ReleaseV0300ObservedProductionShadowRun.commandLineOutput(arguments: arguments)
         case ReleaseV0310ControlledProductionEnablementGate.cliCommand:
             return try ReleaseV0310ControlledProductionEnablementGate.commandLineOutput(arguments: arguments)
+        case ReleaseV0311ControlledEnablementIntegrityRepair.cliCommand:
+            return try ReleaseV0311ControlledEnablementIntegrityRepair.commandLineOutput(arguments: arguments)
+        case ReleaseV0320ControlledProductionCanaryOperations.cliCommand:
+            return try ReleaseV0320ControlledProductionCanaryOperations.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:

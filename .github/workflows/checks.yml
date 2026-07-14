@@ -148,6 +148,9 @@ jobs:
           # V0181-002-DASHBOARD-MACOS-JOB-EVIDENCE
           # V0181-002-PR-FAST-NOT-PUBLICATION-EVIDENCE
           # V0181-002-NO-PRODUCTION-CUTOVER
+          # GH-1499-VERIFY-V0311-RELEASE-PUBLICATION-GATE
+          # TVM-RELEASE-V0311-CONTROLLED-ENABLEMENT-INTEGRITY-REPAIR
+          # V0311-001-RELEASE-PUBLICATION-AFTER-FULL-MATRIX
           echo "MTPRO release publication matrix: workflow=${{ github.workflow }} run_id=${{ github.run_id }} run_attempt=${{ github.run_attempt }}"
           echo "MTPRO release publication workflow job ids: pr_fast_checks linux_checks dashboard_macos release_publication_checks"
           echo "MTPRO release publication job results: pr-fast-checks=${{ needs.pr_fast_checks.result }} linux-checks=${{ needs.linux_checks.result }} dashboard-macos=${{ needs.dashboard_macos.result }}"
