@@ -31,6 +31,16 @@ actor, source commit, required job, artifact identity, and checksum matches. Obs
 is derived only from the checksum-bound complete Spot and USD-M Futures submit/status/cancel set.
 Any self-reported observed-canary boolean in the export is rejected.
 
+### Atomic persistent run lock (V0323-003)
+
+`GH-1537-IMPLEMENT-ATOMIC-PERSISTENT-RUN-LOCK-REGISTRY`,
+`TVM-RELEASE-V0323-PERSISTENT-RUN-LOCK-REGISTRY`, and
+`V0323-003-PERSISTENT-RUN-LOCK-REGISTRY` require the lock decision to come from filesystem state.
+`ReleaseV0323PersistentRunLockStore` atomically creates the run lock directory, persists owner and
+nonce metadata, writes a checksum-protected registry, and permanently retains consumed run IDs and
+nonces for replay queries. Release and stale recovery verify owner/nonce identity and update the
+registry; missing or corrupted registry data fails closed. Manifest booleans do not participate.
+
 ## Gate
 
 Until every required repair area is implemented and verified:

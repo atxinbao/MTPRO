@@ -72020,6 +72020,170 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(source.contains("V0323-002-TRUSTED-GITHUB-PROVENANCE"))
     }
 
+    // GH-1537-IMPLEMENT-ATOMIC-PERSISTENT-RUN-LOCK-REGISTRY
+    // TVM-RELEASE-V0323-PERSISTENT-RUN-LOCK-REGISTRY
+    // V0323-003-PERSISTENT-RUN-LOCK-REGISTRY
+    func testGH1537PersistentRunLockUsesFilesystemRegistryAndFailsClosed() async throws {
+        let sourceCommit = "1234567890abcdef1234567890abcdef12345678"
+        let baseRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "v0323-lock-store-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        addTeardownBlock { try? FileManager.default.removeItem(at: baseRoot) }
+
+        let store = ReleaseV0323PersistentRunLockStore(storageRoot: baseRoot)
+        let acquired = try store.acquire(
+            runID: "run-primary",
+            ownerID: "operator-primary",
+            nonce: "nonce-primary",
+            sourceCommit: sourceCommit,
+            acquiredAtEpochSeconds: 1_787_100_000
+        )
+        XCTAssertEqual(acquired.state, .active)
+        XCTAssertEqual(try store.replayRecord(runID: "run-primary"), acquired)
+        XCTAssertTrue(try store.registryDocument().checksumHeld)
+
+        XCTAssertThrowsError(
+            try store.release(
+                runID: "run-primary",
+                ownerID: "wrong-owner",
+                nonce: "nonce-primary",
+                releasedAtEpochSeconds: 1_787_100_010
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0323PersistentRunLockStoreError,
+                .wrongOwner(expected: "operator-primary", actual: "wrong-owner")
+            )
+        }
+        XCTAssertThrowsError(
+            try store.acquire(
+                runID: "run-secondary",
+                ownerID: "operator-secondary",
+                nonce: "nonce-primary",
+                sourceCommit: sourceCommit,
+                acquiredAtEpochSeconds: 1_787_100_020
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0323PersistentRunLockStoreError,
+                .duplicateNonce("nonce-primary")
+            )
+        }
+
+        let released = try store.release(
+            runID: "run-primary",
+            ownerID: "operator-primary",
+            nonce: "nonce-primary",
+            releasedAtEpochSeconds: 1_787_100_030
+        )
+        XCTAssertEqual(released.state, .released)
+        XCTAssertThrowsError(
+            try store.acquire(
+                runID: "run-primary",
+                ownerID: "operator-new",
+                nonce: "nonce-new",
+                sourceCommit: sourceCommit,
+                acquiredAtEpochSeconds: 1_787_100_040
+            )
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0323PersistentRunLockStoreError,
+                .replayRejected("run-primary")
+            )
+        }
+
+        let staleRoot = baseRoot.appendingPathComponent("stale", isDirectory: true)
+        let staleStore = ReleaseV0323PersistentRunLockStore(storageRoot: staleRoot)
+        _ = try staleStore.acquire(
+            runID: "run-stale",
+            ownerID: "operator-stale",
+            nonce: "nonce-stale",
+            sourceCommit: sourceCommit,
+            acquiredAtEpochSeconds: 1_787_100_000
+        )
+        XCTAssertThrowsError(
+            try staleStore.recoverStaleLock(
+                runID: "run-stale",
+                requestingOwnerID: "recovery-operator",
+                recoveredAtEpochSeconds: 1_787_100_005,
+                staleAfterSeconds: 10
+            )
+        )
+        let recovered = try staleStore.recoverStaleLock(
+            runID: "run-stale",
+            requestingOwnerID: "recovery-operator",
+            recoveredAtEpochSeconds: 1_787_100_020,
+            staleAfterSeconds: 10
+        )
+        XCTAssertEqual(recovered.state, .staleRecovered)
+        XCTAssertEqual(recovered.recoveredByOwnerID, "recovery-operator")
+        XCTAssertEqual(try staleStore.replayRecord(runID: "run-stale"), recovered)
+
+        let missingStore = ReleaseV0323PersistentRunLockStore(
+            storageRoot: baseRoot.appendingPathComponent("missing", isDirectory: true)
+        )
+        XCTAssertThrowsError(try missingStore.replayRecord(runID: "missing")) { error in
+            XCTAssertEqual(error as? ReleaseV0323PersistentRunLockStoreError, .missingRegistry)
+        }
+
+        let corruptRoot = baseRoot.appendingPathComponent("corrupt", isDirectory: true)
+        let corruptStore = ReleaseV0323PersistentRunLockStore(storageRoot: corruptRoot)
+        _ = try corruptStore.acquire(
+            runID: "run-corrupt",
+            ownerID: "operator-corrupt",
+            nonce: "nonce-corrupt",
+            sourceCommit: sourceCommit,
+            acquiredAtEpochSeconds: 1_787_100_000
+        )
+        try Data("not-json".utf8).write(to: corruptRoot.appendingPathComponent("registry.json"), options: .atomic)
+        XCTAssertThrowsError(try corruptStore.registryDocument()) { error in
+            XCTAssertEqual(error as? ReleaseV0323PersistentRunLockStoreError, .corruptedRegistry)
+        }
+
+        let concurrentRoot = baseRoot.appendingPathComponent("concurrent", isDirectory: true)
+        let outcomes = await withTaskGroup(of: Bool.self, returning: [Bool].self) { group in
+            for index in 0..<8 {
+                group.addTask {
+                    do {
+                        _ = try ReleaseV0323PersistentRunLockStore(storageRoot: concurrentRoot).acquire(
+                            runID: "run-concurrent",
+                            ownerID: "operator-\(index)",
+                            nonce: "nonce-\(index)",
+                            sourceCommit: sourceCommit,
+                            acquiredAtEpochSeconds: 1_787_100_100 + index
+                        )
+                        return true
+                    } catch {
+                        return false
+                    }
+                }
+            }
+            var results: [Bool] = []
+            for await result in group {
+                results.append(result)
+            }
+            return results
+        }
+        XCTAssertEqual(outcomes.filter { $0 }.count, 1)
+        XCTAssertEqual(
+            try ReleaseV0323PersistentRunLockStore(storageRoot: concurrentRoot)
+                .replayRecord(runID: "run-concurrent").state,
+            .active
+        )
+
+        let source = try String(
+            contentsOf: URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+                .appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ReleaseV0323PersistentRunLockStore.swift"
+                ),
+            encoding: .utf8
+        )
+        XCTAssertTrue(source.contains("GH-1537-IMPLEMENT-ATOMIC-PERSISTENT-RUN-LOCK-REGISTRY"))
+        XCTAssertTrue(source.contains("TVM-RELEASE-V0323-PERSISTENT-RUN-LOCK-REGISTRY"))
+        XCTAssertTrue(source.contains("V0323-003-PERSISTENT-RUN-LOCK-REGISTRY"))
+    }
+
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
     // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
     // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS
