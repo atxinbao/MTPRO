@@ -365,6 +365,24 @@ private enum MTPROStrictCLI {
         ReleaseV0310ControlledProductionEnablementGate.cliCommand,
         ReleaseV0311ControlledEnablementIntegrityRepair.cliCommand,
         ReleaseV0320ControlledProductionCanaryOperations.cliCommand,
+        // GH-1519-VERIFY-V0321-ACCEPTANCE-SEMANTICS-PUBLICATION-FACTS
+        // GH-1520-VERIFY-V0321-EVIDENCE-ROOT-MANIFEST-SHA256
+        // GH-1521-VERIFY-V0321-APPROVAL-SCOPE-RUN-LOCK
+        // GH-1522-VERIFY-V0321-CAP-VALIDATION-NEGATIVE-MATRIX
+        // GH-1523-VERIFY-V0321-UNIQUE-SPOT-FUTURES-ARTIFACT-SETS
+        // GH-1524-VERIFY-V0321-OMS-RECONCILIATION-ROLLBACK-INCIDENT-LINKAGE
+        // GH-1525-VERIFY-V0321-FULL-MATRIX-BEFORE-RELEASE
+        // GH-1526-VERIFY-V0321-AGGREGATE-STAGE-AUDIT-RELEASE-DOCS
+        // TVM-RELEASE-V0321-CONTROLLED-CANARY-INTEGRITY-PUBLICATION-GATE-REPAIR
+        // V0321-001-ACCEPTANCE-SEMANTICS-PUBLICATION-FACTS
+        // V0321-002-EVIDENCE-ROOT-MANIFEST-SHA256
+        // V0321-003-APPROVAL-SCOPE-RUN-LOCK
+        // V0321-004-CAP-VALIDATION-NEGATIVE-MATRIX
+        // V0321-005-UNIQUE-SPOT-FUTURES-ARTIFACT-SETS
+        // V0321-006-OMS-RECONCILIATION-ROLLBACK-INCIDENT-LINKAGE
+        // V0321-007-FULL-MATRIX-BEFORE-RELEASE
+        // V0321-008-AGGREGATE-STAGE-AUDIT-RELEASE-DOCS
+        ReleaseV0321ControlledCanaryIntegrityRepair.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -404,6 +422,7 @@ private enum MTPROStrictCLI {
         ReleaseV0310ControlledProductionEnablementGate.cliCommand,
         ReleaseV0311ControlledEnablementIntegrityRepair.cliCommand,
         ReleaseV0320ControlledProductionCanaryOperations.cliCommand,
+        ReleaseV0321ControlledCanaryIntegrityRepair.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -493,6 +512,8 @@ private enum MTPROStrictCLI {
             return try ReleaseV0311ControlledEnablementIntegrityRepair.commandLineOutput(arguments: arguments)
         case ReleaseV0320ControlledProductionCanaryOperations.cliCommand:
             return try ReleaseV0320ControlledProductionCanaryOperations.commandLineOutput(arguments: arguments)
+        case ReleaseV0321ControlledCanaryIntegrityRepair.cliCommand:
+            return try ReleaseV0321ControlledCanaryIntegrityRepair.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
