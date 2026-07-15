@@ -18,6 +18,19 @@ v0.32.3 is a patch-only integrity repair. It must replace self-reported evidence
 5. `complete-negative-matrix`: cover concurrent acquire, corruption, wrong ownership, replay, path escape, and missing or mismatched linked artifacts.
 6. `binance-only-documentation`: keep the active runtime scope limited to Binance Spot and USD-M Futures.
 
+### Trusted GitHub provenance export (V0323-002)
+
+`GH-1536-FETCH-TRUSTED-GITHUB-RUN-ARTIFACT-PROVENANCE` requires provenance to be loaded
+through `ReleaseV0323TrustedGitHubProvenanceLoader`. The caller must obtain the export SHA256,
+run and artifact identity, artifact archive SHA256, and operation bundle SHA256 from a trusted
+GitHub API, attestation, or protected workflow channel. The export file cannot establish its own trust.
+
+`TVM-RELEASE-V0323-TRUSTED-GITHUB-PROVENANCE` and
+`V0323-002-TRUSTED-GITHUB-PROVENANCE` require exact repository, workflow, run ID, run attempt,
+actor, source commit, required job, artifact identity, and checksum matches. Observed canary evidence
+is derived only from the checksum-bound complete Spot and USD-M Futures submit/status/cancel set.
+Any self-reported observed-canary boolean in the export is rejected.
+
 ## Gate
 
 Until every required repair area is implemented and verified:
