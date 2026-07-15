@@ -15652,4 +15652,36 @@ require_contains "checks/run.sh" "bash checks/verify-v0.32.0.sh"
 require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0320ControlledProductionCanaryOperations.cliCommand"
 require_contains "Sources/Dashboard/Report/ReleaseV0320DashboardCLICanaryStatusSurface.swift" "dashboardBoundary=read-only-canary-status"
 
+# GH-1519-VERIFY-V0321-ACCEPTANCE-SEMANTICS-PUBLICATION-FACTS
+# GH-1520-VERIFY-V0321-EVIDENCE-ROOT-MANIFEST-SHA256
+# GH-1521-VERIFY-V0321-APPROVAL-SCOPE-RUN-LOCK
+# GH-1522-VERIFY-V0321-CAP-VALIDATION-NEGATIVE-MATRIX
+# GH-1523-VERIFY-V0321-UNIQUE-SPOT-FUTURES-ARTIFACT-SETS
+# GH-1524-VERIFY-V0321-OMS-RECONCILIATION-ROLLBACK-INCIDENT-LINKAGE
+# GH-1525-VERIFY-V0321-FULL-MATRIX-BEFORE-RELEASE
+# GH-1526-VERIFY-V0321-AGGREGATE-STAGE-AUDIT-RELEASE-DOCS
+# TVM-RELEASE-V0321-CONTROLLED-CANARY-INTEGRITY-PUBLICATION-GATE-REPAIR
+# V0321-001-ACCEPTANCE-SEMANTICS-PUBLICATION-FACTS
+# V0321-002-EVIDENCE-ROOT-MANIFEST-SHA256
+# V0321-003-APPROVAL-SCOPE-RUN-LOCK
+# V0321-004-CAP-VALIDATION-NEGATIVE-MATRIX
+# V0321-005-UNIQUE-SPOT-FUTURES-ARTIFACT-SETS
+# V0321-006-OMS-RECONCILIATION-ROLLBACK-INCIDENT-LINKAGE
+# V0321-007-FULL-MATRIX-BEFORE-RELEASE
+# V0321-008-AGGREGATE-STAGE-AUDIT-RELEASE-DOCS
+require_file "checks/verify-v0.32.1.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0321ControlledCanaryIntegrityRepair.swift"
+require_file "docs/audit/mtpro-release-v0.32.1-controlled-canary-integrity-publication-gate-repair-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.32.1-controlled-canary-integrity-publication-gate-repair-notes.md"
+require_contains "checks/run.sh" "bash checks/verify-v0.32.1.sh"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0321ControlledCanaryIntegrityRepair.cliCommand"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0321ControlledCanaryIntegrityRepair.commandLineOutput"
+require_contains ".github/workflows/checks.yml" "GH-1525-VERIFY-V0321-FULL-MATRIX-BEFORE-RELEASE"
+require_contains ".github/workflows/checks.yml" "release-publication-checks="
+require_contains "checks/verify-v0.32.1.sh" "controlled-canary-integrity-repair status --artifact-root"
+require_contains "README.md" "acceptanceDecision=blocked-observed-production-canary-missing"
+require_contains "GOAL.md" "observedProductionCanary=false"
+require_contains "BLUEPRINT.md" "releaseCreatedAfterFullMatrix=true"
+require_contains "verification.md" "bash checks/verify-v0.32.1.sh"
+
 printf 'MTPRO automation readiness checks passed.\n'
