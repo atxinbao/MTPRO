@@ -71841,6 +71841,289 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
+    // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
+    // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS
+    // GH-1531-VERIFY-V0322-ATOMIC-RUN-LOCK-REPLAY-REGISTRY
+    // GH-1532-VERIFY-V0322-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE
+    // GH-1533-VERIFY-V0322-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT
+    // TVM-RELEASE-V0322-CONTROLLED-CANARY-INTEGRITY-CLOSURE-PATCH
+    // V0322-001-RELEASE-CREATION-BEHIND-FULL-MATRIX
+    // V0322-002-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
+    // V0322-003-COMMIT-CLOCK-APPROVAL-FRESHNESS
+    // V0322-004-ATOMIC-RUN-LOCK-REPLAY-REGISTRY
+    // V0322-005-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE
+    // V0322-006-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT
+    func testGH1528To1533ReleaseV0322ControlledCanaryIntegrityClosurePatch() throws {
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let sourceCommit = "96c1d8d48c8da50f02dffe4100896f1795828cad"
+        let context = ReleaseV0322TrustedEvaluationContext(
+            expectedRepository: "atxinbao/MTPRO",
+            expectedWorkflowName: "AEP Checks",
+            expectedHeadSHA: sourceCommit,
+            expectedSourceCommit: sourceCommit,
+            expectedPolicyVersion: ReleaseV0322ControlledCanaryIntegrityClosurePatch.policyVersion,
+            trustedEvaluationEpochSeconds: 1_787_000_000,
+            maxArtifactAgeSeconds: 86_400
+        )
+
+        let evidenceRoot = try gh1532WriteV0322EvidenceRoot(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: evidenceRoot) }
+
+        let report = try ReleaseV0322ControlledCanaryIntegrityClosurePatch.validate(
+            evidenceRoot: evidenceRoot,
+            context: context
+        )
+        XCTAssertEqual(report.release, "v0.32.2")
+        XCTAssertTrue(report.publicationGateHeld)
+        XCTAssertTrue(report.trustedProvenanceHeld)
+        XCTAssertTrue(report.freshnessHeld)
+        XCTAssertTrue(report.runLockHeld)
+        XCTAssertTrue(report.semanticArtifactLinkageHeld)
+        XCTAssertTrue(report.selfReportedObservedProductionCanaryIgnored)
+        XCTAssertFalse(report.observedProductionCanary)
+        XCTAssertEqual(report.acceptanceDecision, .blockedTrustedObservedCanaryMissing)
+        XCTAssertEqual(report.backendClosureDecision, "blocked")
+        XCTAssertFalse(report.productionCutoverAuthorized)
+        XCTAssertTrue(report.boundaryHeld)
+
+        let cliOutput = try ReleaseV0322ControlledCanaryIntegrityClosurePatch.commandLineOutput(
+            arguments: [
+                ReleaseV0322ControlledCanaryIntegrityClosurePatch.cliCommand,
+                "status",
+                "--artifact-root",
+                evidenceRoot.path,
+                "--expected-commit",
+                sourceCommit,
+                "--trusted-now",
+                "\(context.trustedEvaluationEpochSeconds)"
+            ]
+        )
+        XCTAssertTrue(cliOutput.contains("release=v0.32.2"))
+        XCTAssertTrue(cliOutput.contains("selfReportedObservedProductionCanaryIgnored=true"))
+        XCTAssertTrue(cliOutput.contains("observedProductionCanary=false"))
+        XCTAssertTrue(cliOutput.contains("backendClosureDecision=blocked"))
+        XCTAssertTrue(cliOutput.contains("boundaryHeld=true"))
+
+        let publicationOutput = try ReleaseV0322ControlledCanaryIntegrityClosurePatch.commandLineOutput(
+            arguments: [
+                ReleaseV0322ControlledCanaryIntegrityClosurePatch.cliCommand,
+                "publication",
+                "--artifact-root",
+                evidenceRoot.path,
+                "--expected-commit",
+                sourceCommit,
+                "--trusted-now",
+                "\(context.trustedEvaluationEpochSeconds)"
+            ]
+        )
+        XCTAssertTrue(publicationOutput.contains("releaseCreationBehindFullMatrix=true"))
+        XCTAssertTrue(publicationOutput.contains("failureCanceledMissingStaleRunCreatesRelease=false"))
+
+        let failedPublicationRoot = try gh1532WriteV0322EvidenceRoot(sourceCommit: sourceCommit) { manifest in
+            ReleaseV0322ClosureManifest(
+                release: manifest.release,
+                runID: manifest.runID,
+                sourceCommit: manifest.sourceCommit,
+                policyVersion: manifest.policyVersion,
+                observedProductionCanarySelfReport: manifest.observedProductionCanarySelfReport,
+                trustedObservedProductionCanaryEvidence: manifest.trustedObservedProductionCanaryEvidence,
+                provenance: manifest.provenance,
+                publication: ReleaseV0322PublicationGateRecord(
+                    tagName: manifest.publication.tagName,
+                    tagSHA: manifest.publication.tagSHA,
+                    releasePublishedAtEpochSeconds: manifest.publication.releasePublishedAtEpochSeconds,
+                    prFastChecks: manifest.publication.prFastChecks,
+                    linuxChecks: ReleaseV0322WorkflowJobConclusion(
+                        jobName: "linux-checks",
+                        conclusion: .failed,
+                        completedAtEpochSeconds: 1_786_000_120
+                    ),
+                    dashboardMacOS: manifest.publication.dashboardMacOS,
+                    releasePublicationChecks: manifest.publication.releasePublicationChecks,
+                    releaseCreationOwnedByFinalPublicationJob: manifest.publication.releaseCreationOwnedByFinalPublicationJob,
+                    previousV0321EarlyPublicationFindingRecorded: manifest.publication.previousV0321EarlyPublicationFindingRecorded
+                ),
+                approval: manifest.approval,
+                runLock: manifest.runLock,
+                artifacts: manifest.artifacts
+            )
+        }
+        defer { try? FileManager.default.removeItem(at: failedPublicationRoot) }
+        let failedPublicationReport = try ReleaseV0322ControlledCanaryIntegrityClosurePatch.validate(
+            evidenceRoot: failedPublicationRoot,
+            context: context
+        )
+        XCTAssertFalse(failedPublicationReport.publicationGateHeld)
+        XCTAssertEqual(failedPublicationReport.acceptanceDecision, .blockedPublicationGateIncomplete)
+
+        let wrongRepoRoot = try gh1532WriteV0322EvidenceRoot(sourceCommit: sourceCommit) { manifest in
+            ReleaseV0322ClosureManifest(
+                release: manifest.release,
+                runID: manifest.runID,
+                sourceCommit: manifest.sourceCommit,
+                policyVersion: manifest.policyVersion,
+                observedProductionCanarySelfReport: true,
+                trustedObservedProductionCanaryEvidence: manifest.trustedObservedProductionCanaryEvidence,
+                provenance: ReleaseV0322TrustedWorkflowProvenance(
+                    repository: "example/not-mtpro",
+                    workflowName: manifest.provenance.workflowName,
+                    runID: manifest.provenance.runID,
+                    runAttempt: manifest.provenance.runAttempt,
+                    headSHA: manifest.provenance.headSHA,
+                    actor: manifest.provenance.actor,
+                    environment: manifest.provenance.environment,
+                    createdAtEpochSeconds: manifest.provenance.createdAtEpochSeconds,
+                    completedAtEpochSeconds: manifest.provenance.completedAtEpochSeconds,
+                    jobs: manifest.provenance.jobs
+                ),
+                publication: manifest.publication,
+                approval: manifest.approval,
+                runLock: manifest.runLock,
+                artifacts: manifest.artifacts
+            )
+        }
+        defer { try? FileManager.default.removeItem(at: wrongRepoRoot) }
+        let wrongRepoReport = try ReleaseV0322ControlledCanaryIntegrityClosurePatch.validate(
+            evidenceRoot: wrongRepoRoot,
+            context: context
+        )
+        XCTAssertFalse(wrongRepoReport.trustedProvenanceHeld)
+        XCTAssertEqual(wrongRepoReport.acceptanceDecision, .blockedTrustedProvenanceInvalid)
+
+        let expiredApprovalRoot = try gh1532WriteV0322EvidenceRoot(sourceCommit: sourceCommit) { manifest in
+            ReleaseV0322ClosureManifest(
+                release: manifest.release,
+                runID: manifest.runID,
+                sourceCommit: manifest.sourceCommit,
+                policyVersion: manifest.policyVersion,
+                observedProductionCanarySelfReport: manifest.observedProductionCanarySelfReport,
+                trustedObservedProductionCanaryEvidence: manifest.trustedObservedProductionCanaryEvidence,
+                provenance: manifest.provenance,
+                publication: manifest.publication,
+                approval: ReleaseV0322ApprovalFreshnessRecord(
+                    approvalID: manifest.approval.approvalID,
+                    operatorIdentity: manifest.approval.operatorIdentity,
+                    scope: manifest.approval.scope,
+                    issuedAtEpochSeconds: manifest.approval.issuedAtEpochSeconds,
+                    expiresAtEpochSeconds: 1_786_000_500,
+                    evidenceCreatedAtEpochSeconds: manifest.approval.evidenceCreatedAtEpochSeconds,
+                    sourceCommit: manifest.approval.sourceCommit,
+                    policyVersion: manifest.approval.policyVersion
+                ),
+                runLock: manifest.runLock,
+                artifacts: manifest.artifacts
+            )
+        }
+        defer { try? FileManager.default.removeItem(at: expiredApprovalRoot) }
+        let expiredApprovalReport = try ReleaseV0322ControlledCanaryIntegrityClosurePatch.validate(
+            evidenceRoot: expiredApprovalRoot,
+            context: context
+        )
+        XCTAssertFalse(expiredApprovalReport.freshnessHeld)
+        XCTAssertEqual(expiredApprovalReport.acceptanceDecision, .blockedFreshnessInvalid)
+
+        let replayRoot = try gh1532WriteV0322EvidenceRoot(sourceCommit: sourceCommit) { manifest in
+            ReleaseV0322ClosureManifest(
+                release: manifest.release,
+                runID: manifest.runID,
+                sourceCommit: manifest.sourceCommit,
+                policyVersion: manifest.policyVersion,
+                observedProductionCanarySelfReport: manifest.observedProductionCanarySelfReport,
+                trustedObservedProductionCanaryEvidence: manifest.trustedObservedProductionCanaryEvidence,
+                provenance: manifest.provenance,
+                publication: manifest.publication,
+                approval: manifest.approval,
+                runLock: ReleaseV0322PersistentRunLockRecord(
+                    runID: manifest.runLock.runID,
+                    nonce: manifest.runLock.nonce,
+                    sourceCommit: manifest.runLock.sourceCommit,
+                    policyVersion: manifest.runLock.policyVersion,
+                    acquiredAtomically: true,
+                    persistedToDisk: true,
+                    registryRecordedNonce: true,
+                    duplicateRunRejected: false,
+                    replayAttemptRejected: true,
+                    staleLockRecoveryAudited: true
+                ),
+                artifacts: manifest.artifacts
+            )
+        }
+        defer { try? FileManager.default.removeItem(at: replayRoot) }
+        let replayReport = try ReleaseV0322ControlledCanaryIntegrityClosurePatch.validate(
+            evidenceRoot: replayRoot,
+            context: context
+        )
+        XCTAssertFalse(replayReport.runLockHeld)
+        XCTAssertEqual(replayReport.acceptanceDecision, .blockedRunLockInvalid)
+
+        let mismatchedArtifactRoot = try gh1532WriteV0322EvidenceRoot(sourceCommit: sourceCommit) { manifest in
+            var artifacts = manifest.artifacts
+            artifacts[0] = ReleaseV0322OperationArtifactRecord(
+                relativePath: artifacts[0].relativePath,
+                sha256: artifacts[0].sha256,
+                byteCount: artifacts[0].byteCount,
+                product: artifacts[0].product,
+                action: artifacts[0].action,
+                sequence: artifacts[0].sequence,
+                eventID: "wrong-event",
+                idempotencyKey: artifacts[0].idempotencyKey,
+                omsEventID: artifacts[0].omsEventID,
+                reconciliationID: artifacts[0].reconciliationID,
+                rollbackID: artifacts[0].rollbackID,
+                incidentID: artifacts[0].incidentID
+            )
+            return ReleaseV0322ClosureManifest(
+                release: manifest.release,
+                runID: manifest.runID,
+                sourceCommit: manifest.sourceCommit,
+                policyVersion: manifest.policyVersion,
+                observedProductionCanarySelfReport: manifest.observedProductionCanarySelfReport,
+                trustedObservedProductionCanaryEvidence: manifest.trustedObservedProductionCanaryEvidence,
+                provenance: manifest.provenance,
+                publication: manifest.publication,
+                approval: manifest.approval,
+                runLock: manifest.runLock,
+                artifacts: artifacts
+            )
+        }
+        defer { try? FileManager.default.removeItem(at: mismatchedArtifactRoot) }
+        XCTAssertThrowsError(
+            try ReleaseV0322ControlledCanaryIntegrityClosurePatch.validate(
+                evidenceRoot: mismatchedArtifactRoot,
+                context: context
+            )
+        )
+
+        let expectedFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0322ControlledCanaryIntegrityClosurePatch.swift",
+            "Sources/MTPROCLI/main.swift",
+            "Tests/TargetGraphTests/TargetGraphTests.swift",
+            "checks/verify-v0.32.2.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            ".github/workflows/checks.yml",
+            "docs/audit/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-notes.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/trading-validation-matrix.md",
+            "README.md",
+            "GOAL.md",
+            "verification.md"
+        ]
+
+        for file in expectedFiles {
+            let source = try read(file)
+            for anchor in ReleaseV0322ControlledCanaryIntegrityClosurePatch.requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+    }
+
     // GH-1519-VERIFY-V0321-ACCEPTANCE-SEMANTICS-PUBLICATION-FACTS
     // GH-1520-VERIFY-V0321-EVIDENCE-ROOT-MANIFEST-SHA256
     // GH-1521-VERIFY-V0321-APPROVAL-SCOPE-RUN-LOCK
@@ -72019,6 +72302,155 @@ final class TargetGraphTests: XCTestCase {
                 XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
             }
         }
+    }
+
+    private func gh1532WriteV0322EvidenceRoot(
+        sourceCommit: String,
+        transform: (ReleaseV0322ClosureManifest) -> ReleaseV0322ClosureManifest = { $0 }
+    ) throws -> URL {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "mtpro-v0322-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+
+        let runID = "v0322-run-controlled-canary-integrity"
+        func writeArtifact(
+            _ relativePath: String,
+            product: ReleaseV0310Product,
+            action: ReleaseV0320CanaryAction,
+            sequence: Int
+        ) throws -> ReleaseV0322OperationArtifactRecord {
+            let eventID = "event-\(product.rawValue)-\(action.rawValue)-\(sequence)"
+            let idempotencyKey = "v0322-\(product.rawValue)-\(action.rawValue)-idempotency-\(sequence)"
+            let content = ReleaseV0322OperationArtifactContent(
+                runID: runID,
+                product: product,
+                action: action,
+                sequence: sequence,
+                eventID: eventID,
+                idempotencyKey: idempotencyKey,
+                sourceCommit: sourceCommit,
+                policyVersion: ReleaseV0322ControlledCanaryIntegrityClosurePatch.policyVersion,
+                timestampEpochSeconds: 1_786_000_500 + sequence,
+                omsEventID: "oms-\(product.rawValue)-\(action.rawValue)-\(sequence)",
+                reconciliationID: "reconcile-\(product.rawValue)-\(action.rawValue)-\(sequence)",
+                rollbackID: "rollback-\(product.rawValue)-\(action.rawValue)-\(sequence)",
+                incidentID: "incident-stop-\(product.rawValue)-\(action.rawValue)-\(sequence)"
+            )
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            let data = try encoder.encode(content)
+            let url = root.appendingPathComponent(relativePath)
+            try FileManager.default.createDirectory(
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try data.write(to: url)
+            return ReleaseV0322OperationArtifactRecord(
+                relativePath: relativePath,
+                sha256: ReleaseV0322ControlledCanaryIntegrityClosurePatch.sha256Hex(for: data),
+                byteCount: data.count,
+                product: product,
+                action: action,
+                sequence: sequence,
+                eventID: eventID,
+                idempotencyKey: idempotencyKey,
+                omsEventID: content.omsEventID,
+                reconciliationID: content.reconciliationID,
+                rollbackID: content.rollbackID,
+                incidentID: content.incidentID
+            )
+        }
+
+        let prFast = ReleaseV0322WorkflowJobConclusion(
+            jobName: "pr-fast-checks",
+            conclusion: .passed,
+            completedAtEpochSeconds: 1_786_000_100
+        )
+        let linux = ReleaseV0322WorkflowJobConclusion(
+            jobName: "linux-checks",
+            conclusion: .passed,
+            completedAtEpochSeconds: 1_786_000_200
+        )
+        let dashboard = ReleaseV0322WorkflowJobConclusion(
+            jobName: "dashboard-macos",
+            conclusion: .passed,
+            completedAtEpochSeconds: 1_786_000_300
+        )
+        let publication = ReleaseV0322WorkflowJobConclusion(
+            jobName: "release-publication-checks",
+            conclusion: .passed,
+            completedAtEpochSeconds: 1_786_000_400
+        )
+
+        let manifest = ReleaseV0322ClosureManifest(
+            release: "v0.32.2",
+            runID: runID,
+            sourceCommit: sourceCommit,
+            policyVersion: ReleaseV0322ControlledCanaryIntegrityClosurePatch.policyVersion,
+            observedProductionCanarySelfReport: true,
+            trustedObservedProductionCanaryEvidence: false,
+            provenance: ReleaseV0322TrustedWorkflowProvenance(
+                repository: "atxinbao/MTPRO",
+                workflowName: "AEP Checks",
+                runID: 32_200_001,
+                runAttempt: 1,
+                headSHA: sourceCommit,
+                actor: "github-actions[bot]",
+                environment: "github-actions",
+                createdAtEpochSeconds: 1_786_000_000,
+                completedAtEpochSeconds: 1_786_000_450,
+                jobs: [prFast, linux, dashboard, publication]
+            ),
+            publication: ReleaseV0322PublicationGateRecord(
+                tagName: "v0.32.2",
+                tagSHA: sourceCommit,
+                releasePublishedAtEpochSeconds: 1_786_000_500,
+                prFastChecks: prFast,
+                linuxChecks: linux,
+                dashboardMacOS: dashboard,
+                releasePublicationChecks: publication,
+                releaseCreationOwnedByFinalPublicationJob: true,
+                previousV0321EarlyPublicationFindingRecorded: true
+            ),
+            approval: ReleaseV0322ApprovalFreshnessRecord(
+                approvalID: "human_v0322_controlled_canary_integrity",
+                operatorIdentity: "operator-redacted",
+                scope: "controlled-canary-integrity-closure",
+                issuedAtEpochSeconds: 1_785_999_900,
+                expiresAtEpochSeconds: 1_787_003_600,
+                evidenceCreatedAtEpochSeconds: 1_786_999_500,
+                sourceCommit: sourceCommit,
+                policyVersion: ReleaseV0322ControlledCanaryIntegrityClosurePatch.policyVersion
+            ),
+            runLock: ReleaseV0322PersistentRunLockRecord(
+                runID: runID,
+                nonce: "v0322-nonce-redacted",
+                sourceCommit: sourceCommit,
+                policyVersion: ReleaseV0322ControlledCanaryIntegrityClosurePatch.policyVersion,
+                acquiredAtomically: true,
+                persistedToDisk: true,
+                registryRecordedNonce: true,
+                duplicateRunRejected: true,
+                replayAttemptRejected: true,
+                staleLockRecoveryAudited: true
+            ),
+            artifacts: [
+                try writeArtifact("operations/spot-submit.json", product: .spot, action: .submit, sequence: 1),
+                try writeArtifact("operations/spot-status.json", product: .spot, action: .status, sequence: 2),
+                try writeArtifact("operations/spot-cancel.json", product: .spot, action: .cancel, sequence: 3),
+                try writeArtifact("operations/futures-submit.json", product: .usdsPerpetual, action: .submit, sequence: 4),
+                try writeArtifact("operations/futures-status.json", product: .usdsPerpetual, action: .status, sequence: 5),
+                try writeArtifact("operations/futures-cancel.json", product: .usdsPerpetual, action: .cancel, sequence: 6)
+            ]
+        )
+
+        let transformedManifest = transform(manifest)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try encoder.encode(transformedManifest).write(to: root.appendingPathComponent("manifest.json"))
+        return root
     }
 
     private func gh1520WriteV0321EvidenceRoot(
