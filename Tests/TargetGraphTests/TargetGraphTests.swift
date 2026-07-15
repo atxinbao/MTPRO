@@ -71841,6 +71841,46 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    // GH-1535-DEFINE-V0323-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR-CONTRACT
+    // TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR
+    // V0323-001-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR-CONTRACT
+    func testGH1535ReleaseV0323PersistentEvidenceIntegrityRepairContract() throws {
+        let contract = ReleaseV0323ControlledCanaryPersistentEvidenceIntegrityRepairContract()
+
+        XCTAssertEqual(contract.release, "v0.32.3")
+        XCTAssertEqual(contract.blockedRelease, "v0.33.0")
+        XCTAssertEqual(
+            Set(contract.requiredRequirements),
+            Set(ReleaseV0323IntegrityRequirement.allCases)
+        )
+        XCTAssertEqual(contract.requiredRequirements.count, 6)
+        XCTAssertEqual(contract.backendClosureDecision, "blocked")
+        XCTAssertFalse(contract.observedProductionCanaryAuthorized)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+        XCTAssertFalse(contract.selfReportedManifestTrusted)
+        XCTAssertFalse(contract.defaultProductionTradingEnabled)
+        XCTAssertFalse(contract.okxActiveRuntimeEnabled)
+        XCTAssertFalse(contract.dashboardTradingControlsEnabled)
+        XCTAssertTrue(contract.boundaryHeld)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let expectedFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0323ControlledCanaryPersistentEvidenceIntegrityRepairContract.swift",
+            "docs/contracts/release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-contract.md",
+            "Tests/TargetGraphTests/TargetGraphTests.swift",
+        ]
+
+        for file in expectedFiles {
+            let source = try String(
+                contentsOf: repositoryRoot.appendingPathComponent(file),
+                encoding: .utf8
+            )
+            for anchor in ReleaseV0323ControlledCanaryPersistentEvidenceIntegrityRepairContract.requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+    }
+
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
     // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
     // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS
