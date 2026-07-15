@@ -71881,6 +71881,145 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    // GH-1536-FETCH-TRUSTED-GITHUB-RUN-ARTIFACT-PROVENANCE
+    // TVM-RELEASE-V0323-TRUSTED-GITHUB-PROVENANCE
+    // V0323-002-TRUSTED-GITHUB-PROVENANCE
+    func testGH1536TrustedGitHubProvenanceRejectsManifestSelfReportingAndIdentityDrift() throws {
+        let sourceCommit = "0123456789abcdef0123456789abcdef01234567"
+        let artifactArchiveSHA256 = "sha256:" + String(repeating: "a", count: 64)
+        let operationBundleSHA256 = "sha256:" + String(repeating: "b", count: 64)
+        let requiredOperations = ReleaseV0323TrustedGitHubProvenanceLoader.requiredOperations
+            .sorted { lhs, rhs in
+                "\(lhs.product.rawValue)-\(lhs.action.rawValue)" < "\(rhs.product.rawValue)-\(rhs.action.rawValue)"
+            }
+        let jobs = ReleaseV0323TrustedGitHubProvenanceLoader.requiredJobNames.sorted().map { name in
+            ReleaseV0322WorkflowJobConclusion(
+                jobName: name,
+                conclusion: .passed,
+                completedAtEpochSeconds: 1_787_000_100
+            )
+        }
+
+        func makeExport(
+            repository: String = "atxinbao/MTPRO",
+            workflowName: String = "AEP Checks",
+            runID: Int = 32_300_002,
+            headSHA: String = sourceCommit,
+            actor: String = "github-actions[bot]",
+            artifactArchiveSHA256: String = artifactArchiveSHA256,
+            operationBundleSHA256: String = operationBundleSHA256,
+            jobs: [ReleaseV0322WorkflowJobConclusion] = jobs,
+            observedOperations: [ReleaseV0323ObservedOperation] = requiredOperations,
+            selfReportedObservedCanary: Bool? = nil
+        ) -> ReleaseV0323TrustedGitHubProvenanceExport {
+            ReleaseV0323TrustedGitHubProvenanceExport(
+                repository: repository,
+                workflowName: workflowName,
+                runID: runID,
+                runAttempt: 1,
+                headSHA: headSHA,
+                actor: actor,
+                runAPIURL: "https://api.github.com/repos/\(repository)/actions/runs/\(runID)",
+                artifactID: 32_300_102,
+                artifactName: "v0323-controlled-canary-provenance",
+                artifactAPIURL: "https://api.github.com/repos/\(repository)/actions/artifacts/32300102",
+                artifactArchiveSHA256: artifactArchiveSHA256,
+                operationBundleSHA256: operationBundleSHA256,
+                createdAtEpochSeconds: 1_787_000_000,
+                completedAtEpochSeconds: 1_787_000_200,
+                jobs: jobs,
+                observedOperations: observedOperations,
+                observedProductionCanary: selfReportedObservedCanary
+            )
+        }
+
+        let expectation = ReleaseV0323TrustedGitHubProvenanceExpectation(
+            repository: "atxinbao/MTPRO",
+            workflowName: "AEP Checks",
+            runID: 32_300_002,
+            runAttempt: 1,
+            headSHA: sourceCommit,
+            actor: "github-actions[bot]",
+            artifactID: 32_300_102,
+            artifactName: "v0323-controlled-canary-provenance",
+            artifactArchiveSHA256: artifactArchiveSHA256,
+            operationBundleSHA256: operationBundleSHA256,
+            trustedEvaluationEpochSeconds: 1_787_000_300,
+            maxArtifactAgeSeconds: 600
+        )
+
+        func write(_ export: ReleaseV0323TrustedGitHubProvenanceExport) throws -> (URL, String) {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.sortedKeys]
+            let data = try encoder.encode(export)
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent(
+                "v0323-provenance-\(UUID().uuidString).json"
+            )
+            try data.write(to: url, options: .atomic)
+            return (url, ReleaseV0323TrustedGitHubProvenanceLoader.sha256Hex(for: data))
+        }
+
+        func assertRejected(
+            _ export: ReleaseV0323TrustedGitHubProvenanceExport,
+            expectation overriddenExpectation: ReleaseV0323TrustedGitHubProvenanceExpectation? = nil
+        ) throws {
+            let (url, checksum) = try write(export)
+            defer { try? FileManager.default.removeItem(at: url) }
+            XCTAssertThrowsError(
+                try ReleaseV0323TrustedGitHubProvenanceLoader.loadVerifiedExport(
+                    from: url,
+                    expectedExportSHA256: checksum,
+                    expectation: overriddenExpectation ?? expectation
+                )
+            )
+        }
+
+        let (validURL, validChecksum) = try write(makeExport())
+        defer { try? FileManager.default.removeItem(at: validURL) }
+        let report = try ReleaseV0323TrustedGitHubProvenanceLoader.loadVerifiedExport(
+            from: validURL,
+            expectedExportSHA256: validChecksum,
+            expectation: expectation
+        )
+        XCTAssertTrue(report.exportChecksumVerified)
+        XCTAssertTrue(report.identityVerified)
+        XCTAssertTrue(report.requiredJobsPassed)
+        XCTAssertTrue(report.operationBundleChecksumVerified)
+        XCTAssertTrue(report.trustedObservedProductionCanaryEvidence)
+        XCTAssertFalse(report.selfReportedObservedProductionCanaryAccepted)
+        XCTAssertFalse(report.productionCutoverAuthorized)
+        XCTAssertTrue(report.boundaryHeld)
+
+        XCTAssertThrowsError(
+            try ReleaseV0323TrustedGitHubProvenanceLoader.loadVerifiedExport(
+                from: validURL,
+                expectedExportSHA256: "sha256:" + String(repeating: "0", count: 64),
+                expectation: expectation
+            )
+        )
+        try assertRejected(makeExport(repository: "forged/MTPRO"))
+        try assertRejected(makeExport(workflowName: "Forged Workflow"))
+        try assertRejected(makeExport(runID: 99))
+        try assertRejected(makeExport(headSHA: String(repeating: "f", count: 40)))
+        try assertRejected(makeExport(actor: "forged-actor"))
+        try assertRejected(makeExport(artifactArchiveSHA256: ""))
+        try assertRejected(makeExport(operationBundleSHA256: ""))
+        try assertRejected(makeExport(jobs: Array(jobs.dropLast())))
+        try assertRejected(makeExport(observedOperations: Array(requiredOperations.dropLast())))
+        try assertRejected(makeExport(selfReportedObservedCanary: true))
+
+        let source = try String(
+            contentsOf: URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+                .appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ReleaseV0323TrustedGitHubProvenance.swift"
+                ),
+            encoding: .utf8
+        )
+        XCTAssertTrue(source.contains("GH-1536-FETCH-TRUSTED-GITHUB-RUN-ARTIFACT-PROVENANCE"))
+        XCTAssertTrue(source.contains("TVM-RELEASE-V0323-TRUSTED-GITHUB-PROVENANCE"))
+        XCTAssertTrue(source.contains("V0323-002-TRUSTED-GITHUB-PROVENANCE"))
+    }
+
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
     // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
     // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS
