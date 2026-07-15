@@ -27,7 +27,23 @@ name: AEP Checks
 # V0321-006-OMS-RECONCILIATION-ROLLBACK-INCIDENT-LINKAGE
 # V0321-007-FULL-MATRIX-BEFORE-RELEASE
 # V0321-008-AGGREGATE-STAGE-AUDIT-RELEASE-DOCS
+# GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
+# GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
+# GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS
+# GH-1531-VERIFY-V0322-ATOMIC-RUN-LOCK-REPLAY-REGISTRY
+# GH-1532-VERIFY-V0322-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE
+# GH-1533-VERIFY-V0322-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT
+# TVM-RELEASE-V0322-CONTROLLED-CANARY-INTEGRITY-CLOSURE-PATCH
+# V0322-001-RELEASE-CREATION-BEHIND-FULL-MATRIX
+# V0322-002-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
+# V0322-003-COMMIT-CLOCK-APPROVAL-FRESHNESS
+# V0322-004-ATOMIC-RUN-LOCK-REPLAY-REGISTRY
+# V0322-005-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE
+# V0322-006-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT
 # CI-NO-PRODUCTION-CUTOVER
+
+permissions:
+  contents: write
 
 on:
   pull_request:
@@ -156,6 +172,8 @@ jobs:
     if: ${{ always() && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/heads/release/')) }}
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Aggregate release publication matrix evidence
         run: |
           # GH-1201-VERIFY-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE
@@ -173,6 +191,19 @@ jobs:
           # TVM-RELEASE-V0321-CONTROLLED-CANARY-INTEGRITY-PUBLICATION-GATE-REPAIR
           # V0321-007-FULL-MATRIX-BEFORE-RELEASE
           # V0321-008-AGGREGATE-STAGE-AUDIT-RELEASE-DOCS
+          # GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
+          # GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
+          # GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS
+          # GH-1531-VERIFY-V0322-ATOMIC-RUN-LOCK-REPLAY-REGISTRY
+          # GH-1532-VERIFY-V0322-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE
+          # GH-1533-VERIFY-V0322-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT
+          # TVM-RELEASE-V0322-CONTROLLED-CANARY-INTEGRITY-CLOSURE-PATCH
+          # V0322-001-RELEASE-CREATION-BEHIND-FULL-MATRIX
+          # V0322-002-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
+          # V0322-003-COMMIT-CLOCK-APPROVAL-FRESHNESS
+          # V0322-004-ATOMIC-RUN-LOCK-REPLAY-REGISTRY
+          # V0322-005-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE
+          # V0322-006-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT
           echo "MTPRO release publication matrix: workflow=${{ github.workflow }} run_id=${{ github.run_id }} run_attempt=${{ github.run_attempt }}"
           echo "MTPRO release publication workflow job ids: pr_fast_checks linux_checks dashboard_macos release_publication_checks"
           echo "MTPRO release publication job results: pr-fast-checks=${{ needs.pr_fast_checks.result }} linux-checks=${{ needs.linux_checks.result }} dashboard-macos=${{ needs.dashboard_macos.result }}"
@@ -190,6 +221,25 @@ jobs:
           test "${{ needs.pr_fast_checks.result }}" = "success"
           test "${{ needs.linux_checks.result }}" = "success"
           test "${{ needs.dashboard_macos.result }}" = "success"
+
+      - name: Publish v0.32.2 release after full matrix
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/tags/v0.32.2' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
+          # TVM-RELEASE-V0322-CONTROLLED-CANARY-INTEGRITY-CLOSURE-PATCH
+          # V0322-001-RELEASE-CREATION-BEHIND-FULL-MATRIX
+          notes="docs/release/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-notes.md"
+          test -f "$notes"
+          if gh release view "v0.32.2" >/dev/null 2>&1; then
+            echo "MTPRO v0.32.2 release already exists after full matrix; not recreating."
+          else
+            gh release create "v0.32.2" \
+              --target "${GITHUB_SHA}" \
+              --title "MTPRO v0.32.2 Controlled Canary Integrity Closure Patch" \
+              --notes-file "$notes"
+          fi
 
   checks:
     name: checks

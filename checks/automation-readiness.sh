@@ -15683,5 +15683,31 @@ require_contains "README.md" "acceptanceDecision=blocked-observed-production-can
 require_contains "GOAL.md" "observedProductionCanary=false"
 require_contains "BLUEPRINT.md" "releaseCreatedAfterFullMatrix=true"
 require_contains "verification.md" "bash checks/verify-v0.32.1.sh"
+# GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
+# GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
+# GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS
+# GH-1531-VERIFY-V0322-ATOMIC-RUN-LOCK-REPLAY-REGISTRY
+# GH-1532-VERIFY-V0322-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE
+# GH-1533-VERIFY-V0322-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT
+# TVM-RELEASE-V0322-CONTROLLED-CANARY-INTEGRITY-CLOSURE-PATCH
+# V0322-001-RELEASE-CREATION-BEHIND-FULL-MATRIX
+# V0322-002-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
+# V0322-003-COMMIT-CLOCK-APPROVAL-FRESHNESS
+# V0322-004-ATOMIC-RUN-LOCK-REPLAY-REGISTRY
+# V0322-005-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE
+# V0322-006-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT
+require_file "checks/verify-v0.32.2.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0322ControlledCanaryIntegrityClosurePatch.swift"
+require_file "docs/audit/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-notes.md"
+require_contains "checks/run.sh" "bash checks/verify-v0.32.2.sh"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0322ControlledCanaryIntegrityClosurePatch.cliCommand"
+require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0322ControlledCanaryIntegrityClosurePatch.commandLineOutput"
+require_contains ".github/workflows/checks.yml" "GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX"
+require_contains ".github/workflows/checks.yml" "Publish v0.32.2 release after full matrix"
+require_contains "checks/verify-v0.32.2.sh" "swift test --filter TargetGraphTests/testGH1528To1533ReleaseV0322ControlledCanaryIntegrityClosurePatch"
+require_contains "README.md" "acceptanceDecision=blocked-trusted-observed-canary-missing"
+require_contains "GOAL.md" "backendClosureDecision=blocked"
+require_contains "verification.md" "bash checks/verify-v0.32.2.sh"
 
 printf 'MTPRO automation readiness checks passed.\n'
