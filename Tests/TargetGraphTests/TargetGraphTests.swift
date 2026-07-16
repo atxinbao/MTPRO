@@ -72184,6 +72184,214 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(source.contains("V0323-003-PERSISTENT-RUN-LOCK-REGISTRY"))
     }
 
+    // GH-1538-ADD-INDEPENDENT-CANARY-ARTIFACT-GRAPH
+    // TVM-RELEASE-V0323-INDEPENDENT-CANARY-ARTIFACT-GRAPH
+    // V0323-004-INDEPENDENT-CANARY-ARTIFACT-GRAPH
+    func testGH1538IndependentCanaryArtifactsRequireChecksumsAndReverseReferences() throws {
+        let sourceCommit = "234567890abcdef1234567890abcdef123456789"
+        let trustedNow = 1_787_200_500
+
+        func validate(_ fixture: (root: URL, records: [ReleaseV0323OperationArtifactRecord])) throws
+            -> ReleaseV0323IndependentArtifactGraphReport
+        {
+            try ReleaseV0323IndependentCanaryArtifactGraphValidator.validate(
+                evidenceRoot: fixture.root,
+                operationRecords: fixture.records,
+                expectedRunID: "v0323-observed-canary-run",
+                expectedSourceCommit: sourceCommit,
+                trustedEvaluationEpochSeconds: trustedNow,
+                maxArtifactAgeSeconds: 600
+            )
+        }
+
+        func rewriteFirstLinkedArtifact(
+            fixture: (root: URL, records: [ReleaseV0323OperationArtifactRecord]),
+            kind: ReleaseV0323LinkedArtifactKind,
+            transform: (ReleaseV0323IndependentLinkedArtifact) -> ReleaseV0323IndependentLinkedArtifact
+        ) throws -> [ReleaseV0323OperationArtifactRecord] {
+            var records = fixture.records
+            let operationURL = fixture.root.appendingPathComponent(records[0].relativePath)
+            var operation = try JSONDecoder().decode(
+                ReleaseV0323OperationArtifact.self,
+                from: Data(contentsOf: operationURL)
+            )
+            guard let linkIndex = operation.linkedArtifacts.firstIndex(where: { $0.kind == kind }) else {
+                return records
+            }
+            var links = operation.linkedArtifacts
+            let linkedURL = fixture.root.appendingPathComponent(links[linkIndex].relativePath)
+            let linked = try JSONDecoder().decode(
+                ReleaseV0323IndependentLinkedArtifact.self,
+                from: Data(contentsOf: linkedURL)
+            )
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            let changedLinkedData = try encoder.encode(transform(linked))
+            try changedLinkedData.write(to: linkedURL, options: .atomic)
+            links[linkIndex] = ReleaseV0323LinkedArtifactReference(
+                kind: links[linkIndex].kind,
+                artifactID: links[linkIndex].artifactID,
+                relativePath: links[linkIndex].relativePath,
+                sha256: ReleaseV0323IndependentCanaryArtifactGraphValidator.sha256Hex(for: changedLinkedData)
+            )
+            operation = ReleaseV0323OperationArtifact(
+                semantic: operation.semantic,
+                semanticSHA256: operation.semanticSHA256,
+                linkedArtifacts: links
+            )
+            let changedOperationData = try encoder.encode(operation)
+            try changedOperationData.write(to: operationURL, options: .atomic)
+            records[0] = ReleaseV0323OperationArtifactRecord(
+                relativePath: records[0].relativePath,
+                sha256: ReleaseV0323IndependentCanaryArtifactGraphValidator.sha256Hex(for: changedOperationData),
+                byteCount: changedOperationData.count
+            )
+            return records
+        }
+
+        let valid = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: valid.root) }
+        let report = try validate(valid)
+        XCTAssertEqual(report.operationCount, 6)
+        XCTAssertEqual(report.linkedArtifactCount, 24)
+        XCTAssertTrue(report.checksumsVerified)
+        XCTAssertTrue(report.reverseReferencesVerified)
+        XCTAssertTrue(report.completeArtifactKindsVerified)
+        XCTAssertFalse(report.productionCutoverAuthorized)
+        XCTAssertTrue(report.boundaryHeld)
+
+        let missingRollback = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: missingRollback.root) }
+        let firstOperation = try JSONDecoder().decode(
+            ReleaseV0323OperationArtifact.self,
+            from: Data(contentsOf: missingRollback.root.appendingPathComponent(missingRollback.records[0].relativePath))
+        )
+        let rollback = try XCTUnwrap(firstOperation.linkedArtifacts.first { $0.kind == .rollback })
+        try FileManager.default.removeItem(at: missingRollback.root.appendingPathComponent(rollback.relativePath))
+        XCTAssertThrowsError(try validate(missingRollback)) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0323IndependentArtifactGraphError,
+                .missingArtifact(rollback.relativePath)
+            )
+        }
+
+        let missingIncident = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: missingIncident.root) }
+        let incidentOperation = try JSONDecoder().decode(
+            ReleaseV0323OperationArtifact.self,
+            from: Data(contentsOf: missingIncident.root.appendingPathComponent(missingIncident.records[0].relativePath))
+        )
+        let incident = try XCTUnwrap(incidentOperation.linkedArtifacts.first { $0.kind == .incident })
+        try FileManager.default.removeItem(at: missingIncident.root.appendingPathComponent(incident.relativePath))
+        XCTAssertThrowsError(try validate(missingIncident))
+
+        let checksumMismatch = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: checksumMismatch.root) }
+        let checksumOperation = try JSONDecoder().decode(
+            ReleaseV0323OperationArtifact.self,
+            from: Data(contentsOf: checksumMismatch.root.appendingPathComponent(checksumMismatch.records[0].relativePath))
+        )
+        let oms = try XCTUnwrap(checksumOperation.linkedArtifacts.first { $0.kind == .oms })
+        try Data("tampered".utf8).write(to: checksumMismatch.root.appendingPathComponent(oms.relativePath), options: .atomic)
+        XCTAssertThrowsError(try validate(checksumMismatch))
+
+        let oneWay = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: oneWay.root) }
+        let oneWayRecords = try rewriteFirstLinkedArtifact(fixture: oneWay, kind: .reconciliation) { artifact in
+            ReleaseV0323IndependentLinkedArtifact(
+                artifactID: artifact.artifactID,
+                kind: artifact.kind,
+                runID: artifact.runID,
+                product: artifact.product,
+                action: artifact.action,
+                operationEventID: "wrong-event",
+                operationRelativePath: artifact.operationRelativePath,
+                operationSemanticSHA256: artifact.operationSemanticSHA256,
+                sourceCommit: artifact.sourceCommit,
+                createdAtEpochSeconds: artifact.createdAtEpochSeconds,
+                status: artifact.status
+            )
+        }
+        XCTAssertThrowsError(try validate((oneWay.root, oneWayRecords)))
+
+        let wrongProduct = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: wrongProduct.root) }
+        let wrongProductRecords = try rewriteFirstLinkedArtifact(fixture: wrongProduct, kind: .oms) { artifact in
+            ReleaseV0323IndependentLinkedArtifact(
+                artifactID: artifact.artifactID,
+                kind: artifact.kind,
+                runID: artifact.runID,
+                product: artifact.product == .spot ? .usdsPerpetual : .spot,
+                action: artifact.action,
+                operationEventID: artifact.operationEventID,
+                operationRelativePath: artifact.operationRelativePath,
+                operationSemanticSHA256: artifact.operationSemanticSHA256,
+                sourceCommit: artifact.sourceCommit,
+                createdAtEpochSeconds: artifact.createdAtEpochSeconds,
+                status: artifact.status
+            )
+        }
+        XCTAssertThrowsError(try validate((wrongProduct.root, wrongProductRecords)))
+
+        let stale = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: stale.root) }
+        let staleRecords = try rewriteFirstLinkedArtifact(fixture: stale, kind: .incident) { artifact in
+            ReleaseV0323IndependentLinkedArtifact(
+                artifactID: artifact.artifactID,
+                kind: artifact.kind,
+                runID: artifact.runID,
+                product: artifact.product,
+                action: artifact.action,
+                operationEventID: artifact.operationEventID,
+                operationRelativePath: artifact.operationRelativePath,
+                operationSemanticSHA256: artifact.operationSemanticSHA256,
+                sourceCommit: artifact.sourceCommit,
+                createdAtEpochSeconds: trustedNow - 601,
+                status: artifact.status
+            )
+        }
+        XCTAssertThrowsError(try validate((stale.root, staleRecords)))
+
+        let idsOnly = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: idsOnly.root) }
+        var idsOnlyRecords = idsOnly.records
+        let idsOnlyURL = idsOnly.root.appendingPathComponent(idsOnlyRecords[0].relativePath)
+        let idsOnlyContent = ReleaseV0322OperationArtifactContent(
+            runID: "v0323-observed-canary-run",
+            product: .spot,
+            action: .submit,
+            sequence: 1,
+            eventID: "string-ids-only",
+            idempotencyKey: "string-ids-only",
+            sourceCommit: sourceCommit,
+            policyVersion: "v0323",
+            timestampEpochSeconds: trustedNow,
+            omsEventID: "oms-id",
+            reconciliationID: "reconciliation-id",
+            rollbackID: "rollback-id",
+            incidentID: "incident-id"
+        )
+        let idsOnlyData = try JSONEncoder().encode(idsOnlyContent)
+        try idsOnlyData.write(to: idsOnlyURL, options: .atomic)
+        idsOnlyRecords[0] = ReleaseV0323OperationArtifactRecord(
+            relativePath: idsOnlyRecords[0].relativePath,
+            sha256: ReleaseV0323IndependentCanaryArtifactGraphValidator.sha256Hex(for: idsOnlyData),
+            byteCount: idsOnlyData.count
+        )
+        XCTAssertThrowsError(try validate((idsOnly.root, idsOnlyRecords)))
+
+        let source = try String(
+            contentsOf: URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+                .appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ReleaseV0323IndependentCanaryArtifactGraph.swift"
+                ),
+            encoding: .utf8
+        )
+        XCTAssertTrue(source.contains("GH-1538-ADD-INDEPENDENT-CANARY-ARTIFACT-GRAPH"))
+        XCTAssertTrue(source.contains("TVM-RELEASE-V0323-INDEPENDENT-CANARY-ARTIFACT-GRAPH"))
+        XCTAssertTrue(source.contains("V0323-004-INDEPENDENT-CANARY-ARTIFACT-GRAPH"))
+    }
+
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
     // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
     // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS
@@ -72645,6 +72853,95 @@ final class TargetGraphTests: XCTestCase {
                 XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
             }
         }
+    }
+
+    private func gh1538WriteV0323ArtifactGraph(
+        sourceCommit: String
+    ) throws -> (root: URL, records: [ReleaseV0323OperationArtifactRecord]) {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "mtpro-v0323-artifact-graph-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let runID = "v0323-observed-canary-run"
+        var sequence = 0
+        var records: [ReleaseV0323OperationArtifactRecord] = []
+
+        for product in ReleaseV0310Product.allCases {
+            for action in ReleaseV0320CanaryAction.allCases {
+                sequence += 1
+                let operationRelativePath = "operations/\(product.rawValue)-\(action.rawValue).json"
+                let semantic = ReleaseV0323OperationSemanticPayload(
+                    runID: runID,
+                    product: product,
+                    action: action,
+                    sequence: sequence,
+                    eventID: "event-\(product.rawValue)-\(action.rawValue)",
+                    idempotencyKey: "idempotency-\(product.rawValue)-\(action.rawValue)",
+                    sourceCommit: sourceCommit,
+                    createdAtEpochSeconds: 1_787_200_100 + sequence
+                )
+                let semanticSHA256 = try ReleaseV0323IndependentCanaryArtifactGraphValidator
+                    .semanticSHA256(for: semantic)
+                var references: [ReleaseV0323LinkedArtifactReference] = []
+
+                for kind in ReleaseV0323LinkedArtifactKind.allCases {
+                    let artifactID = "\(kind.rawValue)-\(product.rawValue)-\(action.rawValue)"
+                    let relativePath = "linked/\(kind.rawValue)/\(product.rawValue)-\(action.rawValue).json"
+                    let linked = ReleaseV0323IndependentLinkedArtifact(
+                        artifactID: artifactID,
+                        kind: kind,
+                        runID: runID,
+                        product: product,
+                        action: action,
+                        operationEventID: semantic.eventID,
+                        operationRelativePath: operationRelativePath,
+                        operationSemanticSHA256: semanticSHA256,
+                        sourceCommit: sourceCommit,
+                        createdAtEpochSeconds: 1_787_200_200 + sequence,
+                        status: "verified-\(kind.rawValue)"
+                    )
+                    let data = try encoder.encode(linked)
+                    let url = root.appendingPathComponent(relativePath)
+                    try FileManager.default.createDirectory(
+                        at: url.deletingLastPathComponent(),
+                        withIntermediateDirectories: true
+                    )
+                    try data.write(to: url, options: .atomic)
+                    references.append(
+                        ReleaseV0323LinkedArtifactReference(
+                            kind: kind,
+                            artifactID: artifactID,
+                            relativePath: relativePath,
+                            sha256: ReleaseV0323IndependentCanaryArtifactGraphValidator.sha256Hex(for: data)
+                        )
+                    )
+                }
+
+                let operation = ReleaseV0323OperationArtifact(
+                    semantic: semantic,
+                    semanticSHA256: semanticSHA256,
+                    linkedArtifacts: references
+                )
+                let operationData = try encoder.encode(operation)
+                let operationURL = root.appendingPathComponent(operationRelativePath)
+                try FileManager.default.createDirectory(
+                    at: operationURL.deletingLastPathComponent(),
+                    withIntermediateDirectories: true
+                )
+                try operationData.write(to: operationURL, options: .atomic)
+                records.append(
+                    ReleaseV0323OperationArtifactRecord(
+                        relativePath: operationRelativePath,
+                        sha256: ReleaseV0323IndependentCanaryArtifactGraphValidator.sha256Hex(for: operationData),
+                        byteCount: operationData.count
+                    )
+                )
+            }
+        }
+        return (root, records)
     }
 
     private func gh1532WriteV0322EvidenceRoot(
