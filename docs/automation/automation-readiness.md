@@ -767,3 +767,9 @@ Automation must keep `checks/verify-v0.31.0.sh` in `checks/run.sh` and preserve 
 Automation readiness anchors: `GH-1540-ADD-COMPLETE-V0323-NEGATIVE-MATRIX`, `TVM-RELEASE-V0323-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX`, `V0323-006-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX`.
 
 Automation must keep `checks/verify-v0.32.3-negative-matrix.sh` in `checks/run.sh` and preserve focused fail-closed coverage for trusted GitHub provenance, persistent lock/registry state, independent OMS/reconciliation/rollback/incident artifacts, freshness/checksum linkage, and realpath/symlink containment. This readiness guard does not execute an observed canary and does not authorize backend closure or production cutover.
+
+### v0.32.3 Closeout Automation Readiness
+
+Closeout anchors: `GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR`, `V0323-007-STAGE-AUDIT-RELEASE-NOTES`, `V0323-007-BACKEND-CLOSURE-BLOCKED`, `V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY`, `V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED`, `V0323-007-NO-PRODUCTION-CUTOVER`.
+
+Automation must keep `checks/verify-v0.32.3.sh` in `checks/run.sh`, preserve `checks/verify-v0.32.3-negative-matrix.sh`, and create the v0.32.3 GitHub Release only from the tag-triggered final publication job after the hosted full matrix succeeds. It does not authorize observed canary execution, backend closure, production cutover, OKX runtime, or Dashboard trading controls.

@@ -7537,3 +7537,9 @@ Required commands: `swift test --filter TargetGraphTests/testGH1487To1496Release
 Anchors: `GH-1540-ADD-COMPLETE-V0323-NEGATIVE-MATRIX`, `TVM-RELEASE-V0323-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX`, `V0323-006-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX`.
 
 Run `bash checks/verify-v0.32.3-negative-matrix.sh`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`. The matrix must retain fail-closed tests for forged or self-reported provenance, concurrent lock acquisition, wrong ownership, missing/corrupt/replayed registry state, missing or mismatched OMS/reconciliation/rollback/incident artifacts, stale evidence, symlink chains, path traversal, absolute outside paths, replaced directory links, and canonical root mismatch. `backendClosureDecision=blocked` and `productionCutoverAuthorized=false` remain required.
+
+### v0.32.3 Closeout and Publication Gate
+
+Closeout anchors: `GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR`, `V0323-007-STAGE-AUDIT-RELEASE-NOTES`, `V0323-007-BACKEND-CLOSURE-BLOCKED`, `V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY`, `V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED`, `V0323-007-NO-PRODUCTION-CUTOVER`.
+
+Run `bash checks/verify-v0.32.3.sh` and the full matrix. Release publication is permitted only from the final tag workflow after PR fast, Linux, Dashboard macOS, and publication checks pass. Required state remains `observedProductionCanary=false`, `backendClosureDecision=blocked`, and `productionCutoverAuthorized=false`; active scope is Binance Spot + USD-M Futures only.

@@ -204,6 +204,13 @@ jobs:
           # V0322-004-ATOMIC-RUN-LOCK-REPLAY-REGISTRY
           # V0322-005-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE
           # V0322-006-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT
+          # GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES
+          # TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR
+          # V0323-007-STAGE-AUDIT-RELEASE-NOTES
+          # V0323-007-BACKEND-CLOSURE-BLOCKED
+          # V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY
+          # V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED
+          # V0323-007-NO-PRODUCTION-CUTOVER
           echo "MTPRO release publication matrix: workflow=${{ github.workflow }} run_id=${{ github.run_id }} run_attempt=${{ github.run_attempt }}"
           echo "MTPRO release publication workflow job ids: pr_fast_checks linux_checks dashboard_macos release_publication_checks"
           echo "MTPRO release publication job results: pr-fast-checks=${{ needs.pr_fast_checks.result }} linux-checks=${{ needs.linux_checks.result }} dashboard-macos=${{ needs.dashboard_macos.result }}"
@@ -238,6 +245,29 @@ jobs:
             gh release create "v0.32.2" \
               --target "${GITHUB_SHA}" \
               --title "MTPRO v0.32.2 Controlled Canary Integrity Closure Patch" \
+              --notes-file "$notes"
+          fi
+
+      - name: Publish v0.32.3 release after full matrix
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/tags/v0.32.3' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES
+          # TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR
+          # V0323-007-STAGE-AUDIT-RELEASE-NOTES
+          # V0323-007-BACKEND-CLOSURE-BLOCKED
+          # V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY
+          # V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED
+          # V0323-007-NO-PRODUCTION-CUTOVER
+          notes="docs/release/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-notes.md"
+          test -f "$notes"
+          if gh release view "v0.32.3" >/dev/null 2>&1; then
+            echo "MTPRO v0.32.3 release already exists after full matrix; not recreating."
+          else
+            gh release create "v0.32.3" \
+              --target "${GITHUB_SHA}" \
+              --title "MTPRO v0.32.3 Controlled Canary Persistent Evidence Integrity Repair" \
               --notes-file "$notes"
           fi
 

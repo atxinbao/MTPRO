@@ -3055,3 +3055,11 @@ v0.32.2 closure anchors: `GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATR
 v0.32.2 validates the controlled-canary closure patch by requiring release publication after the full matrix, trusted workflow provenance, commit-bound approval freshness, atomic persistent run-lock / replay registry proof, semantic OMS / rollback / incident artifact linkage, and a negative backend closure decision input. Required facts: `publicationGateHeld=true`, `trustedProvenanceHeld=true`, `freshnessHeld=true`, `runLockHeld=true`, `semanticArtifactLinkageHeld=true`, `selfReportedObservedProductionCanaryIgnored=true`, `observedProductionCanary=false`, `acceptanceDecision=blocked-trusted-observed-canary-missing`, `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, `boundaryHeld=true`.
 
 Validation commands: `swift test --filter TargetGraphTests/testGH1528To1533ReleaseV0322ControlledCanaryIntegrityClosurePatch`, `bash checks/verify-v0.32.2.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.
+
+## Release v0.32.3 Persistent Evidence Integrity Repair Verification
+
+Verification anchors: `GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR`, `V0323-007-STAGE-AUDIT-RELEASE-NOTES`, `V0323-007-BACKEND-CLOSURE-BLOCKED`, `V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY`, `V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED`, `V0323-007-NO-PRODUCTION-CUTOVER`.
+
+v0.32.3 verifies trusted GitHub provenance, atomic persistent run locking, nonce/run replay registry, independent checksum-linked artifacts, canonical evidence-root containment, and the complete negative matrix. Active scope is Binance Spot + USD-M Futures only. Required facts: `observedProductionCanary=false`, `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, `productionTradingEnabledByDefault=false`, `okxActiveRuntime=false`.
+
+Validation commands: `swift test --filter TargetGraphTests/testGH1541ReleaseV0323StageAuditReleaseDocsCloseout`, `bash checks/verify-v0.32.3.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.
