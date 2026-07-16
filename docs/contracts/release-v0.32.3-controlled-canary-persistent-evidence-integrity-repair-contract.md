@@ -57,6 +57,20 @@ graph. Missing rollback or incident artifacts, checksum drift, one-way reference
 action identity, stale artifacts, and legacy operation JSON containing only linkage IDs fail closed.
 Real-path and symlink containment remain the separately gated V0323-005 repair area.
 
+### Evidence root real-path containment (V0323-005)
+
+`GH-1539-BLOCK-SYMLINK-REALPATH-ESCAPE`,
+`TVM-RELEASE-V0323-EVIDENCE-ROOT-REALPATH-CONTAINMENT`, and
+`V0323-005-EVIDENCE-ROOT-REALPATH-CONTAINMENT` require all artifact reads to pass through
+`ReleaseV0323EvidenceRootContainment`. The resolver rejects an evidence root whose final component
+is a symbolic link, rejects absolute or traversing relative paths, rejects every symbolic-link path
+component below the approved root, and compares the resolved target with the canonical root before
+and after reading.
+
+Single and nested symlink escapes, parent traversal, absolute outside paths, directory replacement by
+symlink, root canonical mismatch, and targets resolving outside the root fail closed. A standardized
+string prefix alone is not containment evidence.
+
 ## Gate
 
 Until every required repair area is implemented and verified:
