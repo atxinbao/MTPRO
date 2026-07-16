@@ -41,6 +41,22 @@ nonce metadata, writes a checksum-protected registry, and permanently retains co
 nonces for replay queries. Release and stale recovery verify owner/nonce identity and update the
 registry; missing or corrupted registry data fails closed. Manifest booleans do not participate.
 
+### Independent canary artifact graph (V0323-004)
+
+`GH-1538-ADD-INDEPENDENT-CANARY-ARTIFACT-GRAPH`,
+`TVM-RELEASE-V0323-INDEPENDENT-CANARY-ARTIFACT-GRAPH`, and
+`V0323-004-INDEPENDENT-CANARY-ARTIFACT-GRAPH` require every Spot and USD-M Futures
+submit/status/cancel operation to bind four independent artifacts: OMS, reconciliation, rollback,
+and incident. The operation record stores each artifact identity, relative path, and SHA256. Each
+independent artifact must reverse-reference the same run, product, action, operation event, operation
+path, semantic checksum, and source commit.
+
+The validator recomputes operation semantic checksums, verifies every linked artifact checksum and
+reverse reference, enforces freshness, and requires the complete six-operation/twenty-four-artifact
+graph. Missing rollback or incident artifacts, checksum drift, one-way references, wrong product or
+action identity, stale artifacts, and legacy operation JSON containing only linkage IDs fail closed.
+Real-path and symlink containment remain the separately gated V0323-005 repair area.
+
 ## Gate
 
 Until every required repair area is implemented and verified:
