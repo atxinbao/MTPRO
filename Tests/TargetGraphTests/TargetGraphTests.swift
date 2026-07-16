@@ -72519,6 +72519,81 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(source.contains("V0323-005-EVIDENCE-ROOT-REALPATH-CONTAINMENT"))
     }
 
+    // GH-1540-ADD-COMPLETE-V0323-NEGATIVE-MATRIX
+    // TVM-RELEASE-V0323-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX
+    // V0323-006-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX
+    func testGH1540CompleteV0323NegativeMatrixGuardAnchors() throws {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let verifier = try read("checks/verify-v0.32.3-negative-matrix.sh")
+        let requiredFocusedTests = [
+            "testGH1536TrustedGitHubProvenanceRejectsManifestSelfReportingAndIdentityDrift",
+            "testGH1537PersistentRunLockUsesFilesystemRegistryAndFailsClosed",
+            "testGH1538IndependentCanaryArtifactsRequireChecksumsAndReverseReferences",
+            "testGH1539EvidenceRootContainmentRejectsSymlinkAndTraversalEscapes",
+            "testGH1540CompleteV0323NegativeMatrixGuardAnchors",
+        ]
+        for test in requiredFocusedTests {
+            XCTAssertTrue(verifier.contains("swift test --filter TargetGraphTests/\(test)"))
+        }
+
+        let requiredNegativeAnchors = [
+            "forged/MTPRO",
+            "selfReportedObservedCanary: true",
+            "concurrentRoot",
+            ".wrongOwner",
+            ".corruptedRegistry",
+            ".replayRejected",
+            "missingRollback",
+            "missingIncident",
+            "checksumMismatch",
+            "wrongProduct",
+            "idsOnly",
+            "finalSymlink",
+            "nestedSymlink",
+            "../outside.json",
+            "operationsDirectory",
+            "rootSymlink",
+        ]
+        for anchor in requiredNegativeAnchors {
+            XCTAssertTrue(verifier.contains(anchor), "negative matrix must retain \(anchor)")
+        }
+
+        let anchoredFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0323TrustedGitHubProvenance.swift",
+            "Sources/ExecutionClient/FutureGate/ReleaseV0323PersistentRunLockStore.swift",
+            "Sources/ExecutionClient/FutureGate/ReleaseV0323IndependentCanaryArtifactGraph.swift",
+            "Sources/ExecutionClient/FutureGate/ReleaseV0323EvidenceRootContainment.swift",
+            "Tests/TargetGraphTests/TargetGraphTests.swift",
+            "checks/verify-v0.32.3-negative-matrix.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            "docs/validation/validation-plan.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/automation/automation-readiness.md",
+        ]
+        let anchors = [
+            "GH-1540-ADD-COMPLETE-V0323-NEGATIVE-MATRIX",
+            "TVM-RELEASE-V0323-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX",
+            "V0323-006-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX",
+        ]
+        for file in anchoredFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.32.3-negative-matrix.sh"))
+        XCTAssertTrue(
+            try read("docs/contracts/release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-contract.md")
+                .contains("backendClosureDecision=blocked")
+        )
+    }
+
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
     // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
     // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS

@@ -5566,3 +5566,10 @@ Production cutover remains not authorized; production trading remains disabled b
 | v0.32.2 run-lock and replay registry | `GH-1531-VERIFY-V0322-ATOMIC-RUN-LOCK-REPLAY-REGISTRY`, `V0322-004-ATOMIC-RUN-LOCK-REPLAY-REGISTRY` | persistent run-lock acquisition / release and replay registry validation must be atomic and fail closed for duplicate or stale run evidence |
 | v0.32.2 OMS / rollback / incident linkage | `GH-1532-VERIFY-V0322-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE`, `V0322-005-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE` | Spot and USD-M Futures submit / status / cancel artifacts must link semantically to OMS, reconciliation, rollback, and incident artifacts for the same run |
 | v0.32.2 backend closure decision | `GH-1533-VERIFY-V0322-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT`, `V0322-006-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT` | backend closure remains blocked until trusted observed-canary evidence exists: `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, `boundaryHeld=true` |
+
+## Release v0.32.3 Persistent Evidence Integrity Repair Matrix
+
+| Surface | Anchors | Required result |
+| --- | --- | --- |
+| Complete negative matrix | `GH-1540-ADD-COMPLETE-V0323-NEGATIVE-MATRIX`, `TVM-RELEASE-V0323-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX`, `V0323-006-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX` | `checks/verify-v0.32.3-negative-matrix.sh` must fail if trusted provenance, persistent lock, independent linked-artifact, freshness, checksum, replay, or realpath/symlink negative coverage is removed |
+| Closure boundary | v0.32.3 repair contract | `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, no observed canary execution |
