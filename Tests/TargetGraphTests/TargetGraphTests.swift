@@ -72392,6 +72392,133 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(source.contains("V0323-004-INDEPENDENT-CANARY-ARTIFACT-GRAPH"))
     }
 
+    // GH-1539-BLOCK-SYMLINK-REALPATH-ESCAPE
+    // TVM-RELEASE-V0323-EVIDENCE-ROOT-REALPATH-CONTAINMENT
+    // V0323-005-EVIDENCE-ROOT-REALPATH-CONTAINMENT
+    func testGH1539EvidenceRootContainmentRejectsSymlinkAndTraversalEscapes() throws {
+        let sourceCommit = "34567890abcdef1234567890abcdef1234567890"
+        let trustedNow = 1_787_200_500
+        func validate(
+            _ fixture: (root: URL, records: [ReleaseV0323OperationArtifactRecord])
+        ) throws -> ReleaseV0323IndependentArtifactGraphReport {
+            try ReleaseV0323IndependentCanaryArtifactGraphValidator.validate(
+                evidenceRoot: fixture.root,
+                operationRecords: fixture.records,
+                expectedRunID: "v0323-observed-canary-run",
+                expectedSourceCommit: sourceCommit,
+                trustedEvaluationEpochSeconds: trustedNow,
+                maxArtifactAgeSeconds: 600
+            )
+        }
+        func firstLinkedReference(
+            in fixture: (root: URL, records: [ReleaseV0323OperationArtifactRecord]),
+            kind: ReleaseV0323LinkedArtifactKind
+        ) throws -> ReleaseV0323LinkedArtifactReference {
+            let data = try Data(
+                contentsOf: fixture.root.appendingPathComponent(fixture.records[0].relativePath)
+            )
+            let operation = try JSONDecoder().decode(ReleaseV0323OperationArtifact.self, from: data)
+            return try XCTUnwrap(operation.linkedArtifacts.first { $0.kind == kind })
+        }
+        func assertUnsafePath(
+            _ fixture: (root: URL, records: [ReleaseV0323OperationArtifactRecord]),
+            expectedPath: String
+        ) {
+            XCTAssertThrowsError(try validate(fixture)) { error in
+                XCTAssertEqual(
+                    error as? ReleaseV0323IndependentArtifactGraphError,
+                    .unsafePath(expectedPath)
+                )
+            }
+        }
+
+        let valid = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: valid.root) }
+        XCTAssertTrue(try validate(valid).boundaryHeld)
+
+        let outsideRoot = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "mtpro-v0323-outside-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(at: outsideRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: outsideRoot) }
+        let outsideArtifact = outsideRoot.appendingPathComponent("outside.json")
+        try Data("outside".utf8).write(to: outsideArtifact)
+
+        let finalSymlink = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: finalSymlink.root) }
+        let omsReference = try firstLinkedReference(in: finalSymlink, kind: .oms)
+        let omsURL = finalSymlink.root.appendingPathComponent(omsReference.relativePath)
+        try FileManager.default.removeItem(at: omsURL)
+        try FileManager.default.createSymbolicLink(at: omsURL, withDestinationURL: outsideArtifact)
+        assertUnsafePath(finalSymlink, expectedPath: omsReference.relativePath)
+
+        let nestedSymlink = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: nestedSymlink.root) }
+        let incidentDirectory = nestedSymlink.root.appendingPathComponent("linked/incident", isDirectory: true)
+        try FileManager.default.removeItem(at: incidentDirectory)
+        let hop = nestedSymlink.root.appendingPathComponent("nested-hop", isDirectory: true)
+        try FileManager.default.createSymbolicLink(at: hop, withDestinationURL: outsideRoot)
+        try FileManager.default.createSymbolicLink(at: incidentDirectory, withDestinationURL: hop)
+        let incidentReference = try firstLinkedReference(in: nestedSymlink, kind: .incident)
+        assertUnsafePath(nestedSymlink, expectedPath: incidentReference.relativePath)
+
+        let traversal = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: traversal.root) }
+        var traversalRecords = traversal.records
+        traversalRecords[0] = ReleaseV0323OperationArtifactRecord(
+            relativePath: "../outside.json",
+            sha256: traversalRecords[0].sha256,
+            byteCount: traversalRecords[0].byteCount
+        )
+        assertUnsafePath((traversal.root, traversalRecords), expectedPath: "../outside.json")
+
+        let absolute = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: absolute.root) }
+        var absoluteRecords = absolute.records
+        absoluteRecords[0] = ReleaseV0323OperationArtifactRecord(
+            relativePath: outsideArtifact.path,
+            sha256: absoluteRecords[0].sha256,
+            byteCount: absoluteRecords[0].byteCount
+        )
+        assertUnsafePath((absolute.root, absoluteRecords), expectedPath: outsideArtifact.path)
+
+        let replacedDirectory = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: replacedDirectory.root) }
+        let operationsDirectory = replacedDirectory.root.appendingPathComponent("operations", isDirectory: true)
+        try FileManager.default.removeItem(at: operationsDirectory)
+        try FileManager.default.createSymbolicLink(at: operationsDirectory, withDestinationURL: outsideRoot)
+        assertUnsafePath(replacedDirectory, expectedPath: replacedDirectory.records[0].relativePath)
+
+        let canonicalRootFixture = try gh1538WriteV0323ArtifactGraph(sourceCommit: sourceCommit)
+        defer { try? FileManager.default.removeItem(at: canonicalRootFixture.root) }
+        let rootSymlink = canonicalRootFixture.root.deletingLastPathComponent().appendingPathComponent(
+            "mtpro-v0323-root-link-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        try FileManager.default.createSymbolicLink(at: rootSymlink, withDestinationURL: canonicalRootFixture.root)
+        defer { try? FileManager.default.removeItem(at: rootSymlink) }
+        XCTAssertThrowsError(
+            try validate((rootSymlink, canonicalRootFixture.records))
+        ) { error in
+            XCTAssertEqual(
+                error as? ReleaseV0323IndependentArtifactGraphError,
+                .unsafePath(rootSymlink.path)
+            )
+        }
+
+        let source = try String(
+            contentsOf: URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+                .appendingPathComponent(
+                    "Sources/ExecutionClient/FutureGate/ReleaseV0323EvidenceRootContainment.swift"
+                ),
+            encoding: .utf8
+        )
+        XCTAssertTrue(source.contains("GH-1539-BLOCK-SYMLINK-REALPATH-ESCAPE"))
+        XCTAssertTrue(source.contains("TVM-RELEASE-V0323-EVIDENCE-ROOT-REALPATH-CONTAINMENT"))
+        XCTAssertTrue(source.contains("V0323-005-EVIDENCE-ROOT-REALPATH-CONTAINMENT"))
+    }
+
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
     // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
     // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS

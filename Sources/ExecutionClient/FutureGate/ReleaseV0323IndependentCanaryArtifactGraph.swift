@@ -199,13 +199,21 @@ public enum ReleaseV0323IndependentCanaryArtifactGraphValidator {
         trustedEvaluationEpochSeconds: Int,
         maxArtifactAgeSeconds: Int
     ) throws -> ReleaseV0323IndependentArtifactGraphReport {
+        let containment: ReleaseV0323EvidenceRootContainment
+        do {
+            containment = try ReleaseV0323EvidenceRootContainment(evidenceRoot: evidenceRoot)
+        } catch {
+            throw ReleaseV0323IndependentArtifactGraphError.unsafePath(evidenceRoot.path)
+        }
         var observedOperations = Set<ReleaseV0323ObservedOperation>()
         var artifactIDs = Set<String>()
         var linkedArtifactCount = 0
 
         for record in operationRecords {
-            let operationURL = try containedURL(relativePath: record.relativePath, root: evidenceRoot)
-            let operationData = try read(operationURL, relativePath: record.relativePath)
+            let operationData = try read(
+                relativePath: record.relativePath,
+                containment: containment
+            )
             guard operationData.count == record.byteCount else {
                 throw ReleaseV0323IndependentArtifactGraphError.byteCountMismatch(record.relativePath)
             }
@@ -245,8 +253,10 @@ public enum ReleaseV0323IndependentCanaryArtifactGraphValidator {
                 else {
                     throw ReleaseV0323IndependentArtifactGraphError.duplicateArtifactID(reference.artifactID)
                 }
-                let linkedURL = try containedURL(relativePath: reference.relativePath, root: evidenceRoot)
-                let linkedData = try read(linkedURL, relativePath: reference.relativePath)
+                let linkedData = try read(
+                    relativePath: reference.relativePath,
+                    containment: containment
+                )
                 guard reference.sha256.hasPrefix("sha256:"), sha256Hex(for: linkedData) == reference.sha256 else {
                     throw ReleaseV0323IndependentArtifactGraphError.checksumMismatch(reference.relativePath)
                 }
@@ -299,27 +309,16 @@ public enum ReleaseV0323IndependentCanaryArtifactGraphValidator {
         )
     }
 
-    private static func containedURL(relativePath: String, root: URL) throws -> URL {
-        guard relativePath.isEmpty == false,
-              relativePath.hasPrefix("/") == false,
-              relativePath.split(separator: "/").allSatisfy({ $0 != ".." && $0 != "." })
-        else {
-            throw ReleaseV0323IndependentArtifactGraphError.unsafePath(relativePath)
-        }
-        let standardizedRoot = root.standardizedFileURL
-        let candidate = standardizedRoot.appendingPathComponent(relativePath).standardizedFileURL
-        let prefix = standardizedRoot.path.hasSuffix("/") ? standardizedRoot.path : standardizedRoot.path + "/"
-        guard candidate.path.hasPrefix(prefix) else {
-            throw ReleaseV0323IndependentArtifactGraphError.unsafePath(relativePath)
-        }
-        return candidate
-    }
-
-    private static func read(_ url: URL, relativePath: String) throws -> Data {
+    private static func read(
+        relativePath: String,
+        containment: ReleaseV0323EvidenceRootContainment
+    ) throws -> Data {
         do {
-            return try Data(contentsOf: url)
-        } catch {
+            return try containment.readArtifact(relativePath: relativePath)
+        } catch ReleaseV0323EvidenceRootContainmentError.missingArtifact {
             throw ReleaseV0323IndependentArtifactGraphError.missingArtifact(relativePath)
+        } catch {
+            throw ReleaseV0323IndependentArtifactGraphError.unsafePath(relativePath)
         }
     }
 }
