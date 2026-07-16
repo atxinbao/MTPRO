@@ -72594,6 +72594,78 @@ final class TargetGraphTests: XCTestCase {
         )
     }
 
+    // GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES
+    // TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR
+    // V0323-007-STAGE-AUDIT-RELEASE-NOTES
+    // V0323-007-BACKEND-CLOSURE-BLOCKED
+    // V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY
+    // V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED
+    // V0323-007-NO-PRODUCTION-CUTOVER
+    func testGH1541ReleaseV0323StageAuditReleaseDocsCloseout() throws {
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        func read(_ relativePath: String) throws -> String {
+            try String(contentsOf: root.appendingPathComponent(relativePath), encoding: .utf8)
+        }
+
+        let expectedFiles = [
+            "Tests/TargetGraphTests/TargetGraphTests.swift",
+            "checks/verify-v0.32.3.sh",
+            "checks/run.sh",
+            "checks/automation-readiness.sh",
+            ".github/workflows/checks.yml",
+            "docs/audit/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-notes.md",
+            "docs/validation/latest-verification-summary.md",
+            "docs/validation/trading-validation-matrix.md",
+            "docs/validation/validation-plan.md",
+            "docs/automation/automation-readiness.md",
+            "README.md",
+            "GOAL.md",
+            "BLUEPRINT.md",
+            "docs/roadmap.md",
+            "verification.md",
+        ]
+        let anchors = [
+            "GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES",
+            "TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR",
+            "V0323-007-STAGE-AUDIT-RELEASE-NOTES",
+            "V0323-007-BACKEND-CLOSURE-BLOCKED",
+            "V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY",
+            "V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED",
+            "V0323-007-NO-PRODUCTION-CUTOVER",
+        ]
+        for file in expectedFiles {
+            let source = try read(file)
+            for anchor in anchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let workflow = try read(".github/workflows/checks.yml")
+        XCTAssertTrue(workflow.contains("Publish v0.32.3 release after full matrix"))
+        XCTAssertTrue(workflow.contains("github.ref == 'refs/tags/v0.32.3'"))
+        XCTAssertTrue(workflow.contains("--notes-file \"$notes\""))
+
+        let releaseNotes = try read(
+            "docs/release/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-notes.md"
+        )
+        XCTAssertTrue(releaseNotes.contains("observedProductionCanary=false"))
+        XCTAssertTrue(releaseNotes.contains("backendClosureDecision=blocked"))
+        XCTAssertTrue(releaseNotes.contains("productionCutoverAuthorized=false"))
+        XCTAssertTrue(releaseNotes.contains("Active venue/product scope is Binance Spot + Binance USD-M Futures only."))
+        XCTAssertTrue(releaseNotes.contains("OKX is not an active runtime"))
+
+        let audit = try read(
+            "docs/audit/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-stage-code-audit.md"
+        )
+        for issue in 1535...1541 {
+            XCTAssertTrue(audit.contains("#\(issue)"))
+        }
+        XCTAssertTrue(audit.contains("negativeMatrixComplete=true"))
+        XCTAssertTrue(audit.contains("backendClosureDecision=blocked"))
+        XCTAssertTrue(audit.contains("productionCutoverAuthorized=false"))
+    }
+
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
     // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
     // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS

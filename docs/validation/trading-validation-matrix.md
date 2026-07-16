@@ -5573,3 +5573,14 @@ Production cutover remains not authorized; production trading remains disabled b
 | --- | --- | --- |
 | Complete negative matrix | `GH-1540-ADD-COMPLETE-V0323-NEGATIVE-MATRIX`, `TVM-RELEASE-V0323-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX`, `V0323-006-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX` | `checks/verify-v0.32.3-negative-matrix.sh` must fail if trusted provenance, persistent lock, independent linked-artifact, freshness, checksum, replay, or realpath/symlink negative coverage is removed |
 | Closure boundary | v0.32.3 repair contract | `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, no observed canary execution |
+
+### v0.32.3 Closeout Matrix
+
+Closeout anchors: `GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR`, `V0323-007-STAGE-AUDIT-RELEASE-NOTES`, `V0323-007-BACKEND-CLOSURE-BLOCKED`, `V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY`, `V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED`, `V0323-007-NO-PRODUCTION-CUTOVER`.
+
+| Surface | Required result |
+| --- | --- |
+| Aggregate verifier | `checks/verify-v0.32.3.sh` includes the complete negative matrix and closeout test |
+| Hosted publication | v0.32.3 tag publication waits for PR fast, Linux, Dashboard macOS, and publication checks |
+| Active scope | Binance Spot + USD-M Futures only; OKX inactive |
+| Backend decision | `observedProductionCanary=false`, `backendClosureDecision=blocked`, `productionCutoverAuthorized=false` |

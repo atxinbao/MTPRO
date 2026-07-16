@@ -18771,3 +18771,11 @@ v0.32.2 closure anchors: `GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATR
 v0.32.2 verification covers release publication behind the full matrix, trusted observed-canary provenance, source commit / trusted-clock / approval freshness binding, atomic run-lock / replay registry validation, semantic OMS / reconciliation / rollback / incident artifact linkage, and fail-closed backend closure input. Required facts: `publicationGateHeld=true`, `trustedProvenanceHeld=true`, `freshnessHeld=true`, `runLockHeld=true`, `semanticArtifactLinkageHeld=true`, `selfReportedObservedProductionCanaryIgnored=true`, `observedProductionCanary=false`, `acceptanceDecision=blocked-trusted-observed-canary-missing`, `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, `boundaryHeld=true`.
 
 Validation commands: `swift test --filter TargetGraphTests/testGH1528To1533ReleaseV0322ControlledCanaryIntegrityClosurePatch`, `bash checks/verify-v0.32.2.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.
+
+## Release v0.32.3 Persistent Evidence Integrity Repair Verification
+
+Verification anchors: `GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR`, `V0323-007-STAGE-AUDIT-RELEASE-NOTES`, `V0323-007-BACKEND-CLOSURE-BLOCKED`, `V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY`, `V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED`, `V0323-007-NO-PRODUCTION-CUTOVER`.
+
+Validation covers trusted GitHub provenance, persistent lock and nonce registry, six Binance Spot/USD-M Futures operation records, twenty-four independent linked artifacts, realpath containment, and the complete negative matrix. Required boundary facts remain `observedProductionCanary=false`, `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, and `okxActiveRuntime=false`.
+
+Commands: `swift test --filter TargetGraphTests/testGH1541ReleaseV0323StageAuditReleaseDocsCloseout`, `bash checks/verify-v0.32.3.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.

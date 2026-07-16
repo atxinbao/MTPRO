@@ -15725,4 +15725,22 @@ require_contains "checks/verify-v0.32.3-negative-matrix.sh" "testGH1538Independe
 require_contains "checks/verify-v0.32.3-negative-matrix.sh" "testGH1539EvidenceRootContainmentRejectsSymlinkAndTraversalEscapes"
 require_contains "checks/verify-v0.32.3-negative-matrix.sh" "testGH1540CompleteV0323NegativeMatrixGuardAnchors"
 
+# GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES
+# TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR
+# V0323-007-STAGE-AUDIT-RELEASE-NOTES
+# V0323-007-BACKEND-CLOSURE-BLOCKED
+# V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY
+# V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED
+# V0323-007-NO-PRODUCTION-CUTOVER
+require_file "checks/verify-v0.32.3.sh"
+require_file "docs/audit/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-notes.md"
+require_contains "checks/run.sh" "MTPRO_SKIP_V0323_NEGATIVE_MATRIX=1 bash checks/verify-v0.32.3.sh"
+require_contains "checks/verify-v0.32.3.sh" "testGH1541ReleaseV0323StageAuditReleaseDocsCloseout"
+require_contains ".github/workflows/checks.yml" "Publish v0.32.3 release after full matrix"
+require_contains ".github/workflows/checks.yml" "refs/tags/v0.32.3"
+require_contains "README.md" "activeVenue=Binance"
+require_contains "GOAL.md" "backendClosureDecision=blocked"
+require_contains "verification.md" "bash checks/verify-v0.32.3.sh"
+
 printf 'MTPRO automation readiness checks passed.\n'
