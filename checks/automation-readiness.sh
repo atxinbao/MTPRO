@@ -15710,4 +15710,19 @@ require_contains "README.md" "acceptanceDecision=blocked-trusted-observed-canary
 require_contains "GOAL.md" "backendClosureDecision=blocked"
 require_contains "verification.md" "bash checks/verify-v0.32.2.sh"
 
+# GH-1540-ADD-COMPLETE-V0323-NEGATIVE-MATRIX
+# TVM-RELEASE-V0323-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX
+# V0323-006-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX
+require_file "checks/verify-v0.32.3-negative-matrix.sh"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0323TrustedGitHubProvenance.swift"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0323PersistentRunLockStore.swift"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0323IndependentCanaryArtifactGraph.swift"
+require_file "Sources/ExecutionClient/FutureGate/ReleaseV0323EvidenceRootContainment.swift"
+require_contains "checks/run.sh" "bash checks/verify-v0.32.3-negative-matrix.sh"
+require_contains "checks/verify-v0.32.3-negative-matrix.sh" "testGH1536TrustedGitHubProvenanceRejectsManifestSelfReportingAndIdentityDrift"
+require_contains "checks/verify-v0.32.3-negative-matrix.sh" "testGH1537PersistentRunLockUsesFilesystemRegistryAndFailsClosed"
+require_contains "checks/verify-v0.32.3-negative-matrix.sh" "testGH1538IndependentCanaryArtifactsRequireChecksumsAndReverseReferences"
+require_contains "checks/verify-v0.32.3-negative-matrix.sh" "testGH1539EvidenceRootContainmentRejectsSymlinkAndTraversalEscapes"
+require_contains "checks/verify-v0.32.3-negative-matrix.sh" "testGH1540CompleteV0323NegativeMatrixGuardAnchors"
+
 printf 'MTPRO automation readiness checks passed.\n'
