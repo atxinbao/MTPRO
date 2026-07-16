@@ -72666,6 +72666,70 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(audit.contains("productionCutoverAuthorized=false"))
     }
 
+    // GH-1542-DEFINE-V0330-OBSERVED-CANARY-BACKEND-CLOSURE-CONTRACT
+    // TVM-RELEASE-V0330-OBSERVED-CONTROLLED-PRODUCTION-CANARY
+    // V0330-001-OBSERVED-CANARY-BACKEND-CLOSURE-CONTRACT
+    func testGH1542ReleaseV0330ObservedCanaryBackendClosureContract() throws {
+        let contract = ReleaseV0330ObservedCanaryBackendClosureContract()
+
+        XCTAssertEqual(contract.release, "v0.33.0")
+        XCTAssertEqual(contract.prerequisiteRelease, "v0.32.3")
+        XCTAssertEqual(contract.requiredProducts, ["spot", "usdsPerpetual"])
+        XCTAssertEqual(contract.requiredActions, ["submit", "status", "cancel"])
+        XCTAssertEqual(
+            Set(contract.requiredRequirements),
+            Set(ReleaseV0330BackendClosureRequirement.allCases)
+        )
+        XCTAssertEqual(contract.requiredRequirements.count, 8)
+        XCTAssertTrue(contract.requiresExplicitHumanApproval)
+        XCTAssertFalse(contract.observedCanaryExecutionAuthorized)
+        XCTAssertFalse(contract.productionCutoverAuthorized)
+        XCTAssertFalse(contract.defaultProductionTradingEnabled)
+        XCTAssertFalse(contract.okxActiveRuntimeEnabled)
+        XCTAssertFalse(contract.dashboardTradingControlsEnabled)
+        XCTAssertTrue(contract.boundaryHeld)
+
+        XCTAssertEqual(
+            contract.queueEligibility(
+                prerequisiteReleasePublished: false,
+                explicitHumanApprovalRecorded: false
+            ),
+            .blockedV0323NotPublished
+        )
+        XCTAssertEqual(
+            contract.queueEligibility(
+                prerequisiteReleasePublished: true,
+                explicitHumanApprovalRecorded: false
+            ),
+            .blockedHumanApprovalMissing
+        )
+        XCTAssertEqual(
+            contract.queueEligibility(
+                prerequisiteReleasePublished: true,
+                explicitHumanApprovalRecorded: true
+            ),
+            .approvalPacketPreparationEligible
+        )
+        XCTAssertFalse(contract.observedCanaryExecutionAuthorized)
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let expectedFiles = [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0330ObservedCanaryBackendClosureContract.swift",
+            "docs/contracts/release-v0.33.0-observed-canary-backend-closure-contract.md",
+            "Tests/TargetGraphTests/TargetGraphTests.swift",
+        ]
+
+        for file in expectedFiles {
+            let source = try String(
+                contentsOf: repositoryRoot.appendingPathComponent(file),
+                encoding: .utf8
+            )
+            for anchor in ReleaseV0330ObservedCanaryBackendClosureContract.requiredAnchors {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+    }
+
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
     // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
     // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS
