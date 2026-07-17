@@ -45,3 +45,13 @@ The eligible state only permits preparation and validation of the approval packe
 - `dashboardTradingControlsEnabled=false`
 
 This issue fixes the contract only. It does not execute an observed canary and does not claim backend closure.
+
+## Human Approval Packet (V0330-002)
+
+Anchors: `GH-1543-PREPARE-V0330-HUMAN-APPROVED-CANARY-PACKET`, `TVM-RELEASE-V0330-HUMAN-APPROVAL-PACKET`, `V0330-002-HUMAN-APPROVED-CANARY-PACKET`.
+
+`ReleaseV0330CanaryApprovalPacket` records the operator, source commit, validity window, Spot and USD-M Futures symbol allowlists, positive notional caps, LIMIT-only order scope, conservative leverage caps, kill-switch/no-trade evidence references, rollback owner, and an external Human approval attestation reference.
+
+The validator fails closed for missing or expired approval, wrong commit, wrong product scope, empty or duplicate symbols, invalid caps, missing safety evidence, fixture-origin approval evidence, malformed attestation checksums, or a packet that already claims production cutover/default production trading. Canonical JSON can be persisted as the approval packet artifact, but the code does not create or sign a Human approval.
+
+`approvalPacketRecorded=true` is necessary but not sufficient. The report always keeps `observedCanaryExecutionAuthorized=false` and `productionCutoverAuthorized=false`; later runtime gates must independently verify the external approval artifact and every operational safety condition.

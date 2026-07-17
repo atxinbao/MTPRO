@@ -72730,6 +72730,153 @@ final class TargetGraphTests: XCTestCase {
         }
     }
 
+    // GH-1543-PREPARE-V0330-HUMAN-APPROVED-CANARY-PACKET
+    // TVM-RELEASE-V0330-HUMAN-APPROVAL-PACKET
+    // V0330-002-HUMAN-APPROVED-CANARY-PACKET
+    func testGH1543ReleaseV0330HumanApprovedCanaryPacketFailsClosed() throws {
+        let sourceCommit = String(repeating: "a", count: 40)
+        let createdAt: Int64 = 1_800_000_000
+        let expiresAt = createdAt + 900
+        let scopes = [
+            ReleaseV0330CanaryProductScope(
+                product: .spot,
+                symbolAllowlist: ["BTCUSDT"],
+                maximumNotionalMinorUnits: 1_000,
+                allowedOrderTypes: ["LIMIT"],
+                maximumLeverageBasisPoints: 10_000
+            ),
+            ReleaseV0330CanaryProductScope(
+                product: .usdsPerpetual,
+                symbolAllowlist: ["BTCUSDT"],
+                maximumNotionalMinorUnits: 1_000,
+                allowedOrderTypes: ["LIMIT"],
+                maximumLeverageBasisPoints: 10_000
+            ),
+        ]
+
+        func packet(
+            sourceCommit packetCommit: String = sourceCommit,
+            expiresAtEpochSeconds: Int64 = expiresAt,
+            productScopes: [ReleaseV0330CanaryProductScope] = scopes,
+            humanApproval: ReleaseV0330HumanApprovalRecord? = ReleaseV0330HumanApprovalRecord(
+                recordID: "human-approval-1543",
+                approverIdentity: "human-release-owner",
+                approvedAtEpochSeconds: createdAt + 60,
+                sourceCommit: sourceCommit,
+                attestationSHA256: "sha256:" + String(repeating: "b", count: 64),
+                evidenceOrigin: .humanRecorded
+            ),
+            killSwitchEvidenceReference: String = "kill-switch-ready-1543",
+            noTradeEvidenceReference: String = "no-trade-reviewed-1543",
+            rollbackOwnerIdentity: String = "rollback-owner",
+            productionCutoverAuthorized: Bool = false
+        ) -> ReleaseV0330CanaryApprovalPacket {
+            ReleaseV0330CanaryApprovalPacket(
+                packetID: "v0330-approval-packet-1543",
+                operatorIdentity: "operator-1543",
+                sourceCommit: packetCommit,
+                createdAtEpochSeconds: createdAt,
+                expiresAtEpochSeconds: expiresAtEpochSeconds,
+                productScopes: productScopes,
+                killSwitchEvidenceReference: killSwitchEvidenceReference,
+                noTradeEvidenceReference: noTradeEvidenceReference,
+                rollbackOwnerIdentity: rollbackOwnerIdentity,
+                humanApproval: humanApproval,
+                productionCutoverAuthorized: productionCutoverAuthorized
+            )
+        }
+
+        let valid = packet()
+        let validReport = ReleaseV0330CanaryApprovalPacketValidator.validate(
+            valid,
+            expectedSourceCommit: sourceCommit,
+            nowEpochSeconds: createdAt + 120
+        )
+        XCTAssertTrue(validReport.approvalPacketRecorded)
+        XCTAssertFalse(validReport.observedCanaryExecutionAuthorized)
+        XCTAssertFalse(validReport.productionCutoverAuthorized)
+
+        let encoded = try valid.canonicalJSON()
+        XCTAssertEqual(try JSONDecoder().decode(ReleaseV0330CanaryApprovalPacket.self, from: encoded), valid)
+
+        let missingApproval = ReleaseV0330CanaryApprovalPacketValidator.validate(
+            packet(humanApproval: nil),
+            expectedSourceCommit: sourceCommit,
+            nowEpochSeconds: createdAt + 120
+        )
+        XCTAssertEqual(missingApproval.failures, [.missingHumanApproval])
+
+        let fixtureApproval = ReleaseV0330HumanApprovalRecord(
+            recordID: "fixture",
+            approverIdentity: "fixture",
+            approvedAtEpochSeconds: createdAt + 60,
+            sourceCommit: sourceCommit,
+            attestationSHA256: "sha256:" + String(repeating: "c", count: 64),
+            evidenceOrigin: .deterministicFixture
+        )
+        XCTAssertTrue(
+            ReleaseV0330CanaryApprovalPacketValidator.validate(
+                packet(humanApproval: fixtureApproval),
+                expectedSourceCommit: sourceCommit,
+                nowEpochSeconds: createdAt + 120
+            ).failures.contains(.fixtureApprovalEvidence)
+        )
+        XCTAssertTrue(
+            ReleaseV0330CanaryApprovalPacketValidator.validate(
+                packet(expiresAtEpochSeconds: createdAt + 100),
+                expectedSourceCommit: sourceCommit,
+                nowEpochSeconds: createdAt + 120
+            ).failures.contains(.approvalExpired)
+        )
+        XCTAssertTrue(
+            ReleaseV0330CanaryApprovalPacketValidator.validate(
+                packet(sourceCommit: String(repeating: "d", count: 40)),
+                expectedSourceCommit: sourceCommit,
+                nowEpochSeconds: createdAt + 120
+            ).failures.contains(.sourceCommitMismatch)
+        )
+        XCTAssertTrue(
+            ReleaseV0330CanaryApprovalPacketValidator.validate(
+                packet(productScopes: [scopes[0]]),
+                expectedSourceCommit: sourceCommit,
+                nowEpochSeconds: createdAt + 120
+            ).failures.contains(.productScopeMismatch)
+        )
+        XCTAssertTrue(
+            ReleaseV0330CanaryApprovalPacketValidator.validate(
+                packet(killSwitchEvidenceReference: ""),
+                expectedSourceCommit: sourceCommit,
+                nowEpochSeconds: createdAt + 120
+            ).failures.contains(.missingKillSwitchEvidence)
+        )
+        XCTAssertTrue(
+            ReleaseV0330CanaryApprovalPacketValidator.validate(
+                packet(productionCutoverAuthorized: true),
+                expectedSourceCommit: sourceCommit,
+                nowEpochSeconds: createdAt + 120
+            ).failures.contains(.productionCutoverAlreadyAuthorized)
+        )
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        for file in [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0330CanaryApprovalPacket.swift",
+            "docs/contracts/release-v0.33.0-observed-canary-backend-closure-contract.md",
+            "Tests/TargetGraphTests/TargetGraphTests.swift",
+        ] {
+            let source = try String(
+                contentsOf: repositoryRoot.appendingPathComponent(file),
+                encoding: .utf8
+            )
+            for anchor in [
+                "GH-1543-PREPARE-V0330-HUMAN-APPROVED-CANARY-PACKET",
+                "TVM-RELEASE-V0330-HUMAN-APPROVAL-PACKET",
+                "V0330-002-HUMAN-APPROVED-CANARY-PACKET",
+            ] {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+    }
+
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
     // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
     // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS
