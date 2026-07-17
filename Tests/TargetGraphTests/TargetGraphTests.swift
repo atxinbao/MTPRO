@@ -73184,6 +73184,220 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(runnerSource.contains("ProcessInfo.processInfo.environment"))
     }
 
+    // GH-1563-ADD-EXTERNALLY-ACTIVATED-PRODUCTION-CANARY-TRANSPORT
+    // TVM-RELEASE-V0330-EXTERNALLY-ACTIVATED-CANARY-TRANSPORT
+    // V0330-002C-NO-DEFAULT-CREDENTIAL-OR-NETWORK-ACTIVATION
+    func testGH1563ReleaseV0330ProductionCanaryTransportRequiresExternalActivation() async throws {
+        let sourceCommit = String(repeating: "a", count: 40)
+        let credentialReference = "credential-reference:external-redacted"
+
+        func plan(
+            product: ReleaseV0330CanaryProduct,
+            issueNumber: Int,
+            notionalMinorUnits: Int64 = 500
+        ) -> ReleaseV0330ObservedCanaryOrderPlan {
+            let planID = "plan-1563-\(product.rawValue)"
+            return ReleaseV0330ObservedCanaryOrderPlan(
+                planID: planID,
+                approvalPacketID: "packet-1563",
+                sourceCommit: sourceCommit,
+                product: product,
+                issueNumber: issueNumber,
+                symbol: "BTCUSDT",
+                side: "BUY",
+                orderType: "LIMIT",
+                timeInForce: "GTC",
+                priceQuoteMinorUnits: 5_000_000,
+                quantityBaseAtomicUnits: notionalMinorUnits * 20,
+                baseAssetScale: 8,
+                notionalMinorUnits: notionalMinorUnits,
+                leverageBasisPoints: product == .spot ? 10_000 : 20_000,
+                clientOrderID: ReleaseV0330ObservedCanaryOrderPlan.deterministicClientOrderID(
+                    planID: planID,
+                    sourceCommit: sourceCommit,
+                    product: product,
+                    symbol: "BTCUSDT",
+                    issueNumber: issueNumber
+                )
+            )
+        }
+
+        func request(
+            product: ReleaseV0330CanaryProduct,
+            action: ReleaseV0320CanaryAction,
+            host: String,
+            issueNumber: Int
+        ) throws -> ReleaseV0330ObservedCanaryTransportRequest {
+            ReleaseV0330ObservedCanaryTransportRequest(
+                runID: "run-1563-\(product.rawValue)",
+                sourceCommit: sourceCommit,
+                orderPlan: plan(product: product, issueNumber: issueNumber),
+                action: action,
+                baseURL: try XCTUnwrap(URL(string: "https://\(host)")),
+                credentialReference: credentialReference
+            )
+        }
+
+        let credentialProvider = ReleaseV0330InjectedCanaryCredentialProvider { reference in
+            XCTAssertEqual(reference, credentialReference)
+            return try ReleaseV0330EphemeralCanaryCredentialMaterial(
+                apiKey: "ephemeral-api-key",
+                signingSecret: "ephemeral-signing-secret"
+            )
+        }
+        let networkLoader = ReleaseV0330InjectedCanaryNetworkLoader { request in
+            let url = try XCTUnwrap(request.url)
+            XCTAssertEqual(url.scheme, "https")
+            XCTAssertTrue(["api.binance.com", "fapi.binance.com"].contains(url.host ?? ""))
+            XCTAssertTrue(["/api/v3/order", "/fapi/v1/order"].contains(url.path))
+            XCTAssertEqual(request.value(forHTTPHeaderField: "X-MBX-APIKEY"), "ephemeral-api-key")
+            XCTAssertTrue(url.query?.contains("signature=") == true)
+            XCTAssertTrue(url.query?.contains("timestamp=1800000120000") == true)
+            let method = try XCTUnwrap(request.httpMethod)
+            let status: String
+            switch method {
+            case "POST": status = "NEW"
+            case "GET": status = "NEW"
+            case "DELETE": status = "CANCELED"
+            default: throw ReleaseV0330ExternallyActivatedCanaryTransportError.invalidNetworkRequest
+            }
+            let clientOrderID = try XCTUnwrap(
+                URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?
+                    .first(where: { $0.name == "newClientOrderId" || $0.name == "origClientOrderId" })?.value
+            )
+            let body = try JSONSerialization.data(withJSONObject: [
+                "orderId": 1563,
+                "clientOrderId": clientOrderID,
+                "status": status,
+            ])
+            let response = try XCTUnwrap(
+                HTTPURLResponse(
+                    url: url,
+                    statusCode: 200,
+                    httpVersion: "HTTP/1.1",
+                    headerFields: ["Content-Type": "application/json"]
+                )
+            )
+            return (body, response)
+        }
+        let artifactSink = ReleaseV0330InjectedCanaryArtifactSink { artifact in
+            XCTAssertFalse(artifact.rawSecretPersisted)
+            XCTAssertFalse(artifact.rawResponsePersisted)
+            XCTAssertTrue(artifact.requestSHA256.hasPrefix("sha256:"))
+            XCTAssertTrue(artifact.responseSHA256.hasPrefix("sha256:"))
+            XCTAssertTrue(artifact.redactedOrderReference.hasPrefix("sha256:"))
+            return ReleaseV0330ObservedCanaryArtifactReference(
+                relativePath: "operations/\(artifact.product.rawValue)-\(artifact.action.rawValue).json",
+                sha256: artifact.responseSHA256
+            )
+        }
+        let transport = ReleaseV0330ExternallyActivatedCanaryTransport(
+            credentialProvider: credentialProvider,
+            networkLoader: networkLoader,
+            artifactSink: artifactSink,
+            nowMilliseconds: { 1_800_000_120_000 }
+        )
+
+        for (product, host, issueNumber) in [
+            (ReleaseV0330CanaryProduct.spot, "api.binance.com", 1544),
+            (ReleaseV0330CanaryProduct.usdsPerpetual, "fapi.binance.com", 1545),
+        ] {
+            var observations: [ReleaseV0330ObservedCanaryTransportObservation] = []
+            for action in ReleaseV0320CanaryAction.allCases {
+                observations.append(
+                    try await transport.perform(
+                        request(
+                            product: product,
+                            action: action,
+                            host: host,
+                            issueNumber: issueNumber
+                        )
+                    )
+                )
+            }
+            XCTAssertEqual(observations.map(\.action), [.submit, .status, .cancel])
+            XCTAssertTrue(observations.allSatisfy { $0.endpointHost == host })
+            XCTAssertTrue(observations.allSatisfy { $0.rawSecretPersisted == false })
+            XCTAssertTrue(observations.allSatisfy { $0.rawResponsePersisted == false })
+        }
+
+        let rejectingTransport = ReleaseV0330ExternallyActivatedCanaryTransport()
+        do {
+            _ = try await rejectingTransport.perform(
+                request(product: .spot, action: .submit, host: "api.binance.com", issueNumber: 1544)
+            )
+            XCTFail("default credential provider must reject")
+        } catch let error as ReleaseV0330ExternallyActivatedCanaryTransportError {
+            XCTAssertEqual(error, .credentialProviderNotConfigured)
+        }
+
+        do {
+            _ = try await transport.perform(
+                request(product: .spot, action: .submit, host: "fapi.binance.com", issueNumber: 1544)
+            )
+            XCTFail("cross-product production host must reject")
+        } catch let error as ReleaseV0330ExternallyActivatedCanaryTransportError {
+            XCTAssertEqual(error, .invalidEndpoint)
+        }
+
+        let malformedLoader = ReleaseV0330InjectedCanaryNetworkLoader { request in
+            let response = try XCTUnwrap(
+                HTTPURLResponse(
+                    url: try XCTUnwrap(request.url),
+                    statusCode: 200,
+                    httpVersion: "HTTP/1.1",
+                    headerFields: nil
+                )
+            )
+            return (Data("{}".utf8), response)
+        }
+        let malformedTransport = ReleaseV0330ExternallyActivatedCanaryTransport(
+            credentialProvider: credentialProvider,
+            networkLoader: malformedLoader,
+            artifactSink: artifactSink,
+            nowMilliseconds: { 1_800_000_120_000 }
+        )
+        do {
+            _ = try await malformedTransport.perform(
+                request(product: .spot, action: .submit, host: "api.binance.com", issueNumber: 1544)
+            )
+            XCTFail("malformed exchange response must reject")
+        } catch let error as ReleaseV0330ExternallyActivatedCanaryTransportError {
+            XCTAssertEqual(error, .malformedExchangeResponse)
+        }
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        for file in [
+            "Sources/ExecutionClient/FutureGate/ReleaseV0330ExternallyActivatedCanaryTransport.swift",
+            "docs/contracts/release-v0.33.0-observed-canary-backend-closure-contract.md",
+            "Tests/TargetGraphTests/TargetGraphTests.swift",
+        ] {
+            let source = try String(
+                contentsOf: repositoryRoot.appendingPathComponent(file),
+                encoding: .utf8
+            )
+            for anchor in [
+                "GH-1563-ADD-EXTERNALLY-ACTIVATED-PRODUCTION-CANARY-TRANSPORT",
+                "TVM-RELEASE-V0330-EXTERNALLY-ACTIVATED-CANARY-TRANSPORT",
+                "V0330-002C-NO-DEFAULT-CREDENTIAL-OR-NETWORK-ACTIVATION",
+            ] {
+                XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
+            }
+        }
+
+        let transportSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/ExecutionClient/FutureGate/ReleaseV0330ExternallyActivatedCanaryTransport.swift"
+            ),
+            encoding: .utf8
+        )
+        XCTAssertFalse(transportSource.contains("ProcessInfo.processInfo.environment"))
+        XCTAssertFalse(transportSource.contains("getenv("))
+        XCTAssertTrue(transportSource.contains("ReleaseV0330RejectingCanaryCredentialProvider"))
+        XCTAssertTrue(transportSource.contains("ReleaseV0330RejectingCanaryNetworkLoader"))
+        XCTAssertTrue(transportSource.contains("ReleaseV0330RejectingCanaryArtifactSink"))
+    }
+
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
     // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
     // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS

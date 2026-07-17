@@ -75,3 +75,13 @@ Anchors: `GH-1561-ADD-EXACT-OBSERVED-CANARY-ORDER-PLAN`, `TVM-RELEASE-V0330-EXAC
 The separate Human execution authorization must contain the SHA-256 of that exact canonical plan. The runner rejects any plan/digest mismatch, price/quantity/notional inconsistency, unsupported side or time-in-force, non-deterministic client identity, cap overflow or cross-product scope before acquiring transport evidence. Only the validated plan is propagated to submit/status/cancel transport calls.
 
 V0330-002B remains implementation prerequisite work. Its default transport is still rejecting, its tests use only an injected fake transport, and it does not read a secret, instantiate `URLSession`, connect Binance or authorize #1544/#1545. Those canonical execution issues still require a separate, explicit Human authorization at execution time.
+
+## Externally Activated Canary Transport Boundary (V0330-002C)
+
+Anchors: `GH-1563-ADD-EXTERNALLY-ACTIVATED-PRODUCTION-CANARY-TRANSPORT`, `TVM-RELEASE-V0330-EXTERNALLY-ACTIVATED-CANARY-TRANSPORT`, `V0330-002C-NO-DEFAULT-CREDENTIAL-OR-NETWORK-ACTIVATION`.
+
+`ReleaseV0330ExternallyActivatedCanaryTransport` maps a validated exact order plan to the Binance Spot `/api/v3/order` or USD-M Futures `/fapi/v1/order` submit, status and cancel request shapes. It creates HMAC signatures only in memory and converts the response into checksum-backed, redacted operation evidence without persisting raw credential material, signatures, request payloads or response bodies.
+
+The transport has no automatic activation path. Credential material, network loading, clock and artifact persistence are separate injected protocols, and every default implementation rejects. The repository provides an optional URLSession loader with its own exact HTTPS host/path/method allowlist, but V0330-002C tests use only an injected fake network loader and do not contact Binance.
+
+V0330-002C does not authorize #1544/#1545, discover environment secrets, enable default production trading or approve production cutover. A canonical observed canary still requires an external Human-recorded packet and separate one-shot execution authorization bound to the exact plan and current source commit.
