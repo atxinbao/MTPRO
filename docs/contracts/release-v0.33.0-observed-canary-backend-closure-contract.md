@@ -65,3 +65,13 @@ Anchors: `GH-1559-ADD-APPROVAL-BOUND-OBSERVED-CANARY-RUNNER`, `TVM-RELEASE-V0330
 Before invoking an injected transport, the runner checks the packet scope, LIMIT-only order type, notional and leverage caps, exact HTTPS Binance product endpoint, credential reference, RiskEngine result, kill-switch state, no-trade state, rollback evidence and the v0.32.3 persistent run lock. Submit, status and cancel observations must remain redacted, carry safe relative artifact references, and bind back to the same run/product/action.
 
 The default transport always rejects with `transportNotConfigured`. V0330-002A does not read environment secrets, connect a broker, submit an order or authorize an observed canary. Concrete credential loading and transport activation remain part of V0330-003/V0330-004 and require a separate Human approval at execution time.
+
+## Exact Order Plan Activation Boundary (V0330-002B)
+
+Anchors: `GH-1561-ADD-EXACT-OBSERVED-CANARY-ORDER-PLAN`, `TVM-RELEASE-V0330-EXACT-ORDER-PLAN-ACTIVATION-BOUNDARY`, `V0330-002B-EXACT-ORDER-PLAN-FAIL-CLOSED-ACTIVATION`.
+
+`ReleaseV0330ObservedCanaryOrderPlan` removes transport-time discretion from an approved run. The immutable plan binds the approval packet and source commit to the exact product, canonical execution issue, symbol, side, LIMIT order type, GTC time-in-force, integer-scaled price, integer-scaled quantity, derived notional, leverage and deterministic client order identity.
+
+The separate Human execution authorization must contain the SHA-256 of that exact canonical plan. The runner rejects any plan/digest mismatch, price/quantity/notional inconsistency, unsupported side or time-in-force, non-deterministic client identity, cap overflow or cross-product scope before acquiring transport evidence. Only the validated plan is propagated to submit/status/cancel transport calls.
+
+V0330-002B remains implementation prerequisite work. Its default transport is still rejecting, its tests use only an injected fake transport, and it does not read a secret, instantiate `URLSession`, connect Binance or authorize #1544/#1545. Those canonical execution issues still require a separate, explicit Human authorization at execution time.
