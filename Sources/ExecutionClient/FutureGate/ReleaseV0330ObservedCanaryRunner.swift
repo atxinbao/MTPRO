@@ -188,6 +188,22 @@ public struct ReleaseV0330ObservedCanaryTransportRequest: Equatable, Sendable {
     public var notionalMinorUnits: Int64 { orderPlan.notionalMinorUnits }
     public var orderType: String { orderPlan.orderType }
     public var leverageBasisPoints: Int { orderPlan.leverageBasisPoints }
+
+    public init(
+        runID: String,
+        sourceCommit: String,
+        orderPlan: ReleaseV0330ObservedCanaryOrderPlan,
+        action: ReleaseV0320CanaryAction,
+        baseURL: URL,
+        credentialReference: String
+    ) {
+        self.runID = runID
+        self.sourceCommit = sourceCommit
+        self.orderPlan = orderPlan
+        self.action = action
+        self.baseURL = baseURL
+        self.credentialReference = credentialReference
+    }
 }
 
 public struct ReleaseV0330ObservedCanaryArtifactReference: Codable, Equatable, Sendable {
