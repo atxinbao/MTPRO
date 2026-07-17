@@ -55,3 +55,13 @@ Anchors: `GH-1543-PREPARE-V0330-HUMAN-APPROVED-CANARY-PACKET`, `TVM-RELEASE-V033
 The validator fails closed for missing or expired approval, wrong commit, wrong product scope, empty or duplicate symbols, invalid caps, missing safety evidence, fixture-origin approval evidence, malformed attestation checksums, or a packet that already claims production cutover/default production trading. Canonical JSON can be persisted as the approval packet artifact, but the code does not create or sign a Human approval.
 
 `approvalPacketRecorded=true` is necessary but not sufficient. The report always keeps `observedCanaryExecutionAuthorized=false` and `productionCutoverAuthorized=false`; later runtime gates must independently verify the external approval artifact and every operational safety condition.
+
+## Approval-bound Runner Boundary (V0330-002A)
+
+Anchors: `GH-1559-ADD-APPROVAL-BOUND-OBSERVED-CANARY-RUNNER`, `TVM-RELEASE-V0330-APPROVAL-BOUND-OBSERVED-CANARY-RUNNER`, `V0330-002A-APPROVAL-BOUND-FAIL-CLOSED-RUNNER`.
+
+`ReleaseV0330ObservedCanaryRunner` separates packet validation from execution authorization. A valid packet cannot invoke a transport by itself. Every run also requires a human-recorded, one-shot execution authorization bound to the exact packet, source commit, product, symbol, issue, validity window and external attestation checksum.
+
+Before invoking an injected transport, the runner checks the packet scope, LIMIT-only order type, notional and leverage caps, exact HTTPS Binance product endpoint, credential reference, RiskEngine result, kill-switch state, no-trade state, rollback evidence and the v0.32.3 persistent run lock. Submit, status and cancel observations must remain redacted, carry safe relative artifact references, and bind back to the same run/product/action.
+
+The default transport always rejects with `transportNotConfigured`. V0330-002A does not read environment secrets, connect a broker, submit an order or authorize an observed canary. Concrete credential loading and transport activation remain part of V0330-003/V0330-004 and require a separate Human approval at execution time.
