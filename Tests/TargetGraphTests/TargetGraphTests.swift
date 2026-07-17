@@ -72880,6 +72880,9 @@ final class TargetGraphTests: XCTestCase {
     // GH-1559-ADD-APPROVAL-BOUND-OBSERVED-CANARY-RUNNER
     // TVM-RELEASE-V0330-APPROVAL-BOUND-OBSERVED-CANARY-RUNNER
     // V0330-002A-APPROVAL-BOUND-FAIL-CLOSED-RUNNER
+    // GH-1561-ADD-EXACT-OBSERVED-CANARY-ORDER-PLAN
+    // TVM-RELEASE-V0330-EXACT-ORDER-PLAN-ACTIVATION-BOUNDARY
+    // V0330-002B-EXACT-ORDER-PLAN-FAIL-CLOSED-ACTIVATION
     func testGH1559ReleaseV0330ObservedCanaryRunnerIsApprovalBoundAndFailsClosed() async throws {
         let sourceCommit = String(repeating: "a", count: 40)
         let now: Int64 = 1_800_000_120
@@ -72918,41 +72921,84 @@ final class TargetGraphTests: XCTestCase {
             rollbackOwnerIdentity: "rollback-owner",
             humanApproval: approval
         )
-        let executionAuthorization = ReleaseV0330ObservedCanaryExecutionAuthorization(
-            recordID: "execution-authorization-1559",
-            approvalPacketID: packet.packetID,
-            approverIdentity: "release-owner",
-            sourceCommit: sourceCommit,
-            product: .spot,
-            symbol: "BTCUSDT",
-            issueNumber: 1544,
-            authorizedAtEpochSeconds: now - 30,
-            expiresAtEpochSeconds: now + 300,
-            attestationSHA256: "sha256:" + String(repeating: "c", count: 64),
-            evidenceOrigin: .humanRecorded,
-            oneShot: true
-        )
         let spotURL = try XCTUnwrap(URL(string: "https://api.binance.com"))
+
+        func orderPlan(
+            notionalMinorUnits: Int64 = 500,
+            side: String = "BUY",
+            timeInForce: String = "GTC",
+            invalidClientOrderID: Bool = false
+        ) -> ReleaseV0330ObservedCanaryOrderPlan {
+            let planID = "plan-\(notionalMinorUnits)-\(side)-\(timeInForce)"
+            let clientOrderID = ReleaseV0330ObservedCanaryOrderPlan.deterministicClientOrderID(
+                planID: planID,
+                sourceCommit: sourceCommit,
+                product: .spot,
+                symbol: "BTCUSDT",
+                issueNumber: 1544
+            )
+            return ReleaseV0330ObservedCanaryOrderPlan(
+                planID: planID,
+                approvalPacketID: packet.packetID,
+                sourceCommit: sourceCommit,
+                product: .spot,
+                issueNumber: 1544,
+                symbol: "BTCUSDT",
+                side: side,
+                orderType: "LIMIT",
+                timeInForce: timeInForce,
+                priceQuoteMinorUnits: 5_000_000,
+                quantityBaseAtomicUnits: notionalMinorUnits * 20,
+                baseAssetScale: 8,
+                notionalMinorUnits: notionalMinorUnits,
+                leverageBasisPoints: 10_000,
+                clientOrderID: invalidClientOrderID ? "unbound-client-order" : clientOrderID
+            )
+        }
+
+        func authorization(
+            for plan: ReleaseV0330ObservedCanaryOrderPlan,
+            origin: ReleaseV0330ApprovalEvidenceOrigin = .humanRecorded,
+            orderPlanSHA256: String? = nil
+        ) throws -> ReleaseV0330ObservedCanaryExecutionAuthorization {
+            try ReleaseV0330ObservedCanaryExecutionAuthorization(
+                recordID: "execution-authorization-1559",
+                approvalPacketID: packet.packetID,
+                approverIdentity: "release-owner",
+                sourceCommit: sourceCommit,
+                product: plan.product,
+                symbol: plan.symbol,
+                issueNumber: plan.issueNumber,
+                authorizedAtEpochSeconds: now - 30,
+                expiresAtEpochSeconds: now + 300,
+                attestationSHA256: "sha256:" + String(repeating: "c", count: 64),
+                orderPlanSHA256: orderPlanSHA256 ?? plan.canonicalSHA256(),
+                evidenceOrigin: origin,
+                oneShot: true
+            )
+        }
 
         func request(
             runID: String,
-            authorization: ReleaseV0330ObservedCanaryExecutionAuthorization = executionAuthorization,
-            notionalMinorUnits: Int64 = 500,
+            plan: ReleaseV0330ObservedCanaryOrderPlan? = nil,
+            authorizationOrigin: ReleaseV0330ApprovalEvidenceOrigin = .humanRecorded,
+            authorizationPlanSHA256: String? = nil,
             baseURL: URL = spotURL,
             riskGatePassed: Bool = true
-        ) -> ReleaseV0330ObservedCanaryRunRequest {
-            ReleaseV0330ObservedCanaryRunRequest(
+        ) throws -> ReleaseV0330ObservedCanaryRunRequest {
+            let resolvedPlan = plan ?? orderPlan()
+            return try ReleaseV0330ObservedCanaryRunRequest(
                 runID: runID,
                 ownerID: "operator-1559",
                 nonce: "nonce-\(runID)",
                 sourceCommit: sourceCommit,
                 approvalPacket: packet,
-                executionAuthorization: authorization,
-                product: .spot,
-                symbol: "BTCUSDT",
-                notionalMinorUnits: notionalMinorUnits,
-                orderType: "LIMIT",
-                leverageBasisPoints: 10_000,
+                executionAuthorization: authorization(
+                    for: resolvedPlan,
+                    origin: authorizationOrigin,
+                    orderPlanSHA256: authorizationPlanSHA256
+                ),
+                orderPlan: resolvedPlan,
                 baseURL: baseURL,
                 credentialReference: "credential-reference:redacted",
                 riskGatePassed: riskGatePassed,
@@ -72973,7 +73019,7 @@ final class TargetGraphTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: rejectingRoot) }
         do {
             _ = try await ReleaseV0330ObservedCanaryRunner(lockStore: rejectingStore)
-                .run(request(runID: "run-rejecting"))
+                .run(try request(runID: "run-rejecting"))
             XCTFail("default transport must reject")
         } catch let error as ReleaseV0330ObservedCanaryRunnerError {
             XCTAssertEqual(error, .transportNotConfigured)
@@ -72981,7 +73027,11 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(try rejectingStore.replayRecord(runID: "run-rejecting").state, .released)
 
         let injectedTransport = ReleaseV0330InjectedObservedCanaryTransport { transportRequest in
-            ReleaseV0330ObservedCanaryTransportObservation(
+            XCTAssertEqual(transportRequest.orderPlan.side, "BUY")
+            XCTAssertEqual(transportRequest.orderPlan.timeInForce, "GTC")
+            XCTAssertEqual(transportRequest.orderPlan.priceQuoteMinorUnits, 5_000_000)
+            XCTAssertEqual(transportRequest.orderPlan.quantityBaseAtomicUnits, 10_000)
+            return ReleaseV0330ObservedCanaryTransportObservation(
                 runID: transportRequest.runID,
                 product: transportRequest.product,
                 action: transportRequest.action,
@@ -73002,7 +73052,7 @@ final class TargetGraphTests: XCTestCase {
             lockStore: acceptedStore,
             transport: injectedTransport
         )
-        let accepted = try await runner.run(request(runID: "run-accepted"))
+        let accepted = try await runner.run(try request(runID: "run-accepted"))
         XCTAssertTrue(accepted.boundaryHeld)
         XCTAssertEqual(accepted.observations.map(\.action), [.submit, .status, .cancel])
         XCTAssertFalse(accepted.productionCutoverAuthorized)
@@ -73010,33 +73060,19 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertEqual(try acceptedStore.replayRecord(runID: "run-accepted").state, .released)
 
         do {
-            _ = try await runner.run(request(runID: "run-accepted"))
+            _ = try await runner.run(try request(runID: "run-accepted"))
             XCTFail("one-shot run must not replay")
         } catch let error as ReleaseV0323PersistentRunLockStoreError {
             XCTAssertEqual(error, .replayRejected("run-accepted"))
         }
 
-        let fixtureAuthorization = ReleaseV0330ObservedCanaryExecutionAuthorization(
-            recordID: executionAuthorization.recordID,
-            approvalPacketID: executionAuthorization.approvalPacketID,
-            approverIdentity: executionAuthorization.approverIdentity,
-            sourceCommit: executionAuthorization.sourceCommit,
-            product: executionAuthorization.product,
-            symbol: executionAuthorization.symbol,
-            issueNumber: executionAuthorization.issueNumber,
-            authorizedAtEpochSeconds: executionAuthorization.authorizedAtEpochSeconds,
-            expiresAtEpochSeconds: executionAuthorization.expiresAtEpochSeconds,
-            attestationSHA256: executionAuthorization.attestationSHA256,
-            evidenceOrigin: .deterministicFixture,
-            oneShot: true
-        )
         let (fixtureStore, fixtureRoot) = try lockStore("fixture")
         defer { try? FileManager.default.removeItem(at: fixtureRoot) }
         do {
             _ = try await ReleaseV0330ObservedCanaryRunner(
                 lockStore: fixtureStore,
                 transport: injectedTransport
-            ).run(request(runID: "run-fixture", authorization: fixtureAuthorization))
+            ).run(try request(runID: "run-fixture", authorizationOrigin: .deterministicFixture))
             XCTFail("fixture authorization must reject")
         } catch let error as ReleaseV0330ObservedCanaryRunnerError {
             XCTAssertEqual(error, .invalidExecutionAuthorization)
@@ -73048,7 +73084,7 @@ final class TargetGraphTests: XCTestCase {
             _ = try await ReleaseV0330ObservedCanaryRunner(
                 lockStore: capStore,
                 transport: injectedTransport
-            ).run(request(runID: "run-cap", notionalMinorUnits: 1_001))
+            ).run(try request(runID: "run-cap", plan: orderPlan(notionalMinorUnits: 1_001)))
             XCTFail("cap overflow must reject")
         } catch let error as ReleaseV0330ObservedCanaryRunnerError {
             XCTAssertEqual(error, .scopeMismatch)
@@ -73061,7 +73097,7 @@ final class TargetGraphTests: XCTestCase {
             _ = try await ReleaseV0330ObservedCanaryRunner(
                 lockStore: endpointStore,
                 transport: injectedTransport
-            ).run(request(runID: "run-endpoint", baseURL: productionURL))
+            ).run(try request(runID: "run-endpoint", baseURL: productionURL))
             XCTFail("non-HTTPS endpoint must reject")
         } catch let error as ReleaseV0330ObservedCanaryRunnerError {
             guard case .invalidEndpoint = error else {
@@ -73075,10 +73111,45 @@ final class TargetGraphTests: XCTestCase {
             _ = try await ReleaseV0330ObservedCanaryRunner(
                 lockStore: riskStore,
                 transport: injectedTransport
-            ).run(request(runID: "run-risk", riskGatePassed: false))
+            ).run(try request(runID: "run-risk", riskGatePassed: false))
             XCTFail("risk rejection must fail closed")
         } catch let error as ReleaseV0330ObservedCanaryRunnerError {
             XCTAssertEqual(error, .safetyGateRejected)
+        }
+
+        for (suffix, invalidPlan) in [
+            ("side", orderPlan(side: "HOLD")),
+            ("tif", orderPlan(timeInForce: "IOC")),
+            ("client", orderPlan(invalidClientOrderID: true)),
+        ] {
+            let (store, root) = try lockStore(suffix)
+            defer { try? FileManager.default.removeItem(at: root) }
+            do {
+                _ = try await ReleaseV0330ObservedCanaryRunner(
+                    lockStore: store,
+                    transport: injectedTransport
+                ).run(try request(runID: "run-\(suffix)", plan: invalidPlan))
+                XCTFail("invalid exact order plan must fail closed")
+            } catch let error as ReleaseV0330ObservedCanaryRunnerError {
+                XCTAssertEqual(error, .invalidOrderPlan)
+            }
+        }
+
+        let (digestStore, digestRoot) = try lockStore("digest")
+        defer { try? FileManager.default.removeItem(at: digestRoot) }
+        do {
+            _ = try await ReleaseV0330ObservedCanaryRunner(
+                lockStore: digestStore,
+                transport: injectedTransport
+            ).run(
+                try request(
+                    runID: "run-digest",
+                    authorizationPlanSHA256: "sha256:" + String(repeating: "f", count: 64)
+                )
+            )
+            XCTFail("authorization must bind the exact plan digest")
+        } catch let error as ReleaseV0330ObservedCanaryRunnerError {
+            XCTAssertEqual(error, .invalidExecutionAuthorization)
         }
 
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
@@ -73095,6 +73166,9 @@ final class TargetGraphTests: XCTestCase {
                 "GH-1559-ADD-APPROVAL-BOUND-OBSERVED-CANARY-RUNNER",
                 "TVM-RELEASE-V0330-APPROVAL-BOUND-OBSERVED-CANARY-RUNNER",
                 "V0330-002A-APPROVAL-BOUND-FAIL-CLOSED-RUNNER",
+                "GH-1561-ADD-EXACT-OBSERVED-CANARY-ORDER-PLAN",
+                "TVM-RELEASE-V0330-EXACT-ORDER-PLAN-ACTIVATION-BOUNDARY",
+                "V0330-002B-EXACT-ORDER-PLAN-FAIL-CLOSED-ACTIVATION",
             ] {
                 XCTAssertTrue(source.contains(anchor), "\(file) must contain \(anchor)")
             }
