@@ -17,7 +17,7 @@ public enum ReleaseV0330CanaryEnvironment: String, Codable, Sendable {
     case production
     case demo
 
-    func endpointHost(for product: ReleaseV0330CanaryProduct) -> String {
+    public func endpointHost(for product: ReleaseV0330CanaryProduct) -> String {
         switch (self, product) {
         case (.production, .spot):
             "api.binance.com"
@@ -28,6 +28,10 @@ public enum ReleaseV0330CanaryEnvironment: String, Codable, Sendable {
         case (.demo, .usdsPerpetual):
             "demo-fapi.binance.com"
         }
+    }
+
+    public func endpointBaseURL(for product: ReleaseV0330CanaryProduct) -> URL {
+        URL(string: "https://\(endpointHost(for: product))")!
     }
 }
 

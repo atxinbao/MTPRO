@@ -397,6 +397,8 @@ private enum MTPROStrictCLI {
         // V0322-005-SEMANTIC-OMS-ROLLBACK-INCIDENT-LINKAGE
         // V0322-006-NEGATIVE-MATRIX-BACKEND-CLOSURE-INPUT
         ReleaseV0322ControlledCanaryIntegrityClosurePatch.cliCommand,
+        ReleaseV0330DemoCanaryCLI.cliCommand,
+        ReleaseV0330DemoCanaryCLI.prepareCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -531,6 +533,10 @@ private enum MTPROStrictCLI {
             return try ReleaseV0321ControlledCanaryIntegrityRepair.commandLineOutput(arguments: arguments)
         case ReleaseV0322ControlledCanaryIntegrityClosurePatch.cliCommand:
             return try ReleaseV0322ControlledCanaryIntegrityClosurePatch.commandLineOutput(arguments: arguments)
+        case ReleaseV0330DemoCanaryCLI.cliCommand:
+            return try await ReleaseV0330DemoCanaryCLI.commandLineOutput(arguments: arguments)
+        case ReleaseV0330DemoCanaryCLI.prepareCommand:
+            return try ReleaseV0330DemoCanaryCLI.prepareConfigurationOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
