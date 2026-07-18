@@ -349,7 +349,11 @@ public actor ReleaseV0330ExternallyActivatedCanaryTransport: ReleaseV0330Observe
             )
         }
 
-        let exchange = try parseExchangeResponse(data, expectedClientOrderID: request.orderPlan.clientOrderID)
+        let exchange = try parseExchangeResponse(
+            data,
+            action: request.action,
+            expectedClientOrderID: request.orderPlan.clientOrderID
+        )
         let requestDigest = Self.sha256(Data(signedQuery.utf8))
         let responseDigest = Self.sha256(data)
         let orderReference = Self.sha256(
@@ -479,13 +483,16 @@ public actor ReleaseV0330ExternallyActivatedCanaryTransport: ReleaseV0330Observe
 
     private func parseExchangeResponse(
         _ data: Data,
+        action: ReleaseV0320CanaryAction,
         expectedClientOrderID: String
     ) throws -> (orderID: String, clientOrderID: String, status: String) {
         guard let object = try? JSONSerialization.jsonObject(with: data),
               let dictionary = object as? [String: Any],
               let orderID = Self.stringValue(dictionary["orderId"]),
               let clientOrderID = Self.stringValue(
-                  dictionary["clientOrderId"] ?? dictionary["origClientOrderId"]
+                  action == .cancel
+                    ? dictionary["origClientOrderId"] ?? dictionary["clientOrderId"]
+                    : dictionary["clientOrderId"]
               ),
               let status = Self.stringValue(dictionary["status"]),
               orderID.isEmpty == false,

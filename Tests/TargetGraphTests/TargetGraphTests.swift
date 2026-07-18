@@ -73478,11 +73478,16 @@ final class TargetGraphTests: XCTestCase {
                     })?.value
             )
             let status = request.httpMethod == "DELETE" ? "CANCELED" : "NEW"
-            let body = try JSONSerialization.data(withJSONObject: [
+            var responseBody: [String: Any] = [
                 "orderId": 1565,
                 "clientOrderId": clientOrderID,
                 "status": status,
-            ])
+            ]
+            if request.httpMethod == "DELETE" {
+                responseBody["origClientOrderId"] = clientOrderID
+                responseBody["clientOrderId"] = "binance-generated-cancel-id"
+            }
+            let body = try JSONSerialization.data(withJSONObject: responseBody)
             let response = try XCTUnwrap(
                 HTTPURLResponse(
                     url: url,
