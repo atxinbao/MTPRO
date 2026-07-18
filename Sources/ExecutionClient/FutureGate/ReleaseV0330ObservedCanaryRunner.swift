@@ -9,6 +9,28 @@ import Foundation
 // TVM-RELEASE-V0330-EXACT-ORDER-PLAN-ACTIVATION-BOUNDARY
 // V0330-002B-EXACT-ORDER-PLAN-FAIL-CLOSED-ACTIVATION
 
+// GH-1565-ADD-EXPLICIT-BINANCE-DEMO-CANARY-ENVIRONMENT
+// TVM-RELEASE-V0330-BINANCE-DEMO-ENVIRONMENT-ISOLATION
+// V0330-002D-DEMO-ENVIRONMENT-FAIL-CLOSED-BINDING
+
+public enum ReleaseV0330CanaryEnvironment: String, Codable, Sendable {
+    case production
+    case demo
+
+    func endpointHost(for product: ReleaseV0330CanaryProduct) -> String {
+        switch (self, product) {
+        case (.production, .spot):
+            "api.binance.com"
+        case (.production, .usdsPerpetual):
+            "fapi.binance.com"
+        case (.demo, .spot):
+            "demo-api.binance.com"
+        case (.demo, .usdsPerpetual):
+            "demo-fapi.binance.com"
+        }
+    }
+}
+
 public struct ReleaseV0330ObservedCanaryOrderPlan: Codable, Equatable, Sendable {
     public let planID: String
     public let approvalPacketID: String
@@ -134,6 +156,7 @@ public struct ReleaseV0330ObservedCanaryRunRequest: Sendable {
     public let approvalPacket: ReleaseV0330CanaryApprovalPacket
     public let executionAuthorization: ReleaseV0330ObservedCanaryExecutionAuthorization
     public let orderPlan: ReleaseV0330ObservedCanaryOrderPlan
+    public let environment: ReleaseV0330CanaryEnvironment
     public let baseURL: URL
     public let credentialReference: String
     public let riskGatePassed: Bool
@@ -150,6 +173,7 @@ public struct ReleaseV0330ObservedCanaryRunRequest: Sendable {
         approvalPacket: ReleaseV0330CanaryApprovalPacket,
         executionAuthorization: ReleaseV0330ObservedCanaryExecutionAuthorization,
         orderPlan: ReleaseV0330ObservedCanaryOrderPlan,
+        environment: ReleaseV0330CanaryEnvironment = .production,
         baseURL: URL,
         credentialReference: String,
         riskGatePassed: Bool,
@@ -165,6 +189,7 @@ public struct ReleaseV0330ObservedCanaryRunRequest: Sendable {
         self.approvalPacket = approvalPacket
         self.executionAuthorization = executionAuthorization
         self.orderPlan = orderPlan
+        self.environment = environment
         self.baseURL = baseURL
         self.credentialReference = credentialReference
         self.riskGatePassed = riskGatePassed
@@ -180,6 +205,7 @@ public struct ReleaseV0330ObservedCanaryTransportRequest: Equatable, Sendable {
     public let sourceCommit: String
     public let orderPlan: ReleaseV0330ObservedCanaryOrderPlan
     public let action: ReleaseV0320CanaryAction
+    public let environment: ReleaseV0330CanaryEnvironment
     public let baseURL: URL
     public let credentialReference: String
 
@@ -194,6 +220,7 @@ public struct ReleaseV0330ObservedCanaryTransportRequest: Equatable, Sendable {
         sourceCommit: String,
         orderPlan: ReleaseV0330ObservedCanaryOrderPlan,
         action: ReleaseV0320CanaryAction,
+        environment: ReleaseV0330CanaryEnvironment = .production,
         baseURL: URL,
         credentialReference: String
     ) {
@@ -201,6 +228,7 @@ public struct ReleaseV0330ObservedCanaryTransportRequest: Equatable, Sendable {
         self.sourceCommit = sourceCommit
         self.orderPlan = orderPlan
         self.action = action
+        self.environment = environment
         self.baseURL = baseURL
         self.credentialReference = credentialReference
     }
@@ -220,6 +248,7 @@ public struct ReleaseV0330ObservedCanaryTransportObservation: Codable, Equatable
     public let runID: String
     public let product: ReleaseV0330CanaryProduct
     public let action: ReleaseV0320CanaryAction
+    public let environment: ReleaseV0330CanaryEnvironment
     public let requestID: String
     public let redactedOrderReference: String
     public let endpointHost: String
@@ -231,6 +260,7 @@ public struct ReleaseV0330ObservedCanaryTransportObservation: Codable, Equatable
         runID: String,
         product: ReleaseV0330CanaryProduct,
         action: ReleaseV0320CanaryAction,
+        environment: ReleaseV0330CanaryEnvironment = .production,
         requestID: String,
         redactedOrderReference: String,
         endpointHost: String,
@@ -241,6 +271,7 @@ public struct ReleaseV0330ObservedCanaryTransportObservation: Codable, Equatable
         self.runID = runID
         self.product = product
         self.action = action
+        self.environment = environment
         self.requestID = requestID
         self.redactedOrderReference = redactedOrderReference
         self.endpointHost = endpointHost
@@ -290,6 +321,7 @@ public struct ReleaseV0330ObservedCanaryRunEvidence: Codable, Equatable, Sendabl
     public let runID: String
     public let sourceCommit: String
     public let product: ReleaseV0330CanaryProduct
+    public let environment: ReleaseV0330CanaryEnvironment
     public let symbol: String
     public let approvalPacketID: String
     public let executionAuthorizationRecordID: String
@@ -303,6 +335,7 @@ public struct ReleaseV0330ObservedCanaryRunEvidence: Codable, Equatable, Sendabl
             && observations.allSatisfy {
                 $0.runID == runID
                     && $0.product == product
+                    && $0.environment == environment
                     && $0.rawSecretPersisted == false
                     && $0.rawResponsePersisted == false
             }
@@ -359,6 +392,7 @@ public struct ReleaseV0330ObservedCanaryRunner: Sendable {
                     sourceCommit: request.sourceCommit,
                     orderPlan: request.orderPlan,
                     action: action,
+                    environment: request.environment,
                     baseURL: request.baseURL,
                     credentialReference: request.credentialReference
                 )
@@ -379,6 +413,7 @@ public struct ReleaseV0330ObservedCanaryRunner: Sendable {
                 runID: request.runID,
                 sourceCommit: request.sourceCommit,
                 product: request.orderPlan.product,
+                environment: request.environment,
                 symbol: request.orderPlan.symbol,
                 approvalPacketID: request.approvalPacket.packetID,
                 executionAuthorizationRecordID: request.executionAuthorization.recordID,
@@ -462,7 +497,7 @@ public struct ReleaseV0330ObservedCanaryRunner: Sendable {
             throw ReleaseV0330ObservedCanaryRunnerError.scopeMismatch
         }
 
-        let expectedHost = plan.product == .spot ? "api.binance.com" : "fapi.binance.com"
+        let expectedHost = request.environment.endpointHost(for: plan.product)
         guard request.baseURL.scheme == "https",
               request.baseURL.host == expectedHost,
               request.baseURL.user == nil,
@@ -492,6 +527,7 @@ public struct ReleaseV0330ObservedCanaryRunner: Sendable {
         observation.runID == request.runID
             && observation.product == request.product
             && observation.action == request.action
+            && observation.environment == request.environment
             && observation.requestID.isEmpty == false
             && observation.redactedOrderReference.isEmpty == false
             && observation.endpointHost == request.baseURL.host
