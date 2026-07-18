@@ -18779,3 +18779,13 @@ Verification anchors: `GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELE
 Validation covers trusted GitHub provenance, persistent lock and nonce registry, six Binance Spot/USD-M Futures operation records, twenty-four independent linked artifacts, realpath containment, and the complete negative matrix. Required boundary facts remain `observedProductionCanary=false`, `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, and `okxActiveRuntime=false`.
 
 Commands: `swift test --filter TargetGraphTests/testGH1541ReleaseV0323StageAuditReleaseDocsCloseout`, `bash checks/verify-v0.32.3.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.
+## Release v0.33.0 Demo Validation Closeout
+
+Date: 2026-07-19
+Executor: Codex
+
+Anchors: `GH-1549-CLOSE-V0330-DEMO-VALIDATION-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0330-DEMO-VALIDATION-PRODUCTION-CLOSURE-BLOCKED`, `V0330-008-DEMO-VALIDATION-AUDIT-RELEASE-NOTES`, `V0330-008-BINANCE-SPOT-USDM-FUTURES-ONLY`, `V0330-008-NO-PRODUCTION-CUTOVER`.
+
+Demo validation evidence was accepted for Binance Spot and USD-M Futures submit/status/cancel runs. The immutable bundle and decision engine require trusted provenance and fail closed on missing or invalid evidence. `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, and production trading remains disabled.
+
+Commands: `swift test --filter ReleaseV0330DemoValidationTests`, `bash checks/verify-v0.33.0-demo-validation.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.

@@ -3063,3 +3063,11 @@ Verification anchors: `GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELE
 v0.32.3 verifies trusted GitHub provenance, atomic persistent run locking, nonce/run replay registry, independent checksum-linked artifacts, canonical evidence-root containment, and the complete negative matrix. Active scope is Binance Spot + USD-M Futures only. Required facts: `observedProductionCanary=false`, `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, `productionTradingEnabledByDefault=false`, `okxActiveRuntime=false`.
 
 Validation commands: `swift test --filter TargetGraphTests/testGH1541ReleaseV0323StageAuditReleaseDocsCloseout`, `bash checks/verify-v0.32.3.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.
+## Release v0.33.0 Demo Validation Closeout
+
+Date: 2026-07-19
+Executor: Codex
+
+`GH-1549-CLOSE-V0330-DEMO-VALIDATION-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0330-DEMO-VALIDATION-PRODUCTION-CLOSURE-BLOCKED`, `V0330-008-DEMO-VALIDATION-AUDIT-RELEASE-NOTES`, `V0330-008-BINANCE-SPOT-USDM-FUTURES-ONLY`, and `V0330-008-NO-PRODUCTION-CUTOVER` close the Demo validation evidence queue. Binance Spot and USD-M Futures Demo submit/status/cancel runs produced redacted artifacts; local bundle validation is fail-closed and the status CLI exits non-zero for missing or invalid evidence. `demoValidationDecision=accepted` is separate from `backendClosureDecision=blocked`; `productionCutoverAuthorized=false` and production trading remains disabled.
+
+Validation: `bash checks/verify-v0.33.0-demo-validation.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.
