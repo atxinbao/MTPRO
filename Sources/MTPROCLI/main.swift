@@ -75,6 +75,9 @@ do {
 } catch let error as ReleaseV0170CLIArtifactVerifyCommandFailedValidation {
     print(error.renderedOutput)
     Foundation.exit(error.exitCode)
+} catch let error as ReleaseV0330DemoValidationStatusCLIFailedValidation {
+    print(error.renderedOutput)
+    Foundation.exit(error.exitCode)
 } catch {
     print("mtpro error: \(error)")
     Foundation.exit(64)
@@ -399,6 +402,7 @@ private enum MTPROStrictCLI {
         ReleaseV0322ControlledCanaryIntegrityClosurePatch.cliCommand,
         ReleaseV0330DemoCanaryCLI.cliCommand,
         ReleaseV0330DemoCanaryCLI.prepareCommand,
+        ReleaseV0330DemoValidationStatusCLI.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -440,6 +444,7 @@ private enum MTPROStrictCLI {
         ReleaseV0320ControlledProductionCanaryOperations.cliCommand,
         ReleaseV0321ControlledCanaryIntegrityRepair.cliCommand,
         ReleaseV0322ControlledCanaryIntegrityClosurePatch.cliCommand,
+        ReleaseV0330DemoValidationStatusCLI.cliCommand,
         ReleaseV030CLIRehearsalSurface.cliCommand,
         ReleaseV040UnifiedRunSurface.cliCommand,
         ReleaseV050RunObserverSurface.cliCommand,
@@ -537,6 +542,8 @@ private enum MTPROStrictCLI {
             return try await ReleaseV0330DemoCanaryCLI.commandLineOutput(arguments: arguments)
         case ReleaseV0330DemoCanaryCLI.prepareCommand:
             return try ReleaseV0330DemoCanaryCLI.prepareConfigurationOutput(arguments: arguments)
+        case ReleaseV0330DemoValidationStatusCLI.cliCommand:
+            return try ReleaseV0330DemoValidationStatusCLI.commandLineOutput(arguments: arguments)
         case ReleaseV030CLIRehearsalSurface.cliCommand:
             return try ReleaseV030CLIRehearsalSurface.commandLineOutput(arguments: arguments)
         case ReleaseV040UnifiedRunSurface.cliCommand:
