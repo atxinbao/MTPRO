@@ -537,7 +537,8 @@ let package = Package(
             dependencies: ["DomainModel", "Database", "DataClient", "Portfolio", "ExecutionClient", "ExecutionEngine"],
             path: "Sources/MTPROCLI",
             sources: [
-                "main.swift"
+                "main.swift",
+                "ReleaseV0330DemoCanaryCLI.swift"
             ]
         ),
         .executableTarget(

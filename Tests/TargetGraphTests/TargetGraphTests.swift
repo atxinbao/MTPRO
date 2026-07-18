@@ -73595,6 +73595,75 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(combinedSource.contains("getenv("))
     }
 
+    // GH-1544-EXECUTE-BINANCE-SPOT-DEMO-CANARY
+    // TVM-RELEASE-V0330-DEMO-CANARY-OPERATOR-ENTRY
+    // V0330-003-DEMO-ONLY-FAIL-CLOSED-EXECUTION
+    func testGH1544ReleaseV0330DemoCanaryArtifactsAreAppendOnlyAndRedacted() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "gh1544-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let sink = try ReleaseV0330FilesystemCanaryArtifactSink(rootURL: root)
+        let artifact = ReleaseV0330RedactedCanaryOperationArtifact(
+            runID: "demo-spot-run-1544",
+            sourceCommit: String(repeating: "a", count: 40),
+            product: .spot,
+            environment: .demo,
+            action: .submit,
+            symbol: "BTCUSDT",
+            endpointHost: "demo-api.binance.com",
+            endpointPath: "/api/v3/order",
+            httpStatusCode: 200,
+            exchangeStatus: "NEW",
+            requestSHA256: "sha256:" + String(repeating: "b", count: 64),
+            responseSHA256: "sha256:" + String(repeating: "c", count: 64),
+            redactedOrderReference: "sha256:" + String(repeating: "d", count: 64),
+            observedAtEpochMilliseconds: 1_800_000_120_000,
+            rawSecretPersisted: false,
+            rawResponsePersisted: false
+        )
+
+        let reference = try await sink.persist(artifact)
+        XCTAssertEqual(
+            reference.relativePath,
+            "demo-spot-run-1544/spot-submit.json"
+        )
+        XCTAssertTrue(reference.sha256.hasPrefix("sha256:"))
+        let persistedURL = root.appendingPathComponent(reference.relativePath)
+        let persisted = try JSONDecoder().decode(
+            ReleaseV0330RedactedCanaryOperationArtifact.self,
+            from: Data(contentsOf: persistedURL)
+        )
+        XCTAssertEqual(persisted.environment, .demo)
+        XCTAssertEqual(persisted.endpointHost, "demo-api.binance.com")
+        XCTAssertFalse(persisted.rawSecretPersisted)
+        XCTAssertFalse(persisted.rawResponsePersisted)
+
+        do {
+            _ = try await sink.persist(artifact)
+            XCTFail("append-only artifact path must reject overwrite")
+        } catch let error as ReleaseV0330ExternallyActivatedCanaryTransportError {
+            XCTAssertEqual(error, .unsafeArtifactReference)
+        }
+
+        let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        let cliSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                "Sources/MTPROCLI/ReleaseV0330DemoCanaryCLI.swift"
+            ),
+            encoding: .utf8
+        )
+        XCTAssertTrue(cliSource.contains("CONFIRM_BINANCE_DEMO_ONLY"))
+        XCTAssertTrue(cliSource.contains("MTPRO_BINANCE_DEMO_API_KEY"))
+        XCTAssertTrue(cliSource.contains("MTPRO_BINANCE_DEMO_SECRET_KEY"))
+        XCTAssertTrue(cliSource.contains("environment: .demo"))
+        XCTAssertFalse(cliSource.contains("api.binance.com"))
+        XCTAssertFalse(cliSource.contains("fapi.binance.com"))
+        XCTAssertFalse(cliSource.contains("productionCutoverAuthorized=true"))
+    }
+
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
     // GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
     // GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS

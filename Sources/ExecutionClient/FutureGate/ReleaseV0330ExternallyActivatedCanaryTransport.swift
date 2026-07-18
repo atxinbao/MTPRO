@@ -135,6 +135,42 @@ public struct ReleaseV0330RedactedCanaryOperationArtifact: Codable, Equatable, S
     public let observedAtEpochMilliseconds: Int64
     public let rawSecretPersisted: Bool
     public let rawResponsePersisted: Bool
+
+    public init(
+        runID: String,
+        sourceCommit: String,
+        product: ReleaseV0330CanaryProduct,
+        environment: ReleaseV0330CanaryEnvironment,
+        action: ReleaseV0320CanaryAction,
+        symbol: String,
+        endpointHost: String,
+        endpointPath: String,
+        httpStatusCode: Int,
+        exchangeStatus: String,
+        requestSHA256: String,
+        responseSHA256: String,
+        redactedOrderReference: String,
+        observedAtEpochMilliseconds: Int64,
+        rawSecretPersisted: Bool,
+        rawResponsePersisted: Bool
+    ) {
+        self.runID = runID
+        self.sourceCommit = sourceCommit
+        self.product = product
+        self.environment = environment
+        self.action = action
+        self.symbol = symbol
+        self.endpointHost = endpointHost
+        self.endpointPath = endpointPath
+        self.httpStatusCode = httpStatusCode
+        self.exchangeStatus = exchangeStatus
+        self.requestSHA256 = requestSHA256
+        self.responseSHA256 = responseSHA256
+        self.redactedOrderReference = redactedOrderReference
+        self.observedAtEpochMilliseconds = observedAtEpochMilliseconds
+        self.rawSecretPersisted = rawSecretPersisted
+        self.rawResponsePersisted = rawResponsePersisted
+    }
 }
 
 public protocol ReleaseV0330CanaryArtifactPersisting: Sendable {
@@ -170,6 +206,76 @@ public struct ReleaseV0330InjectedCanaryArtifactSink: ReleaseV0330CanaryArtifact
         _ artifact: ReleaseV0330RedactedCanaryOperationArtifact
     ) async throws -> ReleaseV0330ObservedCanaryArtifactReference {
         try await handler(artifact)
+    }
+}
+
+public struct ReleaseV0330FilesystemCanaryArtifactSink: ReleaseV0330CanaryArtifactPersisting {
+    private let rootURL: URL
+
+    public init(rootURL: URL) throws {
+        guard rootURL.isFileURL else {
+            throw ReleaseV0330ExternallyActivatedCanaryTransportError.unsafeArtifactReference
+        }
+        let standardized = rootURL.standardizedFileURL
+        try FileManager.default.createDirectory(
+            at: standardized,
+            withIntermediateDirectories: true
+        )
+        guard standardized.resolvingSymlinksInPath() == standardized else {
+            throw ReleaseV0330ExternallyActivatedCanaryTransportError.unsafeArtifactReference
+        }
+        self.rootURL = standardized
+    }
+
+    public func persist(
+        _ artifact: ReleaseV0330RedactedCanaryOperationArtifact
+    ) async throws -> ReleaseV0330ObservedCanaryArtifactReference {
+        guard Self.safeComponent(artifact.runID) else {
+            throw ReleaseV0330ExternallyActivatedCanaryTransportError.unsafeArtifactReference
+        }
+
+        let runDirectory = rootURL.appendingPathComponent(
+            artifact.runID,
+            isDirectory: true
+        )
+        try FileManager.default.createDirectory(
+            at: runDirectory,
+            withIntermediateDirectories: true
+        )
+        let resolvedDirectory = runDirectory.resolvingSymlinksInPath()
+        guard resolvedDirectory.deletingLastPathComponent() == rootURL else {
+            throw ReleaseV0330ExternallyActivatedCanaryTransportError.unsafeArtifactReference
+        }
+
+        let fileName = "\(artifact.product.rawValue)-\(artifact.action.rawValue).json"
+        let artifactURL = resolvedDirectory.appendingPathComponent(fileName)
+        guard FileManager.default.fileExists(atPath: artifactURL.path) == false else {
+            throw ReleaseV0330ExternallyActivatedCanaryTransportError.unsafeArtifactReference
+        }
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        let data = try encoder.encode(artifact)
+        try data.write(to: artifactURL, options: .withoutOverwriting)
+        let relativePath = "\(artifact.runID)/\(fileName)"
+        return ReleaseV0330ObservedCanaryArtifactReference(
+            relativePath: relativePath,
+            sha256: Self.sha256(data)
+        )
+    }
+
+    private static func safeComponent(_ value: String) -> Bool {
+        value.isEmpty == false
+            && value != "."
+            && value != ".."
+            && value.allSatisfy {
+                $0.isASCII && ($0.isLetter || $0.isNumber || "-_".contains($0))
+            }
+    }
+
+    private static func sha256(_ data: Data) -> String {
+        let digest = SHA256.hash(data: data)
+        return "sha256:" + digest.map { String(format: "%02x", $0) }.joined()
     }
 }
 

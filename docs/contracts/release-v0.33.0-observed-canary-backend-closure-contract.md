@@ -1,19 +1,28 @@
-# MTPRO v0.33.0 Observed Controlled Production Canary / Backend Closure Contract
+# MTPRO v0.33.0 Binance Demo Validation / Production Closure Blocked Contract
 
-日期：2026-07-17  
+日期：2026-07-18
 执行者：Codex
 
 Anchors: `GH-1542-DEFINE-V0330-OBSERVED-CANARY-BACKEND-CLOSURE-CONTRACT`, `TVM-RELEASE-V0330-OBSERVED-CONTROLLED-PRODUCTION-CANARY`, `V0330-001-OBSERVED-CANARY-BACKEND-CLOSURE-CONTRACT`.
 
 ## Goal
 
-v0.33.0 defines the final backend-closure evidence contract for a Human-approved observed Binance canary. The contract fixes the prerequisite order, approval boundary, product/action scope, trusted evidence requirements, and fail-closed outcomes before any canary operation can be considered.
+v0.33.0 now closes the current queue against Binance Demo Network only. It validates the signed Spot and USD-M Futures submit/status/cancel plumbing with strict caps and redacted evidence while keeping production backend closure blocked.
+
+The Demo rescope is authoritative for #1544-#1549:
+
+- `demoValidationDecision` may become `accepted` after both product runs and evidence validation pass.
+- `observedProductionCanary` remains `false`.
+- `backendClosureDecision` remains `blocked`.
+- `productionCutoverAuthorized` remains `false`.
+- `defaultProductionTradingEnabled` remains `false`.
 
 ## Hard Prerequisites
 
 1. `v0.32.3` must exist as a published stable GitHub Release created after its hosted full matrix succeeds.
 2. A separate, explicit Human approval must be recorded before approval-packet preparation can become eligible.
-3. Contract completion, issue promotion, CI success, and release publication are not observed-canary execution authorization.
+3. Contract completion, issue promotion, CI success, and release publication are not production-canary execution authorization.
+4. Demo credentials must be injected ephemerally through process environment or GitHub Environment Secrets. They must not enter repository files, issue text, workflow inputs, logs, or artifacts.
 
 The queue decision is ordered and fail-closed:
 
@@ -26,6 +35,7 @@ The eligible state only permits preparation and validation of the approval packe
 ## Required Scope
 
 - Venue: Binance only.
+- Environment: Binance Demo Network only.
 - Products: Spot and USD-M Futures only.
 - Observed actions: submit, status, and cancel for each product.
 - Approval: operator identity, source commit, expiry, product/symbol allowlist, strict notional caps, order types, kill-switch/no-trade state, and rollback owner.
@@ -33,7 +43,7 @@ The eligible state only permits preparation and validation of the approval packe
 
 ## Decision Separation
 
-`backendClosureDecision` may only be derived later from verified observed evidence. `productionCutoverAuthorized` remains a separate Human decision and is never implied by an accepted backend-closure decision.
+Demo validation and production backend closure are separate decisions. Demo evidence can validate request signing, product endpoint mapping, status/cancel identity, redaction and artifact persistence. It cannot accept production backend closure and cannot authorize production cutover.
 
 ## Current Boundary
 
@@ -99,4 +109,17 @@ Anchors: `GH-1565-ADD-EXPLICIT-BINANCE-DEMO-CANARY-ENVIRONMENT`, `TVM-RELEASE-V0
 
 The runner and transport reject cross-environment or cross-product hosts before credential loading and network activation. URL construction derives the host from the validated environment instead of accepting an arbitrary host. Default credential, network and artifact implementations continue to reject.
 
-Demo Network is a non-production verification environment. Demo observations may validate signing, request mapping, redaction and lifecycle plumbing, but they do not satisfy the observed-production evidence required by #1544/#1545, do not accept backend closure, and do not authorize production cutover. Tests use injected credential and network doubles only; repository code does not contain or discover Demo credentials.
+Demo Network is the authoritative completion environment for the rescaled #1544/#1545 queue. Demo observations may accept `demoValidationDecision`, but they do not satisfy observed-production evidence, do not accept production backend closure, and do not authorize production cutover.
+
+## Demo Operator Entry (V0330-003)
+
+Anchors: `GH-1544-EXECUTE-BINANCE-SPOT-DEMO-CANARY`, `TVM-RELEASE-V0330-DEMO-CANARY-OPERATOR-ENTRY`, `V0330-003-DEMO-ONLY-FAIL-CLOSED-EXECUTION`.
+
+`mtpro v0.33-demo-canary-prepare` creates a short-lived, commit-bound, product-specific one-shot configuration without credential values. `mtpro v0.33-demo-canary` accepts that configuration only with the explicit `CONFIRM_BINANCE_DEMO_ONLY` phrase, fixes the environment to `demo`, derives the product host internally and reads credential material only from:
+
+- `MTPRO_BINANCE_DEMO_API_KEY`
+- `MTPRO_BINANCE_DEMO_SECRET_KEY`
+
+The filesystem sink persists only redacted operation artifacts and rejects overwrite/replay paths. The manual GitHub workflow uses the protected `binance-demo` environment, uploads only redacted evidence, and verifies that neither credential value appears in the bundle.
+
+The operator entry has no production-mode argument and accepts no caller-provided base URL. Production endpoints remain inaccessible through this command.
