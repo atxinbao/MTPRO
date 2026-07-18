@@ -73669,10 +73669,12 @@ final class TargetGraphTests: XCTestCase {
             ),
             encoding: .utf8
         )
-        XCTAssertTrue(workflowSource.contains("runs-on: macos-15"))
+        XCTAssertTrue(workflowSource.contains("- self-hosted"))
+        XCTAssertTrue(workflowSource.contains("- mtpro-demo"))
         XCTAssertTrue(workflowSource.contains("Verify Swift 6 toolchain"))
         XCTAssertTrue(workflowSource.contains("Swift version 6\\."))
         XCTAssertFalse(workflowSource.contains("runs-on: macos-14"))
+        XCTAssertFalse(workflowSource.contains("runs-on: macos-15"))
     }
 
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
