@@ -59,7 +59,7 @@ concurrency:
 jobs:
   demo-canary:
     if: ${{ inputs.confirmation == 'CONFIRM_BINANCE_DEMO_ONLY' }}
-    runs-on: macos-14
+    runs-on: macos-15
     environment: binance-demo
     timeout-minutes: 20
     env:
@@ -69,6 +69,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+
+      - name: Verify Swift 6 toolchain
+        run: |
+          set -euo pipefail
+          swift --version
+          swift --version | grep -E 'Swift version 6\.'
 
       - name: Prepare Demo-only one-shot configuration
         env:

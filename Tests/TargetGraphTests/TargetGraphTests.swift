@@ -73662,6 +73662,17 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertFalse(cliSource.contains("api.binance.com"))
         XCTAssertFalse(cliSource.contains("fapi.binance.com"))
         XCTAssertFalse(cliSource.contains("productionCutoverAuthorized=true"))
+
+        let workflowSource = try String(
+            contentsOf: repositoryRoot.appendingPathComponent(
+                ".github/workflows/release-v0.33.0-demo-canary-validation.yml"
+            ),
+            encoding: .utf8
+        )
+        XCTAssertTrue(workflowSource.contains("runs-on: macos-15"))
+        XCTAssertTrue(workflowSource.contains("Verify Swift 6 toolchain"))
+        XCTAssertTrue(workflowSource.contains("Swift version 6\\."))
+        XCTAssertFalse(workflowSource.contains("runs-on: macos-14"))
     }
 
     // GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
