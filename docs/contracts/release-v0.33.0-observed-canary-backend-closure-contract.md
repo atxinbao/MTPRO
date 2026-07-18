@@ -85,3 +85,18 @@ Anchors: `GH-1563-ADD-EXTERNALLY-ACTIVATED-PRODUCTION-CANARY-TRANSPORT`, `TVM-RE
 The transport has no automatic activation path. Credential material, network loading, clock and artifact persistence are separate injected protocols, and every default implementation rejects. The repository provides an optional URLSession loader with its own exact HTTPS host/path/method allowlist, but V0330-002C tests use only an injected fake network loader and do not contact Binance.
 
 V0330-002C does not authorize #1544/#1545, discover environment secrets, enable default production trading or approve production cutover. A canonical observed canary still requires an external Human-recorded packet and separate one-shot execution authorization bound to the exact plan and current source commit.
+
+## Explicit Binance Demo Environment Boundary (V0330-002D)
+
+Anchors: `GH-1565-ADD-EXPLICIT-BINANCE-DEMO-CANARY-ENVIRONMENT`, `TVM-RELEASE-V0330-BINANCE-DEMO-ENVIRONMENT-ISOLATION`, `V0330-002D-DEMO-ENVIRONMENT-FAIL-CLOSED-BINDING`.
+
+`ReleaseV0330CanaryEnvironment` makes the target environment part of the run request, transport request, transport observation and persisted redacted artifact. Production remains the default for backward compatibility, but every request is bound to exactly one environment and one product-specific host:
+
+- production Spot: `api.binance.com`
+- production USD-M Futures: `fapi.binance.com`
+- Demo Spot: `demo-api.binance.com`
+- Demo USD-M Futures: `demo-fapi.binance.com`
+
+The runner and transport reject cross-environment or cross-product hosts before credential loading and network activation. URL construction derives the host from the validated environment instead of accepting an arbitrary host. Default credential, network and artifact implementations continue to reject.
+
+Demo Network is a non-production verification environment. Demo observations may validate signing, request mapping, redaction and lifecycle plumbing, but they do not satisfy the observed-production evidence required by #1544/#1545, do not accept backend closure, and do not authorize production cutover. Tests use injected credential and network doubles only; repository code does not contain or discover Demo credentials.

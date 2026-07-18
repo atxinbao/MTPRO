@@ -8,6 +8,10 @@ import Foundation
 // TVM-RELEASE-V0330-EXTERNALLY-ACTIVATED-CANARY-TRANSPORT
 // V0330-002C-NO-DEFAULT-CREDENTIAL-OR-NETWORK-ACTIVATION
 
+// GH-1565-ADD-EXPLICIT-BINANCE-DEMO-CANARY-ENVIRONMENT
+// TVM-RELEASE-V0330-BINANCE-DEMO-ENVIRONMENT-ISOLATION
+// V0330-002D-DEMO-ENVIRONMENT-FAIL-CLOSED-BINDING
+
 public struct ReleaseV0330EphemeralCanaryCredentialMaterial: Sendable {
     fileprivate let apiKey: String
     fileprivate let signingSecret: String
@@ -100,8 +104,12 @@ public actor ReleaseV0330URLSessionCanaryNetworkLoader: ReleaseV0330CanaryNetwor
               url.password == nil,
               url.fragment == nil,
               let host = url.host,
-              (host == "api.binance.com" && url.path == "/api/v3/order")
-                || (host == "fapi.binance.com" && url.path == "/fapi/v1/order"),
+              (
+                  (host == "api.binance.com" && url.path == "/api/v3/order")
+                      || (host == "demo-api.binance.com" && url.path == "/api/v3/order")
+                      || (host == "fapi.binance.com" && url.path == "/fapi/v1/order")
+                      || (host == "demo-fapi.binance.com" && url.path == "/fapi/v1/order")
+              ),
               ["POST", "GET", "DELETE"].contains(request.httpMethod ?? ""),
               request.value(forHTTPHeaderField: "X-MBX-APIKEY")?.isEmpty == false
         else {
@@ -114,6 +122,7 @@ public struct ReleaseV0330RedactedCanaryOperationArtifact: Codable, Equatable, S
     public let runID: String
     public let sourceCommit: String
     public let product: ReleaseV0330CanaryProduct
+    public let environment: ReleaseV0330CanaryEnvironment
     public let action: ReleaseV0320CanaryAction
     public let symbol: String
     public let endpointHost: String
@@ -245,6 +254,7 @@ public actor ReleaseV0330ExternallyActivatedCanaryTransport: ReleaseV0330Observe
             runID: request.runID,
             sourceCommit: request.sourceCommit,
             product: request.product,
+            environment: request.environment,
             action: request.action,
             symbol: request.symbol,
             endpointHost: request.baseURL.host ?? "",
@@ -269,6 +279,7 @@ public actor ReleaseV0330ExternallyActivatedCanaryTransport: ReleaseV0330Observe
             runID: request.runID,
             product: request.product,
             action: request.action,
+            environment: request.environment,
             requestID: requestDigest,
             redactedOrderReference: orderReference,
             endpointHost: request.baseURL.host ?? "",
@@ -279,7 +290,7 @@ public actor ReleaseV0330ExternallyActivatedCanaryTransport: ReleaseV0330Observe
     }
 
     private func validate(_ request: ReleaseV0330ObservedCanaryTransportRequest) throws {
-        let expectedHost = request.product == .spot ? "api.binance.com" : "fapi.binance.com"
+        let expectedHost = request.environment.endpointHost(for: request.product)
         guard request.baseURL.scheme == "https",
               request.baseURL.host == expectedHost,
               request.baseURL.user == nil,
@@ -341,7 +352,7 @@ public actor ReleaseV0330ExternallyActivatedCanaryTransport: ReleaseV0330Observe
     ) throws -> URLRequest {
         var components = URLComponents()
         components.scheme = "https"
-        components.host = request.product == .spot ? "api.binance.com" : "fapi.binance.com"
+        components.host = request.environment.endpointHost(for: request.product)
         components.path = request.product == .spot ? "/api/v3/order" : "/fapi/v1/order"
         components.percentEncodedQuery = signedQuery
         guard let url = components.url else {
