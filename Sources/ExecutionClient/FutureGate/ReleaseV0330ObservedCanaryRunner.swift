@@ -334,6 +334,32 @@ public struct ReleaseV0330ObservedCanaryRunEvidence: Codable, Equatable, Sendabl
     public let productionCutoverAuthorized: Bool
     public let defaultProductionTradingEnabled: Bool
 
+    public init(
+        runID: String,
+        sourceCommit: String,
+        product: ReleaseV0330CanaryProduct,
+        environment: ReleaseV0330CanaryEnvironment,
+        symbol: String,
+        approvalPacketID: String,
+        executionAuthorizationRecordID: String,
+        observations: [ReleaseV0330ObservedCanaryTransportObservation],
+        runLockReleased: Bool,
+        productionCutoverAuthorized: Bool,
+        defaultProductionTradingEnabled: Bool
+    ) {
+        self.runID = runID
+        self.sourceCommit = sourceCommit
+        self.product = product
+        self.environment = environment
+        self.symbol = symbol
+        self.approvalPacketID = approvalPacketID
+        self.executionAuthorizationRecordID = executionAuthorizationRecordID
+        self.observations = observations
+        self.runLockReleased = runLockReleased
+        self.productionCutoverAuthorized = productionCutoverAuthorized
+        self.defaultProductionTradingEnabled = defaultProductionTradingEnabled
+    }
+
     public var boundaryHeld: Bool {
         observations.map(\.action) == [.submit, .status, .cancel]
             && observations.allSatisfy {

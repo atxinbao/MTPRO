@@ -538,7 +538,8 @@ let package = Package(
             path: "Sources/MTPROCLI",
             sources: [
                 "main.swift",
-                "ReleaseV0330DemoCanaryCLI.swift"
+                "ReleaseV0330DemoCanaryCLI.swift",
+                "ReleaseV0330DemoValidationStatusCLI.swift"
             ]
         ),
         .executableTarget(
