@@ -59,7 +59,11 @@ concurrency:
 jobs:
   demo-canary:
     if: ${{ inputs.confirmation == 'CONFIRM_BINANCE_DEMO_ONLY' }}
-    runs-on: macos-15
+    runs-on:
+      - self-hosted
+      - macOS
+      - ARM64
+      - mtpro-demo
     environment: binance-demo
     timeout-minutes: 20
     env:
