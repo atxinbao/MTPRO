@@ -28,6 +28,8 @@ require_file "Package.swift"
 require_file ".github/workflows/checks.yml"
 require_file "checks/run.sh"
 require_file "checks/verify-v0.33.0-demo-validation.sh"
+require_file "docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md"
+require_file "docs/release/mtpro-release-v0.33.0-demo-validation-notes.md"
 
 require_contains "Package.swift" "https://github.com/apple/swift-crypto.git"
 require_contains "Package.swift" '.product(name: "Crypto", package: "swift-crypto")'
@@ -42,6 +44,12 @@ require_contains "checks/run.sh" "require_swift_toolchain"
 require_contains "checks/run.sh" "require_sqlite_pkg_config"
 require_contains "checks/run.sh" "bash checks/verify-v0.33.0-backend-maintenance-ci.sh"
 require_contains "checks/verify-v0.33.0-demo-validation.sh" "set -euo pipefail"
+require_contains "docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md" "GH-1579-V0330-BACKEND-MAINTENANCE-CLOSEOUT"
+require_contains "docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md" "patchReleaseDecision=not-warranted"
+require_contains "docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md" "v0.33.1TagCreated=false"
+require_contains "docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md" "v0.33.0TagMoved=false"
+require_contains "docs/release/mtpro-release-v0.33.0-demo-validation-notes.md" "GH-1579-V0330-BACKEND-MAINTENANCE-CLOSEOUT"
+require_contains "docs/release/mtpro-release-v0.33.0-demo-validation-notes.md" "productionCutoverAuthorized=false"
 
 crypto_kit_matches="$(
   find "$ROOT/Sources" -type f -name '*.swift' -print0 \
@@ -60,6 +68,8 @@ if [[ "${MTPRO_MAINTENANCE_CI_SKIP_SELF_TEST:-0}" != "1" ]]; then
   mkdir -p \
     "$fixture_root/.github/workflows" \
     "$fixture_root/checks" \
+    "$fixture_root/docs/audit" \
+    "$fixture_root/docs/release" \
     "$fixture_root/Sources/MaintenanceFixture"
   cp "$ROOT/Package.swift" "$fixture_root/Package.swift"
   cp "$ROOT/.github/workflows/checks.yml" "$fixture_root/.github/workflows/checks.yml"
@@ -67,6 +77,12 @@ if [[ "${MTPRO_MAINTENANCE_CI_SKIP_SELF_TEST:-0}" != "1" ]]; then
   cp \
     "$ROOT/checks/verify-v0.33.0-demo-validation.sh" \
     "$fixture_root/checks/verify-v0.33.0-demo-validation.sh"
+  cp \
+    "$ROOT/docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md" \
+    "$fixture_root/docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md"
+  cp \
+    "$ROOT/docs/release/mtpro-release-v0.33.0-demo-validation-notes.md" \
+    "$fixture_root/docs/release/mtpro-release-v0.33.0-demo-validation-notes.md"
   printf 'import CryptoKit\n' > "$fixture_root/Sources/MaintenanceFixture/Forbidden.swift"
 
   set +e

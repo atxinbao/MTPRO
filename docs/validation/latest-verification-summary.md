@@ -3071,3 +3071,30 @@ Executor: Codex
 `GH-1549-CLOSE-V0330-DEMO-VALIDATION-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0330-DEMO-VALIDATION-PRODUCTION-CLOSURE-BLOCKED`, `V0330-008-DEMO-VALIDATION-AUDIT-RELEASE-NOTES`, `V0330-008-BINANCE-SPOT-USDM-FUTURES-ONLY`, and `V0330-008-NO-PRODUCTION-CUTOVER` close the Demo validation evidence queue. Binance Spot and USD-M Futures Demo submit/status/cancel runs produced redacted artifacts; local bundle validation is fail-closed and the status CLI exits non-zero for missing or invalid evidence。Human 随后确认以 Demo Network parity 作为后端功能验收标准；closure PR 修复 Linux 跨平台构建和 full-matrix required-check 聚合后，当前事实为 `demoValidationDecision=accepted`、`backendClosureDecision=accepted-demo-network-parity`、`productionCutoverAuthorized=false`，生产交易仍默认关闭。
 
 Validation: `bash checks/verify-v0.33.0-demo-validation.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.
+
+## v0.33.0 Backend Maintenance Closeout
+
+Date: 2026-07-20
+
+Executor: Codex
+
+`GH-1579-V0330-BACKEND-MAINTENANCE-CLOSEOUT` records #1574-#1579 as the
+post-v0.33.0 maintenance evidence chain. PRs #1580-#1584 merged with required
+checks success. The queue hardened cross-platform validation, split the
+live-adapter capability compatibility source, consolidated Demo bundle
+validation under ExecutionClient and removed the stale Core re-export of
+ExecutionClient.
+
+The full local matrix completed with `861 tests / 0 failures`. The immutable
+v0.33.0 release remains at
+`19d5d6bcc24ae6cc243396cea57d1c01499b23fe`; no v0.33.1 patch is warranted for
+these behavior-preserving maintenance changes.
+
+```text
+patchReleaseDecision=not-warranted
+v0.33.1TagCreated=false
+v0.33.0TagMoved=false
+backendClosureDecision=accepted-demo-network-parity
+productionCutoverAuthorized=false
+defaultProductionTradingEnabled=false
+```

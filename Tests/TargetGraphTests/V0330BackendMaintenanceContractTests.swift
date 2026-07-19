@@ -149,4 +149,50 @@ final class V0330BackendMaintenanceContractTests: XCTestCase {
         XCTAssertTrue(package.contains("name: \"Persistence\""))
         XCTAssertTrue(package.contains("name: \"Runtime\""))
     }
+
+    func testGH1579MaintenanceCloseoutRecordsEvidenceAndRejectsPatchReleaseDrift() throws {
+        let root = URL(
+            fileURLWithPath: FileManager.default.currentDirectoryPath,
+            isDirectory: true
+        )
+        let paths = [
+            "docs/contracts/v0330-backend-maintenance-ownership-contract.md",
+            "docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md",
+            "docs/release/mtpro-release-v0.33.0-demo-validation-notes.md",
+            "docs/validation/latest-verification-summary.md",
+            "verification.md",
+        ]
+
+        for path in paths {
+            let source = try String(
+                contentsOf: root.appendingPathComponent(path),
+                encoding: .utf8
+            )
+            XCTAssertTrue(source.contains("GH-1579-V0330-BACKEND-MAINTENANCE-CLOSEOUT"))
+            XCTAssertTrue(source.contains("patchReleaseDecision=not-warranted"))
+            XCTAssertTrue(source.contains("v0.33.1TagCreated=false"))
+            XCTAssertTrue(source.contains("v0.33.0TagMoved=false"))
+            XCTAssertTrue(source.contains("backendClosureDecision=accepted-demo-network-parity"))
+            XCTAssertTrue(source.contains("productionCutoverAuthorized=false"))
+            XCTAssertTrue(source.contains("defaultProductionTradingEnabled=false"))
+        }
+
+        let audit = try String(
+            contentsOf: root.appendingPathComponent(
+                "docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md"
+            ),
+            encoding: .utf8
+        )
+        for evidence in [
+            "https://github.com/atxinbao/MTPRO/pull/1580",
+            "https://github.com/atxinbao/MTPRO/pull/1581",
+            "https://github.com/atxinbao/MTPRO/pull/1582",
+            "https://github.com/atxinbao/MTPRO/pull/1583",
+            "https://github.com/atxinbao/MTPRO/pull/1584",
+            "861 tests / 0 failures",
+            "19d5d6bcc24ae6cc243396cea57d1c01499b23fe",
+        ] {
+            XCTAssertTrue(audit.contains(evidence), "Missing closeout evidence: \(evidence)")
+        }
+    }
 }
