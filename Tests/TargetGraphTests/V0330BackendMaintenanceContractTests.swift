@@ -62,4 +62,38 @@ final class V0330BackendMaintenanceContractTests: XCTestCase {
         XCTAssertTrue(splitBoundary.contains("cancelsRealOrder == false"))
         XCTAssertTrue(splitBoundary.contains("replacesRealOrder == false"))
     }
+
+    func testGH1577DemoValidationHasOneExecutionClientOwnerAndReadOnlyConsumers() throws {
+        let root = URL(
+            fileURLWithPath: FileManager.default.currentDirectoryPath,
+            isDirectory: true
+        )
+        let validator = try String(
+            contentsOf: root.appendingPathComponent(
+                "Sources/ExecutionClient/FutureGate/ReleaseV0330DemoValidationArtifactValidator.swift"
+            ),
+            encoding: .utf8
+        )
+        let cli = try String(
+            contentsOf: root.appendingPathComponent(
+                "Sources/MTPROCLI/ReleaseV0330DemoValidationStatusCLI.swift"
+            ),
+            encoding: .utf8
+        )
+        let dashboard = try String(
+            contentsOf: root.appendingPathComponent(
+                "Sources/Dashboard/Report/ReleaseV0330DemoValidationStatusReadModel.swift"
+            ),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(validator.contains("ReleaseV0323EvidenceRootContainment"))
+        XCTAssertTrue(validator.contains("ReleaseV0330DemoValidationDecisionEngine.evaluate"))
+        XCTAssertTrue(validator.contains("unsafe-demo-validation-artifact-path"))
+        XCTAssertTrue(cli.contains("ReleaseV0330DemoValidationArtifactValidator.validate"))
+        XCTAssertFalse(cli.contains("Data(contentsOf:"))
+        XCTAssertFalse(cli.contains("JSONDecoder()"))
+        XCTAssertTrue(dashboard.contains("ReleaseV0330DemoValidationStatusSnapshot"))
+        XCTAssertFalse(dashboard.contains("ReleaseV0330DemoValidationDecisionEngine.evaluate"))
+    }
 }

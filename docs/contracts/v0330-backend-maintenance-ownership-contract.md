@@ -156,3 +156,30 @@ The existing focused Codable and forbidden-capability tests remain the behavior
 oracle. `V0330BackendMaintenanceContractTests` additionally prevents the public
 struct from returning to the aggregate file and requires the production/network
 flags to remain fail-closed.
+
+## GH-1577-DEMO-EVIDENCE-OWNERSHIP
+
+`ExecutionClient` is the only owner of Demo bundle loading, realpath containment,
+schema validation, decision evaluation and the read-only status snapshot:
+
+```text
+ReleaseV0330DemoValidationArtifactValidator
+  -> ReleaseV0323EvidenceRootContainment
+  -> ReleaseV0330DemoValidationEvidenceBundle
+  -> ReleaseV0330DemoValidationDecisionEngine
+  -> ReleaseV0330DemoValidationStatusSnapshot
+```
+
+`MTPROCLI` only renders that snapshot and returns a nonzero failure for a blocked
+decision. `Dashboard` only maps the same snapshot into its read model. Neither
+consumer reads or decodes the artifact independently.
+
+Missing, corrupt, incomplete, provenance-drifted, production-drifted and
+symlinked bundles fail closed. A valid Demo parity snapshot retains:
+
+```text
+backendClosureDecision=accepted-demo-network-parity
+productionCutoverAuthorized=false
+defaultProductionTradingEnabled=false
+readModelOnly=true
+```

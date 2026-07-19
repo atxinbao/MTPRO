@@ -11,12 +11,12 @@ public struct ReleaseV0330DemoValidationStatusReadModel: Equatable, Sendable {
     public let defaultProductionTradingEnabled: Bool
     public let readModelOnly: Bool
 
-    public init(report: ReleaseV0330DemoValidationDecisionReport) {
-        self.decision = report.decision
-        self.reasons = report.reasons
-        self.backendClosureDecision = report.backendClosureDecision
-        self.productionCutoverAuthorized = report.productionCutoverAuthorized
-        self.defaultProductionTradingEnabled = report.defaultProductionTradingEnabled
-        self.readModelOnly = true
+    public init(snapshot: ReleaseV0330DemoValidationStatusSnapshot) {
+        self.decision = snapshot.decision
+        self.reasons = snapshot.reasons
+        self.backendClosureDecision = snapshot.backendClosureDecision
+        self.productionCutoverAuthorized = snapshot.productionCutoverAuthorized
+        self.defaultProductionTradingEnabled = snapshot.defaultProductionTradingEnabled
+        self.readModelOnly = snapshot.readModelOnly
     }
 }

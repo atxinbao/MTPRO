@@ -49,6 +49,29 @@ public struct ReleaseV0330DemoValidationProvenance: Codable, Equatable, Sendable
         self.environment = environment
         self.retrievedAtEpochSeconds = retrievedAtEpochSeconds
     }
+
+    public var boundaryHeld: Bool {
+        repository == "atxinbao/MTPRO"
+            && workflowName == "MTPRO v0.33.0 Binance Demo Canary Validation"
+            && runID > 0
+            && runURL == "https://github.com/atxinbao/MTPRO/actions/runs/\(runID)"
+            && artifactName.contains("demo-evidence-")
+            && Self.isSHA256(artifactSHA256)
+            && Self.isCommitSHA(sourceCommit)
+            && environment == "github-actions"
+            && retrievedAtEpochSeconds > 0
+    }
+
+    private static func isSHA256(_ value: String) -> Bool {
+        let digest = value.dropFirst("sha256:".count)
+        return value.hasPrefix("sha256:")
+            && digest.count == 64
+            && digest.allSatisfy(\.isHexDigit)
+    }
+
+    private static func isCommitSHA(_ value: String) -> Bool {
+        value.count == 40 && value.allSatisfy(\.isHexDigit)
+    }
 }
 
 public struct ReleaseV0330DemoValidationProductEvidence: Codable, Equatable, Sendable {
@@ -71,6 +94,36 @@ public struct ReleaseV0330DemoValidationProductEvidence: Codable, Equatable, Sen
         self.product = product
         self.runEvidence = runEvidence
         self.provenance = provenance
+    }
+
+    public var boundaryHeld: Bool {
+        let expectedHost = ReleaseV0330CanaryEnvironment.demo.endpointHost(for: product)
+        let observations = runEvidence.observations
+        return runEvidence.product == product
+            && runEvidence.environment == .demo
+            && runEvidence.sourceCommit == provenance.sourceCommit
+            && runEvidence.runID.isEmpty == false
+            && runEvidence.symbol.isEmpty == false
+            && runEvidence.approvalPacketID.isEmpty == false
+            && runEvidence.executionAuthorizationRecordID.isEmpty == false
+            && observations.map(\.action) == [.submit, .status, .cancel]
+            && observations.allSatisfy {
+                $0.runID == runEvidence.runID
+                    && $0.product == product
+                    && $0.environment == .demo
+                    && $0.requestID.isEmpty == false
+                    && $0.endpointHost == expectedHost
+                    && $0.redactedOrderReference.hasPrefix("sha256:")
+                    && $0.artifact.relativePath.hasPrefix("operations/")
+                    && $0.artifact.relativePath.contains("..") == false
+                    && $0.artifact.sha256.hasPrefix("sha256:")
+                    && $0.rawSecretPersisted == false
+                    && $0.rawResponsePersisted == false
+            }
+            && runEvidence.runLockReleased
+            && runEvidence.productionCutoverAuthorized == false
+            && runEvidence.defaultProductionTradingEnabled == false
+            && provenance.boundaryHeld
     }
 }
 
@@ -117,21 +170,11 @@ public struct ReleaseV0330DemoValidationEvidenceBundle: Codable, Equatable, Send
             && environment == .demo
             && products.count == 2
             && Set(products.map(\.product)) == Self.requiredProducts
-            && products.allSatisfy { productEvidence in
-                let evidence = productEvidence.runEvidence
-                let expectedHost = environment.endpointHost(for: productEvidence.product)
-                return evidence.sourceCommit == sourceCommit
-                    && evidence.environment == .demo
-                    && evidence.observations.map(\.action) == [.submit, .status, .cancel]
-                    && evidence.observations.allSatisfy {
-                        $0.endpointHost == expectedHost
-                            && $0.rawSecretPersisted == false
-                            && $0.rawResponsePersisted == false
-                    }
-                    && evidence.runLockReleased
-                    && evidence.productionCutoverAuthorized == false
-                    && evidence.defaultProductionTradingEnabled == false
-                    && productEvidence.provenance.sourceCommit == sourceCommit
+            && sourceCommit.count == 40
+            && sourceCommit.allSatisfy(\.isHexDigit)
+            && createdAtEpochSeconds > 0
+            && products.allSatisfy {
+                $0.boundaryHeld && $0.provenance.sourceCommit == sourceCommit
             }
             && productionCutoverAuthorized == false
             && defaultProductionTradingEnabled == false
