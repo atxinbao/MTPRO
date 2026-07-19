@@ -59,9 +59,8 @@ final class ReleaseV0330DemoValidationTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: url) }
         try JSONEncoder().encode(bundle).write(to: url, options: .withoutOverwriting)
 
-        let readModel = ReleaseV0330DemoValidationStatusReadModel(
-            report: ReleaseV0330DemoValidationDecisionEngine.evaluate(bundle: bundle)
-        )
+        let snapshot = ReleaseV0330DemoValidationArtifactValidator.validate(bundleURL: url)
+        let readModel = ReleaseV0330DemoValidationStatusReadModel(snapshot: snapshot)
         XCTAssertTrue(readModel.readModelOnly)
         XCTAssertEqual(
             readModel.backendClosureDecision,
@@ -71,6 +70,93 @@ final class ReleaseV0330DemoValidationTests: XCTestCase {
         XCTAssertFalse(readModel.productionCutoverAuthorized)
 
         XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
+    }
+
+    func testGH1577DemoArtifactValidatorFailsClosedForMissingCorruptAndIncompleteBundles() throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("v0330-validator-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let missing = ReleaseV0330DemoValidationArtifactValidator.validate(
+            bundleURL: root.appendingPathComponent("missing.json")
+        )
+        XCTAssertEqual(missing.decision, .blocked)
+        XCTAssertEqual(missing.reasons, ["missing-demo-validation-bundle"])
+
+        let corruptURL = root.appendingPathComponent("corrupt.json")
+        try Data("{not-json".utf8).write(to: corruptURL)
+        let corrupt = ReleaseV0330DemoValidationArtifactValidator.validate(bundleURL: corruptURL)
+        XCTAssertEqual(corrupt.decision, .blocked)
+        XCTAssertEqual(corrupt.reasons, ["corrupt-demo-validation-bundle"])
+
+        let sourceCommit = String(repeating: "d", count: 40)
+        let complete = try ReleaseV0330DemoValidationEvidenceBundle(
+            sourceCommit: sourceCommit,
+            products: [
+                try productEvidence(.spot, sourceCommit: sourceCommit, runID: 4_001),
+                try productEvidence(.usdsPerpetual, sourceCommit: sourceCommit, runID: 4_002),
+            ],
+            createdAtEpochSeconds: 1_800_000_000
+        )
+        var object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(complete))
+                as? [String: Any]
+        )
+        object["products"] = [try XCTUnwrap((object["products"] as? [[String: Any]])?.first)]
+        let incompleteURL = root.appendingPathComponent("incomplete.json")
+        try JSONSerialization.data(withJSONObject: object).write(to: incompleteURL)
+
+        let incomplete = ReleaseV0330DemoValidationArtifactValidator.validate(
+            bundleURL: incompleteURL
+        )
+        XCTAssertEqual(incomplete.decision, .blocked)
+        XCTAssertEqual(incomplete.reasons, ["demo-validation-bundle-boundary-failed"])
+        XCTAssertFalse(incomplete.productionCutoverAuthorized)
+        XCTAssertFalse(incomplete.defaultProductionTradingEnabled)
+
+        var provenanceDrift = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(complete))
+                as? [String: Any]
+        )
+        var products = try XCTUnwrap(provenanceDrift["products"] as? [[String: Any]])
+        var firstProduct = products[0]
+        var provenance = try XCTUnwrap(firstProduct["provenance"] as? [String: Any])
+        provenance["workflowName"] = "local-manifest"
+        firstProduct["provenance"] = provenance
+        products[0] = firstProduct
+        provenanceDrift["products"] = products
+        let provenanceDriftURL = root.appendingPathComponent("provenance-drift.json")
+        try JSONSerialization.data(withJSONObject: provenanceDrift).write(
+            to: provenanceDriftURL
+        )
+
+        let drifted = ReleaseV0330DemoValidationArtifactValidator.validate(
+            bundleURL: provenanceDriftURL
+        )
+        XCTAssertEqual(drifted.decision, .blocked)
+        XCTAssertEqual(drifted.reasons, ["demo-validation-bundle-boundary-failed"])
+    }
+
+    func testGH1577DemoArtifactValidatorRejectsSymlinkEscape() throws {
+        let fileManager = FileManager.default
+        let root = fileManager.temporaryDirectory
+            .appendingPathComponent("v0330-root-\(UUID().uuidString)", isDirectory: true)
+        let outside = fileManager.temporaryDirectory
+            .appendingPathComponent("v0330-outside-\(UUID().uuidString).json")
+        try fileManager.createDirectory(at: root, withIntermediateDirectories: true)
+        defer {
+            try? fileManager.removeItem(at: root)
+            try? fileManager.removeItem(at: outside)
+        }
+        try Data("{}".utf8).write(to: outside)
+        let link = root.appendingPathComponent("bundle.json")
+        try fileManager.createSymbolicLink(at: link, withDestinationURL: outside)
+
+        let snapshot = ReleaseV0330DemoValidationArtifactValidator.validate(bundleURL: link)
+        XCTAssertEqual(snapshot.decision, .blocked)
+        XCTAssertEqual(snapshot.reasons, ["unsafe-demo-validation-artifact-path"])
+        XCTAssertTrue(snapshot.boundaryHeld)
     }
 
     private func productEvidence(

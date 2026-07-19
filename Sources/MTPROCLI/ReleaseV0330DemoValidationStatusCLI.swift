@@ -11,39 +11,27 @@ public enum ReleaseV0330DemoValidationStatusCLI {
         guard arguments.count == 2, arguments[0] == cliCommand else {
             throw ReleaseV0330DemoValidationStatusCLIError.invalidArguments
         }
-        let url = URL(fileURLWithPath: arguments[1]).standardizedFileURL
-        guard url.isFileURL,
-              let data = try? Data(contentsOf: url),
-              let bundle = try? JSONDecoder().decode(
-                  ReleaseV0330DemoValidationEvidenceBundle.self,
-                  from: data
-              )
-        else {
+        let snapshot = ReleaseV0330DemoValidationArtifactValidator.validate(
+            bundleURL: URL(fileURLWithPath: arguments[1])
+        )
+        guard snapshot.decision == .accepted else {
             throw ReleaseV0330DemoValidationStatusCLIFailedValidation(
-                renderedOutput: output(
-                    ReleaseV0330DemoValidationDecisionEngine.evaluate(bundle: nil)
-                )
+                renderedOutput: output(snapshot)
             )
         }
-        let report = ReleaseV0330DemoValidationDecisionEngine.evaluate(bundle: bundle)
-        guard report.decision == .accepted else {
-            throw ReleaseV0330DemoValidationStatusCLIFailedValidation(
-                renderedOutput: output(report)
-            )
-        }
-        return output(report)
+        return output(snapshot)
     }
 
-    private static func output(_ report: ReleaseV0330DemoValidationDecisionReport) -> String {
+    private static func output(_ snapshot: ReleaseV0330DemoValidationStatusSnapshot) -> String {
         [
             "v0.33-demo-validation-status",
-            "demoValidationDecision=\(report.decision.rawValue)",
-            "backendClosureDecision=\(report.backendClosureDecision)",
-            "productionCutoverAuthorized=\(report.productionCutoverAuthorized)",
-            "defaultProductionTradingEnabled=\(report.defaultProductionTradingEnabled)",
-            "bundleSHA256=\(report.bundleSHA256 ?? "missing")",
-            "reasons=\(report.reasons.joined(separator: ","))",
-            "readModelOnly=true",
+            "demoValidationDecision=\(snapshot.decision.rawValue)",
+            "backendClosureDecision=\(snapshot.backendClosureDecision)",
+            "productionCutoverAuthorized=\(snapshot.productionCutoverAuthorized)",
+            "defaultProductionTradingEnabled=\(snapshot.defaultProductionTradingEnabled)",
+            "bundleSHA256=\(snapshot.bundleSHA256 ?? "missing")",
+            "reasons=\(snapshot.reasons.joined(separator: ","))",
+            "readModelOnly=\(snapshot.readModelOnly)",
         ].joined(separator: "\n")
     }
 }
