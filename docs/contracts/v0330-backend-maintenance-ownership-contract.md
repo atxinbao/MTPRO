@@ -133,3 +133,26 @@ Required validation:
 - focused tests for the changed ownership boundary
 - `bash checks/run.sh`
 
+## GH-1576-OVERSIZED-FILE-SPLIT
+
+`LiveAdapterCapabilityIsolationBoundary` now lives in
+`Sources/Core/LiveAdapterCapabilityIsolationBoundary.swift` instead of the
+7,000-line `LiveTradingBoundary.swift` aggregate. This is a physical split inside
+the existing `Core` compatibility target; it does not change the public API or
+the target dependency graph.
+
+The extracted contract depends only on Core-owned identifiers, live-boundary
+taxonomy and errors:
+
+```text
+LiveAdapterCapabilityIsolationBoundary
+  -> Identifier
+  -> LiveTradingFoundationGate
+  -> LiveAdapterIsolation* taxonomy
+  -> CoreError
+```
+
+The existing focused Codable and forbidden-capability tests remain the behavior
+oracle. `V0330BackendMaintenanceContractTests` additionally prevents the public
+struct from returning to the aggregate file and requires the production/network
+flags to remain fail-closed.

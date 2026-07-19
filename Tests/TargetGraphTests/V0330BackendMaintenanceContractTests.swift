@@ -37,4 +37,29 @@ final class V0330BackendMaintenanceContractTests: XCTestCase {
         XCTAssertTrue(contract.contains("Persistence"))
         XCTAssertTrue(contract.contains("Runtime"))
     }
+
+    func testGH1576LiveAdapterBoundaryIsSplitWithoutChangingCoreOwnership() throws {
+        let root = URL(
+            fileURLWithPath: FileManager.default.currentDirectoryPath,
+            isDirectory: true
+        )
+        let aggregate = try String(
+            contentsOf: root.appendingPathComponent("Sources/Core/LiveTradingBoundary.swift"),
+            encoding: .utf8
+        )
+        let splitBoundary = try String(
+            contentsOf: root.appendingPathComponent(
+                "Sources/Core/LiveAdapterCapabilityIsolationBoundary.swift"
+            ),
+            encoding: .utf8
+        )
+
+        XCTAssertFalse(aggregate.contains("public struct LiveAdapterCapabilityIsolationBoundary"))
+        XCTAssertTrue(splitBoundary.contains("public struct LiveAdapterCapabilityIsolationBoundary"))
+        XCTAssertTrue(splitBoundary.contains("public var gateTwoBoundaryHeld: Bool"))
+        XCTAssertTrue(splitBoundary.contains("requiredValidationDependsOnNetwork == false"))
+        XCTAssertTrue(splitBoundary.contains("submitsRealOrder == false"))
+        XCTAssertTrue(splitBoundary.contains("cancelsRealOrder == false"))
+        XCTAssertTrue(splitBoundary.contains("replacesRealOrder == false"))
+    }
 }
