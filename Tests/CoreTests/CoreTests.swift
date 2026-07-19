@@ -1,4 +1,5 @@
 import Core
+import ExecutionClient
 import XCTest
 
 final class CoreTests: XCTestCase {

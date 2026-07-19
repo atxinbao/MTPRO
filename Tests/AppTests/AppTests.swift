@@ -1,6 +1,7 @@
 import Adapters
 import Core
 import Dashboard
+import ExecutionClient
 import Persistence
 import Runtime
 import XCTest

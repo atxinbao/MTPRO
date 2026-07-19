@@ -311,7 +311,6 @@ let package = Package(
                 "Trader",
                 "Portfolio",
                 "RiskEngine",
-                "ExecutionClient",
                 "ExecutionEngine"
             ],
             path: "Sources",
@@ -562,7 +561,7 @@ let package = Package(
         ),
         .testTarget(
             name: "CoreTests",
-            dependencies: ["Core"],
+            dependencies: ["Core", "ExecutionClient"],
             path: "Tests/CoreTests"
         ),
         .testTarget(
@@ -601,7 +600,14 @@ let package = Package(
         ),
         .testTarget(
             name: "AppTests",
-            dependencies: ["Dashboard", "Core", "Adapters", "Persistence", "Runtime"],
+            dependencies: [
+                "Dashboard",
+                "Core",
+                "Adapters",
+                "Persistence",
+                "Runtime",
+                "ExecutionClient"
+            ],
             path: "Tests/AppTests"
         )
     ]

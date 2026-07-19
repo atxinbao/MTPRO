@@ -1,4 +1,5 @@
 import Core
+import ExecutionClient
 import Foundation
 
 // GH-1248 Dashboard surface anchors:

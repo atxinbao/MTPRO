@@ -183,3 +183,37 @@ productionCutoverAuthorized=false
 defaultProductionTradingEnabled=false
 readModelOnly=true
 ```
+
+## GH-1578-COMPATIBILITY-OWNERSHIP-NARROWING
+
+`Core` no longer re-exports `ExecutionClient` and no longer lists
+`ExecutionClient` as a direct target dependency. The legacy Core/App tests and
+the Dashboard read models that consume ExecutionClient-owned evidence now import
+the real owner explicitly. Their targets already declare, or now declare, that
+dependency in `Package.swift`.
+
+This is an evidence-backed stale-shim retirement:
+
+```text
+before: Core -> @_exported ExecutionClient -> CoreTests / AppTests / Dashboard read models
+after:  CoreTests / AppTests / Dashboard read models -> ExecutionClient
+```
+
+The remaining compatibility targets are retained because active consumers still
+exist:
+
+| Envelope | Active consumer evidence | Current decision |
+| --- | --- | --- |
+| `Core` | `CoreTests`, Dashboard compatibility surfaces and historical paper/runtime types | retain, but do not add new ExecutionClient ownership |
+| `Adapters` | `Runtime` and compatibility tests import the DataClient re-export | retain until consumers import `DataClient` directly |
+| `Persistence` | Dashboard, Runtime and persistence tests consume projection compatibility | retain until all consumers import `Database` directly |
+| `Runtime` | App/runtime tests consume ingest and replay composition | retain until DataEngine/Database expose the full composition directly |
+
+No source file moved, no SwiftPM product or target was removed, and no execution
+behavior changed. `ExecutionClient` remains the unique owner of broker/Demo
+evidence contracts. Production cutover remains unauthorized:
+
+```text
+productionCutoverAuthorized=false
+defaultProductionTradingEnabled=false
+```
