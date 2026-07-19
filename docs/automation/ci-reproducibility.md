@@ -33,6 +33,18 @@ Release v0.5.0 的 GH-738 历史上将 GitHub required check `checks` 从单一 
 - `pr-fast-checks`：普通 `pull_request` 的 required fast lane，在 `ubuntu-24.04` 上验证 runner-pinned Swift 6.3.x、安装 `libsqlite3-dev`、执行 `git diff --check`、`bash checks/automation-readiness.sh` 和 `bash checks/verify-ci-pr-fast-lane-release-matrix.sh`。
 - `checks`：保留 required check 的稳定 job name，但只聚合 `pr-fast-checks`。这样分支保护仍要求 `checks`，但普通 PR 不再等待历史 release regression 与 macOS Dashboard smoke。
 - `linux-checks`：保留 full Linux validation job name，只在 manual `workflow_dispatch`、`v*` tag push 或 `release/**` branch push 时运行 runner-pinned Swift 6.3.x 检查、安装 `libsqlite3-dev`、执行 `git diff --check` 和 `bash checks/run.sh`。
+
+## v0.33 后端维护稳定性合同
+
+`checks/verify-v0.33.0-backend-maintenance-ci.sh` 将后端维护阶段依赖的跨平台约束收口为一个机械 guard：
+
+- Linux 继续使用 `ubuntu-24.04`、Swift 6.3.x 和 `libsqlite3-dev`。
+- macOS Dashboard lane 继续使用 `macos-15` 并构建 `Dashboard` 产品。
+- 生产源码统一使用 Swift Crypto 的 `Crypto` 模块，不允许重新引入仅 Apple 平台可用的 `CryptoKit` import。
+- `checks/run.sh` 与 v0.33 Demo guard 必须保持 `set -euo pipefail` 和本地 Swift/sqlite preflight。
+- guard 自带负向 fixture：注入一个禁止的 `CryptoKit` import 后，验证命令必须以非零状态退出并报告边界漂移。
+
+该合同只稳定构建和验证矩阵，不新增交易能力，也不改变 `backendClosureDecision=accepted-demo-network-parity`、`productionCutoverAuthorized=false` 或默认关闭 production trading 的发布边界。
 - `dashboard-macos`：保留 macOS Dashboard evidence job name，只在 manual `workflow_dispatch`、`v*` tag push 或 `release/**` branch push 时运行 Swift 6.x toolchain check、Dashboard focused guards、`swift build --product Dashboard` 和 `DASHBOARD_SMOKE=1 swift run Dashboard`。
 
 该 gate 只加固 CI validation infrastructure，不读取 GitHub secrets，不连接 production endpoint / broker endpoint，不发送真实订单，不授权 production cutover。`checks/run.sh` 仍是本地完整验证入口和 release full lane 的 Linux 入口；macOS Dashboard job 是 release / manual validation coverage，不再拖慢普通 PR required check。

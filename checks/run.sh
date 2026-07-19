@@ -93,6 +93,7 @@ bash checks/verify-v0.5.0-ci-hardening.sh
 # V0181-002-NO-PRODUCTION-CUTOVER
 # CI-NO-PRODUCTION-CUTOVER
 bash checks/verify-ci-pr-fast-lane-release-matrix.sh
+bash checks/verify-v0.33.0-backend-maintenance-ci.sh
 bash checks/verify-v0.18.1-release-full-matrix-publication-gate.sh
 # GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS
 # TVM-RELEASE-V0181-OPERATOR-RUN-CLI-COMMANDS
