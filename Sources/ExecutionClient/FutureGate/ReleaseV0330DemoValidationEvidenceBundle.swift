@@ -1,4 +1,4 @@
-import CryptoKit
+import Crypto
 import Foundation
 
 // GH-1546-BUILD-IMMUTABLE-DEMO-VALIDATION-EVIDENCE-BUNDLE
@@ -161,6 +161,13 @@ public enum ReleaseV0330DemoValidationDecision: String, Codable, Sendable {
 }
 
 public struct ReleaseV0330DemoValidationDecisionReport: Codable, Equatable, Sendable {
+    /// Human 已确认 Binance Demo Network 与生产网络共享订单传输语义时，
+    /// Demo 双产品证据可以关闭后端功能建设，但不会转换成生产切换授权。
+    public static let acceptedDemoNetworkParityBackendClosure =
+        "accepted-demo-network-parity"
+    /// 缺失或无效证据必须继续阻断后端收口，避免把不完整夹具解释为已验收结果。
+    public static let blockedBackendClosure = "blocked"
+
     public let decision: ReleaseV0330DemoValidationDecision
     public let reasons: [String]
     public let bundleSHA256: String?
@@ -168,8 +175,14 @@ public struct ReleaseV0330DemoValidationDecisionReport: Codable, Equatable, Send
     public let productionCutoverAuthorized: Bool
     public let defaultProductionTradingEnabled: Bool
 
+    /// 同时校验验收结论和生产安全边界，保证后端收口不会隐式打开生产交易。
     public var boundaryHeld: Bool {
-        backendClosureDecision == "blocked"
+        backendClosureDecision
+            == (
+                decision == .accepted
+                    ? Self.acceptedDemoNetworkParityBackendClosure
+                    : Self.blockedBackendClosure
+            )
             && productionCutoverAuthorized == false
             && defaultProductionTradingEnabled == false
             && (decision == .accepted ? reasons.isEmpty : reasons.isEmpty == false)
@@ -191,7 +204,9 @@ public enum ReleaseV0330DemoValidationDecisionEngine {
             decision: .accepted,
             reasons: [],
             bundleSHA256: checksum,
-            backendClosureDecision: "blocked",
+            backendClosureDecision:
+                ReleaseV0330DemoValidationDecisionReport
+                    .acceptedDemoNetworkParityBackendClosure,
             productionCutoverAuthorized: false,
             defaultProductionTradingEnabled: false
         )
@@ -202,7 +217,8 @@ public enum ReleaseV0330DemoValidationDecisionEngine {
             decision: .blocked,
             reasons: reasons,
             bundleSHA256: nil,
-            backendClosureDecision: "blocked",
+            backendClosureDecision:
+                ReleaseV0330DemoValidationDecisionReport.blockedBackendClosure,
             productionCutoverAuthorized: false,
             defaultProductionTradingEnabled: false
         )

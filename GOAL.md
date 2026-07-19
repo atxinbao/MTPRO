@@ -365,3 +365,7 @@ Goal update: v0.32.2 closes the controlled-canary integrity gap without authoriz
 Goal anchors: `GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR`, `V0323-007-STAGE-AUDIT-RELEASE-NOTES`, `V0323-007-BACKEND-CLOSURE-BLOCKED`, `V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY`, `V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED`, `V0323-007-NO-PRODUCTION-CUTOVER`.
 
 v0.32.3 completes the trusted provenance, persistent lock/registry, independent artifact graph, realpath containment, and negative-matrix prerequisites. Active scope stays Binance Spot + USD-M Futures: `okxActiveRuntime=false`. This repair does not execute an observed canary and keeps `observedProductionCanary=false`, `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, and default production trading disabled. v0.33.0 remains conditionally blocked until v0.32.3 is published after the hosted full matrix.
+
+## Release v0.33.0 Demo Parity Backend Closure Goal Update
+
+Human 已确认 Binance Demo Network 双产品验证可以作为当前后端功能验收标准。v0.33.0 closure PR 修复 Linux 跨平台构建与 full-matrix 聚合门禁后，后端功能建设进入冻结状态；最终事实为 `backendClosureDecision=accepted-demo-network-parity`、`productionCutoverAuthorized=false`、`productionTradingEnabledByDefault=false`。该目标更新不授权生产切换，也不要求新增后端功能版本。

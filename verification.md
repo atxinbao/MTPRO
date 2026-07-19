@@ -18786,6 +18786,6 @@ Executor: Codex
 
 Anchors: `GH-1549-CLOSE-V0330-DEMO-VALIDATION-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0330-DEMO-VALIDATION-PRODUCTION-CLOSURE-BLOCKED`, `V0330-008-DEMO-VALIDATION-AUDIT-RELEASE-NOTES`, `V0330-008-BINANCE-SPOT-USDM-FUTURES-ONLY`, `V0330-008-NO-PRODUCTION-CUTOVER`.
 
-Demo validation evidence was accepted for Binance Spot and USD-M Futures submit/status/cancel runs. The immutable bundle and decision engine require trusted provenance and fail closed on missing or invalid evidence. `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, and production trading remains disabled.
+Demo validation evidence was accepted for Binance Spot and USD-M Futures submit/status/cancel runs. The immutable bundle and decision engine require trusted provenance and fail closed on missing or invalid evidence。Human 已确认以 Demo Network parity 作为后端功能验收标准；closure PR 修复 Linux `CryptoKit` 构建回归和 full-matrix required-check 聚合后，`backendClosureDecision=accepted-demo-network-parity`、`productionCutoverAuthorized=false`，生产交易仍默认关闭。
 
 Commands: `swift test --filter ReleaseV0330DemoValidationTests`, `bash checks/verify-v0.33.0-demo-validation.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.

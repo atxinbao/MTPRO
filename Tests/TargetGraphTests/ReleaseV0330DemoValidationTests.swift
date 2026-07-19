@@ -15,10 +15,15 @@ final class ReleaseV0330DemoValidationTests: XCTestCase {
 
         XCTAssertTrue(bundle.boundaryHeld)
         XCTAssertTrue(try bundle.canonicalSHA256().hasPrefix("sha256:"))
+        let report = ReleaseV0330DemoValidationDecisionEngine.evaluate(bundle: bundle)
+        XCTAssertEqual(report.decision, .accepted)
         XCTAssertEqual(
-            ReleaseV0330DemoValidationDecisionEngine.evaluate(bundle: bundle).decision,
-            .accepted
+            report.backendClosureDecision,
+            ReleaseV0330DemoValidationDecisionReport
+                .acceptedDemoNetworkParityBackendClosure
         )
+        XCTAssertFalse(report.productionCutoverAuthorized)
+        XCTAssertFalse(report.defaultProductionTradingEnabled)
     }
 
     func testGH1547DemoDecisionFailsClosedForProductionFlagDrift() throws {
@@ -58,6 +63,11 @@ final class ReleaseV0330DemoValidationTests: XCTestCase {
             report: ReleaseV0330DemoValidationDecisionEngine.evaluate(bundle: bundle)
         )
         XCTAssertTrue(readModel.readModelOnly)
+        XCTAssertEqual(
+            readModel.backendClosureDecision,
+            ReleaseV0330DemoValidationDecisionReport
+                .acceptedDemoNetworkParityBackendClosure
+        )
         XCTAssertFalse(readModel.productionCutoverAuthorized)
 
         XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))

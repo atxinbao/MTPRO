@@ -764,3 +764,7 @@ v0.31.0 is the next readiness gate after observed shadow acceptance: controlled 
 Roadmap anchors: `GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR`, `V0323-007-STAGE-AUDIT-RELEASE-NOTES`, `V0323-007-BACKEND-CLOSURE-BLOCKED`, `V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY`, `V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED`, `V0323-007-NO-PRODUCTION-CUTOVER`.
 
 v0.32.3 completes persistent evidence-integrity prerequisites for Binance Spot + USD-M Futures without executing an observed canary. `observedProductionCanary=false`, `backendClosureDecision=blocked`, and `productionCutoverAuthorized=false`. v0.33.0 may enter queue only after v0.32.3 is published by the hosted full matrix and still requires explicit Human approval.
+
+## Release v0.33.0 Demo Parity Backend Freeze
+
+Human 已确认以 Binance Spot 与 USD-M Futures Demo Network 双产品验证完成后端功能验收。当前路线不再新增 production canary 功能版本；closure PR 只修复 Linux `Crypto` 兼容、full-matrix required-check 聚合和收口事实。验收后冻结结果为 `backendClosureDecision=accepted-demo-network-parity`，同时保持 `productionCutoverAuthorized=false` 与默认生产交易关闭。
