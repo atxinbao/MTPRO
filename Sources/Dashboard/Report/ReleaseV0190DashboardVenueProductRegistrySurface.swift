@@ -1,4 +1,5 @@
 import Core
+import ExecutionClient
 import Foundation
 
 // GH-1213 static contract boundary:

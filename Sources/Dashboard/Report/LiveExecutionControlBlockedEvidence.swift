@@ -1,5 +1,6 @@
 import Foundation
 import Core
+import ExecutionClient
 
 /// LiveExecutionControlBlockedEvidenceViewItem 是 App 层可展示的单项执行控制阻断证据。
 ///
@@ -20,7 +21,7 @@ public struct LiveExecutionControlBlockedEvidenceViewItem: Codable, Equatable, S
     public let invokesRuntimeControl: Bool
     public let authorizesLiveExecution: Bool
 
-    public init(item: Core.LiveExecutionControlBlockedEvidenceItem) {
+    public init(item: LiveExecutionControlBlockedEvidenceItem) {
         self.evidenceID = "mtp-79-\(item.gate.rawValue.slugID())-blocked"
         self.gate = item.gate
         self.blockedReasons = item.blockedReasons
@@ -54,13 +55,13 @@ public struct LiveExecutionControlBlockedEvidenceViewItem: Codable, Equatable, S
 /// 不连接 broker，也不调用 Runtime、Persistence 或任何真实交易系统。
 public struct LiveExecutionControlBlockedEvidenceReadModel: Equatable, Sendable {
     public let source: ViewModelSourceContract
-    public let evidence: Core.LiveExecutionControlBlockedEvidence
+    public let evidence: LiveExecutionControlBlockedEvidence
     public let items: [LiveExecutionControlBlockedEvidenceViewItem]
     public let lastAppliedSequence: Int?
 
     public init(
         source: ViewModelSourceContract = ViewModelSourceContract(),
-        evidence: Core.LiveExecutionControlBlockedEvidence = .deterministicFixture,
+        evidence: LiveExecutionControlBlockedEvidence = .deterministicFixture,
         lastAppliedSequence: Int? = nil
     ) {
         self.source = source

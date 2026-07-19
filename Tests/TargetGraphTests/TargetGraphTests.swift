@@ -4654,6 +4654,7 @@ final class TargetGraphTests: XCTestCase {
         let expectedCoreRetainedSources: Set<String> = [
             "Sources/Core/DashboardBetaDemoScenario.swift",
             "Sources/Core/DomainModelCompatibilityImport.swift",
+            "Sources/Core/LiveAdapterCapabilityIsolationBoundary.swift",
             "Sources/Core/LiveMonitoringConnectionReadinessExplanation.swift",
             "Sources/Core/LiveMonitoringConsole.swift",
             "Sources/Core/LiveMonitoringForbiddenCapabilityTests.swift",

@@ -96,4 +96,57 @@ final class V0330BackendMaintenanceContractTests: XCTestCase {
         XCTAssertTrue(dashboard.contains("ReleaseV0330DemoValidationStatusSnapshot"))
         XCTAssertFalse(dashboard.contains("ReleaseV0330DemoValidationDecisionEngine.evaluate"))
     }
+
+    func testGH1578CoreNoLongerReexportsExecutionClientAndRetainedEnvelopesStayExplicit() throws {
+        let root = URL(
+            fileURLWithPath: FileManager.default.currentDirectoryPath,
+            isDirectory: true
+        )
+        let package = try String(
+            contentsOf: root.appendingPathComponent("Package.swift"),
+            encoding: .utf8
+        )
+        let compatibilityImport = try String(
+            contentsOf: root.appendingPathComponent(
+                "Sources/Core/DomainModelCompatibilityImport.swift"
+            ),
+            encoding: .utf8
+        )
+        let coreTests = try String(
+            contentsOf: root.appendingPathComponent("Tests/CoreTests/CoreTests.swift"),
+            encoding: .utf8
+        )
+        let dashboardConsumers = [
+            "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift",
+            "Sources/Dashboard/Report/ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface.swift",
+            "Sources/Dashboard/Report/LiveExecutionControlBlockedEvidence.swift",
+        ]
+
+        XCTAssertFalse(compatibilityImport.contains("@_exported import ExecutionClient"))
+        XCTAssertTrue(coreTests.contains("import ExecutionClient"))
+        let appTests = try String(
+            contentsOf: root.appendingPathComponent("Tests/AppTests/AppTests.swift"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(appTests.contains("import ExecutionClient"))
+        for path in dashboardConsumers {
+            let source = try String(
+                contentsOf: root.appendingPathComponent(path),
+                encoding: .utf8
+            )
+            XCTAssertTrue(source.contains("import ExecutionClient"), "\(path) must import its real owner")
+        }
+        let blockedEvidenceReadModel = try String(
+            contentsOf: root.appendingPathComponent(
+                "Sources/Dashboard/Report/LiveExecutionControlBlockedEvidence.swift"
+            ),
+            encoding: .utf8
+        )
+        XCTAssertFalse(blockedEvidenceReadModel.contains("Core.LiveExecutionControlBlocked"))
+        XCTAssertTrue(package.contains("dependencies: [\"Core\", \"ExecutionClient\"]"))
+        XCTAssertTrue(package.contains("\"Runtime\",\n                \"ExecutionClient\""))
+        XCTAssertTrue(package.contains("name: \"Adapters\""))
+        XCTAssertTrue(package.contains("name: \"Persistence\""))
+        XCTAssertTrue(package.contains("name: \"Runtime\""))
+    }
 }
