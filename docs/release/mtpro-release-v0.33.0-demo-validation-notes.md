@@ -29,3 +29,24 @@ defaultProductionTradingEnabled=false
 ```
 
 这表示后端功能版本可以在 closure PR 通过完整验证后冻结，不表示生产切换或默认生产交易已经授权。`v0.33.0` tag 保持不变，closure PR merge commit 作为发布后的冻结补充基线。
+
+## Post-release Backend Maintenance Fact
+
+`GH-1579-V0330-BACKEND-MAINTENANCE-CLOSEOUT` records the completed post-release
+maintenance queue #1574-#1579. The queue hardened cross-platform validation,
+split one oversized compatibility boundary, consolidated Demo evidence
+validation and removed the stale Core-to-ExecutionClient re-export. It did not
+change the accepted Demo execution behavior or add a production capability.
+
+```text
+patchReleaseDecision=not-warranted
+v0.33.1TagCreated=false
+v0.33.0TagMoved=false
+backendClosureDecision=accepted-demo-network-parity
+productionCutoverAuthorized=false
+defaultProductionTradingEnabled=false
+```
+
+The release tag remains
+`19d5d6bcc24ae6cc243396cea57d1c01499b23fe`. The maintenance merge chain is a
+supplemental backend baseline, not a replacement release snapshot.

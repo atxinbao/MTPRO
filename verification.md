@@ -18789,3 +18789,22 @@ Anchors: `GH-1549-CLOSE-V0330-DEMO-VALIDATION-AUDIT-RELEASE-NOTES`, `TVM-RELEASE
 Demo validation evidence was accepted for Binance Spot and USD-M Futures submit/status/cancel runs. The immutable bundle and decision engine require trusted provenance and fail closed on missing or invalid evidence。Human 已确认以 Demo Network parity 作为后端功能验收标准；closure PR 修复 Linux `CryptoKit` 构建回归和 full-matrix required-check 聚合后，`backendClosureDecision=accepted-demo-network-parity`、`productionCutoverAuthorized=false`，生产交易仍默认关闭。
 
 Commands: `swift test --filter ReleaseV0330DemoValidationTests`, `bash checks/verify-v0.33.0-demo-validation.sh`, `git diff --check`, `bash checks/automation-readiness.sh`, and `bash checks/run.sh`.
+
+## v0.33.0 Backend Maintenance Closeout
+
+Date: 2026-07-20
+
+Executor: Codex
+
+`GH-1579-V0330-BACKEND-MAINTENANCE-CLOSEOUT` closes the #1574-#1579 maintenance
+line. PRs #1580-#1584 merged with required checks success. Focused ownership,
+Demo evidence and compatibility tests passed; `git diff --check` and
+`bash checks/automation-readiness.sh` passed; the complete local
+`bash checks/run.sh` matrix passed with `861 tests / 0 failures`.
+
+The release decision is `patchReleaseDecision=not-warranted`.
+`v0.33.1TagCreated=false` and `v0.33.0TagMoved=false`. The existing v0.33.0 tag
+remains at `19d5d6bcc24ae6cc243396cea57d1c01499b23fe`.
+`backendClosureDecision=accepted-demo-network-parity`,
+`productionCutoverAuthorized=false`, and
+`defaultProductionTradingEnabled=false`.
