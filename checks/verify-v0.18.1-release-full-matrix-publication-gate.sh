@@ -116,9 +116,22 @@ for expected in (
     if expected not in release_job:
         raise SystemExit(f"release_publication_checks missing required evidence or fail-closed check: {expected}")
 
-for forbidden in ("- linux_checks", "- dashboard_macos", "needs.linux_checks.result", "needs.dashboard_macos.result"):
-    if forbidden in required_job:
-        raise SystemExit(f"ordinary PR required checks must not wait on release matrix: {forbidden}")
+for expected in (
+    "if: ${{ always() }}",
+    "- pr_fast_checks",
+    "- linux_checks",
+    "- dashboard_macos",
+    "- release_publication_checks",
+    'if [[ "${{ github.event_name }}" == "pull_request" ]]',
+    'test "${{ needs.linux_checks.result }}" = "skipped"',
+    'test "${{ needs.dashboard_macos.result }}" = "skipped"',
+    'test "${{ needs.release_publication_checks.result }}" = "skipped"',
+    'test "${{ needs.linux_checks.result }}" = "success"',
+    'test "${{ needs.dashboard_macos.result }}" = "success"',
+    'test "${{ needs.release_publication_checks.result }}" = "success"',
+):
+    if expected not in required_job:
+        raise SystemExit(f"required checks aggregate missing event-aware matrix gate: {expected}")
 PY
 
 for forbidden in \

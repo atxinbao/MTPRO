@@ -101,8 +101,9 @@ require_file_contains "$WORKFLOW" "if: \${{ github.event_name == 'workflow_dispa
 require_file_contains "$WORKFLOW" "bash checks/run.sh"
 require_file_contains "$WORKFLOW" "swift build --product Dashboard"
 require_file_contains "$WORKFLOW" "DASHBOARD_SMOKE=1 swift run Dashboard"
-require_file_contains "$WORKFLOW" "MTPRO required checks aggregate: pr-fast-checks="
+require_file_contains "$WORKFLOW" "MTPRO required checks aggregate: event="
 require_file_contains "$WORKFLOW" "needs.pr_fast_checks.result"
+require_file_contains "$WORKFLOW" "needs.release_publication_checks.result"
 require_file_contains "$RUN_SCRIPT" "bash checks/verify-ci-pr-fast-lane-release-matrix.sh"
 require_file_contains "$READINESS_SCRIPT" "checks/verify-ci-pr-fast-lane-release-matrix.sh"
 require_file_contains "$TESTS" "testCIRequiredChecksUsePRFastLaneAndReleaseFullMatrix"
@@ -112,11 +113,26 @@ from pathlib import Path
 
 workflow = Path(".github/workflows/checks.yml").read_text()
 required_job = workflow.split("  checks:", 1)[1]
-if "- pr_fast_checks" not in required_job:
-    raise SystemExit("required checks aggregate must depend on pr_fast_checks")
-for forbidden in ("- linux_checks", "- dashboard_macos", "needs.linux_checks.result", "needs.dashboard_macos.result"):
-    if forbidden in required_job:
-        raise SystemExit(f"required checks aggregate must not depend on full release matrix: {forbidden}")
+for expected in (
+    "if: ${{ always() }}",
+    "- pr_fast_checks",
+    "- linux_checks",
+    "- dashboard_macos",
+    "- release_publication_checks",
+    "needs.pr_fast_checks.result",
+    "needs.linux_checks.result",
+    "needs.dashboard_macos.result",
+    "needs.release_publication_checks.result",
+    'if [[ "${{ github.event_name }}" == "pull_request" ]]',
+    'test "${{ needs.linux_checks.result }}" = "skipped"',
+    'test "${{ needs.dashboard_macos.result }}" = "skipped"',
+    'test "${{ needs.release_publication_checks.result }}" = "skipped"',
+    'test "${{ needs.linux_checks.result }}" = "success"',
+    'test "${{ needs.dashboard_macos.result }}" = "success"',
+    'test "${{ needs.release_publication_checks.result }}" = "success"',
+):
+    if expected not in required_job:
+        raise SystemExit(f"required checks aggregate must enforce event-aware full matrix result: {expected}")
 
 linux_job = workflow.split("  linux_checks:", 1)[1].split("  dashboard_macos:", 1)[0]
 dashboard_job = workflow.split("  dashboard_macos:", 1)[1].split("  release_publication_checks:", 1)[0]

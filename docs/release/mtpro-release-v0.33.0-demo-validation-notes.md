@@ -13,7 +13,19 @@ The production boundary remains explicit:
 - no production secret is read automatically;
 - no production endpoint is connected;
 - no production order is submitted, cancelled, or replaced;
-- `backendClosureDecision=blocked`;
+- `backendClosureDecision=accepted-demo-network-parity`;
 - `productionCutoverAuthorized=false`.
 
 The status CLI and Dashboard surface are read-only. A missing, malformed, provenance-mismatched, or boundary-invalid Demo bundle is a validation failure and must return a non-zero CLI exit status.
+
+## Human Demo Parity 后端收口
+
+Human 于 2026-07-19 确认以 Binance Demo Network 的 Spot 与 USD-M Futures 双产品验证作为后端功能验收标准。有效 Demo bundle 的当前结论为：
+
+```text
+backendClosureDecision=accepted-demo-network-parity
+productionCutoverAuthorized=false
+defaultProductionTradingEnabled=false
+```
+
+这表示后端功能版本可以在 closure PR 通过完整验证后冻结，不表示生产切换或默认生产交易已经授权。`v0.33.0` tag 保持不变，closure PR merge commit 作为发布后的冻结补充基线。

@@ -1,7 +1,7 @@
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
-import CryptoKit
+import Crypto
 import Foundation
 
 // GH-1563-ADD-EXTERNALLY-ACTIVATED-PRODUCTION-CANARY-TRANSPORT

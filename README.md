@@ -422,3 +422,7 @@ v0.32.2 keeps the controlled-canary release line fail-closed until trusted workf
 Closeout anchors: `GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR`, `V0323-007-STAGE-AUDIT-RELEASE-NOTES`, `V0323-007-BACKEND-CLOSURE-BLOCKED`, `V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY`, `V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED`, `V0323-007-NO-PRODUCTION-CUTOVER`.
 
 v0.32.3 replaces optimistic manifest evidence with trusted GitHub provenance, an atomic disk-backed lock/nonce registry, independent checksum-linked OMS/reconciliation/rollback/incident artifacts, canonical real-path containment, and a complete negative matrix. Current scope is `activeVenue=Binance`, `activeProducts=spot,usdsPerpetual`; OKX is not active. Required facts remain `observedProductionCanary=false`, `backendClosureDecision=blocked`, `productionCutoverAuthorized=false`, and `productionTradingEnabledByDefault=false`. v0.33.0 eligibility requires the published v0.32.3 full-matrix release and separate Human approval.
+
+## Release v0.33.0 Demo Parity Backend Closure
+
+v0.33.0 已完成 Binance Spot 与 USD-M Futures Demo Network submit / status / cancel 双产品验证。Human 确认以 Demo Network parity 作为后端功能验收标准；完成 Linux 跨平台构建和 full-matrix 聚合门禁修复后，冻结口径为 `backendClosureDecision=accepted-demo-network-parity`、`productionCutoverAuthorized=false`、`productionTradingEnabledByDefault=false`。既有 tag 不移动，冻结基线由 `v0.33.0` 与 closure PR merge commit 共同组成。

@@ -274,8 +274,12 @@ jobs:
   checks:
     name: checks
     runs-on: ubuntu-24.04
+    if: ${{ always() }}
     needs:
       - pr_fast_checks
+      - linux_checks
+      - dashboard_macos
+      - release_publication_checks
 
     steps:
       - name: Aggregate required checks
@@ -297,5 +301,14 @@ jobs:
           # V0321-006-OMS-RECONCILIATION-ROLLBACK-INCIDENT-LINKAGE
           # V0321-007-FULL-MATRIX-BEFORE-RELEASE
           # V0321-008-AGGREGATE-STAGE-AUDIT-RELEASE-DOCS
-          echo "MTPRO required checks aggregate: pr-fast-checks=${{ needs.pr_fast_checks.result }}"
+          echo "MTPRO required checks aggregate: event=${{ github.event_name }} pr-fast-checks=${{ needs.pr_fast_checks.result }} linux-checks=${{ needs.linux_checks.result }} dashboard-macos=${{ needs.dashboard_macos.result }} release-publication-checks=${{ needs.release_publication_checks.result }}"
           test "${{ needs.pr_fast_checks.result }}" = "success"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            test "${{ needs.linux_checks.result }}" = "skipped"
+            test "${{ needs.dashboard_macos.result }}" = "skipped"
+            test "${{ needs.release_publication_checks.result }}" = "skipped"
+          else
+            test "${{ needs.linux_checks.result }}" = "success"
+            test "${{ needs.dashboard_macos.result }}" = "success"
+            test "${{ needs.release_publication_checks.result }}" = "success"
+          fi

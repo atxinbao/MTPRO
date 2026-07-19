@@ -25,6 +25,17 @@ require_contains() {
   grep -Fq -- "$expected" "$file" || fail "$file must contain: $expected"
 }
 
+for file in \
+  Sources/ExecutionClient/FutureGate/ReleaseV0330ObservedCanaryRunner.swift \
+  Sources/ExecutionClient/FutureGate/ReleaseV0330ExternallyActivatedCanaryTransport.swift \
+  Sources/ExecutionClient/FutureGate/ReleaseV0330DemoValidationEvidenceBundle.swift
+do
+  require_contains "$file" "import Crypto"
+  if grep -Fq "import CryptoKit" "$file"; then
+    fail "$file must use cross-platform Crypto instead of CryptoKit"
+  fi
+done
+
 swift test --filter ReleaseV0330DemoValidationTests
 
 set +e
@@ -57,9 +68,10 @@ do
 done
 
 require_contains "docs/audit/mtpro-release-v0.33.0-demo-validation-stage-code-audit.md" "demoValidationDecision=accepted"
-require_contains "docs/audit/mtpro-release-v0.33.0-demo-validation-stage-code-audit.md" "backendClosureDecision=blocked"
+require_contains "docs/audit/mtpro-release-v0.33.0-demo-validation-stage-code-audit.md" "backendClosureDecision=accepted-demo-network-parity"
 require_contains "docs/audit/mtpro-release-v0.33.0-demo-validation-stage-code-audit.md" "productionCutoverAuthorized=false"
 require_contains "docs/release/mtpro-release-v0.33.0-demo-validation-notes.md" "Binance Spot + USD-M Futures"
 require_contains "docs/release/mtpro-release-v0.33.0-demo-validation-notes.md" "production trading remains disabled"
+require_contains "docs/release/mtpro-release-v0.33.0-demo-validation-notes.md" "backendClosureDecision=accepted-demo-network-parity"
 
 echo "MTPRO v0.33.0 Demo validation verification passed."
