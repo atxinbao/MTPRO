@@ -51,7 +51,7 @@ for anchor in \
   require_file_contains "$MATRIX" "$anchor"
 done
 
-for file in README.md "$POLICY" "$NOTES" "$AUDIT" "$LATEST" "$MATRIX" "$PLAN" "$READINESS"; do
+for file in docs/history/root-docs-pre-canonicalization-2026-07-20/README.md "$POLICY" "$NOTES" "$AUDIT" "$LATEST" "$MATRIX" "$PLAN" "$READINESS"; do
   require_file_contains "$file" "https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1"
   require_file_contains "$file" "d041f0dd304075562a85e494695697290972288f"
 done
@@ -70,7 +70,7 @@ require_file_contains "$READINESS" "Release v0.10.0 v0.9.1 publication policy an
 require_file_contains "$TESTS" "testGH879ReleaseV0100V091PublicationPolicyRecordsPublishedTagAndCutoverSeparation"
 require_file_contains "checks/run.sh" "bash checks/verify-v0.10.0-release-policy.sh"
 
-for file in README.md "$NOTES" "$AUDIT" "$LATEST"; do
+for file in docs/history/root-docs-pre-canonicalization-2026-07-20/README.md "$NOTES" "$AUDIT" "$LATEST"; do
   reject_file_contains "$file" "v0.9.1 不发布 tag"
   reject_file_contains "$file" "v0.9.1 不创建 GitHub Release"
 done

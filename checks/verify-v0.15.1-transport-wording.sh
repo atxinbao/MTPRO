@@ -47,10 +47,10 @@ reject_unqualified_builtin_runner_claims() {
   fi
 }
 
-README="README.md"
-GOAL="GOAL.md"
-BLUEPRINT="BLUEPRINT.md"
-ROADMAP="docs/roadmap.md"
+README="docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"
+GOAL="docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"
+BLUEPRINT="docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"
+ROADMAP="docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"
 LATEST="docs/validation/latest-verification-summary.md"
 POLICY="docs/release/release-publication-policy.md"
 NOTES="docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md"

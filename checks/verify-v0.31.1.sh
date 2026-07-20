@@ -48,9 +48,9 @@ for file in \
   docs/release/mtpro-release-v0.31.1-controlled-enablement-integrity-publication-gate-repair-notes.md \
   docs/validation/latest-verification-summary.md \
   docs/validation/trading-validation-matrix.md \
-  README.md \
-  GOAL.md \
-  BLUEPRINT.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/README.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md \
   verification.md; do
   require_contains "$file" "GH-1499-VERIFY-V0311-RELEASE-PUBLICATION-GATE"
   require_contains "$file" "GH-1500-VERIFY-V0311-ENDPOINT-ALLOWLIST-METHOD-HOST-PATH"

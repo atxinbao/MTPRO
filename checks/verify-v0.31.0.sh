@@ -137,10 +137,10 @@ for file in \
   "docs/validation/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "docs/roadmap.md" \
-  "README.md" \
-  "GOAL.md" \
-  "BLUEPRINT.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "verification.md"; do
   for expected in \
     "GH-1487-VERIFY-V0310-NO-DEFAULT-TRADING-CONTRACT" \
@@ -169,10 +169,10 @@ for file in \
 done
 
 for file in \
-  "README.md" \
-  "GOAL.md" \
-  "BLUEPRINT.md" \
-  "docs/roadmap.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/validation/latest-verification-summary.md" \
   "verification.md" \
   "docs/release/mtpro-release-v0.31.0-controlled-production-enablement-gate-notes.md"; do

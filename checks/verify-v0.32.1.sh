@@ -233,9 +233,9 @@ for file in \
   docs/release/mtpro-release-v0.32.1-controlled-canary-integrity-publication-gate-repair-notes.md \
   docs/validation/latest-verification-summary.md \
   docs/validation/trading-validation-matrix.md \
-  README.md \
-  GOAL.md \
-  BLUEPRINT.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/README.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md \
   verification.md; do
   require_contains "$file" "GH-1519-VERIFY-V0321-ACCEPTANCE-SEMANTICS-PUBLICATION-FACTS"
   require_contains "$file" "GH-1520-VERIFY-V0321-EVIDENCE-ROOT-MANIFEST-SHA256"

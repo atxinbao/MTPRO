@@ -1,0 +1,787 @@
+# Historical Root Docs Snapshot
+
+Status: Historical evidence
+
+Snapshot date: 2026-07-20
+
+Archived paths:
+
+- `docs/history/root-docs-pre-canonicalization-2026-07-20/README.md`
+- `docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md`
+- `docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md`
+- `docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md`
+- `docs/history/root-docs-pre-canonicalization-2026-07-20/environment.md`
+- `docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md`
+
+The original document follows unchanged.
+
+# docs/roadmap.md
+
+本文档是 Construction Plan / 施工路线。它是 `BLUEPRINT.md` 的二级权重承接文档，根据蓝图和工程模块定义施工顺序、进度和下一阶段 handoff。
+
+ROADMAP 只定义阶段地图，不授权执行。正式执行必须来自 Human 指定的唯一 live queue source；`MTPRO Release v0.12.0 Readiness Assessment Sessions` 使用 GitHub fallback issue queue，不使用 Linear。
+
+完整产品终局和 Future Construction Zones / 未来建设区见 `BLUEPRINT.md`；工程模块细节见 `architecture.md`。
+
+GH-1270 uses `GH-1270-VERIFY-V0201-V0200-STALE-WORDING-GUARD`, `V0201-002-V0200-STALE-WORDING-GUARD`, `V0201-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`, `TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD`, `V0201-002-CURRENT-FACING-STALE-WORDING-REJECTION` and `V0201-002-NO-PRODUCTION-CUTOVER` to reject current-facing stale v0.20.0 publication wording while allowing #1250 historical construction closeout evidence only when the same artifact preserves release facts: `https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`, `7f84999e8e4071fb71fdc802f895de81303bbcfd`, `2026-06-30T16:55:24Z`. production cutover not authorized.
+
+GH-1306 uses `GH-1306-VERIFY-V0211-V0210-STALE-WORDING-GUARD`, `V0211-002-V0210-STALE-WORDING-GUARD`, `V0211-002-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`, `TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD`, `V0211-002-CURRENT-FACING-STALE-WORDING-REJECTION` and `V0211-002-NO-PRODUCTION-CUTOVER` to reject current-facing stale v0.21.0 publication wording while allowing #1286 historical construction closeout evidence only when the same artifact preserves release facts: `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0`, `bca492ed48324a8057c5dc7223d740426a54c3b1`, `2026-07-04T10:08:42Z`. production cutover not authorized.
+
+## Target Goal Revision / 目标口径修正
+
+截至 2026-06-27，MTPRO 长期目标从“Binance-first 专业交易工作台”修正为“Binance + OKX 的实盘原生交易系统”：
+
+```text
+Venue
+  Binance
+    Spot
+    USDⓈ-M Futures
+  OKX
+    Spot
+    Swap
+```
+
+当前实现和当前 release queue 仍不得被误读为完整目标已实现。Binance Spot 是当前最成熟 testnet / operator beta path；Binance USDⓈ-M Futures、OKX Spot、OKX Swap 是后续目标能力，需要独立 venue / product-aware planning、GitHub issues、PR evidence、validation gates 和 Human approval。Bybit Spot / Linear Perpetual 只作为 future candidate，当前不进入 active roadmap commitment。
+
+路线优先级固定为 Binance-first dual-product path：
+
+| Version | 路线定位 | 不允许越界 |
+| --- | --- | --- |
+| v0.19.1 | v0.19.0 release fact / stale wording patch | patch-only，不新增交易能力 |
+| v0.20.0 | Binance Spot production-shadow / read-only live readiness | 不提交订单，不开启 Spot canary |
+| v0.21.0 | Binance Spot controlled production canary | 仅 Human-approved 小额度 Spot canary，不混入 Futures / OKX |
+| v0.22.0 | Binance Spot live canary transport completion | 不授权 production cutover，不混入 Futures / OKX |
+| v0.22.1 | v0.22.0 publication fact sync patch | patch-only，不新增交易能力 |
+| v0.23.0 | Binance USDⓈ-M Futures read-only foundation | 只读 account / position / margin / leverage / funding，不执行 Futures order |
+| v0.24.0 | Spot + Futures 统一 OMS / Portfolio / Risk / Reconciliation | 统一双产品底层，不允许两套割裂 OMS / Portfolio / Risk / Reconciliation |
+| v0.25.0 | Binance dual-product production readiness / canary hardening | readiness / canary hardening only，production cutover 仍需单独 Human gate |
+
+执行顺序必须保持：先完成 v0.19.1；v0.20.0 只做 Binance Spot read-only / production-shadow；v0.21.0 才允许 Spot 小额 canary；v0.22.0 收口 Binance Spot live canary transport completion；v0.22.1 只修 publication facts；Futures 从 v0.23.0 read-only foundation 开始，后续版本再进入 testnet execution；v0.24.0 再统一 Spot + Futures 的 OMS / Portfolio / Risk / Reconciliation；v0.25.0 才做 Binance dual-product production readiness / canary hardening。OKX Spot / Swap 延后到 Binance dual-product path 收敛之后。
+
+GH-1307 uses `GH-1307-VERIFY-V0211-CANARY-EVIDENCE-WORDING`、`TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING`、`V0211-003-CONTROLLED-CANARY-EVIDENCE-WORDING`、`V0211-003-NOT-LIVE-NETWORK-EXECUTION`、`V0211-003-LIVE-SPOT-CANARY-TRANSPORT-FUTURE` 和 `V0211-003-NO-PRODUCTION-CUTOVER` to keep v0.21.0 described as controlled canary evidence, not live network execution. `networkSubmitAttempted=false` and `networkCancelAttempted=false` remain current facts. live Spot canary transport is future work for the v0.22.0 queue. production cutover not authorized.
+
+v0.20.0 首个合同 anchor：`GH-1239-VERIFY-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT`、`TVM-RELEASE-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT`、`V0200-001-V0191-PREFLIGHT-GATE`、`V0200-001-BINANCE-SPOT-PRODUCTION-SHADOW`、`V0200-001-READ-ONLY-LIVE-READINESS`、`V0200-001-NO-ORDER-SUBMIT-CANCEL-REPLACE`、`V0200-001-SPOT-CANARY-DEFERRED-TO-V0210`、`V0200-001-QUEUE-ORDER`、`V0200-001-NO-PRODUCTION-CUTOVER`。
+
+v0.20.0 environment profile anchor：`GH-1240-VERIFY-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE`、`TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE`、`V0200-002-BINANCE-SPOT-PRODUCTION-SHADOW-PROFILE`、`V0200-002-CREDENTIAL-REFERENCE-NO-SECRET-VALUE`、`V0200-002-ENDPOINT-INTENT-NO-CONNECTION`、`V0200-002-OPERATOR-READINESS-STATE`、`V0200-002-READ-ONLY-FAIL-CLOSED`、`V0200-002-FUTURES-OKX-OUT-OF-SCOPE`、`V0200-002-NO-PRODUCTION-CUTOVER`。
+
+v0.20.0 endpoint allowlist anchor：`GH-1241-VERIFY-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST`、`TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST`、`V0200-003-BINANCE-SPOT-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST`、`V0200-003-HTTPS-API-BINANCE-COM-ONLY`、`V0200-003-READ-ONLY-PATH-ALLOWLIST`、`V0200-003-QUERY-SHAPE-ALLOWLIST`、`V0200-003-SIGNED-TRADING-ENDPOINTS-FORBIDDEN`、`V0200-003-NO-ENDPOINT-CONNECTION`、`V0200-003-NO-PRODUCTION-CUTOVER`。
+
+v0.20.0 credential reference readiness anchor：`GH-1242-VERIFY-V0200-CREDENTIAL-REFERENCE-READINESS`、`TVM-RELEASE-V0200-CREDENTIAL-REFERENCE-READINESS`、`V0200-004-BINANCE-SPOT-PRODUCTION-SHADOW-CREDENTIAL-READINESS`、`V0200-004-CREDENTIAL-IDENTITY-ONLY`、`V0200-004-MISSING-REFERENCE-FAILS-CLOSED`、`V0200-004-REDACTED-AUDIT-EVIDENCE`、`V0200-004-NO-SECRET-VALUE-READ`、`V0200-004-NO-ENDPOINT-CONNECTION`、`V0200-004-NO-PRODUCTION-CUTOVER`。
+
+v0.20.0 public market read-only probe anchor：`GH-1243-VERIFY-V0200-PUBLIC-MARKET-READ-ONLY-PROBE`、`TVM-RELEASE-V0200-PUBLIC-MARKET-READ-ONLY-PROBE`、`V0200-005-BINANCE-SPOT-PRODUCTION-SHADOW-PUBLIC-MARKET-PROBE`、`V0200-005-PUBLIC-MARKET-READ-ONLY-REACHABILITY`、`V0200-005-RESPONSE-CLASSIFICATION-EVIDENCE`、`V0200-005-NO-CREDENTIAL-REQUIRED`、`V0200-005-NO-SIGNED-ACCOUNT-ENDPOINT`、`V0200-005-NO-ORDER-ENDPOINT`、`V0200-005-NO-PRODUCTION-CUTOVER`。
+
+v0.20.0 signed account read-only readiness anchor：`GH-1244-VERIFY-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS`、`TVM-RELEASE-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS`、`V0200-006-BINANCE-SPOT-PRODUCTION-SHADOW-SIGNED-ACCOUNT-READINESS`、`V0200-006-ACCOUNT-ENDPOINT-INTENT-ONLY`、`V0200-006-CREDENTIAL-REFERENCE-BOUND`、`V0200-006-REDACTED-ACCOUNT-PAYLOAD-EVIDENCE`、`V0200-006-NO-SECRET-VALUE-READ`、`V0200-006-NO-ORDER-ENDPOINT`、`V0200-006-NO-PRODUCTION-CUTOVER`。
+
+v0.20.0 account snapshot redaction policy anchor：`GH-1245-VERIFY-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY`、`TVM-RELEASE-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY`、`V0200-007-BINANCE-SPOT-PRODUCTION-SHADOW-ACCOUNT-SNAPSHOT-REDACTION`、`V0200-007-ARTIFACT-LOCATION-POLICY`、`V0200-007-ALLOWED-FIELD-SCHEMA`、`V0200-007-FORBIDDEN-FIELD-SCHEMA`、`V0200-007-REDACTED-SNAPSHOT-JSON`、`V0200-007-NO-RAW-BALANCE-PERSISTENCE`、`V0200-007-NO-ACCOUNT-ID-PERSISTENCE`、`V0200-007-NO-SECRET-OR-RAW-PAYLOAD-PERSISTENCE`、`V0200-007-NO-PRODUCTION-CUTOVER`。
+
+v0.20.0 no-order capability guard anchor：`GH-1246-VERIFY-V0200-NO-ORDER-CAPABILITY-GUARD`、`TVM-RELEASE-V0200-NO-ORDER-CAPABILITY-GUARD`、`V0200-008-BINANCE-SPOT-PRODUCTION-SHADOW-NO-ORDER-CAPABILITY-GUARD`、`V0200-008-SUBMIT-BLOCKED`、`V0200-008-CANCEL-BLOCKED`、`V0200-008-REPLACE-BLOCKED`、`V0200-008-DASHBOARD-CLI-CANNOT-BYPASS`、`V0200-008-NO-REAL-ORDER-INTENT`、`V0200-008-NO-PRODUCTION-CUTOVER`。
+
+v0.20.0 risk / kill switch / no-trade readiness anchor：`GH-1247-VERIFY-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS`、`TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS`、`V0200-009-BINANCE-SPOT-PRODUCTION-SHADOW-RISK-READINESS`、`V0200-009-RISK-GATE-VISIBLE-FAIL-CLOSED`、`V0200-009-KILL-SWITCH-BLOCKED-VISIBLE`、`V0200-009-NO-TRADE-BLOCKED-VISIBLE`、`V0200-009-NO-TRADING-AUTHORIZATION`、`V0200-009-NO-ORDER-CAPABILITY-BYPASS`、`V0200-009-NO-PRODUCTION-CUTOVER`。
+
+v0.20.0 Dashboard / CLI read-only live readiness surface anchor：`GH-1248-VERIFY-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE`、`TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE`、`V0200-010-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE`、`V0200-010-GATE-STATE-ENDPOINT-CREDENTIAL-REDACTION-NO-ORDER`、`V0200-010-BLOCKED-READY-FAIL-CLOSED-STATES`、`V0200-010-DASHBOARD-CLI-NO-CONTROLS`、`V0200-010-NO-PRODUCTION-CUTOVER`。
+
+v0.20.0 aggregate validation suite anchor：`GH-1249-VERIFY-V0200-RELEASE-VALIDATION-SUITE`、`TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE`、`V0200-011-AGGREGATE-VALIDATION-SUITE`、`V0200-011-FOCUSED-GUARDS-COVERED`、`V0200-011-READINESS-REDACTION-NO-ORDER-COVERED`、`V0200-011-RUN-AUTOMATION-WIRING`、`V0200-011-NO-PRODUCTION-CUTOVER`、`V0200-011-NO-TAG-OR-RELEASE-PUBLICATION`。
+
+v0.20.0 stage audit / release docs closeout anchor：`GH-1250-VERIFY-V0200-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS`、`V0200-012-STAGE-CODE-AUDIT`、`V0200-012-RELEASE-NOTES`、`V0200-012-VALIDATION-MATRIX`、`V0200-012-ROOT-DOCS-REFRESH`、`V0200-012-STALE-WORDING-GUARD`、`V0200-012-RELEASE-PUBLICATION-GATE-HANDOFF`、`V0200-012-NO-PRODUCTION-CUTOVER`、`V0200-012-NO-TAG-OR-RELEASE-PUBLICATION`。#1250 只收口 v0.20.0 construction docs / validation evidence；不创建 tag / GitHub Release，不运行 Spot canary，不授权 production cutover；production cutover not authorized。
+
+该目标修正只更新路线方向，不授权 production trading、不读取 production secret、不连接 production endpoint / broker endpoint、不创建 OKX active source 或 order path。
+
+GH-1271 uses `GH-1271-VERIFY-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`、`TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE`、`V0201-003-PUBLIC-MARKET-PROBE-CLASSIFICATION-EVIDENCE`、`V0201-003-SIGNED-ACCOUNT-READINESS-INTENT-EVIDENCE`、`V0201-003-NOT-LIVE-TRANSPORT-PROOF`、`V0201-003-NO-ACCOUNT-PAYLOAD-RETRIEVAL`、`V0201-003-NO-ENDPOINT-CONNECTION` 和 `V0201-003-NO-PRODUCTION-CUTOVER` to clarify v0.20.0 production-shadow semantics: public-market probe pass is classification evidence, not live transport proof；signed-account readiness pass is intent evidence, not account access proof or account payload retrieval；no endpoint connection and no production cutover authorization.
+
+GH-1272 uses `GH-1272-VERIFY-V0201-PATCH-AUDIT-RELEASE-NOTES`、`TVM-RELEASE-V0201-PATCH-AUDIT-RELEASE-NOTES`、`V0201-004-AGGREGATE-GUARD`、`V0201-004-PATCH-AUDIT`、`V0201-004-RELEASE-NOTES`、`V0201-004-VALIDATION-MATRIX`、`V0201-004-NO-CAPABILITY-CHANGE`、`V0201-004-V0210-DOWNSTREAM-CANARY-HANDOFF`、`V0201-004-NO-PRODUCTION-CUTOVER` 和 `V0201-004-NO-TAG-OR-RELEASE-PUBLICATION` to close #1269..#1272 patch audit, release notes, validation matrix and no-capability-change publication guidance. v0.21.0 Spot canary is downstream only；v0.20.1 publication gate remains independent, existing v0.20.0 publication remains fixed, and this closeout does not authorize production cutover.
+
+GH-1273 uses `GH-1273-VERIFY-V0210-CONTROLLED-CANARY-CONTRACT`、`TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT`、`V0210-001-V0201-PREFLIGHT-GATE`、`V0210-001-BINANCE-SPOT-CONTROLLED-CANARY`、`V0210-001-HUMAN-APPROVAL-REQUIRED`、`V0210-001-SYMBOL-ALLOWLIST-SIZE-CAPS`、`V0210-001-RISK-KILL-NO-TRADE-GATES`、`V0210-001-QUEUE-ORDER` 和 `V0210-001-NO-PRODUCTION-CUTOVER` to define the first v0.21.0 controlled canary contract. It keeps the queue ordered as GH-1273..GH-1286, gates execution to Human-approved Binance Spot only, requires symbol allowlist、notional / exposure size caps、RiskEngine / kill switch / no-trade gates, and does not read production secret, connect production endpoint / broker endpoint, submit / cancel / replace orders, create tag / GitHub Release, or authorize production cutover.
+
+GH-1274 uses `GH-1274-VERIFY-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE`、`TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE`、`V0210-002-BINANCE-SPOT-CANARY-PROFILE`、`V0210-002-DEFAULT-OFF-FAIL-CLOSED`、`V0210-002-OPERATOR-OPT-IN-EVIDENCE`、`V0210-002-NO-SECRET-ENDPOINT-ORDER` 和 `V0210-002-NO-PRODUCTION-CUTOVER` to define the Binance Spot canary environment profile. The profile represents productionLive identity only, stays default-off fail-closed, requires explicit Human operator opt-in evidence, and does not read production secret, connect production endpoint / broker endpoint, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
+
+GH-1275 uses `GH-1275-VERIFY-V0210-CREDENTIAL-SECRET-READ-APPROVAL`、`TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL`、`V0210-003-CREDENTIAL-SECRET-READ-APPROVAL`、`V0210-003-EXPLICIT-OPERATOR-APPROVAL`、`V0210-003-REDACTED-AUDIT-EVIDENCE`、`V0210-003-NO-AUTOMATIC-SECRET-DISCOVERY`、`V0210-003-NO-SECRET-LOGGING` and `V0210-003-NO-ENDPOINT-ORDER-CUTOVER` to define the Binance Spot canary credential secret-read approval path. The path records explicit Human operator approval, redacted credential reference and append-only audit evidence for downstream gates only; GH-1275 does not read secret value, discover fallback secrets, log credential value, connect production endpoint / broker endpoint, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
+
+GH-1276 uses `GH-1276-VERIFY-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`TVM-RELEASE-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0210-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0210-004-CONSUMES-CREDENTIAL-APPROVAL`、`V0210-004-REDACTED-ACCOUNT-STATUS-EVIDENCE`、`V0210-004-NO-RAW-ACCOUNT-PAYLOAD`、`V0210-004-NO-ORDER-ENDPOINT` and `V0210-004-NO-PRODUCTION-CUTOVER` to define the Binance Spot signed account read-only runtime preflight. The preflight consumes GH-1275 approval evidence and captures redacted account status evidence only; it does not store raw account payload, touch order endpoint, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
+
+GH-1277 uses `GH-1277-VERIFY-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`V0210-005-LIVE-ACCOUNT-SNAPSHOT-REDACTION`、`V0210-005-CONSUMES-SIGNED-ACCOUNT-PREFLIGHT`、`V0210-005-ALLOWED-READINESS-FIELDS`、`V0210-005-FRESHNESS-STALE-FAIL-CLOSED`、`V0210-005-NO-RAW-BALANCE-ACCOUNT-ID` and `V0210-005-NO-PRODUCTION-CUTOVER` to define the Binance Spot redacted live account snapshot artifact and freshness evidence. The gate consumes GH-1276 preflight evidence, keeps only readiness / freshness redacted fields, rejects stale or malformed snapshots, and does not persist raw balances, account id, raw account payload, submit / cancel / replace orders, publish tag / GitHub Release, or authorize production cutover.
+
+GH-1278 uses `GH-1278-VERIFY-V0210-CANARY-HARD-LIMITS`、`TVM-RELEASE-V0210-CANARY-HARD-LIMITS`、`V0210-006-CANARY-SYMBOL-ALLOWLIST`、`V0210-006-NOTIONAL-QUANTITY-CAPS`、`V0210-006-ORDER-TYPE-COUNT-WINDOW-LIMITS`、`V0210-006-PRE-TRADE-FAIL-CLOSED`、`V0210-006-NO-SUBMIT-CANCEL-REPLACE` and `V0210-006-NO-PRODUCTION-CUTOVER` to define the Binance Spot canary hard-limit pre-trade gate. The gate consumes GH-1277 redacted snapshot evidence, enforces `BTCUSDT` symbol allowlist, `LIMIT` order type, `10.00 USDT` notional cap, `0.00100000 BTC` quantity cap, one order per 300-second window, and fails closed before order creation without submit / cancel / replace, tag / GitHub Release publication, or production cutover authorization.
+
+GH-1279 uses `GH-1279-VERIFY-V0210-PRETRADE-RISK-KILL-NOTRADE`、`TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE`、`V0210-007-RISKENGINE-PRETRADE-GATE`、`V0210-007-GLOBAL-KILL-SWITCH-GATE`、`V0210-007-NO-TRADE-GATE`、`V0210-007-APPROVAL-GATE`、`V0210-007-HARD-LIMIT-GATE`、`V0210-007-AUDIT-EVIDENCE-NO-BYPASS` and `V0210-007-NO-PRODUCTION-CUTOVER` to define the Binance Spot canary submit-intent pre-trade path. The gate consumes GH-1278 hard-limit evidence, requires RiskEngine, global kill switch, no-trade, operator approval and hard-limit checks to pass, and fails closed with audit evidence for any rejection without bypass path, Dashboard command shortcut, adapter submit attempt, tag / GitHub Release publication, or production cutover authorization.
+
+GH-1280 uses `GH-1280-VERIFY-V0210-CONTROLLED-SPOT-CANARY-SUBMIT`、`TVM-RELEASE-V0210-CONTROLLED-SPOT-CANARY-SUBMIT`、`V0210-008-CONTROLLED-SPOT-CANARY-SUBMIT`、`V0210-008-IDEMPOTENCY-KEY`、`V0210-008-AUDIT-EVENT`、`V0210-008-REDACTED-REQUEST-EVIDENCE`、`V0210-008-STRICT-SYMBOL-SIZE-SCOPE`、`V0210-008-SINGLE-APPROVED-ORDER`、`V0210-008-NO-REPEATED-AUTOMATION-LOOP` and `V0210-008-NO-PRODUCTION-CUTOVER` to define the Binance Spot canary controlled submit request evidence. The path consumes GH-1279 accepted pre-trade evidence, requires explicit submit approval, idempotency key, audit event, redacted request evidence and strict symbol / size scope, and fails closed before request creation for any missing condition without network submit, repeated automation loop, Dashboard default trading button, Futures / OKX scope, tag / GitHub Release publication, or production cutover authorization.
+
+GH-1281 uses `GH-1281-VERIFY-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK`、`TVM-RELEASE-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK`、`V0210-009-CONTROLLED-CANARY-CANCEL`、`V0210-009-STATUS-ROLLBACK-GUARD`、`V0210-009-AUDIT-EVIDENCE`、`V0210-009-REDACTED-CANCEL-EVIDENCE`、`V0210-009-SINGLE-CANARY-ORDER`、`V0210-009-NO-BULK-CANCEL`、`V0210-009-NO-FUTURES-CANCEL` and `V0210-009-NO-PRODUCTION-CUTOVER` to define the Binance Spot canary controlled cancel request evidence and status rollback guard. The guard consumes GH-1280 authorized submit evidence, requires explicit cancel approval, redacted canary order reference, audit event, redacted cancel request evidence, status rollback guard and single canary order scope, and fails closed before cancel request evidence creation for any missing condition without network cancel, bulk cancel, Futures cancel, Dashboard default trading button, tag / GitHub Release publication, or production cutover authorization.
+
+GH-1282 uses `GH-1282-VERIFY-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION`、`TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION`、`V0210-010-OMS-EVENT-LOG`、`V0210-010-CANARY-LIFECYCLE-EVENTS`、`V0210-010-STATUS-RESPONSES`、`V0210-010-CANCEL-OUTCOMES`、`V0210-010-RECONCILIATION-EVIDENCE`、`V0210-010-REDACTED-EVIDENCE`、`V0210-010-NO-BROAD-OMS-ROLLOUT` and `V0210-010-NO-PRODUCTION-CUTOVER` to define the Binance Spot canary OMS event log and reconciliation evidence after GH-1280 submit evidence and GH-1281 cancel / rollback evidence. The evidence reconstructs the redacted lifecycle from event log entries, status responses, cancel outcomes and reconciliation evidence, then hands off to GH-1283 read-only status surface without broad production OMS rollout, Futures / OKX reconciliation, raw broker payload persistence, tag / GitHub Release publication, or production cutover authorization.
+
+GH-1283 uses `GH-1283-VERIFY-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE`、`TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE`、`V0210-011-DASHBOARD-CLI-CANARY-STATUS`、`V0210-011-CANARY-STATE-GATES`、`V0210-011-RISK-ORDER-CANCEL-RECONCILIATION`、`V0210-011-READ-ONLY-NO-COMMANDS` and `V0210-011-NO-PRODUCTION-CUTOVER` to project GH-1282 redacted OMS event log / reconciliation evidence into the Dashboard and `mtpro canary-status` CLI read-only surface. The surface shows canary state, gate stack, risk decision, order lifecycle, cancel / rollback, reconciliation and redaction boundary without trading button, order form, live command, raw order id, raw broker payload, submit / cancel / replace, tag / GitHub Release publication, or production cutover authorization.
+
+GH-1284 uses `GH-1284-VERIFY-V0210-CANARY-OPERATOR-RUNBOOK`、`TVM-RELEASE-V0210-CANARY-OPERATOR-RUNBOOK`、`V0210-012-CANARY-OPERATOR-RUNBOOK`、`V0210-012-START-OBSERVE-CANCEL-ROLLBACK`、`V0210-012-INCIDENT-STOP-CONDITIONS`、`V0210-012-EVIDENCE-COLLECTION`、`V0210-012-NO-PRODUCTION-CUTOVER` and `V0210-012-NO-TAG-OR-RELEASE-PUBLICATION` to add the Binance Spot controlled canary operator runbook. The runbook documents start, observe, cancel, rollback, incident stop and redacted evidence collection only; it adds no runtime capability, does not read production secret, does not connect production endpoint / broker endpoint, does not create tag / GitHub Release and does not authorize production cutover.
+
+GH-1285 uses `GH-1285-VERIFY-V0210-AGGREGATE-VALIDATION`、`TVM-RELEASE-V0210-AGGREGATE-VALIDATION`、`V0210-013-AGGREGATE-VALIDATION-SUITE`、`V0210-013-CANARY-READINESS-CHAIN`、`V0210-013-FOCUSED-GUARDS-COVERED`、`V0210-013-RUN-AUTOMATION-WIRING`、`V0210-013-NO-PRODUCTION-CUTOVER` and `V0210-013-NO-TAG-OR-RELEASE-PUBLICATION` to add `bash checks/verify-v0.21.0.sh` as the single v0.21.0 aggregate validation entrypoint. The entrypoint runs GH-1273..GH-1284 focused verifiers in order and proves approval, credential redaction, read-only preflight, hard limits, risk / kill / no-trade, submit / cancel evidence, OMS / reconciliation, Dashboard / CLI read-only status and operator runbook wiring without adding runtime capability, reading production secret, connecting production endpoint / broker endpoint, publishing tag / GitHub Release, or authorizing production cutover.
+
+GH-1286 uses `GH-1286-VERIFY-V0210-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS`、`V0210-014-STAGE-CODE-AUDIT`、`V0210-014-RELEASE-NOTES`、`V0210-014-VALIDATION-MATRIX`、`V0210-014-ROOT-DOCS-REFRESH`、`V0210-014-STALE-WORDING-GUARD`、`V0210-014-RELEASE-PUBLICATION-GATE-HANDOFF`、`V0210-014-NO-PRODUCTION-CUTOVER` and `V0210-014-NO-TAG-OR-RELEASE-PUBLICATION` to close v0.21.0 stage audit / release docs. It records #1273..#1286 construction evidence and handed off to a separate Release Publication Gate without starting v0.22.0, reading production secret, connecting production endpoint / broker endpoint, or authorizing production cutover. The later independent Release Publication Gate has published `v0.21.0` as a stable GitHub Release at `https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0`; tag peeled commit `bca492ed48324a8057c5dc7223d740426a54c3b1`; publication timestamp `2026-07-04T10:08:42Z`. production cutover not authorized.
+
+## Roadmap Responsibility / 路线职责
+
+`docs/roadmap.md` 只回答四个问题：
+
+1. 已完成哪些建设阶段。
+2. 当前目标切片完成到哪里。
+3. 下一轮 planning 应该从哪些未完成切片里选择。
+4. Project closure 后如何反写进度和 handoff。
+
+它不定义最终产品终局，不定义工程模块细节，不授权执行。
+
+## Roadmap Inputs / 路线输入
+
+路线更新必须按以下输入顺序读取：
+
+```text
+GOAL.md
+-> BLUEPRINT.md
+-> architecture.md
+-> docs/audit/<project-stage-code-audit>.md
+-> docs/validation/latest-verification-summary.md
+-> approved live queue source state
+```
+
+输入解释：
+
+- `GOAL.md` 提供目标切片和硬边界。
+- `BLUEPRINT.md` 提供完整产品终局、Current / Future 分界和 Live gates。
+- `architecture.md` 提供工程模块地图和模块依赖方向。
+- `docs/audit/` 提供已完成 Project 的事实证据。
+- `docs/validation/latest-verification-summary.md` 提供最近验证和当前边界。
+- approved live queue source 只用于确认 Project / issue 当前状态，不写死到本文档中；`MTPRO Release v0.9.0 Testnet No-order Observability` 的 live queue source 是 GitHub fallback issue queue。
+
+## Completed Project Map / 已完成阶段地图
+
+| 阶段族群 | 状态 | 压缩结果 |
+| --- | --- | --- |
+| Foundation / Paper / Workbench | Completed | 引导、Research / Backtest / Report、Paper Session / Execution / Control Shell、Market Replay Operations 已完成；完整证据见 `docs/audit/`。 |
+| Live boundary / read-model-only | Completed | Live foundation、monitoring、execution control、risk gate、audit / incident / stop、L3.0-L3.4 read-model-only readiness 已完成；不授权真实 Live runtime、signed endpoint、broker、OMS 或 trading command。 |
+| Engine / target graph / ownership | Completed | Event-driven paper runtime、Data Catalog、Simulated Exchange、module boundary、source migration、Trader-owned Strategies、Trader Accounts / Coordination、Persistence validation、SwiftPM target graph、TargetGraph retirement、Core envelope retirement 已完成；保留 final residual hardening PR #448 与 production executable `try!` = 0 evidence。 |
+| L4 / production cutover readiness | Completed | `MTPRO L4 Live Production / Trading Commands v1` 与 `MTPRO Production Cutover Readiness / Real Broker Enablement Gate v1` 已完成；PR #473 至 #493 evidence、PR #511 至 #519 evidence 已落在 stage audit / latest summary；不授权真实 broker / real order / production trading。 |
+| Releases | Completed | v0.1.0 Binance + EMA、v0.2.0 Binance Spot + USDⓈ-M Perpetual + EMA/RSI、v0.3.0 rehearsal evidence、v0.4.0 unified runtime rehearsal、v0.5.0 guarded testnet runtime foundation、v0.6.0 local operational runtime + testnet read-only probe hardening、v0.7.0 operator runtime session + real testnet read-only connectivity、v0.8.0 persistent operator runtime + testnet read-only monitoring、v0.9.0 testnet no-order observability、v0.10.0 production cutover readiness gate、v0.11.0 production readiness evidence runtime + integrity hardening、v0.12.0 readiness assessment sessions、v0.12.1 readiness assessment provenance hardening patch、v0.13.0 local evidence-driven readiness engine、v0.14.1 local execution evidence hardening patch、v0.15.0 Real Binance Testnet Execution MVP stable GitHub Release、v0.19.0 Venue/Product Registry + Runtime Adapter Foundation stable GitHub Release、v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness stable GitHub Release 均 completed；production trading 默认保持关闭，production cutover 未授权。 |
+
+Completed Project 的完整证据见 `docs/audit/`。当前 Project、active issue、Todo / In Progress / In Review 状态必须从 Human 指定的 live queue source 和 Parent Codex queue preview 实时读取，不写死在仓库文档中。
+
+Roadmap 里的 `production trading 默认保持关闭`、`production cutover 未授权` 和各 release 的 `not authorized` 都是当前阶段的 gate 状态，不是永久禁止实盘。MTPRO 的目标仍包含受控 Live trading；路线必须先完成本地 evidence-driven readiness、venue / product-aware testnet closed loop、production read-only / signed endpoint、shadow live、controlled canary 等阶段，再由 Human approval 明确授权。
+
+Machine guard anchors:
+
+- MTPRO Release v0.2.0 | Completed
+- Project Closure Count: 45 / 45 (100%)
+- Latest Completed Project：`MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness`
+- Latest Completed Patch：`MTPRO Release v0.14.1 Local Execution Evidence Hardening Patch`
+- Current maturity statement：`MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness complete and published as stable GitHub Release with production trading disabled by default and production cutover not authorized`
+- PR #473 至 #493 evidence
+- PR #511 至 #519 evidence
+- final residual hardening PR #448
+- production executable `try!` = 0
+- 不授权真实 broker
+- TargetGraph Anchor Retirement / Real Module Source Root Migration before L4
+
+## Current Release Construction Scope / 当前 release 建设口径
+
+`GH-1215-VERIFY-V0190-STAGE-AUDIT-RELEASE-DOCS`
+
+`TVM-RELEASE-V0190-STAGE-AUDIT-RELEASE-DOCS`
+
+`V0190-010-STAGE-CODE-AUDIT`
+
+`V0190-010-RELEASE-NOTES`
+
+`V0190-010-VALIDATION-MATRIX`
+
+`V0190-010-ROOT-DOCS-REFRESH`
+
+`V0190-010-STALE-WORDING-GUARD`
+
+`V0190-010-NO-PRODUCTION-CUTOVER`
+
+`V0190-010-NO-TAG-OR-RELEASE-PUBLICATION`
+
+Historical completed GitHub fallback queue is `MTPRO Release v0.19.0 Venue/Product Registry + Runtime Adapter Foundation`, issue range `GH-1206..GH-1215`. GH-1215 closes the v0.19.0 stage audit / release docs, validation matrix, root docs refresh and stale wording guard. The closeout records completed construction facts only: at construction closeout time it does not create `v0.19.0` tag, does not create GitHub Release, does not create the next Project / Issue, does not promote a next Todo, and does not authorize production cutover. That no-tag / no-release statement is historical closeout evidence, not current v0.19.0 release state. production cutover not authorized.
+
+GH-1232 uses `GH-1232-VERIFY-V0191-V0190-RELEASE-FACT-SYNC`, `V0191-001-V0190-RELEASE-FACT-SYNC-GUARD`, `TVM-RELEASE-V0191-V0190-RELEASE-FACT-SYNC`, `V0191-001-V0190-TAG-FIXED`, `V0191-001-PATCH-QUEUE-NOT-PUBLICATION` and `V0191-001-NO-PRODUCTION-CUTOVER` to sync the later v0.19.0 stable GitHub Release fact into the v0.19.1 patch guard and root docs. The v0.19.0 Release URL is `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`, the tag peeled commit is `53e9b1e81db075ef464b74f8f35c66ebd61ea03c`, and the publication timestamp is `2026-06-29T13:42:34Z`. v0.19.1 是 v0.19.0 后的 release fact / stale wording patch queue；GH-1232 不移动 `v0.19.0` tag，不覆盖 GitHub Release，不创建 v0.19.1 tag / GitHub Release，不授权 production cutover；production cutover not authorized.
+
+GH-1233 uses `GH-1233-VERIFY-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`, `V0191-002-V0190-HISTORICAL-CLOSEOUT-WORDING-GUARD`, `TVM-RELEASE-V0191-V0190-HISTORICAL-CLOSEOUT-WORDING`, `V0191-002-CONSTRUCTION-CLOSEOUT-HISTORICAL`, `V0191-002-CURRENT-RELEASE-PUBLISHED` and `V0191-002-NO-PRODUCTION-CUTOVER` to rewrite v0.19.0 construction closeout wording as historical context. #1215 no-tag / no-release wording remains valid only when scoped to historical construction closeout evidence; current-facing docs must also carry the v0.19.0 stable GitHub Release URL, tag peeled commit and publication timestamp. GH-1233 does not move `v0.19.0` tag, does not overwrite GitHub Release, does not create v0.19.1 tag / GitHub Release, and does not authorize production cutover.
+GH-1234 uses `GH-1234-VERIFY-V0191-V0190-STALE-WORDING-GUARD`, `V0191-003-V0190-STALE-WORDING-GUARD`, `V0191-003-HISTORICAL-CONSTRUCTION-CLOSEOUT-ALLOWLIST`, `TVM-RELEASE-V0191-V0190-STALE-WORDING-GUARD`, `V0191-003-CURRENT-FACING-STALE-WORDING-REJECTION` and `V0191-003-NO-PRODUCTION-CUTOVER` to reject current-facing stale v0.19.0 publication wording. Historical construction closeout evidence remains allowed only when paired with `https://github.com/atxinbao/MTPRO/releases/tag/v0.19.0`, `53e9b1e81db075ef464b74f8f35c66ebd61ea03c` and `2026-06-29T13:42:34Z`. GH-1234 does not move `v0.19.0` tag, does not overwrite GitHub Release, does not create v0.19.1 tag / GitHub Release, and production cutover not authorized.
+
+v0.20.0 release publication fact: `MTPRO Release v0.20.0 Binance Spot Production-shadow / Read-only Live Readiness` 已通过独立 Release Publication Gate 发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.20.0`，tag peeled commit `7f84999e8e4071fb71fdc802f895de81303bbcfd`，publication timestamp `2026-06-30T16:55:24Z`。#1250 no-tag / no-release wording 只描述 historical construction closeout evidence；当前 release 状态以已发布 stable GitHub Release 为准。v0.20.0 publication 不授权 Spot canary、production cutover、production secret read、production endpoint / broker endpoint connection 或 submit / cancel / replace order。
+
+GH-1200 uses `GH-1200-VERIFY-V0181-V0180-RELEASE-FACT-SYNC`, `V0181-001-V0180-RELEASE-FACT-SYNC-GUARD`, `TVM-RELEASE-V0181-V0180-RELEASE-FACT-SYNC`, `V0181-001-V0180-TAG-FIXED`, `V0181-001-PATCH-QUEUE-NOT-PUBLICATION`, `V0181-001-V0180-STALE-WORDING-GUARD` and `V0181-001-NO-PRODUCTION-CUTOVER` to sync the later v0.18.0 stable GitHub Release fact into the v0.18.1 patch guard and root docs. The v0.18.0 Release URL is `https://github.com/atxinbao/MTPRO/releases/tag/v0.18.0`, the tag peeled commit is `cd284a5817694ffc7c98cd6ccc6b51769fdf6ac9`, and the publication timestamp is `2026-06-28T04:55:36Z`. v0.18.1 是 v0.18.0 后的 Venue/Product Lifecycle Recovery CLI + Release Fact Patch queue；GH-1200 不移动 `v0.18.0` tag，不覆盖 GitHub Release，不创建 v0.18.1 tag / GitHub Release，不授权 production cutover；production cutover not authorized.
+
+Historical v0.18.0 closeout anchor retained：`GH-1185-VERIFY-V0180-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS`、`V0180-010-STAGE-CODE-AUDIT`、`V0180-010-RELEASE-NOTES`、`V0180-010-VALIDATION-MATRIX`、`V0180-010-ROOT-DOCS-REFRESH`、`V0180-010-STALE-WORDING-GUARD`、`V0180-010-NO-PRODUCTION-CUTOVER` 和 `V0180-010-NO-TAG-OR-RELEASE-PUBLICATION`。该 historical anchor 只保留 #1185 construction closeout evidence；当前 construction closeout 已推进到 v0.19.0 GH-1215，production cutover not authorized。
+
+`GH-1139-VERIFY-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT`
+
+`TVM-RELEASE-V0170-OPERATOR-BETA-RUNTIME-HARDENING-CONTRACT`
+
+`V0170-001-V0161-PREFLIGHT-GATE`
+
+`V0170-001-ARTIFACT-STATUS-RUNTIME-HARDENING-SCOPE`
+
+`V0170-001-BINANCE-SPOT-TESTNET-ONLY`
+
+`V0170-001-REDACTED-ARTIFACT-EVIDENCE-REQUIRED`
+
+`V0170-001-QUEUE-ORDER`
+
+`V0170-001-NO-PRODUCTION-CUTOVER`
+
+Completed GitHub fallback queue is `MTPRO Release v0.17.0 Operator Beta Artifact + Status Runtime Hardening`, issue range `GH-1139..GH-1148`. GH-1139 is the contract / preflight issue only: it defines v0.16.1 closeout dependency, WIP=1 queue order, Binance Spot Testnet operator beta artifact / status runtime hardening scope, redacted artifact evidence and no-production-cutover guard. It does not read credential values, connect testnet or production endpoints, submit testnet or production orders, publish a tag / GitHub Release, or authorize production cutover.
+
+`GH-1140-VERIFY-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR`
+
+`TVM-RELEASE-V0170-ARTIFACT-BUNDLE-REPLAY-VALIDATOR`
+
+`V0170-002-REAL-ARTIFACT-BUNDLE-INGEST`
+
+`V0170-002-SCHEMA-CHECKSUM-REPLAY-VALIDATION`
+
+`V0170-002-ACTION-SEQUENCE-VALIDATION`
+
+`V0170-002-RECONCILIATION-ARTIFACT-REQUIRED`
+
+`V0170-002-DETERMINISTIC-PASS-FAIL-RESULT`
+
+`V0170-002-NO-PRODUCTION-CUTOVER`
+
+GH-1140 adds the local artifact bundle ingest / replay validator for v0.17.0. It validates redacted operator beta bundles from disk with schema / checksum / action sequence / reconciliation checks and deterministic pass/fail output. It does not read credential values, connect endpoints, send orders, publish a tag / GitHub Release, or authorize production cutover.
+
+`GH-1141-VERIFY-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL`
+`TVM-RELEASE-V0170-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL`
+`V0170-003-BOUNDED-STATUS-QUERY-RETRY`
+`V0170-003-PER-ATTEMPT-TIMEOUT`
+`V0170-003-CLASSIFIED-FAILURE-EVIDENCE`
+`V0170-003-RETRY-LIMIT-FAIL-CLOSED`
+`V0170-003-REDACTED-FAILURE-EVIDENCE`
+`V0170-003-NO-PRODUCTION-CUTOVER`
+
+GH-1141 adds bounded retry, per-attempt timeout and classified redacted failure evidence around the Binance Spot Testnet signed status query path. It does not read credential values, connect production endpoint / broker endpoint, send orders, publish a tag / GitHub Release, or authorize production cutover.
+
+`GH-1142-VERIFY-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE`
+`TVM-RELEASE-V0170-OPERATOR-RUN-RESUME-FROM-ARTIFACT-STORE`
+`V0170-004-LOCAL-ARTIFACT-STORE-RESUME`
+`V0170-004-REPLAY-VALIDATION-REQUIRED`
+`V0170-004-AUDIT-CONTINUITY-PRESERVED`
+`V0170-004-NO-RESUBMIT-ON-RESUME`
+`V0170-004-REDACTED-RESUME-EVIDENCE`
+`V0170-004-NO-PRODUCTION-CUTOVER`
+
+GH-1142 adds operator run resume from the local redacted artifact store for v0.17.0. It reuses GH-1140 replay validation and v0.16.0 append-only manifest / record checksums to produce a resume cursor with audit continuity. It does not read credential values, connect endpoints, resubmit orders, publish a tag / GitHub Release, or authorize production cutover.
+
+`GH-1143-VERIFY-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH`
+`TVM-RELEASE-V0170-CANCEL-STATUS-RECONCILIATION-RECOVERY-PATH`
+`V0170-005-CANCEL-STATUS-MISMATCH-CLASSIFICATION`
+`V0170-005-INTERRUPTED-STATUS-EVIDENCE-RECOVERY`
+`V0170-005-RESUME-CURSOR-CONTINUITY-REQUIRED`
+`V0170-005-STATUS-COMPENSATION-REQUIRED`
+`V0170-005-NO-AUTOMATIC-ORDER-RETRY`
+`V0170-005-REDACTED-RECOVERY-EVIDENCE`
+`V0170-005-NO-PRODUCTION-CUTOVER`
+
+GH-1143 adds the cancel/status reconciliation recovery path for v0.17.0. It classifies cancel/status mismatch and interrupted status evidence from GH-1142 resume cursor, GH-1107 reconciliation report and GH-1141 status query failure evidence into a local fail-closed recovery report. It does not read credential values, connect endpoints, resubmit orders, publish a tag / GitHub Release, or authorize production cutover.
+
+`GH-1144-VERIFY-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE`
+`TVM-RELEASE-V0170-DASHBOARD-ARTIFACT-VALIDATION-ERROR-SURFACE`
+`V0170-006-ARTIFACT-VALIDATION-STATUS-VISIBLE`
+`V0170-006-FAILURE-REASONS-VISIBLE`
+`V0170-006-RECOVERY-CASE-SUMMARY-VISIBLE`
+`V0170-006-DASHBOARD-READ-ONLY-NO-COMMANDS`
+`V0170-006-NO-PRODUCTION-CUTOVER`
+
+GH-1144 adds the Dashboard artifact validation error surface for v0.17.0. It exposes GH-1140 artifact validation result and GH-1143 recovery report as read-only Dashboard status, failure reasons and recovery summary. It does not add command handlers, trading buttons, order forms, live commands, endpoint connections, order submission, tag / GitHub Release publication, or production cutover authorization.
+
+`GH-1145-VERIFY-V0170-CLI-ARTIFACT-VERIFY-COMMAND`
+`TVM-RELEASE-V0170-CLI-ARTIFACT-VERIFY-COMMAND`
+`V0170-007-LOCAL-ARTIFACT-BUNDLE-VERIFY`
+`V0170-007-LOCAL-ONLY-NO-NETWORK`
+`V0170-007-DETERMINISTIC-VALIDATION-REPLAY-OUTPUT`
+`V0170-007-REDACTED-OUTPUT`
+`V0170-007-NO-PRODUCTION-CUTOVER`
+
+GH-1145 adds the CLI artifact verify command for v0.17.0. It exposes GH-1140 artifact bundle replay validation as local `mtpro verify-operator-beta-artifact-bundle <storageRoot> <runID>` output with deterministic validation / replay evidence. It only reads the local redacted artifact store and does not read credential values, connect endpoints, submit orders, publish a tag / GitHub Release, or authorize production cutover.
+
+`GH-1146-VERIFY-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION`
+`TVM-RELEASE-V0170-MANUAL-WORKFLOW-ARTIFACT-VALIDATION`
+`V0170-008-MANUAL-WORKFLOW-UPLOAD-DOWNLOAD-VALIDATION`
+`V0170-008-SHARED-RUNTIME-VALIDATOR-PATH`
+`V0170-008-UPLOADED-BUNDLE-VALIDATED`
+`V0170-008-DOWNLOADED-BUNDLE-VALIDATED`
+`V0170-008-LOCAL-ONLY-NO-NETWORK`
+`V0170-008-REDACTED-EVIDENCE-RECORDED`
+`V0170-008-NO-PRODUCTION-CUTOVER`
+
+GH-1146 adds manual workflow artifact upload/download validation for v0.17.0. It validates uploaded and downloaded local artifact store roots through the same `mtpro verify-operator-beta-artifact-bundle` CLI / GH-1140 shared validator path, records deterministic local evidence, and does not read credential values, connect endpoints, submit orders, publish a tag / GitHub Release, or authorize production cutover.
+
+`GH-1147-VERIFY-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE`
+`TVM-RELEASE-V0170-BETA-SAFETY-POLICY-PROFILE-EVIDENCE`
+`V0170-009-ACTIVE-SAFETY-POLICY-PROFILE`
+`V0170-009-VENUE-PRODUCT-SYMBOL-LIMITS`
+`V0170-009-NOTIONAL-LIMIT-EVIDENCE`
+`V0170-009-ORDER-COUNT-LIMIT-EVIDENCE`
+`V0170-009-PRODUCTION-GUARD-STATE`
+`V0170-009-REDACTED-POLICY-EVIDENCE`
+`V0170-009-NO-PRODUCTION-CUTOVER`
+
+GH-1147 adds beta safety policy profile evidence for v0.17.0. It records active safety policy profile, venue / product / symbol / notional / order-count limits and production-disabled guard state as local redacted evidence inherited from GH-1110 beta safety guard evidence. It does not read credential values, connect endpoints, submit orders, publish a tag / GitHub Release, or authorize production cutover.
+
+`GH-1148-VERIFY-V0170-STAGE-AUDIT-RELEASE-DOCS`
+`TVM-RELEASE-V0170-STAGE-AUDIT-RELEASE-DOCS`
+`V0170-010-STAGE-CODE-AUDIT`
+`V0170-010-RELEASE-NOTES`
+`V0170-010-VALIDATION-MATRIX`
+`V0170-010-ROOT-DOCS-REFRESH`
+`V0170-010-STALE-WORDING-GUARD`
+`V0170-010-NO-PRODUCTION-CUTOVER`
+`V0170-010-NO-TAG-OR-RELEASE-PUBLICATION`
+
+GH-1148 closes v0.17.0 Stage Code Audit, release notes, validation matrix, root docs refresh and stale wording guard. The v0.17.0 construction queue `GH-1139..GH-1148` is closed / done. GH-1148 does not publish a tag / GitHub Release, does not create the next Project / Issue, and does not authorize production cutover. production cutover not authorized.
+
+`GH-1169-VERIFY-V0171-V0170-RELEASE-FACT-SYNC`
+`V0171-004-V0170-RELEASE-FACT-SYNC-GUARD`
+`TVM-RELEASE-V0171-V0170-RELEASE-FACT-SYNC`
+`V0171-004-V0170-TAG-FIXED`
+`V0171-004-PATCH-QUEUE-NOT-PUBLICATION`
+`V0171-004-NO-PRODUCTION-CUTOVER`
+
+GH-1169 syncs the later v0.17.0 stable GitHub Release fact into the v0.17.1 patch guard and root docs. The v0.17.0 Release URL is `https://github.com/atxinbao/MTPRO/releases/tag/v0.17.0`, the tag peeled commit is `c83879f80a525665c3484878d7071b1f5214da20`, and the publication timestamp is `2026-06-27T06:37:33Z`. v0.17.1 是 v0.17.0 后的 artifact validation fail-closed patch queue；GH-1169 不移动 `v0.17.0` tag，不覆盖 GitHub Release，不授权 production cutover；production cutover not authorized.
+
+`GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS`
+
+`GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES`
+
+`GH-1066-VERIFY-V0150-CONTRACT-PREFLIGHT`
+
+`GH-1067-VERIFY-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST`
+
+`GH-1068-VERIFY-V0150-REAL-SPOT-TESTNET-SUBMIT-RUNTIME`
+
+`GH-1071-VERIFY-V0150-NETWORK-EXECUTION-EVENT-LOG`
+
+`GH-1069-VERIFY-V0150-REAL-SPOT-TESTNET-CANCEL-RUNTIME`
+
+`GH-1070-VERIFY-V0150-REAL-SPOT-TESTNET-CANCEL-REPLACE-RUNTIME`
+
+Historical boundary anchor：`GH-924-VERIFY-V0110-FINAL-AUDIT-RELEASE-DOCS` 仍作为 release v0.11.0 final audit / release docs evidence 保留；`GH-891-RELEASE-V0100-FINAL-AUDIT-DOCS-RUNBOOK` 仍作为 release v0.10.0 final audit / docs / runbook evidence 保留；`GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK` 仍作为 release v0.9.0 final audit / docs / runbook evidence 保留；`GH-820-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK` 仍作为 release v0.8.0 final audit / docs / runbook evidence 保留；`GH-792-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK` 仍作为 release v0.7.0 final audit / docs / runbook evidence 保留；`GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS` 仍作为 release v0.6.0 final audit / root docs evidence 保留；`GH-739-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS` 仍作为 release v0.5.0 release docs refresh evidence 保留；`GH-709-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS` 仍作为 release v0.4.0 release docs refresh evidence 保留；`GH-670-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS` 仍作为 release v0.3.0 root docs boundary refresh evidence 保留；`GH-564-RELEASE-V020-ROOT-DOCS-BOUNDARY-REFRESH` 仍作为 release v0.2.0 root docs boundary refresh evidence 保留；当前 release construction scope 已由 GH-1005 更新为 v0.13.0 local evidence-driven readiness engine closure。
+
+Historical completed release construction scope 是 `MTPRO Release v0.12.0 Readiness Assessment Sessions`。它使用 GitHub fallback issue queue GH-952 至 GH-965 作为唯一队列来源；Linear 不参与本阶段执行。该 closure 已新增 Stage Code Audit Report `docs/audit/mtpro-release-v0.12.0-readiness-assessment-sessions-stage-code-audit.md`、release notes `docs/release/mtpro-release-v0.12.0-readiness-assessment-sessions-notes.md`、operator runbook `docs/operators/release-v0.12.0-readiness-assessment-sessions-runbook.md` 和 aggregate verifier `checks/verify-v0.12.0.sh`。#965 construction closeout 只收口 evidence / docs / runbook；后续独立 Release Publication Gate 已发布 v0.12.0 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.12.0`，tag peeled commit：`25e31afd351db9a372db62222226b0a3db26c93a`，publication timestamp：`2026-06-20T01:11:22Z`。该 publication 不授权 production cutover；已完成事实不授权创建下一 Project / Issue，不推进 release v0.12.0 之后的阶段。
+
+最新完成的 patch scope 是 `MTPRO Release v0.12.1 Readiness Assessment Provenance Hardening Patch`。它使用 GitHub fallback issue queue GH-988 至 GH-993 作为唯一队列来源；Linear 不参与本 patch 执行。该 closeout 新增 Stage Code Audit Report `docs/audit/mtpro-release-v0.12.1-readiness-assessment-provenance-hardening-patch-stage-code-audit.md`、release notes `docs/release/mtpro-release-v0.12.1-readiness-assessment-provenance-hardening-patch-notes.md` 和 closeout verifier `checks/verify-v0.12.1-patch-audit-release-notes.sh`。GH-993 patch closeout 不创建 v0.12.1 tag，不创建 v0.12.1 GitHub Release，不移动 v0.12.0 release identity，不授权 production cutover，不推进 v0.13.0。
+
+最新完成的 release construction scope 是 `MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine`。它使用 GitHub fallback issue queue GH-994 至 GH-1005 作为唯一队列来源；Linear 不参与本阶段执行。#994 已定义 inputs、outputs、evidence roots、schema contracts、lifecycle order、fail-closed behavior 和 artifact -> policy -> manifest -> bundle -> registry -> diff chain；#995 已实现显式 local evidence root 的只读 intake model、目录 layout、schema validation、missing / malformed diagnostics 和 `mtpro readiness intake <evidenceRoot>` 发现/校验输出；#996 已把 v0.13 normal manifest provenance 绑定到 #995 intake-derived sourceCommit、sourceRunIDs、artifact bytes 和 checksums，并拒绝 synthetic sourceRunID、placeholder sourceCommit 和 fixture-only evidence；#997 已通过 `mtpro readiness build-v013 <assessmentID> <evidenceRoot>` 串联 schema validation、artifact checksum、content policy、Manifest V2、Bundle V2、local registry entry 和 validation report checksum；#998 已通过 `mtpro readiness validate <assessmentID>` 检查 registry、Manifest V2、Bundle V2、bundle manifest、bundle bytes、artifact snapshot、content validation checksum、provenance 和可选 export / comparison identity；#999 已通过 `mtpro readiness export <assessmentID>` 写出本地 redacted audit export package，包含 `assessment-summary.json`、`manifest-v2.json`、`bundle-v2.json`、`validation-report.json`、`provenance.json` 和 `comparison.json` 的 checksum evidence；#1000 已通过 `mtpro readiness compare <baselineAssessmentID> <followUpAssessmentID>` 比较 source data、policy、risk posture、checksum chain、provenance 和 evidence completeness，并把 missing / tampered / stale evidence links 报告为 blocker；#1001 已写出本地 `transaction-recovery-snapshot.json` forensic sidecar，记录 interrupted / stale staging 的 intended writes、completed writes、missing writes、cleanup audit trace 和 failure reason；#1002 已把 readiness generation ID 从秒级碰撞风险改为带 collision-resistant deterministic suffix 的本地 safe path component，并保留 assessmentID / scope / epoch 前缀以便审计；#1003 已把 readiness CLI 固定为 create -> build -> validate -> export -> compare/archive 顺序，并用本地 `validation-state.json` 与 `export-state.json` marker 拒绝 export-before-validate、compare-before-follow-up-validate、archive-before-export 和手工放文件绕过；#1004 通过 `Tests/Fixtures/ReleaseV0130LocalEvidence/valid` 和 focused regression suite 覆盖 minimal valid local evidence、invalid / tampered / missing fixture cases、build / validate / export / compare / recovery regression 以及 fixture/runtime path separation；#1005 新增 Stage Code Audit Report `docs/audit/mtpro-release-v0.13.0-local-evidence-driven-readiness-engine-stage-code-audit.md`、release notes `docs/release/mtpro-release-v0.13.0-local-evidence-driven-readiness-engine-notes.md` 和 closeout validation anchors。GH-1005 construction closeout 不创建 v0.13.0 tag，不创建 GitHub Release，不授权 production cutover，不推进下一 Project / Issue。
+
+Historical completed patch scope 是 `MTPRO Release v0.14.1 Local Execution Evidence Hardening Patch`。它使用 GitHub fallback issue queue GH-1059 至 GH-1064 作为唯一队列来源；Linear 不参与本 patch 执行。#1059 固定 v0.14.0 public release / CI / Dashboard evidence；#1060 固定 v0.14.x Codable decode fail-closed validation；#1061 固定 local adapter submit evidence 与 network submit / cancel / replace attempts 为 false；#1062 固定 golden JSON contract / corrupted payload fail-closed tests；#1063 固定 Dashboard 从本地 read-model artifact JSON 加载 read-only surface 前必须通过 boundary validation；#1064 新增 Stage Code Audit Report `docs/audit/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-stage-code-audit.md`、release notes `docs/release/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-notes.md` 和 closeout validation anchors。v0.14.1 是 local execution evidence chain / testnet evidence only，不是真实 signed Binance testnet execution release，不代表真实 Binance testnet order execution。GH-1064 patch closeout 不创建 v0.14.1 tag，不创建 GitHub Release，不授权 production cutover，不推进下一 Project / Issue。
+
+已完成 GitHub fallback queue `MTPRO Release v0.15.0 Real Binance Testnet Execution MVP`，issue range 为 GH-1065 至 GH-1076。#1066 已通过 `docs/contracts/release-v0.15.0-real-binance-spot-testnet-execution-mvp-contract.md` 和 `checks/verify-v0.15.0-contract-preflight.sh` 固定 Binance Spot Testnet only、signed testnet boundary、production fail-closed、children backlog / non-executable 和 no Dashboard command surface。#1067 至 #1076 已完成 credential / signed request、guarded submit / cancel / cancel-replace runtime evidence、append-only network event log、OMS reconciliation、CLI operator flow、Dashboard read-only status、failure simulation 和 release CI / manual workflow / audit closeout。后续独立 Release Publication Gate 已发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0`，tag peeled commit：`1590b6c40e6ca7887cff0ca59b2f74e4fe7e3ece`，publication timestamp：`2026-06-23T01:26:30Z`。v0.15.0 publication 不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 production order。
+
+最新完成的 GitHub fallback queue 是 `MTPRO Release v0.15.1 Real Testnet Execution Hardening Patch`，issue range 为 GH-1094 至 GH-1100。#1094 使用 `GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC` 同步 v0.15.0 publication facts 并已 closed / done；#1095 使用 `GH-1095-VERIFY-V0151-INJECTED-TRANSPORT-WORDING` 固定 injected Spot Testnet transport / manual proof / future URLSession runner split 并已 closed / done；#1096 已 closed / done，使用 `GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT` 增加 concrete URLSession transport guard，只允许 Binance Spot Testnet `testnet.binance.vision` `/api/v3/order` submit / cancel request、production host fail-closed、response-sha256 脱敏和 no secret persistence；#1097 已 closed / done，使用 `GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME` 增加 CLI guarded runtime：`mtpro testnet-execution` submit / cancel / cancel-replace 均调用 v0.15 guarded runtime，credential provider 固定 `testnet-env`，缺失 testnet credential 或 operator confirmation 时 fail-closed，输出 redacted run id、artifact path 和 checksum；#1098 已 closed / done，使用 `GH-1098-VERIFY-V0151-RUNTIME-INTERNAL-GATES` 增加 runtime internal gate：RiskEngine / kill switch / no-trade / operator confirmation 在 submit / cancel / cancel-replace runtime 内部重新检查，blocked gate 必须在 transport invocation 前 fail-closed；#1099 已 closed / done，使用 `GH-1099-VERIFY-V0151-CLIENT-ORDER-IDENTITY-CHAIN` 增加 deterministic client order identity chain：submit evidence 生成 deterministic redacted `newClientOrderId` reference，cancel identity 从 submit evidence 派生短生命周期 material，raw / untracked order id fail-closed；#1100 codable decode closeout closed / done，使用 `GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT` 给 submit / cancel / cancel-replace evidence、network event log、OMS snapshot 和 reconciliation report 增加 decode-time validation，损坏 JSON、checksum mismatch、production host mutation 和 production boundary mutation 必须 fail-closed。release/v0.15.1 queue closed。
+
+#1098 retained validation anchors：`GH-1098-VERIFY-V0151-RUNTIME-INTERNAL-GATES`、`TVM-RELEASE-V0151-RUNTIME-INTERNAL-GATES`、`V0151-005-RISKENGINE-GATE-IN-RUNTIME`、`V0151-005-KILL-SWITCH-GATE-IN-RUNTIME`、`V0151-005-NO-TRADE-GATE-IN-RUNTIME`、`V0151-005-OPERATOR-CONFIRMATION-IN-RUNTIME`、`V0151-005-TRANSPORT-NOT-INVOKED-WHEN-BLOCKED`、`V0151-005-NO-PRODUCTION-CUTOVER`。
+
+#1099 validation anchors：`GH-1099-VERIFY-V0151-CLIENT-ORDER-IDENTITY-CHAIN`、`TVM-RELEASE-V0151-CLIENT-ORDER-IDENTITY-CHAIN`、`V0151-006-DETERMINISTIC-NEW-CLIENT-ORDER-ID`、`V0151-006-REDACTED-CLIENT-ORDER-REFERENCE`、`V0151-006-SUBMIT-TO-CANCEL-IDENTITY-HANDOFF`、`V0151-006-RAW-UNTRACKED-ORDER-ID-REJECTED`、`V0151-006-NO-PRODUCTION-CUTOVER`。
+
+#1100 validation anchors：`GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT`、`TVM-RELEASE-V0151-CODABLE-DECODE-CLOSEOUT`、`V0151-007-CODABLE-DECODE-VALIDATION`、`V0151-007-CORRUPTED-JSON-FAILS-CLOSED`、`V0151-007-CHECKSUM-MISMATCH-FAILS-CLOSED`、`V0151-007-PRODUCTION-HOST-MUTATION-REJECTED`、`V0151-007-NO-PRODUCTION-CUTOVER`。
+
+最新完成 GitHub fallback queue 是 `MTPRO Release v0.16.0 Binance Spot Testnet Operator Execution Beta`，issue range 为 GH-1101 至 GH-1112，全部 closed / done。#1101..#1111 完成 operator beta contract、run model、CLI submit、CLI cancel、signed status query、local artifact store、OMS observed-status reconciliation、Dashboard read-only artifact view、failure recovery、beta safety guards 和 manual testnet validation workflow。#1112 使用 `GH-1112-VERIFY-V0160-STAGE-AUDIT-RELEASE-DOCS`、`TVM-RELEASE-V0160-STAGE-AUDIT-RELEASE-DOCS`、`V0160-012-STAGE-CODE-AUDIT`、`V0160-012-RELEASE-NOTES`、`V0160-012-OPERATOR-RUNBOOK`、`V0160-012-VALIDATION-MATRIX`、`V0160-012-STALE-WORDING-GUARD`、`V0160-012-NO-PRODUCTION-CUTOVER` 和 `V0160-012-NO-TAG-OR-RELEASE-PUBLICATION` 收口 audit / release docs / runbook / matrix。v0.16.0 construction closeout 本身不创建 tag / GitHub Release；随后独立 Release Publication Gate 已发布 stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`，tag peeled commit：`28779236262bd7ffaf71e286b27b95854c5cd3e1`，publication timestamp：`2026-06-26T01:29:21Z`；production cutover not authorized。
+
+最新完成 patch queue 是 `MTPRO Release v0.16.1 Operator Beta Evidence Hardening Patch`。GH-1133 使用 `GH-1133-VERIFY-V0161-V0160-RELEASE-FACT-SYNC`、`V0161-001-V0160-RELEASE-FACT-SYNC-GUARD`、`TVM-RELEASE-V0161-V0160-RELEASE-FACT-SYNC`、`V0161-001-V0160-TAG-FIXED`、`V0161-001-PATCH-QUEUE-NOT-PUBLICATION` 和 `V0161-001-NO-PRODUCTION-CUTOVER` 将 v0.16.0 已发布事实同步为 patch guard：Release URL `https://github.com/atxinbao/MTPRO/releases/tag/v0.16.0`，tag peeled commit `28779236262bd7ffaf71e286b27b95854c5cd3e1`，publication timestamp `2026-06-26T01:29:21Z`。#1134..#1137 完成 manual evidence bundle content guard、central artifact redaction policy、redaction regression coverage 和 status query transport wording guard。#1138 使用 `GH-1138-VERIFY-V0161-PATCH-AUDIT-RELEASE-NOTES`、`TVM-RELEASE-V0161-PATCH-AUDIT-RELEASE-NOTES`、`V0161-006-PATCH-AUDIT`、`V0161-006-RELEASE-NOTES`、`V0161-006-VALIDATION-MATRIX`、`V0161-006-PUBLICATION-GUIDANCE`、`V0161-006-NO-PRODUCTION-CUTOVER` 和 `V0161-006-NO-TAG-OR-RELEASE-PUBLICATION` 收口 patch audit、release notes、validation matrix 和 publication guidance。v0.16.1 不移动 v0.16.0 tag、不覆盖 release、不创建 v0.16.1 tag / GitHub Release、不授权 production cutover；production cutover not authorized。
+
+#1101 validation anchors：`GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT`、`TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT`、`V0160-001-V0151-PREFLIGHT-GATE`、`V0160-001-BINANCE-SPOT-TESTNET-ONLY`、`V0160-001-OPERATOR-CONFIRMATION-REQUIRED`、`V0160-001-REDACTED-EVIDENCE-REQUIRED`、`V0160-001-QUEUE-ORDER`、`V0160-001-NO-PRODUCTION-CUTOVER`。
+
+#1102 validation anchors：`GH-1102-VERIFY-V0160-OPERATOR-RUN-MODEL`、`TVM-RELEASE-V0160-OPERATOR-RUN-MODEL`、`V0160-002-RUN-ID-LIFECYCLE`、`V0160-002-ACTION-SEQUENCE`、`V0160-002-ARTIFACT-LINKAGE`、`V0160-002-INVALID-TRANSITION-FAILS-CLOSED`、`V0160-002-REDACTED-METADATA`、`V0160-002-NO-NETWORK-BY-THIS-ISSUE`、`V0160-002-NO-PRODUCTION-CUTOVER`。
+
+#1103 validation anchors：`GH-1103-VERIFY-V0160-CLI-SUBMIT-FLOW`、`TVM-RELEASE-V0160-CLI-SUBMIT-FLOW`、`V0160-003-STABLE-CLI-SUBMIT`、`V0160-003-V0151-RUNTIME-DELEGATION`、`V0160-003-EXPLICIT-OPERATOR-CONFIRMATION`、`V0160-003-TESTNET-CREDENTIAL-PROFILE`、`V0160-003-REDACTED-OUTPUT-ARTIFACT-CHECKSUM`、`V0160-003-MISSING-GATE-CREDENTIAL-CONFIRMATION-FAILS-CLOSED`、`V0160-003-NO-PRODUCTION-CUTOVER`。
+
+#1104 validation anchors：`GH-1104-VERIFY-V0160-CLI-CANCEL-FLOW`、`TVM-RELEASE-V0160-CLI-CANCEL-FLOW`、`V0160-004-STABLE-CLI-CANCEL`、`V0160-004-SUBMIT-ARTIFACT-IDENTITY`、`V0160-004-V0151-RUNTIME-DELEGATION`、`V0160-004-EXPLICIT-OPERATOR-CONFIRMATION`、`V0160-004-TESTNET-CREDENTIAL-PROFILE`、`V0160-004-REDACTED-ORDER-REFERENCE`、`V0160-004-APPEND-ONLY-EVENT-EVIDENCE`、`V0160-004-MISSING-PRIOR-ARTIFACT-FAILS-CLOSED`、`V0160-004-NO-PRODUCTION-CUTOVER`。
+
+<!-- Historical guard：最新完成的 release construction scope 是 `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening`。 -->
+
+- activeVenue == Binance
+- activeProductTypes == [spot, usdsPerpetual]
+- activeStrategies == [ema, rsi]
+- productionTradingEnabledByDefault == false
+- runtimeModes == [local-dry-run, testnet-read-only-monitor, recovery-observe, production-blocked]
+- legacyRuntimeModes == [testnet-read-only-probe]
+- historicalV040RehearsalModes == [dry-run, shadow, testnet-guarded, production-blocked]
+- productionCapabilityGatedNotMissing == true
+- oldPublicReadOnlyPaperOnlyEMAOnlyIsHistorical == true
+
+`GH-687-RELEASE-V031-REHEARSAL-EVIDENCE-DOCS-HANDOFF`
+
+Release v0.12.0、v0.11.0、v0.10.0、v0.9.0、v0.8.0、v0.7.0、v0.6.0、v0.5.0、v0.4.0 和 v0.3.x 的版本语义固定如下：
+
+- v0.12.0 是 readiness assessment sessions closure：它证明本地 readiness assessment contract、registry store、transaction lock、Manifest V2 / provenance schema、artifact content-policy、immutable bundle snapshot、kill switch / no-trade trustworthy observations、approval role / quorum separation、shadow parity source snapshot、diff / compare、assessment-scoped CLI、Dashboard history / adversarial CI、final audit / release notes / operator runbook 和 `checks/verify-v0.12.0.sh` validation command 已闭环。
+- v0.12.0 #965 construction closeout 本身不是 public GitHub Release publication；后续独立 Release Publication Gate 已完成 public GitHub Release publication：`https://github.com/atxinbao/MTPRO/releases/tag/v0.12.0`，tag peeled commit：`25e31afd351db9a372db62222226b0a3db26c93a`，publication timestamp：`2026-06-20T01:11:22Z`，且仍不授权 production cutover。
+- v0.11.0 是 production readiness evidence runtime + integrity hardening closure：它证明 local readiness artifact store、manifest atomic IO、canonical JSON SHA256、bundle validation、shadow dry-run parity、Dashboard real artifact state、readiness CLI local artifacts、fixed-point capital / exposure policy、kill switch / no-trade state model、auditable approval workflow transitions 和 `checks/verify-v0.11.0.sh` validation command 已闭环。
+- v0.11.0 #924 construction closeout 不是 public GitHub Release publication：它不创建 tag，不发布 GitHub Release，不授权 production cutover；后续独立 Release Publication Gate 已完成 public GitHub Release publication：`https://github.com/atxinbao/MTPRO/releases/tag/v0.11.0`，tag peeled commit：`13f592d0710de91351286e5c5490bfacb63c19b0`，publication timestamp：`2026-06-19T01:20:58Z`，且仍不授权 production cutover。
+- v0.10.0 是 production cutover readiness gate closure：它证明 production readiness no-authorization contract、v0.9.1 publication policy carry-forward、production environment profile、secret provider readiness、endpoint policy readiness、capital / exposure limits、kill switch / no-trade、production command surface disabled proof、shadow dry-run parity、production readiness audit bundle、cutover approval workflow、incident / rollback runbook、Dashboard Production Readiness Center、operator runbook 和 `checks/verify-v0.10.0.sh` validation command 已闭环。
+- v0.10.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.10.0`；tag target commit 为 `7b0e1f8bb6a671cd3b96f7e7b020b803f8cea4b4`。
+- v0.10.0 不是 production cutover：它不授权 production secret、production endpoint、production broker、testnet 或 production submit / cancel / replace、production OMS、Live PRO Console production command、trading button、order form 或 live command。
+- v0.9.0 是 testnet no-order observability closure：它证明 v0.9.0 no-order observability contract、v0.8.0 publication alignment carry-forward、persistent TestnetReadOnlyMonitorSession、signed account snapshot freshness monitor、private stream heartbeat / staleness monitor、monitor recovery observe、Dashboard observability timeline、alert read-model、Portfolio reconciliation timeline、Risk policy application audit、run monitor export bundle、validation lanes split、Dashboard / CLI operator UX、operator runbook 和 `checks/verify-v0.9.0.sh` validation command 已闭环。
+- v0.9.0 stable GitHub Release 已通过独立 publication gate 发布：`https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0`；tag target commit 为 `4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c`。
+- v0.9.0 不是 production cutover：它不授权 production secret、production endpoint、production broker、testnet 或 production submit / cancel / replace、production OMS、Live PRO Console production command、trading button、order form 或 live command。
+- v0.8.0 是 persistent operator runtime + testnet read-only monitoring closure：它证明 persistent no-order operator runtime contract、v0.8 construction / public release publication separation、persistent RunRegistryStore、CLI local session actions、OperationalRunSessionStore、EventLogWriter crash recovery、manual Binance testnet signed account proof、manual private stream monitoring proof、Dashboard testnet read-only monitor、local Risk policy profile management、Portfolio reconciliation review workflow、Dashboard safe local controls、validation lanes split、operator runbook 和 `checks/verify-v0.8.0.sh` validation command 已闭环。
+- v0.8.0 不是 production cutover：它不授权 production secret、production endpoint、production broker、testnet 或 production submit / cancel / replace、production OMS、Live PRO Console production command 或 trading button。
+- v0.7.0 是 operator runtime session + real testnet read-only connectivity closure：它证明 no-order runtime session contract、canonical testnet endpoint policy、top-level CLI runtime session surface、Dashboard macOS focused guards、OperationalRunSession lifecycle、EventLogWriter recovery、RunRegistry / RunSupervisor、real Binance testnet signed account read-only probe、testnet private stream read-only probe、Dashboard read-only run operations、local Risk policy config、Portfolio read-only reconciliation projection、operator runbook 和 `checks/verify-v0.7.0.sh` validation command 已闭环。
+- v0.7.0 不是 production cutover：它不授权 production secret、production endpoint、production broker、real submit / cancel / replace、production OMS、Live PRO Console production command 或 trading button。
+- v0.6.0 是 local operational runtime + testnet read-only probe hardening closure：它证明 local run journal writer、run manifest / artifact checksum validator、sha256 runtime checksum chain、DataEngine local dry-run runner、EMA / RSI strategy runtime runner、RiskEngine runtime runner、ExecutionEngine / OMS dry-run runner、Portfolio journal projection、Dashboard / CLI run detail observer、operator-confirmed testnet read-only probe、operator runbook 和 `checks/verify-v0.6.0.sh` validation command 已闭环。
+- v0.6.0 不是 production cutover：它不授权 production secret、production endpoint、production broker、real submit / cancel / replace、production OMS、Live PRO Console production command 或 trading button。
+
+- v0.5.0 是 guarded testnet runtime foundation / deterministic-to-operational bridge closure：它证明 strict CLI、fail-closed environment / endpoint / secret policy、typed RuntimeMessageBus、durable local run journal、DataEngine operational dry-run path、testnet read-only no-submit gate、RiskEngine runner、ExecutionEngine / OMS dry-run lifecycle、Portfolio projection、Dashboard / CLI run observer、CI hardening、operator runbook 和 `checks/verify-v0.5.0.sh` validation command 已闭环。
+- v0.5.0 不是 production cutover：它不授权 production secret、production endpoint、production broker、real submit / cancel / replace、production OMS、Live PRO Console production command 或 trading button。
+- v0.4.0 是 unified runtime rehearsal pipeline closure：它证明 single runID evidence envelope、local dry-run RuntimeKernel、DataEngine -> MessageBus -> Trader / Strategy -> RiskEngine -> ExecutionEngine / OMS -> ExecutionClient dry-run / testnet-gated boundary -> Event Store -> Portfolio -> Dashboard / CLI 证据链、shadow replay、operator runbook 和 `checks/verify-v0.4.0.sh` validation suite 已闭环。
+- v0.4.0 不是 production cutover：它不授权 production secret、production endpoint、production broker、real submit / cancel / replace、production OMS、Live PRO Console production command 或 trading button。
+
+- v0.3.0 是 deterministic rehearsal evidence release：它证明本地 deterministic evidence chain、dry-run / testnet / shadow / production-blocked mode taxonomy、Dashboard / CLI rehearsal surface、kill switch / no-trade / rollback drill 和 `checks/verify-v0.3.0.sh` validation suite 已闭环。
+- v0.3.1 是 rehearsal evidence hardening patch：它只补强 v0.3.0 evidence 边界、URL policy、文档语义和 patch release closeout，不新增 runtime pipeline、network connector、product type、strategy 或 production cutover。
+- v0.3.x 不是 real testnet / shadow runtime runner：文档中出现的 `testnet` / `shadow` 表示 rehearsal evidence mode 和 deterministic mapping proof，不表示已启动真实 Binance testnet network loop、shadow production feed、broker connection、secret read、live private stream、real submit / cancel / replace 或 production endpoint。
+- release v0.5.0 之后的下一阶段仍必须等待 Human + `@001 / PLN` 重新规划并写入新的 live queue source；本文档不创建下一 Project / Issue，不推进 Todo，不授权 execution。
+
+`GH-564-PRODUCTION-CAPABILITY-GATED-NOT-MISSING`
+
+Release v0.11.0 的 production readiness evidence runtime 是 gated evidence capability，不是 production trading capability，也不是默认开启能力。任何 production secret、production endpoint、broker connection、submit / cancel / replace、OMS、Event Store 或 Dashboard command surface 都必须在 CommandGateway、RiskEngine、ExecutionEngine、OMS、Event Store、kill switch / no-trade 和 validation gates 之后才可由后续 issue 明确授权。
+
+`GH-564-NO-OLD-BOUNDARY-AS-CURRENT`
+
+public-read-only、paper-only、ExecutionClient future-gate、EMA-only、v0.3.x deterministic-only wording、v0.4.0 shadow/unified runtime wording、v0.5.0 guarded testnet wording、v0.6.0 local operational wording、v0.7.0 runtime-session wording、v0.8.0 persistent monitoring wording、v0.9.0 no-order observability wording 和 v0.10.0 readiness assessment wording 可以继续作为历史阶段、审计证据和 compatibility evidence 出现，但不得写成 release v0.11.0 当前边界。当前口径必须保持 Binance-only、Spot + USDⓈ-M Perpetual-only、EMA + RSI-only、local-dry-run / testnet-read-only-monitor / recovery-observe / production-blocked、production readiness evidence runtime、production disabled by default、production cutover not authorized 和 production capability gated-not-missing。
+
+Core Envelope Retirement / Real Module Ownership Completion 的 post-audit hardening 已在 PR #448 后完成最终 closure audit：production executable `try!` = 0，`@unchecked Sendable` = 0，open GitHub issue / PR = 0，`main == origin/main == 2b78f27a8e2b04ba348d2fc90259c96b9a088aff`，完整本地验证通过。该事实只同步已发生 hardening closure，不新增 Project Closure Count，不授权 L4 execution。
+
+## Progress Model / 进度模型
+
+MTPRO 采用两层进度口径：
+
+1. Current Foundation Progress：当前已批准 paper-only foundation 的完成度。
+2. Final Product Goal Progress：最终专业交易工作台产品目标的完成度。
+
+Project Closure Count 只说明当前已批准、已执行、已 closure 的建设阶段 Project 数量，不代表完整产品蓝图或 Future Construction Zones / 未来建设区已经完成。
+
+```text
+Phase: MTPRO professional trading workstation
+Project Closure Count: 45 / 45 (100%)
+Current Foundation Progress: 4 / 4 (100%)
+Final Product Goal Progress: 9 / 9 (100%)
+Engine Maturity Roadmap Progress: 4 / 4 (100%)
+Foundation Progress: [##########] 100%
+Final Product Progress: [##########] 100%
+Engine Maturity Progress: [##########] 100%
+```
+
+Historical Project Closure Count: 44 / 44 (100%) recorded the `MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening` closure baseline before GH-965 advanced the current completed Project count to 45 / 45.
+Historical Project Closure Count: 43 / 43 (100%) recorded the `MTPRO Release v0.9.0 Testnet No-order Observability` closure baseline before GH-891 advanced the current completed Project count to 44 / 44.
+Historical Project Closure Count: 42 / 42 (100%) recorded the `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring` closure baseline before GH-856 advanced the current completed Project count to 43 / 43.
+Historical Project Closure Count: 41 / 41 (100%) recorded the `MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity` closure baseline before GH-820 advanced the completed Project count to 42 / 42.
+Historical guard retains previous Latest completed release construction scope: `MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring`
+Historical guard retains previous Latest completed release construction scope: `MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity`
+Historical Project Closure Count: 40 / 40 (100%) recorded the `MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening` closure baseline before GH-792 advanced the completed Project count to 41 / 41.
+Historical Project Closure Count: 39 / 39 (100%) recorded the `MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge` closure baseline before GH-766 advanced the completed Project count to 40 / 40.
+Historical Project Closure Count: 38 / 38 (100%) recorded the `MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline` closure baseline before GH-739 advanced the completed Project count to 39 / 39.
+Historical Project Closure Count: 37 / 37 (100%) recorded the `MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal` closure baseline before GH-709 advanced the completed Project count to 38 / 38.
+Historical Project Closure Count: 36 / 36 recorded the `MTPRO Release v0.2.0` closure baseline before GH-670 advanced the completed Project count to 37 / 37.
+Historical Project Closure Count: 36 / 36 (100%)
+
+Current Foundation Progress 基于 `GOAL.md` 的当前 foundation 目标切片计算：
+
+| Foundation 目标切片 | 状态 | 证据 |
+| --- | --- | --- |
+| Research / Backtest / Report / Paper readiness | Complete | Runtime Research Workbench、Trading Validation、Paper Session Runtime 已完成 |
+| Paper-only execution evidence | Complete | Paper Execution Workflow v1 已完成 |
+| Paper workflow 可观察性和本地控制壳 | Complete | Paper Workflow Control Shell v1 已完成 |
+| 更长周期 market data replay / operations | Complete | Market Data Replay Operations v1 已完成 |
+
+Final Product Goal Progress 基于 `GOAL.md` 的完整产品目标切片计算：
+
+| # | 最终产品目标切片 | 状态 | 证据 / 下一步 |
+| --- | --- | --- | --- |
+| 1 | 研究 / 回测 / 报告基础能力（Research / Backtest / Report foundation） | Complete | Runtime Research Workbench、Trading Validation 和 Report evidence 已完成 |
+| 2 | Paper 模拟执行基础能力（Paper execution foundation） | Complete | Paper Session Runtime 和 Paper Execution Workflow 已完成 |
+| 3 | 工作台证据导航与本地控制壳（Workbench evidence navigation and local control shell） | Complete | Paper Workflow Control Shell v1 已完成 |
+| 4 | 行情数据回放运营能力（Market data replay operations） | Complete | Market Data Replay Operations v1 已完成 |
+| 5 | 实盘交易基础边界（Live trading foundation） | Complete | Live Trading Boundary Definition v1 已完成 boundary taxonomy、credential endpoint boundary、adapter isolation、real order lifecycle terminology、blocked evidence 和只读展示面；真实 Live trading、signed endpoint、broker adapter 和 real order lifecycle 仍未实现 |
+| 6 | 实盘监控台（Live monitoring console） | Complete / read-model-only evidence surface | Live Monitoring Console v1 已完成 information architecture、runtime health / connection read model、market / order stream blocked evidence、latency / error / degraded evidence、Dashboard / Report / Event Timeline evidence surface；真实 live runtime、signed/account stream、broker stream 和交易控制仍未实现 |
+| 7 | 实盘执行控制（Live execution control） | Complete / contract + blocked evidence | Live Execution Control Contract v1 已完成 terminology、submit / cancel / replace future gates、execution report / broker fill / reconciliation future gates、paper / real command isolation、read-model-only blocked evidence、Dashboard / Report / Event Timeline evidence surface；真实 execution runtime、真实 submit / cancel / replace、broker fill、execution report 和 reconciliation 仍未实现 |
+| 8 | 实盘风险控制（Live risk control） | Complete / contract + blocked evidence | Live Risk Gate Contract v1 已完成 risk terminology、exposure / notional / frequency / loss / drawdown / circuit breaker / no-trade future gates、paper / live risk isolation、read-model-only blocked evidence 和 Dashboard / Report / Event Timeline evidence surface；真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、risk command、stop command 和 emergency stop 仍未实现 |
+| 9 | 实盘审计 / 事故回放 / 停机控制（Live audit / incident replay / stop controls） | Complete / contract + blocked evidence | Live Audit Incident Stop Boundary v1 已完成 audit / incident / stop terminology、audit trail / incident replay / stop controls future gates、blocked evidence isolation、read-model-only evidence surface 和 forbidden capability tests；真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 和 trading button 仍未实现 |
+
+Latest Completed Project：`MTPRO Release v0.12.0 Readiness Assessment Sessions`
+
+Historical Latest Completed Project：`MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening`
+Historical Latest Completed Project：`MTPRO Release v0.9.0 Testnet No-order Observability`
+Historical Latest Completed Project：`MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring`
+Historical Latest Completed Project：`MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity`
+Historical Latest Completed Project：`MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening`
+Historical Latest Completed Project：`MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge`
+Historical Latest Completed Project：`MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline`
+Historical Latest Completed Project：`MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal`
+Historical Latest Completed Project：`MTPRO Release v0.2.0`
+Historical guard retains previous Latest Completed Project：`MTPRO Release v0.2.0`
+
+Current maturity statement：`MTPRO Release v0.13.0 Local Evidence-driven Readiness Engine complete with production trading disabled by default and production cutover not authorized`
+Historical guard retains previous Current maturity statement：`MTPRO Release v0.12.0 Readiness Assessment Sessions complete with production trading disabled by default and production cutover not authorized`
+Historical maturity statement：`MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening complete with production trading disabled by default and production cutover not authorized`
+Historical maturity statement：`MTPRO Release v0.9.0 Testnet No-order Observability complete with production trading disabled by default`
+Historical maturity statement：`MTPRO Release v0.8.0 Persistent Operator Runtime + Testnet Read-only Monitoring complete with production trading disabled by default`
+Historical maturity statement：`MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity complete with production trading disabled by default`
+Historical guard retains previous Current maturity statement：`MTPRO Release v0.7.0 Operator Runtime Session + Real Testnet Read-only Connectivity complete with production trading disabled by default`
+Historical guard retains previous Current maturity statement：`MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening complete with production trading disabled by default`
+Historical maturity statement：`MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening complete with production trading disabled by default`
+Historical maturity statement：`MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge complete with production trading disabled by default`
+Historical maturity statement：`MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default`
+Historical maturity statement：`MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`
+Historical guard retains previous Current maturity statement：`MTPRO Release v0.2.0 Binance Spot + USDⓈ-M Perpetual + EMA/RSI validation complete with production trading disabled by default`
+
+Next recommended maturity slice：none active after `release/v0.13.0` construction closeout。
+
+Next maturity planning candidate：real broker / production trading / next Project 仍必须经 Human + `@001 / PLN` 重新规划。
+
+Next Handoff：Human + `@001 / PLN`
+
+本进度条不统计未授权 future capability，不授权下一阶段执行。下一阶段方向、目标、架构路线和优先级仍交给 Human + `@001 / PLN`。
+
+## Product Route / 产品路线
+
+1. 研究 / 回测 / 报告基础能力：Completed。
+2. Paper 模拟执行基础能力：Completed。
+3. 工作台证据导航与本地控制壳：Completed。
+4. 行情数据回放运营能力：Completed。
+5. 实盘交易基础边界：Completed；仅完成基础边界、阻断证据和只读展示面，不实现真实 Live trading。
+6. 实盘监控台：Completed；仅完成 read-model-only monitoring evidence surface，不实现真实 live runtime、signed/account stream、broker stream 或交易控制。
+7. 实盘执行控制：Completed / contract + blocked evidence；不实现真实 execution runtime、真实订单命令、broker fill、execution report 或 reconciliation。
+8. 实盘风险控制：Completed / contract + blocked evidence；不实现真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、risk command、stop command 或 emergency stop。
+9. 实盘审计 / 事故回放 / 停机控制：Completed / contract + blocked evidence；不实现真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 或 trading button。
+
+## Module Maturity Development Plan / 模块成熟度开发计划
+
+Final Product Goal Progress `9 / 9 (100%)` 表示原定 contract / evidence / Workbench / Live boundary 切片已完成，不表示 MTPRO 已达到 `atxinbao/nautilus_trader` 级别的 production trading engine 成熟度。9 / 9 后的新开发路线以“引擎成熟度”推进：先完成 MTPRO 自身 paper-only event-driven runtime，再完成 local-first Data Catalog / Scenario Replay 数据地基，之后才进入 Simulated Exchange / Backtest Parity、Workbench Beta Readiness 和 Future Gated live readiness。
+
+该计划是开发路线地图，不授权执行，不创建 Linear Project / Issue，不推进 `Todo`。每个阶段都必须先由 Human 确认，再由 `@001 / PLN` 输出 Project Planning Record，经 Linear 写入和 Parent Codex queue preflight 后，才能让唯一 eligible issue 进入 `Todo`。
+
+Engine 级分层和成熟度门槛由 `docs/product/mtpro-core-engine-architecture-module-maturity-map-v1.md` 维护。后续任何 Project Planning Record 必须说明目标 Engine / Layer、目标 maturity level、当前 evidence、允许施工范围和 forbidden capabilities，避免把单个页面、证据面或零散模块误当成完整 trading engine maturity。
+
+| Maturity family | 状态 | 边界 |
+| --- | --- | --- |
+| L1-L2+ paper / data / parity / Workbench | Done | Engine Maturity Roadmap Progress `4 / 4 (100%)`；证据见对应 `docs/audit/mtpro-*-stage-code-audit.md`。 |
+| L3 read-model-only readiness | Done / not counted in old denominator | Live read-only、APB、private stream simulation、Live Monitoring v2、Strategy / Trader Instance readiness 都只是 read-model-only / simulation / forbidden capability evidence。 |
+| Module / target graph / Core envelope | Done / not counted in old denominator | Module boundary、physical layout、Trader strategy/account/coordination、Persistence validation、SwiftPM target graph、TargetGraph retirement、real target ownership 和 Core envelope retirement 已闭环；保留 final residual hardening PR #448 与 production executable `try!` = 0。 |
+| L4 / production readiness | Done / no-default-production-trading | Historical L4 maturity statement：`L4 Live Production / Trading Commands v1 complete with no-default-production-trading policy`；PR #473 至 #493 evidence 与 PR #511 至 #519 evidence 只证明 future-gated / readiness-only gates，不授权真实 broker、production endpoint、signed endpoint、account endpoint / listenKey、production OMS、real submit / cancel / replace、trading button、live command、order form 或 production trading。 |
+| Release v0.1.0 baseline | Done / Binance + EMA runtime validation / production disabled by default | `MTPRO Release v0.1.0` 只证明 Binance + EMA dry-run / testnet validation、operator runbook 和 no-default-production-trading guard；production trading 默认关闭，不读取 production secret，不连接 production endpoint 或 production broker endpoint。 |
+
+## Construction Slice Selection / 施工切片选择
+
+下一阶段 planning 只能从 `BLUEPRINT.md` 的 Future Construction Zones / 未来建设区中选择一个清晰切片，并把它收敛为 Project Planning Record。选择切片时必须满足：
+
+- 能对应 `GOAL.md` 的某个 Final Product Goal Slice。
+- 能落到 `architecture.md` 中可解释的工程模块或模块边界。
+- 能被拆成 WIP=1 的 Linear issue queue。
+- 能用 deterministic validation、PR evidence、Stage Code Audit 和 Root Docs Refresh 收口。
+- 不把多个 future capability 一次性打包成模糊大 Project。
+
+当前已完成的 live-route 候选顺序：
+
+```text
+实盘监控台
+-> 实盘执行控制
+-> 实盘风险控制
+-> 实盘审计 / 事故回放 / 停机控制
+```
+
+上述四个 live-route 目标切片均已完成各自的 read-model-only / contract + blocked evidence 切片。该顺序不是执行授权。Human + `@001 / PLN` 可以基于最新 Stage Audit、风险和产品优先级重新定义下一轮 planning；`docs/roadmap.md` 不自动决定下一阶段方向。
+
+## Live Route Gates / 实盘路线门槛
+
+实盘相关目标切片必须按门槛推进，不能从 paper-only foundation 直接跳到真实订单：
+
+| 目标切片 | 进入前置 | 当前状态 |
+| --- | --- | --- |
+| 实盘交易基础边界 | Human 独立决策、独立 Project Definition、secret / signed endpoint / account endpoint / broker adapter / real order lifecycle gates | Complete：已定义 foundation taxonomy、credential endpoint boundary、adapter isolation、real order lifecycle terminology、blocked evidence 和只读 evidence surface；未实现真实 Live trading |
+| 实盘监控台 | 已定义 live runtime health、connection、market stream、order stream、error、latency 和 operations evidence | Complete / read-model-only evidence surface：已完成 health、connection、stream、latency、error evidence 展示面；真实 live runtime、signed/account stream、broker stream 和交易控制仍未实现 |
+| 实盘执行控制 | 已定义 real order submit / cancel / replace、execution report、reconciliation 和 incident fallback | Complete / contract + blocked evidence；真实 execution runtime、真实订单命令、broker fill、execution report 和 reconciliation 仍 gated |
+| 实盘风险控制 | 已定义 live pre-trade risk、exposure / order notional / frequency / loss / drawdown / circuit breaker / no-trade gates 和 read-model-only blocked evidence | Complete / contract + blocked evidence；真实 live risk engine、真实账户风控、real pre-trade allow / reject runtime、risk command、stop command 和 emergency stop 仍 gated |
+| 实盘审计 / 事故回放 / 停机控制 | 已定义 live event chain、audit trail、incident replay、shutdown / restore policy | Complete / contract + blocked evidence；真实 audit trail runtime、incident replay runtime、emergency stop、shutdown、restore、production operations、Live PRO Console、live command 和 trading button 仍 gated |
+
+任何缺少对应 gate 的变更只能停留在蓝图或 planning 草案中，不能进入 Linear execution。
+
+## Project Closure Rule / Project 收口规则
+
+当前 Project 全部有效 issues `Done` 后，必须按顺序关闭：
+
+```text
+Linear Project status Completed
+-> Stage Code Audit Report
+-> Root Docs Refresh Gate
+-> Current Phase Progress Bar
+-> Next Human Project Planning
+```
+
+`@002 / PAR` 只同步已发生事实；下一阶段方向、目标、架构路线和优先级必须由 Human + `@001 / PLN` 决定。
+
+Project closure 后，`docs/roadmap.md` 只更新这些事实：
+
+- Project 是否 Completed。
+- Stage Code Audit Report 路径。
+- Root Docs Refresh Gate 是否 closure。
+- Project Closure Count。
+- Current Foundation Progress。
+- Final Product Goal Progress。
+- Next Handoff。
+
+不把 child issue 细节、PR 流水账或临时 CI 失败详情写入本文档；这些进入 `docs/audit/`、`docs/validation/` 或 `verification.md`。
+
+## Next Handoff Contract / 下一轮交接合同
+
+下一轮交给 Human + `@001 / PLN` 时，必须带上：
+
+- 当前 Final Product Goal Progress。
+- 当前 pending / gated 目标切片。
+- 最近 Stage Code Audit Report。
+- Root Docs Refresh Gate closure 结果。
+- 不能触碰的禁止能力。
+- 候选 Project 方向，但不创建 Linear Project / Issue。
+
+`@001 / PLN` 输出 Project / Issue draft 后，也仍然不授权执行。只有 Human review / merge、Linear 写入、`@002 / PAR` startup gate 和 queue preflight 全部完成后，唯一 eligible issue 才能进入 `Todo`。
+
+## 非授权边界
+
+- `docs/roadmap.md` 不创建 Linear Project / Issue。
+- `docs/roadmap.md` 不修改 Linear status。
+- `docs/roadmap.md` 不启动额外调度服务。
+- `docs/roadmap.md` 不运行图谱更新服务。
+- `docs/roadmap.md` 不解锁下一个 issue。
+- `docs/roadmap.md` 不授权任何 Agent 直接把 issue 改为 `Todo`。
+
+GH-1308 uses `GH-1308-VERIFY-V0211-PATCH-AUDIT-RELEASE-NOTES`、`TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES`、`V0211-004-AGGREGATE-GUARD`、`V0211-004-PATCH-AUDIT`、`V0211-004-RELEASE-NOTES`、`V0211-004-VALIDATION-MATRIX`、`V0211-004-NO-CAPABILITY-CHANGE`、`V0211-004-V0220-DOWNSTREAM-LIVE-TRANSPORT-HANDOFF`、`V0211-004-NO-PRODUCTION-CUTOVER` 和 `V0211-004-NO-TAG-OR-RELEASE-PUBLICATION` to close #1305..#1308 patch audit, release notes, validation matrix and no-capability-change publication guidance. v0.22.0 Spot live canary transport is downstream only；v0.21.1 publication gate remains independent, existing v0.21.0 publication remains fixed, and this closeout does not authorize production cutover.
+
+GH-1309 uses `GH-1309-VERIFY-V0220-LIVE-CANARY-TRANSPORT-CONTRACT`、`TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT`、`V0220-001-V0211-PREFLIGHT-GATE`、`V0220-001-BINANCE-SPOT-LIVE-CANARY-TRANSPORT`、`V0220-001-OPERATOR-APPROVAL-REQUIRED`、`V0220-001-ONE-SHOT-RUN-LOCK`、`V0220-001-RISK-KILL-NO-TRADE-OMS-RECONCILIATION`、`V0220-001-QUEUE-ORDER` and `V0220-001-NO-PRODUCTION-CUTOVER` to define the v0.22.0 Binance Spot live canary transport completion contract. The issue only fixes the downstream approval / credential / signed preflight / submit / status-cancel / OMS / reconciliation / read-only surface chain and does not implement live transport or authorize production cutover.
+
+GH-1310 uses `GH-1310-VERIFY-V0220-OPERATOR-APPROVAL-RUN-LOCK`、`TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK`、`V0220-002-BLOCKED-BY-GH1309`、`V0220-002-OPERATOR-APPROVAL-SESSION`、`V0220-002-SCOPE-BOUND-APPROVAL`、`V0220-002-APPROVAL-REUSE-FAILS-CLOSED`、`V0220-002-MISSING-STALE-MISMATCHED-FAILS-CLOSED`、`V0220-002-ONE-SHOT-RUN-LOCK`、`V0220-002-NO-SECRET-ENDPOINT-ORDER` and `V0220-002-NO-PRODUCTION-CUTOVER` to define the v0.22.0 operator approval run lock. Approval cannot be reused, missing / stale / mismatched approval fails closed, concurrent live canary submit attempts are blocked, and the issue does not read secrets, connect endpoints, submit orders, or authorize production cutover.
+
+GH-1311 uses `GH-1311-VERIFY-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION`、`TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION`、`V0220-003-BLOCKED-BY-GH1310`、`V0220-003-APPROVAL-BOUND-SECRET-READ`、`V0220-003-EPHEMERAL-SECRET-MATERIAL-ONLY`、`V0220-003-REDACTED-AUDIT-EVIDENCE`、`V0220-003-RAW-SECRET-NEVER-PERSISTED`、`V0220-003-MISSING-APPROVAL-FAILS-CLOSED`、`V0220-003-NO-ENDPOINT-ORDER` and `V0220-003-NO-PRODUCTION-CUTOVER` to define the v0.22.0 credential secret material read redaction path. The read is bound to GH-1310 approval and one-shot lock, persists only redacted credential reference metadata and redacted audit evidence, fails closed for missing / consumed / mismatched approval or missing secret material, and does not connect endpoints, sign requests, submit orders, or authorize production cutover.
+
+GH-1312 uses `GH-1312-VERIFY-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT`、`TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT`、`V0220-004-BLOCKED-BY-GH1311`、`V0220-004-APPROVED-CANARY-SESSION-ONLY`、`V0220-004-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT`、`V0220-004-REDACTED-FRESHNESS-STATUS-EVIDENCE`、`V0220-004-RAW-ACCOUNT-PAYLOAD-NEVER-PERSISTED`、`V0220-004-ENDPOINT-AUTH-TIMESTAMP-PERMISSION-STALE-FAIL-CLOSED`、`V0220-004-FAILED-PREFLIGHT-BLOCKS-SUBMIT`、`V0220-004-NO-FUTURES-OKX` and `V0220-004-NO-ORDER-CUTOVER` to define the v0.22.0 signed account runtime preflight. The preflight is limited to the approved canary session, persists only redacted freshness/status evidence, fails closed for endpoint / auth / timestamp / permission / stale response failures, blocks the downstream submit path on failed preflight, and does not persist raw account payload or signature, enable Futures / OKX, submit orders, or authorize production cutover.
+
+GH-1313 uses `GH-1313-VERIFY-V0220-LIVE-ORDER-SUBMIT-TRANSPORT`、`TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT`、`V0220-005-BLOCKED-BY-GH1312`、`V0220-005-BINANCE-SPOT-ONE-SHOT-SUBMIT`、`V0220-005-ALLOWLISTED-SYMBOL-NOTIONAL-SIDE-TIF`、`V0220-005-COMMAND-RISK-KILL-NOTRADE-EXECUTION-OMS-GATES`、`V0220-005-REDACTED-EXCHANGE-ACK-EVIDENCE`、`V0220-005-SINGLE-APPROVED-ORDER-PER-RUN`、`V0220-005-FAIL-CLOSED-LIMIT-RISK-KILL-NOTRADE-TRANSPORT`、`V0220-005-NO-FUTURES-OKX`、`V0220-005-NO-DASHBOARD-TRADING-CONTROLS` and `V0220-005-NO-PRODUCTION-CUTOVER` to define the v0.22.0 live order submit transport. The submit transport is limited to one allowlisted Binance Spot canary order after GH-1312 signed preflight, CommandGateway, RiskEngine, kill switch, no-trade, ExecutionEngine and OMS gates pass; it stores only redacted request / exchange ack evidence and fails closed for limit / risk / kill switch / no-trade / duplicate / transport failure without opening Futures / OKX, Dashboard trading controls, or production cutover.
+
+GH-1314 uses `GH-1314-VERIFY-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT`、`TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT`、`V0220-006-BLOCKED-BY-GH1313`、`V0220-006-STATUS-QUERY-BY-EXCHANGE-AND-CLIENT-ID`、`V0220-006-CANCEL-APPROVED-CANARY-ORDER-ONLY`、`V0220-006-IDEMPOTENCY-KEY-RETRY-CLASSIFICATION`、`V0220-006-REDACTED-STATUS-CANCEL-EVIDENCE`、`V0220-006-AMBIGUOUS-STATE-REQUIRES-RECONCILIATION`、`V0220-006-UNKNOWN-STATE-FAILS-CLOSED`、`V0220-006-NO-FUTURES-OKX`、`V0220-006-NO-DASHBOARD-TRADING-CONTROLS` and `V0220-006-NO-PRODUCTION-CUTOVER` to define the v0.22.0 live order status / cancel transport. Status query is scoped to the approved exchange/client order identifiers; cancel can target only the approved canary run/order; duplicate retry must be idempotent; ambiguous / unknown exchange state fails closed and requires reconciliation; only redacted status / cancel evidence persists, without opening Futures / OKX, Dashboard trading controls, or production cutover.
+
+GH-1315 uses `GH-1315-VERIFY-V0220-OMS-EVIDENCE-LOG`、`TVM-RELEASE-V0220-OMS-EVIDENCE-LOG`、`V0220-007-BLOCKED-BY-GH1313-GH1314`、`V0220-007-APPEND-ONLY-OMS-EVENT-LOG`、`V0220-007-SUBMIT-ACK-STATUS-CANCEL-TERMINAL-EVENTS`、`V0220-007-CORRELATION-CAUSATION-IDS`、`V0220-007-REDACTED-REPLAYABLE-EVIDENCE`、`V0220-007-REJECTS-MISSING-OUT-OF-ORDER-LIFECYCLE`、`V0220-007-NO-FUTURES-OKX`、`V0220-007-NO-DASHBOARD-TRADING-CONTROLS` and `V0220-007-NO-PRODUCTION-CUTOVER` to define the v0.22.0 OMS event log. Submit ack, status observation, cancel request, cancel ack, terminal state and ambiguous state must persist in one append-only run/order correlation chain; missing or out-of-order lifecycle evidence fails closed; only redacted replayable evidence persists, without opening Futures / OKX, Dashboard trading controls, or production cutover.
+
+GH-1316 uses `GH-1316-VERIFY-V0220-RECONCILIATION-EVIDENCE`、`TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE`、`V0220-008-BLOCKED-BY-GH1312-GH1315`、`V0220-008-OMS-EXCHANGE-STATUS-ACCOUNT-RECONCILIATION`、`V0220-008-MATCHED-PENDING-AMBIGUOUS-REJECTED-CANCELLED-FILL-LIKE`、`V0220-008-REDACTED-RECONCILIATION-ARTIFACT`、`V0220-008-MISSING-EXCHANGE-EVIDENCE-FAILS-CLOSED`、`V0220-008-AMBIGUOUS-STATE-FAILS-CLOSED`、`V0220-008-NEXT-OPERATOR-ACTION`、`V0220-008-NO-FUTURES-OKX`、`V0220-008-NO-DASHBOARD-TRADING-CONTROLS` and `V0220-008-NO-PRODUCTION-CUTOVER` to define the v0.22.0 reconciliation evidence. OMS event log, signed account preflight and exchange order status evidence must produce a redacted reconciliation artifact; matched / pending / ambiguous / rejected / cancelled / fill-like states are classified; missing exchange evidence, ambiguous state and local-only assumptions fail closed with a next operator action, without opening Futures / OKX, Dashboard trading controls, or production cutover.
+
+GH-1317 uses `GH-1317-VERIFY-V0220-FAILURE-ROLLBACK-DRILL`、`TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL`、`V0220-009-BLOCKED-BY-GH1315-GH1316`、`V0220-009-FAILURE-CLASSIFICATION`、`V0220-009-AUTH-ENDPOINT-RISK-KILL-NOTRADE-SUBMIT-CANCEL-STATUS-RECONCILIATION-ARTIFACT`、`V0220-009-DETERMINISTIC-NEXT-ACTION`、`V0220-009-KILL-SWITCH-BLOCKS-SUBMIT-CANCEL`、`V0220-009-NO-TRADE-BLOCKS-SUBMIT-CANCEL`、`V0220-009-ROLLBACK-DRILL-EVIDENCE`、`V0220-009-NO-UNINTENDED-ORDERS`、`V0220-009-NO-FUTURES-OKX`、`V0220-009-NO-DASHBOARD-TRADING-CONTROLS` and `V0220-009-NO-PRODUCTION-CUTOVER` to define the v0.22.0 failure rollback drill. Auth, endpoint, risk, kill switch, no-trade, submit, cancel, status, reconciliation and artifact failures must fail closed with deterministic operator next actions; kill switch and no-trade must block submit / cancel, rollback drill must produce no unintended orders, without opening Futures / OKX, Dashboard trading controls, or production cutover.
+
+GH-1318 uses `GH-1318-VERIFY-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE`、`TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE`、`V0220-010-BLOCKED-BY-GH1317`、`V0220-010-LIVE-CANARY-EVIDENCE-CHAIN`、`V0220-010-APPROVAL-PREFLIGHT-SUBMIT-STATUS-CANCEL-OMS-RECONCILIATION`、`V0220-010-FAILURE-CLASS-NEXT-ACTION`、`V0220-010-READ-ONLY-DASHBOARD-CLI`、`V0220-010-REDACTION-FAILURE-STATES-VISIBLE`、`V0220-010-NO-TRADING-COMMANDS`、`V0220-010-NO-FUTURES-OKX` and `V0220-010-NO-PRODUCTION-CUTOVER` to define the v0.22.0 Dashboard / CLI live canary evidence surface. The surface shows approval, preflight, submit, status/cancel, OMS, reconciliation, failure class, next action, rollback and redaction evidence as read-only state, without Dashboard trading controls, raw order IDs, raw broker payloads, Futures / OKX, submit / cancel / replace commands, or production cutover.
+
+GH-1319 uses `GH-1319-VERIFY-V0220-AGGREGATE-VALIDATION`、`TVM-RELEASE-V0220-AGGREGATE-VALIDATION`、`V0220-011-AGGREGATE-VALIDATION-SUITE`、`V0220-011-LIVE-CANARY-TRANSPORT-CHAIN`、`V0220-011-FOCUSED-GUARDS-COVERED`、`V0220-011-RUN-AUTOMATION-WIRING`、`V0220-011-FAIL-CLOSED-NEGATIVE-CASES`、`V0220-011-NO-FUTURES-OKX`、`V0220-011-NO-PRODUCTION-CUTOVER` and `V0220-011-NO-TAG-OR-RELEASE-PUBLICATION` to define the v0.22.0 aggregate validation suite. The suite runs all GH-1309..GH-1318 focused verifiers through `checks/verify-v0.22.0.sh`, is wired into `checks/run.sh`, and proves the live canary transport chain remains Binance Spot only, fail-closed, read-only at Dashboard / CLI, without Futures / OKX, production cutover, tag creation or GitHub Release publication.
+## GH-1320 v0.22.0 stage audit / release docs closeout
+
+- GH-1320-VERIFY-V0220-STAGE-AUDIT-RELEASE-DOCS
+- TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS
+- V0220-012-STAGE-CODE-AUDIT
+- V0220-012-RELEASE-NOTES
+- V0220-012-VALIDATION-MATRIX
+- V0220-012-ROOT-DOCS-REFRESH
+- V0220-012-STALE-WORDING-GUARD
+- V0220-012-RELEASE-PUBLICATION-GATE-HANDOFF
+- V0220-012-NO-PRODUCTION-CUTOVER
+- V0220-012-NO-TAG-OR-RELEASE-PUBLICATION
+- V0220-012-NO-FUTURES-OKX
+- V0220-012-NO-DASHBOARD-TRADING-CONTROLS
+- Stage audit: `docs/audit/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-stage-code-audit.md`.
+- Release notes: `docs/release/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-notes.md`.
+- Focused verifier: `bash checks/verify-v0.22.0-stage-audit-release-docs.sh`.
+- Boundary: #1320 closes construction docs only. It creates no tag / GitHub Release, opens no Futures / OKX path, adds no Dashboard trading controls, and production cutover not authorized.
+
+## Release v0.22.1 Publication Fact Sync / v0.23.0 Futures Read-only Foundation
+
+Release v0.22.1 publication fact sync patch anchor：`GH-1337-VERIFY-V0221-V0220-RELEASE-FACT-SYNC`、`TVM-RELEASE-V0221-V0220-RELEASE-FACT-SYNC`、`V0221-001-V0220-RELEASE-FACT-SYNC`、`GH-1338-VERIFY-V0221-V0220-STALE-WORDING-GUARD`、`V0221-002-V0220-STALE-WORDING-GUARD`、`GH-1339-VERIFY-V0221-VERSION-ROADMAP-CORRECTION`、`V0221-003-V0220-SPOT-LIVE-CANARY-TRANSPORT`、`V0221-003-V0230-FUTURES-READONLY-NEXT`、`GH-1340-VERIFY-V0221-PATCH-AUDIT-RELEASE-NOTES`、`TVM-RELEASE-V0221-PATCH-AUDIT-RELEASE-NOTES`、`V0221-004-PATCH-AUDIT`、`V0221-004-RELEASE-NOTES`、`V0221-004-NO-CAPABILITY-CHANGE`、`V0221-004-NO-PRODUCTION-CUTOVER`、`V0221-004-NO-TAG-OR-RELEASE-PUBLICATION`。v0.22.0 is Binance Spot live canary transport completion；stable GitHub Release：`https://github.com/atxinbao/MTPRO/releases/tag/v0.22.0`；tag peeled commit：`1589492558fa55aad3424e5727415c2f8f453ed8`；publication timestamp：`2026-07-06T11:16:35Z`。v0.23.0 is Binance USD-M Futures read-only foundation；production cutover not authorized。
+
+Release v0.23.0 Binance USD-M Futures read-only foundation anchor：`GH-1341-VERIFY-V0230-FUTURES-READONLY-CONTRACT`、`TVM-RELEASE-V0230-FUTURES-READONLY-CONTRACT`、`V0230-001-BINANCE-USDM-FUTURES-READONLY-FOUNDATION`、`V0230-001-NO-FUTURES-ORDER-EXECUTION`、`GH-1342-VERIFY-V0230-FUTURES-PROFILE-ENDPOINT-ALLOWLIST`、`V0230-002-BINANCE-USDM-FUTURES-PROFILE`、`V0230-002-READ-ONLY-ENDPOINT-ALLOWLIST`、`GH-1343-VERIFY-V0230-FUTURES-CREDENTIAL-REFERENCE-GATE`、`V0230-003-CREDENTIAL-REFERENCE-ONLY`、`V0230-003-SIGNED-READONLY-APPROVAL-GATE`、`GH-1344-VERIFY-V0230-FUTURES-ACCOUNT-SNAPSHOT-REDACTION`、`V0230-004-REDACTED-ACCOUNT-SNAPSHOT`、`GH-1345-VERIFY-V0230-FUTURES-POSITION-MARGIN-LEVERAGE-READONLY`、`V0230-005-POSITION-MARGIN-LEVERAGE-OBSERVED-STATE`、`GH-1346-VERIFY-V0230-FUTURES-FUNDING-MARK-LIQUIDATION-READONLY`、`V0230-006-FUNDING-MARK-LIQUIDATION-OBSERVATION`、`GH-1347-VERIFY-V0230-FUTURES-TRANSPORT-ARTIFACT-FAILURE-CLASSIFICATION`、`V0230-007-READONLY-TRANSPORT-ARTIFACT`、`V0230-007-FAIL-CLOSED-FAILURE-CLASSIFICATION`、`GH-1348-VERIFY-V0230-FUTURES-READONLY-RECONCILIATION`、`V0230-008-LOCAL-REGISTRY-RECONCILIATION`、`V0230-008-NO-BROKER-RECONCILIATION-RUNTIME`、`GH-1349-VERIFY-V0230-DASHBOARD-CLI-FUTURES-READONLY-SURFACE`、`TVM-RELEASE-V0230-DASHBOARD-CLI-FUTURES-READONLY-SURFACE`、`V0230-009-DASHBOARD-CLI-READONLY-FUTURES-READINESS`、`V0230-009-NO-TRADING-COMMANDS`、`V0230-009-NO-DASHBOARD-TRADING-CONTROLS`、`GH-1350-VERIFY-V0230-AGGREGATE-VALIDATION`、`TVM-RELEASE-V0230-AGGREGATE-VALIDATION`、`V0230-010-AGGREGATE-VALIDATION-SUITE`、`V0230-010-FUTURES-READONLY-FOUNDATION`、`V0230-010-NO-FUTURES-ORDER-EXECUTION`、`GH-1351-VERIFY-V0230-STAGE-AUDIT-RELEASE-DOCS`、`V0230-011-STAGE-CODE-AUDIT`、`V0230-011-NO-PRODUCTION-CUTOVER`。该版本只建立 Futures read-only evidence；`futuresOrderExecutionEnabled=false`，production cutover not authorized。
+# Current Release Line: v0.23.1 -> v0.24.0
+
+`v0.23.1` closes release fact sync for the published `v0.23.0` Binance USD-M Futures read-only foundation release. `v0.24.0` moves the roadmap to a unified Binance Spot + USD-M Futures read-only foundation, joining Spot canary evidence and Futures read-only evidence under one product-aware OMS / Portfolio / Risk / Reconciliation evidence model.
+
+`v0.24.0` remains non-production-cutover: Futures execution, OKX runtime, Dashboard trading controls, broker reconciliation runtime and production cutover are not authorized.
+## v0.25.0 Closeout
+
+`GH-1379-VERIFY-V0250-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT` / `TVM-RELEASE-V0250-AGGREGATE-VALIDATION` / `V0250-008-AGGREGATE-VALIDATION-SUITE` / `V0250-008-STAGE-AUDIT-RELEASE-DOCS` / `V0250-008-ROOT-DOCS-REFRESH` / `V0250-008-RELEASE-PUBLICATION-GATE-HANDOFF` / `V0250-008-NO-PRODUCTION-CUTOVER` / `V0250-008-NO-TAG-OR-RELEASE-PUBLICATION` closes the Binance dual-product production readiness / canary hardening construction queue. Publication is a separate release gate after queue closure; production cutover remains unauthorized.
+
+## v0.25.1 Publication Fact Sync / Roadmap Correction Patch
+
+`GH-1389-VERIFY-V0251-V0250-RELEASE-FACT-SYNC` / `TVM-RELEASE-V0251-V0250-RELEASE-FACT-SYNC` / `V0251-001-V0250-GITHUB-RELEASE-PUBLISHED` / `V0251-001-V0250-TAG-FIXED` / `V0251-001-V0250-PUBLISHED-AT-2026-07-07T14-47-50Z` records the stable v0.25.0 GitHub Release at `https://github.com/atxinbao/MTPRO/releases/tag/v0.25.0`, tag target `1dad68196b28eca7285a5c8efb3d15ce74c`, and publication timestamp `2026-07-07T14:47:50Z`.
+
+`GH-1390-VERIFY-V0251-MILESTONE-COMPLETION-FACTS` / `V0251-002-V0250-MILESTONE-CLOSED` records v0.25.0 milestone #41 closed with 0 open / 8 closed issues. `GH-1391-VERIFY-V0251-V022-V023-MAINLINE-WORDING` / `V0251-003-V0220-SPOT-LIVE-CANARY-TRANSPORT` / `V0251-003-V0230-FUTURES-READONLY-FOUNDATION` fixes the mainline wording: v0.22.0 is Binance Spot live canary transport completion and v0.23.0 is Binance USD-M Futures read-only foundation. `GH-1392-VERIFY-V0251-V0250-STALE-WORDING-GUARD` / `V0251-004-PUBLISHED-V0250-STALE-WORDING-GUARD` rejects stale published v0.25.0 wording. `GH-1393-VERIFY-V0251-PATCH-AUDIT-RELEASE-NOTES` / `V0251-005-PATCH-AUDIT` / `V0251-005-V0260-BLOCKED-BY-V0251-COMPLETION` / `V0251-005-NO-CAPABILITY-CHANGE` keeps v0.26.0 blocked until v0.25.1 completion and adds no trading capability.
+
+## v0.26.1 Publication Fact Sync / Milestone Closure Patch
+
+`GH-1406-VERIFY-V0261-V0260-RELEASE-FACT-SYNC` / `TVM-RELEASE-V0261-V0260-RELEASE-FACT-SYNC` / `V0261-001-V0260-GITHUB-RELEASE-PUBLISHED` / `V0261-001-V0260-TAG-FIXED` / `V0261-001-V0260-PUBLISHED-AT-2026-07-08T13-00-01Z` records the stable v0.26.0 GitHub Release at https://github.com/atxinbao/MTPRO/releases/tag/v0.26.0, tag target `e3b65f2337c5275eaa7ce5c5f224b69475a7c9bb`, and publication timestamp `2026-07-08T13:00:01Z`.
+
+`GH-1407-VERIFY-V0261-V0260-MILESTONE-COMPLETION` / `V0261-002-V0260-MILESTONE-CLOSED` / `V0261-002-V0260-ISSUES-1394-1403-DONE` records v0.26.0 milestone #43 is closed with 0 open / 10 closed issues and #1394 through #1403 are closed / done. `GH-1408-VERIFY-V0261-V0260-STALE-WORDING-GUARD` / `V0261-003-PUBLISHED-V0260-STALE-WORDING-GUARD` rejects stale published v0.26.0 wording. `GH-1409-VERIFY-V0261-V0260-BASELINE-WORDING` / `V0261-004-V0260-CURRENT-PUBLISHED-BASELINE` / `V0261-004-FUTURES-TESTNET-CONTROLLED-EXECUTION-FOUNDATION` fixes the current maturity wording to Binance USD-M Futures testnet controlled execution foundation. `GH-1410-VERIFY-V0261-PATCH-AUDIT-RELEASE-NOTES` / `V0261-005-PATCH-AUDIT` / `V0261-005-V0270-BLOCKED-BY-V0261-COMPLETION` / `V0261-005-NO-CAPABILITY-CHANGE` confirms v0.27.0 remains blocked until v0.26.1 completion and adds no trading capability. production cutover not authorized.
+## Release v0.27.0 Futures Testnet Operator Runtime Hardening
+
+Release v0.27.0 anchor inventory: `GH-1411-VERIFY-V0270-FUTURES-TESTNET-OPERATOR-RUN-HARDENING-CONTRACT`, `TVM-RELEASE-V0270-FUTURES-TESTNET-OPERATOR-RUNTIME-HARDENING`, `V0270-001-FUTURES-TESTNET-OPERATOR-RUN-HARDENING-CONTRACT`, `V0270-001-FAIL-CLOSED-SEMANTICS`, `GH-1412-VERIFY-V0270-FUTURES-TESTNET-RUN-REGISTRY-ARTIFACT-MANIFEST`, `V0270-002-RUN-REGISTRY-ARTIFACT-MANIFEST`, `V0270-002-RUN-IDENTITY-EVIDENCE`, `GH-1413-VERIFY-V0270-SIGNED-STATUS-RETRY-TIMEOUT-FAILURE-MODEL`, `V0270-003-SIGNED-STATUS-RETRY-TIMEOUT`, `V0270-003-CLASSIFIED-FAILURE-EVIDENCE`, `GH-1414-VERIFY-V0270-CANCEL-STATUS-RECONCILIATION-RECOVERY`, `V0270-004-CANCEL-STATUS-RECOVERY`, `V0270-004-RECONCILIATION-RECOVERY`, `GH-1415-VERIFY-V0270-ARTIFACT-BUNDLE-REPLAY-VALIDATOR`, `V0270-005-ARTIFACT-BUNDLE-REPLAY-VALIDATOR`, `V0270-005-CHECKSUM-FAIL-CLOSED`, `GH-1416-VERIFY-V0270-IDEMPOTENCY-DUPLICATE-SUBMIT-RUN-LOCK`, `V0270-006-IDEMPOTENCY-DUPLICATE-SUBMIT-GUARD`, `V0270-006-RUN-LOCK-HARDENING`, `GH-1417-VERIFY-V0270-DASHBOARD-CLI-FAILURE-DRILLDOWN-READONLY`, `V0270-007-DASHBOARD-CLI-FAILURE-DRILLDOWN`, `V0270-007-NO-DASHBOARD-TRADING-CONTROLS`, `GH-1418-VERIFY-V0270-MANUAL-WORKFLOW-ARTIFACT-REDACTION`, `V0270-008-MANUAL-WORKFLOW-ARTIFACT-VALIDATION`, `V0270-008-REDACTION-EVIDENCE`, `GH-1419-VERIFY-V0270-AGGREGATE-VALIDATION`, `V0270-009-AGGREGATE-VALIDATION-SUITE`, `GH-1420-VERIFY-V0270-STAGE-AUDIT-RELEASE-DOCS`, `V0270-010-STAGE-CODE-AUDIT`, `V0270-010-RELEASE-NOTES`, `V0270-010-NO-PRODUCTION-CUTOVER`.
+
+v0.27.0 continues the Binance USD-M Futures track by hardening operator runtime evidence around testnet runs. It does not authorize production Futures order execution, OKX active runtime, Dashboard trading controls or production cutover. `productionFuturesOrderExecutionEnabled=false`; production cutover not authorized.
+
+## Release v0.27.2 Publication Fact Sync / Milestone Closure Patch
+
+Release v0.27.2 anchor inventory: `GH-1424-VERIFY-V0272-V0271-RELEASE-FACT-SYNC`, `TVM-RELEASE-V0272-V0271-RELEASE-FACT-SYNC`, `V0272-001-V0271-GITHUB-RELEASE-PUBLISHED`, `V0272-001-V0271-TAG-FIXED`, `V0272-001-V0271-PUBLISHED-AT-2026-07-09T15-19-56Z`, `GH-1425-VERIFY-V0272-V0270-MILESTONE-COMPLETION`, `V0272-002-V0270-MILESTONE-CLOSED`, `V0272-002-V0270-ISSUES-1411-1420-DONE`, `GH-1426-VERIFY-V0272-V0271-STALE-WORDING-GUARD`, `V0272-003-PUBLISHED-V0271-STALE-WORDING-GUARD`, `GH-1427-VERIFY-V0272-BINANCE-ONLY-CONTINUATION-SCOPE`, `V0272-004-BINANCE-SPOT-USDM-FUTURES-CONTINUATION`, `V0272-004-OKX-OUT-OF-CURRENT-TARGET-PATH`, `GH-1428-VERIFY-V0272-PATCH-AUDIT-RELEASE-NOTES`, `V0272-005-PATCH-AUDIT`, `V0272-005-V0280-BLOCKED-BY-V0272-COMPLETION`, `V0272-005-NO-CAPABILITY-CHANGE`.
+
+v0.27.2 records v0.27.1 publication facts: https://github.com/atxinbao/MTPRO/releases/tag/v0.27.1, tag target `a69eed3b1a83028de14ce64ce42d1e2578eaab96`, published at `2026-07-09T15:19:56Z`, title `MTPRO v0.27.1 v0.27 Dashboard macOS Type-check Patch`. It records v0.27.0 publication facts: https://github.com/atxinbao/MTPRO/releases/tag/v0.27.0, tag target `4ee83ecece5c434cbc97999ae30ee680c1072020`, published at `2026-07-09T14:06:49Z`, and v0.27.0 milestone #45 closed with 0 open / 10 closed issues. Binance Spot + Binance USD-M Futures remain the continuation scope; OKX out of current target path; v0.28.0 remains blocked until v0.27.2 completion; production cutover not authorized.
+
+## Release v0.28.0 Binance Production Cutover Readiness Gate
+
+Release v0.28.0 anchor inventory: `GH-1429-VERIFY-V0280-BINANCE-PRODUCTION-CUTOVER-READINESS-CONTRACT`, `TVM-RELEASE-V0280-PRODUCTION-CUTOVER-READINESS-GATE`, `V0280-001-BINANCE-ONLY-PRODUCTION-CUTOVER-READINESS`, `V0280-001-NOT-PRODUCTION-CUTOVER`, `V0280-001-SPOT-USDM-FUTURES-ONLY`, `V0280-001-OKX-NOT-ACTIVE`, `GH-1430-VERIFY-V0280-PRODUCTION-CREDENTIAL-SECRET-ACCESS-POLICY`, `V0280-002-SECRET-ACCESS-EXPLICIT-APPROVAL`, `V0280-002-NO-DEFAULT-SECRET-READ`, `V0280-002-REDACTION-REQUIRED`, `GH-1431-VERIFY-V0280-PRODUCTION-ENVIRONMENT-ENDPOINT-ALLOWLIST`, `V0280-003-ENDPOINT-ALLOWLIST`, `V0280-003-PRODUCTION-ENVIRONMENT-ISOLATION`, `V0280-003-BINANCE-SPOT-USDM-FUTURES-ENDPOINTS`, `GH-1432-VERIFY-V0280-MANUAL-APPROVAL-OPERATOR-CONFIRMATION`, `V0280-004-MANUAL-APPROVAL-REQUIRED`, `V0280-004-OPERATOR-CONFIRMATION-REQUIRED`, `V0280-004-NO-AUTO-CUTOVER`, `GH-1433-VERIFY-V0280-CAPITAL-RISK-NOTIONAL-EXPOSURE-LEVERAGE`, `V0280-005-CAPITAL-RISK-GATE`, `V0280-005-NOTIONAL-EXPOSURE-LEVERAGE-LIMITS`, `V0280-005-FUTURES-LEVERAGE-FAIL-CLOSED`, `GH-1434-VERIFY-V0280-KILL-NOTRADE-ROLLBACK-INCIDENT-STOP`, `V0280-006-KILL-SWITCH-REQUIRED`, `V0280-006-NO-TRADE-STATE-REQUIRED`, `V0280-006-ROLLBACK-INCIDENT-STOP-READY`, `GH-1435-VERIFY-V0280-DASHBOARD-CLI-READINESS-SURFACE`, `V0280-007-DASHBOARD-CLI-READINESS`, `V0280-007-NO-TRADING-BUTTON`, `V0280-007-NO-ORDER-FORM`, `V0280-007-NO-LIVE-COMMAND`, `GH-1436-VERIFY-V0280-AGGREGATE-VALIDATION-RELEASE-CLOSEOUT`, `V0280-008-AGGREGATE-VALIDATION`, `V0280-008-STAGE-AUDIT-RELEASE-DOCS`, `V0280-008-NO-PRODUCTION-CUTOVER`.
+
+v0.28.0 is the Binance-only production cutover readiness gate after v0.27.2. It keeps the active product scope to Spot + USD-M Futures and keeps OKX out of current target path. It does not open production cutover, production secret read by default, production endpoint connection by default, broker endpoint connection by default, submit / cancel / replace, Futures production order execution, Dashboard trading controls, order forms or live commands.
+
+## Release v0.28.1 Publication Fact / Readiness Semantics Patch
+
+Release v0.28.1 anchor inventory: `GH-1439-VERIFY-V0281-V0280-RELEASE-FACT-SYNC`, `GH-1440-VERIFY-V0281-BINANCE-ONLY-CURRENT-BASELINE`, `GH-1441-VERIFY-V0281-PUBLISHED-V0280-STALE-WORDING-GUARD`, `GH-1442-VERIFY-V0281-READINESS-SEMANTIC-STATES`, `V0281-004-EVALUATION-MODE-CONTRACT-ONLY`, `V0281-004-READINESS-STATUS-NOT-EVALUATED`, `V0281-004-CUTOVER-DECISION-BLOCKED`, `GH-1443-VERIFY-V0281-READINESS-GATE-FAIL-CLOSED-EVIDENCE`, `V0281-005-REJECT-INCOMPLETE-DUPLICATE-MALFORMED-GATES`, `GH-1444-VERIFY-V0281-PREPUBLICATION-FULL-MATRIX-EVIDENCE`, `GH-1445-VERIFY-V0281-RELEASE-VERIFICATION-DEDUPE`, `GH-1446-VERIFY-V0281-PATCH-AUDIT-RELEASE-NOTES`.
+
+v0.28.0 GitHub Release is published at https://github.com/atxinbao/MTPRO/releases/tag/v0.28.0. The fixed tag / release commit is `4411bf8536c3bae55e365d832627873b6042e4d1`, published at `2026-07-09T20:10:10Z`, from PR #1438. v0.27.2 milestone #46 closed and v0.28.0 milestone #47 closed.
+
+- evaluationMode=contract-only
+- readinessStatus=not-evaluated
+- cutoverDecision=blocked
+- readinessGateEvidenceComplete=true
+
+v0.28.1 is a no-capability-change patch. Binance Spot + USD-M Futures remain the current baseline; OKX stays out of the current target path; v0.29.0 remains blocked until v0.28.1 is complete.
+
+## Release v0.29.0 Binance Production Dry-run / Shadow Run Acceptance
+
+Release v0.29.0 anchor inventory: `GH-1447-VERIFY-V0290-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE-CONTRACT`, `TVM-RELEASE-V0290-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE`, `V0290-001-BINANCE-PRODUCTION-DRY-RUN-SHADOW-ACCEPTANCE`, `V0290-001-SHADOW-ACCEPTANCE-NOT-PRODUCTION-ENABLEMENT`, `V0290-001-NO-DEFAULT-TRADING`, `V0290-001-NO-SUBMIT`, `GH-1448-VERIFY-V0290-PRODUCTION-CONFIGURATION-REHEARSAL`, `V0290-002-PRODUCTION-SHADOW-CONFIGURATION`, `V0290-002-NO-SECRET-CONFIGURATION`, `V0290-002-MISMATCH-FAILS-CLOSED`, `GH-1449-VERIFY-V0290-CREDENTIAL-APPROVAL-REDACTION`, `V0290-003-CREDENTIAL-REFERENCE-ONLY`, `V0290-003-OPERATOR-APPROVAL-REQUIRED`, `V0290-003-SECRET-VALUE-NOT-PERSISTED`, `GH-1450-VERIFY-V0290-ENDPOINT-NOSUBMIT-PREFLIGHT`, `V0290-004-ENDPOINT-ALLOWLIST-READONLY`, `V0290-004-MUTATION-ENDPOINTS-BLOCKED`, `GH-1451-VERIFY-V0290-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATES`, `V0290-005-RISK-CAPITAL-EXPOSURE-NOTIONAL-GATES`, `V0290-005-STALE-MISSING-INPUTS-BLOCKED`, `GH-1452-VERIFY-V0290-OMS-RECONCILIATION-DRY-RUN-BUNDLE`, `V0290-006-OMS-RECONCILIATION-SHADOW-BUNDLE`, `V0290-006-NO-BROKER-FILL-INTERPRETATION`, `GH-1453-VERIFY-V0290-INCIDENT-ROLLBACK-KILL-NOTRADE-DRILL`, `V0290-007-INCIDENT-ROLLBACK-KILL-NOTRADE-DRILL`, `V0290-007-NO-BROKER-SIDE-EFFECT`, `GH-1454-VERIFY-V0290-DASHBOARD-CLI-SHADOW-ACCEPTANCE-SURFACE`, `V0290-008-DASHBOARD-CLI-READONLY-SHADOW-SURFACE`, `V0290-008-NO-TRADING-CONTROLS`, `GH-1455-VERIFY-V0290-AGGREGATE-VALIDATION`, `V0290-009-AGGREGATE-VALIDATION`, `V0290-009-PREPUBLICATION-LINUX-MACOS-MATRIX`, `GH-1456-VERIFY-V0290-STAGE-AUDIT-RELEASE-DOCS`, `V0290-010-STAGE-AUDIT-RELEASE-DOCS`, `V0290-010-NO-PRODUCTION-CUTOVER`.
+
+v0.29.0 records Binance Spot + USD-M Futures production dry-run / shadow run acceptance. It is not production cutover. Boundary facts are `productionTradingEnabledByDefault=false`, `productionCutoverAuthorized=false`, `productionSecretAutoReadEnabled=false`, `automaticBrokerConnectionEnabled=false`, `productionSubmitCancelReplaceEnabled=false`, `futuresProductionExecutionEnabled=false`, `leverageMarginPositionMutationEnabled=false`, `okxActiveRuntimeEnabled=false`, `dashboardTradingControlsEnabled=false`, `orderFormEnabled=false`, `liveCommandEnabled=false`, `noSubmitTransportMode=true`, `shadowOnly=true`, `evidenceComplete=true`, `boundaryHeld=true`.
+
+## Release v0.29.1 Shadow Acceptance Integrity / Publication Gate Repair Patch
+
+`TVM-RELEASE-V0291-SHADOW-ACCEPTANCE-INTEGRITY-PUBLICATION-GATE-REPAIR` records that v0.29.0 GitHub Release is published at https://github.com/atxinbao/MTPRO/releases/tag/v0.29.0, published at `2026-07-10T14:23:30Z`, and points to `2b070ea979adfec5fccf90fcd823512d99ec4c3c` after PR #1458 and workflow run `29099609391` completed successfully. The v0.29.0 acceptance surface is now explicitly `evidenceOrigin=deterministic-fixture`, `acceptanceDecision=blocked`, `observedRunAccepted=false`; observed-run acceptance requires validated file, SHA-256, run, approval, freshness, provenance, redaction and immutable manifest evidence. Boundary facts remain `productionTradingEnabledByDefault=false`, `productionCutoverAuthorized=false`, `productionSecretAutoReadEnabled=false`, `automaticBrokerConnectionEnabled=false`, `productionSubmitCancelReplaceEnabled=false`, `noSubmitTransportMode=true`, `shadowOnly=true`, `evidenceComplete=true`, `boundaryHeld=true`.
+
+## Release v0.30.0 Observed Production Shadow Run Acceptance
+
+Release v0.30.0 anchor inventory: `GH-1468-VERIFY-V0300-OBSERVED-RUN-LIFECYCLE-NOSUBMIT-CONTRACT`, `GH-1469-VERIFY-V0300-APPROVAL-CREDENTIAL-ENDPOINT-NOSUBMIT-GATE`, `GH-1470-VERIFY-V0300-IMMUTABLE-ARTIFACT-MANIFEST-PROVENANCE`, `GH-1471-VERIFY-V0300-BINANCE-READONLY-ENDPOINT-PREFLIGHT`, `GH-1472-VERIFY-V0300-NO-MUTATION-RISK-OMS-RECONCILIATION-INCIDENT`, `GH-1473-VERIFY-V0300-DASHBOARD-CLI-READONLY-SURFACE`, `GH-1474-VERIFY-V0300-AGGREGATE-VALIDATION-PREPUBLICATION`, `GH-1475-VERIFY-V0300-STAGE-AUDIT-RELEASE-DOCS`, `TVM-RELEASE-V0300-OBSERVED-PRODUCTION-SHADOW-RUN`, `V0300-001-OBSERVED-RUN-LIFECYCLE`, `V0300-001-NO-SUBMIT-CONTRACT`, `V0300-002-OPERATOR-APPROVAL-CREDENTIAL-REFERENCE`, `V0300-002-ENDPOINT-ALLOWLIST-NOSUBMIT-GATE`, `V0300-003-IMMUTABLE-MANIFEST-PROVENANCE`, `V0300-004-BINANCE-SPOT-FUTURES-READONLY-PREFLIGHT`, `V0300-005-NO-MUTATION-RISK-OMS-RECONCILIATION-INCIDENT`, `V0300-006-DASHBOARD-CLI-READONLY-SURFACE`, `V0300-007-AGGREGATE-VALIDATION-PREPUBLICATION`, `V0300-008-STAGE-AUDIT-RELEASE-DOCS`.
+
+v0.30.0 moves the Binance Spot + USD-M Futures line from deterministic shadow acceptance to observed production shadow evidence collection with fail-closed acceptance. Boundary facts: `observedShadowRun=true`, `observedRunAccepted=false`, `productionTradingEnabledByDefault=false`, `productionCutoverAuthorized=false`, `productionSecretAutoReadEnabled=false`, `automaticBrokerConnectionEnabled=false`, `productionSubmitCancelReplaceEnabled=false`, `noSubmitTransportMode=true`, `noMutationTransportMode=true`, `boundaryHeld=true`. It remains no-submit and no-mutation evidence only; production cutover remains not authorized.
+
+## Release v0.30.1 Observed Shadow Integrity Repair Patch
+
+`GH-1478-VERIFY-V0301-V0300-PUBLICATION-FACTS`, `GH-1479-VERIFY-V0301-DETERMINISTIC-FIXTURE-FAIL-CLOSED`, `GH-1480-VERIFY-V0301-ARTIFACT-INTEGRITY-ACCEPTANCE`, `GH-1481-VERIFY-V0301-CLI-EXPLICIT-ARTIFACT-INPUT`, `GH-1482-VERIFY-V0301-HUMAN-APPROVED-OBSERVED-BUNDLE`, `GH-1483-VERIFY-V0301-PREPUBLICATION-MATRIX-GATE`, `GH-1484-VERIFY-V0301-DEDUPE-VALIDATION-ORCHESTRATION`, `GH-1485-VERIFY-V0301-BINANCE-ONLY-ROOT-DOCS-MILESTONES`, `GH-1486-VERIFY-V0301-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0301-OBSERVED-SHADOW-INTEGRITY-REPAIR`.
+
+v0.30.1 records the v0.30.0 publication facts and repairs observed-run acceptance semantics. Deterministic fixture evidence is `evidenceOrigin=deterministic-fixture`, `acceptanceDecision=blocked`, `observedRunAccepted=false`; accepted observed evidence requires explicit `--artifact-root` manifest validation with source commit, approval, freshness, provenance, redaction and immutable SHA-256 artifact checks.
+
+## Release v0.31.0 Controlled Production Enablement Gate
+
+`GH-1487-VERIFY-V0310-NO-DEFAULT-TRADING-CONTRACT`, `GH-1488-VERIFY-V0310-CREDENTIAL-APPROVAL-GATE`, `GH-1489-VERIFY-V0310-PRODUCTION-ENDPOINT-READ-ONLY-ALLOWLIST`, `GH-1490-VERIFY-V0310-CAPITAL-RISK-STALE-INPUT-GATES`, `GH-1491-VERIFY-V0310-MANUAL-APPROVAL-RUN-LOCK`, `GH-1492-VERIFY-V0310-NO-TRADE-KILL-SWITCH-ROLLBACK-GATES`, `GH-1493-VERIFY-V0310-SIGNED-READ-ONLY-PREFLIGHT-NO-MUTATION`, `GH-1494-VERIFY-V0310-IMMUTABLE-ENABLEMENT-AUDIT-BUNDLE`, `GH-1495-VERIFY-V0310-READ-ONLY-STATUS-SURFACE`, `GH-1496-VERIFY-V0310-STAGE-AUDIT-RELEASE-DOCS`, `TVM-RELEASE-V0310-CONTROLLED-PRODUCTION-ENABLEMENT-GATE`, `V0310-001-NO-DEFAULT-TRADING-CONTRACT`, `V0310-002-CREDENTIAL-APPROVAL-GATE`, `V0310-003-READ-ONLY-ENDPOINT-ALLOWLIST`, `V0310-004-CAPITAL-RISK-STALE-INPUT-GATES`, `V0310-005-MANUAL-APPROVAL-RUN-LOCK`, `V0310-006-KILL-NOTRADE-ROLLBACK-GATES`, `V0310-007-SIGNED-READONLY-NO-MUTATION`, `V0310-008-IMMUTABLE-AUDIT-BUNDLE`, `V0310-009-READONLY-STATUS-SURFACE`, `V0310-010-STAGE-AUDIT-RELEASE-DOCS`.
+
+v0.31.0 is the next readiness gate after observed shadow acceptance: controlled enablement remains blocked until credential approval, read-only endpoint allowlist, capital/risk, manual run lock, safety gates, signed preflight and immutable audit bundle evidence hold. Required facts: `decision=blocked`, `productionTradingEnabledByDefault=false`, `productionCutoverAuthorized=false`, `automaticSecretReadEnabled=false`, `automaticBrokerConnectionEnabled=false`, `productionSubmitCancelReplaceEnabled=false`.
+
+## Release v0.32.3 Integrity Repair and v0.33.0 Handoff
+
+Roadmap anchors: `GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES`, `TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR`, `V0323-007-STAGE-AUDIT-RELEASE-NOTES`, `V0323-007-BACKEND-CLOSURE-BLOCKED`, `V0323-007-BINANCE-SPOT-USDM-FUTURES-ONLY`, `V0323-007-V0330-BLOCKED-UNTIL-V0323-PUBLISHED`, `V0323-007-NO-PRODUCTION-CUTOVER`.
+
+v0.32.3 completes persistent evidence-integrity prerequisites for Binance Spot + USD-M Futures without executing an observed canary. `observedProductionCanary=false`, `backendClosureDecision=blocked`, and `productionCutoverAuthorized=false`. v0.33.0 may enter queue only after v0.32.3 is published by the hosted full matrix and still requires explicit Human approval.
+
+## Release v0.33.0 Demo Parity Backend Freeze
+
+Human 已确认以 Binance Spot 与 USD-M Futures Demo Network 双产品验证完成后端功能验收。当前路线不再新增 production canary 功能版本；closure PR 只修复 Linux `Crypto` 兼容、full-matrix required-check 聚合和收口事实。验收后冻结结果为 `backendClosureDecision=accepted-demo-network-parity`，同时保持 `productionCutoverAuthorized=false` 与默认生产交易关闭。

@@ -69,7 +69,7 @@ require_file_contains "$AUDIT" "v0.8.1 release tag is not created by this closeo
 require_file_contains "$NOTES" "MTPRO Release v0.8.1 Release Publication + Dashboard Guard Patch Notes"
 require_file_contains "$NOTES" "v0.8.1 是 v0.8.0 public release publication 后的 patch evidence closeout"
 require_file_contains "$NOTES" "Do not create the release tag unless explicitly requested after merge"
-require_file_contains "README.md" "v0.8.1 patch evidence"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "v0.8.1 patch evidence"
 require_file_contains "$LATEST_SUMMARY" "Release v0.8.1 Patch Closeout Snapshot"
 require_file_contains "$LATEST_SUMMARY" "$AUDIT"
 require_file_contains "$VALIDATION_PLAN" "GH-841 Release v0.8.1 Patch Audit / Docs / Release Notes Validation"

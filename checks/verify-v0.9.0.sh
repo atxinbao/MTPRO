@@ -76,7 +76,7 @@ require_file_contains "$NOTES" "MTPRO Release v0.9.0 Testnet No-order Observabil
 for publication_fact in \
   "https://github.com/atxinbao/MTPRO/releases/tag/v0.9.0" \
   "4296bf73673fe0fd8f09e34c40ef2a3a9ba7e55c"; do
-  require_file_contains "README.md" "$publication_fact"
+  require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "$publication_fact"
   require_file_contains "$NOTES" "$publication_fact"
   require_file_contains "$AUDIT" "$publication_fact"
   require_file_contains "$PUBLICATION_POLICY" "$publication_fact"
@@ -87,12 +87,12 @@ require_file_contains "$PUBLICATION_POLICY" "stable release；非 draft；非 pr
 require_file_contains "$PUBLICATION_POLICY" "V090-ACTUAL-GITHUB-RELEASE"
 require_file_contains "$RUNBOOK" "V090-014-VALIDATION-SUMMARY"
 require_file_contains "$RUNBOOK" "TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
-require_file_contains "README.md" "MTPRO Release v0.9.0 Testnet No-order Observability"
-require_file_contains "README.md" "bash checks/verify-v0.9.0.sh"
-require_file_contains "GOAL.md" "MTPRO Release v0.9.0 Testnet No-order Observability"
-require_file_contains "BLUEPRINT.md" "v0.9.0 testnet no-order observability"
-require_file_contains "docs/roadmap.md" "GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
-require_file_contains "docs/roadmap.md" "Project Closure Count: 43 / 43 (100%)"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "MTPRO Release v0.9.0 Testnet No-order Observability"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "bash checks/verify-v0.9.0.sh"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "MTPRO Release v0.9.0 Testnet No-order Observability"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "v0.9.0 testnet no-order observability"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "Project Closure Count: 43 / 43 (100%)"
 require_file_contains "docs/validation/latest-verification-summary.md" "Release v0.9.0 Closure Snapshot"
 require_file_contains "docs/validation/latest-verification-summary.md" "$AUDIT"
 require_file_contains "$VALIDATION_PLAN" "GH-856 Release v0.9.0 Final Audit / Docs / Runbook Validation"

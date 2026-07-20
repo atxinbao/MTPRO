@@ -62,10 +62,10 @@ for file in \
   "checks/run.sh" \
   "docs/release/mtpro-release-v0.30.1-observed-shadow-integrity-repair-patch-notes.md" \
   "docs/audit/mtpro-release-v0.30.1-observed-shadow-integrity-repair-stage-code-audit.md" \
-  "README.md" \
-  "GOAL.md" \
-  "BLUEPRINT.md" \
-  "docs/roadmap.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/validation/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
@@ -90,10 +90,10 @@ require_file_contains "checks/automation-readiness.sh" "checks/verify-v0.30.1.sh
 require_file_contains "Sources/ExecutionClient/FutureGate/ReleaseV0300ObservedProductionShadowRun.swift" "loadObservedArtifactBundle"
 require_file_contains "Sources/ExecutionClient/FutureGate/ReleaseV0300ObservedProductionShadowRun.swift" "--artifact-root"
 require_file_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "acceptedRun.observedRunAccepted"
-reject_file_contains "README.md" "observedRunAccepted=true"
-reject_file_contains "GOAL.md" "observedRunAccepted=true"
-reject_file_contains "BLUEPRINT.md" "observedRunAccepted=true"
-reject_file_contains "docs/roadmap.md" "observedRunAccepted=true"
+reject_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "observedRunAccepted=true"
+reject_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "observedRunAccepted=true"
+reject_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "observedRunAccepted=true"
+reject_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "observedRunAccepted=true"
 reject_file_contains "docs/validation/latest-verification-summary.md" "observedRunAccepted=true"
 
 printf 'MTPRO v0.30.1 observed shadow integrity repair checks passed.\n'

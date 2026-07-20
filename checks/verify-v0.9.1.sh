@@ -57,9 +57,9 @@ require_file_contains "$NOTES" "https://github.com/atxinbao/MTPRO/releases/tag/v
 require_file_contains "$NOTES" "d041f0dd304075562a85e494695697290972288f"
 require_file_contains "$LATEST" "Release v0.9.1 Audit Hardening Patch Snapshot"
 require_file_contains "$LATEST" "https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1"
-require_file_contains "README.md" "v0.9.1 patch evidence"
-require_file_contains "README.md" "https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1"
-require_file_contains "README.md" "bash checks/verify-v0.9.1.sh"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "v0.9.1 patch evidence"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "https://github.com/atxinbao/MTPRO/releases/tag/v0.9.1"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "bash checks/verify-v0.9.1.sh"
 require_file_contains "$POLICY" "GH-879-V0100-V091-ACTUAL-GITHUB-RELEASE"
 require_file_contains "$AUTOMATION_SCRIPT" "V091-006-VERIFY-PATCH-AUDIT-DOCS-RUNBOOK"
 require_file_contains "$TESTS" "testV091DashboardGuardAndCLIMonitorStoreBindingPatch"
@@ -71,7 +71,7 @@ for outdated in \
   reject_file_contains "$AUDIT" "$outdated"
   reject_file_contains "$NOTES" "$outdated"
   reject_file_contains "$LATEST" "$outdated"
-  reject_file_contains "README.md" "$outdated"
+  reject_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "$outdated"
 done
 
 for forbidden in \

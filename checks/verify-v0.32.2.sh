@@ -43,8 +43,8 @@ for file in \
   docs/release/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-notes.md \
   docs/validation/latest-verification-summary.md \
   docs/validation/trading-validation-matrix.md \
-  README.md \
-  GOAL.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/README.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md \
   verification.md
 do
   require_contains "$file" "GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX"
