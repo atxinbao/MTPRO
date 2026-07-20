@@ -24410,7 +24410,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -24546,7 +24546,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -24703,7 +24703,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -24830,7 +24830,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -25012,7 +25012,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -25243,7 +25243,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -25550,7 +25550,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -25793,7 +25793,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -26103,7 +26103,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -26382,7 +26382,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -26735,7 +26735,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -26878,7 +26878,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -27045,7 +27045,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -27241,7 +27241,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -27440,7 +27440,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -27615,7 +27615,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -27810,7 +27810,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -28001,7 +28001,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -28143,7 +28143,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -28265,7 +28265,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -28419,7 +28419,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -28593,7 +28593,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -28730,7 +28730,7 @@ final class TargetGraphTests: XCTestCase {
         let latestSummary = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationMatrix = try read("docs/validation/trading-validation-matrix.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
-        let domainContext = try read("docs/domain/context.md")
+        let domainContext = try read("docs/history/architecture-pre-canonicalization-2026-07-20/context.md")
         let automationReadiness = try read("docs/automation/automation-readiness.md")
         let releaseGuard = try read("checks/automation-readiness.d/release-v0.2.0-boundary.sh")
         let releaseContract = try read(
@@ -57474,7 +57474,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -57548,7 +57548,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -57626,7 +57626,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let validationMatrix = try String(
@@ -57702,7 +57702,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -57756,7 +57756,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -57827,7 +57827,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -57964,7 +57964,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -58064,7 +58064,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -58190,7 +58190,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -58349,7 +58349,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -58463,7 +58463,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let domainContext = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/domain/context.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/architecture-pre-canonicalization-2026-07-20/context.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
