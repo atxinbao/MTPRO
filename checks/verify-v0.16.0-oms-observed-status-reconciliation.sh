@@ -40,7 +40,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" \
   "docs/contracts/release-v0.16.0-oms-observed-status-reconciliation-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -69,7 +69,7 @@ require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.0-oms-obs
 for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" \
   "docs/contracts/release-v0.16.0-oms-observed-status-reconciliation-contract.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/release/release-publication-policy.md"; do
   require_absent "$file" "productionTradingEnabledByDefault=true"
   require_absent "$file" "productionCutoverAuthorized=true"

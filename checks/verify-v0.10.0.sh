@@ -64,7 +64,7 @@ VALIDATION_PLAN="docs/validation/validation-plan.md"
 TRADING_MATRIX="docs/validation/trading-validation-matrix.md"
 AUTOMATION_DOC="docs/automation/automation-readiness.md"
 AUTOMATION_SCRIPT="checks/automation-readiness.sh"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 
 for file in "$AUDIT" "$NOTES" "$RUNBOOK" "$VALIDATION_PLAN" "$TRADING_MATRIX" "$AUTOMATION_DOC" "$AUTOMATION_SCRIPT" "$LATEST"; do
   require_file_contains "$file" "v0.10.0"

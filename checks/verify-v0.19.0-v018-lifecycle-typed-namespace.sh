@@ -41,7 +41,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE"
@@ -70,7 +70,7 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1210Rele
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 v0.18 lifecycle typed namespace anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 v0.18 lifecycle typed namespace"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 v0.18 lifecycle typed namespace"
 require_contains "docs/validation/validation-plan.md" "GH-1210 Release v0.19.0 v0.18 Lifecycle Typed Namespace"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE"
 

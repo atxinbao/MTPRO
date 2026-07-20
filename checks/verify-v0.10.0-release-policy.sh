@@ -35,7 +35,7 @@ reject_file_contains() {
 POLICY="docs/release/release-publication-policy.md"
 NOTES="docs/release/mtpro-release-v0.9.1-v090-audit-hardening-notes.md"
 AUDIT="docs/audit/mtpro-release-v0.9.1-v090-audit-hardening-stage-code-audit.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 MATRIX="docs/validation/trading-validation-matrix.md"
 PLAN="docs/validation/validation-plan.md"
 READINESS="docs/automation/automation-readiness.md"

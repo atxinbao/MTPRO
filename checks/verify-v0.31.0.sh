@@ -134,14 +134,14 @@ for file in \
   "docs/audit/mtpro-release-v0.31.0-controlled-production-enablement-gate-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.31.0-controlled-production-enablement-gate-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
-  "verification.md"; do
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"; do
   for expected in \
     "GH-1487-VERIFY-V0310-NO-DEFAULT-TRADING-CONTRACT" \
     "GH-1488-VERIFY-V0310-CREDENTIAL-APPROVAL-GATE" \
@@ -173,8 +173,8 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
-  "docs/validation/latest-verification-summary.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "docs/release/mtpro-release-v0.31.0-controlled-production-enablement-gate-notes.md"; do
   for expected in \
     "decision=blocked" \

@@ -96,7 +96,7 @@ require_file "docs/audit/mtpro-account-position-balance-read-model-only-v1-stage
 require_file "docs/audit/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-code-audit.md"
 require_file "docs/audit/mtpro-strategy-trader-instance-readiness-v1-stage-code-audit.md"
 require_file "docs/validation/eval-strategy.md"
-require_file "docs/validation/latest-verification-summary.md"
+require_file "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 require_file "docs/validation/macos-build-run-loop.md"
 require_file "docs/validation/trading-validation-matrix.md"
 require_file "docs/validation/validation-plan.md"
@@ -276,7 +276,7 @@ require_file "docs/audit/mtpro-release-v0.20.0-binance-spot-production-shadow-re
 require_file "docs/release/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-notes.md"
 require_file "docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md"
 require_file "docs/history/root-docs-pre-canonicalization-2026-07-20/environment.md"
-require_file "verification.md"
+require_file "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
 
 for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" \
@@ -285,7 +285,7 @@ for file in \
   "docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md" \
   "docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -318,7 +318,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" \
   "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -354,7 +354,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" \
   "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -385,7 +385,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift" \
   "docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -407,7 +407,7 @@ require_contains "docs/validation/validation-plan.md" "GH-1137 Release v0.16.1 S
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0161-STATUS-QUERY-TRANSPORT-WORDING"
 require_contains "docs/release/release-publication-policy.md" "request-construction evidence does not itself assert a network side effect"
 require_contains "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md" "request evidence flag"
-require_contains "docs/validation/latest-verification-summary.md" "guarded Testnet status transport result evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "guarded Testnet status transport result evidence"
 require_contains "checks/run.sh" "bash checks/verify-v0.16.1-status-query-transport-wording.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.16.1-status-query-transport-wording.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1137ReleaseV0161StatusQueryTransportEvidenceWording"
@@ -420,7 +420,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -458,7 +458,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh" \
@@ -491,7 +491,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.17.0-artifact-bundle-replay-validator.sh" \
@@ -524,7 +524,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh" \
@@ -556,7 +556,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh" \
@@ -588,7 +588,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh" \
@@ -622,7 +622,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh" \
@@ -657,7 +657,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.17.0-cli-artifact-verify-command.sh" \
@@ -690,7 +690,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.17.0-manual-workflow-artifact-validation.sh" \
@@ -725,7 +725,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh" \
@@ -766,7 +766,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -908,10 +908,10 @@ require_contains "docs/automation/ci-reproducibility.md" "libsqlite3-dev"
 require_contains "docs/automation/ci-reproducibility.md" "Formatter gate boundary"
 require_contains "docs/automation/ci-reproducibility.md" "不把 formatter 升级为 required check"
 require_contains "docs/automation/ci-reproducibility.md" "GH-450-CI-REPRODUCIBILITY-NON-AUTHORIZATION"
-require_contains "docs/validation/latest-verification-summary.md" "CI reproducibility hardening"
-require_contains "docs/validation/latest-verification-summary.md" "GH-450 \`Harden CI Swift and sqlite reproducibility contract\`"
-require_contains "docs/validation/latest-verification-summary.md" "runner-pinned Swift 6.3.x baseline"
-require_contains "docs/validation/latest-verification-summary.md" "formatter 不强制接入 required checks"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "CI reproducibility hardening"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-450 \`Harden CI Swift and sqlite reproducibility contract\`"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "runner-pinned Swift 6.3.x baseline"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "formatter 不强制接入 required checks"
 require_file "Sources/ExecutionClient/FutureGate/ReleaseV040UnifiedRuntimeRehearsalPipelineContract.swift"
 require_file "docs/contracts/release-v0.4.0-unified-runtime-rehearsal-pipeline-contract.md"
 require_contains "docs/contracts/release-v0.4.0-unified-runtime-rehearsal-pipeline-contract.md" "V040-01-UNIFIED-RUNTIME-REHEARSAL-PIPELINE-CONTRACT"
@@ -1069,7 +1069,7 @@ require_contains "checks/verify-v0.12.0.sh" "V0120-001-NO-PRODUCTION-CUTOVER"
 require_contains "checks/run.sh" "bash checks/verify-v0.12.0.sh"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "assessmentSessionAllowed=true"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "Production cutover 仍是独立 human-approved gate"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Readiness Assessment Session Contract Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Readiness Assessment Session Contract Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-READINESS-ASSESSMENT-SESSION-CONTRACT"
 require_contains "docs/validation/validation-plan.md" "GH-952 Release v0.12.0 Readiness Assessment Session No-authorization Contract Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH952ReleaseV0120ReadinessAssessmentSessionNoAuthorizationContract"
@@ -1080,7 +1080,7 @@ require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-co
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-002-CONSTRUCTION-PUBLICATION-CUTOVER-SEPARATION"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-002-NO-PRODUCTION-CUTOVER"
 require_contains "docs/release/release-publication-policy.md" "V0120-002-V011X-RELEASE-PATCH-FACT-BASELINE"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 v0.11.x Publication / Patch Fact Baseline Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 v0.11.x Publication / Patch Fact Baseline Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-V011X-RELEASE-PATCH-FACTS"
 require_contains "docs/validation/validation-plan.md" "GH-953 Release v0.12.0 v0.11.x Publication / Patch Fact Baseline Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH953ReleaseV0120CarriesForwardV011XPublicationAndPatchFacts"
@@ -1111,7 +1111,7 @@ require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-co
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" ".local/mtpro/readiness/registry.json"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" ".local/mtpro/readiness/assessments/<assessmentID>/"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "create / list / inspect / archive / recover"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Readiness Assessment Registry Store Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Readiness Assessment Registry Store Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-READINESS-ASSESSMENT-REGISTRY-STORE"
 require_contains "docs/validation/validation-plan.md" "GH-954 Release v0.12.0 Readiness Assessment Registry Store Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH954ReadinessAssessmentRegistryStorePersistsLifecycleAndCompareReadyMetadata"
@@ -1136,7 +1136,7 @@ require_contains "checks/verify-v0.12.0.sh" "V0120-004-CRASH-RECOVERY-SEMANTICS"
 require_contains "checks/verify-v0.12.0.sh" "V0120-004-NO-PRODUCTION-CUTOVER"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-004-ASSESSMENT-TRANSACTION-LOCK"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-004-COMPARE-AND-SWAP-MANIFEST"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Assessment Transaction Lock / Generation Control Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Assessment Transaction Lock / Generation Control Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-ASSESSMENT-TRANSACTION-LOCK"
 require_contains "docs/validation/validation-plan.md" "GH-955 Release v0.12.0 Assessment Transaction Lock / Generation Control Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH955AssessmentTransactionLockControlsGenerationAndCrashRecovery"
@@ -1160,7 +1160,7 @@ require_contains "checks/verify-v0.12.0.sh" "V0120-005-PRODUCER-VERSION-SCHEMA"
 require_contains "checks/verify-v0.12.0.sh" "V0120-005-NO-PRODUCTION-CUTOVER"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-005-READINESS-MANIFEST-V2"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "sourceRunIDs / sourceCommit / artifactSHA256 / artifactBytes / producerVersion"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Readiness Manifest V2 / Provenance Schema Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Readiness Manifest V2 / Provenance Schema Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-READINESS-MANIFEST-V2"
 require_contains "docs/validation/validation-plan.md" "GH-956 Release v0.12.0 Readiness Manifest V2 / Provenance Schema Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH956ReadinessManifestV2RecordsAssessmentGenerationAndProvenance"
@@ -1186,7 +1186,7 @@ require_contains "checks/verify-v0.12.0.sh" "V0120-006-CONTENT-VALIDATION-CHECKS
 require_contains "checks/verify-v0.12.0.sh" "V0120-006-NO-PRODUCTION-CUTOVER"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-006-ARTIFACT-CONTENT-POLICY"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "forbiddenRawMarkers"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Artifact Content-policy / Redaction Validator Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Artifact Content-policy / Redaction Validator Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-ARTIFACT-CONTENT-POLICY-REDACTION"
 require_contains "docs/validation/validation-plan.md" "GH-957 Release v0.12.0 Artifact Content-policy / Redaction Validator Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH957ArtifactContentPolicyRejectsSecretsListenKeysOrdersAndEndpointResponses"
@@ -1212,7 +1212,7 @@ require_contains "checks/verify-v0.12.0.sh" "V0120-007-NO-PRODUCTION-CUTOVER"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-007-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "readiness-bundle-v2.json"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "readiness-bundle-v2.manifest.json"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Immutable Readiness Bundle Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Immutable Readiness Bundle Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT"
 require_contains "docs/validation/validation-plan.md" "GH-958 Release v0.12.0 Immutable Readiness Bundle Snapshot Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH958ImmutableReadinessBundleSnapshotRequiresNewGenerationOnChange"
@@ -1240,7 +1240,7 @@ require_contains "checks/verify-v0.12.0.sh" "V0120-008-NO-PRODUCTION-CUTOVER"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-008-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "observedAt"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "sourceChecksum"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Kill Switch / No-trade Trustworthy Observations Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Kill Switch / No-trade Trustworthy Observations Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS"
 require_contains "docs/validation/validation-plan.md" "GH-959 Release v0.12.0 Kill Switch / No-trade Trustworthy Observations Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH959KillSwitchNoTradeTrustworthyObservationsFailClosed"
@@ -1271,7 +1271,7 @@ require_contains "checks/verify-v0.12.0.sh" "V0120-009-NO-PRODUCTION-CUTOVER"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-009-APPROVAL-ROLE-QUORUM-SEPARATION"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "boundBundleChecksum"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "transitionChecksumChain"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Approval Role / Quorum Separation Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Approval Role / Quorum Separation Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-APPROVAL-ROLE-QUORUM-SEPARATION"
 require_contains "docs/validation/validation-plan.md" "GH-960 Release v0.12.0 Approval Role / Quorum Separation Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH960ApprovalRolesQuorumAndBundleBindingFailClosed"
@@ -1301,7 +1301,7 @@ require_contains "checks/verify-v0.12.0.sh" "V0120-010-NO-PRODUCTION-CUTOVER"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-010-SHADOW-PARITY-SOURCE-SNAPSHOT"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "sourceRunManifestChecksum"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "sourceSnapshotBindingHeld"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Shadow Parity Source Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Shadow Parity Source Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-SHADOW-PARITY-SOURCE-SNAPSHOT"
 require_contains "docs/validation/validation-plan.md" "GH-961 Release v0.12.0 Shadow Parity Source Snapshot Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH961ShadowParityBindsImmutableSourceRunSnapshot"
@@ -1330,7 +1330,7 @@ require_contains "checks/verify-v0.12.0.sh" "V0120-011-NO-PRODUCTION-CUTOVER"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-011-READINESS-ASSESSMENT-DIFF-COMPARE"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "policyChecksum"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "source-run-evidence"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Readiness Assessment Diff / Compare"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Readiness Assessment Diff / Compare"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-READINESS-ASSESSMENT-DIFF-COMPARE"
 require_contains "docs/validation/validation-plan.md" "GH-962 Release v0.12.0 Readiness Assessment Diff / Compare Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH962ReadinessAssessmentDiffCompareIsLocalAndNonMutating"
@@ -1354,7 +1354,7 @@ require_contains "checks/verify-v0.12.0.sh" "swift run mtpro readiness compare"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-012-ASSESSMENT-SCOPED-CLI-LIFECYCLE"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "mtpro readiness create"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "invalidAssessmentIDsFailClosed=true"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Assessment-scoped CLI Lifecycle"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Assessment-scoped CLI Lifecycle"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-ASSESSMENT-CLI-LIFECYCLE"
 require_contains "docs/validation/validation-plan.md" "GH-963 Release v0.12.0 Assessment-scoped CLI Lifecycle Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH963ReadinessAssessmentCLILifecycleUsesLocalRegistryOnly"
@@ -1386,7 +1386,7 @@ require_contains "checks/run.sh" "bash checks/verify-v0.12.0-dashboard-macos-gua
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-013-DASHBOARD-ASSESSMENT-HISTORY"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "assessment list / detail / generation history"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "adversarial CI guard"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Dashboard Assessment History / Adversarial CI"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Dashboard Assessment History / Adversarial CI"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-DASHBOARD-ASSESSMENT-HISTORY"
 require_contains "docs/validation/validation-plan.md" "GH-964 Release v0.12.0 Dashboard Assessment History / Adversarial CI Validation"
 require_contains "Tests/AppTests/AppTests.swift" "testGH964DashboardAssessmentHistoryShowsLocalEvidenceAndAdversarialCoverageWithoutCommands"
@@ -1409,7 +1409,7 @@ require_contains "docs/release/mtpro-release-v0.12.0-readiness-assessment-sessio
 require_contains "docs/operators/release-v0.12.0-readiness-assessment-sessions-runbook.md" "V0120-014-OPERATOR-RUNBOOK"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "V0120-014-FINAL-AUDIT-DOCS-RUNBOOK"
 require_contains "docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md" "GH-965-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.12.0 Final Audit / Docs / Runbook Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.12.0 Final Audit / Docs / Runbook Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0120-FINAL-AUDIT-DOCS-RUNBOOK"
 require_contains "docs/validation/validation-plan.md" "GH-965 Release v0.12.0 Final Audit / Docs / Runbook Validation"
 require_contains "checks/verify-v0.12.0.sh" "GH-965-VERIFY-V0120-FINAL-AUDIT-DOCS-RUNBOOK"
@@ -1435,7 +1435,7 @@ require_contains "checks/verify-v0.11.1.sh" "V0111-007-NO-TAG-OR-RELEASE-MOVE"
 require_contains "docs/audit/mtpro-release-v0.11.1-readiness-runtime-guard-patch-stage-code-audit.md" "GH-951-VERIFY-V0111-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "docs/release/mtpro-release-v0.11.1-readiness-runtime-guard-patch-notes.md" "V0111-007-RELEASE-NOTES"
 require_contains "docs/release/release-publication-policy.md" "V0111-007-PATCH-AUDIT-RELEASE-NOTES"
-require_contains "docs/validation/latest-verification-summary.md" "v0.11.1 patch audit / release notes closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.11.1 patch audit / release notes closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0111-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "docs/validation/validation-plan.md" "GH-951 Release v0.11.1 Patch Audit / Release Notes Closeout Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH951ReleaseV0111PatchAuditReleaseNotesCloseout"
@@ -1644,7 +1644,7 @@ require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V01
 require_contains "docs/validation/validation-plan.md" "GH-912 Release v0.10.1 Patch Audit / Release Notes Validation"
 require_contains "docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md" "V0101-007-PATCH-AUDIT"
 require_contains "docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md" "V0101-007-RELEASE-NOTES"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.10.1 Production Readiness Audit Hardening Patch Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.10.1 Production Readiness Audit Hardening Patch Snapshot"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH912ReleaseV0101PatchAuditReleaseNotesCloseout"
 for v0101_patch_closeout_anchor in \
   "GH-912-VERIFY-V0101-PATCH-AUDIT-RELEASE-NOTES" \
@@ -1658,7 +1658,7 @@ for v0101_patch_closeout_anchor in \
   require_contains "checks/verify-v0.10.1.sh" "$v0101_patch_closeout_anchor"
   require_contains "docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md" "$v0101_patch_closeout_anchor"
   require_contains "docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md" "$v0101_patch_closeout_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0101_patch_closeout_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0101_patch_closeout_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0101_patch_closeout_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0101_patch_closeout_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0101_patch_closeout_anchor"
@@ -1670,7 +1670,7 @@ require_contains "checks/run.sh" "bash checks/verify-v0.11.0.sh"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT"
 require_contains "docs/validation/validation-plan.md" "GH-913 Release v0.11.0 Production Readiness Evidence Runtime Contract Validation"
 require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "V0110-001-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Production Readiness Evidence Runtime Contract Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Production Readiness Evidence Runtime Contract Snapshot"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH913ReleaseV0110ProductionReadinessEvidenceRuntimeContract"
 for v0110_contract_anchor in \
   "GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT" \
@@ -1687,7 +1687,7 @@ for v0110_contract_anchor in \
   "V0110-001-RELEASE-VALIDATION-MATRIX"; do
   require_contains "checks/verify-v0.11.0.sh" "$v0110_contract_anchor"
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_contract_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_contract_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_contract_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_contract_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0110_contract_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0110_contract_anchor"
@@ -1695,7 +1695,7 @@ for v0110_contract_anchor in \
 done
 require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 production readiness artifact store anchor"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "ProductionReadinessArtifactStore"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Production Readiness Artifact Store Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Production Readiness Artifact Store Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-PRODUCTION-READINESS-ARTIFACT-STORE"
 require_contains "docs/validation/validation-plan.md" "GH-914 Release v0.11.0 Production Readiness Artifact Store Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH914ProductionReadinessArtifactStoreUsesLocalExplicitStates"
@@ -1710,7 +1710,7 @@ for v0110_artifact_store_anchor in \
   require_contains "checks/verify-v0.11.0.sh" "$v0110_artifact_store_anchor"
   require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_artifact_store_anchor"
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_artifact_store_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_artifact_store_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_artifact_store_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_artifact_store_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0110_artifact_store_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0110_artifact_store_anchor"
@@ -1718,7 +1718,7 @@ for v0110_artifact_store_anchor in \
 done
 require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 readiness manifest atomic IO anchor"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "ProductionReadinessManifest"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Readiness Manifest Atomic IO Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Readiness Manifest Atomic IO Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-READINESS-MANIFEST-ATOMIC-IO"
 require_contains "docs/validation/validation-plan.md" "GH-915 Release v0.11.0 Readiness Manifest Atomic IO Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH915ReadinessManifestSchemaAndAtomicIORequireRealArtifacts"
@@ -1733,7 +1733,7 @@ for v0110_manifest_anchor in \
   require_contains "checks/verify-v0.11.0.sh" "$v0110_manifest_anchor"
   require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_manifest_anchor"
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_manifest_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_manifest_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_manifest_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_manifest_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0110_manifest_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0110_manifest_anchor"
@@ -1741,7 +1741,7 @@ for v0110_manifest_anchor in \
 done
 require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 canonical JSON SHA256 checksum anchor"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "canonicalJSONSHA256Checksum(for data: Data)"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Canonical JSON SHA256 Checksum Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Canonical JSON SHA256 Checksum Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-CANONICAL-JSON-SHA256-CHECKSUM"
 require_contains "docs/validation/validation-plan.md" "GH-916 Release v0.11.0 Canonical JSON SHA256 Checksum Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH916CanonicalJSONSHA256RejectsPlaceholderAndMismatchChecksums"
@@ -1755,7 +1755,7 @@ for v0110_checksum_anchor in \
   require_contains "checks/verify-v0.11.0.sh" "$v0110_checksum_anchor"
   require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_checksum_anchor"
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_checksum_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_checksum_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_checksum_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_checksum_anchor"
 	require_contains "docs/validation/trading-validation-matrix.md" "$v0110_checksum_anchor"
 	require_contains "docs/validation/validation-plan.md" "$v0110_checksum_anchor"
@@ -1764,7 +1764,7 @@ done
 require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 readiness bundle validation anchor"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "ProductionReadinessBundleValidationState"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "validateReadinessBundle("
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Readiness Bundle Validation Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Readiness Bundle Validation Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-READINESS-BUNDLE-VALIDATION"
 require_contains "docs/validation/validation-plan.md" "GH-917 Release v0.11.0 Readiness Bundle Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH917ReadinessBundleValidationClassifiesRequiredArtifactsPolicyAndChecksum"
@@ -1780,7 +1780,7 @@ for v0110_bundle_anchor in \
   require_contains "checks/verify-v0.11.0.sh" "$v0110_bundle_anchor"
   require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_bundle_anchor"
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_bundle_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_bundle_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_bundle_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_bundle_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0110_bundle_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0110_bundle_anchor"
@@ -1789,7 +1789,7 @@ done
 require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 shadow dry-run parity runner anchor"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "ProductionReadinessShadowDryRunParityRunnerAnchors"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "writeShadowDryRunParityArtifact("
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Shadow Dry-run Parity Runner Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Shadow Dry-run Parity Runner Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-SHADOW-DRY-RUN-PARITY-RUNNER"
 require_contains "docs/validation/validation-plan.md" "GH-918 Release v0.11.0 Shadow Dry-run Parity Runner Validation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH918ShadowDryRunParityRunnerBuildsArtifactFromLocalRunEvidence"
@@ -1804,7 +1804,7 @@ for v0110_shadow_parity_anchor in \
   require_contains "checks/verify-v0.11.0.sh" "$v0110_shadow_parity_anchor"
   require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_shadow_parity_anchor"
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_shadow_parity_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_shadow_parity_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_shadow_parity_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_shadow_parity_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0110_shadow_parity_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0110_shadow_parity_anchor"
@@ -1819,7 +1819,7 @@ require_contains "Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadin
 require_contains "Tests/AppTests/AppTests.swift" "testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH919DashboardProductionReadinessCenterBindsRealArtifactStateAnchors"
 require_contains "checks/verify-v0.11.0.sh" "testGH919DashboardProductionReadinessCenterBindsRealLocalArtifactStatesReadOnly"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Dashboard Real Artifact State Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Dashboard Real Artifact State Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-DASHBOARD-REAL-ARTIFACT-STATE"
 require_contains "docs/validation/validation-plan.md" "GH-919 Release v0.11.0 Dashboard Real Artifact State Validation"
 for v0110_dashboard_artifact_anchor in \
@@ -1833,7 +1833,7 @@ for v0110_dashboard_artifact_anchor in \
   require_contains "checks/verify-v0.11.0.sh" "$v0110_dashboard_artifact_anchor"
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_dashboard_artifact_anchor"
   require_contains "Sources/Dashboard/Report/ReleaseV0100DashboardProductionReadinessCenter.swift" "$v0110_dashboard_artifact_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_dashboard_artifact_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_dashboard_artifact_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_dashboard_artifact_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0110_dashboard_artifact_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0110_dashboard_artifact_anchor"
@@ -1852,7 +1852,7 @@ require_contains "Sources/MTPROCLI/main.swift" "missingInvalidStaleChecksumMisma
 require_contains "Sources/MTPROCLI/main.swift" "productionCutoverRemainsSeparatelyGated=true"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities"
 require_contains "checks/verify-v0.11.0.sh" "testGH920ReadinessCLIOperatesOnLocalArtifactsWithoutProductionCapabilities"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Readiness CLI Local Artifact Commands Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Readiness CLI Local Artifact Commands Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-READINESS-CLI-LOCAL-ARTIFACTS"
 require_contains "docs/validation/validation-plan.md" "GH-920 Release v0.11.0 Readiness CLI Local Artifact Commands Validation"
 for v0110_readiness_cli_anchor in \
@@ -1866,14 +1866,14 @@ for v0110_readiness_cli_anchor in \
   require_contains "checks/verify-v0.11.0.sh" "$v0110_readiness_cli_anchor"
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_readiness_cli_anchor"
   require_contains "Sources/MTPROCLI/main.swift" "$v0110_readiness_cli_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_readiness_cli_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_readiness_cli_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_readiness_cli_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0110_readiness_cli_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0110_readiness_cli_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_readiness_cli_anchor"
 done
 require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 fixed-point capital / exposure policy anchor"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Fixed-point Capital / Exposure Policy Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Fixed-point Capital / Exposure Policy Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY"
 require_contains "docs/validation/validation-plan.md" "GH-921 Release v0.11.0 Fixed-point Capital / Exposure Policy Validation"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100CapitalExposureLimitReadinessGate.swift" "ReleaseV0110FixedPointPolicyValue"
@@ -1894,14 +1894,14 @@ for v0110_fixed_point_policy_anchor in \
   require_contains "checks/verify-v0.11.0.sh" "$v0110_fixed_point_policy_anchor"
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_fixed_point_policy_anchor"
   require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_fixed_point_policy_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_fixed_point_policy_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_fixed_point_policy_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_fixed_point_policy_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0110_fixed_point_policy_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0110_fixed_point_policy_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_fixed_point_policy_anchor"
 done
 require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 kill switch / no-trade state model anchor"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Kill Switch / No-trade State Model Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Kill Switch / No-trade State Model Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL"
 require_contains "docs/validation/validation-plan.md" "GH-922 Release v0.11.0 Kill Switch / No-trade State Model Validation"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift" "ReleaseV0110KillSwitchNoTradeReadinessStateModel"
@@ -1925,14 +1925,14 @@ for v0110_kill_switch_no_trade_state_model_anchor in \
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_kill_switch_no_trade_state_model_anchor"
   require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110ProductionReadinessArtifactStore.swift" "$v0110_kill_switch_no_trade_state_model_anchor"
   require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0100KillSwitchNoTradeReadinessGate.swift" "$v0110_kill_switch_no_trade_state_model_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_kill_switch_no_trade_state_model_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_kill_switch_no_trade_state_model_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_kill_switch_no_trade_state_model_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0110_kill_switch_no_trade_state_model_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0110_kill_switch_no_trade_state_model_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_kill_switch_no_trade_state_model_anchor"
 done
 require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 auditable approval workflow transitions anchor"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Auditable Approval Workflow Transitions Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Auditable Approval Workflow Transitions Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS"
 require_contains "docs/validation/validation-plan.md" "GH-923 Release v0.11.0 Auditable Approval Workflow Transitions Validation"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "ReleaseV0110AuditableApprovalWorkflowStateModel"
@@ -1957,14 +1957,14 @@ for v0110_approval_workflow_anchor in \
   require_contains "checks/verify-v0.11.0.sh" "$v0110_approval_workflow_anchor"
   require_contains "docs/contracts/release-v0.11.0-production-readiness-evidence-runtime-contract.md" "$v0110_approval_workflow_anchor"
   require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0110AuditableApprovalWorkflow.swift" "$v0110_approval_workflow_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_approval_workflow_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_approval_workflow_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_approval_workflow_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0110_approval_workflow_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0110_approval_workflow_anchor"
   require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "$v0110_approval_workflow_anchor"
 done
 require_contains "docs/automation/automation-readiness.md" "Release v0.11.0 final audit / release docs closeout anchor"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.11.0 Final Audit / Release Docs Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.11.0 Final Audit / Release Docs Snapshot"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0110-FINAL-AUDIT-RELEASE-DOCS"
 require_contains "docs/validation/validation-plan.md" "GH-924 Release v0.11.0 Final Audit / Release Docs Validation"
 require_contains "docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md" "MTPRO Release v0.11.0 Production Readiness Evidence Runtime + Integrity Hardening Stage Code Audit"
@@ -1984,7 +1984,7 @@ for v0110_final_closeout_anchor in \
   require_contains "checks/verify-v0.11.0.sh" "$v0110_final_closeout_anchor"
   require_contains "docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md" "$v0110_final_closeout_anchor"
   require_contains "docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md" "$v0110_final_closeout_anchor"
-  require_contains "docs/validation/latest-verification-summary.md" "$v0110_final_closeout_anchor"
+  require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "$v0110_final_closeout_anchor"
   require_contains "docs/automation/automation-readiness.md" "$v0110_final_closeout_anchor"
   require_contains "docs/validation/trading-validation-matrix.md" "$v0110_final_closeout_anchor"
   require_contains "docs/validation/validation-plan.md" "$v0110_final_closeout_anchor"
@@ -2362,8 +2362,8 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "v0.9.0 testnet no-order observability"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "GH-856-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "Project Closure Count: 43 / 43 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.9.0 Closure Snapshot"
-require_contains "docs/validation/latest-verification-summary.md" "docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.9.0 Closure Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "docs/audit/mtpro-release-v0.9.0-testnet-no-order-observability-stage-code-audit.md"
 require_contains "docs/validation/validation-plan.md" "GH-856 Release v0.9.0 Final Audit / Docs / Runbook Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V090-FINAL-AUDIT-DOCS-RUNBOOK"
 require_contains "docs/automation/automation-readiness.md" "Release v0.9.0 final audit / docs / runbook anchor"
@@ -2653,8 +2653,8 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "v0.8.0 persistent operator runtime + testnet read-only monitoring"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "GH-820-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "Project Closure Count: 42 / 42 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.8.0 Closure Snapshot"
-require_contains "docs/validation/latest-verification-summary.md" "docs/audit/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-stage-code-audit.md"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.8.0 Closure Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "docs/audit/mtpro-release-v0.8.0-persistent-operator-runtime-testnet-read-only-monitoring-stage-code-audit.md"
 require_contains "docs/automation/automation-readiness.md" "Release v0.8.0 final audit / docs / runbook anchor"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V080-FINAL-AUDIT-DOCS-RUNBOOK"
 require_contains "docs/validation/validation-plan.md" "GH-820 Release v0.8.0 Final Audit / Docs / Runbook Validation"
@@ -2739,7 +2739,7 @@ require_contains "checks/verify-v0.9.1-dashboard-macos-v090-guards.sh" "bash che
 require_contains ".github/workflows/checks.yml" "Verify v0.9.0 Dashboard macOS focused guards"
 require_contains ".github/workflows/checks.yml" "bash checks/verify-v0.9.1-dashboard-macos-v090-guards.sh"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "v0.9.1 patch evidence"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.9.1 Audit Hardening Patch Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.9.1 Audit Hardening Patch Snapshot"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testV091DashboardGuardAndCLIMonitorStoreBindingPatch"
 require_file "checks/verify-v0.8.1-local-vs-broker-session.sh"
 require_contains "checks/verify-v0.8.1-local-vs-broker-session.sh" "GH-838-VERIFY-V081-LOCAL-VS-BROKER-SESSION"
@@ -2808,8 +2808,8 @@ require_contains "docs/audit/mtpro-release-v0.8.1-release-publication-dashboard-
 require_contains "docs/release/mtpro-release-v0.8.1-release-publication-dashboard-guard-patch-notes.md" "MTPRO Release v0.8.1 Release Publication + Dashboard Guard Patch Notes"
 require_contains "docs/release/mtpro-release-v0.8.1-release-publication-dashboard-guard-patch-notes.md" "Do not create the release tag unless explicitly requested after merge"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "v0.8.1 patch evidence"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.8.1 Patch Closeout Snapshot"
-require_contains "docs/validation/latest-verification-summary.md" "docs/audit/mtpro-release-v0.8.1-release-publication-dashboard-guard-patch-stage-code-audit.md"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.8.1 Patch Closeout Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "docs/audit/mtpro-release-v0.8.1-release-publication-dashboard-guard-patch-stage-code-audit.md"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V081-PATCH-CLOSEOUT"
 require_contains "docs/validation/validation-plan.md" "GH-841 Release v0.8.1 Patch Audit / Docs / Release Notes Validation"
 require_contains "docs/automation/automation-readiness.md" "Release v0.8.1 patch audit / docs / release notes anchor"
@@ -3043,7 +3043,7 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "v0.7.0 operator runtime session + real testnet read-only connectivity"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "GH-792-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "Project Closure Count: 41 / 41 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.7.0 Closure Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.7.0 Closure Snapshot"
 require_contains "docs/validation/validation-plan.md" "GH-792 Release v0.7.0 Final Audit / Docs / Runbook Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V070-FINAL-AUDIT-DOCS-RUNBOOK"
 require_contains "docs/automation/automation-readiness.md" "Release v0.7.0 final audit / docs / runbook anchor"
@@ -3296,7 +3296,7 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "Release line 已推进到 v0.6.0 local operational runtime + testnet read-only probe hardening"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "Project Closure Count: 40 / 40 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Release v0.6.0 Closure Snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Release v0.6.0 Closure Snapshot"
 require_contains "docs/validation/validation-plan.md" "GH-766 Release v0.6.0 Final Audit Root Docs Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS"
 require_contains "docs/automation/automation-readiness.md" "Release v0.6.0 final audit / root docs anchor"
@@ -3578,7 +3578,7 @@ require_contains "docs/release/mtpro-release-v0.5.0-guarded-testnet-runtime-foun
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "MTPRO Release v0.5.0 Guarded Testnet Runtime Foundation / Deterministic-to-Operational Bridge"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "Project Closure Count: 39 / 39 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "GH-739-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-739-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V050-FINAL-AUDIT-RELEASE-DOCS"
 require_contains "docs/validation/validation-plan.md" "GH-739 Release v0.5.0 Final Audit / Release Docs Validation"
 require_contains "docs/automation/automation-readiness.md" "Release v0.5.0 final audit / release docs anchor"
@@ -3824,8 +3824,8 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "Historical Project Closure Count: 38 / 38 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "GH-709-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS"
-require_contains "docs/validation/latest-verification-summary.md" 'Historical maturity statement：`MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default`'
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-709-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" 'Historical maturity statement：`MTPRO Release v0.4.0 Unified Runtime Rehearsal Pipeline complete with production trading disabled by default`'
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V040-FINAL-STAGE-AUDIT-RELEASE-DOCS"
 require_contains "docs/validation/validation-plan.md" "GH-709 Release v0.4.0 Final Stage Audit / Release Docs"
 require_contains "docs/automation/automation-readiness.md" "Release v0.4.0 final stage audit / release docs anchor"
@@ -4064,8 +4064,8 @@ require_contains "docs/audit/mtpro-release-v0.3.0-testnet-shadow-production-rehe
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "Historical release v0.3.0 Stage Code Audit Report"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "Project Closure Count: 37 / 37 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "GH-670-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS"
-require_contains "docs/validation/latest-verification-summary.md" 'Historical maturity statement：`MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`'
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-670-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" 'Historical maturity statement：`MTPRO Release v0.3.0 Testnet / Shadow Production Rehearsal complete with production trading disabled by default`'
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V030-FINAL-STAGE-AUDIT-RELEASE-DOCS"
 require_contains "docs/validation/validation-plan.md" "GH-670 Release v0.3.0 Final Stage Audit / Release Docs"
 require_contains "docs/automation/automation-readiness.md" "Release v0.3.0 final stage audit / release docs anchor"
@@ -4489,31 +4489,31 @@ require_contains "docs/domain/context.md" "GH-469 L4 Guarded Command UI Surface 
 require_contains "docs/domain/context.md" "GH-470 L4 Sandbox Validation Matrix Closeout Terms"
 require_contains "docs/domain/context.md" "GH-471 L4 Production Cutover Gate Terms"
 require_contains "docs/domain/context.md" "GH-472 L4 Stage Audit Input Terms"
-require_contains "docs/validation/latest-verification-summary.md" "L4 GitHub fallback queue"
-require_contains "docs/validation/latest-verification-summary.md" "GH-453"
-require_contains "docs/validation/latest-verification-summary.md" "GH-454"
-require_contains "docs/validation/latest-verification-summary.md" "GH-455"
-require_contains "docs/validation/latest-verification-summary.md" "GH-456"
-require_contains "docs/validation/latest-verification-summary.md" "GH-457"
-require_contains "docs/validation/latest-verification-summary.md" "GH-458"
-require_contains "docs/validation/latest-verification-summary.md" "GH-459"
-require_contains "docs/validation/latest-verification-summary.md" "GH-460"
-require_contains "docs/validation/latest-verification-summary.md" "GH-461"
-require_contains "docs/validation/latest-verification-summary.md" "GH-462"
-require_contains "docs/validation/latest-verification-summary.md" "GH-463"
-require_contains "docs/validation/latest-verification-summary.md" "GH-464"
-require_contains "docs/validation/latest-verification-summary.md" "GH-465"
-require_contains "docs/validation/latest-verification-summary.md" "GH-466"
-require_contains "docs/validation/latest-verification-summary.md" "GH-467"
-require_contains "docs/validation/latest-verification-summary.md" "GH-468"
-require_contains "docs/validation/latest-verification-summary.md" "GH-469"
-require_contains "docs/validation/latest-verification-summary.md" "GH-470"
-require_contains "docs/validation/latest-verification-summary.md" "GH-471"
-require_contains "docs/validation/latest-verification-summary.md" "GH-472"
-require_contains "verification.md" "GH-450 CI reproducibility hardening"
-require_contains "verification.md" "Harden CI Swift and sqlite reproducibility contract"
-require_contains "verification.md" "local Swift toolchain accepted as Apple Swift 6.3"
-require_contains "verification.md" "do not invoke \`swift-format\` / \`swiftformat\`"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "L4 GitHub fallback queue"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-453"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-454"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-455"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-456"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-457"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-458"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-459"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-460"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-461"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-462"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-463"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-464"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-465"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-466"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-467"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-468"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-469"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-470"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-471"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-472"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-450 CI reproducibility hardening"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "Harden CI Swift and sqlite reproducibility contract"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "local Swift toolchain accepted as Apple Swift 6.3"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "do not invoke \`swift-format\` / \`swiftformat\`"
 
 for legacy_root_doc in "ARCHITECTURE.md" "ENVIRONMENT.md" "ROADMAP.md"; do
   if git ls-files --error-unmatch "$legacy_root_doc" >/dev/null 2>&1; then
@@ -4858,11 +4858,11 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/environ
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/environment.md" "External System Capability Matrix / 外部系统能力矩阵"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/environment.md" "Secrets / Local State Boundary"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/environment.md" "Automation Boundary / 自动化边界"
-require_contains "docs/validation/latest-verification-summary.md" "Current Foundation Progress: 4 / 4 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Final Product Goal Progress: 9 / 9 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 36 / 36 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "Engine Maturity Roadmap Progress"
-require_contains "docs/validation/latest-verification-summary.md" "4 / 4（100%）"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Current Foundation Progress: 4 / 4 (100%)"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Final Product Goal Progress: 9 / 9 (100%)"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Project Closure Count: 36 / 36 (100%)"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Engine Maturity Roadmap Progress"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "4 / 4（100%）"
 for planning_record in \
   "docs/planning/projects/mtpro-guidance-plan.md" \
   "docs/planning/projects/mtpro-runtime-research-workbench-v1-plan.md" \
@@ -4912,8 +4912,8 @@ require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.
 require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "Project 经 Human 确认并写入 Linear 后，由 Parent Codex queue preflight 自动判断唯一 eligible issue，并在 WIP=1、依赖满足、无 active conflict、execution contract 格式完整时推进 Todo"
 require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "不复制维护完整 Linear issue body"
 require_contains "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md" "不启动 Symphony"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "MTPRO Paper Execution Workflow v1"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-paper-execution-workflow-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "MTPRO Paper Execution Workflow v1"
 require_contains "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md" "MTPRO Paper Workflow Control Shell v1"
 require_contains "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md" "Parent Codex queue preflight rule"
 require_contains "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md" "本 draft 不创建 Linear Project"
@@ -4928,8 +4928,8 @@ require_contains "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-p
 require_contains "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md" '不启动 `@002 / PAR`'
 require_contains "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md" "不允许 order-level command"
 require_contains "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md" "read-model-only Event Timeline / Evidence Explorer"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "MTPRO Paper Workflow Control Shell v1"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-paper-workflow-control-shell-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "MTPRO Paper Workflow Control Shell v1"
 require_contains "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md" "MTPRO Market Data Replay Operations v1"
 require_contains "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md" "Parent Codex queue preflight rule"
 require_contains "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md" "本 draft 不创建 Linear Project"
@@ -4945,10 +4945,10 @@ require_contains "docs/planning/projects/mtpro-market-data-replay-operations-v1-
 require_contains "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md" "Binance public read-only market data batch / replay boundary"
 require_contains "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md" "retention / freshness read model"
 require_contains "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md" "read-model-only"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "MTPRO Market Data Replay Operations v1"
-require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Market Data Replay Operations v1"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "MTPRO Market Data Replay Operations v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "docs/planning/projects/mtpro-market-data-replay-operations-v1-plan.md"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Market Data Replay Operations v1"
 require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "MTPRO Live Trading Boundary Definition v1"
 require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "Parent Codex queue preflight rule"
 require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "本 draft 不创建 Linear Project"
@@ -4968,10 +4968,10 @@ require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-
 require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "不实现 LiveExecutionAdapter"
 require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "不实现 real order state machine"
 require_contains "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md" "不得提供 live command 或交易按钮"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "MTPRO Live Trading Boundary Definition v1"
-require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Live Trading Boundary Definition v1"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "MTPRO Live Trading Boundary Definition v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "docs/planning/projects/mtpro-live-trading-boundary-definition-v1-plan.md"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Live Trading Boundary Definition v1"
 require_contains "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md" "MTPRO Live Monitoring Console v1"
 require_contains "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md" "Parent Codex queue preflight rule"
 require_contains "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md" "本 draft 不创建 Linear Project"
@@ -4997,10 +4997,10 @@ require_contains "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.m
 require_contains "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md" "不提供 live command"
 require_contains "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md" "不新增交易按钮"
 require_contains "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md" "不新增完整实盘监控台页面重设计"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "MTPRO Live Monitoring Console v1"
-require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Live Monitoring Console v1"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "MTPRO Live Monitoring Console v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "docs/planning/projects/mtpro-live-monitoring-console-v1-plan.md"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Live Monitoring Console v1"
 require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "MTPRO Live Execution Control Contract v1"
 require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "Final Product Goal Slice #7"
 require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "本阶段只定义 Future Live Execution 的 execution-control contract / boundary"
@@ -5024,11 +5024,11 @@ require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v
 require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "不提交、撤销、替换真实订单"
 require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "不新增交易按钮、order form、live command 或 order-level command UI"
 require_contains "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md" "LiveExecutionControlBlockedEvidence"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "MTPRO Live Execution Control Contract v1"
-require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Live Execution Control Contract v1"
-require_contains "docs/validation/latest-verification-summary.md" "订单流 / 订单事件流，仅表示 blocked / simulated / future evidence，不表示真实订单状态机"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "MTPRO Live Execution Control Contract v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "docs/planning/projects/mtpro-live-execution-control-contract-v1-plan.md"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Live Execution Control Contract v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "订单流 / 订单事件流，仅表示 blocked / simulated / future evidence，不表示真实订单状态机"
 require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "MTPRO Live Risk Gate Contract v1"
 require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "Final Product Goal Slice #8"
 require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "本阶段只定义 Future Live Risk 的 risk gate contract / boundary"
@@ -5053,10 +5053,10 @@ require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.m
 require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不实现 stop trading command / emergency stop"
 require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "不新增交易按钮"
 require_contains "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md" "LiveRiskGateBlockedEvidence"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "MTPRO Live Risk Gate Contract v1"
-require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Live Risk Gate Contract v1"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "MTPRO Live Risk Gate Contract v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "docs/planning/projects/mtpro-live-risk-gate-contract-v1-plan.md"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Live Risk Gate Contract v1"
 require_contains "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md" "MTPRO Live Audit Incident Stop Boundary v1"
 require_contains "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md" "Final Product Goal Slice #9"
 require_contains "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md" "本阶段只定义实盘审计、事故回放、停机 / 恢复相关的 contract"
@@ -5074,10 +5074,10 @@ require_contains "docs/planning/projects/mtpro-live-audit-incident-stop-boundary
 require_contains "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md" "不实现 Live PRO Console"
 require_contains "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md" "不新增交易按钮、live command"
 require_contains "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md" "LiveIncidentStopBlockedEvidence"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "MTPRO Live Audit Incident Stop Boundary v1"
-require_contains "docs/validation/latest-verification-summary.md" "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Live Audit Incident Stop Boundary v1"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "MTPRO Live Audit Incident Stop Boundary v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "docs/planning/projects/mtpro-live-audit-incident-stop-boundary-v1-plan.md"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Live Audit Incident Stop Boundary v1"
 
 require_contains "docs/validation/validation-plan.md" "Linear issue execution contract"
 require_contains "docs/validation/validation-plan.md" "bash checks/automation-readiness.sh"
@@ -5299,8 +5299,8 @@ require_contains "docs/contracts/v0330-backend-maintenance-ownership-contract.md
 require_contains "docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md" "GH-1579-MAINTENANCE-EVIDENCE-CHAIN"
 require_contains "docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md" "GH-1579-NO-PATCH-RELEASE-DECISION"
 require_contains "docs/release/mtpro-release-v0.33.0-demo-validation-notes.md" "patchReleaseDecision=not-warranted"
-require_contains "docs/validation/latest-verification-summary.md" "v0.33.0 Backend Maintenance Closeout"
-require_contains "verification.md" "GH-1579-V0330-BACKEND-MAINTENANCE-CLOSEOUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.33.0 Backend Maintenance Closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-1579-V0330-BACKEND-MAINTENANCE-CLOSEOUT"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "RealOrderLifecycleBoundary"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "RealOrderLifecycleFutureGate"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "RealOrderLifecycleForbiddenCapability"
@@ -5365,9 +5365,9 @@ require_contains "docs/product/product-surface-map.md" "MTP-58 Market Data Repla
 require_contains "docs/product/product-surface-map.md" "MTP-59 Market Data Replay Report / Dashboard / Event Timeline Evidence"
 require_contains "docs/product/product-surface-map.md" "MTP-66 Live blocked evidence Dashboard / Report / Event Timeline 展示面"
 require_contains "docs/domain/context.md" "Live blocked evidence surface"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-67 的长期验证锚点"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-67-LIVE-BOUNDARY-STAGE-AUDIT-INPUT"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-67-AUTOMATION-READINESS-STAGE-CLOSEOUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-67 的长期验证锚点"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-67-LIVE-BOUNDARY-STAGE-AUDIT-INPUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-67-AUTOMATION-READINESS-STAGE-CLOSEOUT"
 require_contains "docs/audit/inputs/mtpro-live-trading-boundary-definition-v1-stage-audit-input.md" "MTP-67-LIVE-BOUNDARY-STAGE-AUDIT-INPUT"
 require_contains "docs/audit/inputs/mtpro-live-trading-boundary-definition-v1-stage-audit-input.md" "MTP-67-LIVE-BOUNDARY-VALIDATION-EVIDENCE-CHAIN"
 require_contains "docs/contracts/live-monitoring-console-contract.md" "MTP-68-LIVE-MONITORING-CONSOLE-IA"
@@ -5403,9 +5403,9 @@ require_contains "docs/product/product-surface-map.md" "MTP-73 Event Timeline li
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-LIVE-MONITORING-CONSOLE"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-74 Live Monitoring Console 阶段收口"
 require_contains "docs/validation/trading-validation-matrix.md" "docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-74 的长期验证锚点"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-74-LIVE-MONITORING-STAGE-AUDIT-INPUT"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-74-AUTOMATION-READINESS-STAGE-CLOSEOUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-74 的长期验证锚点"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-74-LIVE-MONITORING-STAGE-AUDIT-INPUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-74-AUTOMATION-READINESS-STAGE-CLOSEOUT"
 require_contains "docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md" "MTP-74-LIVE-MONITORING-STAGE-AUDIT-INPUT"
 require_contains "docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md" "MTP-74-LIVE-MONITORING-VALIDATION-EVIDENCE-CHAIN"
 require_contains "docs/audit/inputs/mtpro-live-monitoring-console-v1-stage-audit-input.md" "MTP-74-AUTOMATION-READINESS-STAGE-CLOSEOUT"
@@ -5454,9 +5454,9 @@ require_contains "docs/validation/trading-validation-matrix.md" "docs/audit/inpu
 require_contains "docs/validation/validation-plan.md" "MTP-81 Validation Docs / Stage Audit Input Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-81-LIVE-EXECUTION-CONTROL-STAGE-CLOSEOUT"
 require_contains "docs/validation/validation-plan.md" "MTP-81-AUTOMATION-READINESS-STAGE-CLOSEOUT"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-81 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-81-LIVE-EXECUTION-CONTROL-STAGE-AUDIT-INPUT"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-81-AUTOMATION-READINESS-STAGE-CLOSEOUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-81 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-81-LIVE-EXECUTION-CONTROL-STAGE-AUDIT-INPUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-81-AUTOMATION-READINESS-STAGE-CLOSEOUT"
 require_contains "docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md" "MTP-81-LIVE-EXECUTION-CONTROL-STAGE-AUDIT-INPUT"
 require_contains "docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md" "MTP-81-LIVE-EXECUTION-CONTROL-VALIDATION-EVIDENCE-CHAIN"
 require_contains "docs/audit/inputs/mtpro-live-execution-control-contract-v1-stage-audit-input.md" "MTP-81-AUTOMATION-READINESS-STAGE-CLOSEOUT"
@@ -5507,8 +5507,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-82 Live Ris
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-82 issue backfill"
 require_contains "docs/validation/validation-plan.md" "MTP-82 Live Risk Terminology / Future Risk Decision Taxonomy Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-82-LIVE-RISK-GATE-VALIDATION"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-82 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-82-LIVE-RISK-GATE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-82 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-82-LIVE-RISK-GATE-VALIDATION"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveRiskTerminologyBoundary"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "FutureRiskDecisionTaxonomyTerm"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveRiskForbiddenCapability"
@@ -5526,8 +5526,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-83 已回�
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-83-FORBIDDEN-ACCOUNT-POSITION-MARGIN-LEVERAGE-TESTS"
 require_contains "docs/validation/validation-plan.md" "MTP-83 Exposure / Order Notional Gates Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-83-LIVE-RISK-GATE-VALIDATION"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-83 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-83-LIVE-RISK-GATE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-83 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-83-LIVE-RISK-GATE-VALIDATION"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveExposureOrderNotionalGateBoundary"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveExposureOrderNotionalFutureGate"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveExposureOrderNotionalForbiddenCapability"
@@ -5545,8 +5545,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-84-FREQUENC
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-84 已定义 frequency / loss / drawdown future gates"
 require_contains "docs/validation/validation-plan.md" "MTP-84 Frequency / Loss / Drawdown Gates Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-84-LIVE-RISK-GATE-VALIDATION"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-84 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-84-LIVE-RISK-GATE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-84 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-84-LIVE-RISK-GATE-VALIDATION"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveFrequencyLossDrawdownGateBoundary"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveFrequencyLossDrawdownFutureGate"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveFrequencyLossDrawdownForbiddenCapability"
@@ -5564,8 +5564,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-85-CIRCUIT-
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-85 已定义 circuit breaker / no-trade state future gates"
 require_contains "docs/validation/validation-plan.md" "MTP-85 Circuit Breaker / No-Trade State Gates Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-85-LIVE-RISK-GATE-VALIDATION"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-85 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-85-LIVE-RISK-GATE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-85 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-85-LIVE-RISK-GATE-VALIDATION"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveCircuitBreakerNoTradeGateBoundary"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveCircuitBreakerNoTradeFutureGate"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveCircuitBreakerNoTradeForbiddenCapability"
@@ -5583,8 +5583,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-86-PAPER-RI
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-86 已定义 paper risk blocker / paper exposure"
 require_contains "docs/validation/validation-plan.md" "MTP-86 Paper Risk / Future Live Risk Decision Isolation Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-86-LIVE-RISK-GATE-VALIDATION"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-86 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-86-LIVE-RISK-GATE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-86 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-86-LIVE-RISK-GATE-VALIDATION"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LivePaperRiskLiveDecisionIsolationBoundary"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LivePaperRiskLiveDecisionIsolationEvidenceSource"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LivePaperRiskLiveDecisionForbiddenCapability"
@@ -5599,7 +5599,7 @@ require_contains "docs/contracts/live-risk-gate-contract.md" "MTP-87-LIVE-RISK-G
 require_contains "docs/domain/context.md" "MTP-87-LIVE-RISK-GATE-BLOCKED-EVIDENCE"
 require_contains "docs/validation/trading-validation-matrix.md" 'MTP-87 已把 `LiveRiskGateBlockedEvidence` 接入 Dashboard / Report / Event Timeline'
 require_contains "docs/validation/validation-plan.md" "MTP-87 Live Risk Gate Blocked Evidence Surface Validation"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-87 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-87 的当前 issue execution evidence"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveRiskGateBlockedEvidence"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveRiskGateBlockedGate"
 require_contains "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift" "LiveRiskGateBlockedReason"
@@ -5634,8 +5634,8 @@ require_contains "docs/contracts/live-risk-gate-contract.md" "MTP-88-LIVE-RISK-G
 require_contains "docs/contracts/live-risk-gate-contract.md" "MTP-88-AUTOMATION-READINESS-STAGE-CLOSEOUT"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-88 Live Risk Gate Contract 阶段收口"
 require_contains "docs/validation/validation-plan.md" "MTP-88 Validation Docs / Stage Audit Input Validation"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-88 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-88-AUTOMATION-READINESS-STAGE-CLOSEOUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-88 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-88-AUTOMATION-READINESS-STAGE-CLOSEOUT"
 require_contains "docs/contracts/live-audit-incident-stop-contract.md" "MTP-89-LIVE-AUDIT-INCIDENT-STOP-TERMINOLOGY"
 require_contains "docs/contracts/live-audit-incident-stop-contract.md" "MTP-89-FUTURE-AUDIT-INCIDENT-STOP-TAXONOMY"
 require_contains "docs/contracts/live-audit-incident-stop-contract.md" "MTP-89-BLOCKED-EVIDENCE-ONLY-FUTURE-GATES"
@@ -5650,8 +5650,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-89 Live Aud
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-89 issue backfill"
 require_contains "docs/validation/validation-plan.md" "MTP-89 Live Audit Incident Stop Terminology / Taxonomy Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-89-LIVE-AUDIT-INCIDENT-STOP-VALIDATION"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-89 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-89-LIVE-AUDIT-INCIDENT-STOP-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-89 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-89-LIVE-AUDIT-INCIDENT-STOP-VALIDATION"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveAuditIncidentStopTerminologyBoundary"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "FutureAuditIncidentStopTaxonomyTerm"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveAuditIncidentStopForbiddenCapability"
@@ -5670,8 +5670,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-90 issue ba
 require_contains "docs/validation/trading-validation-matrix.md" "LiveAuditTrailFutureGateBoundary"
 require_contains "docs/validation/validation-plan.md" "MTP-90 Live Audit Trail Future Gates Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-90-LIVE-AUDIT-TRAIL-VALIDATION"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-90 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-90-LIVE-AUDIT-TRAIL-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-90 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-90-LIVE-AUDIT-TRAIL-VALIDATION"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveAuditTrailFutureGateBoundary"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveAuditTrailFutureGate"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveAuditTrailForbiddenCapability"
@@ -5691,8 +5691,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-90 / MTP-91
 require_contains "docs/validation/trading-validation-matrix.md" "LiveIncidentReplayFutureGateBoundary"
 require_contains "docs/validation/validation-plan.md" "MTP-91 Incident Replay Future Gates Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-91-INCIDENT-REPLAY-VALIDATION"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-91 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-91-INCIDENT-REPLAY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-91 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-91-INCIDENT-REPLAY-VALIDATION"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveIncidentReplayFutureGateBoundary"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveIncidentReplayFutureGate"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveIncidentReplayForbiddenCapability"
@@ -5711,8 +5711,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-92 issue ba
 require_contains "docs/validation/trading-validation-matrix.md" "LiveStopShutdownRestoreFutureGateBoundary"
 require_contains "docs/validation/validation-plan.md" "MTP-92 Stop / Shutdown / Restore Future Gates Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-92 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-92 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-92-STOP-SHUTDOWN-RESTORE-VALIDATION"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveStopShutdownRestoreFutureGateBoundary"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveStopShutdownRestoreFutureGate"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveStopShutdownRestoreForbiddenCapability"
@@ -5731,8 +5731,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-93 issue ba
 require_contains "docs/validation/trading-validation-matrix.md" "LiveBlockedEvidenceIncidentStopIsolationBoundary"
 require_contains "docs/validation/validation-plan.md" "MTP-93 Blocked Evidence Incident / Stop Isolation Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-93 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-93 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-93-BLOCKED-EVIDENCE-ISOLATION-VALIDATION"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveBlockedEvidenceIncidentStopIsolationBoundary"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveBlockedEvidenceIncidentStopIsolationGate"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveBlockedEvidenceIncidentStopForbiddenCapability"
@@ -5751,8 +5751,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-94 issue ba
 require_contains "docs/validation/trading-validation-matrix.md" "LiveIncidentStopBlockedEvidence"
 require_contains "docs/validation/validation-plan.md" "MTP-94 Live Incident / Stop Blocked Evidence Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-94-LIVE-INCIDENT-STOP-VALIDATION"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-94 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-94-LIVE-INCIDENT-STOP-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-94 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-94-LIVE-INCIDENT-STOP-VALIDATION"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveIncidentStopBlockedEvidence"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveIncidentStopBlockedGate"
 require_contains "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift" "LiveIncidentStopBlockedReason"
@@ -5788,8 +5788,8 @@ require_contains "docs/validation/trading-validation-matrix.md" "MTP-95 Live Aud
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-95-LIVE-AUDIT-INCIDENT-STOP-VALIDATION-EVIDENCE-CHAIN"
 require_contains "docs/validation/validation-plan.md" "MTP-95 Validation Docs / Stage Audit Input Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-95-LIVE-AUDIT-INCIDENT-STOP-VALIDATION-EVIDENCE-CHAIN"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-95 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-95-AUTOMATION-READINESS-STAGE-CLOSEOUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-95 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-95-AUTOMATION-READINESS-STAGE-CLOSEOUT"
 require_contains "Sources/Core/LiveMonitoringConsole.swift" "LiveRuntimeHealthReadModel"
 require_contains "Sources/Core/LiveMonitoringConsole.swift" "LiveStreamMonitoringEvidenceReadModel"
 require_contains "Sources/Core/LiveMonitoringConsole.swift" "LiveLatencyErrorDegradedMonitoringEvidenceReadModel"
@@ -5910,15 +5910,15 @@ require_contains "docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage
 require_contains "docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md" "Dashboard smoke"
 require_contains "docs/audit/inputs/mtpro-market-data-replay-operations-v1-stage-audit-input.md" "timelineItems=0"
 require_contains "docs/validation/eval-strategy.md" "什么时候可以引入独立 eval 框架"
-require_contains "docs/validation/latest-verification-summary.md" "Agent / Parent Codex 默认读取本文档"
-require_contains "docs/validation/latest-verification-summary.md" '完整 `verification.md` 只用于审计、追溯和 debug'
-require_contains "docs/validation/latest-verification-summary.md" "MTP-30"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-37"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-53"
-require_contains "docs/validation/latest-verification-summary.md" "Linear live-read"
-require_contains "docs/validation/latest-verification-summary.md" "bash checks/run.sh"
-require_contains "docs/validation/latest-verification-summary.md" "临时 CI 平台边界"
-require_contains "docs/validation/latest-verification-summary.md" "覆盖完整 Linear Project"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Agent / Parent Codex 默认读取本文档"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" '完整 `verification.md` 只用于审计、追溯和 debug'
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-30"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-37"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-53"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Linear live-read"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "bash checks/run.sh"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "临时 CI 平台边界"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "覆盖完整 Linear Project"
 require_contains "docs/validation/macos-build-run-loop.md" "macOS App shell"
 
 require_contains "docs/audit/mtpro-runtime-research-workbench-v1-stage-code-audit.md" "文档路径"
@@ -5946,25 +5946,25 @@ require_contains "AGENTS.md" "执行前检查"
 require_contains "AGENTS.md" '自动推进唯一 eligible `Backlog` -> `Todo`'
 require_contains "AGENTS.md" "Root Docs Delta"
 require_contains "AGENTS.md" "Root Docs Refresh Gate"
-require_contains "docs/planning/linear-draft-plan.md" "Project Planning Record 命名规则"
-require_contains "docs/planning/linear-draft-plan.md" '所有 Project planning record 必须放在 `docs/planning/projects/`'
-require_contains "docs/planning/linear-draft-plan.md" '文件名格式：`<linear-project-slug>-plan.md`'
-require_contains "docs/planning/linear-draft-plan.md" "slug 使用 Project name 的小写 kebab-case"
-require_contains "docs/planning/linear-draft-plan.md" "一个 Linear Project 对应一份 canonical planning record"
-require_contains "docs/planning/linear-draft-plan.md" "Project Planning Record 内容规则"
-require_contains "docs/planning/linear-draft-plan.md" "Linear write boundary"
-require_contains "docs/planning/linear-draft-plan.md" "Repository record boundary"
-require_contains "docs/planning/linear-draft-plan.md" "完整 issue execution contract 以 Linear issue body 为准"
-require_contains "docs/planning/linear-draft-plan.md" '只有父 Codex 可以操作 `Backlog` -> `Todo`'
-require_contains "docs/planning/linear-draft-plan.md" "Root Docs Refresh Gate"
-require_contains "docs/planning/linear-draft-plan.md" "Stage Code Audit Report"
-require_contains "docs/planning/linear-draft-plan.md" 'Linear Project status 必须设置或确认为 `Completed`'
-require_contains "docs/planning/linear-draft-plan.md" 'Linear Project status type 必须是 `completed`'
-require_contains "docs/planning/linear-draft-plan.md" 'Linear Project `completedAt` 必须非空'
-require_contains "docs/planning/linear-draft-plan.md" 'Human + `@001 / PLN`'
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "仓库只保存 Project 级计划摘要和格式门槛，不复制维护完整 issue 正文"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "Project Planning Record 命名规则"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" '所有 Project planning record 必须放在 `docs/planning/projects/`'
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" '文件名格式：`<linear-project-slug>-plan.md`'
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "slug 使用 Project name 的小写 kebab-case"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "一个 Linear Project 对应一份 canonical planning record"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "Project Planning Record 内容规则"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "Linear write boundary"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "Repository record boundary"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "完整 issue execution contract 以 Linear issue body 为准"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" '只有父 Codex 可以操作 `Backlog` -> `Todo`'
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "Root Docs Refresh Gate"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "Stage Code Audit Report"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" 'Linear Project status 必须设置或确认为 `Completed`'
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" 'Linear Project status type 必须是 `completed`'
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" 'Linear Project `completedAt` 必须非空'
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" 'Human + `@001 / PLN`'
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-trading-validation-and-parity-hardening-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-paper-session-runtime-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "仓库只保存 Project 级计划摘要和格式门槛，不复制维护完整 issue 正文"
 require_contains "docs/contracts/paper-runtime-kernel-contract.md" "MTP-96-TRADING-CLOCK-DETERMINISTIC-TIME"
 require_contains "docs/contracts/paper-runtime-kernel-contract.md" "MTP-96-PAPER-RUNTIME-KERNEL-BOUNDARY"
 require_contains "docs/contracts/paper-runtime-kernel-contract.md" "MTP-96-PAPER-ONLY-KERNEL-EVENTS"
@@ -5975,7 +5975,7 @@ require_contains "docs/domain/context.md" "MTP-96-PAPER-RUNTIME-KERNEL-TERMS"
 require_contains "docs/validation/validation-plan.md" "MTP-96 TradingClock / Paper Runtime Kernel Boundary Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-PAPER-RUNTIME-KERNEL"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-96 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-96 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-96 的当前 issue execution evidence"
 require_contains "Sources/ExecutionEngine/PaperLifecycle/PaperRuntimeKernelBoundary.swift" "TradingClock"
 require_contains "Sources/ExecutionEngine/PaperLifecycle/PaperRuntimeKernelBoundary.swift" "PaperRuntimeKernelBoundary"
 require_contains "Sources/ExecutionEngine/PaperLifecycle/PaperRuntimeKernelBoundary.swift" "MTP-96-PAPER-RUNTIME-KERNEL-VALIDATION"
@@ -5990,7 +5990,7 @@ require_contains "docs/contracts/paper-runtime-kernel-contract.md" "MTP-97-PAPER
 require_contains "docs/domain/context.md" "MTP-97-PAPER-RUNTIME-BUS-ROUTING-TERMS"
 require_contains "docs/validation/validation-plan.md" "MTP-97 CommandBus / EventBus / MessageBus Routing Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-97 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-97 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-97 的当前 issue execution evidence"
 require_contains "Sources/MessageBus/PaperRuntimeBusRouting.swift" "PaperRuntimeCommandBus"
 require_contains "Sources/MessageBus/PaperRuntimeBusRouting.swift" "PaperRuntimeEventBus"
 require_contains "Sources/MessageBus/PaperRuntimeBusRouting.swift" "PaperRuntimeMessageBusRouting"
@@ -6008,7 +6008,7 @@ require_contains "docs/contracts/paper-runtime-kernel-contract.md" "MTP-98-PAPER
 require_contains "docs/domain/context.md" "MTP-98-PAPER-PRETRADE-RISKENGINE-TERMS"
 require_contains "docs/validation/validation-plan.md" "MTP-98 Paper Pre-trade RiskEngine Runtime Path Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-98 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-98 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-98 的当前 issue execution evidence"
 require_contains "Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift" "PaperPreTradeRiskEngineInput"
 require_contains "Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift" "PaperPreTradeRiskEngineDecision"
 require_contains "Sources/Core/RiskEnginePaperPreTradeRuntimeBridge.swift" "PaperPreTradeRiskEngineRuntimePath"
@@ -6027,7 +6027,7 @@ require_contains "docs/contracts/paper-runtime-kernel-contract.md" "MTP-99-PAPER
 require_contains "docs/domain/context.md" "MTP-99-PAPER-LOCAL-LIFECYCLE-TERMS"
 require_contains "docs/validation/validation-plan.md" "MTP-99 Paper-only Lifecycle Coordinator / Local Order Lifecycle Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-99 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-99 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-99 的当前 issue execution evidence"
 require_contains "Sources/ExecutionEngine/PaperLifecycle/PaperOrderLifecycleCoordinator.swift" "PaperOrderLocalLifecycleState"
 require_contains "Sources/ExecutionEngine/PaperLifecycle/PaperOrderLifecycleCoordinator.swift" "PaperOrderLocalLifecycleTransition"
 require_contains "Sources/ExecutionEngine/PaperLifecycle/PaperOrderLifecycleCoordinator.swift" "PaperOrderLocalLifecycleCoordinator"
@@ -6047,7 +6047,7 @@ require_contains "docs/contracts/paper-runtime-kernel-contract.md" "MTP-100-SIMU
 require_contains "docs/domain/context.md" "MTP-100-SIMULATED-FILL-FEE-SLIPPAGE-TERMS"
 require_contains "docs/validation/validation-plan.md" "MTP-100 Simulated Fill / Fee / Slippage Deterministic Model Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-100 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-100 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-100 的当前 issue execution evidence"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/PaperSimulatedFillEvidence.swift" "PaperSimulatedFillMarketSnapshot"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/PaperSimulatedFillEvidence.swift" "PaperSimulatedFillCompletion"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/PaperSimulatedFillEvidence.swift" "PaperSimulatedFillPriceSource"
@@ -6068,7 +6068,7 @@ require_contains "docs/contracts/paper-runtime-kernel-contract.md" "MTP-101-PAPE
 require_contains "docs/domain/context.md" "MTP-101-PAPER-ACCOUNT-PORTFOLIO-PROJECTION-TERMS"
 require_contains "docs/validation/validation-plan.md" "MTP-101 Paper Account / Portfolio / Position Projection v2 Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-101 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-101 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-101 的当前 issue execution evidence"
 require_contains "Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift" "PaperAccountProjectionSnapshot"
 require_contains "Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift" "PaperPositionProjectionSnapshot"
 require_contains "Sources/Portfolio/PaperAccountPortfolioProjectionV2.swift" "PaperPortfolioPnLSummary"
@@ -6136,7 +6136,7 @@ require_contains "docs/audit/mtpro-private-stream-account-snapshot-simulation-ga
 require_contains "docs/audit/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-code-audit.md" "Root Docs Refresh Gate：closed"
 require_contains "docs/validation/validation-plan.md" "MTP-102 Event Log / Replay / Report / Dashboard Evidence Stage Closeout Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-102 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-102 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-102 的当前 issue execution evidence"
 require_contains "Sources/Dashboard/ReadModels/App.swift" "paperExecutionWorkflowLocalLifecycleTransitionIDs"
 require_contains "Sources/Dashboard/ReadModels/App.swift" "paperExecutionWorkflowAccountPortfolioSnapshotIDs"
 require_contains "Sources/Dashboard/ReadModels/App.swift" "paperExecutionWorkflowSimulatedFillCostImpactAmount"
@@ -6156,8 +6156,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-103 Data Catalog / Sc
 require_contains "docs/validation/validation-plan.md" "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-DATA-CATALOG-SCENARIO-REPLAY"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-103 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-103 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-103 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION"
 require_contains "Sources/DataEngine/ScenarioReplay/DataCatalogScenarioReplayBoundary.swift" "DataCatalogScenarioReplayBoundary"
 require_contains "Sources/DataEngine/ScenarioReplay/DataCatalogScenarioReplayBoundary.swift" "DataCatalogScenarioReplayForbiddenCapability"
 require_contains "Sources/DataEngine/ScenarioReplay/DataCatalogScenarioReplayBoundary.swift" "MTP-103-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION"
@@ -6175,8 +6175,8 @@ require_contains "docs/domain/context.md" "MTP-104-MANIFEST-NO-SCHEMA-ADAPTER-LI
 require_contains "docs/validation/validation-plan.md" "MTP-104 Scenario Manifest / Scenario ID / Dataset Version Contract Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-104-SCENARIO-MANIFEST-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-104 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-104 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-104-SCENARIO-MANIFEST-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-104 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-104-SCENARIO-MANIFEST-VALIDATION"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioManifest.swift" "ScenarioManifest"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioManifest.swift" "ScenarioManifestDeterministicSerialization"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioManifest.swift" "MTP-104-SCENARIO-MANIFEST-VALIDATION"
@@ -6195,8 +6195,8 @@ require_contains "docs/domain/context.md" "MTP-105-NO-NETWORK-SIGNED-BROKER-LIVE
 require_contains "docs/validation/validation-plan.md" "MTP-105 Single-Symbol / Single-Timeframe Deterministic Scenario Fixture Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-105-SCENARIO-FIXTURE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-105 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-105 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-105-SCENARIO-FIXTURE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-105 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-105-SCENARIO-FIXTURE-VALIDATION"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioFixture.swift" "DeterministicScenarioFixture"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioFixture.swift" "ScenarioFixtureDeterministicSummary"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioFixture.swift" "MTP-105-SCENARIO-FIXTURE-VALIDATION"
@@ -6217,8 +6217,8 @@ require_contains "docs/domain/context.md" "MTP-106-NO-PRODUCTION-NETWORK-BROKER-
 require_contains "docs/validation/validation-plan.md" "MTP-106 Replay Window / Cursor / Checksum / Freshness Evidence Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-106-SCENARIO-REPLAY-EVIDENCE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-106 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-106 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-106-SCENARIO-REPLAY-EVIDENCE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-106 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-106-SCENARIO-REPLAY-EVIDENCE-VALIDATION"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioReplayEvidence.swift" "ScenarioReplayEvidence"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioReplayEvidence.swift" "ScenarioReplayCursor"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioReplayEvidence.swift" "MTP-106-SCENARIO-REPLAY-EVIDENCE-VALIDATION"
@@ -6238,8 +6238,8 @@ require_contains "docs/domain/context.md" "MTP-107-NO-PRODUCTION-LIVE-BROKER-DAT
 require_contains "docs/validation/validation-plan.md" "MTP-107 Data Quality Gates / Report Input Versioning Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-107-DATA-QUALITY-REPORT-INPUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-107 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-107 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-107-DATA-QUALITY-REPORT-INPUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-107 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-107-DATA-QUALITY-REPORT-INPUT-VALIDATION"
 require_contains "Sources/DataEngine/DataQuality/ScenarioDataQualityReportInput.swift" "ScenarioDataQualityGateKind"
 require_contains "Sources/DataEngine/DataQuality/ScenarioDataQualityReportInput.swift" "ScenarioDataQualityGateEvaluation"
 require_contains "Sources/DataEngine/DataQuality/ScenarioDataQualityReportInput.swift" "ScenarioReportInputVersion"
@@ -6261,8 +6261,8 @@ require_contains "docs/domain/context.md" "MTP-108-READ-MODEL-ONLY-NO-COMMAND-SU
 require_contains "docs/validation/validation-plan.md" "MTP-108 Workbench / Report / Events Scenario Replay Evidence Surface Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-108-SCENARIO-REPLAY-SURFACE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-108 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-108 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-108-SCENARIO-REPLAY-SURFACE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-108 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-108-SCENARIO-REPLAY-SURFACE-VALIDATION"
 require_contains "Sources/Dashboard/Report/ScenarioReplayEvidenceSurface.swift" "ScenarioReplayEvidenceReadModel"
 require_contains "Sources/Dashboard/Report/ScenarioReplayEvidenceSurface.swift" "ScenarioReplayEvidenceViewModel"
 require_contains "Sources/Dashboard/Report/ScenarioReplayEvidenceSurface.swift" "MTP-108-SCENARIO-REPLAY-SURFACE-VALIDATION"
@@ -6284,26 +6284,26 @@ require_contains "docs/validation/validation-plan.md" "MTP-109-DATA-CATALOG-SCEN
 require_contains "docs/validation/validation-plan.md" "MTP-109-AUTOMATION-READINESS-STAGE-CLOSEOUT"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-109 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-109 Data Catalog / Scenario Replay 阶段收口"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-109 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-AUDIT-INPUT"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-109-AUTOMATION-READINESS-STAGE-CLOSEOUT"
-require_contains "docs/validation/latest-verification-summary.md" 'MTPRO Data Catalog / Scenario Replay v1` 已由 Parent Codex 完成 Project closure'
-require_contains "docs/validation/latest-verification-summary.md" "Stage Code Audit PR #208"
-require_contains "docs/validation/latest-verification-summary.md" "7cf641cd7124476d11f568289f87b153e92c80f9"
-require_contains "docs/validation/latest-verification-summary.md" "L1.5 Data Catalog / Scenario Replay 阶段成熟度结论"
-require_contains "docs/validation/latest-verification-summary.md" "L2 Simulated Exchange / Backtest Parity 阶段成熟度结论"
-require_contains "docs/validation/latest-verification-summary.md" "Stage Code Audit PR #219"
-require_contains "docs/validation/latest-verification-summary.md" "4ca2904592b5e13d32caac1ffbcb0ea0c4a19a58"
-require_contains "docs/validation/latest-verification-summary.md" "Stage Code Audit PR #230"
-require_contains "docs/validation/latest-verification-summary.md" "8ee5d0ab2ffa6e7d3916b72f5ed7834cedefdca8"
-require_contains "docs/validation/latest-verification-summary.md" "Stage Code Audit PR #241"
-require_contains "docs/validation/latest-verification-summary.md" "e7bd3bb90807fabf21c91008c9000b517b25ae4d"
-require_contains "docs/validation/latest-verification-summary.md" "Stage Code Audit PR #252"
-require_contains "docs/validation/latest-verification-summary.md" "14d19dc60ad5a2b504fb595bf765bffd2bed75c5"
-require_contains "docs/validation/latest-verification-summary.md" "L3.1 Account / Position / Balance Read-model-only 历史成熟度结论"
-require_contains "docs/validation/latest-verification-summary.md" "L3.1 Account / Position / Balance Read-model-only complete"
-require_contains "docs/validation/latest-verification-summary.md" "L3.2 Private Stream / Account Snapshot Simulation Gate 历史成熟度结论"
-require_contains "docs/validation/latest-verification-summary.md" "L3.2 Private Stream / Account Snapshot Simulation Gate complete"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-109 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-AUDIT-INPUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-109-AUTOMATION-READINESS-STAGE-CLOSEOUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" 'MTPRO Data Catalog / Scenario Replay v1` 已由 Parent Codex 完成 Project closure'
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Stage Code Audit PR #208"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "7cf641cd7124476d11f568289f87b153e92c80f9"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "L1.5 Data Catalog / Scenario Replay 阶段成熟度结论"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "L2 Simulated Exchange / Backtest Parity 阶段成熟度结论"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Stage Code Audit PR #219"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "4ca2904592b5e13d32caac1ffbcb0ea0c4a19a58"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Stage Code Audit PR #230"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "8ee5d0ab2ffa6e7d3916b72f5ed7834cedefdca8"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Stage Code Audit PR #241"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "e7bd3bb90807fabf21c91008c9000b517b25ae4d"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Stage Code Audit PR #252"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "14d19dc60ad5a2b504fb595bf765bffd2bed75c5"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "L3.1 Account / Position / Balance Read-model-only 历史成熟度结论"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "L3.1 Account / Position / Balance Read-model-only complete"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "L3.2 Private Stream / Account Snapshot Simulation Gate 历史成熟度结论"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "L3.2 Private Stream / Account Snapshot Simulation Gate complete"
 require_contains "docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md" "MTP-109-DATA-CATALOG-SCENARIO-REPLAY-STAGE-AUDIT-INPUT"
 require_contains "docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md" "MTP-109-DATA-CATALOG-SCENARIO-REPLAY-VALIDATION-EVIDENCE-CHAIN"
 require_contains "docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md" "MTP-109-FORBIDDEN-CAPABILITY-EVIDENCE-CHAIN"
@@ -6315,12 +6315,12 @@ require_contains "docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-
 require_contains "docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md" "no Graphify update"
 require_contains "docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md" "no Figma modification"
 require_contains "docs/audit/inputs/mtpro-data-catalog-scenario-replay-v1-stage-audit-input.md" "no unauthorized Linear mutation"
-require_contains "docs/validation/latest-verification-summary.md" "Root Docs Refresh Gate"
-require_contains "docs/validation/latest-verification-summary.md" "Root Docs Delta"
-require_contains "docs/validation/latest-verification-summary.md" 'Linear Project status `Completed`'
-require_contains "docs/validation/latest-verification-summary.md" 'type=completed'
-require_contains "docs/validation/latest-verification-summary.md" 'completedAt'
-require_contains "docs/validation/latest-verification-summary.md" "docs/audit/inputs/"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Root Docs Refresh Gate"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Root Docs Delta"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" 'Linear Project status `Completed`'
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" 'type=completed'
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" 'completedAt'
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "docs/audit/inputs/"
 require_file "docs/contracts/simulated-exchange-backtest-parity-contract.md"
 require_contains "docs/contracts/simulated-exchange-backtest-parity-contract.md" "MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-TERMINOLOGY"
 require_contains "docs/contracts/simulated-exchange-backtest-parity-contract.md" "MTP-110-TARGET-ENGINE-RESPONSIBILITY-BOUNDARY"
@@ -6333,8 +6333,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-110 Simulated Exchang
 require_contains "docs/validation/validation-plan.md" "MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-SIMULATED-EXCHANGE-BACKTEST-PARITY"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-110 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-110 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-110 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift" "SimulatedExchangeBacktestParityBoundary"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift" "SimulatedExchangeBacktestParityForbiddenCapability"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/SimulatedExchangeBacktestParityBoundary.swift" "MTP-110-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION"
@@ -6353,8 +6353,8 @@ require_contains "docs/domain/context.md" "MTP-111-NO-REAL-ORDER-COMMAND-UPGRADE
 require_contains "docs/validation/validation-plan.md" "MTP-111 Shared Backtest-Paper Order Semantics Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-111-SHARED-ORDER-SEMANTICS-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-111 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-111 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-111-SHARED-ORDER-SEMANTICS-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-111 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-111-SHARED-ORDER-SEMANTICS-VALIDATION"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/BacktestPaperSharedOrderSemantics.swift" "BacktestPaperSharedOrderSemanticsContract"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/BacktestPaperSharedOrderSemantics.swift" "BacktestPaperSharedOrderInput"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/BacktestPaperSharedOrderSemantics.swift" "MTP-111-SHARED-ORDER-SEMANTICS-VALIDATION"
@@ -6375,8 +6375,8 @@ require_contains "docs/domain/context.md" "MTP-112-NO-NETWORK-BROKER-LIVE"
 require_contains "docs/validation/validation-plan.md" "MTP-112 Scenario Replay Deterministic Matching Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-112-SCENARIO-REPLAY-MATCHING-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-112 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-112 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-112-SCENARIO-REPLAY-MATCHING-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-112 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-112-SCENARIO-REPLAY-MATCHING-VALIDATION"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift" "ScenarioReplayDeterministicMatchingContract"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift" "ScenarioReplayDeterministicMatchingInput"
 require_contains "Sources/DataEngine/ScenarioReplay/ScenarioReplayDeterministicMatching.swift" "ScenarioReplayMatchingMarketState"
@@ -6401,8 +6401,8 @@ require_contains "docs/domain/context.md" "MTP-113-NO-REAL-ORDER-LIVE-COMMAND"
 require_contains "docs/validation/validation-plan.md" "MTP-113 Market / Limit Simulated Execution Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-113-MARKET-LIMIT-SIMULATED-EXECUTION-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-113 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-113 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-113-MARKET-LIMIT-SIMULATED-EXECUTION-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-113 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-113-MARKET-LIMIT-SIMULATED-EXECUTION-VALIDATION"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/MarketLimitSimulatedExecutionSemantics.swift" "MarketLimitSimulatedExecutionContract"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/MarketLimitSimulatedExecutionSemantics.swift" "MarketLimitSimulatedExecutionInput"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/MarketLimitSimulatedExecutionSemantics.swift" "MarketLimitSimulatedExecutionEvent"
@@ -6426,8 +6426,8 @@ require_contains "docs/domain/context.md" "MTP-114-NO-REAL-FEE-SCHEDULE-BROKER-R
 require_contains "docs/validation/validation-plan.md" "MTP-114 Partial Fill / Latency / Fee / Slippage Parity Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-114-PARTIAL-FILL-LATENCY-FEE-SLIPPAGE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-114 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-114 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-114-PARTIAL-FILL-LATENCY-FEE-SLIPPAGE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-114 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-114-PARTIAL-FILL-LATENCY-FEE-SLIPPAGE-VALIDATION"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/PartialFillLatencyFeeSlippageParity.swift" "PartialFillLatencyFeeSlippageParityContract"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/PartialFillLatencyFeeSlippageParity.swift" "PartialFillLatencyFeeSlippageParityInput"
 require_contains "Sources/ExecutionEngine/SimulatedExchange/PartialFillLatencyFeeSlippageParity.swift" "PartialFillLatencyFeeSlippageLatencyAssumption"
@@ -6452,8 +6452,8 @@ require_contains "docs/domain/context.md" "MTP-115-NO-REAL-ACCOUNT-BROKER-MARGIN
 require_contains "docs/validation/validation-plan.md" "MTP-115 Simulated Exchange Portfolio Projection Parity Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-115-SIMULATED-EXCHANGE-PORTFOLIO-PROJECTION-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-115 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-115 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-115-SIMULATED-EXCHANGE-PORTFOLIO-PROJECTION-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-115 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-115-SIMULATED-EXCHANGE-PORTFOLIO-PROJECTION-VALIDATION"
 require_contains "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift" "SimulatedExchangePortfolioProjectionParityContract"
 require_contains "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift" "SimulatedExchangePortfolioProjectionParityInput"
 require_contains "Sources/Portfolio/SimulatedExchangePortfolioProjectionParity.swift" "SimulatedExchangePortfolioProjectionSnapshot"
@@ -6477,8 +6477,8 @@ require_contains "docs/domain/context.md" "MTP-116-NO-LIVE-BROKER-SIGNED-ENDPOIN
 require_contains "docs/validation/validation-plan.md" "MTP-116 Report / Dashboard / Events Parity Evidence Surface Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-116-SIMULATED-EXCHANGE-PARITY-SURFACE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-116 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-116 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-116-SIMULATED-EXCHANGE-PARITY-SURFACE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-116 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-116-SIMULATED-EXCHANGE-PARITY-SURFACE-VALIDATION"
 require_contains "Sources/Dashboard/Report/SimulatedExchangeParityEvidenceSurface.swift" "SimulatedExchangeParityEvidenceReadModel"
 require_contains "Sources/Dashboard/Report/SimulatedExchangeParityEvidenceSurface.swift" "SimulatedExchangeParityEvidenceViewModel"
 require_contains "Sources/Dashboard/Report/SimulatedExchangeParityEvidenceSurface.swift" "MTP-116-SIMULATED-EXCHANGE-PARITY-SURFACE-VALIDATION"
@@ -6500,9 +6500,9 @@ require_contains "docs/validation/validation-plan.md" "MTP-117-SIMULATED-EXCHANG
 require_contains "docs/validation/validation-plan.md" "MTP-117-AUTOMATION-READINESS-STAGE-CLOSEOUT"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-117 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-117 Simulated Exchange / Backtest Parity 阶段收口"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-117 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-STAGE-AUDIT-INPUT"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-117-AUTOMATION-READINESS-STAGE-CLOSEOUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-117 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-STAGE-AUDIT-INPUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-117-AUTOMATION-READINESS-STAGE-CLOSEOUT"
 require_contains "docs/automation/automation-readiness.md" "Simulated Exchange / Backtest Parity stage audit input anchor"
 require_contains "docs/audit/inputs/mtpro-simulated-exchange-backtest-parity-v1-stage-audit-input.md" "MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-STAGE-AUDIT-INPUT"
 require_contains "docs/audit/inputs/mtpro-simulated-exchange-backtest-parity-v1-stage-audit-input.md" "MTP-117-SIMULATED-EXCHANGE-BACKTEST-PARITY-VALIDATION-EVIDENCE-CHAIN"
@@ -6540,8 +6540,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-118 Workbench Beta Re
 require_contains "docs/validation/validation-plan.md" "MTP-118-WORKBENCH-BETA-READINESS-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-WORKBENCH-BETA-READINESS"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-118 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-118 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-118-WORKBENCH-BETA-READINESS-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-118 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-118-WORKBENCH-BETA-READINESS-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness contract anchor"
 require_contains "docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md" "MTPRO Workbench Beta Readiness v1"
 require_contains "docs/planning/projects/mtpro-workbench-beta-readiness-v1-plan.md" "local macOS Workbench demo / acceptance path"
@@ -6571,8 +6571,8 @@ require_contains "docs/validation/macos-build-run-loop.md" "MTP-119-TROUBLESHOOT
 require_contains "docs/validation/validation-plan.md" "MTP-119 Local Launch / Install / Environment Verification Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-119-LOCAL-LAUNCH-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-119 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-119 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-119-LOCAL-LAUNCH-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-119 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-119-LOCAL-LAUNCH-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness local launch / install anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-119 只定义 SwiftPM local install"
 require_contains "docs/contracts/workbench-beta-readiness-contract.md" "MTP-120-DEMO-SCENARIO-SELECTION"
@@ -6592,8 +6592,8 @@ require_contains "docs/domain/context.md" "MTP-120-NO-NETWORK-DOWNLOAD-LIVE-BROK
 require_contains "docs/validation/validation-plan.md" "MTP-120 Demo Scenario Selection / Fixture Wiring Validation"
 require_contains "docs/validation/validation-plan.md" "swift test --filter MTP120"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-120 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-120 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-120-DEMO-SCENARIO-FIXTURE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-120 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-120-DEMO-SCENARIO-FIXTURE-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness demo scenario / fixture wiring anchor"
 require_contains "Sources/Core/DashboardBetaDemoScenario.swift" "DashboardBetaDemoScenarioSelection"
 require_contains "Sources/Core/DashboardBetaDemoScenario.swift" "DashboardBetaDemoFixtureEvidence"
@@ -6616,8 +6616,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-121 Workbench First-R
 require_contains "docs/validation/validation-plan.md" "swift test --filter MTP121"
 require_contains "docs/validation/validation-plan.md" "DASHBOARD_SMOKE=1 swift run Dashboard"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-121 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-121 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-121-DASHBOARD-SMOKE-DEFAULT-DEMO-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-121 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-121-DASHBOARD-SMOKE-DEFAULT-DEMO-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness first-run default demo anchor"
 require_contains "Sources/Dashboard/DashboardBetaFirstRunState.swift" "DashboardBetaFirstRunReadModel"
 require_contains "Sources/Dashboard/DashboardBetaFirstRunState.swift" "DashboardBetaFirstRunViewModel"
@@ -6643,8 +6643,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-122 Report / Dashboar
 require_contains "docs/validation/validation-plan.md" "swift test --filter MTP122"
 require_contains "docs/validation/validation-plan.md" "DASHBOARD_SMOKE=1 swift run Dashboard"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-122 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-122 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-122-BETA-ACCEPTANCE-PATH-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-122 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-122-BETA-ACCEPTANCE-PATH-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness Report / Dashboard / Events beta acceptance path anchor"
 require_contains "Sources/Dashboard/DashboardBetaAcceptancePath.swift" "DashboardBetaAcceptancePathReadModel"
 require_contains "Sources/Dashboard/DashboardBetaAcceptancePath.swift" "DashboardBetaAcceptancePathViewModel"
@@ -6674,8 +6674,8 @@ require_contains "docs/validation/workbench-beta-acceptance-checklist.md" "MTP-1
 require_contains "docs/validation/validation-plan.md" "MTP-123 Reproducible Beta Acceptance Checklist / Script Validation"
 require_contains "docs/validation/validation-plan.md" "bash checks/workbench-beta-acceptance.sh"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-123 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-123 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-123-BETA-ACCEPTANCE-SCRIPT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-123 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-123-BETA-ACCEPTANCE-SCRIPT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness reproducible beta acceptance anchor"
 require_contains "checks/workbench-beta-acceptance.sh" "MTP-123-REPRODUCIBLE-BETA-ACCEPTANCE-WORKFLOW"
 require_contains "checks/workbench-beta-acceptance.sh" "MTP-123-LOCAL-COMMANDS-EXPECTED-OUTPUTS"
@@ -6773,8 +6773,8 @@ require_contains "docs/domain/context.md" "MTP-124-DOCS-OPERATOR-GUIDE-VALIDATIO
 require_contains "docs/validation/validation-plan.md" "MTP-124 Docs Index / Operator Guide Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-124-DOCS-OPERATOR-GUIDE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-124 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-124 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-124-DOCS-OPERATOR-GUIDE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-124 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-124-DOCS-OPERATOR-GUIDE-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness docs index / operator guide anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-124 只把 MTP-119 至 MTP-123 的 local Workbench beta path"
 require_contains "docs/audit/inputs/mtpro-workbench-beta-readiness-v1-stage-audit-input.md" "MTP-125-WORKBENCH-BETA-READINESS-STAGE-CLOSEOUT"
@@ -6800,8 +6800,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-125 Automation Readin
 require_contains "docs/validation/validation-plan.md" "MTP-125-WORKBENCH-BETA-READINESS-CLOSEOUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-125 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "docs/audit/inputs/mtpro-workbench-beta-readiness-v1-stage-audit-input.md"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-125 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-125-WORKBENCH-BETA-READINESS-CLOSEOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-125 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-125-WORKBENCH-BETA-READINESS-CLOSEOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Workbench Beta Readiness stage audit input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-125 只收口 MTP-118 至 MTP-124 validation evidence"
 require_contains "docs/contracts/live-read-only-readiness-boundary-contract.md" "MTP-126-LIVE-READ-ONLY-READINESS-TERMINOLOGY"
@@ -6823,8 +6823,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-126 Live Read-only Re
 require_contains "docs/validation/validation-plan.md" "MTP-126-LIVE-READ-ONLY-READINESS-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-LIVE-READ-ONLY-READINESS"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-126 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-126 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-126-LIVE-READ-ONLY-READINESS-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-126 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-126-LIVE-READ-ONLY-READINESS-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Live Read-only Readiness contract anchor"
 require_contains "docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md" "Define Live read-only readiness terminology and boundary"
 require_contains "docs/contracts/live-read-only-readiness-boundary-contract.md" "MTP-127-CREDENTIAL-SECRET-POLICY-FUTURE-GATE"
@@ -6843,8 +6843,8 @@ require_contains "docs/domain/context.md" "MTP-127-LIVE-READ-ONLY-CREDENTIAL-END
 require_contains "docs/validation/validation-plan.md" "MTP-127 Credential / Secret Policy and Endpoint Capability Taxonomy Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-127-LIVE-READ-ONLY-CREDENTIAL-ENDPOINT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-127 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-127 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "swift test --filter LiveReadOnlyCredentialEndpointTaxonomy"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-127 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "swift test --filter LiveReadOnlyCredentialEndpointTaxonomy"
 require_contains "docs/automation/automation-readiness.md" "Live Read-only credential / endpoint taxonomy anchor"
 require_contains "docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md" "Define credential / secret policy and endpoint capability taxonomy"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "LiveReadOnlyCredentialEndpointTaxonomyBoundary"
@@ -6866,8 +6866,8 @@ require_contains "docs/domain/context.md" "MTP-128-LIVE-READ-ONLY-ADAPTER-CAPABI
 require_contains "docs/validation/validation-plan.md" "MTP-128 Adapter Capability Matrix Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-128-LIVE-READ-ONLY-ADAPTER-CAPABILITY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-128 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-128 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "LiveReadOnlyAdapterCapabilityMatrixBoundary"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-128 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "LiveReadOnlyAdapterCapabilityMatrixBoundary"
 require_contains "docs/automation/automation-readiness.md" "Live Read-only adapter capability matrix anchor"
 require_contains "docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md" "Define adapter capability matrix for read-only readiness"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "LiveReadOnlyAdapterCapabilityMatrixBoundary"
@@ -6889,8 +6889,8 @@ require_contains "docs/domain/context.md" "MTP-129-LIVE-READ-ONLY-ACCOUNT-POSITI
 require_contains "docs/validation/validation-plan.md" "MTP-129 Account / Position / Balance Read-model-only Future Gates Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-129-LIVE-READ-ONLY-ACCOUNT-POSITION-BALANCE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-129 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-129 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "LiveReadOnlyAccountPositionBalanceFutureGateBoundary"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-129 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "LiveReadOnlyAccountPositionBalanceFutureGateBoundary"
 require_contains "docs/automation/automation-readiness.md" "Live Read-only account / position / balance future gate anchor"
 require_contains "docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md" "Define account / position / balance read-model-only future gates"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "LiveReadOnlyAccountPositionBalanceFutureGateBoundary"
@@ -6914,8 +6914,8 @@ require_contains "docs/domain/context.md" "MTP-130-LIVE-READ-ONLY-PRIVATE-STREAM
 require_contains "docs/validation/validation-plan.md" "MTP-130 Private Stream / Account Snapshot Simulation Gate Input Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-130-LIVE-READ-ONLY-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-130 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-130 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-130 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary"
 require_contains "docs/automation/automation-readiness.md" "Live Read-only private stream / account snapshot simulation gate anchor"
 require_contains "docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md" "Define private stream / account snapshot simulation gate input material"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "LiveReadOnlyPrivateStreamAccountSnapshotSimulationGateBoundary"
@@ -6940,8 +6940,8 @@ require_contains "docs/domain/context.md" "MTP-131-LIVE-READ-ONLY-WORKBENCH-VALI
 require_contains "docs/validation/validation-plan.md" "MTP-131 Workbench Live Readiness Read-model-only Boundary Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-131-LIVE-READ-ONLY-WORKBENCH-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-131 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-131 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "LiveReadOnlyWorkbenchReadModelBoundary"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-131 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "LiveReadOnlyWorkbenchReadModelBoundary"
 require_contains "docs/automation/automation-readiness.md" "Live Read-only Dashboard read-model-only boundary anchor"
 require_contains "docs/planning/projects/mtpro-live-read-only-readiness-boundary-v1-plan.md" "Define Dashboard Live readiness read-model-only boundary"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "LiveReadOnlyWorkbenchReadModelBoundary"
@@ -6981,8 +6981,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-132-LIVE-READ-ONLY-RE
 require_contains "docs/validation/validation-plan.md" "MTP-132-AUTOMATION-READINESS-STAGE-CLOSEOUT"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-132 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "docs/audit/inputs/mtpro-live-read-only-readiness-boundary-v1-stage-audit-input.md"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-132 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-132-AUTOMATION-READINESS-STAGE-CLOSEOUT"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-132 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-132-AUTOMATION-READINESS-STAGE-CLOSEOUT"
 require_contains "docs/automation/automation-readiness.md" "Live Read-only Readiness stage audit input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-132 只收口 MTP-126 至 MTP-131 validation evidence"
 
@@ -7005,8 +7005,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-133 Account / Positio
 require_contains "docs/validation/validation-plan.md" "MTP-133-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-133 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-133 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-133-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-133 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-133-ACCOUNT-POSITION-BALANCE-READ-MODEL-ONLY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Account / Position / Balance read-model-only terminology anchor"
 require_contains "docs/planning/projects/mtpro-account-position-balance-read-model-only-v1-plan.md" "Define account / position / balance read-model-only terminology and boundary"
 require_contains "docs/product/mtpro-live-readiness-roadmap-v1.md" "L3.1 Account / Position / Balance Read-model-only"
@@ -7026,8 +7026,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-134 Account Snapshot 
 require_contains "docs/validation/validation-plan.md" "MTP-134-ACCOUNT-SNAPSHOT-IDENTITY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-134 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-134"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-134 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-134-ACCOUNT-SNAPSHOT-IDENTITY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-134 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-134-ACCOUNT-SNAPSHOT-IDENTITY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Account snapshot identity / freshness evidence anchor"
 require_contains "docs/planning/projects/mtpro-account-position-balance-read-model-only-v1-plan.md" "Define account snapshot identity and source / freshness evidence"
 require_contains "docs/contracts/account-position-balance-read-model-only-contract.md" "MTP-135-POSITION-SNAPSHOT-IDENTITY"
@@ -7046,8 +7046,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-135 Position Snapshot
 require_contains "docs/validation/validation-plan.md" "MTP-135-POSITION-SNAPSHOT-IDENTITY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-135 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-135"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-135 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-135-POSITION-SNAPSHOT-IDENTITY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-135 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-135-POSITION-SNAPSHOT-IDENTITY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Position snapshot identity / exposure evidence anchor"
 require_contains "docs/planning/projects/mtpro-account-position-balance-read-model-only-v1-plan.md" "Define position snapshot identity and exposure evidence"
 require_contains "docs/contracts/account-position-balance-read-model-only-contract.md" "MTP-136-BALANCE-SNAPSHOT-IDENTITY"
@@ -7066,8 +7066,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-136 Balance Snapshot 
 require_contains "docs/validation/validation-plan.md" "MTP-136-BALANCE-SNAPSHOT-IDENTITY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-136 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-136"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-136 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-136-BALANCE-SNAPSHOT-IDENTITY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-136 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-136-BALANCE-SNAPSHOT-IDENTITY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Balance snapshot identity / paper-vs-real boundary anchor"
 require_contains "docs/planning/projects/mtpro-account-position-balance-read-model-only-v1-plan.md" "Define balance snapshot identity and paper-vs-real interpretation boundary"
 require_contains "docs/contracts/account-position-balance-read-model-only-contract.md" "MTP-137-DETERMINISTIC-FIXTURE-SHAPE"
@@ -7086,8 +7086,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-137 Fixture / Forbidd
 require_contains "docs/validation/validation-plan.md" "MTP-137-FIXTURE-FORBIDDEN-REAL-ACCOUNT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-137 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "AccountPositionBalanceReadModelOnlyFixtureContract"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-137 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-137-FIXTURE-FORBIDDEN-REAL-ACCOUNT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-137 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-137-FIXTURE-FORBIDDEN-REAL-ACCOUNT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Account / Position / Balance fixture / forbidden real account tests anchor"
 require_contains "docs/planning/projects/mtpro-account-position-balance-read-model-only-v1-plan.md" "Define account / position / balance fixture and forbidden real account tests"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "AccountPositionBalanceReadModelOnlyFixtureContract"
@@ -7108,8 +7108,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-138 Workbench / Repor
 require_contains "docs/validation/validation-plan.md" "MTP-138-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-138 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "AccountPositionBalanceReadModelOnlySurfaceReadModel"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-138 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-138-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-138 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-138-WORKBENCH-REPORT-EVENTS-READ-MODEL-ONLY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Account / Position / Balance Workbench / Report / Events read-model-only surface anchor"
 require_contains "docs/planning/projects/mtpro-account-position-balance-read-model-only-v1-plan.md" "Add Workbench / Report / Events read-model-only evidence surface"
 require_contains "Sources/Dashboard/Report/AccountPositionBalanceReadModelOnlySurface.swift" "AccountPositionBalanceReadModelOnlySurfaceReadModel"
@@ -7150,8 +7150,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-139 Validation Matrix
 require_contains "docs/validation/validation-plan.md" "MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-139 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-139 Account / Position / Balance 阶段收口"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-139 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-CLOSEOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-139 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-139-ACCOUNT-POSITION-BALANCE-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Account / Position / Balance stage audit input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-139 只收口 MTP-133 至 MTP-138 validation matrix"
 require_contains "docs/automation/automation-readiness.md" "Account / Position / Balance stage code audit report anchor"
@@ -7184,8 +7184,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-140 Private Stream / 
 require_contains "docs/validation/validation-plan.md" "MTP-140-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-140 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-140 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-140-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-140 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-140-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-SIMULATION-GATE-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Private Stream / Account Snapshot Simulation Gate terminology anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-140 只定义 L3.2 private stream / account snapshot simulation gate terminology"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "SimulatedPrivateAccountEventSourceIdentityContract"
@@ -7209,8 +7209,8 @@ require_contains "docs/domain/context.md" "MTP-141-SOURCE-IDENTITY-VALIDATION"
 require_contains "docs/validation/validation-plan.md" "MTP-141 Simulated Private Account Event Source Identity Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-141-SOURCE-IDENTITY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-141 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-141 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-141-SOURCE-IDENTITY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-141 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-141-SOURCE-IDENTITY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Private Stream / Account Snapshot Simulation Gate source identity anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-141 只定义 simulated private account event source identity"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "SimulatedAccountSnapshotInputContract"
@@ -7235,8 +7235,8 @@ require_contains "docs/domain/context.md" "MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-IN
 require_contains "docs/validation/validation-plan.md" "MTP-142 Simulated Account Snapshot Input Contract Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-142 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-142 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-142 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-142-SIMULATED-ACCOUNT-SNAPSHOT-INPUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Private Stream / Account Snapshot Simulation Gate snapshot input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-142 只定义 simulated account snapshot input shape"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "SimulatedAccountSnapshotUpdateFixture"
@@ -7259,8 +7259,8 @@ require_contains "docs/domain/context.md" "MTP-143-SIMULATED-ACCOUNT-SNAPSHOT-UP
 require_contains "docs/validation/validation-plan.md" "MTP-143 Simulated Account Snapshot Update Fixture Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-143-SIMULATED-ACCOUNT-SNAPSHOT-UPDATE-FIXTURE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-143 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-143 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-143-SIMULATED-ACCOUNT-SNAPSHOT-UPDATE-FIXTURE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-143 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-143-SIMULATED-ACCOUNT-SNAPSHOT-UPDATE-FIXTURE-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Private Stream / Account Snapshot Simulation Gate update fixture anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-143 只定义 simulated account snapshot update fixture semantics"
 require_contains "Sources/Core/LiveTradingBoundary.swift" "SimulatedAccountSnapshotFreshnessEvidenceContract"
@@ -7283,8 +7283,8 @@ require_contains "docs/domain/context.md" "MTP-144-SIMULATED-ACCOUNT-SNAPSHOT-FR
 require_contains "docs/validation/validation-plan.md" "MTP-144 Simulated Account Snapshot Freshness Evidence Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-144-SIMULATED-ACCOUNT-SNAPSHOT-FRESHNESS-EVIDENCE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-144 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-144 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-144-SIMULATED-ACCOUNT-SNAPSHOT-FRESHNESS-EVIDENCE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-144 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-144-SIMULATED-ACCOUNT-SNAPSHOT-FRESHNESS-EVIDENCE-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Private Stream / Account Snapshot Simulation Gate freshness evidence anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-144 只定义 simulated account snapshot freshness evidence"
 require_contains "Sources/Dashboard/Report/PrivateStreamSimulationGateEvidenceSurface.swift" "PrivateStreamSimulationGateEvidenceSurfaceReadModel"
@@ -7302,8 +7302,8 @@ require_contains "docs/contracts/private-stream-account-snapshot-simulation-gate
 require_contains "docs/validation/validation-plan.md" "MTP-145 Workbench / Report / Events Read-model-only Simulation Gate Evidence Surface Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-145-PRIVATE-STREAM-SIMULATION-GATE-SURFACE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-145 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-145 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-145-PRIVATE-STREAM-SIMULATION-GATE-SURFACE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-145 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-145-PRIVATE-STREAM-SIMULATION-GATE-SURFACE-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Private Stream / Account Snapshot Simulation Gate Workbench / Report / Events surface anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-145 只把 MTP-141 至 MTP-144 deterministic evidence 接入 Workbench / Report / Events read-model-only surface"
 require_contains "docs/audit/inputs/mtpro-private-stream-account-snapshot-simulation-gate-v1-stage-audit-input.md" "MTP-146-PRIVATE-STREAM-ACCOUNT-SNAPSHOT-STAGE-CLOSEOUT"
@@ -7341,8 +7341,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-146 Validation Matrix
 require_contains "docs/validation/validation-plan.md" "MTP-146-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-146 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-146 Private Stream / Account Snapshot 阶段收口"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-146 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-146-STAGE-CLOSEOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-146 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-146-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Private Stream / Account Snapshot Simulation Gate stage audit input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-146 只收口 MTP-140 至 MTP-145 validation matrix"
 require_contains "docs/automation/automation-readiness.md" "Private Stream / Account Snapshot Simulation Gate stage code audit report anchor"
@@ -7373,8 +7373,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-147 Live Monitoring R
 require_contains "docs/validation/validation-plan.md" "MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-LIVE-MONITORING-READ-ONLY-CONSOLE-V2"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-147 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-147 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-147 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-147-LIVE-MONITORING-READ-ONLY-CONSOLE-V2-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Live Monitoring Read-only Console v2 terminology anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-147 只定义 L3.3 Live Monitoring Read-only Console v2 terminology"
 require_contains "Sources/Core/LiveMonitoringSourceIdentity.swift" "LiveMonitoringSourceIdentityContract"
@@ -7400,8 +7400,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-148 Live Monitoring S
 require_contains "docs/validation/validation-plan.md" "MTP-148-LIVE-MONITORING-SOURCE-IDENTITY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-148 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "LiveMonitoringSourceIdentityContract"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-148 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-148-LIVE-MONITORING-SOURCE-IDENTITY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-148 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-148-LIVE-MONITORING-SOURCE-IDENTITY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Live Monitoring source identity anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-148 只把 L3.0 readiness boundary"
 require_contains "Sources/Core/LiveMonitoringSimulationGateHealth.swift" "LiveMonitoringSimulationGateHealthContract"
@@ -7423,8 +7423,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-149 Live Monitoring S
 require_contains "docs/validation/validation-plan.md" "MTP-149-LIVE-MONITORING-SIMULATION-GATE-HEALTH-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-149 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "LiveMonitoringSimulationGateHealthContract"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-149 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-149-LIVE-MONITORING-SIMULATION-GATE-HEALTH-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-149 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-149-LIVE-MONITORING-SIMULATION-GATE-HEALTH-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Live Monitoring simulation gate health evidence anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-149 只把 MTP-148 source identity"
 require_contains "Sources/Core/LiveMonitoringConnectionReadinessExplanation.swift" "LiveMonitoringConnectionReadinessExplanationContract"
@@ -7448,8 +7448,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-150 Live Monitoring C
 require_contains "docs/validation/validation-plan.md" "MTP-150-LIVE-MONITORING-CONNECTION-READINESS-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-150 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "LiveMonitoringConnectionReadinessExplanationContract"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-150 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-150-LIVE-MONITORING-CONNECTION-READINESS-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-150 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-150-LIVE-MONITORING-CONNECTION-READINESS-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Live Monitoring connection readiness explanation anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-150 只把 MTP-148 source identity"
 require_contains "Sources/Core/LiveMonitoringForbiddenCapabilityTests.swift" "LiveMonitoringForbiddenCapabilityTestContract"
@@ -7470,8 +7470,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-151 Live Monitoring F
 require_contains "docs/validation/validation-plan.md" "MTP-151-LIVE-MONITORING-FORBIDDEN-CAPABILITY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-151 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "LiveMonitoringForbiddenCapabilityTestContract"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-151 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-151-LIVE-MONITORING-FORBIDDEN-CAPABILITY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-151 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-151-LIVE-MONITORING-FORBIDDEN-CAPABILITY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Live Monitoring forbidden capability tests anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-151 只定义 endpoint"
 require_contains "Sources/Dashboard/Report/LiveMonitoringReadOnlyConsoleV2Surface.swift" "LiveMonitoringReadOnlyConsoleV2SurfaceReadModel"
@@ -7494,8 +7494,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-152 Live Monitoring W
 require_contains "docs/validation/validation-plan.md" "MTP-152-LIVE-MONITORING-V2-SURFACE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-152 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "LiveMonitoringReadOnlyConsoleV2SurfaceReadModel"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-152 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-152-LIVE-MONITORING-V2-SURFACE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-152 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-152-LIVE-MONITORING-V2-SURFACE-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Live Monitoring Workbench / Report / Events read-model-only surface anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-152 只把 MTP-148 至 MTP-151 deterministic Core evidence"
 require_contains "docs/audit/inputs/mtpro-live-monitoring-read-only-console-v2-stage-audit-input.md" "MTP-153-LIVE-MONITORING-V2-STAGE-CLOSEOUT"
@@ -7542,8 +7542,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-153 Validation Matrix
 require_contains "docs/validation/validation-plan.md" "MTP-153-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-153 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-153 Live Monitoring v2 阶段收口"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-153 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-153-STAGE-CLOSEOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-153 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-153-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Live Monitoring Read-only Console v2 stage audit input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-153 只收口 MTP-147 至 MTP-152 validation matrix"
 require_contains "docs/audit/mtpro-live-monitoring-read-only-console-v2-stage-code-audit.md" "Completed/type=completed"
@@ -7570,7 +7570,7 @@ require_contains "docs/audit/mtpro-strategy-trader-instance-readiness-v1-stage-c
 require_contains "docs/audit/mtpro-strategy-trader-instance-readiness-v1-stage-code-audit.md" "No trading button / live command / order form"
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness stage code audit report anchor"
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness root docs refresh anchor"
-require_contains "docs/validation/latest-verification-summary.md" "L3.4 Strategy / Trader Instance Readiness v1 complete"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "L3.4 Strategy / Trader Instance Readiness v1 complete"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" 'Latest Completed Project：`MTPRO Release v0.2.0`'
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" 'MTPRO SwiftPM Target Graph Module Split v1` 已完成 Project closure'
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "MTPRO Engine Module Boundary Consolidation v1 Stage Code Audit Report"
@@ -7584,13 +7584,13 @@ require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "No trading button / live command / order form"
 require_contains "docs/automation/automation-readiness.md" "Engine Module Boundary Consolidation stage code audit report anchor"
 require_contains "docs/automation/automation-readiness.md" "Engine Module Boundary Consolidation root docs refresh anchor"
-require_contains "docs/validation/latest-verification-summary.md" "Engine Module Boundary Consolidation before L4 complete"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Engine Module Boundary Consolidation before L4 complete"
 require_contains "docs/planning/projects/mtpro-live-monitoring-read-only-console-v2-plan.md" "Define Live Monitoring Read-only Console v2 terminology and boundary"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-engine-module-boundary-consolidation-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "docs/planning/projects/mtpro-target-module-physical-layout-source-migration-v1-plan.md"
-require_contains "docs/planning/linear-draft-plan.md" "当前 docs-only planning record / non-executable"
-require_contains "docs/planning/linear-draft-plan.md" "Define target module physical layout and SwiftPM migration contract"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-engine-module-boundary-consolidation-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "docs/planning/projects/mtpro-target-module-physical-layout-source-migration-v1-plan.md"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "当前 docs-only planning record / non-executable"
+require_contains "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md" "Define target module physical layout and SwiftPM migration contract"
 require_contains "docs/automation/automation-readiness.md" "Target Module Physical Layout / Source Migration planning record anchor"
 require_contains "docs/planning/projects/mtpro-target-module-physical-layout-source-migration-v1-plan.md" "MTPRO Target Module Physical Layout / Source Migration v1"
 require_contains "docs/planning/projects/mtpro-target-module-physical-layout-source-migration-v1-plan.md" "Target Module Physical Layout / Source Migration before L4"
@@ -7622,8 +7622,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-183 Target Physical L
 require_contains "docs/validation/validation-plan.md" "MTP-183-VALIDATION-ANCHORS"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-183 issue backfill"
 require_contains "docs/automation/automation-readiness.md" "Target module migration contract anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-183 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-183-NO-SOURCE-MOVE-PACKAGE-BUSINESS-CODE"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-183 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-183-NO-SOURCE-MOVE-PACKAGE-BUSINESS-CODE"
 require_file "Sources/DomainModel/MarketPrimitives.swift"
 require_file "Sources/DomainModel/MarketDataModels.swift"
 require_file "Sources/DomainModel/CoreBaseline.swift"
@@ -7647,7 +7647,7 @@ require_contains "docs/domain/context.md" "MTP-184-DOMAINMODEL-MESSAGEBUS-PHYSIC
 require_contains "docs/validation/validation-plan.md" "MTP-184 DomainModel / MessageBus Physical Migration Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-184 issue backfill"
 require_contains "docs/automation/automation-readiness.md" "DomainModel / MessageBus physical migration anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-184 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-184 的当前 issue execution evidence"
 require_file "Sources/DataClient/Binance/PublicMarketData/Adapters.swift"
 require_file "Sources/DataClient/Binance/PublicMarketData/BinanceMarketDataBatchReplayBoundary.swift"
 require_file "Sources/DataClient/Binance/PublicMarketData/BinanceMarketDataReplayFreshness.swift"
@@ -7677,7 +7677,7 @@ require_contains "docs/domain/context.md" "MTP-185-DATACLIENT-DATAENGINE-PHYSICA
 require_contains "docs/validation/validation-plan.md" "MTP-185 DataClient / DataEngine Physical Migration Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-185 issue backfill"
 require_contains "docs/automation/automation-readiness.md" "DataClient / DataEngine physical migration anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-185 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-185 的当前 issue execution evidence"
 require_file "Sources/Cache/MarketData/MarketDataCache.swift"
 require_file "Sources/Cache/MarketData/OrderBookReadModel.swift"
 require_file "Sources/Database/Projections/SQLite/Persistence.swift"
@@ -7700,7 +7700,7 @@ require_contains "docs/domain/context.md" "MTP-186-CACHE-DATABASE-PHYSICAL-MIGRA
 require_contains "docs/validation/validation-plan.md" "MTP-186 Cache / Database Physical Migration Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-186 issue backfill"
 require_contains "docs/automation/automation-readiness.md" "Cache / Database physical migration anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-186 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-186 的当前 issue execution evidence"
 require_file "Sources/Trader/Strategies/EMA/EMACross.swift"
 require_file "Sources/MessageBus/StrategySignals.swift"
 require_file "Sources/MessageBus/PaperActionProposal.swift"
@@ -7737,7 +7737,7 @@ require_contains "docs/domain/context.md" "MTP-187-STRATEGIES-TRADER-PORTFOLIO-P
 require_contains "docs/validation/validation-plan.md" "MTP-187 Strategies / Trader / Portfolio Physical Migration Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-187 issue backfill"
 require_contains "docs/automation/automation-readiness.md" "Strategies / Trader / Portfolio physical migration anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-187 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-187 的当前 issue execution evidence"
 require_contains "docs/architecture/module-boundary.md" "MTP-193 EMA Trader Strategy Physical Migration"
 require_contains "docs/architecture/module-boundary.md" "MTP-193-EMA-TRADER-STRATEGIES-PHYSICAL-MIGRATION"
 require_contains "docs/architecture/module-boundary.md" "MTP-193-EMA-OLD-PATH-REMOVAL-GUARD"
@@ -7754,8 +7754,8 @@ require_contains "docs/domain/context.md" "MTP-193-EMA-PATH-MIGRATION-VALIDATION
 require_contains "docs/validation/validation-plan.md" "MTP-193 EMA Trader Strategy Physical Migration Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-193 issue backfill"
 require_contains "docs/automation/automation-readiness.md" "EMA Trader-owned strategy path migration anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-193 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-193-EMA-PATH-MIGRATION-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-193 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-193-EMA-PATH-MIGRATION-VALIDATION"
 require_contains "docs/architecture/module-boundary.md" "MTP-194 OrderBookImbalance Trader Strategy Physical Migration"
 require_contains "docs/architecture/module-boundary.md" "MTP-194-ORDERBOOKIMBALANCE-TRADER-STRATEGIES-PHYSICAL-MIGRATION"
 require_contains "docs/architecture/module-boundary.md" "MTP-194-ORDERBOOKIMBALANCE-OLD-PATH-REMOVAL-GUARD"
@@ -7773,8 +7773,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-194 OrderBookImbalanc
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-194 issue backfill"
 require_contains "docs/automation/automation-readiness.md" "OrderBookImbalance historical research evidence anchor"
 require_contains "docs/automation/automation-readiness.md" 'MTP-201 后 `Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift`'
-require_contains "docs/validation/latest-verification-summary.md" "MTP-194 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-194-ORDERBOOKIMBALANCE-PATH-MIGRATION-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-194 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-194-ORDERBOOKIMBALANCE-PATH-MIGRATION-VALIDATION"
 require_contains "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift" "TraderCoordinationRiskBindingBoundaryEvidence"
 require_contains "Sources/Trader/Coordination/RiskBinding/PaperActionRiskLink.swift" "generic binding protocol / coordination adapter contract"
 require_contains "Tests/CoreTests/CoreTests.swift" "testTraderCoordinationRiskBindingEvidenceKeepsConcreteStrategiesOutOfBindings"
@@ -7792,8 +7792,8 @@ require_contains "docs/domain/context.md" "MTP-195-STRATEGYBINDINGS-BOUNDARY-VAL
 require_contains "docs/validation/validation-plan.md" "MTP-195 StrategyBindings Binding Protocol / Coordination Adapter Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-195 issue backfill"
 require_contains "docs/automation/automation-readiness.md" "Trader Coordination RiskBinding anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-195 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-195-STRATEGYBINDINGS-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-195 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-195-STRATEGYBINDINGS-BOUNDARY-VALIDATION"
 require_contains "Tests/CoreTests/CoreTests.swift" "testTraderOwnedStrategyPathValidationCoversCanonicalOldBindingAndExecutionGuards"
 require_contains "docs/architecture/module-boundary.md" "MTP-196 Trader-owned Strategy Path Validation"
 require_contains "docs/architecture/module-boundary.md" "MTP-196-TRADER-OWNED-STRATEGY-PATH-VALIDATION"
@@ -7809,8 +7809,8 @@ require_contains "docs/domain/context.md" "MTP-196-VALIDATION-ONLY-GUARD"
 require_contains "docs/validation/validation-plan.md" "MTP-196 Trader-owned Strategy Path Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-196 issue backfill"
 require_contains "docs/automation/automation-readiness.md" "Trader-owned strategy path validation anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-196 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-196-TRADER-OWNED-STRATEGY-PATH-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-196 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-196-TRADER-OWNED-STRATEGY-PATH-VALIDATION"
 require_file "Sources/RiskEngine/PreTrade/PaperPreTradeRiskEngine.swift"
 require_file "Sources/RiskEngine/LiveGate/LiveRiskGateContract.swift"
 require_file "Sources/RiskEngine/LiveGate/LiveAuditIncidentStopContract.swift"
@@ -7870,7 +7870,7 @@ require_contains "docs/domain/context.md" "MTP-188-RISK-EXECUTION-PHYSICAL-MIGRA
 require_contains "docs/validation/validation-plan.md" "MTP-188 RiskEngine / ExecutionEngine / ExecutionClient Physical Migration Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-188 issue backfill"
 require_contains "docs/automation/automation-readiness.md" "RiskEngine / ExecutionEngine / ExecutionClient physical migration anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-188 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-188 的当前 issue execution evidence"
 require_contains "Sources/ExecutionEngine/OMSFutureGate/OMSFutureGateBoundary.swift" "implementsOMS: Bool = false"
 require_contains "Sources/ExecutionClient/BrokerCapabilityMatrix/ExecutionClientBrokerCapabilityMatrix.swift" "implementsExecutionClient: Bool = false"
 require_contains "Tests/CoreTests/CoreTests.swift" "testMTP188OMSFutureGateBoundaryKeepsExecutionEngineNonExecutable"
@@ -7899,7 +7899,7 @@ require_contains "docs/domain/context.md" "MTP-189-WORKBENCH-DASHBOARD-PHYSICAL-
 require_contains "docs/validation/validation-plan.md" "MTP-189 Workbench / Dashboard Physical Migration Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-189 issue backfill"
 require_contains "docs/automation/automation-readiness.md" "Workbench / Dashboard physical migration anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-189 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-189 的当前 issue execution evidence"
 require_contains "Tests/AppTests/AppTests.swift" "testMTP189WorkbenchDashboardSourceMigrationBoundaryIsPhysicalAndReadModelOnly"
 require_file "docs/audit/inputs/mtpro-target-module-physical-layout-source-migration-v1-stage-audit-input.md"
 require_contains "docs/audit/inputs/mtpro-target-module-physical-layout-source-migration-v1-stage-audit-input.md" "MTP-190-TARGET-MODULE-SOURCE-MIGRATION-STAGE-CLOSEOUT"
@@ -7923,8 +7923,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-190 Target Module Sou
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-190 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-190 Target Module Source Migration 阶段收口"
 require_contains "docs/automation/automation-readiness.md" "Target module source migration stage audit input anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-190 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-190-STAGE-CLOSEOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-190 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-190-STAGE-CLOSEOUT-VALIDATION"
 require_file "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md"
 require_contains "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md" "MTPRO Target Module Physical Layout / Source Migration v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md" "Project status 为"
@@ -7934,7 +7934,7 @@ require_contains "docs/automation/automation-readiness.md" "Target module source
 require_contains "docs/automation/automation-readiness.md" "Target module source migration root docs refresh anchor"
 require_contains "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md" "Project Closure Count input: 23 / 23 (100%)"
 require_contains "docs/audit/mtpro-target-module-physical-layout-source-migration-v1-stage-code-audit.md" 'Next Handoff input: Human + `@001 / PLN`'
-require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Target Module Physical Layout / Source Migration v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Project closure evidence：Target Module Physical Layout / Source Migration v1"
 require_contains "docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md" "MTPRO Strategy / Trader Instance Readiness v1"
 require_contains "docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md" "L3.4 Strategy / Trader Instance Readiness v1"
 require_contains "docs/planning/projects/mtpro-strategy-trader-instance-readiness-v1-plan.md" "Define Strategy / Trader Instance readiness terminology and boundary"
@@ -7996,8 +7996,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-162-ARCHITECTURE-GRAP
 require_contains "docs/validation/validation-plan.md" "MTP-162-CURRENT-RUNTIME-NON-AUTHORIZATION"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-ARCHITECTURE-MODULE-BOUNDARY"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-162 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-162 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-162-CURRENT-RUNTIME-NON-AUTHORIZATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-162 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-162-CURRENT-RUNTIME-NON-AUTHORIZATION"
 require_contains "docs/automation/automation-readiness.md" "Architecture graph module terminology anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-162 只定义 DataClient / DataEngine / MessageBus"
 require_contains "docs/automation/automation-readiness.md" "ExecutionClient implementation"
@@ -8033,8 +8033,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-163-FIXED-TARGET-SOUR
 require_contains "docs/validation/validation-plan.md" "MTP-163-FORBIDDEN-PATH-TAXONOMY"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-163 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "fixed target source module layout"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-163 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-163-FIXED-LAYOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-163 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-163-FIXED-LAYOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Fixed target source module layout anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-163 只固定"
 require_contains "docs/automation/automation-readiness.md" '不修改 `Package.swift` target graph'
@@ -8063,8 +8063,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-164-OLD-PATH-DRIFT-GU
 require_contains "docs/validation/validation-plan.md" "MTP-164-FORBIDDEN-CAPABILITY-DRIFT-GUARD"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-164 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "old path drift guard"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-164 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-164-ARCHITECTURE-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-164 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-164-ARCHITECTURE-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Architecture boundary validation anchors"
 require_contains "docs/automation/automation-readiness.md" "MTP-164 只建立 docs/checks-focused validation anchors"
 require_contains "docs/automation/automation-readiness.md" "old path drift"
@@ -8096,8 +8096,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-165-MESSAGEBUS-FACTS-
 require_contains "docs/validation/validation-plan.md" "MTP-165-RISK-EXECUTION-BYPASS-GUARD"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-165 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MessageBus facts / commands / events / request-response"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-165 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-165-MESSAGEBUS-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-165 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-165-MESSAGEBUS-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "MessageBus command event boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-165 只定义 MessageBus facts / commands / events"
 require_contains "docs/automation/automation-readiness.md" "不实现完整 runtime MessageBus"
@@ -8127,8 +8127,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-166-CACHE-RUNTIME-DER
 require_contains "docs/validation/validation-plan.md" "MTP-166-REAL-ACCOUNT-CACHE-FORBIDDEN-GUARD"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-166 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Cache runtime-derived state"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-166 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-166-CACHE-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-166 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-166-CACHE-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Cache runtime-derived state boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-166 只定义 Cache runtime-derived state"
 require_contains "docs/automation/automation-readiness.md" "不实现 Redis"
@@ -8161,8 +8161,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-167-DATABASE-DURABLE-
 require_contains "docs/validation/validation-plan.md" "MTP-167-ACCOUNT-BROKER-PERSISTENCE-FORBIDDEN-GUARD"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-167 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Database durable facts / snapshots / projections"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-167 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-167-DATABASE-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-167 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-167-DATABASE-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Database durable backing store boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-167 只定义 Database durable facts"
 require_contains "docs/automation/automation-readiness.md" "不实现 Database migration"
@@ -8197,8 +8197,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-168-DATACLIENT-VENUE-
 require_contains "docs/validation/validation-plan.md" "MTP-168-SIGNED-ACCOUNT-LISTENKEY-FORBIDDEN-GUARD"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-168 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "DataClient venue adapter boundary"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-168 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-168-DATACLIENT-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-168 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-168-DATACLIENT-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "DataClient exchange adapter boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "Sources/DataClient/<venue>/"
 require_contains "docs/automation/automation-readiness.md" "不实现 source move"
@@ -8234,8 +8234,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-169-DATAENGINE-INGEST
 require_contains "docs/validation/validation-plan.md" "MTP-169-SIGNED-ACCOUNT-BROKER-PATH-FORBIDDEN-GUARD"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-169 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "DataEngine ingest / replay / quality"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-169 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-169-DATAENGINE-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-169 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-169-DATAENGINE-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "DataEngine ingest replay quality boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "Sources/DataEngine/"
 require_contains "docs/automation/automation-readiness.md" "不实现完整 streaming DataEngine runtime"
@@ -8265,8 +8265,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-170-ADAPTER-CAPABILIT
 require_contains "docs/validation/validation-plan.md" "MTP-170-NO-CREDENTIAL-SECRET-PRIVATE-NETWORK-TEST-GUARD"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-170 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "adapter capability guard"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-170 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-170-ADAPTER-CAPABILITY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-170 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-170-ADAPTER-CAPABILITY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Adapter capability and data-source guard anchor"
 require_contains "docs/automation/automation-readiness.md" "真实网络私有接口测试"
 require_contains "docs/automation/automation-readiness.md" "secret / credential / keychain storage"
@@ -8307,8 +8307,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-171-NO-DIRECT-EXECUTI
 require_contains "docs/validation/validation-plan.md" "MTP-171-NO-RUNTIME-SCHEDULER-LIVE-QUOTER-HEDGER-GUARD"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-171 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Strategies lifecycle and proposal boundary"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-171 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-171-STRATEGIES-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-171 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-171-STRATEGIES-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Strategies lifecycle and proposal boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "strategy runtime"
 require_contains "docs/automation/automation-readiness.md" "executable order command"
@@ -8348,8 +8348,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-172-NO-LIVE-COORDINAT
 require_contains "docs/validation/validation-plan.md" "MTP-172-NO-DIRECT-EXECUTIONCLIENT-BROKER-COMMAND-PATH"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-172 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Trader coordination boundary"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-172 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-172-TRADER-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-172 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-172-TRADER-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Trader coordination boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "Trader runtime"
 require_contains "docs/automation/automation-readiness.md" "real account read"
@@ -8378,8 +8378,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-173-ACCOUNT-PORTFOLIO
 require_contains "docs/validation/validation-plan.md" "MTP-173-NO-BROKER-ACCOUNT-STATE-READ-GUARD"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-173 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Account / Portfolio read-model boundary"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-173 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-173-ACCOUNT-PORTFOLIO-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-173 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-173-ACCOUNT-PORTFOLIO-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Account / Portfolio context read-model boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "broker portfolio sync"
 require_contains "docs/automation/automation-readiness.md" "live reconciliation"
@@ -8408,8 +8408,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-174-STRATEGIES-TRADER
 require_contains "docs/validation/validation-plan.md" "MTP-174-NO-RUNTIME-ENDPOINT-CREDENTIAL-BYPASS"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-174 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Strategies / Trader no-direct-execution guard"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-174 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-174-NO-DIRECT-EXECUTION-GUARD-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-174 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-174-NO-DIRECT-EXECUTION-GUARD-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Strategies / Trader no-direct-execution guard anchor"
 require_contains "docs/automation/automation-readiness.md" "credential bypass"
 require_contains "docs/automation/automation-readiness.md" "real order lifecycle"
@@ -8443,8 +8443,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-175-NO-BROKER-EXECUTI
 require_contains "docs/validation/validation-plan.md" "MTP-175-NO-LIVE-RISK-RUNTIME-CIRCUIT-BREAKER-GUARD"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-175 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "RiskEngine pre-execution boundary"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-175 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-175-RISKENGINE-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-175 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-175-RISKENGINE-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "RiskEngine pre-execution boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "no broker / ExecutionClient / live risk runtime guard"
 require_contains "docs/automation/automation-readiness.md" "circuit breaker runtime"
@@ -8478,8 +8478,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-176-EXECUTIONENGINE-P
 require_contains "docs/validation/validation-plan.md" "MTP-176-NO-REAL-ORDER-LIFECYCLE-BROKER-PATH-GUARD"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-176 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "ExecutionEngine paper / simulated lifecycle boundary"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-176 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-176-EXECUTIONENGINE-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-176 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-176-EXECUTIONENGINE-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "ExecutionEngine paper / simulated lifecycle boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "broker submit / cancel / replace"
 require_contains "docs/automation/automation-readiness.md" "execution report"
@@ -8514,8 +8514,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-177-NO-BROKER-CLIENT-
 require_contains "docs/validation/validation-plan.md" "MTP-177-NO-EXECUTION-REPORT-FILL-RECONCILIATION-RUNTIME"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-177 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "ExecutionClient future-gated boundary"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-177 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-177-EXECUTIONCLIENT-OMS-FUTURE-GATE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-177 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-177-EXECUTIONCLIENT-OMS-FUTURE-GATE-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "ExecutionClient / OMS future gate boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "broker / exchange execution adapter"
 require_contains "docs/automation/automation-readiness.md" "signed request"
@@ -8554,8 +8554,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-178-LIVEEXECUTIONADAP
 require_contains "docs/validation/validation-plan.md" "MTP-178-BROKER-REAL-ORDER-GUARD-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-178 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "broker / real order forbidden guard"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-178 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-178-BROKER-REAL-ORDER-GUARD-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-178 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-178-BROKER-REAL-ORDER-GUARD-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Broker / real order forbidden guard evidence anchor"
 require_contains "docs/automation/automation-readiness.md" "real order lifecycle"
 require_contains "docs/automation/automation-readiness.md" "broker connect UI"
@@ -8598,8 +8598,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-179-NO-LIVE-COMMAND-S
 require_contains "docs/validation/validation-plan.md" "MTP-179-UI-COPY-READ-MODEL-ONLY-LABELING"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-179 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Workbench read-model-only consumption boundary"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-179 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-179-WORKBENCH-READMODEL-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-179 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-179-WORKBENCH-READMODEL-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Workbench read-model-only consumption boundary anchor"
 require_contains "docs/automation/automation-readiness.md" "runtime object exposure"
 require_contains "docs/automation/automation-readiness.md" "Adapter request exposure"
@@ -8639,8 +8639,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-180-NO-CURRENT-LIVE-P
 require_contains "docs/validation/validation-plan.md" "MTP-180-NEXT-STAGE-PRODUCT-SURFACE-READINESS-INPUT"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-180 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Future Live PRO Console product-surface split"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-180 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-180-FUTURE-LIVE-PRO-CONSOLE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-180 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-180-FUTURE-LIVE-PRO-CONSOLE-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Future Live PRO Console product-surface split anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-180-FUTURELIVEPROCONSOLE-BOUNDARY-LABEL"
 require_contains "docs/automation/automation-readiness.md" "ExecutionClient request UI"
@@ -8682,8 +8682,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-181-FORBIDDEN-CAPABIL
 require_contains "docs/validation/validation-plan.md" "MTP-181-NO-L4-PROJECT-ISSUE-AUTHORIZATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-181 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "L4 planning input material"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-181 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-181-L4-PLANNING-INPUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-181 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-181-L4-PLANNING-INPUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "L4 planning input material anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-181-L4-PLANNING-INPUT-MATERIAL"
 require_contains "docs/automation/automation-readiness.md" "不创建 L4 Linear Project / Issue"
@@ -8734,8 +8734,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-182-M1-M6-EVIDENCE-CH
 require_contains "docs/validation/validation-plan.md" "MTP-182-NO-GRAPHIFY-FIGMA-NEXT-STAGE-MUTATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-182 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "validation matrix closeout"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-182 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-182-STAGE-CLOSEOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-182 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-182-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Engine Module Boundary Consolidation stage audit input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-182-STAGE-AUDIT-INPUT-MATERIAL"
 require_contains "docs/automation/automation-readiness.md" "不设置 Linear Project"
@@ -8745,11 +8745,11 @@ require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "Root Docs Refresh Gate：closed"
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" "Project Closure Count: 22 / 22 (100%)"
 require_contains "docs/audit/mtpro-engine-module-boundary-consolidation-v1-stage-code-audit.md" 'Next Handoff: Human + `@001 / PLN`'
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Strategy / Trader Instance Readiness v1"
-require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Strategy / Trader Instance Readiness v1"
-require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Engine Module Boundary Consolidation v1"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Target Module Physical Layout / Source Migration v1"
-require_contains "docs/validation/latest-verification-summary.md" "Target Module Physical Layout / Source Migration before L4 complete"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Strategy / Trader Instance Readiness v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Project closure evidence：Strategy / Trader Instance Readiness v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Project closure evidence：Engine Module Boundary Consolidation v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Target Module Physical Layout / Source Migration v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Target Module Physical Layout / Source Migration before L4 complete"
 require_file "docs/audit/mtpro-trader-owned-strategies-layout-correction-v1-stage-code-audit.md"
 require_contains "docs/audit/mtpro-trader-owned-strategies-layout-correction-v1-stage-code-audit.md" "MTPRO Trader-Owned Strategies Layout Correction v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-trader-owned-strategies-layout-correction-v1-stage-code-audit.md" "Completed/type=completed"
@@ -8763,9 +8763,9 @@ require_contains "docs/audit/mtpro-trader-owned-strategies-layout-correction-v1-
 require_contains "docs/audit/mtpro-trader-owned-strategies-layout-correction-v1-stage-code-audit.md" 'Next Handoff input: Human + `@001 / PLN`'
 require_contains "docs/automation/automation-readiness.md" "Trader-owned strategies layout correction Stage Code Audit Report anchor"
 require_contains "docs/automation/automation-readiness.md" "Trader-owned strategies layout correction root docs refresh anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Trader-Owned Strategies Layout Correction v1"
-require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Trader-Owned Strategies Layout Correction v1"
-require_contains "docs/validation/latest-verification-summary.md" "Trader-Owned Strategies Layout Correction before L4 complete"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Trader-Owned Strategies Layout Correction v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Project closure evidence：Trader-Owned Strategies Layout Correction v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Trader-Owned Strategies Layout Correction before L4 complete"
 require_file "docs/audit/mtpro-trader-ema-strategy-layout-consolidation-v1-stage-code-audit.md"
 require_contains "docs/audit/mtpro-trader-ema-strategy-layout-consolidation-v1-stage-code-audit.md" "MTPRO Trader EMA Strategy Layout Consolidation v1 Stage Code Audit Report"
 require_contains "docs/audit/mtpro-trader-ema-strategy-layout-consolidation-v1-stage-code-audit.md" "Completed/type=completed"
@@ -8776,9 +8776,9 @@ require_contains "docs/audit/mtpro-trader-ema-strategy-layout-consolidation-v1-s
 require_contains "docs/audit/mtpro-trader-ema-strategy-layout-consolidation-v1-stage-code-audit.md" "Project Closure Count input: 25 / 25 (100%)"
 require_contains "docs/automation/automation-readiness.md" "Trader EMA Strategy Layout Consolidation Stage Code Audit Report anchor"
 require_contains "docs/automation/automation-readiness.md" "Trader EMA Strategy Layout Consolidation root docs refresh anchor"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Trader EMA Strategy Layout Consolidation v1"
-require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Trader EMA Strategy Layout Consolidation v1"
-require_contains "docs/validation/latest-verification-summary.md" "Trader EMA Strategy Layout Consolidation before L4 complete"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Trader EMA Strategy Layout Consolidation v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Project closure evidence：Trader EMA Strategy Layout Consolidation v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Trader EMA Strategy Layout Consolidation before L4 complete"
 require_file "docs/contracts/strategy-trader-instance-readiness-contract.md"
 require_contains "docs/contracts/strategy-trader-instance-readiness-contract.md" "MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-TERMINOLOGY"
 require_contains "docs/contracts/strategy-trader-instance-readiness-contract.md" "MTP-154-READINESS-ONLY-BOUNDARY"
@@ -8799,8 +8799,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-154 Strategy / Trader
 require_contains "docs/validation/validation-plan.md" "MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-STRATEGY-TRADER-INSTANCE-READINESS"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-154 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-154 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-154 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-154-STRATEGY-TRADER-INSTANCE-READINESS-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness terminology anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-154 只定义 L3.4 Strategy / Trader Instance readiness terminology"
 require_contains "docs/contracts/strategy-trader-instance-readiness-contract.md" "direct Strategy Instance -> Execution Client path"
@@ -8847,8 +8847,8 @@ require_contains "docs/domain/context.md" "MTP-155-STRATEGY-TRADER-LIFECYCLE-VAL
 require_contains "docs/validation/validation-plan.md" "MTP-155 Strategy / Trader Lifecycle Identity Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-155-STRATEGY-TRADER-LIFECYCLE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-155 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-155 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-155-STRATEGY-TRADER-LIFECYCLE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-155 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-155-STRATEGY-TRADER-LIFECYCLE-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader lifecycle identity anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-155 只定义 Strategy / Trader lifecycle"
 require_contains "docs/automation/automation-readiness.md" "不暴露 credential、secret、API key"
@@ -8877,8 +8877,8 @@ require_contains "docs/domain/context.md" "MTP-156-ROLE-TAXONOMY-VALIDATION"
 require_contains "docs/validation/validation-plan.md" "MTP-156 Quoter / Hedger Role Taxonomy Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-156-ROLE-TAXONOMY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-156 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-156 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-156-ROLE-TAXONOMY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-156 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-156-ROLE-TAXONOMY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Quoter / hedger role taxonomy anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-156 只定义 quoter / hedger role taxonomy"
 require_contains "docs/automation/automation-readiness.md" "不实现 quoter runtime、hedger runtime"
@@ -8916,8 +8916,8 @@ require_contains "docs/domain/context.md" "MTP-157-READ-MODEL-INPUT-VALIDATION"
 require_contains "docs/validation/validation-plan.md" "MTP-157 Account / Portfolio / Risk Read-model Input Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-157-READ-MODEL-INPUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-157 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-157 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-157-READ-MODEL-INPUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-157 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-157-READ-MODEL-INPUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Account / portfolio / risk read-model input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-157 只定义 account / portfolio / risk read-model input contract"
 require_contains "docs/automation/automation-readiness.md" "不读取真实账户"
@@ -8949,8 +8949,8 @@ require_contains "docs/domain/context.md" "MTP-158-PROPOSAL-CONTRACT-VALIDATION"
 require_contains "docs/validation/validation-plan.md" "MTP-158 Paper / Live-neutral Proposal Command Isolation Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-158-PROPOSAL-CONTRACT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-158 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-158 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-158-PROPOSAL-CONTRACT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-158 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-158-PROPOSAL-CONTRACT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Paper/live-neutral proposal command isolation anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-158 只定义 paper/live-neutral proposal contract"
 require_contains "docs/automation/automation-readiness.md" "不实现 order command"
@@ -8978,8 +8978,8 @@ require_contains "docs/domain/context.md" "MTP-159-FORBIDDEN-CAPABILITY-TESTS-VA
 require_contains "docs/validation/validation-plan.md" "MTP-159 Forbidden Strategy / Execution / Broker / UI Command Tests Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-159-FORBIDDEN-CAPABILITY-TESTS-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-159 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-159 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-159-FORBIDDEN-CAPABILITY-TESTS-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-159 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-159-FORBIDDEN-CAPABILITY-TESTS-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Forbidden Strategy / Execution / broker / UI command tests anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-159 只定义 deterministic / local-only / no-network forbidden capability tests"
 require_contains "docs/automation/automation-readiness.md" "不实现 Strategy runtime、Trader runtime、Execution Client"
@@ -9003,8 +9003,8 @@ require_contains "docs/domain/context.md" "strategyTraderReadinessSurface=6"
 require_contains "docs/validation/validation-plan.md" "MTP-160 Strategy Readiness Workbench / Report / Events Surface Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-160-STRATEGY-TRADER-READINESS-SURFACE-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-160 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-160 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-160-STRATEGY-TRADER-READINESS-SURFACE-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-160 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-160-STRATEGY-TRADER-READINESS-SURFACE-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Strategy readiness Workbench / Report / Events surface anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-160 只把 MTP-154 至 MTP-159 deterministic readiness"
 require_file "docs/audit/inputs/mtpro-trader-owned-strategies-layout-correction-v1-stage-audit-input.md"
@@ -9028,8 +9028,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-197 Validation Matrix
 require_contains "docs/validation/validation-plan.md" "MTP-197-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-197 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Trader-owned strategies layout correction 阶段收口"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-197 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-197-STAGE-CLOSEOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-197 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-197-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Trader-owned strategies layout correction stage audit input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-197 只收口 MTP-191 至 MTP-196"
 require_file "docs/contracts/trader-ema-strategy-layout-contract.md"
@@ -9068,15 +9068,15 @@ require_contains "docs/validation/validation-plan.md" "MTP-198 EMA-only Trader S
 require_contains "docs/validation/validation-plan.md" "MTP-198-EMA-ONLY-LAYOUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-198 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "EMA-only Trader strategy layout contract"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-198 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-198-EMA-ONLY-LAYOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-198 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-198-EMA-ONLY-LAYOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "EMA-only Trader strategy layout contract anchor"
 require_contains "docs/automation/automation-readiness.md" 'current active concrete strategy only `EMA`'
 require_contains "docs/automation/automation-readiness.md" "Non-EMA active strategy source retirement anchor"
 require_contains "docs/automation/automation-readiness.md" "Sources/Core/Research/OrderBookImbalanceResearchEvidence.swift"
 require_contains "docs/validation/validation-plan.md" "MTP-201 Non-EMA Active Strategy Source Retirement Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-201"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-201 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-201 的当前 issue execution evidence"
 require_contains "docs/audit/inputs/mtpro-trader-ema-strategy-layout-consolidation-v1-mtp-201-non-ema-source-retirement.md" "MTP-201-NON-EMA-ACTIVE-SOURCE-RETIREMENT"
 require_contains "docs/automation/automation-readiness.md" "Trader EMA Strategy Layout MTP-202 RiskBinding reclassification anchor"
 require_contains "docs/architecture/module-boundary.md" "MTP-202-TRADER-COORDINATION-RISKBINDING-SOURCE-RECLASSIFICATION"
@@ -9086,7 +9086,7 @@ require_contains "docs/architecture/module-boundary.md" "MTP-202-RISKBINDING-VAL
 require_contains "docs/domain/context.md" "TraderCoordinationRiskBindingBoundaryEvidence"
 require_contains "docs/validation/validation-plan.md" "MTP-202 Trader Coordination RiskBinding Boundary Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-202"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-202 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-202 的当前 issue execution evidence"
 require_contains "Tests/CoreTests/CoreTests.swift" "testReleaseActiveStrategyPathValidationRejectsNonReleaseStrategiesAndBindingDrift"
 require_contains "docs/architecture/module-boundary.md" "MTP-203-EMA-ONLY-ACTIVE-STRATEGY-DIRECTORY-GUARD"
 require_contains "docs/architecture/module-boundary.md" "MTP-203-NON-EMA-ACTIVE-SOURCE-TEST-PACKAGE-DRIFT-GUARD"
@@ -9095,7 +9095,7 @@ require_contains "docs/architecture/module-boundary.md" "MTP-203-EMA-ONLY-PATH-V
 require_contains "docs/domain/context.md" "MTP-203-EMA-ONLY-ACTIVE-STRATEGY-DIRECTORY-GUARD"
 require_contains "docs/validation/validation-plan.md" "MTP-203 EMA-only Strategy Path Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-203"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-203 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-203 的当前 issue execution evidence"
 require_contains "docs/automation/automation-readiness.md" "Trader EMA Strategy Layout MTP-203 path validation anchor"
 require_file "docs/audit/inputs/mtpro-trader-ema-strategy-layout-consolidation-v1-stage-audit-input.md"
 require_contains "docs/audit/inputs/mtpro-trader-ema-strategy-layout-consolidation-v1-stage-audit-input.md" "MTP-204-TRADER-EMA-LAYOUT-STAGE-CLOSEOUT"
@@ -9114,7 +9114,7 @@ require_contains "docs/architecture/module-boundary.md" "MTP-204-TRADER-EMA-LAYO
 require_contains "docs/domain/context.md" "MTP-204-STAGE-AUDIT-INPUT-MATERIAL"
 require_contains "docs/validation/validation-plan.md" "MTP-204 Trader EMA Strategy Layout Stage Closeout Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-204"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-204 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-204 的当前 issue execution evidence"
 require_contains "docs/automation/automation-readiness.md" "Trader EMA Strategy Layout Consolidation stage audit input anchor"
 require_contains "docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md" '当前 active concrete strategy 只保留 `EMA`'
 require_contains "docs/planning/projects/mtpro-trader-ema-strategy-layout-consolidation-v1-plan.md" '`Sources/Trader/Strategies/EMA`'
@@ -9175,8 +9175,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-161 Validation Matrix
 require_contains "docs/validation/validation-plan.md" "MTP-161-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-161 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-161 Strategy / Trader Readiness 阶段收口"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-161 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-161-STAGE-CLOSEOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-161 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-161-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Strategy / Trader Instance readiness stage audit input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-161 只收口 MTP-154 至 MTP-160 validation matrix"
 require_contains "docs/contracts/live-monitoring-read-only-console-v2-contract.md" "signed endpoint"
@@ -9248,8 +9248,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-205 Trader Accounts /
 require_contains "docs/validation/validation-plan.md" "MTP-205-TRADER-ACCOUNTS-COORDINATION-COMPATIBILITY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-205 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Trader Accounts / Coordination compatibility contract"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-205 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-205-TRADER-ACCOUNTS-COORDINATION-COMPATIBILITY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-205 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-205-TRADER-ACCOUNTS-COORDINATION-COMPATIBILITY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Trader Accounts / Coordination compatibility contract anchor"
 require_contains "docs/automation/automation-readiness.md" 'MTP-205 只定义 `Trader = Accounts + Strategies/EMA + Coordination` compatibility contract'
 [[ ! -d "Sources/Trader/StrategyBindings" ]] || fail "MTP-205 retired active path must not return: Sources/Trader/StrategyBindings"
@@ -9279,8 +9279,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-206 Trader Accounts S
 require_contains "docs/validation/validation-plan.md" "MTP-206-TRADER-ACCOUNTS-BOUNDARY-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-206 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Trader Accounts source boundary"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-206 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-206-TRADER-ACCOUNTS-BOUNDARY-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-206 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-206-TRADER-ACCOUNTS-BOUNDARY-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Trader Accounts source boundary anchor"
 require_contains "Tests/CoreTests/CoreTests.swift" "testMTP207TraderAccountContextValidationAnchorsCoverAccountsEMARSIAndRiskBinding"
 require_contains "Tests/CoreTests/CoreTests.swift" "testMTP207TraderAccountContextValidationRejectsBrokerPayloadListenKeyAndRuntimeDrift"
@@ -9298,8 +9298,8 @@ require_contains "docs/domain/context.md" "MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDA
 require_contains "docs/validation/validation-plan.md" "MTP-207 Trader Account Context Validation Wiring"
 require_contains "docs/validation/validation-plan.md" "MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-207 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-207 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-207 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-207-TRADER-ACCOUNT-CONTEXT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Trader account context validation wiring anchor"
 require_contains "docs/architecture/module-boundary.md" "MTP-208 Root Docs StrategyBindings Wording Retirement"
 require_contains "docs/architecture/module-boundary.md" "MTP-208-STRATEGYBINDINGS-ACTIVE-WORDING-RETIREMENT"
@@ -9315,8 +9315,8 @@ require_contains "docs/domain/context.md" "MTP-208-ROOT-DOCS-WORDING-VALIDATION"
 require_contains "docs/validation/validation-plan.md" "MTP-208 Root Docs StrategyBindings Wording Retirement Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-208-ROOT-DOCS-WORDING-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-208 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-208 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-208-ROOT-DOCS-WORDING-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-208 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-208-ROOT-DOCS-WORDING-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "StrategyBindings wording retirement anchor"
 require_contains "docs/architecture/module-boundary.md" "MTP-209 Package Stale Strategies Compatibility Exclude Cleanup"
 require_contains "docs/architecture/module-boundary.md" "MTP-209-PACKAGE-STALE-STRATEGIES-EXCLUDE-CLEANUP"
@@ -9332,8 +9332,8 @@ require_contains "docs/domain/context.md" "MTP-209-PACKAGE-CLEANUP-VALIDATION"
 require_contains "docs/validation/validation-plan.md" "MTP-209 Package Stale Strategies Compatibility Exclude Cleanup Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-209-PACKAGE-CLEANUP-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-209 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-209 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-209-PACKAGE-CLEANUP-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-209 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-209-PACKAGE-CLEANUP-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Package stale Strategies compatibility exclude cleanup anchor"
 require_contains "Package.swift" '"Trader/Accounts"'
 require_contains "Package.swift" 'path: "Sources/Trader/Strategies"'
@@ -9358,8 +9358,8 @@ require_contains "docs/domain/context.md" "MTP-210-TRADER-COMPLETENESS-VALIDATIO
 require_contains "docs/validation/validation-plan.md" "MTP-210 Trader Container Completeness Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-210-TRADER-COMPLETENESS-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-210 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-210 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-210-TRADER-COMPLETENESS-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-210 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-210-TRADER-COMPLETENESS-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Trader container completeness validation anchor"
 [[ -d "Sources/Trader/Accounts" ]] || fail "MTP-210 required Trader container directory missing: Sources/Trader/Accounts"
 [[ -d "Sources/Trader/Strategies/EMA" ]] || fail "MTP-210 required Trader strategy directory missing: Sources/Trader/Strategies/EMA"
@@ -9402,8 +9402,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-211 Trader Accounts /
 require_contains "docs/validation/validation-plan.md" "MTP-211-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-211 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "Trader Accounts / Coordination compatibility consolidation stage closeout"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-211 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-211-STAGE-CLOSEOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-211 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-211-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Trader Accounts / Coordination compatibility stage audit input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-211 只准备 audit input material"
 require_file "docs/audit/mtpro-trader-accounts-coordination-compatibility-consolidation-v1-stage-code-audit.md"
@@ -9422,8 +9422,8 @@ require_contains "docs/automation/automation-readiness.md" "Trader Accounts / Co
 require_contains "docs/automation/automation-readiness.md" "Trader Accounts / Coordination root docs refresh anchor"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "Project Closure Count: 36 / 36 (100%)"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "TargetGraph Anchor Retirement / Real Module Source Root Migration before L4"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1"
-require_contains "docs/validation/latest-verification-summary.md" "docs/audit/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-code-audit.md"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "docs/audit/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-code-audit.md"
 require_contains "docs/product/mtpro-live-readiness-roadmap-v1.md" "L4 Live Production / Trading Commands v1 complete with no-default-production-trading policy"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "Core Envelope Retirement / Real Module Ownership Completion before L4 complete"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "L4 Live Production / Trading Commands v1 complete with no-default-production-trading policy"
@@ -9456,8 +9456,8 @@ require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-2
 require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-213-diagnosis.md" "MTP-213-NEXT-GATE"
 require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-213-diagnosis.md" "not reproducible on current"
 require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-213-diagnosis.md" "No production repair is justified by current evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-213 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-213-FOCUSED-VALIDATION-EVIDENCE"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-213 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-213-FOCUSED-VALIDATION-EVIDENCE"
 require_contains "docs/automation/automation-readiness.md" "Persistence validation repair MTP-213 diagnosis anchor"
 require_file "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md"
 require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "MTP-214-VERIFICATION-ONLY-REPAIR-EVIDENCE"
@@ -9468,9 +9468,9 @@ require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-2
 require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "MTP-214-NO-CODE-CHANGE-BOUNDARY"
 require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "MTP-214-NEXT-GATE"
 require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-214-repair-evidence.md" "no active repair required"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-214 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-214-FOCUSED-VALIDATION-EVIDENCE"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-214-NO-ACTIVE-REPAIR-REQUIRED"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-214 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-214-FOCUSED-VALIDATION-EVIDENCE"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-214-NO-ACTIVE-REPAIR-REQUIRED"
 require_contains "docs/automation/automation-readiness.md" "Persistence validation repair MTP-214 verification-only repair anchor"
 require_file "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md"
 require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTP-215-VALIDATION-BASELINE-CLOSEOUT"
@@ -9482,10 +9482,10 @@ require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-2
 require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTP-215-NO-ARCHITECTURE-RUNTIME-BOUNDARY"
 require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTP-215-NEXT-HANDOFF"
 require_contains "docs/audit/inputs/mtpro-persistence-validation-repair-v1-mtp-215-validation-closeout.md" "MTPRO checks passed."
-require_contains "docs/validation/latest-verification-summary.md" "MTP-215 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-215-FOCUSED-VALIDATION-EVIDENCE"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-215-FULL-CHECKS-EVIDENCE"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-215-REPAIR-CLOSURE-EVIDENCE"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-215 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-215-FOCUSED-VALIDATION-EVIDENCE"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-215-FULL-CHECKS-EVIDENCE"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-215-REPAIR-CLOSURE-EVIDENCE"
 require_contains "docs/automation/automation-readiness.md" "Persistence validation repair MTP-215 validation closeout anchor"
 require_file "docs/contracts/swiftpm-target-graph-split-contract.md"
 require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-216-SWIFTPM-TARGET-GRAPH-SPLIT-CONTRACT"
@@ -9519,8 +9519,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-216 SwiftPM Target Gr
 require_contains "docs/validation/validation-plan.md" "MTP-216-TARGET-GRAPH-CONTRACT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-216 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-SWIFTPM-TARGET-GRAPH-MODULE-SPLIT"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-216 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-216-TARGET-GRAPH-CONTRACT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-216 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-216-TARGET-GRAPH-CONTRACT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "SwiftPM target graph split contract anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-216 只定义 target graph split contract"
 require_contains "Package.swift" '.library(name: "DomainModel", targets: ["DomainModel"])'
@@ -9557,8 +9557,8 @@ require_contains "docs/domain/context.md" "MTP-217-DATABASE-TARGET-SPLIT"
 require_contains "docs/validation/validation-plan.md" "MTP-217 Foundation Target Split Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-217-FOUNDATION-TARGET-SPLIT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-217 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-217 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-217-FOUNDATION-TARGET-SPLIT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-217 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-217-FOUNDATION-TARGET-SPLIT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Foundation target split / real root migration anchor"
 require_contains "docs/automation/automation-readiness.md" 'MTP-226 把 `DomainModel` / `MessageBus` / `Database` target paths'
 require_contains "Package.swift" '.library(name: "DataClient", targets: ["DataClient"])'
@@ -9593,8 +9593,8 @@ require_contains "docs/domain/context.md" "MTP-218-DATAENGINE-TARGET-SPLIT"
 require_contains "docs/validation/validation-plan.md" "MTP-218 Data Target Split Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-218-DATA-TARGET-SPLIT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-218 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-218 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-218-DATA-TARGET-SPLIT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-218 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-218-DATA-TARGET-SPLIT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Data target split / real root migration anchor"
 require_contains "docs/automation/automation-readiness.md" 'MTP-227 把 `DataClient` / `Cache` / `DataEngine` target paths'
 require_contains "Package.swift" '.library(name: "Portfolio", targets: ["Portfolio"])'
@@ -9635,8 +9635,8 @@ require_contains "docs/domain/context.md" "MTP-219-EMA-ONLY-ACTIVE-STRATEGY-BOUN
 require_contains "docs/validation/validation-plan.md" "MTP-219 Trader / Portfolio / Risk Target Split Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-219 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-219 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-219 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-219-TRADER-PORTFOLIO-RISK-TARGET-SPLIT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Trader / Portfolio / Risk target split / real root migration anchor"
 require_contains "docs/automation/automation-readiness.md" 'MTP-228 把 `TraderStrategies` / `Trader` / `Portfolio` / `RiskEngine` target paths'
 require_contains "Package.swift" '.library(name: "ExecutionClient", targets: ["ExecutionClient"])'
@@ -9665,8 +9665,8 @@ require_contains "docs/domain/context.md" "MTP-220-EXECUTIONCLIENT-FUTURE-GATE-O
 require_contains "docs/validation/validation-plan.md" "MTP-220 ExecutionEngine / ExecutionClient Target Split Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-220-EXECUTION-TARGET-SPLIT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-220 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-220 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-220-EXECUTION-TARGET-SPLIT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-220 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-220-EXECUTION-TARGET-SPLIT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Execution target split anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-220 新增 buildable"
 require_absent "Package.swift" '.library(name: "Workbench", targets: ["Workbench"])'
@@ -9698,8 +9698,8 @@ require_contains "docs/domain/context.md" "MTP-221-READ-MODEL-VIEWMODEL-ONLY"
 require_contains "docs/validation/validation-plan.md" "MTP-221 Dashboard Read-model-only Target Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-221-DASHBOARD-TARGET-SPLIT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-221 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-221 的历史 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-221-DASHBOARD-TARGET-SPLIT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-221 的历史 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-221-DASHBOARD-TARGET-SPLIT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Dashboard read-model-only target split anchor"
 require_contains "docs/automation/automation-readiness.md" '当前 `Dashboard` 直接依赖'
 require_contains "docs/contracts/swiftpm-target-graph-split-contract.md" "MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-EVIDENCE"
@@ -9719,8 +9719,8 @@ require_contains "docs/domain/context.md" "MTP-222-STALE-ACTIVE-ANCHOR-RETIREMEN
 require_contains "docs/validation/validation-plan.md" "MTP-222 Compatibility Anchor Retirement Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-222 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-222 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-222 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-222-COMPATIBILITY-ANCHOR-RETIREMENT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Compatibility anchor retirement anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-222 把旧"
 require_contains "Package.swift" '.library(name: "DomainModel", targets: ["DomainModel"])'
@@ -9747,8 +9747,8 @@ require_contains "docs/domain/context.md" "MTP-223-FORBIDDEN-IMPLEMENTATION-AUDI
 require_contains "docs/validation/validation-plan.md" "MTP-223 Target Graph Stage Closeout Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-223-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-223 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-223 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-223-STAGE-CLOSEOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-223 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-223-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "SwiftPM target graph stage closeout anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-223 只准备 stage audit input material"
 require_contains "docs/audit/inputs/mtpro-swiftpm-target-graph-module-split-v1-stage-audit-input.md" '不设置 Linear Project `Completed`'
@@ -9779,8 +9779,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-224 TargetGraph Retir
 require_contains "docs/validation/validation-plan.md" "MTP-224-VALIDATION-ANCHORS"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-TARGETGRAPH-ANCHOR-RETIREMENT-REAL-MODULE-SOURCE-ROOT-MIGRATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-224 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-224 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-224-VALIDATION-ANCHORS"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-224 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-224-VALIDATION-ANCHORS"
 require_contains "docs/automation/automation-readiness.md" "TargetGraph retirement contract anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-224 只定义"
 require_file "docs/audit/inputs/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-mtp-225-audit.md"
@@ -9807,8 +9807,8 @@ require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-sourc
 require_contains "docs/validation/validation-plan.md" "MTP-225 TargetGraph Anchor / Real Root / Package / Tests Audit Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-225-AUDIT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-225 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-225 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-225-AUDIT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-225 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-225-AUDIT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "TargetGraph anchor / real root audit anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-225 只审计"
 require_contains "Package.swift" 'path: "Sources/DomainModel"'
@@ -9841,8 +9841,8 @@ require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-sourc
 require_contains "docs/validation/validation-plan.md" "MTP-226 Foundation Targets Real Module Root Migration Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-226-FOUNDATION-REAL-ROOT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-226 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-226 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-226-FOUNDATION-REAL-ROOT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-226 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-226-FOUNDATION-REAL-ROOT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Foundation target split / real root migration anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-226-DATABASE-REAL-ROOT-TARGET-PATH"
 require_contains "Package.swift" 'path: "Sources/DataClient"'
@@ -9863,8 +9863,8 @@ require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-sourc
 require_contains "docs/validation/validation-plan.md" "MTP-227 Data Targets Real Module Root Migration Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-227-DATA-REAL-ROOT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-227 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-227 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-227-DATA-REAL-ROOT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-227 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-227-DATA-REAL-ROOT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "MTP-227-DATAENGINE-REAL-ROOT-TARGET-PATH"
 require_contains "Package.swift" 'path: "Sources/Trader/Strategies"'
 require_contains "Package.swift" '"TargetGraph/TraderStrategiesTargetBoundary.swift"'
@@ -9889,8 +9889,8 @@ require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-sourc
 require_contains "docs/validation/validation-plan.md" "MTP-228 Trader / Portfolio / Risk Targets Real Module Root Migration Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-228 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-228 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-228 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-228-TRADER-PORTFOLIO-RISK-REAL-ROOT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "MTP-228-RISKENGINE-REAL-ROOT-TARGET-PATH"
 require_contains "Package.swift" 'path: "Sources/ExecutionClient"'
 require_contains "Package.swift" '"TargetGraph/ExecutionClientTargetBoundary.swift"'
@@ -9907,8 +9907,8 @@ require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-sourc
 require_contains "docs/validation/validation-plan.md" "MTP-229 Execution Targets Real Module Root Migration Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-229-EXECUTION-REAL-ROOT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-229 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-229 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-229-EXECUTION-REAL-ROOT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-229 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-229-EXECUTION-REAL-ROOT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Execution target split / real root migration anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-229-EXECUTIONENGINE-REAL-ROOT-TARGET-PATH"
 require_absent "Package.swift" 'path: "Sources/Workbench"'
@@ -9931,8 +9931,8 @@ require_contains "docs/contracts/targetgraph-anchor-retirement-real-module-sourc
 require_contains "docs/validation/validation-plan.md" "MTP-230 Dashboard Target Real Module Root Migration Validation"
 require_contains "docs/validation/validation-plan.md" "MTP-230-DASHBOARD-REAL-ROOT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-230 issue backfill"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-230 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-230-DASHBOARD-REAL-ROOT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-230 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-230-DASHBOARD-REAL-ROOT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "Dashboard target split / real root migration anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-230-DASHBOARD-REAL-ROOT-TARGET-PATH"
 require_missing_path "Sources/TargetGraph"
@@ -9951,8 +9951,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-231 TargetGraph Activ
 require_contains "docs/validation/validation-plan.md" "MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-231 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-231 退休 final active"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-231 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-231 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-231-TARGETGRAPH-RETIREMENT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "TargetGraph active path reference retirement anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-231-REAL-MODULE-ROOT-ACTIVE-SNAPSHOT"
 require_file "docs/audit/inputs/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-audit-input.md"
@@ -9982,8 +9982,8 @@ require_contains "docs/validation/validation-plan.md" "MTP-232 TargetGraph Stage
 require_contains "docs/validation/validation-plan.md" "MTP-232-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-232 issue backfill"
 require_contains "docs/validation/trading-validation-matrix.md" "MTP-232 新增"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-232 的当前 issue execution evidence"
-require_contains "docs/validation/latest-verification-summary.md" "MTP-232-STAGE-CLOSEOUT-VALIDATION"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-232 的当前 issue execution evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTP-232-STAGE-CLOSEOUT-VALIDATION"
 require_contains "docs/automation/automation-readiness.md" "TargetGraph retirement stage closeout input anchor"
 require_contains "docs/automation/automation-readiness.md" "MTP-232-VALIDATION-MATRIX-CLOSEOUT"
 require_file "docs/audit/mtpro-targetgraph-anchor-retirement-real-module-source-root-migration-v1-stage-code-audit.md"
@@ -10103,24 +10103,24 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "PR #473 至 #493 evidence"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "final residual hardening PR #448"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "production executable \`try!\` = 0"
-require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：Real Target Source Ownership Validation / Core Envelope Retirement v1"
-require_contains "docs/validation/latest-verification-summary.md" "PR #402 至 #412"
-require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：L4 Live Production / Trading Commands v1"
-require_contains "docs/validation/latest-verification-summary.md" "PR #424 至 PR #432 以及 PR #438"
-require_contains "docs/validation/latest-verification-summary.md" "Post-audit hardening addendum"
-require_contains "docs/validation/latest-verification-summary.md" "GH-445"
-require_contains "docs/validation/latest-verification-summary.md" "final residual hardening PR #448"
-require_contains "docs/validation/latest-verification-summary.md" "https://github.com/atxinbao/MTPRO/actions/runs/27072028309/job/79902898510"
-require_contains "docs/validation/latest-verification-summary.md" "production executable \`try!\` = 0"
-require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：L4 Live Production / Trading Commands v1"
-require_contains "docs/validation/latest-verification-summary.md" "PR #473 至 #493"
-require_contains "docs/validation/latest-verification-summary.md" "https://github.com/atxinbao/MTPRO/actions/runs/27079944855/job/79923903479"
-require_contains "docs/validation/latest-verification-summary.md" "Project Closure Count: 36 / 36 (100%)"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Production Cutover Readiness / Real Broker Enablement Gate v1"
-require_contains "docs/validation/latest-verification-summary.md" "PR #511 至 PR #519"
-require_contains "docs/validation/latest-verification-summary.md" "f37707579499391c0d7d93009c797dbfc3440885"
-require_contains "docs/validation/latest-verification-summary.md" "不创建下一 Linear Project / Issue"
-require_contains "docs/validation/latest-verification-summary.md" "MTPRO Release v0.1.0 Binance + EMA runtime validation complete with production trading disabled by default"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Project closure evidence：Real Target Source Ownership Validation / Core Envelope Retirement v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "PR #402 至 #412"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Project closure evidence：L4 Live Production / Trading Commands v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "PR #424 至 PR #432 以及 PR #438"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Post-audit hardening addendum"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-445"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "final residual hardening PR #448"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "https://github.com/atxinbao/MTPRO/actions/runs/27072028309/job/79902898510"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "production executable \`try!\` = 0"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Project closure evidence：L4 Live Production / Trading Commands v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "PR #473 至 #493"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "https://github.com/atxinbao/MTPRO/actions/runs/27079944855/job/79923903479"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Project Closure Count: 36 / 36 (100%)"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Production Cutover Readiness / Real Broker Enablement Gate v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "PR #511 至 PR #519"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "f37707579499391c0d7d93009c797dbfc3440885"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "不创建下一 Linear Project / Issue"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "MTPRO Release v0.1.0 Binance + EMA runtime validation complete with production trading disabled by default"
 require_contains "docs/product/mtpro-live-readiness-roadmap-v1.md" "L4 Live Production / Trading Commands v1 complete with no-default-production-trading policy"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" '当前 handoff 状态：`MTPRO Release v0.1.0`'
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "mtpro-production-cutover-readiness-real-broker-enablement-gate-v1-stage-code-audit.md"
@@ -10130,19 +10130,19 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRI
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" '`MTPRO Release v0.1.0` Done / Binance + EMA runtime validation / production disabled by default'
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "不授权真实 broker"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "Core Envelope Retirement / Real Module Ownership Completion 的 post-audit hardening addendum 已在 PR #448 后完成最终只读审计"
-require_contains "verification.md" "GH-541 Final Stage Code Audit and Root Docs Refresh"
-require_contains "verification.md" "Closure PR #519 merge commit"
-require_contains "verification.md" "MTPRO L4 Live Production / Trading Commands v1 Project closure"
-require_contains "verification.md" "Terminal issue PR #493 merge commit"
-require_contains "verification.md" "Core envelope completion final post-hardening closure audit"
-require_contains "verification.md" "PR #448 \`[codex] Retire simulated parity try-bang defaults\`"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-541 Final Stage Code Audit and Root Docs Refresh"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "Closure PR #519 merge commit"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "MTPRO L4 Live Production / Trading Commands v1 Project closure"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "Terminal issue PR #493 merge commit"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "Core envelope completion final post-hardening closure audit"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "PR #448 \`[codex] Retire simulated parity try-bang defaults\`"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md" "GH-391 Real Target Source Ownership / Core Envelope Retirement Contract"
-require_contains "verification.md" "MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1 Project closure"
-require_contains "docs/validation/latest-verification-summary.md" "Project closure evidence：TargetGraph Anchor Retirement / Real Module Source Root Migration v1"
-require_contains "docs/validation/latest-verification-summary.md" "PR #372"
-require_contains "docs/validation/latest-verification-summary.md" "5feacecfe1df3bd4e5f3627fb4cbac38a1753afb"
-require_contains "docs/validation/latest-verification-summary.md" "https://github.com/atxinbao/MTPRO/actions/runs/26963400428/job/79559488210"
-require_contains "verification.md" "MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1 Project closure"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "MTPRO Real Target Source Ownership Validation / Core Envelope Retirement v1 Project closure"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "Project closure evidence：TargetGraph Anchor Retirement / Real Module Source Root Migration v1"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "PR #372"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "5feacecfe1df3bd4e5f3627fb4cbac38a1753afb"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "https://github.com/atxinbao/MTPRO/actions/runs/26963400428/job/79559488210"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "MTPRO TargetGraph Anchor Retirement / Real Module Source Root Migration v1 Project closure"
 require_file "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-391-REAL-TARGET-OWNERSHIP-CONTRACT"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-391-CURRENT-BLOCKERS"
@@ -10177,12 +10177,12 @@ require_absent "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "executio
 require_contains "Sources/Trader/TargetGraph/TraderTargetBoundary.swift" "GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH392TraderTargetPackageDoesNotDependDirectlyOnExecutionEngine"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "GH-392-TRADER-NO-DIRECT-EXECUTIONENGINE-DEPENDENCY"
-require_contains "docs/validation/latest-verification-summary.md" "GH-391 Real Target Source Ownership / Core Envelope Retirement Contract"
-require_contains "docs/validation/latest-verification-summary.md" "GitHub Issue：[#391]"
-require_contains "docs/validation/latest-verification-summary.md" "GH-392 Trader / ExecutionEngine dependency correction"
-require_contains "verification.md" "GH-391 Real Target Source Ownership / Core Envelope Retirement Contract"
-require_contains "verification.md" "No Package.swift change"
-require_contains "verification.md" "GH-392 Trader / ExecutionEngine dependency correction"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-391 Real Target Source Ownership / Core Envelope Retirement Contract"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GitHub Issue：[#391]"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-392 Trader / ExecutionEngine dependency correction"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-391 Real Target Source Ownership / Core Envelope Retirement Contract"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "No Package.swift change"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-392 Trader / ExecutionEngine dependency correction"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-393-FOUNDATION-REAL-TARGET-SMOKE-TESTS"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-393-FOUNDATION-COMPATIBILITY-ENVELOPE-PRESERVED"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-393-FOUNDATION-NO-RUNTIME-LIVE-BROKER-L4-GUARD"
@@ -10202,8 +10202,8 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH393Found
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "FoundationTargetSourceOwnership"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "FoundationMessageStream"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "FoundationDatabaseCheckpoint"
-require_contains "docs/validation/latest-verification-summary.md" "GH-393 Foundation real target smoke tests"
-require_contains "verification.md" "GH-393 Foundation real target smoke tests"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-393 Foundation real target smoke tests"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-393 Foundation real target smoke tests"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-394-DOMAINMODEL-MESSAGEBUS-IMPLEMENTATION-OWNERSHIP"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-394-CORE-COMPATIBILITY-ENVELOPE-PRESERVED"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-394-VALIDATION-ANCHORS"
@@ -10220,8 +10220,8 @@ require_contains "Package.swift" '"MarketPrimitives.swift"'
 require_contains "Package.swift" '"MarketDataModels.swift"'
 require_contains "Package.swift" '"MessageBusAppendOnlyJournal.swift"'
 require_contains "docs/automation/automation-readiness.md" "GH-394 DomainModel / MessageBus implementation ownership anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-394 DomainModel / MessageBus implementation ownership"
-require_contains "verification.md" "GH-394 DomainModel / MessageBus implementation ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-394 DomainModel / MessageBus implementation ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-394 DomainModel / MessageBus implementation ownership"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-414-MESSAGEBUS-NEUTRAL-QUERY-REPLAY-OWNERSHIP"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-414-CORE-RICH-MESSAGEBUS-COMPATIBILITY-ENVELOPE"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-414-VALIDATION-ANCHORS"
@@ -10239,8 +10239,8 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH414Messa
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "MarketDataQuery"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "EventReplayCommand"
 require_contains "docs/automation/automation-readiness.md" "GH-414 MessageBus neutral query / replay ownership anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-414 MessageBus neutral query / replay ownership"
-require_contains "verification.md" "GH-414 MessageBus neutral query / replay ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-414 MessageBus neutral query / replay ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-414 MessageBus neutral query / replay ownership"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-395-DATA-TARGET-REAL-SMOKE-TESTS"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-395-DATA-COMPATIBILITY-ENVELOPE-PRESERVED"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-395-DATA-VALIDATION-ANCHORS"
@@ -10262,8 +10262,8 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "DataClientRead
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "CacheReadModelSnapshot"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "DataEngineReadOnlyReplayPlan"
 require_contains "docs/automation/automation-readiness.md" "GH-395 data target real smoke tests anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-395 Data target real smoke tests"
-require_contains "verification.md" "GH-395 Data target real smoke tests"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-395 Data target real smoke tests"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-395 Data target real smoke tests"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-396-DATA-TARGET-IMPLEMENTATION-OWNERSHIP"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-396-DATACLIENT-BINANCE-PUBLIC-IMPLEMENTATION-OWNERSHIP"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-396-CACHE-MARKETDATA-IMPLEMENTATION-OWNERSHIP"
@@ -10297,10 +10297,10 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "CacheContractE
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "ScenarioDataQualityGateEvaluation"
 require_contains "docs/automation/automation-readiness.md" "GH-396 data target implementation ownership anchor"
 require_contains "docs/automation/automation-readiness.md" "GH-415 DataEngine ScenarioReplay / DataQuality ownership anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-396 Data target implementation ownership"
-require_contains "docs/validation/latest-verification-summary.md" "GH-415 DataEngine ScenarioReplay / DataQuality ownership"
-require_contains "verification.md" "GH-396 Data target implementation ownership"
-require_contains "verification.md" "GH-415 DataEngine ScenarioReplay / DataQuality ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-396 Data target implementation ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-415 DataEngine ScenarioReplay / DataQuality ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-396 Data target implementation ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-415 DataEngine ScenarioReplay / DataQuality ownership"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-397-TRADER-PORTFOLIO-RISK-EXECUTION-REAL-SMOKE-TESTS"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-397-TRADER-EMA-COORDINATION-SMOKE"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-397-EXECUTIONCLIENT-FUTURE-GATE-SMOKE"
@@ -10319,8 +10319,8 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH397Trade
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "ExecutionClientTargetBoundary.mtp220"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "TraderTargetBoundary.mtp219"
 require_contains "docs/automation/automation-readiness.md" "GH-397 Trader / Portfolio / Risk / Execution real target smoke tests anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-397 Trader / Portfolio / Risk / Execution real target smoke tests"
-require_contains "verification.md" "GH-397 Trader / Portfolio / Risk / Execution real target smoke tests"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-397 Trader / Portfolio / Risk / Execution real target smoke tests"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-397 Trader / Portfolio / Risk / Execution real target smoke tests"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-416-PORTFOLIO-PAPER-PROJECTION-UPDATE-OWNERSHIP"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-416-CORE-PORTFOLIO-EVENT-BRIDGE-ONLY"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-416-PORTFOLIO-REPLAY-PARITY-BRIDGE-DEFERRED"
@@ -10340,8 +10340,8 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "PaperPortfolio
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "Portfolio/PaperPortfolioProjectionUpdate.swift"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "PaperAccountPortfolioProjectionV2.swift"
 require_contains "docs/automation/automation-readiness.md" "GH-416 Portfolio paper projection update ownership anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-416 Portfolio paper projection update ownership"
-require_contains "verification.md" "GH-416 Portfolio paper projection update ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-416 Portfolio paper projection update ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-416 Portfolio paper projection update ownership"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-417-RISKENGINE-PAPER-PRETRADE-OWNERSHIP"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-417-CORE-RISKENGINE-EVENT-BRIDGE-ONLY"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-417-RISKENGINE-NO-EXECUTIONCLIENT-OMS-BROKER-GUARD"
@@ -10360,8 +10360,8 @@ require_contains "Sources/RiskEngine/TargetGraph/RiskEngineTargetBoundary.swift"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "PaperPreTradeRiskEngine().evaluate"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "GH-417-RISKENGINE-PAPER-PRETRADE-OWNERSHIP"
 require_contains "docs/automation/automation-readiness.md" "GH-417 RiskEngine paper pre-trade ownership anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-417 RiskEngine paper pre-trade ownership"
-require_contains "verification.md" "GH-417 RiskEngine paper pre-trade ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-417 RiskEngine paper pre-trade ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-417 RiskEngine paper pre-trade ownership"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-418-EXECUTIONENGINE-PAPER-RUNTIME-KERNEL-OWNERSHIP"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-418-CORE-EXECUTIONENGINE-ORDER-EVENT-REPLAY-BRIDGE-DEFERRED"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-418-EXECUTIONENGINE-NO-LIVE-OMS-BROKER-GUARD"
@@ -10386,8 +10386,8 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "PaperRuntimeKe
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "PaperSessionLocalControlCommandFixture.deterministic"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "SimulatedExchangeBacktestParityBoundary.deterministicFixture"
 require_contains "docs/automation/automation-readiness.md" "GH-418 ExecutionEngine paper / simulated boundary ownership anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-418 ExecutionEngine paper / simulated boundary ownership"
-require_contains "verification.md" "GH-418 ExecutionEngine paper / simulated boundary ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-418 ExecutionEngine paper / simulated boundary ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-418 ExecutionEngine paper / simulated boundary ownership"
 require_file "Sources/Database/DatabaseRuntimeOwnershipMatrix.swift"
 require_contains "Package.swift" '"DatabaseRuntimeOwnershipMatrix.swift"'
 require_contains "Sources/Database/DatabaseRuntimeOwnershipMatrix.swift" "GH-419 Database / Persistence / Runtime current ownership matrix"
@@ -10409,8 +10409,8 @@ require_contains "docs/contracts/real-target-source-ownership-core-envelope-reti
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-419-NO-SCHEMA-RUNTIME-BROKER-L4-GUARD"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-419-VALIDATION-ANCHORS"
 require_contains "docs/automation/automation-readiness.md" "GH-419 Database / Persistence / Runtime ownership matrix anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-419 Database / Persistence / Runtime ownership matrix"
-require_contains "verification.md" "GH-419 Database / Persistence / Runtime ownership matrix"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-419 Database / Persistence / Runtime ownership matrix"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-419 Database / Persistence / Runtime ownership matrix"
 if grep -R -n -E 'Workbench|workbench' Sources/Dashboard >/tmp/mtpro-dashboard-workbench-matches 2>/dev/null; then
   cat /tmp/mtpro-dashboard-workbench-matches >&2
   fail "Sources/Dashboard must not contain active Workbench naming"
@@ -10429,8 +10429,8 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/archite
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md" "GH-420-DASHBOARD-ACTIVE-SOURCE-NAMING-CLEAN"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-420-DASHBOARD-ACTIVE-SOURCE-NAMING-CLEAN"
 require_contains "docs/automation/automation-readiness.md" "GH-420 Dashboard active source naming cleanup anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-420 Dashboard active source naming cleanup"
-require_contains "verification.md" "GH-420 Dashboard active source naming cleanup"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-420 Dashboard active source naming cleanup"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-420 Dashboard active source naming cleanup"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH421AllArchitectureTargetsExposeIndependentRealAPISmokeCoverage"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "DataEngineReadOnlyReplayPlan"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "EMACrossStrategyContract"
@@ -10441,8 +10441,8 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/archite
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md" "GH-421-ALL-ARCHITECTURE-TARGETS-REAL-API-SMOKE"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-421-ALL-ARCHITECTURE-TARGETS-REAL-API-SMOKE"
 require_contains "docs/automation/automation-readiness.md" "GH-421 all architecture targets real API smoke anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-421 all architecture targets real API smoke coverage"
-require_contains "verification.md" "GH-421 all architecture targets real API smoke coverage"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-421 all architecture targets real API smoke coverage"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-421 all architecture targets real API smoke coverage"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH436DataClientAndTraderForbiddenImplementationShapesStayOutOfActiveSource"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "GH-436 precise forbidden implementation guard failed"
 python3 - <<'PY'
@@ -10556,21 +10556,21 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/archite
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md" "GH-422-RETAINED-COMPATIBILITY-ENVELOPE-SNAPSHOT"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md" "GH-422-L4-READINESS-BLOCKERS"
 require_contains "docs/automation/automation-readiness.md" "GH-422 Core envelope retirement matrix / L4 readiness closeout anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-422 Core envelope retirement matrix / L4 readiness closeout"
-require_contains "verification.md" "GH-422 Core envelope retirement matrix / L4 readiness closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-422 Core envelope retirement matrix / L4 readiness closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-422 Core envelope retirement matrix / L4 readiness closeout"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-398-TRADER-RISK-EXECUTION-IMPLEMENTATION-OWNERSHIP"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-399-DASHBOARD-READ-MODEL-ONLY-NAMING-CLEANUP"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-400-UNSAFE-CONSTRUCT-ALLOWED-PATH-VALIDATION"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-401-CORE-ENVELOPE-RETIREMENT-MATRIX-STAGE-AUDIT-INPUT"
 require_contains "docs/automation/automation-readiness.md" "GH-401 Core envelope retirement matrix / stage audit input anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-398 Trader / Portfolio / Risk / Execution implementation ownership"
-require_contains "docs/validation/latest-verification-summary.md" "GH-399 Dashboard read-model-only naming cleanup"
-require_contains "docs/validation/latest-verification-summary.md" "GH-400 unsafe construct allowed-path validation"
-require_contains "docs/validation/latest-verification-summary.md" "GH-401 Core envelope retirement matrix / stage audit input"
-require_contains "verification.md" "GH-398 Trader / Portfolio / Risk / Execution implementation ownership"
-require_contains "verification.md" "GH-399 Dashboard read-model-only naming cleanup"
-require_contains "verification.md" "GH-400 unsafe construct allowed-path validation"
-require_contains "verification.md" "GH-401 Core envelope retirement matrix / stage audit input"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-398 Trader / Portfolio / Risk / Execution implementation ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-399 Dashboard read-model-only naming cleanup"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-400 unsafe construct allowed-path validation"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-401 Core envelope retirement matrix / stage audit input"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-398 Trader / Portfolio / Risk / Execution implementation ownership"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-399 Dashboard read-model-only naming cleanup"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-400 unsafe construct allowed-path validation"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-401 Core envelope retirement matrix / stage audit input"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-413-CORE-ENVELOPE-RETIREMENT-CONTRACT"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-413-REAL-MODULE-OWNERSHIP-ACCEPTANCE-CRITERIA"
 require_contains "docs/contracts/real-target-source-ownership-core-envelope-retirement-contract.md" "GH-413-SOURCE-ROOT-BOUNDARY-ANCHOR-FUTURE-GATE-MATRIX"
@@ -10582,8 +10582,8 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/archite
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md" "GH-413-SOURCE-ROOT-BOUNDARY-ANCHOR-FUTURE-GATE-MATRIX"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md" "GH-413-NO-L4-RUNTIME-BROKER-GUARD"
 require_contains "docs/automation/automation-readiness.md" "GH-413 core envelope retirement contract anchor"
-require_contains "docs/validation/latest-verification-summary.md" "GH-413 Core envelope retirement contract"
-require_contains "verification.md" "GH-413 Core envelope retirement contract"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-413 Core envelope retirement contract"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-413 Core envelope retirement contract"
 require_absent "docs/validation/validation-plan.md" 'Root docs 必须使用 `Trader = Accounts + Strategies + StrategyBindings + Coordination`'
 require_absent "docs/validation/validation-plan.md" '`Sources/Trader/StrategyBindings/` 必须包含 proposal-to-risk binding'
 require_absent "docs/validation/validation-plan.md" '只使用 `"Trader/Strategies/EMA"` 和 `"Trader/StrategyBindings"`'
@@ -10621,7 +10621,7 @@ require_contains "checks/verify-v0.12.1-release-fact-sync.sh" "2026-06-20T01:11:
 require_contains "checks/verify-v0.12.0.sh" "bash checks/verify-v0.12.1-release-fact-sync.sh"
 require_contains "checks/run.sh" "bash checks/verify-v0.12.1-release-fact-sync.sh"
 require_contains "docs/release/release-publication-policy.md" "GH-988 / v0.12.1 stale wording guard 固定该 release fact"
-require_contains "docs/validation/latest-verification-summary.md" "v0.12.1 release fact stale wording guard"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.12.1 release fact stale wording guard"
 require_contains "docs/validation/validation-plan.md" "GH-988 Release v0.12.1 Release Fact Sync / Stale Wording Guard Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0121-RELEASE-FACT-SYNC-GUARD"
 require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 release fact sync stale wording guard anchor"
@@ -10635,7 +10635,7 @@ require_contains "checks/verify-v0.12.1-sourcecommit-provenance.sh" "TVM-RELEASE
 require_contains "checks/verify-v0.12.1-sourcecommit-provenance.sh" "MTPRO_READINESS_SOURCE_COMMIT"
 require_contains "checks/verify-v0.12.0.sh" "bash checks/verify-v0.12.1-sourcecommit-provenance.sh"
 require_contains "checks/run.sh" "bash checks/verify-v0.12.1-sourcecommit-provenance.sh"
-require_contains "docs/validation/latest-verification-summary.md" "v0.12.1 source commit provenance guard"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.12.1 source commit provenance guard"
 require_contains "docs/validation/validation-plan.md" "GH-989 Release v0.12.1 Source Commit Provenance Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0121-SOURCE-COMMIT-PROVENANCE"
 require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 source commit provenance guard anchor"
@@ -10649,7 +10649,7 @@ require_contains "checks/verify-v0.12.1-local-evidence-metadata.sh" "V0121-003-M
 require_contains "checks/verify-v0.12.1-local-evidence-metadata.sh" "TVM-RELEASE-V0121-LOCAL-EVIDENCE-METADATA"
 require_contains "checks/verify-v0.12.0.sh" "bash checks/verify-v0.12.1-local-evidence-metadata.sh"
 require_contains "checks/run.sh" "bash checks/verify-v0.12.1-local-evidence-metadata.sh"
-require_contains "docs/validation/latest-verification-summary.md" "v0.12.1 local evidence metadata guard"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.12.1 local evidence metadata guard"
 require_contains "docs/validation/validation-plan.md" "GH-990 Release v0.12.1 Local Evidence Metadata Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0121-LOCAL-EVIDENCE-METADATA"
 require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 local evidence metadata guard anchor"
@@ -10663,7 +10663,7 @@ require_contains "checks/verify-v0.12.1-compare-fail-closed.sh" "V0121-004-NO-FA
 require_contains "checks/verify-v0.12.1-compare-fail-closed.sh" "TVM-RELEASE-V0121-COMPARE-FAIL-CLOSED"
 require_contains "checks/verify-v0.12.0.sh" "bash checks/verify-v0.12.1-compare-fail-closed.sh"
 require_contains "checks/run.sh" "bash checks/verify-v0.12.1-compare-fail-closed.sh"
-require_contains "docs/validation/latest-verification-summary.md" "v0.12.1 compare fail-closed guard"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.12.1 compare fail-closed guard"
 require_contains "docs/validation/validation-plan.md" "GH-991 Release v0.12.1 Compare Fail-Closed Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0121-COMPARE-FAIL-CLOSED"
 require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 compare fail-closed guard anchor"
@@ -10677,7 +10677,7 @@ require_contains "checks/verify-v0.12.1-json-inspection-guards.sh" "V0121-005-PL
 require_contains "checks/verify-v0.12.1-json-inspection-guards.sh" "TVM-RELEASE-V0121-JSON-INSPECTION-GUARD"
 require_contains "checks/verify-v0.12.0.sh" "bash checks/verify-v0.12.1-json-inspection-guards.sh"
 require_contains "checks/run.sh" "bash checks/verify-v0.12.1-json-inspection-guards.sh"
-require_contains "docs/validation/latest-verification-summary.md" "v0.12.1 JSON inspection guard"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.12.1 JSON inspection guard"
 require_contains "docs/validation/validation-plan.md" "GH-992 Release v0.12.1 JSON Inspection Guard Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0121-JSON-INSPECTION-GUARD"
 require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 JSON inspection guard anchor"
@@ -10695,7 +10695,7 @@ require_contains "checks/run.sh" "bash checks/verify-v0.12.1-patch-audit-release
 require_contains "docs/audit/mtpro-release-v0.12.1-readiness-assessment-provenance-hardening-patch-stage-code-audit.md" "GH-993-VERIFY-V0121-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "docs/release/mtpro-release-v0.12.1-readiness-assessment-provenance-hardening-patch-notes.md" "GH-993-VERIFY-V0121-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "docs/release/release-publication-policy.md" "V0121-006-PATCH-AUDIT"
-require_contains "docs/validation/latest-verification-summary.md" "v0.12.1 patch audit / release notes closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.12.1 patch audit / release notes closeout"
 require_contains "docs/validation/validation-plan.md" "GH-993 Release v0.12.1 Patch Audit / Release Notes Validation"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0121-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "docs/automation/automation-readiness.md" "Release v0.12.1 patch audit / release notes closeout anchor"
@@ -10850,15 +10850,15 @@ require_contains "docs/contracts/release-v0.13.0-local-evidence-driven-readiness
 require_contains "docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md" "same-second generation IDs"
 require_contains "docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md" "collision-resistant deterministic suffix"
 require_contains "docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md" "registry lookup remains stable"
-require_contains "docs/validation/latest-verification-summary.md" "v0.13.0 local evidence-driven readiness engine contract"
-require_contains "docs/validation/latest-verification-summary.md" "v0.13.0 local evidence intake model"
-require_contains "docs/validation/latest-verification-summary.md" "v0.13.0 synthetic provenance rejection"
-require_contains "docs/validation/latest-verification-summary.md" "v0.13.0 build pipeline"
-require_contains "docs/validation/latest-verification-summary.md" "v0.13.0 evidence-chain validate"
-require_contains "docs/validation/latest-verification-summary.md" "v0.13.0 redacted audit export package"
-require_contains "docs/validation/latest-verification-summary.md" "v0.13.0 evidence-level diff"
-require_contains "docs/validation/latest-verification-summary.md" "v0.13.0 transaction recovery forensic snapshot"
-require_contains "docs/validation/latest-verification-summary.md" "v0.13.0 generation ID collision-proofing"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.13.0 local evidence-driven readiness engine contract"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.13.0 local evidence intake model"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.13.0 synthetic provenance rejection"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.13.0 build pipeline"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.13.0 evidence-chain validate"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.13.0 redacted audit export package"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.13.0 evidence-level diff"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.13.0 transaction recovery forensic snapshot"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.13.0 generation ID collision-proofing"
 require_contains "docs/validation/validation-plan.md" "GH-994 Release v0.13.0 Local Evidence-driven Readiness Engine Contract Validation"
 require_contains "docs/validation/validation-plan.md" "GH-995 Release v0.13.0 Local Evidence Intake Model Validation"
 require_contains "docs/validation/validation-plan.md" "GH-996 Release v0.13.0 Synthetic Provenance Rejection Validation"
@@ -10966,7 +10966,7 @@ require_contains "docs/release/mtpro-release-v0.14.1-local-execution-evidence-ha
 require_contains "docs/release/release-publication-policy.md" "GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "docs/release/release-publication-policy.md" "#1064 is not a release publication gate"
 require_contains "docs/automation/automation-readiness.md" "Release v0.14.1 patch audit / release notes closeout anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.14.1 patch audit / release notes closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.14.1 patch audit / release notes closeout"
 require_contains "docs/validation/validation-plan.md" "GH-1064 Release v0.14.1 Patch Audit / Release Notes Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0141-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "MTPRO Release v0.14.1 Local Execution Evidence Hardening Patch"
@@ -10990,7 +10990,7 @@ require_contains "docs/contracts/release-v0.15.0-real-binance-spot-testnet-execu
 require_contains "docs/contracts/release-v0.15.0-real-binance-spot-testnet-execution-mvp-contract.md" "https://github.com/atxinbao/MTPRO/releases/tag/v0.14.1"
 require_contains "docs/contracts/release-v0.15.0-real-binance-spot-testnet-execution-mvp-contract.md" "92cd3d5cf00e85c43ef99d9f204cca97347c79ff"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.0 contract / v0.14.1 preflight gate anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 contract / v0.14.1 preflight gate"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 contract / v0.14.1 preflight gate"
 require_contains "docs/validation/validation-plan.md" "GH-1066 Release v0.15.0 Contract / v0.14.1 Preflight Gate"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0150-CONTRACT-PREFLIGHT"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "MTPRO Release v0.15.0 Real Binance Testnet Execution MVP"
@@ -11013,7 +11013,7 @@ require_contains "docs/contracts/release-v0.15.0-testnet-credential-provider-sig
 require_contains "docs/contracts/release-v0.15.0-testnet-credential-provider-signed-request-builder-contract.md" "V0150-002-REDACTED-EVIDENCE"
 require_contains "docs/contracts/release-v0.15.0-testnet-credential-provider-signed-request-builder-contract.md" "V0150-002-NO-NETWORK-ACTION"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.0 testnet credential / signed request anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 testnet credential / signed request builder"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 testnet credential / signed request builder"
 require_contains "docs/validation/validation-plan.md" "GH-1067 Release v0.15.0 Testnet Credential / Signed Request Builder"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST"
 require_contains "checks/verify-v0.15.0-testnet-credential-signed-request.sh" "GH-1067-VERIFY-V0150-TESTNET-CREDENTIAL-SIGNED-REQUEST"
@@ -11031,7 +11031,7 @@ require_contains "docs/contracts/release-v0.15.0-real-spot-testnet-submit-runtim
 require_contains "docs/contracts/release-v0.15.0-real-spot-testnet-submit-runtime-contract.md" "V0150-003-PRODUCTION-ENDPOINT-BLOCKED"
 require_contains "docs/contracts/release-v0.15.0-real-spot-testnet-submit-runtime-contract.md" "V0150-003-NO-PRODUCTION-CUTOVER"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.0 real Spot Testnet submit runtime anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 real Spot Testnet submit runtime"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 real Spot Testnet submit runtime"
 require_contains "docs/validation/validation-plan.md" "GH-1068 Release v0.15.0 Real Spot Testnet Submit Runtime"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0150-REAL-SPOT-TESTNET-SUBMIT"
 require_contains "checks/verify-v0.15.0-real-spot-testnet-submit-runtime.sh" "GH-1068-VERIFY-V0150-REAL-SPOT-TESTNET-SUBMIT-RUNTIME"
@@ -11049,7 +11049,7 @@ require_contains "docs/contracts/release-v0.15.0-network-execution-event-log-con
 require_contains "docs/contracts/release-v0.15.0-network-execution-event-log-contract.md" "V0150-006-RAW-SECRET-NOT-PERSISTED"
 require_contains "docs/contracts/release-v0.15.0-network-execution-event-log-contract.md" "V0150-006-NO-PRODUCTION-CUTOVER"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.0 network execution event log anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 network execution event log"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 network execution event log"
 require_contains "docs/validation/validation-plan.md" "GH-1071 Release v0.15.0 Network Execution Event Log"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0150-NETWORK-EXECUTION-EVENT-LOG"
 require_contains "checks/verify-v0.15.0-network-execution-event-log.sh" "GH-1071-VERIFY-V0150-NETWORK-EXECUTION-EVENT-LOG"
@@ -11070,7 +11070,7 @@ require_contains "docs/contracts/release-v0.15.0-real-spot-testnet-cancel-runtim
 require_contains "docs/contracts/release-v0.15.0-real-spot-testnet-cancel-runtime-contract.md" "V0150-004-PRODUCTION-ENDPOINT-BLOCKED"
 require_contains "docs/contracts/release-v0.15.0-real-spot-testnet-cancel-runtime-contract.md" "V0150-004-NO-PRODUCTION-CUTOVER"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.0 real Spot Testnet cancel runtime anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 real Spot Testnet cancel runtime"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 real Spot Testnet cancel runtime"
 require_contains "docs/validation/validation-plan.md" "GH-1069 Release v0.15.0 Real Spot Testnet Cancel Runtime"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0150-REAL-SPOT-TESTNET-CANCEL"
 require_contains "checks/verify-v0.15.0-real-spot-testnet-cancel-runtime.sh" "GH-1069-VERIFY-V0150-REAL-SPOT-TESTNET-CANCEL-RUNTIME"
@@ -11091,7 +11091,7 @@ require_contains "docs/contracts/release-v0.15.0-real-spot-testnet-cancel-replac
 require_contains "docs/contracts/release-v0.15.0-real-spot-testnet-cancel-replace-runtime-contract.md" "V0150-005-PRODUCTION-ENDPOINT-BLOCKED"
 require_contains "docs/contracts/release-v0.15.0-real-spot-testnet-cancel-replace-runtime-contract.md" "V0150-005-NO-PRODUCTION-CUTOVER"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.0 real Spot Testnet cancel-replace runtime anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 real Spot Testnet cancel-replace runtime"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 real Spot Testnet cancel-replace runtime"
 require_contains "docs/validation/validation-plan.md" "GH-1070 Release v0.15.0 Real Spot Testnet Cancel-Replace Runtime"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0150-REAL-SPOT-TESTNET-CANCEL-REPLACE"
 require_contains "checks/verify-v0.15.0-real-spot-testnet-cancel-replace-runtime.sh" "GH-1070-VERIFY-V0150-REAL-SPOT-TESTNET-CANCEL-REPLACE-RUNTIME"
@@ -11112,7 +11112,7 @@ require_contains "docs/contracts/release-v0.15.0-oms-state-sync-reconciliation-c
 require_contains "docs/contracts/release-v0.15.0-oms-state-sync-reconciliation-contract.md" "V0150-007-SUBMIT-CANCEL-CANCEL-REPLACE-COVERAGE"
 require_contains "docs/contracts/release-v0.15.0-oms-state-sync-reconciliation-contract.md" "V0150-007-NO-PRODUCTION-CUTOVER"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.0 OMS state sync reconciliation anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 OMS state sync reconciliation"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 OMS state sync reconciliation"
 require_contains "docs/validation/validation-plan.md" "GH-1072 Release v0.15.0 OMS State Sync + Reconciliation"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0150-OMS-STATE-SYNC-RECONCILIATION"
 require_contains "checks/verify-v0.15.0-oms-state-sync-reconciliation.sh" "GH-1072-VERIFY-V0150-OMS-STATE-SYNC-RECONCILIATION"
@@ -11142,7 +11142,7 @@ require_contains "docs/contracts/release-v0.15.0-cli-operator-flow-contract.md" 
 require_contains "docs/contracts/release-v0.15.0-cli-operator-flow-contract.md" "V0150-008-APPEND-ONLY-EVIDENCE-REFERENCE"
 require_contains "docs/contracts/release-v0.15.0-cli-operator-flow-contract.md" "V0150-008-NO-PRODUCTION-CUTOVER"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.0 CLI operator flow anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 CLI operator flow"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 CLI operator flow"
 require_contains "docs/validation/validation-plan.md" "GH-1073 Release v0.15.0 CLI Operator Flow"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0150-CLI-OPERATOR-FLOW"
 require_contains "checks/verify-v0.15.0-cli-operator-flow.sh" "GH-1073-VERIFY-V0150-CLI-OPERATOR-FLOW"
@@ -11171,7 +11171,7 @@ require_contains "docs/contracts/release-v0.15.0-dashboard-testnet-execution-sta
 require_contains "docs/contracts/release-v0.15.0-dashboard-testnet-execution-status-contract.md" "V0150-009-DASHBOARD-READ-ONLY-NO-COMMANDS"
 require_contains "docs/contracts/release-v0.15.0-dashboard-testnet-execution-status-contract.md" "V0150-009-NO-PRODUCTION-CUTOVER"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.0 Dashboard testnet execution status anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 Dashboard testnet execution status"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 Dashboard testnet execution status"
 require_contains "docs/validation/validation-plan.md" "GH-1074 Release v0.15.0 Dashboard Testnet Execution Status"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS"
 require_contains "checks/verify-v0.15.0-dashboard-testnet-execution-status.sh" "GH-1074-VERIFY-V0150-DASHBOARD-TESTNET-EXECUTION-STATUS"
@@ -11198,7 +11198,7 @@ require_contains "docs/contracts/release-v0.15.0-failure-simulation-real-signed-
 require_contains "docs/contracts/release-v0.15.0-failure-simulation-real-signed-transport-contract.md" "V0150-010-APPEND-ONLY-REDACTED-FAILURE-EVIDENCE"
 require_contains "docs/contracts/release-v0.15.0-failure-simulation-real-signed-transport-contract.md" "V0150-010-NO-PRODUCTION-CUTOVER"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.0 failure simulation real signed transport anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 failure simulation for real signed transport"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 failure simulation for real signed transport"
 require_contains "docs/validation/validation-plan.md" "GH-1075 Release v0.15.0 Failure Simulation for Real Signed Transport"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT"
 require_contains "checks/verify-v0.15.0-failure-simulation-real-signed-transport.sh" "GH-1075-VERIFY-V0150-FAILURE-SIMULATION-REAL-SIGNED-TRANSPORT"
@@ -11216,7 +11216,7 @@ require_contains "docs/release/mtpro-release-v0.15.0-real-binance-testnet-execut
 require_contains "docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md" "V0150-011-MANUAL-TESTNET-WORKFLOW"
 require_contains "docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md" "V0150-011-NO-PRODUCTION-CUTOVER"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.0 release CI manual testnet audit anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 release CI / manual testnet workflow / audit evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 release CI / manual testnet workflow / audit evidence"
 require_contains "docs/validation/validation-plan.md" "GH-1076 Release v0.15.0 Release CI + Manual Testnet Workflow + Audit Evidence"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT"
 require_contains "checks/verify-v0.15.0-release-ci-manual-testnet-audit.sh" "GH-1076-VERIFY-V0150-RELEASE-CI-MANUAL-TESTNET-AUDIT"
@@ -11233,7 +11233,7 @@ require_contains "docs/release/release-publication-policy.md" "GH-1094-VERIFY-V0
 require_contains "docs/release/release-publication-policy.md" "v0.15.0 release publication、v0.15.1 release fact sync / stale wording guard、后续 hardening patch 和 production cutover 仍是独立 gate"
 require_contains "docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md" "https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.1 v0.15.0 release fact sync stale wording guard anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.0 release publication fact"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.0 release publication fact"
 require_contains "docs/validation/validation-plan.md" "GH-1094 Release v0.15.1 v0.15.0 Release Fact Sync / Stale Wording Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0151-V0150-RELEASE-FACT-SYNC"
 require_contains "checks/verify-v0.15.1-v0150-release-fact-sync.sh" "GH-1094-VERIFY-V0151-V0150-RELEASE-FACT-SYNC"
@@ -11245,7 +11245,7 @@ require_contains "docs/release/release-publication-policy.md" "GH-1095-VERIFY-V0
 require_contains "docs/validation/validation-plan.md" "GH-1095 Release v0.15.1 Injected Transport / Built-in Runner Wording Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0151-INJECTED-TRANSPORT-WORDING"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.1 injected transport wording guard anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.1 injected transport wording guard"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.1 injected transport wording guard"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1095 closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1099 已通过 \`GH-1099-VERIFY-V0151-CLIENT-ORDER-IDENTITY-CHAIN\`"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1095 injected transport wording guard is closed / done"
@@ -11268,7 +11268,7 @@ require_contains "docs/release/release-publication-policy.md" "GH-1096-VERIFY-V0
 require_contains "docs/validation/validation-plan.md" "GH-1096 Release v0.15.1 URLSession Spot Testnet Transport Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.1 URLSession Spot Testnet transport anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.1 URLSession Spot Testnet transport"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.1 URLSession Spot Testnet transport"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1096 concrete URLSession Spot Testnet transport closed / done"
 require_contains "checks/verify-v0.15.1-urlsession-spot-testnet-transport.sh" "GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT"
@@ -11299,7 +11299,7 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRI
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "CLI guarded runtime"
 require_contains "docs/release/release-publication-policy.md" "GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.1 CLI testnet execution runtime anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.1 CLI testnet execution runtime"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.1 CLI testnet execution runtime"
 require_contains "docs/validation/validation-plan.md" "GH-1097 Release v0.15.1 CLI Testnet Execution Runtime Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0151-CLI-TESTNET-EXECUTION-RUNTIME"
 require_contains "checks/verify-v0.15.1-cli-testnet-execution-runtime.sh" "GH-1097-VERIFY-V0151-CLI-TESTNET-EXECUTION-RUNTIME"
@@ -11329,7 +11329,7 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRI
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "runtime internal gate"
 require_contains "docs/release/release-publication-policy.md" "GH-1098-VERIFY-V0151-RUNTIME-INTERNAL-GATES"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.1 runtime internal gate anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.1 runtime internal gates"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.1 runtime internal gates"
 require_contains "docs/validation/validation-plan.md" "GH-1098 Release v0.15.1 Runtime Internal Gate Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0151-RUNTIME-INTERNAL-GATES"
 require_contains "checks/verify-v0.15.1-runtime-internal-gates.sh" "GH-1098-VERIFY-V0151-RUNTIME-INTERNAL-GATES"
@@ -11357,7 +11357,7 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRI
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "deterministic client order identity"
 require_contains "docs/release/release-publication-policy.md" "GH-1099-VERIFY-V0151-CLIENT-ORDER-IDENTITY-CHAIN"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.1 client order identity chain anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.1 client order identity chain"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.1 client order identity chain"
 require_contains "docs/validation/validation-plan.md" "GH-1099 Release v0.15.1 Client Order Identity Chain Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0151-CLIENT-ORDER-IDENTITY-CHAIN"
 require_contains "checks/verify-v0.15.1-client-order-identity-chain.sh" "GH-1099-VERIFY-V0151-CLIENT-ORDER-IDENTITY-CHAIN"
@@ -11401,7 +11401,7 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRI
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "codable decode closeout"
 require_contains "docs/release/release-publication-policy.md" "GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT"
 require_contains "docs/automation/automation-readiness.md" "Release v0.15.1 codable decode closeout anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.15.1 codable decode closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.15.1 codable decode closeout"
 require_contains "docs/validation/validation-plan.md" "GH-1100 Release v0.15.1 Codable Decode Closeout Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0151-CODABLE-DECODE-CLOSEOUT"
 require_contains "docs/audit/mtpro-release-v0.15.1-real-testnet-execution-hardening-patch-stage-code-audit.md" "GH-1100-VERIFY-V0151-CODABLE-DECODE-CLOSEOUT"
@@ -11427,7 +11427,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorBetaContract.swift" \
   "docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.16.0-operator-beta-contract.sh" \
@@ -11456,7 +11456,7 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRI
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT"
 require_contains "docs/release/release-publication-policy.md" "GH-1101-VERIFY-V0160-OPERATOR-BETA-CONTRACT"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 operator beta contract anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 operator beta contract"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 operator beta contract"
 require_contains "docs/validation/validation-plan.md" "GH-1101 Release v0.16.0 Operator Beta Contract / Preflight Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-OPERATOR-BETA-CONTRACT"
 require_contains "checks/run.sh" "bash checks/verify-v0.16.0-operator-beta-contract.sh"
@@ -11472,7 +11472,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunModel.swift" \
   "docs/contracts/release-v0.16.0-binance-spot-testnet-operator-run-model-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -11497,7 +11497,7 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OperatorRunMode
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1102 operator run model closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1102 operator run model closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 operator run model anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 operator run model"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 operator run model"
 require_contains "docs/validation/validation-plan.md" "GH-1102 Release v0.16.0 Operator Run Model Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-OPERATOR-RUN-MODEL"
 require_contains "docs/release/release-publication-policy.md" "V0160-002-OPERATOR-RUN-MODEL"
@@ -11512,7 +11512,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160CLISubmitExecutionFlow.swift" \
   "docs/contracts/release-v0.16.0-binance-spot-testnet-cli-submit-flow-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -11534,7 +11534,7 @@ require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0160CLISubmitExecutionFl
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1103 CLI submit flow closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1103 CLI submit flow closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 CLI submit flow anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 CLI submit flow"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 CLI submit flow"
 require_contains "docs/validation/validation-plan.md" "GH-1103 Release v0.16.0 CLI Submit Flow Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-CLI-SUBMIT-FLOW"
 require_contains "docs/release/release-publication-policy.md" "V0160-003-STABLE-CLI-SUBMIT"
@@ -11549,7 +11549,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160CLICancelExecutionFlow.swift" \
   "docs/contracts/release-v0.16.0-binance-spot-testnet-cli-cancel-flow-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -11573,7 +11573,7 @@ require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0160CLICancelExecutionFl
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1104 CLI cancel flow closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1104 CLI cancel flow closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 CLI cancel flow anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 CLI cancel flow"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 CLI cancel flow"
 require_contains "docs/validation/validation-plan.md" "GH-1104 Release v0.16.0 CLI Cancel Flow Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-CLI-CANCEL-FLOW"
 require_contains "docs/release/release-publication-policy.md" "V0160-004-STABLE-CLI-CANCEL"
@@ -11589,7 +11589,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0151BinanceSpotTestnetURLSessionTransport.swift" \
   "docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -11613,7 +11613,7 @@ require_contains "Sources/MTPROCLI/main.swift" "releaseV0160CLIOrderStatusQueryC
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1105 signed order status query closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1105 signed order status query closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 signed order status query anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 signed order status query"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 signed order status query"
 require_contains "docs/validation/validation-plan.md" "GH-1105 Release v0.16.0 Signed Order Status Query Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-SIGNED-ORDER-STATUS-QUERY"
 require_contains "docs/release/release-publication-policy.md" "V0160-005-SIGNED-GET-ORDER-STATUS"
@@ -11628,7 +11628,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionArtifactStore.swift" \
   "docs/contracts/release-v0.16.0-local-execution-artifact-store-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -11653,7 +11653,7 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160LocalExecutionA
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1106 local execution artifact store closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1106 local execution artifact store closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 local execution artifact store anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 local execution artifact store"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 local execution artifact store"
 require_contains "docs/validation/validation-plan.md" "GH-1106 Release v0.16.0 Local Execution Artifact Store Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-LOCAL-EXECUTION-ARTIFACT-STORE"
 require_contains "docs/release/release-publication-policy.md" "V0160-006-APPEND-ONLY-ARTIFACT-PERSISTENCE"
@@ -11668,7 +11668,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStatusReconciliation.swift" \
   "docs/contracts/release-v0.16.0-oms-observed-status-reconciliation-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -11692,7 +11692,7 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160OMSObservedStat
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1107 OMS observed status reconciliation closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1107 OMS observed status reconciliation closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 OMS observed status reconciliation anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 OMS observed status reconciliation"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 OMS observed status reconciliation"
 require_contains "docs/validation/validation-plan.md" "GH-1107 Release v0.16.0 OMS Observed Status Reconciliation Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-OMS-OBSERVED-STATUS-RECONCILIATION"
 require_contains "docs/release/release-publication-policy.md" "V0160-007-SUBMIT-OBSERVED-RECONCILIATION"
@@ -11707,7 +11707,7 @@ for file in \
   "Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift" \
   "docs/contracts/release-v0.16.0-dashboard-artifact-backed-execution-view-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -11735,7 +11735,7 @@ require_contains "Sources/Dashboard/DashboardShell.swift" "DashboardReleaseV0160
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1108 Dashboard artifact-backed execution view closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1108 Dashboard artifact-backed execution view closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 Dashboard artifact-backed execution view anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 Dashboard artifact-backed execution view"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 Dashboard artifact-backed execution view"
 require_contains "docs/validation/validation-plan.md" "GH-1108 Release v0.16.0 Dashboard Artifact-backed Execution View Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-DASHBOARD-ARTIFACT-BACKED-EXECUTION-VIEW"
 require_contains "docs/release/release-publication-policy.md" "V0160-008-LOCAL-ARTIFACT-BACKED-ROWS"
@@ -11751,7 +11751,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecoveryWorkflow.swift" \
   "docs/contracts/release-v0.16.0-failure-recovery-workflow-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -11776,7 +11776,7 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160FailureRecovery
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1109 failure recovery workflow closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1109 failure recovery workflow closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 failure recovery workflow anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 failure recovery workflow"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 failure recovery workflow"
 require_contains "docs/validation/validation-plan.md" "GH-1109 Release v0.16.0 Failure Recovery Workflow Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-FAILURE-RECOVERY-WORKFLOW"
 require_contains "docs/release/release-publication-policy.md" "V0160-009-SUBMIT-SUCCEEDED-ARTIFACT-WRITE-FAILED"
@@ -11791,7 +11791,7 @@ for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160BetaSafetyGuard.swift" \
   "docs/contracts/release-v0.16.0-beta-safety-guards-contract.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -11823,7 +11823,7 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQ
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1110 beta safety guards closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1110 beta safety guards closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 beta safety guards anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 beta safety guards"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 beta safety guards"
 require_contains "docs/validation/validation-plan.md" "GH-1110 Release v0.16.0 Beta Safety Guards"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-BETA-SAFETY-GUARDS"
 require_contains "docs/release/release-publication-policy.md" "V0160-010-MAX-QUANTITY-GUARD"
@@ -11842,7 +11842,7 @@ for file in \
   "docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md" \
   "docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -11872,7 +11872,7 @@ require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.ym
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1111 manual testnet validation workflow closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1111 manual testnet validation workflow closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 manual testnet validation workflow anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 manual testnet validation workflow"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 manual testnet validation workflow"
 require_contains "docs/validation/validation-plan.md" "GH-1111 Release v0.16.0 Manual Testnet Validation Workflow Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-MANUAL-TESTNET-VALIDATION-WORKFLOW"
 require_contains "docs/release/release-publication-policy.md" "V0160-011-SUBMIT-STATUS-CANCEL-STATUS-SEQUENCE"
@@ -11893,7 +11893,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -11913,7 +11913,7 @@ require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1112 audit / release docs closeout closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1112 audit / release docs closeout closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 Stage Code Audit / release docs closeout anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.16.0 Stage Code Audit / release docs closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.16.0 Stage Code Audit / release docs closeout"
 require_contains "docs/validation/validation-plan.md" "GH-1112 Release v0.16.0 Stage Audit / Release Docs Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0160-STAGE-AUDIT-RELEASE-DOCS"
 require_contains "docs/release/release-publication-policy.md" "V0160-012-NO-TAG-OR-RELEASE-PUBLICATION"
@@ -11932,7 +11932,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/automation/automation-readiness.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
@@ -12352,7 +12352,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -12378,7 +12378,7 @@ require_contains "docs/audit/mtpro-release-v0.18.0-venue-product-aware-operator-
 require_contains "docs/release/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-notes.md" "#1185"
 require_contains "docs/release/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-notes.md" "bash checks/verify-v0.18.0-stage-audit-release-docs.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.18.0 stage audit / release docs closeout anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.18.0 stage audit / release docs closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.18.0 stage audit / release docs closeout"
 require_contains "docs/validation/validation-plan.md" "GH-1185 Release v0.18.0 Stage Audit / Release Docs Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0180-STAGE-AUDIT-RELEASE-DOCS"
 require_contains "docs/release/release-publication-policy.md" "GH-1185 closes the v0.18.0 stage audit"
@@ -12394,7 +12394,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -12430,7 +12430,7 @@ for file in \
   "docs/automation/ci-reproducibility.md" \
   "docs/automation/automation-readiness.md" \
   "docs/release/release-publication-policy.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "Tests/TargetGraphTests/TargetGraphTests.swift"; do
@@ -12454,7 +12454,7 @@ require_contains "checks/run.sh" "bash checks/verify-v0.18.1-release-full-matrix
 require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 release full matrix publication gate anchor"
 require_contains "docs/automation/ci-reproducibility.md" "release publication evidence must include GitHub Actions workflow run id"
 require_contains "docs/release/release-publication-policy.md" "release publication cannot be represented as complete by pr-fast-checks or checks aggregate alone"
-require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 release full matrix publication gate"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.18.1 release full matrix publication gate"
 require_contains "docs/validation/validation-plan.md" "GH-1201 Release v0.18.1 Full Matrix Publication Gate"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-RELEASE-FULL-MATRIX-PUBLICATION-GATE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1201ReleaseFullMatrixPublicationGateRequiresLinuxAndDashboardEvidence"
@@ -12468,7 +12468,7 @@ for file in \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
   "docs/release/release-publication-policy.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1202-VERIFY-V0181-OPERATOR-RUN-CLI-COMMANDS"
@@ -12488,7 +12488,7 @@ require_contains "checks/run.sh" "bash checks/verify-v0.18.1-operator-run-cli-co
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.1-operator-run-cli-commands.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 operator-run CLI commands anchor"
 require_contains "docs/release/release-publication-policy.md" "GH-1202 wires operator-run CLI commands"
-require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 operator-run CLI commands"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.18.1 operator-run CLI commands"
 require_contains "docs/validation/validation-plan.md" "GH-1202 Release v0.18.1 Operator-run CLI Commands"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-OPERATOR-RUN-CLI-COMMANDS"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1202OperatorRunCLICommandsAreHelpVisibleAndFailClosed"
@@ -12503,7 +12503,7 @@ for file in \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
   "docs/release/release-publication-policy.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1203-VERIFY-V0181-ARTIFACT-NAMESPACE-PATHS"
@@ -12522,7 +12522,7 @@ require_contains "checks/run.sh" "bash checks/verify-v0.18.1-artifact-namespace-
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.1-artifact-namespace-paths.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 artifact namespace path anchor"
 require_contains "docs/release/release-publication-policy.md" "GH-1203 fixes active v0.18 artifact namespace paths"
-require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 artifact namespace paths"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.18.1 artifact namespace paths"
 require_contains "docs/validation/validation-plan.md" "GH-1203 Release v0.18.1 Artifact Namespace Paths"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-ARTIFACT-NAMESPACE-PATHS"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1203ArtifactNamespacePathsUseVenueProductEnvironmentRoot"
@@ -12536,7 +12536,7 @@ for file in \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
   "docs/release/release-publication-policy.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1204-VERIFY-V0181-TYPED-NAMESPACE-MODEL"
@@ -12560,7 +12560,7 @@ require_contains "checks/run.sh" "bash checks/verify-v0.18.1-typed-namespace-mod
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.1-typed-namespace-model.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 typed namespace model anchor"
 require_contains "docs/release/release-publication-policy.md" "GH-1204 replaces critical v0.18 namespace raw string switches"
-require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 typed namespace model"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.18.1 typed namespace model"
 require_contains "docs/validation/validation-plan.md" "GH-1204 Release v0.18.1 Typed Namespace Model"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-TYPED-NAMESPACE-MODEL"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1204TypedVenueProductNamespaceModelValidatesCriticalV018Recovery"
@@ -12573,7 +12573,7 @@ for file in \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
   "docs/release/release-publication-policy.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "Tests/TargetGraphTests/TargetGraphTests.swift"; do
@@ -12598,7 +12598,7 @@ require_contains "checks/run.sh" "bash checks/verify-v0.18.1.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.1.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 aggregate audit / release notes anchor"
 require_contains "docs/release/release-publication-policy.md" "GH-1205 closes v0.18.1 aggregate audit"
-require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 aggregate audit / release notes"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.18.1 aggregate audit / release notes"
 require_contains "docs/validation/validation-plan.md" "GH-1205 Release v0.18.1 Aggregate Audit / Release Notes Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-AGGREGATE-AUDIT-RELEASE-NOTES"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1205ReleaseV0181AggregateAuditReleaseNotesCloseout"
@@ -12621,7 +12621,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1206-VERIFY-V0190-VENUE-PRODUCT-REGISTRY"
@@ -12643,7 +12643,7 @@ require_contains "checks/verify-v0.19.0-venue-product-registry.sh" "testGH1206Re
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-venue-product-registry.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-venue-product-registry.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 venue/product registry anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 venue/product registry"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 venue/product registry"
 require_contains "docs/validation/validation-plan.md" "GH-1206 Release v0.19.0 Venue/Product Registry"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-VENUE-PRODUCT-REGISTRY"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1206ReleaseV0190VenueProductRegistriesDefineCanonicalTargets"
@@ -12655,7 +12655,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1207-VERIFY-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX"
@@ -12677,7 +12677,7 @@ require_contains "checks/verify-v0.19.0-venue-product-capability-matrix.sh" "tes
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-venue-product-capability-matrix.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-venue-product-capability-matrix.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 venue/product capability matrix anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 venue/product capability matrix"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 venue/product capability matrix"
 require_contains "docs/validation/validation-plan.md" "GH-1207 Release v0.19.0 Venue/Product Capability Matrix"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-VENUE-PRODUCT-CAPABILITY-MATRIX"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1207ReleaseV0190VenueProductCapabilityMatrixFailsClosed"
@@ -12689,7 +12689,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1208-VERIFY-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY"
@@ -12710,7 +12710,7 @@ require_contains "checks/verify-v0.19.0-venue-endpoint-family-registry.sh" "test
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-venue-endpoint-family-registry.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-venue-endpoint-family-registry.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 venue endpoint family registry anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 venue endpoint family registry"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 venue endpoint family registry"
 require_contains "docs/validation/validation-plan.md" "GH-1208 Release v0.19.0 Venue Endpoint Family Registry"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-VENUE-ENDPOINT-FAMILY-REGISTRY"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1208ReleaseV0190VenueEndpointFamilyRegistryFailsClosed"
@@ -12722,7 +12722,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1209-VERIFY-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY"
@@ -12744,7 +12744,7 @@ require_contains "checks/verify-v0.19.0-venue-credential-profile-registry.sh" "t
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-venue-credential-profile-registry.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-venue-credential-profile-registry.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 venue credential profile registry anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 venue credential profile registry"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 venue credential profile registry"
 require_contains "docs/validation/validation-plan.md" "GH-1209 Release v0.19.0 Venue Credential Profile Registry"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1209ReleaseV0190VenueCredentialProfileRegistryFailsClosed"
@@ -12758,7 +12758,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1210-VERIFY-V0190-V018-LIFECYCLE-TYPED-NAMESPACE"
@@ -12778,7 +12778,7 @@ require_contains "checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh" "test
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-v018-lifecycle-typed-namespace.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 v0.18 lifecycle typed namespace anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 v0.18 lifecycle typed namespace"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 v0.18 lifecycle typed namespace"
 require_contains "docs/validation/validation-plan.md" "GH-1210 Release v0.19.0 v0.18 Lifecycle Typed Namespace"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-V018-LIFECYCLE-TYPED-NAMESPACE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1210ReleaseV0190MigratesV018LifecycleNamespaceToTypedModel"
@@ -12790,7 +12790,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1211-VERIFY-V0190-RUNTIME-ADAPTER-PROTOCOL"
@@ -12813,7 +12813,7 @@ require_contains "checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.s
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-venue-product-runtime-adapter-protocol.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 venue/product runtime adapter protocol anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 venue/product runtime adapter protocol"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 venue/product runtime adapter protocol"
 require_contains "docs/validation/validation-plan.md" "GH-1211 Release v0.19.0 Venue/Product Runtime Adapter Protocol"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-RUNTIME-ADAPTER-PROTOCOL"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1211ReleaseV0190VenueProductRuntimeAdapterProtocolFailsClosed"
@@ -12825,7 +12825,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1212-VERIFY-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY"
@@ -12851,7 +12851,7 @@ require_contains "checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-binance-spot-testnet-runtime-registry.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 Binance Spot Testnet runtime registry anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 Binance Spot Testnet runtime registry"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 Binance Spot Testnet runtime registry"
 require_contains "docs/validation/validation-plan.md" "GH-1212 Release v0.19.0 Binance Spot Testnet Runtime Registry"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-BINANCE-SPOT-TESTNET-RUNTIME-REGISTRY"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1212ReleaseV0190BinanceSpotTestnetRuntimeRegistryRoutesExistingBehavior"
@@ -12868,7 +12868,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1213-VERIFY-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE"
@@ -12889,7 +12889,7 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1213Dash
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-dashboard-venue-product-registry-surface.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 Dashboard venue/product registry surface anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 Dashboard venue/product registry surface"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 Dashboard venue/product registry surface"
 require_contains "docs/validation/validation-plan.md" "GH-1213 Release v0.19.0 Dashboard Venue/Product Registry Surface"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-DASHBOARD-VENUE-PRODUCT-REGISTRY-SURFACE"
 require_absent "Sources/Dashboard/Report/ReleaseV0190DashboardVenueProductRegistrySurface.swift" "productionCutoverAuthorized=true"
@@ -12909,7 +12909,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1214-VERIFY-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT"
@@ -12935,7 +12935,7 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1214CLIV
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-cli-venue-product-registry-inspect.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 CLI venue/product registry inspect anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 CLI venue/product registry inspect"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 CLI venue/product registry inspect"
 require_contains "docs/validation/validation-plan.md" "GH-1214 Release v0.19.0 CLI Venue/Product Registry Inspect"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-CLI-VENUE-PRODUCT-REGISTRY-INSPECT"
 require_absent "Sources/ExecutionClient/FutureGate/ReleaseV0190CLIVenueProductRegistryInspect.swift" "productionCutoverAuthorized=true"
@@ -12952,11 +12952,11 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "Tests/TargetGraphTests/TargetGraphTests.swift" \
   "checks/verify-v0.19.0-stage-audit-release-docs.sh" \
   "checks/run.sh" \
@@ -12979,11 +12979,11 @@ require_contains "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtim
 require_contains "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" "#1215"
 require_contains "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" "bash checks/verify-v0.19.0-stage-audit-release-docs.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 stage audit / release docs closeout anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 stage audit / release docs closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 stage audit / release docs closeout"
 require_contains "docs/validation/validation-plan.md" "GH-1215 Release v0.19.0 Stage Audit / Release Docs Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-STAGE-AUDIT-RELEASE-DOCS"
 require_contains "docs/release/release-publication-policy.md" "GH-1215 closes the v0.19.0 stage audit"
-require_contains "verification.md" "2026-06-29 - GH-1215 v0.19.0 Stage Audit / Release Docs Closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "2026-06-29 - GH-1215 v0.19.0 Stage Audit / Release Docs Closeout"
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-stage-audit-release-docs.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-stage-audit-release-docs.sh"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1215ReleaseV0190StageAuditReleaseDocsCloseout"
@@ -12997,7 +12997,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "Tests/TargetGraphTests/TargetGraphTests.swift" \
@@ -13024,7 +13024,7 @@ require_absent "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md
 require_absent "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "v0.19.0 release pending"
 require_absent "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "v0.19.0 GitHub Release not created"
 require_absent "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "productionCutoverAuthorized=true"
-require_absent "docs/validation/latest-verification-summary.md" "productionCutoverAuthorized=true"
+require_absent "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "productionCutoverAuthorized=true"
 
 for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
@@ -13032,13 +13032,13 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
   "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" \
   "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "Tests/TargetGraphTests/TargetGraphTests.swift" \
   "checks/verify-v0.19.1-v0190-historical-closeout-wording.sh" \
   "checks/run.sh" \
@@ -13075,13 +13075,13 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
   "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" \
   "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "Tests/TargetGraphTests/TargetGraphTests.swift" \
   "checks/verify-v0.19.1-v0190-stale-wording-guard.sh" \
   "checks/run.sh" \
@@ -13108,7 +13108,7 @@ for file in \
   "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md" \
   "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "Tests/TargetGraphTests/TargetGraphTests.swift" \
@@ -13133,7 +13133,7 @@ require_contains "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtim
 require_contains "checks/run.sh" "bash checks/verify-v0.19.1.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.1.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.1 aggregate verification anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.1 aggregate verification anchor"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.1 aggregate verification anchor"
 require_contains "docs/validation/validation-plan.md" "GH-1236 Release v0.19.1 Aggregate Verification Anchor"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0191-AGGREGATE-VERIFICATION-ANCHOR"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1236ReleaseV0191AggregateVerificationAnchor"
@@ -13142,7 +13142,7 @@ for file in \
   "docs/release/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-notes.md" \
   "docs/audit/mtpro-release-v0.19.1-v0190-release-fact-stale-wording-patch-stage-code-audit.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -13166,7 +13166,7 @@ require_contains "docs/audit/mtpro-release-v0.19.1-v0190-release-fact-stale-word
 require_contains "checks/run.sh" "GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "checks/automation-readiness.sh" "GH-1237-VERIFY-V0191-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.1 patch audit / release notes anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.1 patch audit / release notes closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.1 patch audit / release notes closeout"
 require_contains "docs/validation/validation-plan.md" "GH-1237 Release v0.19.1 Patch Audit / Release Notes Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0191-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "docs/release/release-publication-policy.md" "GH-1237 closes v0.19.1 patch audit"
@@ -13180,7 +13180,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.20.0-production-shadow-readiness-contract.sh" \
@@ -13200,7 +13200,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0-production-shadow-readiness-contract.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-production-shadow-readiness-contract.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 production-shadow readiness contract anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 production-shadow / read-only live readiness contract"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 production-shadow / read-only live readiness contract"
 require_contains "docs/validation/validation-plan.md" "GH-1239 Release v0.20.0 Production-shadow Read-only Live Readiness Contract"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-PRODUCTION-SHADOW-READINESS-CONTRACT"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1239ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract"
@@ -13213,7 +13213,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.20.0-production-shadow-environment-profile.sh" \
@@ -13233,7 +13233,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0-production-shadow-environment-profile.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-production-shadow-environment-profile.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 production-shadow environment profile anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 production-shadow environment profile"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 production-shadow environment profile"
 require_contains "docs/validation/validation-plan.md" "GH-1240 Release v0.20.0 Production-shadow Environment Profile"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENVIRONMENT-PROFILE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1240ReleaseV0200ProductionShadowEnvironmentProfile"
@@ -13246,7 +13246,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh" \
@@ -13266,7 +13266,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 production-shadow endpoint allowlist anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 production-shadow endpoint allowlist"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 production-shadow endpoint allowlist"
 require_contains "docs/validation/validation-plan.md" "GH-1241 Release v0.20.0 Production-shadow Endpoint Allowlist"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-PRODUCTION-SHADOW-ENDPOINT-ALLOWLIST"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1241ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist"
@@ -13279,7 +13279,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.20.0-credential-reference-readiness.sh" \
@@ -13299,7 +13299,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0-credential-reference-readiness.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-credential-reference-readiness.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 credential reference readiness anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 credential reference readiness"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 credential reference readiness"
 require_contains "docs/validation/validation-plan.md" "GH-1242 Release v0.20.0 Credential Reference Readiness"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-CREDENTIAL-REFERENCE-READINESS"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1242ReleaseV0200CredentialReferenceReadiness"
@@ -13312,7 +13312,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.20.0-public-market-readonly-probe.sh" \
@@ -13332,7 +13332,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0-public-market-readonly-probe.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-public-market-readonly-probe.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 public market read-only probe anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 public market read-only probe"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 public market read-only probe"
 require_contains "docs/validation/validation-plan.md" "GH-1243 Release v0.20.0 Public Market Read-only Probe"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-PUBLIC-MARKET-READ-ONLY-PROBE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1243ReleaseV0200PublicMarketReadOnlyProbe"
@@ -13345,7 +13345,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.20.0-signed-account-readonly-readiness.sh" \
@@ -13365,7 +13365,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0-signed-account-readonly-readiness.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-signed-account-readonly-readiness.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 signed account read-only readiness anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 signed account read-only readiness"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 signed account read-only readiness"
 require_contains "docs/validation/validation-plan.md" "GH-1244 Release v0.20.0 Signed Account Read-only Readiness"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-SIGNED-ACCOUNT-READ-ONLY-READINESS"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1244ReleaseV0200SignedAccountReadOnlyReadiness"
@@ -13378,7 +13378,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.20.0-account-snapshot-redaction-policy.sh" \
@@ -13400,7 +13400,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0-account-snapshot-redaction-policy.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-account-snapshot-redaction-policy.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 account snapshot redaction policy anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 account snapshot redaction policy"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 account snapshot redaction policy"
 require_contains "docs/validation/validation-plan.md" "GH-1245 Release v0.20.0 Account Snapshot Redaction Policy"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-ACCOUNT-SNAPSHOT-REDACTION-POLICY"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1245ReleaseV0200AccountSnapshotRedactionPolicy"
@@ -13413,7 +13413,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.20.0-no-order-capability-guard.sh" \
@@ -13433,7 +13433,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0-no-order-capability-guard.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-no-order-capability-guard.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 no-order capability guard anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 no-order capability guard"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 no-order capability guard"
 require_contains "docs/validation/validation-plan.md" "GH-1246 Release v0.20.0 No-order Capability Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-NO-ORDER-CAPABILITY-GUARD"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1246ReleaseV0200NoOrderCapabilityGuard"
@@ -13446,7 +13446,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh" \
@@ -13466,7 +13466,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 risk / kill switch / no-trade readiness anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 risk / kill switch / no-trade readiness"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 risk / kill switch / no-trade readiness"
 require_contains "docs/validation/validation-plan.md" "GH-1247 Release v0.20.0 Risk / Kill Switch / No-trade Readiness"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-RISK-KILL-SWITCH-NO-TRADE-READINESS"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1247ReleaseV0200RiskKillSwitchNoTradeReadiness"
@@ -13481,7 +13481,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh" \
@@ -13500,7 +13500,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 Dashboard / CLI read-only live readiness surface anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 Dashboard / CLI read-only live readiness surface"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 Dashboard / CLI read-only live readiness surface"
 require_contains "docs/validation/validation-plan.md" "GH-1248 Release v0.20.0 Dashboard / CLI Read-only Live Readiness Surface"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-DASHBOARD-CLI-READ-ONLY-LIVE-READINESS-SURFACE"
 require_contains "Tests/AppTests/AppTests.swift" "testGH1248DashboardReadOnlyLiveReadinessSurfaceShowsProductionShadowStateWithoutControls"
@@ -13512,7 +13512,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/verify-v0.20.0.sh" \
@@ -13534,7 +13534,7 @@ require_contains "checks/verify-v0.20.0.sh" "swift test --filter TargetGraphTest
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 aggregate validation suite anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 aggregate validation suite"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 aggregate validation suite"
 require_contains "docs/validation/validation-plan.md" "GH-1249 Release v0.20.0 Aggregate Validation Suite"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1249ReleaseV0200AggregateValidationSuite"
@@ -13545,7 +13545,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -13569,7 +13569,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.0-stage-audit-release-docs.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.0-stage-audit-release-docs.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.0 stage audit / release docs closeout anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.0 stage audit / release docs closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.0 stage audit / release docs closeout"
 require_contains "docs/validation/validation-plan.md" "GH-1250 Release v0.20.0 Stage Audit / Release Docs Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS"
 require_contains "docs/release/release-publication-policy.md" "GH-1250 closes the v0.20.0 stage audit"
@@ -13581,13 +13581,13 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
   "docs/audit/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-notes.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.20.1-v0200-stale-wording-guard.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13605,7 +13605,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.1-v0200-stale-wording-guard.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.1-v0200-stale-wording-guard.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.1 v0.20.0 stale wording guard anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.1 v0.20.0 stale wording guard"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.1 v0.20.0 stale wording guard"
 require_contains "docs/validation/validation-plan.md" "GH-1270 Release v0.20.1 v0.20.0 Stale Wording Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0201-V0200-STALE-WORDING-GUARD"
 require_contains "docs/release/release-publication-policy.md" "GH-1270 rejects current-facing stale v0.20.0 publication wording"
@@ -13617,7 +13617,7 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
@@ -13626,7 +13626,7 @@ for file in \
   "docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md" \
   "docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md" \
   "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.20.1-v0200-probe-classification-evidence.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13643,7 +13643,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.1-v0200-probe-classification-evidence.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.1-v0200-probe-classification-evidence.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.1 probe classification evidence guard anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.1 public probe classification evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.1 public probe classification evidence"
 require_contains "docs/validation/validation-plan.md" "GH-1271 Release v0.20.1 Public Probe Classification Evidence"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0201-PUBLIC-PROBE-CLASSIFICATION-EVIDENCE"
 require_contains "docs/release/release-publication-policy.md" "GH-1271 clarifies public-market probe as classification evidence"
@@ -13653,11 +13653,11 @@ for file in \
   "docs/audit/mtpro-release-v0.20.1-publication-fact-sync-patch-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.20.1-publication-fact-sync-patch-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.20.1.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13676,7 +13676,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.20.1.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.20.1.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.20.1 patch audit / release notes anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.20.1 patch audit / release notes closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.20.1 patch audit / release notes closeout"
 require_contains "docs/validation/validation-plan.md" "GH-1272 Release v0.20.1 Patch Audit / Release Notes Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0201-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "docs/release/release-publication-policy.md" "GH-1272 closes the v0.20.1 patch audit"
@@ -13690,10 +13690,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-controlled-canary-contract.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13711,7 +13711,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-controlled-canary-contract.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-controlled-canary-contract.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 controlled canary contract anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 controlled canary contract"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 controlled canary contract"
 require_contains "docs/validation/validation-plan.md" "GH-1273 Release v0.21.0 Controlled Canary Contract"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CONTROLLED-CANARY-CONTRACT"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1273ReleaseV0210SpotControlledProductionCanaryContract"
@@ -13724,10 +13724,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-spot-canary-environment-profile.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13743,7 +13743,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-spot-canary-environment-profile.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-spot-canary-environment-profile.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 spot canary environment profile anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 spot canary environment profile"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 spot canary environment profile"
 require_contains "docs/validation/validation-plan.md" "GH-1274 Release v0.21.0 Spot Canary Environment Profile"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-SPOT-CANARY-ENVIRONMENT-PROFILE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1274ReleaseV0210SpotCanaryEnvironmentProfile"
@@ -13756,10 +13756,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-credential-secret-read-approval.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13776,7 +13776,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-credential-secret-read-approval.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-credential-secret-read-approval.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 credential secret-read approval anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 credential secret-read approval"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 credential secret-read approval"
 require_contains "docs/validation/validation-plan.md" "GH-1275 Release v0.21.0 Credential Secret-read Approval"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CREDENTIAL-SECRET-READ-APPROVAL"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1275ReleaseV0210CredentialSecretReadApprovalPath"
@@ -13789,10 +13789,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-signed-account-readonly-preflight.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13809,7 +13809,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-signed-account-readonly-preflight.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-signed-account-readonly-preflight.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 signed account read-only preflight anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 signed account read-only preflight"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 signed account read-only preflight"
 require_contains "docs/validation/validation-plan.md" "GH-1276 Release v0.21.0 Signed Account Read-only Preflight"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-SIGNED-ACCOUNT-READ-ONLY-PREFLIGHT"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1276ReleaseV0210SignedAccountReadOnlyRuntimePreflight"
@@ -13822,10 +13822,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-live-account-snapshot-redaction.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13842,7 +13842,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-live-account-snapshot-redaction.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-live-account-snapshot-redaction.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 live account snapshot redaction anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 live account snapshot redaction"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 live account snapshot redaction"
 require_contains "docs/validation/validation-plan.md" "GH-1277 Release v0.21.0 Live Account Snapshot Redaction"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-LIVE-ACCOUNT-SNAPSHOT-REDACTION"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1277ReleaseV0210LiveAccountSnapshotRedactionArtifact"
@@ -13855,10 +13855,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-canary-hard-limits.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13875,7 +13875,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-canary-hard-limits.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-canary-hard-limits.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 canary hard limits anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 canary hard limits"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 canary hard limits"
 require_contains "docs/validation/validation-plan.md" "GH-1278 Release v0.21.0 Canary Hard Limits"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CANARY-HARD-LIMITS"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1278ReleaseV0210CanaryHardLimitPreTradeGate"
@@ -13888,10 +13888,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13909,7 +13909,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 pre-trade risk / kill switch / no-trade gate anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 pre-trade risk / kill switch / no-trade gate"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 pre-trade risk / kill switch / no-trade gate"
 require_contains "docs/validation/validation-plan.md" "GH-1279 Release v0.21.0 Pre-Trade Risk Kill No-Trade Gate"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-PRETRADE-RISK-KILL-NOTRADE"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1279ReleaseV0210PreTradeRiskKillNoTradeGate"
@@ -13922,10 +13922,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-controlled-spot-canary-submit.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13944,7 +13944,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-controlled-spot-canary-submit.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-controlled-spot-canary-submit.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 controlled Spot canary submit path anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 controlled Spot canary submit path"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 controlled Spot canary submit path"
 require_contains "docs/validation/validation-plan.md" "GH-1280 Release v0.21.0 Controlled Spot Canary Submit Path"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CONTROLLED-SPOT-CANARY-SUBMIT"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1280ReleaseV0210ControlledSpotCanarySubmitPath"
@@ -13957,10 +13957,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -13979,7 +13979,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 controlled canary cancel rollback guard anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 controlled canary cancel rollback guard"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 controlled canary cancel rollback guard"
 require_contains "docs/validation/validation-plan.md" "GH-1281 Release v0.21.0 Controlled Canary Cancel Rollback Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CONTROLLED-CANARY-CANCEL-ROLLBACK"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1281ReleaseV0210ControlledCanaryCancelRollbackGuard"
@@ -13992,10 +13992,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14014,7 +14014,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 canary OMS event log reconciliation anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 canary OMS event log reconciliation"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 canary OMS event log reconciliation"
 require_contains "docs/validation/validation-plan.md" "GH-1282 Release v0.21.0 Canary OMS Event Log Reconciliation Evidence"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CANARY-OMS-EVENT-LOG-RECONCILIATION"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1282ReleaseV0210CanaryOMSEventLogReconciliationEvidence"
@@ -14031,10 +14031,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14051,7 +14051,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 Dashboard / CLI canary status surface anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 Dashboard / CLI canary status surface"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 Dashboard / CLI canary status surface"
 require_contains "docs/validation/validation-plan.md" "GH-1283 Release v0.21.0 Dashboard / CLI Canary Status Surface"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-DASHBOARD-CLI-CANARY-STATUS-SURFACE"
 require_contains "Tests/AppTests/AppTests.swift" "testGH1283DashboardCLIReadOnlyCanaryStatusSurfaceShowsCanaryEvidenceWithoutCommands"
@@ -14064,10 +14064,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-canary-operator-runbook.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh"; do
@@ -14083,7 +14083,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-canary-operator-runbook.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-canary-operator-runbook.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 canary operator runbook anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 canary operator runbook"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 canary operator runbook"
 require_contains "docs/validation/validation-plan.md" "GH-1284 Release v0.21.0 Canary Operator Runbook"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-CANARY-OPERATOR-RUNBOOK"
 require_contains "docs/operators/release-v0.21.0-binance-spot-controlled-canary-runbook.md" "Operator Start Procedure"
@@ -14096,10 +14096,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh"; do
@@ -14130,10 +14130,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 aggregate validation suite anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 aggregate validation suite"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 aggregate validation suite"
 require_contains "docs/validation/validation-plan.md" "GH-1285 Release v0.21.0 Aggregate Validation Suite"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-AGGREGATE-VALIDATION"
-require_contains "verification.md" "MTPRO Release v0.21.0 Aggregate Validation Suite"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "MTPRO Release v0.21.0 Aggregate Validation Suite"
 
 for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
@@ -14141,13 +14141,13 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
   "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.0-stage-audit-release-docs.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14166,11 +14166,11 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.0-stage-audit-release-docs.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.0-stage-audit-release-docs.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.0 stage audit / release docs closeout anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.0 stage audit / release docs closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.0 stage audit / release docs closeout"
 require_contains "docs/validation/validation-plan.md" "GH-1286 Release v0.21.0 Stage Audit / Release Docs Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS"
 require_contains "docs/release/release-publication-policy.md" "GH-1286 closes the v0.21.0 stage audit"
-require_contains "verification.md" "MTPRO Release v0.21.0 Stage Audit / Release Docs Closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "MTPRO Release v0.21.0 Stage Audit / Release Docs Closeout"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1286ReleaseV0210StageAuditReleaseDocsCloseout"
 
 for file in \
@@ -14179,13 +14179,13 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
   "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.1-v0210-stale-wording-guard.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14203,7 +14203,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.1-v0210-stale-wording-guard.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.1-v0210-stale-wording-guard.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.1 v0.21.0 stale wording guard anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.1 v0.21.0 stale wording guard"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.1 v0.21.0 stale wording guard"
 require_contains "docs/validation/validation-plan.md" "GH-1306 Release v0.21.1 v0.21.0 Stale Wording Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0211-V0210-STALE-WORDING-GUARD"
 require_contains "docs/release/release-publication-policy.md" "GH-1306 rejects current-facing stale v0.21.0 publication wording"
@@ -14215,13 +14215,13 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
   "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.1-v0210-canary-evidence-wording.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14236,7 +14236,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.1-v0210-canary-evidence-wording.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.1-v0210-canary-evidence-wording.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.1 controlled canary evidence wording anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.1 canary evidence wording guard"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.1 canary evidence wording guard"
 require_contains "docs/validation/validation-plan.md" "GH-1307 Release v0.21.1 Controlled Canary Evidence Wording Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0211-CANARY-EVIDENCE-WORDING"
 require_contains "docs/release/release-publication-policy.md" "GH-1307 requires v0.21.0 canary wording"
@@ -14250,11 +14250,11 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.21.1.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14273,7 +14273,7 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.21.1.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.21.1.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.21.1 patch audit / release notes anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.21.1 patch audit / release notes closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.21.1 patch audit / release notes closeout"
 require_contains "docs/validation/validation-plan.md" "GH-1308 Release v0.21.1 Patch Audit / Release Notes Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0211-PATCH-AUDIT-RELEASE-NOTES"
 require_contains "docs/release/release-publication-policy.md" "GH-1308 closes the v0.21.1 patch audit"
@@ -14287,10 +14287,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0-live-canary-transport-contract.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14308,10 +14308,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0-live-canary-transport-contract.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-live-canary-transport-contract.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 live canary transport contract anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 live canary transport completion contract"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 live canary transport completion contract"
 require_contains "docs/validation/validation-plan.md" "GH-1309 Release v0.22.0 Live Canary Transport Contract"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-LIVE-CANARY-TRANSPORT-CONTRACT"
-require_contains "verification.md" "GH-1309 v0.22.0 Live Canary Transport Contract"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-1309 v0.22.0 Live Canary Transport Contract"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1309ReleaseV0220SpotLiveCanaryTransportCompletionContract"
 
 for file in \
@@ -14322,10 +14322,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0-operator-approval-run-lock.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14344,10 +14344,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0-operator-approval-run-lock.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-operator-approval-run-lock.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 operator approval run lock anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 operator approval run lock"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 operator approval run lock"
 require_contains "docs/validation/validation-plan.md" "GH-1310 Release v0.22.0 Operator Approval Run Lock"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-OPERATOR-APPROVAL-RUN-LOCK"
-require_contains "verification.md" "GH-1310 v0.22.0 Operator Approval Run Lock"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-1310 v0.22.0 Operator Approval Run Lock"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1310ReleaseV0220OperatorApprovalSessionAndRunLock"
 
 for file in \
@@ -14358,10 +14358,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0-credential-secret-material-read-redaction.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14380,10 +14380,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0-credential-secret-material-read-redaction.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-credential-secret-material-read-redaction.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 credential secret material read redaction anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 credential secret material read redaction"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 credential secret material read redaction"
 require_contains "docs/validation/validation-plan.md" "GH-1311 Release v0.22.0 Credential Secret Material Read Redaction"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-CREDENTIAL-SECRET-MATERIAL-READ-REDACTION"
-require_contains "verification.md" "GH-1311 v0.22.0 Credential Secret Material Read Redaction"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-1311 v0.22.0 Credential Secret Material Read Redaction"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1311ReleaseV0220CredentialSecretMaterialReadRedaction"
 
 for file in \
@@ -14394,10 +14394,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0-signed-account-runtime-preflight.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14417,10 +14417,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0-signed-account-runtime-preflight.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-signed-account-runtime-preflight.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 signed account runtime preflight anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 signed account runtime preflight"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 signed account runtime preflight"
 require_contains "docs/validation/validation-plan.md" "GH-1312 Release v0.22.0 Signed Account Runtime Preflight"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-SIGNED-ACCOUNT-RUNTIME-PREFLIGHT"
-require_contains "verification.md" "GH-1312 v0.22.0 Signed Account Runtime Preflight"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-1312 v0.22.0 Signed Account Runtime Preflight"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1312ReleaseV0220SignedAccountRuntimePreflight"
 
 for file in \
@@ -14431,10 +14431,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0-live-order-submit-transport.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14455,10 +14455,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0-live-order-submit-transport.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-live-order-submit-transport.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 live order submit transport anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 live order submit transport"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 live order submit transport"
 require_contains "docs/validation/validation-plan.md" "GH-1313 Release v0.22.0 Live Order Submit Transport"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-LIVE-ORDER-SUBMIT-TRANSPORT"
-require_contains "verification.md" "GH-1313 v0.22.0 Live Order Submit Transport"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-1313 v0.22.0 Live Order Submit Transport"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1313ReleaseV0220LiveOrderSubmitTransport"
 
 for file in \
@@ -14469,10 +14469,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0-status-cancel-transport.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14493,10 +14493,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0-status-cancel-transport.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-status-cancel-transport.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 live order status / cancel transport anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 live order status / cancel transport"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 live order status / cancel transport"
 require_contains "docs/validation/validation-plan.md" "GH-1314 Release v0.22.0 Live Order Status / Cancel Transport"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-LIVE-ORDER-STATUS-CANCEL-TRANSPORT"
-require_contains "verification.md" "GH-1314 v0.22.0 Live Order Status / Cancel Transport"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-1314 v0.22.0 Live Order Status / Cancel Transport"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1314ReleaseV0220LiveOrderStatusCancelTransport"
 
 for file in \
@@ -14507,10 +14507,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0-oms-evidence-log.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14530,10 +14530,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0-oms-evidence-log.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-oms-evidence-log.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 OMS event log anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 OMS event log"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 OMS event log"
 require_contains "docs/validation/validation-plan.md" "GH-1315 Release v0.22.0 OMS Event Log"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-OMS-EVIDENCE-LOG"
-require_contains "verification.md" "GH-1315 v0.22.0 OMS Event Log"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-1315 v0.22.0 OMS Event Log"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1315ReleaseV0220OMSEventLogPersistsExchangeAckStatusCancelEvidence"
 
 for file in \
@@ -14544,10 +14544,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0-reconciliation-evidence.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14568,10 +14568,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0-reconciliation-evidence.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-reconciliation-evidence.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 reconciliation evidence anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 reconciliation evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 reconciliation evidence"
 require_contains "docs/validation/validation-plan.md" "GH-1316 Release v0.22.0 Reconciliation Evidence"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-RECONCILIATION-EVIDENCE"
-require_contains "verification.md" "GH-1316 v0.22.0 Reconciliation Evidence"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-1316 v0.22.0 Reconciliation Evidence"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1316ReleaseV0220ReconcilesOMSWithSignedAccountAndOrderStatusEvidence"
 
 for file in \
@@ -14582,10 +14582,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0-failure-rollback-drill.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14607,10 +14607,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0-failure-rollback-drill.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-failure-rollback-drill.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 failure rollback drill anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 failure classification"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 failure classification"
 require_contains "docs/validation/validation-plan.md" "GH-1317 Release v0.22.0 Failure Rollback Drill"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-FAILURE-ROLLBACK-DRILL"
-require_contains "verification.md" "GH-1317 v0.22.0 Failure Rollback Drill"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-1317 v0.22.0 Failure Rollback Drill"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1317ReleaseV0220FailureClassificationRollbackKillSwitchNoTradeDrill"
 
 for file in \
@@ -14625,10 +14625,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14649,10 +14649,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 Dashboard / CLI live canary evidence surface anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 Dashboard / CLI live canary evidence surface"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 Dashboard / CLI live canary evidence surface"
 require_contains "docs/validation/validation-plan.md" "GH-1318 Release v0.22.0 Dashboard / CLI Live Canary Evidence Surface"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-DASHBOARD-CLI-LIVE-CANARY-EVIDENCE-SURFACE"
-require_contains "verification.md" "GH-1318 v0.22.0 Dashboard / CLI Live Canary Evidence Surface"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "GH-1318 v0.22.0 Dashboard / CLI Live Canary Evidence Surface"
 require_contains "Tests/AppTests/AppTests.swift" "testGH1318DashboardCLILiveCanaryEvidenceSurfaceShowsCanaryEvidenceWithoutCommands"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1318ReleaseV0220DashboardCLILiveCanaryEvidenceSurface"
 
@@ -14662,10 +14662,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14698,10 +14698,10 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 aggregate validation suite anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 aggregate validation suite"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 aggregate validation suite"
 require_contains "docs/validation/validation-plan.md" "GH-1319 Release v0.22.0 Aggregate Validation Suite"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-AGGREGATE-VALIDATION"
-require_contains "verification.md" "MTPRO Release v0.22.0 Aggregate Validation Suite"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "MTPRO Release v0.22.0 Aggregate Validation Suite"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1319ReleaseV0220AggregateValidationSuite"
 
 for file in \
@@ -14712,11 +14712,11 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.0-stage-audit-release-docs.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14737,11 +14737,11 @@ done
 require_contains "checks/run.sh" "bash checks/verify-v0.22.0-stage-audit-release-docs.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.0-stage-audit-release-docs.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.0 stage audit / release docs closeout anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.22.0 stage audit / release docs closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.22.0 stage audit / release docs closeout"
 require_contains "docs/validation/validation-plan.md" "GH-1320 Release v0.22.0 Stage Audit / Release Docs Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS"
 require_contains "docs/release/release-publication-policy.md" "GH-1320 closes the v0.22.0 stage audit"
-require_contains "verification.md" "MTPRO Release v0.22.0 Stage Audit / Release Docs Closeout"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "MTPRO Release v0.22.0 Stage Audit / Release Docs Closeout"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1320ReleaseV0220StageAuditReleaseDocsCloseout"
 
 for file in \
@@ -14752,11 +14752,11 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.22.1.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14782,7 +14782,7 @@ require_contains "checks/automation-readiness.sh" "checks/verify-v0.22.1.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.22.1 publication fact sync patch anchor"
 require_contains "docs/validation/validation-plan.md" "GH-1340 Release v0.22.1 Patch Audit / Release Notes Closeout"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0221-PATCH-AUDIT-RELEASE-NOTES"
-require_contains "verification.md" "MTPRO Release v0.22.1 Publication Fact Sync Patch"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "MTPRO Release v0.22.1 Publication Fact Sync Patch"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1337To1340ReleaseV0221PublicationFactSyncPatch"
 
 # GH-1341-VERIFY-V0230-FUTURES-READONLY-CONTRACT
@@ -14829,10 +14829,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.23.0.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14870,7 +14870,7 @@ require_contains "checks/automation-readiness.sh" "checks/verify-v0.23.0.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.23.0 Binance USD-M Futures read-only foundation anchor"
 require_contains "docs/validation/validation-plan.md" "GH-1350 Release v0.23.0 Aggregate Validation Suite"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0230-AGGREGATE-VALIDATION"
-require_contains "verification.md" "MTPRO Release v0.23.0 Binance USD-M Futures Read-only Foundation"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "MTPRO Release v0.23.0 Binance USD-M Futures Read-only Foundation"
 require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1341To1351ReleaseV0230BinanceUSDMFuturesReadOnlyFoundation"
 
 for file in \
@@ -14878,8 +14878,8 @@ for file in \
   "docs/release/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-notes.md" \
   "docs/release/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-notes.md" \
   "docs/audit/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-stage-code-audit.md" \
-  "docs/validation/latest-verification-summary.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.23.1.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14903,10 +14903,10 @@ for file in \
   "docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.24.0.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14933,10 +14933,10 @@ for file in \
   "docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.24.1.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -14966,10 +14966,10 @@ for file in \
   "docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.25.0.sh" \
   "checks/automation-readiness.sh" \
   "Tests/TargetGraphTests/TargetGraphTests.swift"; do
@@ -15005,13 +15005,13 @@ for file in \
   "docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.25.1.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -15045,10 +15045,10 @@ for file in \
   "docs/audit/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.26.0.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -15099,14 +15099,14 @@ for file in \
   "docs/audit/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.27.0.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -15258,14 +15258,14 @@ for file in \
   "docs/audit/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.28.0.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -15333,14 +15333,14 @@ for file in \
   "docs/audit/mtpro-release-v0.28.1-v028-publication-fact-readiness-semantics-validation-patch-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.28.1-v028-publication-fact-readiness-semantics-validation-patch-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.28.1.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -15407,14 +15407,14 @@ for file in \
   "docs/audit/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.29.0.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -15469,12 +15469,12 @@ for file in \
   "docs/release/mtpro-release-v0.29.1-shadow-acceptance-integrity-publication-gate-repair-patch-notes.md" \
   "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.29.1.sh" \
   "checks/verify-v0.29.0.sh" \
   "checks/run.sh" \
@@ -15515,14 +15515,14 @@ for file in \
   "docs/audit/mtpro-release-v0.30.0-observed-production-shadow-run-stage-code-audit.md" \
   "docs/release/mtpro-release-v0.30.0-observed-production-shadow-run-notes.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
-  "verification.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" \
   "checks/verify-v0.30.0.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -15575,10 +15575,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md"; do
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"; do
   require_contains "$file" "GH-1478-VERIFY-V0301-V0300-PUBLICATION-FACTS"
   require_contains "$file" "GH-1479-VERIFY-V0301-DETERMINISTIC-FIXTURE-FAIL-CLOSED"
   require_contains "$file" "GH-1480-VERIFY-V0301-ARTIFACT-INTEGRITY-ACCEPTANCE"
@@ -15633,10 +15633,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md"; do
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"; do
   require_contains "$file" "GH-1487-VERIFY-V0310-NO-DEFAULT-TRADING-CONTRACT"
   require_contains "$file" "GH-1488-VERIFY-V0310-CREDENTIAL-APPROVAL-GATE"
   require_contains "$file" "GH-1489-VERIFY-V0310-PRODUCTION-ENDPOINT-READ-ONLY-ALLOWLIST"
@@ -15755,7 +15755,7 @@ require_contains "checks/verify-v0.32.1.sh" "controlled-canary-integrity-repair 
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "acceptanceDecision=blocked-observed-production-canary-missing"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "observedProductionCanary=false"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "releaseCreatedAfterFullMatrix=true"
-require_contains "verification.md" "bash checks/verify-v0.32.1.sh"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "bash checks/verify-v0.32.1.sh"
 # GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX
 # GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY
 # GH-1530-VERIFY-V0322-COMMIT-CLOCK-APPROVAL-FRESHNESS
@@ -15781,7 +15781,7 @@ require_contains ".github/workflows/checks.yml" "Publish v0.32.2 release after f
 require_contains "checks/verify-v0.32.2.sh" "swift test --filter TargetGraphTests/testGH1528To1533ReleaseV0322ControlledCanaryIntegrityClosurePatch"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "acceptanceDecision=blocked-trusted-observed-canary-missing"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "backendClosureDecision=blocked"
-require_contains "verification.md" "bash checks/verify-v0.32.2.sh"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "bash checks/verify-v0.32.2.sh"
 
 # GH-1540-ADD-COMPLETE-V0323-NEGATIVE-MATRIX
 # TVM-RELEASE-V0323-COMPLETE-EVIDENCE-INTEGRITY-NEGATIVE-MATRIX
@@ -15814,6 +15814,28 @@ require_contains ".github/workflows/checks.yml" "Publish v0.32.3 release after f
 require_contains ".github/workflows/checks.yml" "refs/tags/v0.32.3"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "activeVenue=Binance"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "backendClosureDecision=blocked"
-require_contains "verification.md" "bash checks/verify-v0.32.3.sh"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "bash checks/verify-v0.32.3.sh"
+
+# Documentation canonicalization / historical evidence indexes
+require_file "docs/validation/latest-verification-summary.md"
+require_file "verification.md"
+require_file "docs/planning/linear-draft-plan.md"
+require_file "docs/audit/index.md"
+require_file "docs/release/index.md"
+require_file "docs/contracts/index.md"
+require_file "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
+require_file "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
+require_file "docs/history/planning-pre-canonicalization-2026-07-20/linear-draft-plan.md"
+require_contains "docs/validation/latest-verification-summary.md" "状态：Canonical"
+require_contains "docs/validation/latest-verification-summary.md" "backendClosureDecision=accepted-demo-network-parity"
+require_contains "docs/validation/latest-verification-summary.md" "productionCutoverAuthorized=false"
+require_contains "docs/validation/latest-verification-summary.md" "defaultProductionTradingEnabled=false"
+require_contains "verification.md" "状态：Canonical"
+require_contains "verification.md" "GH-1579-V0330-BACKEND-MAINTENANCE-CLOSEOUT"
+require_contains "docs/planning/linear-draft-plan.md" "当前没有 active planning record"
+require_contains "docs/planning/linear-draft-plan.md" "GitHub issue / PR"
+require_contains "docs/audit/index.md" "mtpro-v0.33.0-backend-maintenance-stage-code-audit.md"
+require_contains "docs/release/index.md" "v0.33.0"
+require_contains "docs/contracts/index.md" "v0330-backend-maintenance-ownership-contract.md"
 
 printf 'MTPRO automation readiness checks passed.\n'

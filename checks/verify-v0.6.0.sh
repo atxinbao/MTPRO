@@ -42,7 +42,7 @@ require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/RE
 require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening"
 require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "MTPRO Release v0.6.0 Local Operational Runtime + Testnet Read-only Probe Hardening"
 require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS"
-require_file_contains "docs/validation/latest-verification-summary.md" "GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS"
+require_file_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "GH-766-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS"
 require_file_contains "docs/validation/validation-plan.md" "GH-766 Release v0.6.0 Final Audit Root Docs Validation"
 require_file_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V060-FINAL-AUDIT-ROOT-DOCS"
 require_file_contains "docs/automation/automation-readiness.md" "Release v0.6.0 final audit / root docs anchor"

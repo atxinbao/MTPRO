@@ -39,7 +39,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md"; do
@@ -56,7 +56,7 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0180StatusQueryRetr
 require_contains "Sources/Dashboard/Report/ReleaseV0180DashboardArtifactRecoveryDrilldownSurface.swift" ".local/mtpro/runs/binance/usdmFutures/testnet/operator-beta-redacted/gh-1182-v0180-operator-run/artifacts/"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0181OperatorRunCLICommand.swift" ".local/mtpro/runs/\\(namespace.venue)/\\(namespace.product)/\\(namespace.environment)/\\(namespace.accountProfile)/\\(namespace.runID.rawValue)/operator-run/"
 require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 artifact namespace path anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 artifact namespace paths"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.18.1 artifact namespace paths"
 require_contains "docs/validation/validation-plan.md" "GH-1203 Release v0.18.1 Artifact Namespace Paths"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-ARTIFACT-NAMESPACE-PATHS"
 require_contains "docs/release/release-publication-policy.md" "GH-1203 fixes active v0.18 artifact namespace paths"

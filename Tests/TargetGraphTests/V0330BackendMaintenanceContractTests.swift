@@ -159,8 +159,8 @@ final class V0330BackendMaintenanceContractTests: XCTestCase {
             "docs/contracts/v0330-backend-maintenance-ownership-contract.md",
             "docs/audit/mtpro-v0.33.0-backend-maintenance-stage-code-audit.md",
             "docs/release/mtpro-release-v0.33.0-demo-validation-notes.md",
-            "docs/validation/latest-verification-summary.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
         ]
 
         for path in paths {

@@ -231,12 +231,12 @@ for file in \
   .github/workflows/checks.yml \
   docs/audit/mtpro-release-v0.32.1-controlled-canary-integrity-publication-gate-repair-stage-code-audit.md \
   docs/release/mtpro-release-v0.32.1-controlled-canary-integrity-publication-gate-repair-notes.md \
-  docs/validation/latest-verification-summary.md \
+  docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md \
   docs/validation/trading-validation-matrix.md \
   docs/history/root-docs-pre-canonicalization-2026-07-20/README.md \
   docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md \
   docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md \
-  verification.md; do
+  docs/history/validation-pre-canonicalization-2026-07-20/verification.md; do
   require_contains "$file" "GH-1519-VERIFY-V0321-ACCEPTANCE-SEMANTICS-PUBLICATION-FACTS"
   require_contains "$file" "GH-1520-VERIFY-V0321-EVIDENCE-ROOT-MANIFEST-SHA256"
   require_contains "$file" "GH-1521-VERIFY-V0321-APPROVAL-SCOPE-RUN-LOCK"

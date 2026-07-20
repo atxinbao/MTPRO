@@ -43,7 +43,7 @@ AUDIT_INPUT="docs/audit/inputs/mtpro-release-v0.14.1-release-ci-dashboard-eviden
 READINESS="docs/automation/automation-readiness.md"
 PLAN="docs/validation/validation-plan.md"
 MATRIX="docs/validation/trading-validation-matrix.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 TARGET_TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
 
 for anchor in \

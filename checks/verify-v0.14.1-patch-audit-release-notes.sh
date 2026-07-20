@@ -43,7 +43,7 @@ reject_file_contains() {
 AUDIT="docs/audit/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-stage-code-audit.md"
 RELEASE_NOTES="docs/release/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-notes.md"
 READINESS="docs/automation/automation-readiness.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 PLAN="docs/validation/validation-plan.md"
 MATRIX="docs/validation/trading-validation-matrix.md"
 POLICY="docs/release/release-publication-policy.md"

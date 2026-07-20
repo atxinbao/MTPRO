@@ -40,7 +40,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md"; do
   require_contains "$file" "GH-1209-VERIFY-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY"
@@ -73,7 +73,7 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1209Rele
 require_contains "checks/run.sh" "bash checks/verify-v0.19.0-venue-credential-profile-registry.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.19.0-venue-credential-profile-registry.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.19.0 venue credential profile registry anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.19.0 venue credential profile registry"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.19.0 venue credential profile registry"
 require_contains "docs/validation/validation-plan.md" "GH-1209 Release v0.19.0 Venue Credential Profile Registry"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0190-VENUE-CREDENTIAL-PROFILE-REGISTRY"
 

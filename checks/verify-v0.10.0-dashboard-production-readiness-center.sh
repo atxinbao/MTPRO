@@ -38,7 +38,7 @@ TARGET_TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
 PLAN="docs/validation/validation-plan.md"
 MATRIX="docs/validation/trading-validation-matrix.md"
 READINESS="docs/automation/automation-readiness.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 AUTOMATION_SCRIPT="checks/automation-readiness.sh"
 
 for path in "$SOURCE" "$SHELL_SOURCE" "$APP_TESTS" "$TARGET_TESTS" "$PLAN" "$MATRIX" "$READINESS" "$LATEST" "$AUTOMATION_SCRIPT"; do

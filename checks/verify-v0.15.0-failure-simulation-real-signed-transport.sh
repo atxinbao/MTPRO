@@ -43,7 +43,7 @@ reject_file_contains() {
 SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0150BinanceSpotTestnetFailureSimulation.swift"
 CONTRACT="docs/contracts/release-v0.15.0-failure-simulation-real-signed-transport-contract.md"
 READINESS="docs/automation/automation-readiness.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 PLAN="docs/validation/validation-plan.md"
 MATRIX="docs/validation/trading-validation-matrix.md"
 RUN_SCRIPT="checks/run.sh"

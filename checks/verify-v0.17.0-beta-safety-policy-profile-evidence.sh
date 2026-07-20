@@ -53,7 +53,7 @@ for path in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "checks/automation-readiness.sh" \

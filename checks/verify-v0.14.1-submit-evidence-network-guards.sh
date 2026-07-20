@@ -43,7 +43,7 @@ RUNNER="checks/run.sh"
 READINESS="docs/automation/automation-readiness.md"
 VALIDATION_PLAN="docs/validation/validation-plan.md"
 TRADING_MATRIX="docs/validation/trading-validation-matrix.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 
 for anchor in \
   "GH-1061-VERIFY-V0141-SUBMIT-EVIDENCE-NETWORK-GUARDS" \
