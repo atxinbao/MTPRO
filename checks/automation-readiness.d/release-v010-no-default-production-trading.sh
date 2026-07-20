@@ -153,7 +153,7 @@ required_false_contracts = {
     "docs/validation/validation-plan.md": [
         "GH-538 No-default Production Trading Automation Guard Validation",
     ],
-    "docs/domain/context.md": [
+    "docs/history/architecture-pre-canonicalization-2026-07-20/context.md": [
         "GH-538 No-default Production Trading Automation Guard Terms",
     ],
     "docs/automation/automation-readiness.md": [

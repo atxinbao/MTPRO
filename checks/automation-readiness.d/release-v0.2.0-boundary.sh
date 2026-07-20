@@ -283,7 +283,7 @@ required_evidence = {
         "GH-595 Release v0.2.0 Verify Fast / Verify Release Gate Validation",
         "GH-596 Release v0.2.0 Final Stage Code Audit and Root Docs Refresh Validation",
     ],
-    "docs/domain/context.md": [
+    "docs/history/architecture-pre-canonicalization-2026-07-20/context.md": [
         "GH-565 Release v0.2.0 Boundary Automation Guard Terms",
         "GH-569 EMA Target Exposure Intent Terms",
         "GH-570 RSI Target Exposure Intent Terms",
