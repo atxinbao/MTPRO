@@ -72,10 +72,10 @@ APPROVAL_WORKFLOW_SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0110Auditab
 PACKAGE_SOURCE="Package.swift"
 AUDIT="docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md"
 RELEASE_NOTES="docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md"
-README_DOC="README.md"
-GOAL_DOC="GOAL.md"
-BLUEPRINT_DOC="BLUEPRINT.md"
-ROADMAP_DOC="docs/roadmap.md"
+README_DOC="docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"
+GOAL_DOC="docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"
+BLUEPRINT_DOC="docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"
+ROADMAP_DOC="docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"
 
 for anchor in \
   "GH-913-VERIFY-V0110-PRODUCTION-READINESS-EVIDENCE-RUNTIME-CONTRACT" \

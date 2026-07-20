@@ -48,10 +48,10 @@ anchors=(
 for path in \
   "$SOURCE" \
   "$CONTRACT" \
-  "README.md" \
-  "GOAL.md" \
-  "BLUEPRINT.md" \
-  "docs/roadmap.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/automation/automation-readiness.md" \
   "docs/validation/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \

@@ -40,10 +40,10 @@ for file in \
   docs/validation/trading-validation-matrix.md \
   docs/validation/validation-plan.md \
   docs/automation/automation-readiness.md \
-  README.md \
-  GOAL.md \
-  BLUEPRINT.md \
-  docs/roadmap.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/README.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md \
+  docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md \
   verification.md
 do
   require_contains "$file" "GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES"
@@ -60,7 +60,7 @@ require_contains ".github/workflows/checks.yml" "refs/tags/v0.32.3"
 require_contains "checks/run.sh" "MTPRO_SKIP_V0323_NEGATIVE_MATRIX=1 bash checks/verify-v0.32.3.sh"
 require_contains "docs/release/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-notes.md" "backendClosureDecision=blocked"
 require_contains "docs/audit/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-stage-code-audit.md" "observedProductionCanary=false"
-require_contains "README.md" "activeVenue=Binance"
-require_contains "GOAL.md" "okxActiveRuntime=false"
+require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "activeVenue=Binance"
+require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "okxActiveRuntime=false"
 
 echo "MTPRO release v0.32.3 verification passed."

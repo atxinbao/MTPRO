@@ -115,7 +115,7 @@ require_file_contains \
   "https://user:pass@testnet.binance.vision"
 
 require_file_contains \
-  "docs/roadmap.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "GH-687-RELEASE-V031-REHEARSAL-EVIDENCE-DOCS-HANDOFF"
 require_file_contains \
   "docs/validation/latest-verification-summary.md" \

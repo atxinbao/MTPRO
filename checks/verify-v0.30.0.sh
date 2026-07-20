@@ -64,10 +64,10 @@ FILES=(
   "docs/validation/latest-verification-summary.md"
   "docs/validation/validation-plan.md"
   "docs/validation/trading-validation-matrix.md"
-  "docs/roadmap.md"
-  "README.md"
-  "GOAL.md"
-  "BLUEPRINT.md"
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"
   "verification.md"
   "checks/verify-v0.30.0.sh"
   "checks/run.sh"
@@ -130,10 +130,10 @@ for file in "${FILES[@]}"; do
 done
 
 for file in \
-  "README.md" \
-  "GOAL.md" \
-  "BLUEPRINT.md" \
-  "docs/roadmap.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "docs/validation/latest-verification-summary.md" \
   "verification.md" \
   "docs/release/mtpro-release-v0.30.0-observed-production-shadow-run-notes.md"; do

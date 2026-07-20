@@ -7719,15 +7719,15 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let readme = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("README.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
             encoding: .utf8
         )
         let goal = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("GOAL.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
             encoding: .utf8
         )
         let roadmap = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             encoding: .utf8
         )
         let latestSummary = try String(
@@ -7839,15 +7839,15 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let readme = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("README.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
             encoding: .utf8
         )
         let goal = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("GOAL.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
             encoding: .utf8
         )
         let roadmap = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             encoding: .utf8
         )
         let latestSummary = try String(
@@ -7953,19 +7953,19 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let readme = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("README.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
             encoding: .utf8
         )
         let goal = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("GOAL.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
             encoding: .utf8
         )
         let blueprint = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("BLUEPRINT.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
             encoding: .utf8
         )
         let roadmap = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             encoding: .utf8
         )
         let latestSummary = try String(
@@ -8061,19 +8061,19 @@ final class TargetGraphTests: XCTestCase {
     func testGH792ReleaseV070FinalAuditDocsAndRunbookCloseCompletedFactsOnly() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
         let readme = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("README.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
             encoding: .utf8
         )
         let goal = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("GOAL.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
             encoding: .utf8
         )
         let blueprint = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("BLUEPRINT.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
             encoding: .utf8
         )
         let roadmap = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             encoding: .utf8
         )
         let latestSummary = try String(
@@ -8615,7 +8615,7 @@ final class TargetGraphTests: XCTestCase {
             try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
         }
 
-        let readme = try read("README.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
         let policy = try read("docs/release/release-publication-policy.md")
         let notes = try read("docs/release/mtpro-release-v0.9.1-v090-audit-hardening-notes.md")
         let audit = try read("docs/audit/mtpro-release-v0.9.1-v090-audit-hardening-stage-code-audit.md")
@@ -8737,8 +8737,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(readiness.contains("Release v0.10.1 release fact sync stale wording guard anchor"))
 
         let docsToGuard = [
-            try read("README.md"),
-            try read("docs/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             policy,
             try read("docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md"),
             try read("docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md"),
@@ -14097,10 +14097,10 @@ final class TargetGraphTests: XCTestCase {
             contentsOf: repositoryRoot.appendingPathComponent("checks/automation-readiness.sh"),
             encoding: .utf8
         )
-        let readme = try String(contentsOf: repositoryRoot.appendingPathComponent("README.md"), encoding: .utf8)
-        let goal = try String(contentsOf: repositoryRoot.appendingPathComponent("GOAL.md"), encoding: .utf8)
-        let blueprint = try String(contentsOf: repositoryRoot.appendingPathComponent("BLUEPRINT.md"), encoding: .utf8)
-        let roadmap = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"), encoding: .utf8)
+        let readme = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"), encoding: .utf8)
+        let goal = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"), encoding: .utf8)
+        let blueprint = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"), encoding: .utf8)
+        let roadmap = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"), encoding: .utf8)
         let latestSummary = try String(
             contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
             encoding: .utf8
@@ -14194,7 +14194,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let readme = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("README.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
             encoding: .utf8
         )
         let releaseNotes = try String(
@@ -22881,11 +22881,11 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let readme = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("README.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
             encoding: .utf8
         )
         let roadmap = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             encoding: .utf8
         )
         let latestSummary = try String(
@@ -28724,9 +28724,9 @@ final class TargetGraphTests: XCTestCase {
         let stageAudit = try read(
             "docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md"
         )
-        let readme = try read("README.md")
-        let architecture = try read("architecture.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let architecture = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let latestSummary = try read("docs/validation/latest-verification-summary.md")
         let validationMatrix = try read("docs/validation/trading-validation-matrix.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
@@ -31268,10 +31268,10 @@ final class TargetGraphTests: XCTestCase {
         let tagCommit = "53e9b1e81db075ef464b74f8f35c66ebd61ea03c"
         let publishedAt = "2026-06-29T13:42:34Z"
         let requiredFiles = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -31292,10 +31292,10 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertTrue(source.contains(publishedAt), "\(file) must keep v0.19.0 publication timestamp synchronized")
         }
 
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let latest = try read("docs/validation/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
@@ -31353,10 +31353,10 @@ final class TargetGraphTests: XCTestCase {
         let tagCommit = "53e9b1e81db075ef464b74f8f35c66ebd61ea03c"
         let publishedAt = "2026-06-29T13:42:34Z"
         let requiredFiles = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -31381,10 +31381,10 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertTrue(source.contains(publishedAt), "\(file) must keep v0.19.0 publication timestamp synchronized")
         }
 
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let latest = try read("docs/validation/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
@@ -31460,10 +31460,10 @@ final class TargetGraphTests: XCTestCase {
         let tagCommit = "53e9b1e81db075ef464b74f8f35c66ebd61ea03c"
         let publishedAt = "2026-06-29T13:42:34Z"
         let requiredFiles = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -31488,10 +31488,10 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertTrue(source.contains(publishedAt), "\(file) must keep v0.19.0 publication timestamp synchronized")
         }
 
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let latest = try read("docs/validation/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
@@ -31763,10 +31763,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md",
             "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -31830,10 +31830,10 @@ final class TargetGraphTests: XCTestCase {
         }
 
         for artifact in [
-            try read("README.md"),
-            try read("GOAL.md"),
-            try read("BLUEPRINT.md"),
-            try read("docs/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             latest,
             notes,
             policy
@@ -32681,10 +32681,10 @@ final class TargetGraphTests: XCTestCase {
         let latest = try read("docs/validation/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         for anchor in [
             "GH-924-VERIFY-V0110-FINAL-AUDIT-RELEASE-DOCS",
@@ -32805,8 +32805,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(latest.contains("v0.11.1 release fact stale wording guard"))
 
         let docsToGuard = [
-            try read("README.md"),
-            try read("docs/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             policy,
             try read("docs/release/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-notes.md"),
             try read("docs/audit/mtpro-release-v0.11.0-production-readiness-evidence-runtime-integrity-hardening-stage-code-audit.md"),
@@ -33841,7 +33841,7 @@ final class TargetGraphTests: XCTestCase {
 
         let contract = try read("docs/contracts/release-v0.12.0-readiness-assessment-session-contract.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
-        let readme = try read("README.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
         let verifier = try read("checks/verify-v0.12.0.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
@@ -36149,10 +36149,10 @@ final class TargetGraphTests: XCTestCase {
         let latest = try read("docs/validation/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         for anchor in expectedAnchors {
             XCTAssertTrue(audit.contains(anchor), "\(anchor) must stay in v0.12.0 stage audit")
@@ -36283,8 +36283,8 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(latest.contains("v0.12.1 release fact stale wording guard"))
 
         let docsWithPublicationFacts = [
-            try read("README.md"),
-            try read("docs/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             policy,
             try read("docs/release/mtpro-release-v0.12.0-readiness-assessment-sessions-notes.md"),
             try read("docs/audit/mtpro-release-v0.12.0-readiness-assessment-sessions-stage-code-audit.md"),
@@ -36295,8 +36295,8 @@ final class TargetGraphTests: XCTestCase {
             readiness
         ]
         let docsToGuard = docsWithPublicationFacts + [
-            try read("GOAL.md"),
-            try read("BLUEPRINT.md")
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
         ]
 
         let stalePublicationTerms = [
@@ -36796,9 +36796,9 @@ final class TargetGraphTests: XCTestCase {
         let latest = try read("docs/validation/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         for anchor in [
             "GH-993-VERIFY-V0121-PATCH-AUDIT-RELEASE-NOTES",
@@ -36901,10 +36901,10 @@ final class TargetGraphTests: XCTestCase {
         let latest = try read("docs/validation/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         for anchor in [
             "GH-994-VERIFY-V0130-LOCAL-EVIDENCE-READINESS-ENGINE-CONTRACT",
@@ -38513,10 +38513,10 @@ final class TargetGraphTests: XCTestCase {
         let latest = try read("docs/validation/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         let anchors = [
             "GH-1003-VERIFY-V0130-ORDERED-READINESS-CLI-LIFECYCLE",
@@ -38824,10 +38824,10 @@ final class TargetGraphTests: XCTestCase {
         let latest = try read("docs/validation/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         for anchor in [
             "GH-1004-VERIFY-V0130-LOCAL-EVIDENCE-FIXTURES",
@@ -38880,10 +38880,10 @@ final class TargetGraphTests: XCTestCase {
         let latest = try read("docs/validation/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         for anchor in [
             "GH-1005-VERIFY-V0130-STAGE-AUDIT-RELEASE-DOCS",
@@ -42960,10 +42960,10 @@ final class TargetGraphTests: XCTestCase {
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         let anchors = [
             "GH-1064-VERIFY-V0141-PATCH-AUDIT-RELEASE-NOTES",
@@ -43085,10 +43085,10 @@ final class TargetGraphTests: XCTestCase {
         let latest = try read("docs/validation/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         let anchors = [
             "GH-1066-VERIFY-V0150-CONTRACT-PREFLIGHT",
@@ -45171,10 +45171,10 @@ final class TargetGraphTests: XCTestCase {
             try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
         }
 
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let latest = try read("docs/validation/latest-verification-summary.md")
         let policy = try read("docs/release/release-publication-policy.md")
         let notes = try read("docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md")
@@ -45299,10 +45299,10 @@ final class TargetGraphTests: XCTestCase {
             try String(contentsOf: repositoryRoot.appendingPathComponent(relativePath), encoding: .utf8)
         }
 
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let latest = try read("docs/validation/latest-verification-summary.md")
         let policy = try read("docs/release/release-publication-policy.md")
         let notes = try read("docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md")
@@ -45333,10 +45333,10 @@ final class TargetGraphTests: XCTestCase {
         }
 
         let guardedDocuments = [
-            ("README.md", readme),
-            ("GOAL.md", goal),
-            ("BLUEPRINT.md", blueprint),
-            ("docs/roadmap.md", roadmap),
+            ("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md", readme),
+            ("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md", goal),
+            ("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md", blueprint),
+            ("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md", roadmap),
             ("docs/validation/latest-verification-summary.md", latest),
             ("docs/release/release-publication-policy.md", policy),
             ("docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md", notes),
@@ -45473,10 +45473,10 @@ final class TargetGraphTests: XCTestCase {
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         let anchors = [
             "GH-1096-VERIFY-V0151-URLSESSION-SPOT-TESTNET-TRANSPORT",
@@ -45753,10 +45753,10 @@ final class TargetGraphTests: XCTestCase {
         let latest = try read("docs/validation/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let anchors = ReleaseV0151BinanceSpotTestnetCLIRuntimeResult.requiredValidationAnchors
 
         XCTAssertEqual(anchors, [
@@ -45977,10 +45977,10 @@ final class TargetGraphTests: XCTestCase {
         let latest = try read("docs/validation/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         let expectedAnchors = [
             "GH-1098-VERIFY-V0151-RUNTIME-INTERNAL-GATES",
@@ -46297,10 +46297,10 @@ final class TargetGraphTests: XCTestCase {
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
 
         let anchors = ReleaseV0151BinanceSpotTestnetClientOrderIdentityReference.requiredValidationAnchors
         XCTAssertEqual(
@@ -48360,10 +48360,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md",
             "docs/release/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-notes.md",
             "docs/operators/release-v0.16.0-binance-spot-testnet-operator-execution-beta-runbook.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
@@ -48381,8 +48381,8 @@ final class TargetGraphTests: XCTestCase {
             }
         }
 
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
         let latest = try read("docs/validation/latest-verification-summary.md")
         let audit = try read("docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md")
         let notes = try read("docs/release/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-notes.md")
@@ -48424,10 +48424,10 @@ final class TargetGraphTests: XCTestCase {
         ]
         let requiredFiles = [
             "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
@@ -48896,10 +48896,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "docs/audit/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.16.1-operator-beta-evidence-hardening-patch-notes.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -48985,10 +48985,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaRuntimeHardeningContract.swift",
             "docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -49138,10 +49138,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorBetaArtifactBundleReplayValidator.swift",
             "docs/contracts/release-v0.17.0-operator-beta-artifact-bundle-replay-validator-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -49328,10 +49328,10 @@ final class TargetGraphTests: XCTestCase {
             "Sources/ExecutionClient/FutureGate/ReleaseV0170SignedStatusQueryRetryTimeoutFailureModel.swift",
             "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift",
             "docs/contracts/release-v0.17.0-signed-status-query-retry-timeout-failure-model-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -49546,10 +49546,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0170OperatorRunResumeFromArtifactStore.swift",
             "docs/contracts/release-v0.17.0-operator-run-resume-from-artifact-store-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -49739,10 +49739,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0170CancelStatusReconciliationRecoveryPath.swift",
             "docs/contracts/release-v0.17.0-cancel-status-reconciliation-recovery-path-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -49955,10 +49955,10 @@ final class TargetGraphTests: XCTestCase {
             "Sources/Dashboard/Report/ReleaseV0170DashboardArtifactValidationErrorSurface.swift",
             "Sources/Dashboard/DashboardShell.swift",
             "docs/contracts/release-v0.17.0-dashboard-artifact-validation-error-surface-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -50087,10 +50087,10 @@ final class TargetGraphTests: XCTestCase {
             "Sources/ExecutionClient/FutureGate/ReleaseV0170CLIArtifactVerifyCommand.swift",
             "Sources/MTPROCLI/main.swift",
             "docs/contracts/release-v0.17.0-cli-artifact-verify-command-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -50458,10 +50458,10 @@ final class TargetGraphTests: XCTestCase {
             "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift",
             ".github/workflows/release-v0.17.0-manual-artifact-validation.yml",
             "docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -51489,10 +51489,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "docs/audit/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-stage-code-audit.md",
             "docs/release/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-notes.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -51553,10 +51553,10 @@ final class TargetGraphTests: XCTestCase {
         }
 
         for artifact in [
-            try read("README.md"),
-            try read("GOAL.md"),
-            try read("BLUEPRINT.md"),
-            try read("docs/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             try read("docs/validation/latest-verification-summary.md"),
             notes,
             policy
@@ -51601,10 +51601,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "docs/audit/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-stage-code-audit.md",
             "docs/release/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-notes.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
@@ -51721,10 +51721,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md",
             "docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
@@ -51848,10 +51848,10 @@ final class TargetGraphTests: XCTestCase {
         let publishedAt = "2026-06-27T06:37:33Z"
 
         for file in [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/validation/latest-verification-summary.md",
             "docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md",
             "docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md",
@@ -52107,10 +52107,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolicyProfileEvidence.swift",
             "docs/contracts/release-v0.17.0-beta-safety-policy-profile-evidence-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -52350,10 +52350,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md",
             "docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -52412,10 +52412,10 @@ final class TargetGraphTests: XCTestCase {
         }
 
         for artifact in [
-            try read("README.md"),
-            try read("GOAL.md"),
-            try read("BLUEPRINT.md"),
-            try read("docs/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             try read("docs/validation/latest-verification-summary.md"),
             notes,
             policy
@@ -56062,10 +56062,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/operators/release-v0.8.0-operator-persistent-runtime-testnet-readonly-monitoring-runbook.md"
         )
         let validationLanesRunbook = try read("docs/operators/release-v0.8.0-validation-lanes-runbook.md")
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let latestVerification = try read("docs/validation/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
@@ -57618,9 +57618,9 @@ final class TargetGraphTests: XCTestCase {
 
     func testGH564ReleaseV020RootDocsReplaceOldSpotPaperEMABoundaries() throws {
         let repositoryRoot = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
-        let readme = try String(contentsOf: repositoryRoot.appendingPathComponent("README.md"), encoding: .utf8)
-        let architecture = try String(contentsOf: repositoryRoot.appendingPathComponent("architecture.md"), encoding: .utf8)
-        let roadmap = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/roadmap.md"), encoding: .utf8)
+        let readme = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"), encoding: .utf8)
+        let architecture = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md"), encoding: .utf8)
+        let roadmap = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"), encoding: .utf8)
         let latestSummary = try String(
             contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
             encoding: .utf8
@@ -59590,10 +59590,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowReadOnlyLiveReadinessContract.swift",
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -59773,10 +59773,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowEnvironmentProfile.swift",
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -59944,10 +59944,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist.swift",
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -60168,10 +60168,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowCredentialReferenceReadiness.swift",
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-credential-reference-readiness.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -60412,10 +60412,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe.swift",
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -60656,10 +60656,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness.swift",
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -60925,10 +60925,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy.swift",
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-account-snapshot-redaction-policy.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -61192,10 +61192,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowNoOrderCapabilityGuard.swift",
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-no-order-capability-guard.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -61472,10 +61472,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness.swift",
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-risk-kill-switch-no-trade-readiness.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -61730,10 +61730,10 @@ final class TargetGraphTests: XCTestCase {
             "Sources/Dashboard/Report/ReleaseV0200DashboardCLIReadOnlyLiveReadinessSurface.swift",
             "Sources/Dashboard/DashboardShell.swift",
             "Sources/MTPROCLI/main.swift",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -62000,10 +62000,10 @@ final class TargetGraphTests: XCTestCase {
             "V0200-011-NO-TAG-OR-RELEASE-PUBLICATION"
         ]
         let requiredFiles = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -62047,10 +62047,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE"))
 
         for source in [
-            try read("README.md"),
-            try read("GOAL.md"),
-            try read("BLUEPRINT.md"),
-            try read("docs/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             try read("docs/automation/automation-readiness.md"),
             try read("docs/validation/latest-verification-summary.md"),
             try read("docs/validation/validation-plan.md"),
@@ -62106,10 +62106,10 @@ final class TargetGraphTests: XCTestCase {
             "V0200-012-NO-TAG-OR-RELEASE-PUBLICATION"
         ]
         let requiredFiles = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -62169,10 +62169,10 @@ final class TargetGraphTests: XCTestCase {
         for source in [
             audit,
             notes,
-            try read("README.md"),
-            try read("GOAL.md"),
-            try read("BLUEPRINT.md"),
-            try read("docs/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             try read("docs/automation/automation-readiness.md"),
             try read("docs/validation/latest-verification-summary.md"),
             try read("docs/validation/validation-plan.md"),
@@ -62232,10 +62232,10 @@ final class TargetGraphTests: XCTestCase {
             "V0210-014-NO-TAG-OR-RELEASE-PUBLICATION"
         ]
         let requiredFiles = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -62279,10 +62279,10 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertTrue(notes.contains("#1286 是 historical construction closeout"))
         for source in [
-            try read("README.md"),
-            try read("GOAL.md"),
-            try read("BLUEPRINT.md"),
-            try read("docs/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             try read("docs/validation/latest-verification-summary.md"),
             audit,
             notes,
@@ -62311,10 +62311,10 @@ final class TargetGraphTests: XCTestCase {
             audit,
             notes,
             policy,
-            try read("README.md"),
-            try read("GOAL.md"),
-            try read("BLUEPRINT.md"),
-            try read("docs/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             try read("docs/validation/latest-verification-summary.md")
         ] {
             XCTAssertTrue(source.contains("production cutover not authorized"))
@@ -62324,10 +62324,10 @@ final class TargetGraphTests: XCTestCase {
             audit,
             notes,
             policy,
-            try read("README.md"),
-            try read("GOAL.md"),
-            try read("BLUEPRINT.md"),
-            try read("docs/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             try read("docs/automation/automation-readiness.md"),
             try read("docs/validation/latest-verification-summary.md"),
             try read("docs/validation/validation-plan.md"),
@@ -62369,10 +62369,10 @@ final class TargetGraphTests: XCTestCase {
             "V0211-003-NO-PRODUCTION-CUTOVER"
         ]
         let requiredFiles = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -62399,10 +62399,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(submitPath.contains("networkSubmitAttempted == false"))
         XCTAssertTrue(cancelPath.contains("networkCancelAttempted == false"))
 
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let latest = try read("docs/validation/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
@@ -62552,10 +62552,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryOperatorApprovalRunLock.swift",
             "docs/contracts/release-v0.22.0-operator-approval-run-lock.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -62766,10 +62766,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryCredentialSecretMaterialReadPath.swift",
             "docs/contracts/release-v0.22.0-credential-secret-material-read-redaction.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -62963,10 +62963,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanarySignedAccountReadOnlyRuntimePreflight.swift",
             "docs/contracts/release-v0.22.0-signed-account-runtime-preflight.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -63158,10 +63158,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOneShotSubmitTransport.swift",
             "docs/contracts/release-v0.22.0-live-order-submit-transport.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -63371,10 +63371,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryStatusCancelTransport.swift",
             "docs/contracts/release-v0.22.0-status-cancel-transport.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -63574,10 +63574,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryOMSEventLog.swift",
             "docs/contracts/release-v0.22.0-oms-evidence-log.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -63809,10 +63809,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryReconciliationEvidence.swift",
             "docs/contracts/release-v0.22.0-reconciliation-evidence.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -64045,10 +64045,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0220SpotLiveCanaryFailureRollbackDrill.swift",
             "docs/contracts/release-v0.22.0-failure-rollback-drill.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -64185,10 +64185,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0220SpotLiveCanaryTransportCompletionContract.swift",
             "docs/contracts/release-v0.22.0-binance-spot-live-canary-transport-completion-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -64284,10 +64284,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "docs/audit/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-notes.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -64394,10 +64394,10 @@ final class TargetGraphTests: XCTestCase {
         let tagCommit = "bca492ed48324a8057c5dc7223d740426a54c3b1"
         let publishedAt = "2026-07-04T10:08:42Z"
         let requiredFiles = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -64422,10 +64422,10 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertTrue(source.contains(publishedAt), "\(file) must contain v0.21.0 publication timestamp")
         }
 
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let latest = try read("docs/validation/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
@@ -64497,10 +64497,10 @@ final class TargetGraphTests: XCTestCase {
         let tagCommit = "7f84999e8e4071fb71fdc802f895de81303bbcfd"
         let publishedAt = "2026-06-30T16:55:24Z"
         let requiredFiles = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -64525,10 +64525,10 @@ final class TargetGraphTests: XCTestCase {
             XCTAssertTrue(source.contains(publishedAt), "\(file) must keep v0.20.0 publication timestamp synchronized")
         }
 
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let latest = try read("docs/validation/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
@@ -64600,10 +64600,10 @@ final class TargetGraphTests: XCTestCase {
             "V0201-003-NO-PRODUCTION-CUTOVER"
         ]
         let requiredFiles = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -64628,10 +64628,10 @@ final class TargetGraphTests: XCTestCase {
             }
         }
 
-        let readme = try read("README.md")
-        let goal = try read("GOAL.md")
-        let blueprint = try read("BLUEPRINT.md")
-        let roadmap = try read("docs/roadmap.md")
+        let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
+        let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
+        let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let latest = try read("docs/validation/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
@@ -64941,10 +64941,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotControlledProductionCanaryContract.swift",
             "docs/contracts/release-v0.21.0-binance-spot-controlled-production-canary-contract.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -65128,10 +65128,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryEnvironmentProfile.swift",
             "docs/contracts/release-v0.21.0-binance-spot-canary-environment-profile.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -65386,10 +65386,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath.swift",
             "docs/contracts/release-v0.21.0-binance-spot-canary-credential-secret-read-approval.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -65655,10 +65655,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanarySignedAccountReadOnlyRuntimePreflight.swift",
             "docs/contracts/release-v0.21.0-binance-spot-signed-account-readonly-preflight.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -65958,10 +65958,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionArtifact.swift",
             "docs/contracts/release-v0.21.0-binance-spot-live-account-snapshot-redaction.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -66233,10 +66233,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryHardLimitPreTradeGate.swift",
             "docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -66464,10 +66464,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGate.swift",
             "docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -66704,10 +66704,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledSpotCanarySubmitPath.swift",
             "docs/contracts/release-v0.21.0-controlled-spot-canary-submit-path.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -66945,10 +66945,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledCanaryCancelRollbackGuard.swift",
             "docs/contracts/release-v0.21.0-controlled-canary-cancel-rollback-guard.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -67191,10 +67191,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryOMSEventLogReconciliationEvidence.swift",
             "docs/contracts/release-v0.21.0-canary-oms-event-log-reconciliation-evidence.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -67498,10 +67498,10 @@ final class TargetGraphTests: XCTestCase {
             "Sources/Dashboard/DashboardShell.swift",
             "Sources/MTPROCLI/main.swift",
             "docs/contracts/release-v0.21.0-dashboard-cli-canary-status-surface.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -67733,10 +67733,10 @@ final class TargetGraphTests: XCTestCase {
             "Sources/Dashboard/DashboardShell.swift",
             "Sources/MTPROCLI/main.swift",
             "docs/contracts/release-v0.22.0-dashboard-cli-live-canary-evidence-surface.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -67836,10 +67836,10 @@ final class TargetGraphTests: XCTestCase {
         ]
 
         let requiredFiles = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -67951,10 +67951,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "docs/audit/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-stage-code-audit.md",
             "docs/release/mtpro-release-v0.22.0-binance-spot-live-canary-transport-completion-notes.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -68070,10 +68070,10 @@ final class TargetGraphTests: XCTestCase {
         let requiredFiles = [
             "docs/audit/mtpro-release-v0.22.1-publication-fact-sync-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.22.1-publication-fact-sync-patch-notes.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -68096,8 +68096,8 @@ final class TargetGraphTests: XCTestCase {
         for file in [
             "docs/audit/mtpro-release-v0.22.1-publication-fact-sync-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.22.1-publication-fact-sync-patch-notes.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/validation/latest-verification-summary.md",
             "docs/release/release-publication-policy.md",
             "verification.md"
@@ -68262,10 +68262,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/contracts/release-v0.23.0-binance-usdm-futures-read-only-foundation-contract.md",
             "docs/audit/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-stage-code-audit.md",
             "docs/release/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-notes.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
@@ -69273,9 +69273,9 @@ final class TargetGraphTests: XCTestCase {
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "docs/roadmap.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md",
             "checks/verify-v0.25.1.sh",
             "checks/run.sh",
@@ -69302,7 +69302,7 @@ final class TargetGraphTests: XCTestCase {
         let latest = try read("docs/validation/latest-verification-summary.md")
         XCTAssertTrue(latest.contains("v0.25.0 milestone #41 closed"))
 
-        let roadmap = try read("docs/roadmap.md")
+        let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         XCTAssertTrue(roadmap.contains("v0.22.0 is Binance Spot live canary transport completion"))
         XCTAssertTrue(roadmap.contains("v0.23.0 is Binance USD-M Futures read-only foundation"))
 
@@ -69315,9 +69315,9 @@ final class TargetGraphTests: XCTestCase {
             try read("docs/audit/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-stage-code-audit.md"),
             try read("docs/release/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-notes.md"),
             try read("docs/validation/latest-verification-summary.md"),
-            try read("docs/roadmap.md"),
-            try read("GOAL.md"),
-            try read("BLUEPRINT.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
+            try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
             try read("verification.md")
         ] {
             for forbidden in [
@@ -69650,10 +69650,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "verification.md",
             "checks/verify-v0.27.0.sh",
             "checks/run.sh",
@@ -69759,9 +69759,9 @@ final class TargetGraphTests: XCTestCase {
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "docs/roadmap.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md",
             "checks/verify-v0.26.1.sh",
             "checks/run.sh",
@@ -69782,9 +69782,9 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-notes.md",
             "docs/validation/latest-verification-summary.md",
-            "docs/roadmap.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md"
         ] {
             let source = try read(file)
@@ -69798,7 +69798,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(try read("docs/release/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-notes.md").contains("v0.26.0 milestone #43: closed with 0 open / 10 closed issues"))
         XCTAssertTrue(try read("docs/audit/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-stage-code-audit.md").contains("v0.26.0 milestone #43 is closed with 0 open / 10 closed issues"))
         XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.26.0 milestone #43 closed"))
-        XCTAssertTrue(try read("docs/roadmap.md").contains("v0.27.0 remains blocked until v0.26.1 completion"))
+        XCTAssertTrue(try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md").contains("v0.27.0 remains blocked until v0.26.1 completion"))
         XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.26.1.sh"))
         XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.26.1.sh"))
 
@@ -69808,9 +69808,9 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-notes.md",
             "docs/validation/latest-verification-summary.md",
-            "docs/roadmap.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md"
         ] {
             let source = try read(file)
@@ -69883,9 +69883,9 @@ final class TargetGraphTests: XCTestCase {
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "docs/roadmap.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md",
             "checks/verify-v0.27.2.sh",
             "checks/run.sh",
@@ -69906,9 +69906,9 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-notes.md",
             "docs/validation/latest-verification-summary.md",
-            "docs/roadmap.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md"
         ] {
             let source = try read(file)
@@ -69927,7 +69927,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(try read("docs/release/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-notes.md").contains("v0.27.0 milestone #45: closed with 0 open / 10 closed issues"))
         XCTAssertTrue(try read("docs/audit/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-stage-code-audit.md").contains("v0.27.0 milestone #45 is closed with 0 open / 10 closed issues"))
         XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.27.0 milestone #45 closed"))
-        XCTAssertTrue(try read("docs/roadmap.md").contains("v0.28.0 remains blocked until v0.27.2 completion"))
+        XCTAssertTrue(try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md").contains("v0.28.0 remains blocked until v0.27.2 completion"))
         XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.27.2.sh"))
         XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.27.2.sh"))
 
@@ -69937,9 +69937,9 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-notes.md",
             "docs/validation/latest-verification-summary.md",
-            "docs/roadmap.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md"
         ] {
             let source = try read(file)
@@ -70082,10 +70082,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "docs/roadmap.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md",
             "checks/verify-v0.28.0.sh",
             "checks/run.sh",
@@ -70307,10 +70307,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/automation/automation-readiness.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "docs/roadmap.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md",
             "checks/verify-v0.28.1.sh",
             "checks/run.sh",
@@ -70352,10 +70352,10 @@ final class TargetGraphTests: XCTestCase {
         }
 
         let currentFacingDocs = [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/validation/latest-verification-summary.md",
             "verification.md"
         ]
@@ -70682,10 +70682,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "docs/roadmap.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md",
             "checks/verify-v0.29.0.sh",
             "checks/run.sh",
@@ -70701,10 +70701,10 @@ final class TargetGraphTests: XCTestCase {
         }
 
         for file in [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/validation/latest-verification-summary.md",
             "verification.md",
             "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md"
@@ -70900,10 +70900,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/release/mtpro-release-v0.29.1-shadow-acceptance-integrity-publication-gate-repair-patch-notes.md",
             "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md",
             "docs/validation/latest-verification-summary.md",
-            "docs/roadmap.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md",
             "checks/verify-v0.29.1.sh",
             "checks/verify-v0.29.0.sh",
@@ -70924,10 +70924,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliSource.contains("ReleaseV0290ProductionDryRunShadowAcceptance.commandLineOutput"))
 
         for file in [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/validation/latest-verification-summary.md",
             "verification.md",
             "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md",
@@ -71343,10 +71343,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "docs/roadmap.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md",
             "checks/verify-v0.30.0.sh",
             "checks/run.sh",
@@ -71366,10 +71366,10 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(cliSource.contains("ReleaseV0300ObservedProductionShadowRun.commandLineOutput"))
 
         for file in [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/validation/latest-verification-summary.md",
             "verification.md",
             "docs/release/mtpro-release-v0.30.0-observed-production-shadow-run-notes.md"
@@ -71569,10 +71569,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/validation/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "docs/roadmap.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md",
             "checks/verify-v0.31.0.sh",
             "checks/run.sh",
@@ -71588,10 +71588,10 @@ final class TargetGraphTests: XCTestCase {
         }
 
         for file in [
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/validation/latest-verification-summary.md",
             "verification.md",
             "docs/release/mtpro-release-v0.31.0-controlled-production-enablement-gate-notes.md"
@@ -71723,9 +71723,9 @@ final class TargetGraphTests: XCTestCase {
             "docs/release/mtpro-release-v0.31.1-controlled-enablement-integrity-publication-gate-repair-notes.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/trading-validation-matrix.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md"
         ]
 
@@ -71850,9 +71850,9 @@ final class TargetGraphTests: XCTestCase {
             "docs/release/mtpro-release-v0.32.0-binance-controlled-production-canary-operations-notes.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/trading-validation-matrix.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md"
         ]
 
@@ -72642,10 +72642,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/validation/trading-validation-matrix.md",
             "docs/validation/validation-plan.md",
             "docs/automation/automation-readiness.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
-            "docs/roadmap.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "verification.md",
         ]
         let anchors = [
@@ -73975,8 +73975,8 @@ final class TargetGraphTests: XCTestCase {
             "docs/release/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-notes.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/trading-validation-matrix.md",
-            "README.md",
-            "GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "verification.md"
         ]
 
@@ -74154,9 +74154,9 @@ final class TargetGraphTests: XCTestCase {
             "docs/release/mtpro-release-v0.32.1-controlled-canary-integrity-publication-gate-repair-notes.md",
             "docs/validation/latest-verification-summary.md",
             "docs/validation/trading-validation-matrix.md",
-            "README.md",
-            "GOAL.md",
-            "BLUEPRINT.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
+            "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "verification.md"
         ]
 

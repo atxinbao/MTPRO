@@ -44,7 +44,7 @@ RELEASE_URL="https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0"
 RELEASE_COMMIT="d83b3b564096a5427db15a437921fc797b22564d"
 
 for file in \
-  "README.md" \
+  "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
   "$POLICY" \
   "$NOTES" \
   "$AUDIT" \
@@ -62,8 +62,8 @@ require_file_contains "$POLICY" 'publication timestamp：`2026-06-16T11:56:09Z`'
 require_file_contains "$POLICY" "publication pending"
 require_file_contains "$POLICY" "不得把 GitHub Release publication 当作 production cutover authorization"
 
-require_file_contains "README.md" "v0.7.0 和 v0.8.0 均已通过各自独立 release publication gate 发布 stable GitHub Release"
-require_file_contains "README.md" "v0.9.0 construction closeout、v0.9.0 / v0.9.1 public GitHub Release publication 和 production cutover 仍是独立 gate"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "v0.7.0 和 v0.8.0 均已通过各自独立 release publication gate 发布 stable GitHub Release"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "v0.9.0 construction closeout、v0.9.0 / v0.9.1 public GitHub Release publication 和 production cutover 仍是独立 gate"
 require_file_contains "$NOTES" "v0.8.0 后续已通过独立 release publication gate 发布 stable GitHub Release"
 require_file_contains "$AUDIT" "v0.8.0 was later published through a separate stable GitHub Release gate"
 require_file_contains "$VALIDATION_PLAN" "GH-835 Release v0.8.0 Public GitHub Release Docs Alignment Validation"
@@ -86,7 +86,7 @@ for forbidden in \
   "productionCutoverAuthorized=true" \
   "testnetOrderSubmissionAllowed=true" \
   "testnetOrderRoutingAllowed=true"; do
-  reject_file_contains "README.md" "$forbidden"
+  reject_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "$forbidden"
   reject_file_contains "$NOTES" "$forbidden"
   reject_file_contains "$AUDIT" "$forbidden"
   reject_file_contains "$VALIDATION_PLAN" "$forbidden"

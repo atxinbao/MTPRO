@@ -50,8 +50,8 @@ scan_paths = [
     root / "docs" / "validation" / "latest-verification-summary.md",
     root / "docs" / "domain" / "context.md",
     root / "docs" / "automation" / "automation-readiness.md",
-    root / "README.md",
-    root / "architecture.md",
+    root / "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
+    root / "docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md",
     root / "docs" / "roadmap.md",
     root / "docs" / "operators" / "release-v0.2.0-operator-runbook.md",
     root / "docs" / "audit" / "mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md",
@@ -365,17 +365,17 @@ required_evidence = {
         "TVM-RELEASE-V020-FINAL-STAGE-CODE-AUDIT-ROOT-DOCS",
         "production trading remains disabled by default",
     ],
-    "README.md": [
+    "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md": [
         "GH-596-RELEASE-V020-ROOT-DOCS-REFRESH",
         "Latest completed release construction scope: `MTPRO Release v0.2.0`",
         "docs/audit/mtpro-release-v0.2.0-binance-spot-perp-ema-rsi-ntpro-alignment-stage-code-audit.md",
     ],
-    "architecture.md": [
+    "docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md": [
         "GH-596-RELEASE-V020-ROOT-DOCS-REFRESH",
         "MTPRO Release v0.2.0",
         "docs/operators/release-v0.2.0-operator-runbook.md",
     ],
-    "docs/roadmap.md": [
+    "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md": [
         "MTPRO Release v0.2.0 | Completed",
         "Project Closure Count: 36 / 36 (100%)",
         "Latest Completed Project：`MTPRO Release v0.2.0`",

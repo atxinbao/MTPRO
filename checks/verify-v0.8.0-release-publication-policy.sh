@@ -53,9 +53,9 @@ require_file_contains "$POLICY" "git archive --format=tar --prefix=MTPRO-v0.8.0/
 require_file_contains "$POLICY" "construction closeout 不等于 public release publication"
 require_file_contains "$POLICY" "public release publication 也不等于 production cutover"
 
-require_file_contains "README.md" "v0.7.0 和 v0.8.0 均已通过各自独立 release publication gate 发布 stable GitHub Release"
-require_file_contains "README.md" "https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0"
-require_file_contains "README.md" "docs/release/release-publication-policy.md"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "v0.7.0 和 v0.8.0 均已通过各自独立 release publication gate 发布 stable GitHub Release"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "https://github.com/atxinbao/MTPRO/releases/tag/v0.8.0"
+require_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "docs/release/release-publication-policy.md"
 require_file_contains "$V070_NOTES" "v0.7.0 后续已通过独立 release publication gate 发布 stable GitHub Release"
 require_file_contains "$V070_NOTES" "https://github.com/atxinbao/MTPRO/releases/tag/v0.7.0"
 require_file_contains "$V070_AUDIT" "v0.7.0 was later published through a separate stable GitHub Release gate"
@@ -65,7 +65,7 @@ require_file_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEAS
 require_file_contains "checks/run.sh" "bash checks/verify-v0.8.0-release-publication-policy.sh"
 require_file_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH808ReleasePublicationPolicySeparatesConstructionCloseoutFromGitHubRelease"
 
-reject_file_contains "README.md" "不是 GitHub Release 发布动作"
+reject_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "不是 GitHub Release 发布动作"
 reject_file_contains "$V070_NOTES" "不是 GitHub Release 发布动作"
 reject_file_contains "$V070_NOTES" "不创建 tag，不移动 tag"
 reject_file_contains "$V070_AUDIT" "explicitly does not publish a GitHub Release tag"

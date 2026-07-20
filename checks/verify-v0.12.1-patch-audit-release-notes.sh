@@ -50,9 +50,9 @@ LATEST="docs/validation/latest-verification-summary.md"
 AUTOMATION_SCRIPT="checks/automation-readiness.sh"
 RUN_SCRIPT="checks/run.sh"
 TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
-GOAL="GOAL.md"
-BLUEPRINT="BLUEPRINT.md"
-ROADMAP="docs/roadmap.md"
+GOAL="docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"
+BLUEPRINT="docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"
+ROADMAP="docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"
 
 swift test --filter TargetGraphTests/testGH993ReleaseV0121PatchAuditReleaseNotesCloseout
 
