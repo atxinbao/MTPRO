@@ -38,7 +38,7 @@ swift test --filter TargetGraphTests/testV091DashboardGuardAndCLIMonitorStoreBin
 
 AUDIT="docs/audit/mtpro-release-v0.9.1-v090-audit-hardening-stage-code-audit.md"
 NOTES="docs/release/mtpro-release-v0.9.1-v090-audit-hardening-notes.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 AUTOMATION_SCRIPT="checks/automation-readiness.sh"
 TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
 POLICY="docs/release/release-publication-policy.md"

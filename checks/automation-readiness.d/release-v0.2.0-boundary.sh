@@ -380,7 +380,7 @@ required_evidence = {
         "Project Closure Count: 36 / 36 (100%)",
         "Latest Completed Project：`MTPRO Release v0.2.0`",
     ],
-    "docs/validation/latest-verification-summary.md": [
+    "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md": [
         "GH-596-RELEASE-V020-ROOT-DOCS-REFRESH",
         "MTPRO Release v0.2.0",
         "Project Closure Count: 36 / 36",

@@ -50,12 +50,12 @@ for file in \
   Tests/TargetGraphTests/TargetGraphTests.swift \
   docs/audit/mtpro-release-v0.32.0-binance-controlled-production-canary-operations-stage-code-audit.md \
   docs/release/mtpro-release-v0.32.0-binance-controlled-production-canary-operations-notes.md \
-  docs/validation/latest-verification-summary.md \
+  docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md \
   docs/validation/trading-validation-matrix.md \
   docs/history/root-docs-pre-canonicalization-2026-07-20/README.md \
   docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md \
   docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md \
-  verification.md; do
+  docs/history/validation-pre-canonicalization-2026-07-20/verification.md; do
   require_contains "$file" "GH-1508-VERIFY-V0320-CANARY-OPERATIONS-CONTRACT"
   require_contains "$file" "GH-1509-VERIFY-V0320-HUMAN-APPROVED-ENABLEMENT-BUNDLE"
   require_contains "$file" "GH-1510-VERIFY-V0320-STRICT-SIZE-CAP-FINAL-GATE"

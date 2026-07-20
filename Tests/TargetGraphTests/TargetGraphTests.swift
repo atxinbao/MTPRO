@@ -7731,7 +7731,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let latestSummary = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             encoding: .utf8
         )
         let validationPlan = try String(
@@ -7851,7 +7851,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let latestSummary = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             encoding: .utf8
         )
         let validationPlan = try String(
@@ -7969,7 +7969,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let latestSummary = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             encoding: .utf8
         )
         let validationPlan = try String(
@@ -8077,7 +8077,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let latestSummary = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             encoding: .utf8
         )
         let validationPlan = try String(
@@ -8619,7 +8619,7 @@ final class TargetGraphTests: XCTestCase {
         let policy = try read("docs/release/release-publication-policy.md")
         let notes = try read("docs/release/mtpro-release-v0.9.1-v090-audit-hardening-notes.md")
         let audit = try read("docs/audit/mtpro-release-v0.9.1-v090-audit-hardening-stage-code-audit.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let readiness = try read("docs/automation/automation-readiness.md")
@@ -8743,7 +8743,7 @@ final class TargetGraphTests: XCTestCase {
             try read("docs/release/mtpro-release-v0.10.0-production-cutover-readiness-gate-notes.md"),
             try read("docs/operators/release-v0.10.0-production-cutover-readiness-gate-runbook.md"),
             try read("docs/audit/mtpro-release-v0.10.0-production-cutover-readiness-gate-stage-code-audit.md"),
-            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             validationPlan,
             readiness
         ]
@@ -8834,7 +8834,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "V0100-003-PRODUCTION-ENVIRONMENT-PROFILE-CONTRACT",
@@ -8976,7 +8976,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "V0100-004-SECRET-PROVIDER-READINESS-GATE",
@@ -9149,7 +9149,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "V0100-005-ENDPOINT-POLICY-READINESS-GATE",
@@ -9351,7 +9351,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "V0100-006-CAPITAL-EXPOSURE-LIMIT-READINESS-GATE",
@@ -9498,7 +9498,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "GH-921-VERIFY-V0110-FIXED-POINT-CAPITAL-EXPOSURE-POLICY",
@@ -9642,7 +9642,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "V0100-007-KILL-SWITCH-NO-TRADE-READINESS-GATE",
@@ -9894,7 +9894,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "GH-922-VERIFY-V0110-KILL-SWITCH-NO-TRADE-STATE-MODEL",
@@ -10157,7 +10157,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "GH-923-VERIFY-V0110-AUDITABLE-APPROVAL-WORKFLOW-TRANSITIONS",
@@ -10460,7 +10460,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "GH-960-VERIFY-V0120-APPROVAL-ROLE-QUORUM-SEPARATION",
@@ -10597,7 +10597,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "V0100-008-PRODUCTION-COMMAND-SURFACE-DISABLED-PROOF",
@@ -10781,7 +10781,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "V0100-009-SHADOW-DRY-RUN-PARITY-ASSESSMENT",
@@ -10970,7 +10970,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "V0100-010-PRODUCTION-READINESS-AUDIT-BUNDLE",
@@ -11181,7 +11181,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "V0100-011-CUTOVER-APPROVAL-WORKFLOW",
@@ -11374,7 +11374,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "V0100-012-INCIDENT-ROLLBACK-READINESS-RUNBOOK",
@@ -11516,7 +11516,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "GH-890-VERIFY-V0100-DASHBOARD-PRODUCTION-READINESS-CENTER",
@@ -14102,7 +14102,7 @@ final class TargetGraphTests: XCTestCase {
         let blueprint = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"), encoding: .utf8)
         let roadmap = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"), encoding: .utf8)
         let latestSummary = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             encoding: .utf8
         )
         let automationReadiness = try String(
@@ -22889,7 +22889,7 @@ final class TargetGraphTests: XCTestCase {
             encoding: .utf8
         )
         let latestSummary = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             encoding: .utf8
         )
         let validationPlan = try String(
@@ -28727,7 +28727,7 @@ final class TargetGraphTests: XCTestCase {
         let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
         let architecture = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md")
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
-        let latestSummary = try read("docs/validation/latest-verification-summary.md")
+        let latestSummary = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationMatrix = try read("docs/validation/trading-validation-matrix.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let domainContext = try read("docs/domain/context.md")
@@ -29241,7 +29241,7 @@ final class TargetGraphTests: XCTestCase {
         let ciDoc = try read("docs/automation/ci-reproducibility.md")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -29363,7 +29363,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -29496,7 +29496,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -29651,7 +29651,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -29832,7 +29832,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -29973,7 +29973,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -30148,7 +30148,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -30331,7 +30331,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -30495,7 +30495,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -30644,7 +30644,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -30852,7 +30852,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -31053,7 +31053,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -31149,7 +31149,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -31273,7 +31273,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.19.1-v0190-release-fact-sync.sh",
@@ -31297,7 +31297,7 @@ final class TargetGraphTests: XCTestCase {
         let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.19.1-v0190-release-fact-sync.sh")
@@ -31358,13 +31358,13 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
             "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md",
             "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.19.1-v0190-historical-closeout-wording.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -31385,7 +31385,7 @@ final class TargetGraphTests: XCTestCase {
         let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
         let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
@@ -31465,13 +31465,13 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
             "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md",
             "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.19.1-v0190-stale-wording-guard.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -31492,7 +31492,7 @@ final class TargetGraphTests: XCTestCase {
         let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
         let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
@@ -31565,7 +31565,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md",
             "docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.19.1.sh",
@@ -31585,7 +31585,7 @@ final class TargetGraphTests: XCTestCase {
         let notes = try read("docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md")
         let audit = try read("docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -31667,7 +31667,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -31768,11 +31768,11 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.19.0-stage-audit-release-docs.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -31789,11 +31789,11 @@ final class TargetGraphTests: XCTestCase {
         let audit = try read("docs/audit/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-stage-code-audit.md")
         let notes = try read("docs/release/mtpro-release-v0.19.0-venue-product-registry-runtime-adapter-foundation-notes.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
         let verifier = try read("checks/verify-v0.19.0-stage-audit-release-docs.sh")
@@ -31892,7 +31892,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -32484,7 +32484,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -32593,7 +32593,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -32678,7 +32678,7 @@ final class TargetGraphTests: XCTestCase {
         let verifier = try read("checks/verify-v0.11.0.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
@@ -32769,7 +32769,7 @@ final class TargetGraphTests: XCTestCase {
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let releaseFactSyncVerifier = try read("checks/verify-v0.11.1-release-fact-sync.sh")
         let aggregateVerifier = try read("checks/verify-v0.11.1.sh")
         let v0110Verifier = try read("checks/verify-v0.11.0.sh")
@@ -32878,7 +32878,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -33620,7 +33620,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
 
         for anchor in [
@@ -33679,7 +33679,7 @@ final class TargetGraphTests: XCTestCase {
         let aggregateVerifier = try read("checks/verify-v0.11.1.sh")
         let audit = try read("docs/audit/mtpro-release-v0.11.1-readiness-runtime-guard-patch-stage-code-audit.md")
         let releaseNotes = try read("docs/release/mtpro-release-v0.11.1-readiness-runtime-guard-patch-notes.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
@@ -33757,7 +33757,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
 
         for anchor in [
@@ -33847,7 +33847,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let tests = try read("Tests/TargetGraphTests/TargetGraphTests.swift")
 
         let evidenceFiles = [
@@ -34841,7 +34841,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "GH-958-VERIFY-V0120-IMMUTABLE-READINESS-BUNDLE-SNAPSHOT",
@@ -35019,7 +35019,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let expectedAnchors = [
             "GH-959-VERIFY-V0120-KILL-SWITCH-NO-TRADE-TRUSTWORTHY-OBSERVATIONS",
@@ -35377,7 +35377,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         for anchor in ProductionReadinessShadowDryRunParityRunnerAnchors.validationAnchors {
             XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift source")
@@ -35595,7 +35595,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         for anchor in ReleaseV0120ShadowParitySourceSnapshotAnchors.validationAnchors {
             XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift source")
@@ -35866,7 +35866,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         for anchor in expectedAnchors {
             XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Swift source")
@@ -35927,7 +35927,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         for anchor in expectedAnchors {
             XCTAssertTrue(cliSource.contains(anchor), "\(anchor) must stay in MTPRO CLI source")
@@ -36030,7 +36030,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         for anchor in expectedAnchors {
             XCTAssertTrue(dashboardSource.contains(anchor), "\(anchor) must stay in Dashboard source")
@@ -36146,7 +36146,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
@@ -36249,7 +36249,7 @@ final class TargetGraphTests: XCTestCase {
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let releaseFactSyncVerifier = try read("checks/verify-v0.12.1-release-fact-sync.sh")
         let v0120Verifier = try read("checks/verify-v0.12.0.sh")
         let runScript = try read("checks/run.sh")
@@ -36375,7 +36375,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -36489,7 +36489,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -36600,7 +36600,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -36687,7 +36687,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -36793,7 +36793,7 @@ final class TargetGraphTests: XCTestCase {
         let releaseNotes = try read("docs/release/mtpro-release-v0.12.1-readiness-assessment-provenance-hardening-patch-notes.md")
         let publicationPolicy = try read("docs/release/release-publication-policy.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
@@ -36898,7 +36898,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
@@ -37241,7 +37241,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -37435,7 +37435,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -37713,7 +37713,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -37918,7 +37918,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -38162,7 +38162,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -38327,7 +38327,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -38469,7 +38469,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -38510,7 +38510,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
@@ -38821,7 +38821,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
@@ -38877,7 +38877,7 @@ final class TargetGraphTests: XCTestCase {
         let releaseNotes = try read("docs/release/mtpro-release-v0.13.0-local-evidence-driven-readiness-engine-notes.md")
         let contract = try read("docs/contracts/release-v0.13.0-local-evidence-driven-readiness-engine-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
@@ -42475,7 +42475,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         for anchor in [
             "GH-1059-VERIFY-V0141-RELEASE-CI-DASHBOARD-EVIDENCE",
@@ -42568,7 +42568,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         let decoder = JSONDecoder()
         let surface = ReleaseV0140ReadOnlyExecutionDashboardSurfaceViewModel.deterministicFixture
@@ -42837,7 +42837,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         for anchor in [
             "GH-1062-VERIFY-V0141-GOLDEN-JSON-CONTRACTS",
@@ -42888,7 +42888,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         for anchor in ReleaseV0141DashboardExecutionSurfaceLocalArtifactInput.validationAnchors {
             XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in GH-1063 source")
@@ -42956,7 +42956,7 @@ final class TargetGraphTests: XCTestCase {
         let audit = try read("docs/audit/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-stage-code-audit.md")
         let releaseNotes = try read("docs/release/mtpro-release-v0.14.1-local-execution-evidence-hardening-patch-notes.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
@@ -43082,7 +43082,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
@@ -43577,7 +43577,7 @@ final class TargetGraphTests: XCTestCase {
         let contract = try read("docs/contracts/release-v0.15.0-network-execution-event-log-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.15.0-network-execution-event-log.sh")
@@ -43832,7 +43832,7 @@ final class TargetGraphTests: XCTestCase {
         let contract = try read("docs/contracts/release-v0.15.0-real-spot-testnet-cancel-runtime-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.15.0-real-spot-testnet-cancel-runtime.sh")
@@ -44125,7 +44125,7 @@ final class TargetGraphTests: XCTestCase {
         let contract = try read("docs/contracts/release-v0.15.0-real-spot-testnet-cancel-replace-runtime-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.15.0-real-spot-testnet-cancel-replace-runtime.sh")
@@ -44428,7 +44428,7 @@ final class TargetGraphTests: XCTestCase {
         let contract = try read("docs/contracts/release-v0.15.0-oms-state-sync-reconciliation-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.15.0-oms-state-sync-reconciliation.sh")
@@ -44665,7 +44665,7 @@ final class TargetGraphTests: XCTestCase {
         let contract = try read("docs/contracts/release-v0.15.0-cli-operator-flow-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.15.0-cli-operator-flow.sh")
@@ -44842,7 +44842,7 @@ final class TargetGraphTests: XCTestCase {
         let contract = try read("docs/contracts/release-v0.15.0-dashboard-testnet-execution-status-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.15.0-dashboard-testnet-execution-status.sh")
@@ -44941,7 +44941,7 @@ final class TargetGraphTests: XCTestCase {
         let contract = try read("docs/contracts/release-v0.15.0-failure-simulation-real-signed-transport-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.15.0-failure-simulation-real-signed-transport.sh")
@@ -45081,7 +45081,7 @@ final class TargetGraphTests: XCTestCase {
         let runbook = try read("docs/operators/release-v0.15.0-real-binance-testnet-execution-mvp-runbook.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.15.0-release-ci-manual-testnet-audit.sh")
@@ -45175,7 +45175,7 @@ final class TargetGraphTests: XCTestCase {
         let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
         let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let policy = try read("docs/release/release-publication-policy.md")
         let notes = try read("docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
@@ -45303,7 +45303,7 @@ final class TargetGraphTests: XCTestCase {
         let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
         let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let policy = try read("docs/release/release-publication-policy.md")
         let notes = try read("docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md")
         let audit = try read("docs/audit/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-stage-code-audit.md")
@@ -45337,7 +45337,7 @@ final class TargetGraphTests: XCTestCase {
             ("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md", goal),
             ("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md", blueprint),
             ("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md", roadmap),
-            ("docs/validation/latest-verification-summary.md", latest),
+            ("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md", latest),
             ("docs/release/release-publication-policy.md", policy),
             ("docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md", notes),
             ("docs/audit/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-stage-code-audit.md", audit),
@@ -45469,7 +45469,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readinessScript = try read("checks/automation-readiness.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
@@ -45750,7 +45750,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
@@ -45974,7 +45974,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
@@ -46293,7 +46293,7 @@ final class TargetGraphTests: XCTestCase {
         let runScript = try read("checks/run.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
         let readinessScript = try read("checks/automation-readiness.sh")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
@@ -46855,7 +46855,7 @@ final class TargetGraphTests: XCTestCase {
         let docs = try read("docs/contracts/release-v0.16.0-binance-spot-testnet-operator-beta-contract.md")
         let verifier = try read("checks/verify-v0.16.0-operator-beta-contract.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -47002,7 +47002,7 @@ final class TargetGraphTests: XCTestCase {
         let docs = try read("docs/contracts/release-v0.16.0-binance-spot-testnet-operator-run-model-contract.md")
         let verifier = try read("checks/verify-v0.16.0-operator-run-model.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -47138,7 +47138,7 @@ final class TargetGraphTests: XCTestCase {
         let docs = try read("docs/contracts/release-v0.16.0-binance-spot-testnet-cli-submit-flow-contract.md")
         let verifier = try read("checks/verify-v0.16.0-cli-submit-flow.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -47324,7 +47324,7 @@ final class TargetGraphTests: XCTestCase {
         let docs = try read("docs/contracts/release-v0.16.0-binance-spot-testnet-cli-cancel-flow-contract.md")
         let verifier = try read("checks/verify-v0.16.0-cli-cancel-flow.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -47509,7 +47509,7 @@ final class TargetGraphTests: XCTestCase {
         let docs = try read("docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md")
         let verifier = try read("checks/verify-v0.16.0-order-status-query.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -47644,7 +47644,7 @@ final class TargetGraphTests: XCTestCase {
         let docs = try read("docs/contracts/release-v0.16.0-local-execution-artifact-store-contract.md")
         let verifier = try read("checks/verify-v0.16.0-local-execution-artifact-store.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -47798,7 +47798,7 @@ final class TargetGraphTests: XCTestCase {
         let docs = try read("docs/contracts/release-v0.16.0-oms-observed-status-reconciliation-contract.md")
         let verifier = try read("checks/verify-v0.16.0-oms-observed-status-reconciliation.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -47849,7 +47849,7 @@ final class TargetGraphTests: XCTestCase {
         let docs = try read("docs/contracts/release-v0.16.0-dashboard-artifact-backed-execution-view-contract.md")
         let verifier = try read("checks/verify-v0.16.0-dashboard-artifact-backed-execution-view.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -47984,7 +47984,7 @@ final class TargetGraphTests: XCTestCase {
         let docs = try read("docs/contracts/release-v0.16.0-failure-recovery-workflow-contract.md")
         let verifier = try read("checks/verify-v0.16.0-failure-recovery-workflow.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -48188,7 +48188,7 @@ final class TargetGraphTests: XCTestCase {
         let docs = try read("docs/contracts/release-v0.16.0-beta-safety-guards-contract.md")
         let verifier = try read("checks/verify-v0.16.0-beta-safety-guards.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -48300,7 +48300,7 @@ final class TargetGraphTests: XCTestCase {
         let runbook = try read("docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md")
         let verifier = try read("checks/verify-v0.16.0-manual-testnet-validation-workflow.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -48364,7 +48364,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/automation/automation-readiness.md",
@@ -48383,7 +48383,7 @@ final class TargetGraphTests: XCTestCase {
 
         let readme = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/README.md")
         let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let audit = try read("docs/audit/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-stage-code-audit.md")
         let notes = try read("docs/release/mtpro-release-v0.16.0-binance-spot-testnet-operator-execution-beta-notes.md")
         let runbook = try read("docs/operators/release-v0.16.0-binance-spot-testnet-operator-execution-beta-runbook.md")
@@ -48428,7 +48428,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/automation/automation-readiness.md",
@@ -48544,7 +48544,7 @@ final class TargetGraphTests: XCTestCase {
         let runbook = try read("docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md")
         let verifier = try read("checks/verify-v0.16.1-manual-evidence-bundle-content.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -48631,7 +48631,7 @@ final class TargetGraphTests: XCTestCase {
         let dashboard = try read("Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift")
         let verifier = try read("checks/verify-v0.16.1-central-artifact-redaction-policy.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -48758,7 +48758,7 @@ final class TargetGraphTests: XCTestCase {
         let dashboard = try read("Sources/Dashboard/Report/ReleaseV0160DashboardArtifactBackedExecutionView.swift")
         let verifier = try read("checks/verify-v0.16.1-redaction-regression-coverage.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let releasePolicy = try read("docs/release/release-publication-policy.md")
@@ -48814,7 +48814,7 @@ final class TargetGraphTests: XCTestCase {
             "Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift",
             "docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
@@ -48833,7 +48833,7 @@ final class TargetGraphTests: XCTestCase {
 
         let statusSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift")
         let contract = try read("docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
@@ -48901,7 +48901,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
@@ -48990,7 +48990,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.17.0-operator-beta-runtime-hardening-contract.sh",
@@ -49077,7 +49077,7 @@ final class TargetGraphTests: XCTestCase {
 
         let contractDoc = try read("docs/contracts/release-v0.17.0-operator-beta-artifact-status-runtime-hardening-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -49143,7 +49143,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.17.0-artifact-bundle-replay-validator.sh",
@@ -49333,7 +49333,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.17.0-signed-status-query-retry-timeout-failure-model.sh",
@@ -49551,7 +49551,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.17.0-operator-run-resume-from-artifact-store.sh",
@@ -49744,7 +49744,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.17.0-cancel-status-reconciliation-recovery-path.sh",
@@ -49960,7 +49960,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh",
@@ -50016,7 +50016,7 @@ final class TargetGraphTests: XCTestCase {
         let automationScript = try read("checks/automation-readiness.sh")
         let verifier = try read("checks/verify-v0.17.0-dashboard-artifact-validation-error-surface.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let appTests = try read("Tests/AppTests/AppTests.swift")
@@ -50092,7 +50092,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.17.0-cli-artifact-verify-command.sh",
@@ -50235,7 +50235,7 @@ final class TargetGraphTests: XCTestCase {
         let automationScript = try read("checks/automation-readiness.sh")
         let verifier = try read("checks/verify-v0.17.0-cli-artifact-verify-command.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -50463,7 +50463,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.17.0-manual-workflow-artifact-validation.sh",
@@ -50620,7 +50620,7 @@ final class TargetGraphTests: XCTestCase {
         let automationScript = try read("checks/automation-readiness.sh")
         let verifier = try read("checks/verify-v0.17.0-manual-workflow-artifact-validation.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -51494,7 +51494,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
@@ -51514,7 +51514,7 @@ final class TargetGraphTests: XCTestCase {
         let audit = try read("docs/audit/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-stage-code-audit.md")
         let notes = try read("docs/release/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-notes.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
@@ -51557,7 +51557,7 @@ final class TargetGraphTests: XCTestCase {
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
-            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             notes,
             policy
         ] {
@@ -51605,7 +51605,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/automation/automation-readiness.md",
@@ -51631,7 +51631,7 @@ final class TargetGraphTests: XCTestCase {
         let audit = try read("docs/audit/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-stage-code-audit.md")
         let notes = try read("docs/release/mtpro-release-v0.18.0-venue-product-aware-operator-lifecycle-recovery-foundation-notes.md")
         let policy = try read("docs/release/release-publication-policy.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
@@ -51725,7 +51725,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/automation/automation-readiness.md",
@@ -51751,7 +51751,7 @@ final class TargetGraphTests: XCTestCase {
         let audit = try read("docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md")
         let notes = try read("docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md")
         let policy = try read("docs/release/release-publication-policy.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let verifier = try read("checks/verify-v0.17.1-release-fact-sync.sh")
         let runScript = try read("checks/run.sh")
@@ -51852,7 +51852,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md",
             "docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md",
             "docs/release/release-publication-policy.md"
@@ -52112,7 +52112,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh",
@@ -52282,7 +52282,7 @@ final class TargetGraphTests: XCTestCase {
         let automationScript = try read("checks/automation-readiness.sh")
         let verifier = try read("checks/verify-v0.17.0-beta-safety-policy-profile-evidence.sh")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
 
@@ -52355,7 +52355,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
@@ -52375,7 +52375,7 @@ final class TargetGraphTests: XCTestCase {
         let audit = try read("docs/audit/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-stage-code-audit.md")
         let notes = try read("docs/release/mtpro-release-v0.17.0-operator-beta-artifact-status-runtime-hardening-notes.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
@@ -52416,7 +52416,7 @@ final class TargetGraphTests: XCTestCase {
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
-            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             notes,
             policy
         ] {
@@ -52715,7 +52715,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         for anchor in ReleaseV0110DashboardProductionReadinessCenterArtifactStateAnchors.validationAnchors {
             XCTAssertTrue(source.contains(anchor), "\(anchor) must stay in Dashboard source")
@@ -52791,7 +52791,7 @@ final class TargetGraphTests: XCTestCase {
         let readinessScript = try read("checks/automation-readiness.sh")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         for anchor in [
             "GH-920-VERIFY-V0110-READINESS-CLI-LOCAL-ARTIFACTS",
@@ -56066,7 +56066,7 @@ final class TargetGraphTests: XCTestCase {
         let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
         let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
-        let latestVerification = try read("docs/validation/latest-verification-summary.md")
+        let latestVerification = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let automationReadiness = try read("docs/automation/automation-readiness.md")
@@ -57622,7 +57622,7 @@ final class TargetGraphTests: XCTestCase {
         let architecture = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/architecture.md"), encoding: .utf8)
         let roadmap = try String(contentsOf: repositoryRoot.appendingPathComponent("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"), encoding: .utf8)
         let latestSummary = try String(
-            contentsOf: repositoryRoot.appendingPathComponent("docs/validation/latest-verification-summary.md"),
+            contentsOf: repositoryRoot.appendingPathComponent("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             encoding: .utf8
         )
         let domainContext = try String(
@@ -59595,7 +59595,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.20.0-production-shadow-readiness-contract.sh",
@@ -59706,7 +59706,7 @@ final class TargetGraphTests: XCTestCase {
 
         let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -59778,7 +59778,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.20.0-production-shadow-environment-profile.sh",
@@ -59878,7 +59878,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowEnvironmentProfile.swift")
         let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-environment-profile.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -59949,7 +59949,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.20.0-production-shadow-endpoint-allowlist.sh",
@@ -60090,7 +60090,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowEndpointReadOnlyAllowlist.swift")
         let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-endpoint-allowlist.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -60173,7 +60173,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.20.0-credential-reference-readiness.sh",
@@ -60330,7 +60330,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowCredentialReferenceReadiness.swift")
         let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-credential-reference-readiness.md")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -60417,7 +60417,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.20.0-public-market-readonly-probe.sh",
@@ -60579,7 +60579,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowPublicMarketReadOnlyProbe.swift")
         let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -60661,7 +60661,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.20.0-signed-account-readonly-readiness.sh",
@@ -60839,7 +60839,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowSignedAccountReadOnlyReadiness.swift")
         let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -60930,7 +60930,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.20.0-account-snapshot-redaction-policy.sh",
@@ -61110,7 +61110,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowAccountSnapshotRedactionPolicy.swift")
         let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-account-snapshot-redaction-policy.md")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -61197,7 +61197,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.20.0-no-order-capability-guard.sh",
@@ -61385,7 +61385,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowNoOrderCapabilityGuard.swift")
         let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-no-order-capability-guard.md")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -61477,7 +61477,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.20.0-risk-kill-switch-no-trade-readiness.sh",
@@ -61650,7 +61650,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0200ProductionShadowRiskKillSwitchNoTradeReadiness.swift")
         let contractDoc = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-risk-kill-switch-no-trade-readiness.md")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -61735,7 +61735,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.20.0-dashboard-cli-read-only-live-readiness-surface.sh",
@@ -61923,7 +61923,7 @@ final class TargetGraphTests: XCTestCase {
         let dashboardShell = try read("Sources/Dashboard/DashboardShell.swift")
         let cliSource = try read("Sources/MTPROCLI/main.swift")
         let readinessDoc = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let runScript = try read("checks/run.sh")
@@ -62005,7 +62005,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "checks/verify-v0.20.0.sh",
@@ -62042,7 +62042,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.20.0.sh"))
         XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.20.0.sh"))
         XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.20.0 aggregate validation suite anchor"))
-        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.20.0 aggregate validation suite"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md").contains("v0.20.0 aggregate validation suite"))
         XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1249 Release v0.20.0 Aggregate Validation Suite"))
         XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0200-RELEASE-VALIDATION-SUITE"))
 
@@ -62052,7 +62052,7 @@ final class TargetGraphTests: XCTestCase {
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             try read("docs/automation/automation-readiness.md"),
-            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             try read("docs/validation/validation-plan.md"),
             try read("docs/validation/trading-validation-matrix.md")
         ] {
@@ -62111,7 +62111,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
@@ -62161,7 +62161,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.20.0-stage-audit-release-docs.sh"))
         XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.20.0-stage-audit-release-docs.sh"))
         XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.20.0 stage audit / release docs closeout anchor"))
-        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.20.0 stage audit / release docs closeout"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md").contains("v0.20.0 stage audit / release docs closeout"))
         XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1250 Release v0.20.0 Stage Audit / Release Docs Closeout"))
         XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0200-STAGE-AUDIT-RELEASE-DOCS"))
         XCTAssertTrue(try read("docs/release/release-publication-policy.md").contains("GH-1250 closes the v0.20.0 stage audit"))
@@ -62174,7 +62174,7 @@ final class TargetGraphTests: XCTestCase {
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             try read("docs/automation/automation-readiness.md"),
-            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             try read("docs/validation/validation-plan.md"),
             try read("docs/validation/trading-validation-matrix.md"),
             try read("docs/release/release-publication-policy.md")
@@ -62237,13 +62237,13 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
             "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md",
             "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-stage-audit-release-docs.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -62283,7 +62283,7 @@ final class TargetGraphTests: XCTestCase {
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
-            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             audit,
             notes,
             policy
@@ -62298,14 +62298,14 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.21.0-stage-audit-release-docs.sh"))
         XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.21.0-stage-audit-release-docs.sh"))
         XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.21.0 stage audit / release docs closeout anchor"))
-        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.21.0 stage audit / release docs closeout"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md").contains("v0.21.0 stage audit / release docs closeout"))
         XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1286 Release v0.21.0 Stage Audit / Release Docs Closeout"))
         XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0210-STAGE-AUDIT-RELEASE-DOCS"))
-        XCTAssertTrue(try read("verification.md").contains("MTPRO Release v0.21.0 Stage Audit / Release Docs Closeout"))
-        XCTAssertTrue(try read("verification.md").contains("GH-1305 v0.21.0 Release Publication Fact Sync"))
-        XCTAssertTrue(try read("verification.md").contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0"))
-        XCTAssertTrue(try read("verification.md").contains("bca492ed48324a8057c5dc7223d740426a54c3b1"))
-        XCTAssertTrue(try read("verification.md").contains("2026-07-04T10:08:42Z"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md").contains("MTPRO Release v0.21.0 Stage Audit / Release Docs Closeout"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md").contains("GH-1305 v0.21.0 Release Publication Fact Sync"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md").contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.21.0"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md").contains("bca492ed48324a8057c5dc7223d740426a54c3b1"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md").contains("2026-07-04T10:08:42Z"))
 
         for source in [
             audit,
@@ -62315,7 +62315,7 @@ final class TargetGraphTests: XCTestCase {
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
-            try read("docs/validation/latest-verification-summary.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         ] {
             XCTAssertTrue(source.contains("production cutover not authorized"))
         }
@@ -62329,7 +62329,7 @@ final class TargetGraphTests: XCTestCase {
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             try read("docs/automation/automation-readiness.md"),
-            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             try read("docs/validation/validation-plan.md"),
             try read("docs/validation/trading-validation-matrix.md")
         ] {
@@ -62374,13 +62374,13 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
             "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md",
             "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.1-v0210-canary-evidence-wording.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -62403,14 +62403,14 @@ final class TargetGraphTests: XCTestCase {
         let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
         let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
         let notes = try read("docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md")
         let audit = try read("docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let verifier = try read("checks/verify-v0.21.1-v0210-canary-evidence-wording.sh")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
@@ -62557,10 +62557,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0-operator-approval-run-lock.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -62579,7 +62579,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
 
@@ -62771,10 +62771,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0-credential-secret-material-read-redaction.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -62795,7 +62795,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
 
@@ -62968,10 +62968,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0-signed-account-runtime-preflight.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -62992,7 +62992,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
 
@@ -63163,10 +63163,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0-live-order-submit-transport.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -63187,7 +63187,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
 
@@ -63376,10 +63376,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0-status-cancel-transport.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -63400,7 +63400,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
 
@@ -63579,10 +63579,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0-oms-evidence-log.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -63603,7 +63603,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
 
@@ -63814,10 +63814,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0-reconciliation-evidence.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -63838,7 +63838,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
 
@@ -64050,10 +64050,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0-failure-rollback-drill.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -64074,7 +64074,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
 
@@ -64190,10 +64190,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0-live-canary-transport-contract.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -64212,7 +64212,7 @@ final class TargetGraphTests: XCTestCase {
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
 
@@ -64289,11 +64289,11 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.1.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -64309,12 +64309,12 @@ final class TargetGraphTests: XCTestCase {
 
         let audit = try read("docs/audit/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-stage-code-audit.md")
         let notes = try read("docs/release/mtpro-release-v0.21.1-publication-fact-and-canary-semantics-patch-notes.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let verifier = try read("checks/verify-v0.21.1.sh")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
@@ -64399,13 +64399,13 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
             "docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md",
             "docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.1-v0210-stale-wording-guard.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -64426,14 +64426,14 @@ final class TargetGraphTests: XCTestCase {
         let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
         let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
         let notes = try read("docs/release/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-notes.md")
         let audit = try read("docs/audit/mtpro-release-v0.21.0-binance-spot-controlled-production-canary-stage-code-audit.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let verifier = try read("checks/verify-v0.21.1-v0210-stale-wording-guard.sh")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
@@ -64502,13 +64502,13 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
             "docs/release/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-notes.md",
             "docs/audit/mtpro-release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-stage-code-audit.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.20.1-v0200-stale-wording-guard.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -64529,7 +64529,7 @@ final class TargetGraphTests: XCTestCase {
         let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
         let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
@@ -64605,7 +64605,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
@@ -64614,7 +64614,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md",
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md",
             "docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.20.1-v0200-probe-classification-evidence.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -64632,7 +64632,7 @@ final class TargetGraphTests: XCTestCase {
         let goal = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md")
         let blueprint = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md")
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
@@ -64642,7 +64642,7 @@ final class TargetGraphTests: XCTestCase {
         let probeContract = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-public-market-readonly-probe.md")
         let signedContract = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-signed-account-readonly-readiness.md")
         let readinessContract = try read("docs/contracts/release-v0.20.0-binance-spot-production-shadow-read-only-live-readiness-contract.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let verifier = try read("checks/verify-v0.20.1-v0200-probe-classification-evidence.sh")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
@@ -64725,11 +64725,11 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.20.1-publication-fact-sync-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.20.1-publication-fact-sync-patch-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.20.1.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -64745,12 +64745,12 @@ final class TargetGraphTests: XCTestCase {
 
         let audit = try read("docs/audit/mtpro-release-v0.20.1-publication-fact-sync-patch-stage-code-audit.md")
         let notes = try read("docs/release/mtpro-release-v0.20.1-publication-fact-sync-patch-notes.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let readiness = try read("docs/automation/automation-readiness.md")
         let validationPlan = try read("docs/validation/validation-plan.md")
         let tradingMatrix = try read("docs/validation/trading-validation-matrix.md")
         let policy = try read("docs/release/release-publication-policy.md")
-        let verification = try read("verification.md")
+        let verification = try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         let verifier = try read("checks/verify-v0.20.1.sh")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
@@ -64946,10 +64946,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-controlled-canary-contract.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -64966,7 +64966,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0210SpotControlledProductionCanaryContract.swift")
         let contractDocument = try read("docs/contracts/release-v0.21.0-binance-spot-controlled-production-canary-contract.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.21.0-controlled-canary-contract.sh")
@@ -65005,7 +65005,7 @@ final class TargetGraphTests: XCTestCase {
             latest,
             plan,
             matrix,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionCutoverAuthorized=true",
@@ -65133,10 +65133,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-spot-canary-environment-profile.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -65153,7 +65153,7 @@ final class TargetGraphTests: XCTestCase {
         let profileSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryEnvironmentProfile.swift")
         let profileDocument = try read("docs/contracts/release-v0.21.0-binance-spot-canary-environment-profile.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.21.0-spot-canary-environment-profile.sh")
@@ -65193,7 +65193,7 @@ final class TargetGraphTests: XCTestCase {
             latest,
             plan,
             matrix,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -65391,10 +65391,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-credential-secret-read-approval.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -65411,7 +65411,7 @@ final class TargetGraphTests: XCTestCase {
         let approvalSource = try read("Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryCredentialSecretReadApprovalPath.swift")
         let approvalDocument = try read("docs/contracts/release-v0.21.0-binance-spot-canary-credential-secret-read-approval.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.21.0-credential-secret-read-approval.sh")
@@ -65456,7 +65456,7 @@ final class TargetGraphTests: XCTestCase {
             latest,
             plan,
             matrix,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "credentialSecretReadExecutedByThisIssue=true",
@@ -65660,10 +65660,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-signed-account-readonly-preflight.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -65680,7 +65680,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanarySignedAccountReadOnlyRuntimePreflight.swift")
         let contract = try read("docs/contracts/release-v0.21.0-binance-spot-signed-account-readonly-preflight.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.21.0-signed-account-readonly-preflight.sh")
@@ -65725,7 +65725,7 @@ final class TargetGraphTests: XCTestCase {
             latest,
             plan,
             matrix,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -65963,10 +65963,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-live-account-snapshot-redaction.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -65983,7 +65983,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryLiveAccountSnapshotRedactionArtifact.swift")
         let contract = try read("docs/contracts/release-v0.21.0-binance-spot-live-account-snapshot-redaction.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.21.0-live-account-snapshot-redaction.sh")
@@ -66030,7 +66030,7 @@ final class TargetGraphTests: XCTestCase {
             latest,
             plan,
             matrix,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -66238,10 +66238,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-canary-hard-limits.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -66258,7 +66258,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0210SpotCanaryHardLimitPreTradeGate.swift")
         let contract = try read("docs/contracts/release-v0.21.0-binance-spot-canary-hard-limits.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.21.0-canary-hard-limits.sh")
@@ -66305,7 +66305,7 @@ final class TargetGraphTests: XCTestCase {
             latest,
             plan,
             matrix,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -66469,10 +66469,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -66489,7 +66489,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210SpotCanaryRiskKillNoTradePreTradeGate.swift")
         let contract = try read("docs/contracts/release-v0.21.0-pretrade-risk-kill-notrade-gate.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.21.0-pretrade-risk-kill-notrade.sh")
@@ -66539,7 +66539,7 @@ final class TargetGraphTests: XCTestCase {
             latest,
             plan,
             matrix,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -66709,10 +66709,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-controlled-spot-canary-submit.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -66729,7 +66729,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledSpotCanarySubmitPath.swift")
         let contract = try read("docs/contracts/release-v0.21.0-controlled-spot-canary-submit-path.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.21.0-controlled-spot-canary-submit.sh")
@@ -66775,7 +66775,7 @@ final class TargetGraphTests: XCTestCase {
             latest,
             plan,
             matrix,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -66950,10 +66950,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -66970,7 +66970,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210ControlledCanaryCancelRollbackGuard.swift")
         let contract = try read("docs/contracts/release-v0.21.0-controlled-canary-cancel-rollback-guard.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.21.0-controlled-canary-cancel-rollback.sh")
@@ -67015,7 +67015,7 @@ final class TargetGraphTests: XCTestCase {
             latest,
             plan,
             matrix,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -67196,10 +67196,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -67216,7 +67216,7 @@ final class TargetGraphTests: XCTestCase {
         let source = try read("Sources/ExecutionEngine/OMSFutureGate/ReleaseV0210CanaryOMSEventLogReconciliationEvidence.swift")
         let contract = try read("docs/contracts/release-v0.21.0-canary-oms-event-log-reconciliation-evidence.md")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.21.0-canary-oms-event-log-reconciliation.sh")
@@ -67261,7 +67261,7 @@ final class TargetGraphTests: XCTestCase {
             latest,
             plan,
             matrix,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -67503,10 +67503,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -67527,7 +67527,7 @@ final class TargetGraphTests: XCTestCase {
         let cliSource = try read("Sources/MTPROCLI/main.swift")
         let package = try read("Package.swift")
         let readiness = try read("docs/automation/automation-readiness.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         let plan = try read("docs/validation/validation-plan.md")
         let matrix = try read("docs/validation/trading-validation-matrix.md")
         let verifier = try read("checks/verify-v0.21.0-dashboard-cli-canary-status-surface.sh")
@@ -67569,7 +67569,7 @@ final class TargetGraphTests: XCTestCase {
             latest,
             plan,
             matrix,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -67738,10 +67738,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0-dashboard-cli-live-canary-evidence-surface.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -67780,10 +67780,10 @@ final class TargetGraphTests: XCTestCase {
         for source in [
             surfaceSource,
             dashboardSource,
-            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             try read("docs/validation/validation-plan.md"),
             try read("docs/validation/trading-validation-matrix.md"),
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -67841,10 +67841,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -67882,16 +67882,16 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0.sh"))
         XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0.sh"))
         XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.22.0 aggregate validation suite anchor"))
-        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.22.0 aggregate validation suite"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md").contains("v0.22.0 aggregate validation suite"))
         XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1319 Release v0.22.0 Aggregate Validation Suite"))
         XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0220-AGGREGATE-VALIDATION"))
-        XCTAssertTrue(try read("verification.md").contains("MTPRO Release v0.22.0 Aggregate Validation Suite"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md").contains("MTPRO Release v0.22.0 Aggregate Validation Suite"))
 
         for source in [
-            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             try read("docs/validation/validation-plan.md"),
             try read("docs/validation/trading-validation-matrix.md"),
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -67956,11 +67956,11 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.0-stage-audit-release-docs.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -68001,11 +68001,11 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(runScript.contains("bash checks/verify-v0.22.0-stage-audit-release-docs.sh"))
         XCTAssertTrue(automationScript.contains("checks/verify-v0.22.0-stage-audit-release-docs.sh"))
         XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.22.0 stage audit / release docs closeout anchor"))
-        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.22.0 stage audit / release docs closeout"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md").contains("v0.22.0 stage audit / release docs closeout"))
         XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1320 Release v0.22.0 Stage Audit / Release Docs Closeout"))
         XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0220-STAGE-AUDIT-RELEASE-DOCS"))
         XCTAssertTrue(policy.contains("GH-1320 closes the v0.22.0 stage audit"))
-        XCTAssertTrue(try read("verification.md").contains("MTPRO Release v0.22.0 Stage Audit / Release Docs Closeout"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md").contains("MTPRO Release v0.22.0 Stage Audit / Release Docs Closeout"))
 
         for source in [audit, notes, policy] {
             for forbidden in [
@@ -68075,11 +68075,11 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.22.1.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -68098,9 +68098,9 @@ final class TargetGraphTests: XCTestCase {
             "docs/release/mtpro-release-v0.22.1-publication-fact-sync-patch-notes.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/release/release-publication-policy.md",
-            "verification.md"
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
         ] {
             let source = try read(file)
             XCTAssertTrue(source.contains("v0.22.0 is Binance Spot live canary transport completion"))
@@ -68116,14 +68116,14 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.22.1 publication fact sync patch anchor"))
         XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1340 Release v0.22.1 Patch Audit / Release Notes Closeout"))
         XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0221-PATCH-AUDIT-RELEASE-NOTES"))
-        XCTAssertTrue(try read("verification.md").contains("MTPRO Release v0.22.1 Publication Fact Sync Patch"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md").contains("MTPRO Release v0.22.1 Publication Fact Sync Patch"))
 
         for source in [
             try read("docs/audit/mtpro-release-v0.22.1-publication-fact-sync-patch-stage-code-audit.md"),
             try read("docs/release/mtpro-release-v0.22.1-publication-fact-sync-patch-notes.md"),
             try read("docs/release/release-publication-policy.md"),
-            try read("docs/validation/latest-verification-summary.md"),
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "productionTradingEnabledByDefault=true",
@@ -68267,11 +68267,11 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/release/release-publication-policy.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.23.0.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -68295,7 +68295,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(try read("docs/automation/automation-readiness.md").contains("Release v0.23.0 Binance USD-M Futures read-only foundation anchor"))
         XCTAssertTrue(try read("docs/validation/validation-plan.md").contains("GH-1350 Release v0.23.0 Aggregate Validation Suite"))
         XCTAssertTrue(try read("docs/validation/trading-validation-matrix.md").contains("TVM-RELEASE-V0230-AGGREGATE-VALIDATION"))
-        XCTAssertTrue(try read("verification.md").contains("MTPRO Release v0.23.0 Binance USD-M Futures Read-only Foundation"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md").contains("MTPRO Release v0.23.0 Binance USD-M Futures Read-only Foundation"))
 
         for source in [
             try read("Sources/ExecutionClient/FutureGate/ReleaseV0230BinanceUSDMFuturesReadOnlyFoundation.swift"),
@@ -68303,8 +68303,8 @@ final class TargetGraphTests: XCTestCase {
             try read("docs/contracts/release-v0.23.0-binance-usdm-futures-read-only-foundation-contract.md"),
             try read("docs/audit/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-stage-code-audit.md"),
             try read("docs/release/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-notes.md"),
-            try read("docs/validation/latest-verification-summary.md"),
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             XCTAssertTrue(source.contains("Binance USD-M Futures read-only foundation"))
             XCTAssertTrue(source.contains("futuresOrderExecutionEnabled=false"))
@@ -68373,8 +68373,8 @@ final class TargetGraphTests: XCTestCase {
             "docs/release/mtpro-release-v0.23.1-publication-fact-sync-readonly-guard-patch-notes.md",
             "docs/release/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-notes.md",
             "docs/audit/mtpro-release-v0.23.0-binance-usdm-futures-read-only-foundation-stage-code-audit.md",
-            "docs/validation/latest-verification-summary.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.23.1.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -68483,10 +68483,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md",
             "docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.24.0.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -68569,10 +68569,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md",
             "docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.24.1.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -68588,7 +68588,7 @@ final class TargetGraphTests: XCTestCase {
 
         let v0240Notes = try read("docs/release/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-notes.md")
         let v0240Audit = try read("docs/audit/mtpro-release-v0.24.0-spot-futures-unified-readonly-foundation-stage-code-audit.md")
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
 
         XCTAssertTrue(v0240Notes.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.24.0"))
         XCTAssertTrue(v0240Notes.contains("995065ba4ae4f9c80009fc68891176e5c0a56270"))
@@ -68603,7 +68603,7 @@ final class TargetGraphTests: XCTestCase {
             try read("docs/audit/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-stage-code-audit.md"),
             try read("docs/release/mtpro-release-v0.24.1-publication-fact-sync-milestone-semantics-patch-notes.md"),
             latest,
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "does not create a v0.24.0 tag",
@@ -69172,10 +69172,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md",
             "docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.25.0.sh",
             "checks/automation-readiness.sh",
             "Tests/TargetGraphTests/TargetGraphTests.swift"
@@ -69270,13 +69270,13 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-stage-code-audit.md",
             "docs/release/mtpro-release-v0.25.0-dual-product-production-readiness-canary-hardening-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.25.1.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -69299,7 +69299,7 @@ final class TargetGraphTests: XCTestCase {
         XCTAssertTrue(audit.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.25.0"))
         XCTAssertTrue(audit.contains("v0.25.0 milestone #41 closed"))
 
-        let latest = try read("docs/validation/latest-verification-summary.md")
+        let latest = try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md")
         XCTAssertTrue(latest.contains("v0.25.0 milestone #41 closed"))
 
         let roadmap = try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md")
@@ -69314,11 +69314,11 @@ final class TargetGraphTests: XCTestCase {
         for source in [
             try read("docs/audit/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-stage-code-audit.md"),
             try read("docs/release/mtpro-release-v0.25.1-v025-publication-fact-sync-roadmap-correction-patch-notes.md"),
-            try read("docs/validation/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"),
             try read("docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"),
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for forbidden in [
                 "does not create or move v0.25.0",
@@ -69453,10 +69453,10 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-stage-code-audit.md",
             "docs/release/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.26.0.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -69481,8 +69481,8 @@ final class TargetGraphTests: XCTestCase {
             try read("Sources/Dashboard/Report/ReleaseV0260DashboardCLIFuturesTestnetStatusSurface.swift"),
             try read("docs/audit/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-stage-code-audit.md"),
             try read("docs/release/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-notes.md"),
-            try read("docs/validation/latest-verification-summary.md"),
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for expected in [
                 "Binance USD-M Futures testnet controlled execution foundation",
@@ -69647,14 +69647,14 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-stage-code-audit.md",
             "docs/release/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.27.0.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -69679,8 +69679,8 @@ final class TargetGraphTests: XCTestCase {
             try read("Sources/Dashboard/Report/ReleaseV0270DashboardCLIFuturesTestnetFailureDrilldownSurface.swift"),
             try read("docs/audit/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-stage-code-audit.md"),
             try read("docs/release/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-notes.md"),
-            try read("docs/validation/latest-verification-summary.md"),
-            try read("verification.md")
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"),
+            try read("docs/history/validation-pre-canonicalization-2026-07-20/verification.md")
         ] {
             for expected in [
                 "Binance USD-M Futures testnet operator runtime hardening",
@@ -69756,13 +69756,13 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-stage-code-audit.md",
             "docs/release/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.26.1.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -69781,11 +69781,11 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-stage-code-audit.md",
             "docs/audit/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-notes.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md"
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
         ] {
             let source = try read(file)
             XCTAssertTrue(source.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.26.0"))
@@ -69797,7 +69797,7 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertTrue(try read("docs/release/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-notes.md").contains("v0.26.0 milestone #43: closed with 0 open / 10 closed issues"))
         XCTAssertTrue(try read("docs/audit/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-stage-code-audit.md").contains("v0.26.0 milestone #43 is closed with 0 open / 10 closed issues"))
-        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.26.0 milestone #43 closed"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md").contains("v0.26.0 milestone #43 closed"))
         XCTAssertTrue(try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md").contains("v0.27.0 remains blocked until v0.26.1 completion"))
         XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.26.1.sh"))
         XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.26.1.sh"))
@@ -69807,11 +69807,11 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.26.0-binance-usdm-futures-testnet-controlled-execution-foundation-stage-code-audit.md",
             "docs/audit/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.26.1-v026-publication-fact-sync-milestone-closure-patch-notes.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md"
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
         ] {
             let source = try read(file)
             for forbidden in [
@@ -69880,13 +69880,13 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-stage-code-audit.md",
             "docs/release/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.27.2.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -69905,11 +69905,11 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-stage-code-audit.md",
             "docs/audit/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-notes.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md"
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
         ] {
             let source = try read(file)
             XCTAssertTrue(source.contains("https://github.com/atxinbao/MTPRO/releases/tag/v0.27.1"))
@@ -69926,7 +69926,7 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertTrue(try read("docs/release/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-notes.md").contains("v0.27.0 milestone #45: closed with 0 open / 10 closed issues"))
         XCTAssertTrue(try read("docs/audit/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-stage-code-audit.md").contains("v0.27.0 milestone #45 is closed with 0 open / 10 closed issues"))
-        XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains("v0.27.0 milestone #45 closed"))
+        XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md").contains("v0.27.0 milestone #45 closed"))
         XCTAssertTrue(try read("docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md").contains("v0.28.0 remains blocked until v0.27.2 completion"))
         XCTAssertTrue(try read("checks/run.sh").contains("bash checks/verify-v0.27.2.sh"))
         XCTAssertTrue(try read("checks/automation-readiness.sh").contains("checks/verify-v0.27.2.sh"))
@@ -69936,11 +69936,11 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.27.0-binance-usdm-futures-testnet-operator-runtime-hardening-stage-code-audit.md",
             "docs/audit/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.27.2-v0271-publication-fact-sync-milestone-closure-patch-notes.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md"
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
         ] {
             let source = try read(file)
             for forbidden in [
@@ -70079,14 +70079,14 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-stage-code-audit.md",
             "docs/release/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.28.0.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -70303,7 +70303,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.28.0-binance-production-cutover-readiness-gate-stage-code-audit.md",
             "docs/release/mtpro-release-v0.28.1-v028-publication-fact-readiness-semantics-validation-patch-notes.md",
             "docs/audit/mtpro-release-v0.28.1-v028-publication-fact-readiness-semantics-validation-patch-stage-code-audit.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/automation/automation-readiness.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
@@ -70311,7 +70311,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.28.1.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -70348,7 +70348,7 @@ final class TargetGraphTests: XCTestCase {
             "milestone #47 closed"
         ]
         for fact in releaseFacts {
-            XCTAssertTrue(try read("docs/validation/latest-verification-summary.md").contains(fact), "latest summary must contain \(fact)")
+            XCTAssertTrue(try read("docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md").contains(fact), "latest summary must contain \(fact)")
         }
 
         let currentFacingDocs = [
@@ -70356,8 +70356,8 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "docs/validation/latest-verification-summary.md",
-            "verification.md"
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
         ]
         for file in currentFacingDocs {
             let source = try read(file)
@@ -70679,14 +70679,14 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-stage-code-audit.md",
             "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.29.0.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -70705,8 +70705,8 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "docs/validation/latest-verification-summary.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md"
         ] {
             let source = try read(file)
@@ -70899,12 +70899,12 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.29.1-shadow-acceptance-integrity-publication-gate-repair-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.29.1-shadow-acceptance-integrity-publication-gate-repair-patch-notes.md",
             "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.29.1.sh",
             "checks/verify-v0.29.0.sh",
             "checks/run.sh",
@@ -70928,8 +70928,8 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "docs/validation/latest-verification-summary.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "docs/release/mtpro-release-v0.29.0-binance-production-dry-run-shadow-run-acceptance-notes.md",
             "docs/release/mtpro-release-v0.29.1-shadow-acceptance-integrity-publication-gate-repair-patch-notes.md"
         ] {
@@ -71340,14 +71340,14 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.30.0-observed-production-shadow-run-stage-code-audit.md",
             "docs/release/mtpro-release-v0.30.0-observed-production-shadow-run-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.30.0.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -71370,8 +71370,8 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "docs/validation/latest-verification-summary.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "docs/release/mtpro-release-v0.30.0-observed-production-shadow-run-notes.md"
         ] {
             let source = try read(file)
@@ -71566,14 +71566,14 @@ final class TargetGraphTests: XCTestCase {
             "docs/audit/mtpro-release-v0.31.0-controlled-production-enablement-gate-stage-code-audit.md",
             "docs/release/mtpro-release-v0.31.0-controlled-production-enablement-gate-notes.md",
             "docs/automation/automation-readiness.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/validation-plan.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "checks/verify-v0.31.0.sh",
             "checks/run.sh",
             "checks/automation-readiness.sh",
@@ -71592,8 +71592,8 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "docs/validation/latest-verification-summary.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
             "docs/release/mtpro-release-v0.31.0-controlled-production-enablement-gate-notes.md"
         ] {
             let source = try read(file)
@@ -71721,12 +71721,12 @@ final class TargetGraphTests: XCTestCase {
             "checks/automation-readiness.sh",
             "docs/audit/mtpro-release-v0.31.1-controlled-enablement-integrity-publication-gate-repair-stage-code-audit.md",
             "docs/release/mtpro-release-v0.31.1-controlled-enablement-integrity-publication-gate-repair-notes.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md"
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
         ]
 
         for file in expectedFiles {
@@ -71848,12 +71848,12 @@ final class TargetGraphTests: XCTestCase {
             "checks/automation-readiness.sh",
             "docs/audit/mtpro-release-v0.32.0-binance-controlled-production-canary-operations-stage-code-audit.md",
             "docs/release/mtpro-release-v0.32.0-binance-controlled-production-canary-operations-notes.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md"
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
         ]
 
         for file in expectedFiles {
@@ -72638,7 +72638,7 @@ final class TargetGraphTests: XCTestCase {
             ".github/workflows/checks.yml",
             "docs/audit/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-stage-code-audit.md",
             "docs/release/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-notes.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/validation/validation-plan.md",
             "docs/automation/automation-readiness.md",
@@ -72646,7 +72646,7 @@ final class TargetGraphTests: XCTestCase {
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md",
-            "verification.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md",
         ]
         let anchors = [
             "GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES",
@@ -73973,11 +73973,11 @@ final class TargetGraphTests: XCTestCase {
             ".github/workflows/checks.yml",
             "docs/audit/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-stage-code-audit.md",
             "docs/release/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-notes.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
-            "verification.md"
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
         ]
 
         for file in expectedFiles {
@@ -74152,12 +74152,12 @@ final class TargetGraphTests: XCTestCase {
             ".github/workflows/checks.yml",
             "docs/audit/mtpro-release-v0.32.1-controlled-canary-integrity-publication-gate-repair-stage-code-audit.md",
             "docs/release/mtpro-release-v0.32.1-controlled-canary-integrity-publication-gate-repair-notes.md",
-            "docs/validation/latest-verification-summary.md",
+            "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md",
             "docs/validation/trading-validation-matrix.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md",
-            "verification.md"
+            "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"
         ]
 
         for file in expectedFiles {

@@ -41,11 +41,11 @@ for file in \
   .github/workflows/checks.yml \
   docs/audit/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-stage-code-audit.md \
   docs/release/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-notes.md \
-  docs/validation/latest-verification-summary.md \
+  docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md \
   docs/validation/trading-validation-matrix.md \
   docs/history/root-docs-pre-canonicalization-2026-07-20/README.md \
   docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md \
-  verification.md
+  docs/history/validation-pre-canonicalization-2026-07-20/verification.md
 do
   require_contains "$file" "GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX"
   require_contains "$file" "GH-1529-VERIFY-V0322-TRUSTED-PROVENANCE-DERIVED-OBSERVED-CANARY"
@@ -66,7 +66,7 @@ require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0322ControlledCanaryInte
 require_contains "Sources/MTPROCLI/main.swift" "ReleaseV0322ControlledCanaryIntegrityClosurePatch.commandLineOutput"
 require_contains ".github/workflows/checks.yml" "Publish v0.32.2 release after full matrix"
 require_contains ".github/workflows/checks.yml" "GH-1528-VERIFY-V0322-RELEASE-CREATION-BEHIND-FULL-MATRIX"
-require_contains "verification.md" "bash checks/verify-v0.32.2.sh"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/verification.md" "bash checks/verify-v0.32.2.sh"
 require_contains "docs/release/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-notes.md" "observedProductionCanary=false"
 require_contains "docs/audit/mtpro-release-v0.32.2-controlled-canary-integrity-closure-patch-stage-code-audit.md" "backendClosureDecision=blocked"
 

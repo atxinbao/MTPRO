@@ -66,10 +66,10 @@ for file in \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
-  "verification.md"; do
+  "docs/history/validation-pre-canonicalization-2026-07-20/verification.md"; do
   for expected in \
     "GH-1478-VERIFY-V0301-V0300-PUBLICATION-FACTS" \
     "GH-1479-VERIFY-V0301-DETERMINISTIC-FIXTURE-FAIL-CLOSED" \
@@ -94,6 +94,6 @@ reject_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/REA
 reject_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "observedRunAccepted=true"
 reject_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md" "observedRunAccepted=true"
 reject_file_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" "observedRunAccepted=true"
-reject_file_contains "docs/validation/latest-verification-summary.md" "observedRunAccepted=true"
+reject_file_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "observedRunAccepted=true"
 
 printf 'MTPRO v0.30.1 observed shadow integrity repair checks passed.\n'

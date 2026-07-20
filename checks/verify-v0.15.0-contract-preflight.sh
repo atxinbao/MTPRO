@@ -44,7 +44,7 @@ reject_file_contains() {
 
 CONTRACT="docs/contracts/release-v0.15.0-real-binance-spot-testnet-execution-mvp-contract.md"
 READINESS="docs/automation/automation-readiness.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 PLAN="docs/validation/validation-plan.md"
 MATRIX="docs/validation/trading-validation-matrix.md"
 README="docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"

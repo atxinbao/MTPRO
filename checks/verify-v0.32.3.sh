@@ -36,7 +36,7 @@ for file in \
   .github/workflows/checks.yml \
   docs/audit/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-stage-code-audit.md \
   docs/release/mtpro-release-v0.32.3-controlled-canary-persistent-evidence-integrity-repair-notes.md \
-  docs/validation/latest-verification-summary.md \
+  docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md \
   docs/validation/trading-validation-matrix.md \
   docs/validation/validation-plan.md \
   docs/automation/automation-readiness.md \
@@ -44,7 +44,7 @@ for file in \
   docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md \
   docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md \
   docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md \
-  verification.md
+  docs/history/validation-pre-canonicalization-2026-07-20/verification.md
 do
   require_contains "$file" "GH-1541-CLOSE-V0323-STAGE-AUDIT-RELEASE-NOTES"
   require_contains "$file" "TVM-RELEASE-V0323-CONTROLLED-CANARY-PERSISTENT-EVIDENCE-INTEGRITY-REPAIR"

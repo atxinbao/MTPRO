@@ -56,7 +56,7 @@ README="docs/history/root-docs-pre-canonicalization-2026-07-20/README.md"
 GOAL="docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md"
 BLUEPRINT="docs/history/root-docs-pre-canonicalization-2026-07-20/BLUEPRINT.md"
 ROADMAP="docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 NOTES="docs/release/mtpro-release-v0.15.0-real-binance-testnet-execution-mvp-notes.md"
 
 V0150_RELEASE_URL="https://github.com/atxinbao/MTPRO/releases/tag/v0.15.0"

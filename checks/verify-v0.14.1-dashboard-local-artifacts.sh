@@ -13,7 +13,7 @@ READINESS_DOC="docs/automation/automation-readiness.md"
 READINESS_SCRIPT="checks/automation-readiness.sh"
 VALIDATION_PLAN="docs/validation/validation-plan.md"
 TRADING_MATRIX="docs/validation/trading-validation-matrix.md"
-LATEST_SUMMARY="docs/validation/latest-verification-summary.md"
+LATEST_SUMMARY="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 
 require_file_contains() {
   local file="$1"

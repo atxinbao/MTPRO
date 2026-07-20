@@ -118,7 +118,7 @@ require_file_contains \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/roadmap.md" \
   "GH-687-RELEASE-V031-REHEARSAL-EVIDENCE-DOCS-HANDOFF"
 require_file_contains \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   '`v0.3.x` 不表示 real testnet / shadow runtime runner 已存在'
 require_file_contains \
   "docs/operators/release-v0.3.0-operator-rehearsal-runbook.md" \

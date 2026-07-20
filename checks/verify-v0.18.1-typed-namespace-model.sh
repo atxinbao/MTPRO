@@ -39,7 +39,7 @@ for file in \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
   "docs/automation/automation-readiness.md" \
-  "docs/validation/latest-verification-summary.md" \
+  "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" \
   "docs/validation/validation-plan.md" \
   "docs/validation/trading-validation-matrix.md" \
   "docs/release/release-publication-policy.md"; do
@@ -65,7 +65,7 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170BetaSafetyPolic
 require_contains "checks/run.sh" "bash checks/verify-v0.18.1-typed-namespace-model.sh"
 require_contains "checks/automation-readiness.sh" "checks/verify-v0.18.1-typed-namespace-model.sh"
 require_contains "docs/automation/automation-readiness.md" "Release v0.18.1 typed namespace model anchor"
-require_contains "docs/validation/latest-verification-summary.md" "v0.18.1 typed namespace model"
+require_contains "docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md" "v0.18.1 typed namespace model"
 require_contains "docs/validation/validation-plan.md" "GH-1204 Release v0.18.1 Typed Namespace Model"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0181-TYPED-NAMESPACE-MODEL"
 require_contains "docs/release/release-publication-policy.md" "GH-1204 replaces critical v0.18 namespace raw string switches"

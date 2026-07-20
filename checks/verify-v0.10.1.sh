@@ -46,7 +46,7 @@ swift test --filter TargetGraphTests/testGH912ReleaseV0101PatchAuditReleaseNotes
 
 AUDIT="docs/audit/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-stage-code-audit.md"
 NOTES="docs/release/mtpro-release-v0.10.1-production-readiness-audit-hardening-patch-notes.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 READINESS="docs/automation/automation-readiness.md"
 PLAN="docs/validation/validation-plan.md"
 MATRIX="docs/validation/trading-validation-matrix.md"

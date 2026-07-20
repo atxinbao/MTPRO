@@ -45,7 +45,7 @@ TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
 PLAN="docs/validation/validation-plan.md"
 MATRIX="docs/validation/trading-validation-matrix.md"
 READINESS="docs/automation/automation-readiness.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 VALID_COMMIT="22fb2aff1fe706b9bfc32f3ecb2a1aa11228aa24"
 
 for anchor in \

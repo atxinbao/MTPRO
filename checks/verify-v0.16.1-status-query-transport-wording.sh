@@ -27,7 +27,7 @@ reject_file_contains() {
 SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0160CLIOrderStatusQueryFlow.swift"
 CONTRACT="docs/contracts/release-v0.16.0-binance-spot-testnet-order-status-query-contract.md"
 READINESS="docs/automation/automation-readiness.md"
-LATEST="docs/validation/latest-verification-summary.md"
+LATEST="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 PLAN="docs/validation/validation-plan.md"
 MATRIX="docs/validation/trading-validation-matrix.md"
 POLICY="docs/release/release-publication-policy.md"

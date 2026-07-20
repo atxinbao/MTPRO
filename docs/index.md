@@ -27,7 +27,8 @@
 | 9 | `docs/validation/latest-verification-summary.md` | Canonical | 最近验证和冻结结论的轻量摘要 |
 | 10 | `docs/documentation-policy.md` | Canonical | 文档生命周期和历史证据治理规则 |
 
-完整 `verification.md` 用于审计追溯，不作为日常默认入口。
+`verification.md` 现在是当前验证注册表。逐 issue 历史流水位于
+`docs/history/validation-pre-canonicalization-2026-07-20/`。
 
 ## 当前操作入口
 
@@ -38,6 +39,11 @@
 | 当前环境说明 | `environment.md` |
 | 当前架构边界 | `architecture.md`、`docs/architecture/module-boundary.md` |
 | 最近验证结论 | `docs/validation/latest-verification-summary.md` |
+| 验证证据注册 | `verification.md` |
+| Audit 索引 | `docs/audit/index.md` |
+| Release 索引 | `docs/release/index.md` |
+| Contract 索引 | `docs/contracts/index.md` |
+| Planning 索引 | `docs/planning/linear-draft-plan.md` |
 
 ## 历史证据
 
@@ -51,7 +57,8 @@
 | `docs/planning/` | 已完成或未授权执行的规划记录 |
 | `docs/validation/` | 当前验证入口及历史验证材料 |
 
-后续文档治理 PR 会为这些目录建立索引。建立索引前保留原路径，避免破坏 checks、测试和审计链接。
+目录索引已建立。历史文件保留原路径；大型旧验证流水使用日期化快照，
+对应 checks / tests 读取历史快照，避免把旧 anchor 继续堆入当前摘要。
 
 ## 已退休入口的兼容记录
 

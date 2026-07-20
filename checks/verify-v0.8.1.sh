@@ -52,7 +52,7 @@ VALIDATION_PLAN="docs/validation/validation-plan.md"
 TRADING_MATRIX="docs/validation/trading-validation-matrix.md"
 AUTOMATION_DOC="docs/automation/automation-readiness.md"
 AUTOMATION_SCRIPT="checks/automation-readiness.sh"
-LATEST_SUMMARY="docs/validation/latest-verification-summary.md"
+LATEST_SUMMARY="docs/history/validation-pre-canonicalization-2026-07-20/latest-verification-summary.md"
 
 require_file_contains "checks/run.sh" "bash checks/verify-v0.8.1.sh"
 require_file_contains "$AUDIT" "GH-841-RELEASE-V081-PATCH-AUDIT-DOCS-RELEASE-NOTES"
