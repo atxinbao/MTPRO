@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="data:,">
+  <title>MTPRO 后端安全与架构审计</title>
+  <style>
+    :root {
+      --canvas: #f4f6f3;
+      --surface: #ffffff;
+      --surface-alt: #edf2ef;
+      --ink: #17211d;
+      --muted: #5c6a62;
+      --line: #d5ded8;
+      --line-strong: #aebbb3;
+      --charcoal: #202925;
+      --green: #087a55;
+      --green-soft: #e3f4ec;
+      --blue: #175cd3;
+      --blue-soft: #e8f0ff;
+      --amber: #a85f00;
+      --amber-soft: #fff0d5;
+      --red: #b42318;
+      --red-soft: #fde9e7;
+      --shadow: 0 8px 24px rgba(23, 33, 29, 0.08);
+      --radius: 6px;
+      --sidebar: 268px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      letter-spacing: 0;
+    }
+    a { color: inherit; }
+    code, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+    code { overflow-wrap: anywhere; }
+    h1, h2, h3, p, td, li { overflow-wrap: anywhere; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 0 24px;
+      color: #fff;
+      background: var(--charcoal);
+      border-bottom: 1px solid #36413c;
+    }
+    .brand { display: flex; align-items: center; min-width: 0; gap: 13px; }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 auto;
+      border: 1px solid #6b7a72;
+      border-radius: 5px;
+      color: #8ee0bc;
+      font-weight: 800;
+    }
+    .brand-name { margin: 0; font-size: 17px; line-height: 1.2; font-weight: 760; }
+    .brand-meta { margin: 2px 0 0; color: #b9c4be; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .print-button {
+      min-height: 36px;
+      padding: 7px 12px;
+      border: 1px solid #56645d;
+      border-radius: 5px;
+      color: #fff;
+      background: transparent;
+      font: inherit;
+      cursor: pointer;
+    }
+    .print-button:hover { background: #303b36; }
+
+    .layout { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); min-height: calc(100vh - 64px); }
+    .sidebar {
+      position: sticky;
+      top: 64px;
+      align-self: start;
+      height: calc(100vh - 64px);
+      padding: 22px 18px;
+      overflow-y: auto;
+      background: #edf1ee;
+      border-right: 1px solid var(--line);
+    }
+    .sidebar-label { margin: 0 10px 10px; color: var(--muted); font-size: 11px; font-weight: 760; text-transform: uppercase; }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      min-height: 40px;
+      margin: 2px 0;
+      padding: 8px 10px;
+      border-left: 3px solid transparent;
+      color: #435149;
+      text-decoration: none;
+    }
+    .nav-link:hover, .nav-link.active { color: var(--green); background: #fff; border-left-color: var(--green); }
+    .sidebar-note { margin-top: 24px; padding: 14px 10px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+
+    main { min-width: 0; padding: 36px 44px 80px; }
+    .content { width: min(1280px, 100%); margin: 0 auto; }
+    section { padding: 42px 0; border-bottom: 1px solid var(--line); }
+    section:first-child { padding-top: 14px; }
+    .eyebrow { margin: 0 0 8px; color: var(--green); font-size: 12px; font-weight: 800; text-transform: uppercase; }
+    h1 { max-width: 960px; margin: 0; font-size: 36px; line-height: 1.16; font-weight: 780; }
+    h2 { margin: 0; font-size: 25px; line-height: 1.28; font-weight: 760; }
+    h3 { margin: 0; font-size: 17px; line-height: 1.4; font-weight: 740; }
+    .lead { max-width: 920px; margin: 18px 0 0; color: #435149; font-size: 17px; }
+    .section-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+    .section-intro { max-width: 850px; margin: 10px 0 0; color: var(--muted); }
+
+    .status-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+    .status, .severity {
+      display: inline-flex;
+      align-items: center;
+      min-height: 29px;
+      padding: 4px 9px;
+      border: 1px solid;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 730;
+      white-space: nowrap;
+    }
+    .ok, .severity.good { color: var(--green); background: var(--green-soft); border-color: #a9d9c5; }
+    .warn, .severity.medium { color: var(--amber); background: var(--amber-soft); border-color: #e5c585; }
+    .danger, .severity.high { color: var(--red); background: var(--red-soft); border-color: #efb1ab; }
+    .info { color: var(--blue); background: var(--blue-soft); border-color: #b7cdf7; }
+    .summary-callout { margin-top: 28px; padding: 20px 22px; border-left: 4px solid var(--red); background: var(--surface); box-shadow: var(--shadow); }
+    .summary-callout strong { display: block; margin-bottom: 6px; font-size: 18px; }
+
+    .metric-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 24px; }
+    .metric { min-height: 112px; padding: 17px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+    .metric-value { display: block; font-size: 27px; line-height: 1; font-weight: 780; }
+    .metric-label { display: block; margin-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.38; }
+
+    .filter-bar { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .filter-button { min-height: 34px; padding: 6px 10px; border: 1px solid var(--line-strong); border-radius: 5px; color: #435149; background: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+    .filter-button:hover, .filter-button.active { color: var(--green); border-color: var(--green); background: var(--green-soft); }
+    .finding-list { display: grid; gap: 10px; margin-top: 24px; }
+    .finding { display: grid; grid-template-columns: 104px minmax(0, 1fr) 260px; gap: 18px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .finding.is-hidden { display: none; }
+    .finding p { margin: 8px 0 0; color: #48564e; }
+    .evidence { padding-left: 14px; border-left: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    .evidence a { color: var(--blue); text-decoration: none; }
+    .evidence a:hover { text-decoration: underline; }
+
+    .diagram { margin-top: 24px; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    .diagram-caption { display: flex; justify-content: space-between; gap: 18px; margin-bottom: 18px; color: var(--muted); font-size: 12px; }
+    .architecture-flow { display: grid; gap: 8px; }
+    .arch-row { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px; align-items: stretch; }
+    .arch-label { display: flex; align-items: center; padding: 12px; color: var(--muted); font-size: 12px; font-weight: 720; background: var(--surface-alt); border: 1px solid var(--line); }
+    .arch-nodes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .arch-node { min-height: 88px; padding: 12px; border: 1px solid var(--line-strong); border-left: 4px solid #738a7d; background: #fff; }
+    .arch-node strong, .arch-node span { display: block; }
+    .arch-node span { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .arch-node.blue { border-left-color: var(--blue); }
+    .arch-node.amber { border-left-color: var(--amber); }
+    .arch-node.red { border-left-color: var(--red); }
+    .flow-arrow { padding-left: 160px; color: var(--muted); line-height: 1; }
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; color: var(--muted); font-size: 12px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-swatch { width: 11px; height: 11px; background: #738a7d; }
+    .legend-swatch.blue { background: var(--blue); }
+    .legend-swatch.amber { background: var(--amber); }
+    .legend-swatch.red { background: var(--red); }
+
+    .table-wrap { margin-top: 24px; overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    table { width: 100%; border-collapse: collapse; min-width: 810px; }
+    th, td { padding: 13px 15px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); background: var(--surface-alt); font-size: 12px; font-weight: 760; }
+    tr:last-child td { border-bottom: 0; }
+
+    .control-grid, .roadmap-grid, .acceptance-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 24px; }
+    .control, .roadmap-card, .acceptance { padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .control h3, .roadmap-card h3, .acceptance h3 { margin-top: 7px; }
+    .control p, .roadmap-card p, .acceptance p { margin: 8px 0 0; color: var(--muted); }
+    .control-kicker, .acceptance-kicker { margin: 0; color: var(--green); font-size: 11px; font-weight: 780; text-transform: uppercase; }
+    .control.bad .control-kicker { color: var(--red); }
+    .control.warn-card .control-kicker { color: var(--amber); }
+    .roadmap-card { border-top: 4px solid var(--line-strong); }
+    .roadmap-card.high { border-top-color: var(--red); }
+    .roadmap-card.medium { border-top-color: var(--amber); }
+    .roadmap-card.good { border-top-color: var(--green); }
+    .phase { margin: 0; color: var(--muted); font-size: 12px; font-weight: 760; }
+    .exit-gate { margin-top: 14px; padding: 10px 12px; border-left: 3px solid var(--green); color: #435149; background: var(--surface-alt); font-size: 13px; }
+    .exit-gate strong { margin-right: 7px; }
+    .acceptance-list { margin: 12px 0 0; padding-left: 19px; color: #48564e; }
+    .acceptance-list li + li { margin-top: 5px; }
+
+    .evidence-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; margin-top: 24px; }
+    .evidence-panel { padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .evidence-panel h3 { margin-bottom: 12px; }
+    .command { margin: 10px 0; padding: 11px 12px; overflow-x: auto; color: #d9eee3; background: var(--charcoal); border-radius: 4px; font-size: 12px; }
+    .evidence-list { margin: 0; padding-left: 19px; color: #48564e; }
+    .evidence-list li + li { margin-top: 7px; }
+    .disclaimer { margin-top: 16px; padding: 14px 16px; border-left: 3px solid var(--amber); color: #695126; background: var(--amber-soft); font-size: 13px; }
+
+    @media (max-width: 1080px) {
+      .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .finding { grid-template-columns: 94px minmax(0, 1fr); }
+      .evidence { grid-column: 2; padding-left: 0; border-left: 0; border-top: 1px solid var(--line); padding-top: 10px; }
+      .arch-nodes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .control-grid, .roadmap-grid, .acceptance-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      .topbar { padding: 0 14px; }
+      .brand-meta { max-width: 180px; }
+      .layout { display: block; }
+      .sidebar { position: static; width: 100%; height: auto; padding: 12px 14px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .sidebar-label, .sidebar-note { display: none; }
+      .sidebar { display: flex; flex-wrap: wrap; gap: 2px; }
+      .nav-link { min-height: 34px; margin: 0; padding: 6px 8px; border-left: 0; border-bottom: 2px solid transparent; font-size: 12px; }
+      .nav-link:hover, .nav-link.active { border-bottom-color: var(--green); }
+      main { padding: 24px 18px 56px; }
+      h1 { font-size: 28px; }
+      h2 { font-size: 22px; }
+      .section-head { display: block; }
+      .filter-bar { justify-content: flex-start; margin-top: 16px; }
+      .metric-grid, .control-grid, .roadmap-grid, .acceptance-grid, .evidence-grid { grid-template-columns: 1fr; }
+      .finding { grid-template-columns: 1fr; gap: 11px; }
+      .evidence { grid-column: 1; }
+      .diagram { padding: 14px; }
+      .diagram-caption { display: block; }
+      .diagram-caption span + span { display: block; margin-top: 4px; }
+      .arch-row { grid-template-columns: 1fr; }
+      .arch-nodes { grid-template-columns: 1fr; }
+      .flow-arrow { padding-left: 20px; }
+    }
+    @media print {
+      body { background: #fff; font-size: 11px; }
+      .topbar, .sidebar, .filter-bar { display: none !important; }
+      .layout { display: block; }
+      main { padding: 0; }
+      .content { width: 100%; }
+      section { break-inside: avoid; padding: 22px 0; }
+      h1 { font-size: 28px; }
+      h2 { font-size: 20px; }
+      .metric-grid { grid-template-columns: repeat(5, 1fr); }
+      .diagram, .summary-callout { box-shadow: none; }
+      .finding { grid-template-columns: 90px minmax(0, 1fr) 220px; }
+      a { text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">MT</div>
+      <div>
+        <p class="brand-name">MTPRO / Backend Audit</p>
+        <p class="brand-meta">代码基线 cbe22e19a2 · 2026-07-22 · 静态审计与本地验证</p>
+      </div>
+    </div>
+    <button class="print-button" type="button" onclick="window.print()">打印 / 导出 PDF</button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="文档导航">
+      <p class="sidebar-label">Audit map</p>
+      <a class="nav-link active" href="#overview">审计结论</a>
+      <a class="nav-link" href="#findings">审查发现</a>
+      <a class="nav-link" href="#architecture">后端架构</a>
+      <a class="nav-link" href="#controls">安全控制</a>
+      <a class="nav-link" href="#roadmap">修复路径</a>
+      <a class="nav-link" href="#acceptance">验收门槛</a>
+      <a class="nav-link" href="#evidence">证据与范围</a>
+      <div class="sidebar-note">本报告基于当前源码、SwiftPM target graph、工作流和本地测试。它不把合同字段或测试绿灯误写成生产授权。</div>
+    </aside>
+
+    <main>
+      <div class="content">
+        <section id="overview">
+          <p class="eyebrow">MTPRO backend security &amp; architecture review</p>
+          <h1>Demo 基线具备可验证的边界；生产下单路径不应获批，直到库级生产出口被硬性封死。</h1>
+          <p class="lead">MTPRO 已形成清晰的 DomainModel、MessageBus、RiskEngine、OMS、ExecutionClient 与只读 Dashboard 分层。当前 CLI 和 GitHub Demo workflow 均锁定 Binance Demo，但公开的 canary library 仍能构造生产 host 请求，且多个 API 默认环境为 <code>.production</code>。这使“默认关闭”停留在集成约束，而不是库级不可绕过的安全属性。</p>
+          <div class="status-row" aria-label="审计状态">
+            <span class="status ok">861 tests / 0 failures</span>
+            <span class="status ok">mtpro 与 Dashboard 构建通过</span>
+            <span class="status warn">Demo / testnet 基线：条件接受</span>
+            <span class="status danger">生产切换：不批准</span>
+            <span class="status info">HEAD 与 origin/main 对齐</span>
+          </div>
+          <div class="summary-callout">
+            <strong>审计决定：生产授权拒绝。</strong>
+            当前代码没有默认读取生产凭据或自动连接生产端点的 CLI 路径，且已实现只读投影、证据红脱敏、路径 containment 与 Demo workflow 隔离。可是 <code>ReleaseV0330ObservedCanaryRunner</code> 和 <code>ReleaseV0330ExternallyActivatedCanaryTransport</code> 对 library caller 仍接受 production endpoint；批准包的 <code>productionCutoverAuthorized=false</code> 不会阻止该运行器执行生产环境请求。先修复这个真实出口，再讨论任何生产 readiness 声明。
+          </div>
+          <div class="metric-grid" aria-label="代码规模与验证指标">
+            <div class="metric"><span class="metric-value">261,251</span><span class="metric-label">Swift 生产源代码行</span></div>
+            <div class="metric"><span class="metric-value">99,648</span><span class="metric-label">Swift 测试代码行</span></div>
+            <div class="metric"><span class="metric-value">18</span><span class="metric-label">SwiftPM 产品</span></div>
+            <div class="metric"><span class="metric-value">154</span><span class="metric-label">ExecutionClient Swift 文件</span></div>
+            <div class="metric"><span class="metric-value">270.97s</span><span class="metric-label">本轮完整测试耗时</span></div>
+          </div>
+        </section>
+
+        <section id="findings">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Code review findings</p>
+              <h2>审查发现</h2>
+              <p class="section-intro">风险按当前可执行代码评定。高风险项是生产授权阻塞项，不表示本轮审计实际触发了生产网络或使用了生产凭据。</p>
+            </div>
+            <div class="filter-bar" role="group" aria-label="筛选审查发现">
+              <button class="filter-button active" type="button" data-filter="all">全部</button>
+              <button class="filter-button" type="button" data-filter="high">高</button>
+              <button class="filter-button" type="button" data-filter="medium">中</button>
+              <button class="filter-button" type="button" data-filter="good">优势</button>
+            </div>
+          </div>
+
+          <div class="finding-list">
+            <article class="finding" data-severity="high">
+              <div><span class="severity high">High / P0</span></div>
+              <div>
+                <h3>公开 canary library 仍可向生产 Binance host 发出签名下单请求。</h3>
+                <p><code>ReleaseV0330CanaryEnvironment</code> 同时定义 Demo 与 production host；<code>ObservedCanaryRunRequest</code>、transport request、observation 的默认环境均为 <code>.production</code>。runner 只验证 host 与所选 environment 一致，并没有拒绝 production；transport allowlist 也接受 <code>api.binance.com</code>、<code>fapi.binance.com</code> 的 POST/GET/DELETE order path。默认依赖会拒绝凭据、网络与 artifact sink，CLI/workflow 也固定 Demo，但下游 library caller 注入这三项即可绕开“默认关闭”叙述。</p>
+              </div>
+              <div class="evidence">证据：<a href="Sources/ExecutionClient/FutureGate/ReleaseV0330ObservedCanaryRunner.swift">ObservedCanaryRunner:16, 180, 405, 530</a><br><a href="Sources/ExecutionClient/FutureGate/ReleaseV0330ExternallyActivatedCanaryTransport.swift">CanaryTransport:100, 305, 322</a><br><a href="Tests/TargetGraphTests/TargetGraphTests.swift">TargetGraphTests:73591</a> 明确断言默认是 production。</div>
+            </article>
+
+            <article class="finding" data-severity="high">
+              <div><span class="severity high">High / P1</span></div>
+              <div>
+                <h3>PR 快速检查继承仓库写权限，违反最小权限原则。</h3>
+                <p><code>checks.yml</code> 顶层设置 <code>permissions: contents: write</code>，因此在 <code>pull_request</code> 触发的 <code>pr-fast-checks</code> 也以写权限 checkout 并执行 PR 中的 shell 脚本。发布创建确实需要写权限，但只有 release-publication job 使用 <code>gh release create</code>；PR 检查不需要该权限。对于同仓库分支 PR，这扩大了供应链影响面。</p>
+              </div>
+              <div class="evidence">证据：<a href=".github/workflows/checks.yml">.github/workflows/checks.yml:45, 49, 60-91, 248, 271</a><br>修复：工作流默认 <code>contents: read</code>，仅 release job 覆盖为 <code>contents: write</code>。</div>
+            </article>
+
+            <article class="finding" data-severity="medium">
+              <div><span class="severity medium">Medium</span></div>
+              <div>
+                <h3>“人工审批”是本地自述配置，不是独立可验证的授权。</h3>
+                <p>Demo canary prepare 命令从 <code>GITHUB_ACTOR</code> 或 <code>USER</code> 生成 operator/approver identity，并把 <code>humanRecorded</code> approval 写入 JSON。验证器检查时间窗、字段和 SHA-256 格式，但没有独立签名、可信审批服务、双人规则或不可变审批来源。此设计适合明确标注的 Demo 操作，不足以构成生产 cutover 的授权根。</p>
+              </div>
+              <div class="evidence">证据：<a href="Sources/MTPROCLI/ReleaseV0330DemoCanaryCLI.swift">DemoCanaryCLI:70-179, 205-277</a><br><a href="Sources/ExecutionClient/FutureGate/ReleaseV0330CanaryApprovalPacket.swift">ApprovalPacketValidator:217-241</a></div>
+            </article>
+
+            <article class="finding" data-severity="medium">
+              <div><span class="severity medium">Medium</span></div>
+              <div>
+                <h3>本地凭据防误提交规则不足，<code>.env</code>、私钥与凭据文件没有默认忽略。</h3>
+                <p>当前 <code>.gitignore</code> 只忽略 <code>.local/</code>、构建产物和工具目录；审计时未发现已跟踪的私钥或 Binance key，但 <code>.env</code>、<code>*.pem</code>、<code>*.key</code>、<code>credentials*.json</code> 均可被意外加入。仓库又实际使用 <code>MTPRO_BINANCE_DEMO_API_KEY</code> 与 <code>MTPRO_BINANCE_DEMO_SECRET_KEY</code>，应把预防控制前移。</p>
+              </div>
+              <div class="evidence">证据：<a href=".gitignore">.gitignore</a><br><a href=".github/workflows/release-v0.33.0-demo-canary-validation.yml">Demo workflow:70-71</a><br>静态模式扫描：未发现已跟踪 private key、AWS key 或赋值形式的 Demo key。</div>
+            </article>
+
+            <article class="finding" data-severity="medium">
+              <div><span class="severity medium">Medium</span></div>
+              <div>
+                <h3>执行与历史合同代码高度集中，降低后续安全变更的可审阅性。</h3>
+                <p><code>ExecutionClient</code> 有 154 个 Swift 文件、100,887 行；<code>ExecutionEngine</code> 有 38,434 行。单文件热点包括 7,086 行的 <code>Core/LiveTradingBoundary.swift</code>、6,159 行的 session store 和 3,681 行的 live-risk/evidence contract。<code>TargetGraphTests</code> 本身 75,546 行，包含大量源码/文档 anchor 断言。它们能防止历史事实漂移，却会让真正的运行时行为改动与重构成本继续升高。</p>
+              </div>
+              <div class="evidence">证据：<a href="Package.swift">Package.swift target graph</a><br><a href="Sources/Core/LiveTradingBoundary.swift">LiveTradingBoundary.swift</a><br><a href="Tests/TargetGraphTests/TargetGraphTests.swift">TargetGraphTests.swift</a></div>
+            </article>
+
+            <article class="finding" data-severity="good">
+              <div><span class="severity good">Strength</span></div>
+              <div>
+                <h3>边界划分、Demo 隔离和证据完整性控制具有实际代码支撑。</h3>
+                <p>DataClient 与 ExecutionClient 分离；策略路径不直接到 broker；CLI/Dashboard 读取同一已验证状态。Demo workflow 使用独立 environment、只读 GitHub token、Demo secrets 与红脱敏检查。证据读取拒绝绝对路径、<code>..</code>、symlink component 和 read 前后 canonical path 漂移；默认 canary provider/loader/sink 均拒绝操作。</p>
+              </div>
+              <div class="evidence">证据：<a href="docs/architecture/module-boundary.md">Module Boundary:35-116</a><br><a href="Sources/ExecutionClient/FutureGate/ReleaseV0323EvidenceRootContainment.swift">EvidenceRootContainment</a><br><a href=".github/workflows/release-v0.33.0-demo-canary-validation.yml">Demo workflow:45-130</a></div>
+            </article>
+          </div>
+        </section>
+
+        <section id="architecture">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Current backend architecture</p>
+              <h2>当前后端架构与实际 I/O 边界</h2>
+              <p class="section-intro">下图以 <code>Package.swift</code> 的 compile-time target graph 和当前模块边界为准。红色节点代表外部执行或风险敏感边界，不代表已获得生产授权。</p>
+            </div>
+          </div>
+          <div class="diagram" aria-label="MTPRO 当前后端架构图">
+            <div class="diagram-caption"><span>行情输入 → 领域与消息 → 策略/风险/OMS → 证据与只读运营面</span><span>SwiftPM 是编译期权威</span></div>
+            <div class="architecture-flow">
+              <div class="arch-row">
+                <div class="arch-label">外部输入</div>
+                <div class="arch-nodes">
+                  <div class="arch-node blue"><strong>Binance public data</strong><span>Spot / USD-M REST 与 WebSocket</span></div>
+                  <div class="arch-node blue"><strong>Signed account</strong><span>testnet read-only account snapshot</span></div>
+                  <div class="arch-node blue"><strong>Private stream</strong><span>testnet account snapshot boundary</span></div>
+                  <div class="arch-node blue"><strong>SQLite / DuckDB</strong><span>本地事实、投影与分析</span></div>
+                </div>
+              </div>
+              <div class="flow-arrow" aria-hidden="true">↓</div>
+              <div class="arch-row">
+                <div class="arch-label">领域基础</div>
+                <div class="arch-nodes">
+                  <div class="arch-node"><strong>DomainModel</strong><span>产品、行情、订单、风险基础类型</span></div>
+                  <div class="arch-node"><strong>MessageBus</strong><span>event / command / correlation / replay</span></div>
+                  <div class="arch-node"><strong>Cache</strong><span>可重建内存读模型</span></div>
+                  <div class="arch-node"><strong>Database</strong><span>append-only facts 与 projections</span></div>
+                </div>
+              </div>
+              <div class="flow-arrow" aria-hidden="true">↓</div>
+              <div class="arch-row">
+                <div class="arch-label">交易域</div>
+                <div class="arch-nodes">
+                  <div class="arch-node amber"><strong>TraderStrategies</strong><span>EMA / RSI signal 与 target exposure</span></div>
+                  <div class="arch-node amber"><strong>Trader / Portfolio</strong><span>协调、账户、PnL、仓位、敞口投影</span></div>
+                  <div class="arch-node red"><strong>RiskEngine</strong><span>pre-trade、limit、kill switch、no-trade</span></div>
+                  <div class="arch-node red"><strong>ExecutionEngine</strong><span>OMS、reconciliation、rollback coordination</span></div>
+                </div>
+              </div>
+              <div class="flow-arrow" aria-hidden="true">↓</div>
+              <div class="arch-row">
+                <div class="arch-label">外部执行</div>
+                <div class="arch-nodes">
+                  <div class="arch-node red"><strong>ExecutionClient</strong><span>Demo/testnet transport、endpoint policy、evidence</span></div>
+                  <div class="arch-node red"><strong>Canary runner</strong><span>approval、scope、run lock、submit/status/cancel</span></div>
+                  <div class="arch-node blue"><strong>MTPROCLI</strong><span>operator commands、status、verification</span></div>
+                  <div class="arch-node blue"><strong>Dashboard</strong><span>validated read model only</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="legend" aria-label="图例">
+              <span class="legend-item"><span class="legend-swatch"></span>基础域</span>
+              <span class="legend-item"><span class="legend-swatch blue"></span>输入 / 存储 / 读侧</span>
+              <span class="legend-item"><span class="legend-swatch amber"></span>策略 / 组合</span>
+              <span class="legend-item"><span class="legend-swatch red"></span>风险敏感 / 外部执行</span>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>层级</th><th>实际责任</th><th>已验证控制</th><th>审计判断</th></tr></thead>
+              <tbody>
+                <tr><td><code>DataClient</code></td><td>Binance 公共行情、signed account 与 private stream 输入归一化</td><td>订单 endpoint / listenKey / broker mutation 不属于 DataClient</td><td>输入边界清楚；真实网络调用存在且被产品/endpoint contract 约束</td></tr>
+                <tr><td><code>Trader / Risk / OMS</code></td><td>EMA/RSI intent、风控决策、订单生命周期、对账</td><td>策略不直接调用 ExecutionClient；RiskEngine 不依赖 transport</td><td>依赖方向合理，是可复用交易语义核心</td></tr>
+                <tr><td><code>ExecutionClient</code></td><td>Binance Demo/testnet 与受控 canary transport、红脱敏证据</td><td>默认拒绝 credential/network/artifact 依赖；host/path allowlist；run lock</td><td>当前最大安全与复杂度热点；库级生产出口需封死</td></tr>
+                <tr><td><code>Database / Cache</code></td><td>事实、journal、projection 与可重建读模型</td><td>evidence root realpath containment、atomic write、checksum</td><td>本地单实例证据模型可用，不能直接升级为多节点权威服务</td></tr>
+                <tr><td><code>MTPROCLI / Dashboard</code></td><td>操作入口与只读运营面</td><td>Dashboard 读取验证状态；Demo CLI hard-code <code>.demo</code></td><td>当前产品入口未见默认生产通道；library API 仍是旁路风险</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="controls">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Security control assessment</p>
+              <h2>控制有效性</h2>
+              <p class="section-intro">以下评估区分“默认值、测试或工作流约束”与“任何 caller 都无法绕过的库级约束”。</p>
+            </div>
+          </div>
+          <div class="control-grid">
+            <article class="control good"><p class="control-kicker">Effective</p><h3>证据路径 containment</h3><p>读取时拒绝绝对/相对逃逸、symlink、root 外路径及读取前后 canonical mismatch；缺失或损坏一律 blocked。</p></article>
+            <article class="control good"><p class="control-kicker">Effective</p><h3>默认依赖拒绝操作</h3><p>Canary transport 的 credential provider、network loader 和 artifact sink 默认均拒绝，未注入时不可发起 I/O。</p></article>
+            <article class="control good"><p class="control-kicker">Effective</p><h3>Demo workflow 隔离</h3><p>workflow_dispatch、<code>binance-demo</code> environment、Demo secrets、固定 Demo CLI 和上传前红脱敏检查形成一条受控运行路径。</p></article>
+            <article class="control bad"><p class="control-kicker">Ineffective for production</p><h3>生产禁止只是状态字段</h3><p>runner 最终 evidence 始终写入 <code>false</code>，但没有把 request.environment 限制为 Demo，也没有拒绝 production endpoint。</p></article>
+            <article class="control bad"><p class="control-kicker">Over-privileged</p><h3>PR CI token 权限过宽</h3><p>写权限位于整个 workflow 的顶层，而非仅发布 job；检查脚本本身没有写仓库的业务需要。</p></article>
+            <article class="control warn-card"><p class="control-kicker">Needs hardening</p><h3>审批无独立信任根</h3><p>approval packet 是本地 JSON，identity 取自环境变量；需要独立审批主体、签名和服务器侧验证才能用于任何生产权限。</p></article>
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Remediation sequence</p>
+              <h2>建议的修复路径</h2>
+              <p class="section-intro">按风险和可验证性排序。完成前不应把 v0.33.x 的 Demo 证据提升为生产 execution readiness。</p>
+            </div>
+          </div>
+          <div class="roadmap-grid">
+            <article class="roadmap-card high">
+              <p class="phase">P0 · 生产出口硬阻断</p>
+              <h3>将 v0.33 canary 类型限制为 Demo</h3>
+              <p>移除或 internalize <code>.production</code> endpoint、默认值和 production host allowlist；在 runner 与 transport 双层显式 <code>guard environment == .demo</code>。未来生产实现应放在单独 target/feature gate，并默认不编译进 Demo runtime。</p>
+              <div class="exit-gate"><strong>Exit gate</strong>任何公开 v0.33 canary API 对 production host 都返回确定性错误；负向测试覆盖 direct library caller。</div>
+            </article>
+            <article class="roadmap-card high">
+              <p class="phase">P1 · CI 最小权限</p>
+              <h3>下收 <code>contents: write</code></h3>
+              <p>把 workflow 顶层改为 <code>contents: read</code>；仅 release-publication job 声明写权限。审查所有 action pin 与 self-hosted runner 的 trust boundary，PR job 不接触发布 credential。</p>
+              <div class="exit-gate"><strong>Exit gate</strong>pull_request workflow 的有效 token 不能推送、创建 release 或修改仓库内容。</div>
+            </article>
+            <article class="roadmap-card medium">
+              <p class="phase">P2 · 授权可信度</p>
+              <h3>用独立审批替代自述 JSON</h3>
+              <p>将审批绑定到 GitHub Environment reviewer、OIDC/签名的 approval record 或独立审批服务；要求 approver 与 operator 不同，记录签名、commit、scope、额度、有效期和单次 nonce。</p>
+              <div class="exit-gate"><strong>Exit gate</strong>篡改 JSON、同人自批、过期、跨 commit、跨产品或跨 symbol 均被拒绝。</div>
+            </article>
+            <article class="roadmap-card medium">
+              <p class="phase">P2 · 凭据卫生</p>
+              <h3>增加忽略与提交前扫描</h3>
+              <p>忽略 <code>.env*</code>、<code>*.pem</code>、<code>*.key</code>、credential/evidence 临时目录；在 PR fast lane 加 gitleaks 或等价 secret scan，并保留已跟踪路径的 allowlist。</p>
+              <div class="exit-gate"><strong>Exit gate</strong>测试模拟 key、私钥标记和非空 credential 文件都会令 CI 失败。</div>
+            </article>
+            <article class="roadmap-card medium">
+              <p class="phase">P3 · 复杂度收口</p>
+              <h3>按运行时职责拆分大文件与历史 guard</h3>
+              <p>优先拆分 live boundary、canary/evidence persistence、risk gate 与 session store；将历史文档锚点检查分离到 contract test，保持业务行为测试面向 public API。</p>
+              <div class="exit-gate"><strong>Exit gate</strong>每个拆分后的模块有独立所有者、目标依赖检查和 focused behavior test。</div>
+            </article>
+            <article class="roadmap-card good">
+              <p class="phase">保持现有优势</p>
+              <h3>不要破坏已验证的 Demo 防护</h3>
+              <p>保留 endpoint allowlist、redaction、artifact checksum、run lock、Demo workflow environment 和 Dashboard read-model-only 边界。修复生产出口时，不得扩大 DataClient、Dashboard 或策略层权限。</p>
+              <div class="exit-gate"><strong>Exit gate</strong>Demo submit/status/cancel 和所有 redaction / path-escape 负向测试继续通过。</div>
+            </article>
+          </div>
+        </section>
+
+        <section id="acceptance">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Production authorization gate</p>
+              <h2>生产授权的最低验收门槛</h2>
+              <p class="section-intro">当前报告不建议发起生产 cutover。以下内容是未来独立生产项目的最小验收集合，而不是本次 Demo 审计的完成项。</p>
+            </div>
+          </div>
+          <div class="acceptance-grid">
+            <article class="acceptance"><p class="acceptance-kicker">Code</p><h3>不可绕过的 capability gate</h3><ul class="acceptance-list"><li>production transport 位于独立 target</li><li>默认构造器不含 production host</li><li>每个入口双层拒绝未授权环境</li><li>library caller 负向测试覆盖</li></ul></article>
+            <article class="acceptance"><p class="acceptance-kicker">Identity</p><h3>独立审批与凭据</h3><ul class="acceptance-list"><li>operator 与 approver 职责分离</li><li>审批签名绑定 commit/scope/limit</li><li>短期、最小权限凭据</li><li>secret 不进参数、日志、文件或 artifact</li></ul></article>
+            <article class="acceptance"><p class="acceptance-kicker">Runtime</p><h3>受控执行语义</h3><ul class="acceptance-list"><li>symbol、notional、leverage 严格 allowlist</li><li>风险、kill switch、no-trade 为实时权威输入</li><li>幂等键与持久 run lock</li><li>submit/status/cancel/reconcile/rollback 完整闭环</li></ul></article>
+            <article class="acceptance"><p class="acceptance-kicker">Evidence</p><h3>可验证、可审计证据</h3><ul class="acceptance-list"><li>provenance 由受信来源产生</li><li>artifact 只保存 redacted 数据</li><li>checksum、realpath、权限与 retention 可验证</li><li>独立审计能重放拒绝与失败路径</li></ul></article>
+            <article class="acceptance"><p class="acceptance-kicker">Delivery</p><h3>供应链与发布</h3><ul class="acceptance-list"><li>PR token 只读，发布 job 最小写权限</li><li>secret scan、依赖审计、SBOM</li><li>macOS/Linux 完整矩阵与 Dashboard smoke</li><li>回滚路径和事故演练有证据</li></ul></article>
+            <article class="acceptance"><p class="acceptance-kicker">Decision</p><h3>审批语义</h3><ul class="acceptance-list"><li>测试通过不等于生产可用</li><li>Demo 证据不等于 production authorization</li><li>每一次开通有独立 change record</li><li>任一关键证据缺失即 fail closed</li></ul></article>
+          </div>
+        </section>
+
+        <section id="evidence">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Evidence, validation &amp; scope</p>
+              <h2>审计证据与限制</h2>
+              <p class="section-intro">审计在本地工作树的 current main 上完成。所有测试均为本地代码/合同基线验证；本轮没有连接 Binance、读取真实凭据、提交、取消或替换任何订单。</p>
+            </div>
+          </div>
+          <div class="evidence-grid">
+            <div class="evidence-panel">
+              <h3>本轮执行</h3>
+              <div class="command">git status --short --branch<br>git diff --check<br>bash checks/automation-readiness.sh<br>swift test<br>swift build --product mtpro<br>swift build --product Dashboard</div>
+              <ul class="evidence-list">
+                <li><code>main...origin/main</code>，commit <code>cbe22e19a2e80549d285a58e72ce3faf13fe4225</code>。</li>
+                <li><code>swift test</code>：861 tests、0 failures、270.974s。</li>
+                <li><code>mtpro</code> 构建通过：2.86s；<code>Dashboard</code> 构建通过：0.42s。</li>
+                <li>automation readiness 与 whitespace 检查通过。</li>
+                <li>跟踪文件 pattern scan 未发现 private key、AWS access key 或非空 Demo credential 赋值。</li>
+              </ul>
+            </div>
+            <div class="evidence-panel">
+              <h3>审计范围</h3>
+              <ul class="evidence-list">
+                <li>SwiftPM manifest、18 个产品、源码 target 依赖方向。</li>
+                <li>Binance public/read-only/testnet/canary 网络代码与 CLI 调用入口。</li>
+                <li>证据持久化、redaction、checksum、symlink/realpath containment。</li>
+                <li>GitHub Actions PR/release/demo workflow 权限与 secret 接入。</li>
+                <li>历史发布资料只作为佐证；当前源码优先。</li>
+              </ul>
+              <div class="disclaimer"><strong>未包含：</strong>渗透测试、真实交易所凭据验证、生产网络探测、GitHub 组织级分支保护与 Environment reviewer 设置核验、第三方依赖 CVE 数据库扫描。这些需要独立、获授权的安全评估。</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const filterButtons = document.querySelectorAll('.filter-button');
+    const findings = document.querySelectorAll('.finding');
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const filter = button.dataset.filter;
+        filterButtons.forEach((item) => item.classList.toggle('active', item === button));
+        findings.forEach((finding) => {
+          finding.classList.toggle('is-hidden', filter !== 'all' && finding.dataset.severity !== filter);
+        });
+      });
+    });
+
+    const navLinks = [...document.querySelectorAll('.nav-link')];
+    const sections = navLinks.map((link) => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      navLinks.forEach((link) => link.classList.toggle('active', link.getAttribute('href') === `#${visible.target.id}`));
+    }, { rootMargin: '-20% 0px -70% 0px', threshold: [0.05, 0.25, 0.5] });
+    sections.forEach((section) => observer.observe(section));
+  </script>
+</body>
+</html>
