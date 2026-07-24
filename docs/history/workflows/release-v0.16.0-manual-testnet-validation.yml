@@ -1,5 +1,6 @@
 name: MTPRO v0.16.0 Manual Testnet Validation
 
+# Historical validation contract retained for reproducibility.
 on:
   workflow_dispatch:
     inputs:
@@ -27,11 +28,14 @@ jobs:
   validate-redacted-evidence:
     name: validate-redacted-evidence
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     permissions:
       contents: read
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Guard manual-only and no-secret inputs
         run: |

@@ -189,7 +189,7 @@ public struct ReleaseV0160ManualTestnetValidationReport: Codable, Equatable, Sen
     public init(
         runID: Identifier,
         evidenceEntries: [ReleaseV0160ManualTestnetValidationEvidenceEntry],
-        githubWorkflowPath: String = ".github/workflows/release-v0.16.0-manual-testnet-validation.yml",
+        githubWorkflowPath: String = "docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml",
         requiredActionSequence: [ReleaseV0160ManualTestnetValidationStep] = ReleaseV0160ManualTestnetValidationStep.requiredSequence,
         submitStatusCancelStatusReconciliationPassed: Bool = true,
         manualWorkflowOnly: Bool = true,
@@ -265,7 +265,7 @@ public struct ReleaseV0160ManualTestnetValidationReport: Codable, Equatable, Sen
             && releaseVersion == "v0.16.0"
             && reportID == Self.deterministicID(runID: runID, checksumReferences: checksumReferences)
             && runID.rawValue.isEmpty == false
-            && githubWorkflowPath == ".github/workflows/release-v0.16.0-manual-testnet-validation.yml"
+            && githubWorkflowPath == "docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml"
             && requiredActionSequence == ReleaseV0160ManualTestnetValidationStep.requiredSequence
             && evidenceEntries.map(\.step) == ReleaseV0160ManualTestnetValidationStep.requiredSequence
             && evidenceEntries.allSatisfy(\.entryHeld)

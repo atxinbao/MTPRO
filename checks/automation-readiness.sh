@@ -281,7 +281,7 @@ require_file "docs/history/validation-pre-canonicalization-2026-07-20/verificati
 for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" \
   "Sources/MTPROCLI/main.swift" \
-  ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" \
+  "docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml" \
   "docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md" \
   "docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md" \
   "docs/automation/automation-readiness.md" \
@@ -303,7 +303,7 @@ done
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "ReleaseV0161ManualTestnetValidationEvidenceBundle"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "workflowReadsEvidenceBundleContent=true"
 require_contains "Sources/MTPROCLI/main.swift" "validate-manual-evidence-bundle"
-require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "swift run mtpro validate-manual-evidence-bundle"
+require_contains "docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml" "swift run mtpro validate-manual-evidence-bundle"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.1 manual evidence bundle content anchor"
 require_contains "docs/validation/validation-plan.md" "GH-1134 Release v0.16.1 Manual Evidence Bundle Content Guard"
 require_contains "docs/validation/trading-validation-matrix.md" "TVM-RELEASE-V0161-MANUAL-EVIDENCE-BUNDLE-CONTENT"
@@ -683,7 +683,7 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1145Rele
 
 for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" \
-  ".github/workflows/release-v0.17.0-manual-artifact-validation.yml" \
+  "docs/history/workflows/release-v0.17.0-manual-artifact-validation.yml" \
   "docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" \
   "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" \
@@ -708,7 +708,7 @@ for file in \
 done
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "ReleaseV0170ManualWorkflowArtifactValidationReport"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "ReleaseV0170CLIArtifactVerifyCommand.commandOutput"
-require_contains ".github/workflows/release-v0.17.0-manual-artifact-validation.yml" "swift run mtpro verify-operator-beta-artifact-bundle"
+require_contains "docs/history/workflows/release-v0.17.0-manual-artifact-validation.yml" "swift run mtpro verify-operator-beta-artifact-bundle"
 require_contains "docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md" "#1146 / GH-1146"
 require_contains "docs/automation/automation-readiness.md" "Release v0.17.0 manual workflow artifact validation anchor"
 require_contains "docs/validation/validation-plan.md" "GH-1146 Release v0.17.0 Manual Workflow Artifact Validation"
@@ -822,7 +822,7 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1166Rele
 
 for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" \
-  ".github/workflows/release-v0.17.0-manual-artifact-validation.yml" \
+  "docs/history/workflows/release-v0.17.0-manual-artifact-validation.yml" \
   "checks/verify-v0.17.1-manual-workflow-fail-closed.sh" \
   "checks/run.sh" \
   "checks/automation-readiness.sh" \
@@ -834,8 +834,8 @@ for file in \
   require_contains "$file" "V0171-002-REQUIRE-PASSED-STATUS"
   require_contains "$file" "V0171-002-NO-PRODUCTION-CUTOVER"
 done
-require_contains ".github/workflows/release-v0.17.0-manual-artifact-validation.yml" "grep -Fq \"status=passed\""
-require_contains ".github/workflows/release-v0.17.0-manual-artifact-validation.yml" "grep -Fq \"boundaryHeld=true\""
+require_contains "docs/history/workflows/release-v0.17.0-manual-artifact-validation.yml" "grep -Fq \"status=passed\""
+require_contains "docs/history/workflows/release-v0.17.0-manual-artifact-validation.yml" "grep -Fq \"boundaryHeld=true\""
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "workflowFailClosedHeld"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "failedUploadedArtifactRejectsWorkflow=true"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift" "failedDownloadedArtifactRejectsWorkflow=true"
@@ -11833,12 +11833,12 @@ require_contains "Tests/TargetGraphTests/TargetGraphTests.swift" "testGH1110Rele
 
 require_file "checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
 require_file "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift"
-require_file ".github/workflows/release-v0.16.0-manual-testnet-validation.yml"
+require_file "docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml"
 require_file "docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md"
 require_file "docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md"
 for file in \
   "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" \
-  ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" \
+  "docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml" \
   "docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md" \
   "docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md" \
   "docs/automation/automation-readiness.md" \
@@ -11865,10 +11865,10 @@ require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetVa
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "redactedEvidenceBundleRequired=true"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "checksumReferencesRequired=true"
 require_contains "Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift" "githubWorkflowDispatchOnly=true"
-require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "workflow_dispatch:"
-require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "dry_run_only"
-require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "operator_confirmed_redaction"
-require_contains ".github/workflows/release-v0.16.0-manual-testnet-validation.yml" "bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
+require_contains "docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml" "workflow_dispatch:"
+require_contains "docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml" "dry_run_only"
+require_contains "docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml" "operator_confirmed_redaction"
+require_contains "docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml" "bash checks/verify-v0.16.0-manual-testnet-validation-workflow.sh"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md" "#1111 manual testnet validation workflow closed / done"
 require_contains "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md" "#1111 manual testnet validation workflow closed / done"
 require_contains "docs/automation/automation-readiness.md" "Release v0.16.0 manual testnet validation workflow anchor"

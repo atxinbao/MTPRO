@@ -74,7 +74,7 @@ swift run mtpro validate-manual-evidence-bundle ".local/mtpro/v0.16.0/operator-r
 
 ## GitHub Manual Workflow
 
-`.github/workflows/release-v0.16.0-manual-testnet-validation.yml` 只能通过 `workflow_dispatch` 手动触发。该 workflow 先验证 manual-only 输入，再调用 `swift run mtpro validate-manual-evidence-bundle "${{ inputs.evidence_bundle_path }}"` 读取 redacted evidence bundle JSON 内容；不读取 secrets，不连接 network endpoint，不发送 testnet 或 production order。
+`docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml` 只能通过 `workflow_dispatch` 手动触发。该 workflow 先验证 manual-only 输入，再调用 `swift run mtpro validate-manual-evidence-bundle "${{ inputs.evidence_bundle_path }}"` 读取 redacted evidence bundle JSON 内容；不读取 secrets，不连接 network endpoint，不发送 testnet 或 production order。
 
 ## Validation
 

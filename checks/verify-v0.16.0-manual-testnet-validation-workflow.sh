@@ -33,7 +33,7 @@ reject_file_contains() {
 }
 
 SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift"
-WORKFLOW=".github/workflows/release-v0.16.0-manual-testnet-validation.yml"
+WORKFLOW="docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml"
 CONTRACT="docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md"
 RUNBOOK="docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md"
 TARGET_TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"
