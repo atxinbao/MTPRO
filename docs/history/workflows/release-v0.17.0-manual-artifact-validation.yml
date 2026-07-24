@@ -1,5 +1,6 @@
 name: MTPRO v0.17.0 Manual Artifact Validation
 
+# Historical validation contract retained for reproducibility.
 # workflowName=release-v0.17.0-manual-artifact-validation
 # GH-1167-VERIFY-V0171-MANUAL-WORKFLOW-FAIL-CLOSED
 
@@ -35,11 +36,14 @@ jobs:
   validate-manual-artifacts:
     name: validate-manual-artifacts
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     permissions:
       contents: read
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Guard manual-only artifact inputs
         run: |

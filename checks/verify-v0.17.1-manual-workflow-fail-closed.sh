@@ -39,7 +39,7 @@ reject_file_contains() {
 }
 
 SOURCE="Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift"
-WORKFLOW=".github/workflows/release-v0.17.0-manual-artifact-validation.yml"
+WORKFLOW="docs/history/workflows/release-v0.17.0-manual-artifact-validation.yml"
 RUN_SCRIPT="checks/run.sh"
 AUTOMATION_SCRIPT="checks/automation-readiness.sh"
 TESTS="Tests/TargetGraphTests/TargetGraphTests.swift"

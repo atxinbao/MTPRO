@@ -51,7 +51,7 @@ submit -> status-after-submit -> cancel -> status-after-cancel -> reconciliation
 
 ## GitHub Workflow
 
-`.github/workflows/release-v0.16.0-manual-testnet-validation.yml` 只能通过 `workflow_dispatch` 手动触发。它只验证 operator 提供的 redacted bundle path 和本地 deterministic guard，不读取 GitHub secrets，不接受 production credential name，不连接 endpoint，不发送 submit / cancel / replace。
+`docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml` 只能通过 `workflow_dispatch` 手动触发。它只验证 operator 提供的 redacted bundle path 和本地 deterministic guard，不读取 GitHub secrets，不接受 production credential name，不连接 endpoint，不发送 submit / cancel / replace。
 
 GH-1134 后，该 workflow 还必须运行：
 

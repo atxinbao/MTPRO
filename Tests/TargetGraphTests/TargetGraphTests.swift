@@ -29207,6 +29207,18 @@ final class TargetGraphTests: XCTestCase {
 
         XCTAssertTrue(workflowSource.contains("\"release/**\""))
         XCTAssertTrue(workflowSource.contains("\"v*\""))
+        let workflowHeader = try XCTUnwrap(workflowSource.components(separatedBy: "jobs:").first)
+        XCTAssertTrue(workflowHeader.contains("permissions:\n  contents: read"))
+        XCTAssertFalse(workflowHeader.contains("contents: write"))
+        XCTAssertTrue(workflowHeader.contains("cancel-in-progress: ${{ github.event_name == 'pull_request' }}"))
+        let releaseLane = try XCTUnwrap(workflowSource.range(of: "  release_publication_checks:"))
+        let releaseLaneSource = String(workflowSource[releaseLane.lowerBound..<aggregateLane.lowerBound])
+        XCTAssertTrue(releaseLaneSource.contains("permissions:\n      contents: write"))
+        XCTAssertFalse(fastLaneSource.contains("contents: write"))
+        XCTAssertEqual(
+            workflowSource.components(separatedBy: "uses: actions/checkout@v4").count - 1,
+            workflowSource.components(separatedBy: "persist-credentials: false").count - 1
+        )
         XCTAssertTrue(runScript.contains("bash checks/verify-ci-pr-fast-lane-release-matrix.sh"))
         XCTAssertFalse(verifier.contains("swift test --filter TargetGraphTests/testCIRequiredChecksUsePRFastLaneAndReleaseFullMatrix"))
         XCTAssertFalse(verifier.contains("\nswift test"))
@@ -48295,7 +48307,7 @@ final class TargetGraphTests: XCTestCase {
         ))
 
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift")
-        let workflow = try read(".github/workflows/release-v0.16.0-manual-testnet-validation.yml")
+        let workflow = try read("docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml")
         let docs = try read("docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md")
         let runbook = try read("docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md")
         let verifier = try read("checks/verify-v0.16.0-manual-testnet-validation-workflow.sh")
@@ -48539,7 +48551,7 @@ final class TargetGraphTests: XCTestCase {
 
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0160ManualTestnetValidationWorkflow.swift")
         let cli = try read("Sources/MTPROCLI/main.swift")
-        let workflow = try read(".github/workflows/release-v0.16.0-manual-testnet-validation.yml")
+        let workflow = try read("docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml")
         let contract = try read("docs/contracts/release-v0.16.0-manual-testnet-validation-workflow-contract.md")
         let runbook = try read("docs/operators/release-v0.16.0-manual-testnet-validation-workflow-runbook.md")
         let verifier = try read("checks/verify-v0.16.1-manual-evidence-bundle-content.sh")
@@ -50456,7 +50468,7 @@ final class TargetGraphTests: XCTestCase {
         ]
         let requiredFiles = [
             "Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift",
-            ".github/workflows/release-v0.17.0-manual-artifact-validation.yml",
+            "docs/history/workflows/release-v0.17.0-manual-artifact-validation.yml",
             "docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/README.md",
             "docs/history/root-docs-pre-canonicalization-2026-07-20/GOAL.md",
@@ -50614,7 +50626,7 @@ final class TargetGraphTests: XCTestCase {
         }
 
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift")
-        let workflow = try read(".github/workflows/release-v0.17.0-manual-artifact-validation.yml")
+        let workflow = try read("docs/history/workflows/release-v0.17.0-manual-artifact-validation.yml")
         let contractDoc = try read("docs/contracts/release-v0.17.0-manual-workflow-artifact-validation-contract.md")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
@@ -50790,7 +50802,7 @@ final class TargetGraphTests: XCTestCase {
         )
 
         let source = try read("Sources/ExecutionClient/FutureGate/ReleaseV0170ManualWorkflowArtifactValidation.swift")
-        let workflow = try read(".github/workflows/release-v0.17.0-manual-artifact-validation.yml")
+        let workflow = try read("docs/history/workflows/release-v0.17.0-manual-artifact-validation.yml")
         let runScript = try read("checks/run.sh")
         let automationScript = try read("checks/automation-readiness.sh")
         let verifier = try read("checks/verify-v0.17.1-manual-workflow-fail-closed.sh")

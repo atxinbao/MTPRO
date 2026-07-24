@@ -1112,7 +1112,7 @@ GH-1133 不移动 `v0.16.0` tag，不覆盖 GitHub Release，不创建 `v0.16.1`
 
 `V0161-002-NO-PRODUCTION-CUTOVER`
 
-GH-1134 只强化 v0.16.0 manual testnet validation workflow 的 redacted evidence bundle 内容校验。`.github/workflows/release-v0.16.0-manual-testnet-validation.yml` 必须调用 `swift run mtpro validate-manual-evidence-bundle "${{ inputs.evidence_bundle_path }}"`，并由 `ReleaseV0161ManualTestnetValidationEvidenceBundle` 解析 schema、action sequence、checksum references、reconciliation 和 no-secret / no-production markers。
+GH-1134 只强化 v0.16.0 manual testnet validation workflow 的 redacted evidence bundle 内容校验。`docs/history/workflows/release-v0.16.0-manual-testnet-validation.yml` 必须调用 `swift run mtpro validate-manual-evidence-bundle "${{ inputs.evidence_bundle_path }}"`，并由 `ReleaseV0161ManualTestnetValidationEvidenceBundle` 解析 schema、action sequence、checksum references、reconciliation 和 no-secret / no-production markers。
 
 GH-1134 不创建 tag，不创建 GitHub Release，不移动 `v0.16.0` tag，不覆盖 release，不推进 #1135..#1138，不授权 production cutover，不读取 production secret，不连接 production endpoint / broker endpoint，不提交 testnet 或 production order。production cutover not authorized。
 

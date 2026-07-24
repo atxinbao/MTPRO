@@ -71,6 +71,10 @@ done
 
 require_file_contains "$WORKFLOW" "pull_request:"
 require_file_contains "$WORKFLOW" "workflow_dispatch:"
+require_file_contains "$WORKFLOW" "contents: read"
+require_file_contains "$WORKFLOW" "contents: write"
+require_file_contains "$WORKFLOW" "persist-credentials: false"
+require_file_contains "$WORKFLOW" "cancel-in-progress: \${{ github.event_name == 'pull_request' }}"
 require_file_contains "$WORKFLOW" "branches:"
 require_file_contains "$WORKFLOW" "\"release/**\""
 require_file_contains "$WORKFLOW" "\"v*\""
@@ -112,6 +116,12 @@ python3 - <<'PY'
 from pathlib import Path
 
 workflow = Path(".github/workflows/checks.yml").read_text()
+workflow_header = workflow.split("jobs:", 1)[0]
+if "permissions:\n  contents: read" not in workflow_header:
+    raise SystemExit("workflow default permissions must be contents: read")
+if "contents: write" in workflow_header:
+    raise SystemExit("workflow-level contents: write must not grant PR jobs repository write access")
+
 required_job = workflow.split("  checks:", 1)[1]
 for expected in (
     "if: ${{ always() }}",
@@ -148,6 +158,8 @@ if release_condition not in release_publication_job:
     raise SystemExit("release_publication_checks must be release/manual only")
 if "always() &&" not in release_publication_job:
     raise SystemExit("release_publication_checks must run after failed release lanes and report fail-closed evidence")
+if "permissions:\n      contents: write" not in release_publication_job:
+    raise SystemExit("only release_publication_checks may receive contents: write")
 for expected in (
     "- pr_fast_checks",
     "- linux_checks",
@@ -170,6 +182,8 @@ for expected in (
         raise SystemExit(f"release_publication_checks must fail closed on missing/failed matrix result: {expected}")
 
 fast_job = workflow.split("  pr_fast_checks:", 1)[1].split("  linux_checks:", 1)[0]
+if "contents: write" in fast_job:
+    raise SystemExit("pr_fast_checks must not receive contents: write")
 for expected in (
     "git diff --check",
     "bash checks/automation-readiness.sh",
@@ -179,6 +193,8 @@ for expected in (
         raise SystemExit(f"pr_fast_checks must run {expected}")
 if "bash checks/run.sh" in fast_job or "swift build --product Dashboard" in fast_job or "DASHBOARD_SMOKE=1 swift run Dashboard" in fast_job:
     raise SystemExit("pr_fast_checks must not run full historical release regression or Dashboard smoke")
+if workflow.count("uses: actions/checkout@v4") != workflow.count("persist-credentials: false"):
+    raise SystemExit("every checkout in checks.yml must disable persisted credentials")
 PY
 
 for forbidden in \
